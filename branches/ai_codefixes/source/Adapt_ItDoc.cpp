@@ -87,6 +87,8 @@
 #include "Notes.h"
 #include "ExportFunctions.h"
 #include "ReadOnlyProtection.h"
+#include "ConsistencyCheckDlg.h"
+#include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
 
 // forward declarations for functions called in tellenc.cpp
 // GDLC Temporary work around for PPC STL library bug
@@ -96,6 +98,25 @@
 void init_utf8_char_table();
 const char* tellenc(const char* const buffer, const size_t len);
 #endif
+
+// struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;
+// for glossing we can use the same structure with the understanding that the oldAdaptation
+// and finalAdaptation will in reality contain the old gloss and the final gloss,
+// respectively; and nWords for glossing will always be 1.
+struct	AutoFixRecord
+{
+	wxString	key;
+	wxString	oldAdaptation;
+	wxString finalAdaptation;
+	int		nWords;
+};
+
+// Define type safe pointer lists
+#include "wx/listimpl.cpp"
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called AFList.
+WX_DEFINE_LIST(AFList);
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
@@ -247,6 +268,23 @@ extern wxString szAdminProjectConfiguration;
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHackedDataCharWarningGiven;
 
+// globals needed due to moving functions here from mainly the view class
+// next group for auto-capitalization support
+extern bool	gbAutoCaps;
+extern bool	gbSourceIsUpperCase;
+extern bool	gbNonSourceIsUpperCase;
+extern bool	gbMatchedKB_UCentry;
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern bool	gbNoGlossCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
+
+bool	gbIgnoreIt = FALSE; // used when "Ignore it, I will fix it later" button was hit
+							// in consistency check dlg
+
 // support for USFM and SFM Filtering
 // Since these special filter markers will be visible to the user in certain dialog
 // controls, I've opted to use marker labels that should be unique (starting with \~) and
@@ -287,6 +325,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(ID_FILE_UNPACK_DOC, CAdapt_ItDoc::OnUpdateFileUnpackDoc)
 	EVT_MENU(ID_FILE_PACK_DOC, CAdapt_ItDoc::OnFilePackDoc)
 	EVT_MENU(ID_FILE_UNPACK_DOC, CAdapt_ItDoc::OnFileUnpackDoc)
+	EVT_MENU(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItDoc::OnEditConsistencyCheck)
+	EVT_UPDATE_UI(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItDoc::OnUpdateEditConsistencyCheck)
 	EVT_MENU(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_UPDATE_UI(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_MENU(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages)
@@ -15432,3 +15472,1002 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& W
 		gbIgnoreScriptureReference_Send = FALSE;
 	}
 }
+
+// whm Modified 9Feb2004, to enable consistency checking of currently open document or,
+// alternatively, select multiple documents from the project to check for consistency. If a
+// document is open when call is made to this routine, the consistency check is completed
+// and the user can continue working from the same position in the open document.
+// BEW 12Apr10, no changes for support of doc version 5
+void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
+{
+	// the 'accepted' list holds the document filenames to be used
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->m_acceptedFilesList.Clear();
+//	if (pDoc == NULL)
+//	{
+//		wxMessageBox(_T(
+//"GetDocument() call returned a null pointer in OnEditConsistencyCheck(), so command was aborted."),
+//		_T(""), wxICON_EXCLAMATION);
+//		return;
+//	}
+
+    // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
+    // now added here & below. For Book Mode, not all Bible book folders will be scanned,
+    // instead, the check is done on the current doc, or on all the docs in the single
+    // current book folder. To check other book folders, the user must first change to one,
+    // and then the same two options will be available there.
+	wxString dirPath;
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+		dirPath = pApp->m_bibleBooksFolderPath;
+	else
+		dirPath = pApp->m_curAdaptionsPath;
+	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+
+	// BEW added 05Jan07 to enable work folder on input to be restored when done
+	wxString strSaveCurrentDirectoryFullPath = dirPath;
+
+	// Determine if a document is currently open with data to check
+	if (!pApp->m_pSourcePhrases->GetCount() == 0)
+	{
+		// A document is open with data to check, therefore see if
+		// user wants to only check the open document or to select
+		// from a list of all documents in the current project to be
+		// checked.
+		// Save current path and doc name for use in re-opening below
+		wxString pathName = pApp->m_curOutputPath;
+		wxString docName = pApp->m_curOutputFilename;
+
+		// Save the phrase box's current position in the file
+		int currentPosition = pApp->m_nActiveSequNum;
+
+		// Put up the Choose Consistency Check Type dialog
+		CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
+		if (ccDlg.ShowModal() == wxID_OK) 
+		{
+			// handle user's choice of consistency check type
+			if (ccDlg.m_bCheckOpenDocOnly)
+			{
+				// user want's to check only the currently open doc...
+
+                // Save the Doc (and DoFileSave() also automatically saves, without backup,
+                // both the glossing and adapting KBs)
+				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
+				// protection against data loss in the event of a failure
+				bool fsOK = DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+				if (!fsOK)
+				{
+					// something's real wrong!
+					wxMessageBox(_(
+					"Could not save the current document. Consistency Check Command aborted."),
+					_T(""), wxICON_EXCLAMATION);
+                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+                    // current working directory has not changed, so no need here to reset
+                    // it before return.
+					return;
+				}
+
+                // BEW added 01Aug06, ensure the current document's contents are removed,
+                // otherwise we will get a doubling of the doc data when OnOpenDocument()
+                // is called because the latter will append to whatever is in
+                // m_pSourcePhrases, so the latter list must be cleared to avoid the data
+                // doubling bug
+				pApp->GetView()->ClobberDocument();
+
+				// Ensure that our current document is the only doc in the accepted files list
+				pApp->m_acceptedFilesList.Clear();
+				pApp->m_acceptedFilesList.Add(docName);
+
+				// do the consistency check on the doc
+				DoConsistencyCheck(pApp);
+				pApp->m_acceptedFilesList.Clear();
+			}
+			else
+			{
+				// User wants to check a selection of docs in current project.
+				// This is like the multi-document type consistency check, except
+				// that, in this case, there is a currenly open document.
+
+                // BEW changed 01Aug06 Save the current doc and then clear out its contents
+                // -- see block above for explanation of why this is necessary
+                // BEW changed 29Apr10 to give better data protection 
+				bool fsOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+				if (!fsOK)
+				{
+					// something's real wrong!
+					wxMessageBox(_(
+					"Could not save the current document. Consistency Check Command aborted."),
+					_T(""), wxICON_EXCLAMATION);
+                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+                    // current working directory has not changed, so no need here to reset
+                    // it before return.
+					return;
+				}
+				pApp->GetView()->ClobberDocument();
+
+                // Enumerate the doc files and do the consistency check 
+                // whm note: EnumerateDocFiles() has the side effect of changing the current
+                // work directory to the passed in dirPath.
+				bOK = pApp->EnumerateDocFiles(this, dirPath);
+				if (bOK)
+				{
+					if (pApp->m_acceptedFilesList.GetCount() == 0)
+					{
+						// nothing to work on, so abort the operation
+						// IDS_NO_DOCUMENTS_YET
+						wxMessageBox(_(
+"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
+						_T(""),wxICON_EXCLAMATION);
+                        // whm note 5Dec06: EnumerateDocFiles above changes the current
+                        // work directory, so to be safe I'll reset it here before the
+                        // consistency check returns to what it was on entry (the line
+                        // below was not added in MFC version).
+						bool bOK;
+						bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+						return;
+					}
+					DoConsistencyCheck(pApp);
+				}
+				pApp->m_acceptedFilesList.Clear();
+			}
+		}
+		else
+		{
+			// user cancelled
+            // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the current
+            // working directory has not changed, so no need here to reset it before
+            // return.
+			return;
+		}
+
+		// BEW added 05Jan07 to restore the former current working directory
+		// to what it was on entry
+		bool bOK;
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+
+		// Re-Open the CurrentDocName to continue editing at the point where
+		// the phrase box was at closure
+		bool bOpenOK;
+		bOpenOK = OnOpenDocument(pathName);
+		SetFilename(pathName,TRUE);
+		// Return the phrase box to the active sequence number; but if the box is not
+		// in existence because the user got to the end of the document and invoked the
+		// test from there, then reset to the initial position
+		if (currentPosition == -1)
+			currentPosition = 0;
+		CPile* pPile = pApp->GetView()->GetPile(currentPosition);
+		pApp->GetView()->Jump(pApp,pPile->GetSrcPhrase());
+
+	}// end of if document is open with data to check
+	else
+	{
+		// No document open. User selected Consistency Check intending to check
+		// a selection of documents in the current project
+        // whm note: EnumerateDocFiles() has the side effect of changing the current work
+        // directory to the passed in dirPath.
+		bOK = pApp->EnumerateDocFiles(this, dirPath);
+		if (bOK)
+		{
+			if (pApp->m_acceptedFilesList.GetCount() == 0)
+			{
+				// nothing to work on, so abort the operation
+				//IDS_NO_DOCUMENTS_YET
+				wxMessageBox(_(
+"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
+				_T(""),wxICON_EXCLAMATION);
+                // whm note 5Dec06: EnumerateDocFiles above changes the current work
+                // directory, so to be safe I'll reset it here before the consistency check
+                // returns to what it was on entry (the line below was not added in MFC
+                // version).
+				bool bOK;
+				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				return;
+			}
+			DoConsistencyCheck(pApp);
+		}
+		pApp->m_acceptedFilesList.Clear();
+		
+		// BEW added 05Jan07 to restore the former current working directory
+		// to what it was on entry
+		bool bOK;
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the application is in Free Translation mode, or
+/// Vertical Editing is in progress, or it is only showing the target language text, or the
+/// active KB is not in a ready state, this handler disables the "Consistency Check..."
+/// item in the Edit menu, otherwise it enables the "Consistency Check..." item on the Edit
+/// menu.
+/// BEW modified 13Nov09, disable the consistency check menu item when the flag
+/// m_bReadOnlyAccess is TRUE (it must not be possible to initiate a consistency
+/// check when visiting a remote user's project folder -- it involves KB modifications
+/// and that would potentially lose data added to the remote user's remote KB by him)
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbShowTargetOnly)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	//if (pDoc == NULL)
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
+	bool bKBReady = FALSE;
+	if (gbIsGlossing)
+		bKBReady = pApp->m_bGlossingKBReady;
+	else
+		bKBReady = pApp->m_bKBReady;
+	// Allow Consistency Check... while document is open
+	if (bKBReady)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+// this function assumes that the current directory will have already been set correctly
+// before being called. Modified, July 2003, for support of Auto Capitalization
+// BEW 12Apr10, no changes needed for support of doc version 5
+// BEW 17May10, moved to here from CAdapt_ItView
+void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
+{
+	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
+									  // initially when OnOpenDocument() is called
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	CKB* pKB;
+	wxArrayString* pList = &pApp->m_acceptedFilesList;
+	if (gbIsGlossing)
+		pKB = pApp->m_pGlossingKB;
+	else
+		pKB = pApp->m_pKB;
+	wxASSERT(pKB != NULL);
+	int nCount = pList->GetCount();
+	if (nCount <= 0)
+	{
+		// something is real wrong, but this should never happen so an English message will suffice
+		wxString error;
+		error = error.Format(_T(
+		"Error, the file count was found to be %d, so the command was aborted."),nCount);
+		wxMessageBox(error,_T(""), wxICON_WARNING);
+		gbConsistencyCheckCurrent = FALSE;
+		return;
+	}
+	wxASSERT(nCount > 0);
+	//if (pDoc == NULL)
+	//{
+	//	wxMessageBox(_T(
+	// "GetDocument() call returned a null pointer in DoConsistencyCheck(), so command was aborted."),
+	//	_T(""), wxICON_EXCLAMATION);
+	//	gbConsistencyCheckCurrent = FALSE;
+	//	return;
+	//}
+	int nTotal = 0;
+	int nCumulativeTotal = 0;
+
+	// create a list to hold pointers to auto-fix records, if user checks the auto fix checkbox
+	// in the dlg
+	AFList afList;
+
+	// create a copy of the KB, we check the copy for inconsistencies, but do updating within
+	// the current KB pointed to by the app's m_pKB pointer, or m_pGlossingKB when glossing
+	CKB* pKBCopy = new CKB(); // can't use a copy constructor, due to C++ bug
+							  // BEW 12May10 note: default constructor here does not set the
+							  // private m_bGlossingKB member, the next line does that based
+							  // on the setting for that member in pKB
+	pKBCopy->Copy(*pKB);  // this is a work-around for the C++ bug - see KB.h for an explanation
+
+	// iterate over the document files
+	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
+								 // of the extern global of the same name
+	int i;
+	for (i=0; i < nCount; i++)
+	{
+		wxString newName = pList->Item(i);
+		wxASSERT(!newName.IsEmpty());
+
+        // for debugging- check pile count before & after (failure to close doc before
+        // calling this function resulted in the following OnOpenDocument() call appending
+        // a copy of the document's contents to itself -- the fix is to ensure
+        // OnFileClose() is done in the caller before DoConsistencyCheck() is called
+		// int piles = pApp->m_pSourcePhrases->GetCount();
+
+		bool bOK;
+		bOK = OnOpenDocument(newName);
+		SetFilename(newName,TRUE);
+
+		nTotal = pApp->m_pSourcePhrases->GetCount();
+		if (nTotal == 0)
+		{
+			wxString str;
+			str = str.Format(_T("Bad file:  %s"),newName.c_str());
+			wxMessageBox(str,_T(""),wxICON_WARNING);
+		}
+		nCumulativeTotal += nTotal;
+
+		// put up a progress indicator
+#ifdef __WXMSW__
+		wxString progMsg = _("%s  - %d of %d Total words and phrases");
+		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
+		wxProgressDialog progDlg(_("Consistency Checking"),
+                        msgDisplayed,
+                        nTotal,    // range
+                        pApp->GetMainFrame(),   // parent
+                        //wxPD_CAN_ABORT |
+                        //wxPD_CAN_SKIP |
+                        wxPD_APP_MODAL |
+                        // wxPD_AUTO_HIDE | -- try this as well
+                        wxPD_ELAPSED_TIME |
+                        wxPD_ESTIMATED_TIME |
+                        wxPD_REMAINING_TIME
+                        | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                        );
+#else
+	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
+	// notification on wxGTK and wxMAC
+	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
+	CWaitDlg waitDlg(pApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+#endif
+
+		SPList* pPhrases = pApp->m_pSourcePhrases;
+		SPList::Node* pos1; 
+		pos1 = pPhrases->GetFirst();
+		wxASSERT(pos1 != NULL);
+		int counter = 0;
+		while (pos1 != NULL)
+		{
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pos1 = pos1->GetNext();
+			counter++;
+
+			// check the KBCopy has the required association of key with translation
+			int nWords;
+			if (gbIsGlossing)
+				nWords = 1;
+			else
+				nWords = pSrcPhrase->m_nSrcWords;
+			CTargetUnit* pTU = NULL;
+			bool bOK = TRUE;
+			bool bFoundTgtUnit = TRUE;
+			bool bFoundRefString = TRUE;
+
+			// any inconsistency with a <Not In KB> entry can be fixed automatically,
+			// and this block must be ignored when glossing is ON
+			if (!gbIsGlossing && !pSrcPhrase->m_bRetranslation && 
+				pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
+			{
+				wxString str = _T("<Not In KB>");
+				// do the lookup
+				bOK = pKB->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				if (!bOK)
+				{
+					// fix it silently
+					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
+					pKB->StoreText(pSrcPhrase,str); // don't want punctuation in the KB
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+				}
+			}
+
+			bool bTheTest = FALSE;
+			// define the test's value
+			if (gbIsGlossing)
+			{
+				if (pSrcPhrase->m_bHasGlossingKBEntry)
+				{
+					bTheTest = TRUE;
+				}
+			}
+			else // adapting
+			{
+				if (!pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bNotInKB &&
+					pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_adaption != _T("<Not In KB>"))
+				{
+					bTheTest = TRUE;
+				}
+			}
+			if (bTheTest)
+			{
+				// do the lookup
+				bOK = pKBCopy->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				if (!bOK)
+				{
+					// there was no target unit for this key in the map, so this is an
+					// inconsistency
+					bFoundTgtUnit = FALSE;
+					bFoundRefString = FALSE;
+				}
+				else
+				{
+					// the target unit is in the map, so check if there is a corresponding
+					// refString for the m_adaption, or m_gloss, member of the source phrase
+					wxASSERT(pTU);
+					bool bMatched = FALSE;
+					TranslationsList* pList = pTU->m_pTranslations; 
+					wxASSERT(pList != NULL);
+					wxASSERT(pList->GetCount() > 0); // a target unit with no refStrings is illegal
+					wxString srcPhraseStr;
+					if (gbIsGlossing)
+					{
+						srcPhraseStr = pSrcPhrase->m_gloss;
+					}
+					else
+					{
+						srcPhraseStr = pSrcPhrase->m_adaption;
+					}
+					if (!((gbAutoCaps && gbSourceIsUpperCase && 
+						gbMatchedKB_UCentry) || !gbAutoCaps))
+					{
+                        // do a change to lc only if it is needed - that is, attempt it
+                        // when it is not the case that gbMatchedKB_UCentry is TRUE
+                        // (because then we want an unmodified string to be used),
+                        // otherwise attempt it when auto-caps is ON
+						srcPhraseStr = pKBCopy->AutoCapsMakeStorageString(srcPhraseStr,FALSE);
+					}
+					TranslationsList::Node* pos = pList->GetFirst();
+					wxASSERT(pos != NULL);
+					while (pos != NULL)
+					{
+						CRefString* pRefString = (CRefString*)pos->GetData();
+						pos = pos->GetNext();
+						wxASSERT(pRefString != NULL);
+						if (pRefString->m_translation == srcPhraseStr)
+						{
+							// a matching gloss was found
+							bMatched = TRUE;
+							break;
+						}
+					}
+					if (!bMatched)
+					{
+						// no match was made, so this is an inconsistency
+						bFoundRefString = FALSE;
+					}
+				}
+			}
+
+			// open the dialog if we have an inconsistency
+			if (!bFoundTgtUnit || !bFoundRefString)
+			{
+				// make the source phrase able to have a KB entry added
+				if (gbIsGlossing)
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				else
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+
+#ifdef __WXMSW__
+				// hide the progress window
+				progDlg.Hide(); 
+#endif
+
+                // work out if this is an auto-fix item, if so, don't show the dialog, but
+                // use the stored AutoFixRecord to fix the inconsistency without user
+                // intervention (note: any items for which the "Ignore it, I will fix it 
+                // later" button was pressed cannot occur as auto-fix records) The next 100
+                // lines could be improved - it was "added to" in a rather ad hoc fashion,
+                // so its a bit spagetti-like... something to do sometime when there is
+                // plenty of time!
+				AutoFixRecord* pAFRecord = NULL;
+				if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
+				{
+					// we matched an auto-fix element, so do the fix automatically...
+					// update the original kb (not pKBCopy)
+					wxString tempStr = pAFRecord->finalAdaptation; // could have punctuation in it
+
+					// if the adaptation is null, then assume user wants it that way and so store
+					// an empty string
+					if (tempStr.IsEmpty())
+					{
+						pKB->StoreText(pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
+					}
+					else
+					{
+						if (!gbIsGlossing)
+						{
+							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
+                                // we don't want punctuation in adaptation KB if
+                                // autocapitalization is ON, we could have an upper case
+                                // source, but the user may have typed lower case for
+                                // fixing the gloss or adaptation, but this is okay - the
+                                // store will work right, so don't need anything here
+                                // except the call to store it
+							pKB->StoreText(pSrcPhrase,tempStr);
+						}
+						// do the gbIsGlossing case when no punct is to be removed, in next block
+					}
+					if (!tempStr.IsEmpty())
+					{
+                        // here we must be careful; pAFRecord->finalAdaptation may have a
+                        // lower case string when the source text has upper case, and the
+                        // user is expecting the application to do the fix for him; this
+                        // would be easy if we could be sure that the first letter of the
+                        // string was at index == 0, but the possible presence of preceding
+                        // punctuation makes the assumption dangerous - so we must find
+                        // where the actual text starts and do any changes there if needed.
+                        // tempStr has punctuation stripped out, pAFRecord->finalAdaptation
+                        // doesn't so start by determining if there actually is a problem
+                        // to be fixed.
+						if (gbAutoCaps)
+						{
+							bool bNoError = pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key);
+							if (bNoError && gbSourceIsUpperCase)
+							{
+								bNoError = pApp->GetView()->SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
+								if (bNoError && !gbNonSourceIsUpperCase &&
+									(gcharNonSrcUC != _T('\0')))
+								{
+                                    // source is upper case but nonsource is lower and is a
+                                    // character with an upper case equivalent - we have a
+                                    // problem; we need to fix the AutoFixRecord's
+                                    // finalAdaptation string, and the sourcephrase too. At
+                                    // this point we can fix the m_adaption member as
+                                    // follows:
+									pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC);
+								}
+							}
+						}
+                        // In the next if/else block, the non-glossing-mode call of
+                        // MakeLineFourString() accomplishes the setting of the
+                        // pSrcPhrase's m_targetStr member, handling any needed lower case
+                        // to upper case conversion (even when typed initial punctuation is
+                        // present), and the punctuation override protocol if the passed in
+                        // string in the 2nd parameter has initial and/or final
+                        // punctuation.
+						if (!gbIsGlossing)
+						{
+							// for auto capitalization support, MakeLineFourString( ) is now
+							// able to do any needed change to upper case initial letter even
+							// when there is initial punctuation on pAFRecord->finalAdaptation
+							pApp->GetView()->MakeLineFourString(pSrcPhrase, pAFRecord->finalAdaptation);
+						}
+						else
+						{
+							// store, for the glossing ON case, the gloss text, 
+							// with any punctuation
+							pKB->StoreText(pSrcPhrase, pAFRecord->finalAdaptation);
+							if (gbAutoCaps)
+							{
+                                 // upper case may be wanted, we have to do it on the first
+                                // character past any initial punctuation; glossing mode
+                                // doesn't do punctuation stripping and copying, but the
+                                // user may have punctuation included in the inconsistency
+                                // fixing string, so we have to check etc.
+								wxString str = pAFRecord->finalAdaptation;
+								// make a copy and remove punctuation from it
+								wxString str_nopunct = str;
+								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
+								// use the punctuation-less string to get the initial charact and
+								// its upper case equivalent if it exists
+								bool bNoError = pApp->GetView()->SetCaseParameters(str_nopunct,FALSE);
+															 // FALSE means "using target punct list"
+								// span punctuation-having str using target lang's punctuation...
+								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
+															// use our own SpanIncluding in helpers
+								int punctLen = strInitialPunct.Length();
+
+								// work out if there is a case change needed, and set the
+								// relevant case globals
+								bNoError = pApp->GetView()->SetCaseParameters(tempStr,FALSE);  
+															// FALSE means "it's target text"
+								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
+									&& (gcharNonSrcUC != _T('\0')))
+								{
+									if (strInitialPunct.IsEmpty())
+									{
+                                        // there is no initial punctuation, so the change
+                                        // to upper case can be done at the string's start
+										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
+									}
+									else
+									{
+										// set it at the first character past the initial
+										// punctuation
+										str.SetChar(punctLen,gcharNonSrcUC);
+										pSrcPhrase->m_gloss = str;
+									}
+								}
+							}
+							else
+							{
+								// no auto capitalization, so just use finalAdaptation 
+								// string 'as is'
+								pSrcPhrase->m_gloss = pAFRecord->finalAdaptation;
+							}
+						}
+					}
+					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
+							// of the box should show the current adaptation, or gloss, string
+#ifdef __WXMSW__
+					// show the progress window again
+					progDlg.Show(TRUE); 
+					//prog.Update(); //prog.UpdateWindow(); // needed, otherwise window's
+															// stat text items don't show
+#endif
+				}
+				else
+				{
+					// no match, so this is has to be handled with user intervention via
+					// the dialog
+					CConsistencyCheckDlg dlg(pApp->GetMainFrame());
+					dlg.m_bFoundTgtUnit = bFoundTgtUnit;
+					dlg.m_bDoAutoFix = FALSE;
+					dlg.m_pApp = pApp;
+					dlg.m_pKBCopy = pKBCopy;
+					dlg.m_pTgtUnit = pTU; // could be null
+					dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+					dlg.m_pSrcPhrase = pSrcPhrase;
+
+                    // update the view to show the location where this source pile is, and
+                    // put the phrase box there ready to accept user input indirectly from
+                    // the dialog
+					int nActiveSequNum = pSrcPhrase->m_nSequNumber;
+					wxASSERT(nActiveSequNum >= 0);
+					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
+					// and is needed because CLayout::RecalcLayout() relies on the
+					// m_nActiveSequNum value being correct
+#ifdef _NEW_LAYOUT
+					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
+#else
+					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
+#endif
+					pApp->m_pActivePile = GetPile(nActiveSequNum);
+					
+					pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
+					CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
+															 // the phraseBox is to be
+					if (gbIsGlossing)
+						pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+					else
+						// make it look normal, don't use m_targetStr here
+						pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+
+					GetLayout()->m_docEditOperationType = consistency_check_op;
+														// sets 0,-1 'select all'
+					pApp->GetView()->Invalidate(); // get the layout drawn
+					GetLayout()->PlaceBox();
+
+					// get the chapter and verse
+					wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
+					dlg.m_chVerse = chVerse;
+
+                    // provide hooks for the phrase box location so that the dialog can
+                    // work out where to display itself so it does not obscure the active
+                    // location
+					dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+					dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+
+					if (gbIsGlossing)
+					{
+						// really its three lines, but the code works provided the 
+						// height is right
+						if (gbGlossingUsesNavFont)
+							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
+					}
+
+					// put up the dialog
+					if (dlg.ShowModal() == wxID_OK)
+					{
+						//bool bNoError;
+						wxString finalStr;
+						// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+						// subsequent use
+						AutoFixRecord* pRec;
+						if (dlg.m_bDoAutoFix)
+						{
+							if (gbIgnoreIt)
+								// disallow record creation for a press of the "Ignore it,
+								// I will fix it later" button
+								goto x;
+							pRec = new AutoFixRecord;
+							pRec->key = pSrcPhrase->m_key; // case should be as wanted
+							if (gbIsGlossing)
+							{
+								pRec->oldAdaptation = pSrcPhrase->m_gloss; // case as wanted
+								pRec->nWords = 1;
+							}
+							else
+							{
+								pRec->oldAdaptation = pSrcPhrase->m_adaption; // case as wanted
+								pRec->nWords = pSrcPhrase->m_nSrcWords;
+							}
+
+                            // BEW changed 16May; we don't want to convert the
+                            // m_finalAdaptation member to upper case in ANY circumstances,
+                            // so we will comment out the relevant lines here and
+                            // unilaterally use the user's final string
+							finalStr = dlg.m_finalAdaptation; // can have punctuation
+									// in it, or can be null; can also be lower case and user
+									// expects the app to switch it to upper case if source is upper
+							pRec->finalAdaptation = finalStr;
+							afList.Append(pRec);
+						} // end of block for setting up a new AutoFixRecord
+
+						// update the original kb (not pKBCopy)
+x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
+                        // if the adaptation is null, then assume user wants it that way
+                        // and so store an empty string; but if user wants the
+                        // inconsistency ignored, then skip
+						wxString tempStr = dlg.m_finalAdaptation;
+						pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
+						if (gbIgnoreIt)
+						{
+							// if the user hit the "Ignore it, I will fix it later" button,
+							// then just put the existing adaptation or gloss back into the KB,
+							// after clearing the flag
+							if (gbIsGlossing)
+							{
+								tempStr = pSrcPhrase->m_gloss;
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+							}
+							else // adapting
+							{
+								tempStr = pSrcPhrase->m_adaption; // no punctuation on this one
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+								pApp->GetView()->MakeLineFourString(pSrcPhrase,pSrcPhrase->m_targetStr); 
+																// m_targetStr may have punct
+							}
+							gbIgnoreIt = FALSE;
+							goto y;
+						}
+						else
+						{
+							// don't ignore, so handle the dialog's contents
+							if (tempStr.IsEmpty())
+							{
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+														// TRUE = allow empty string storage
+							}
+							else
+							{
+								if (!gbIsGlossing)
+								{
+									pKB->StoreText(pSrcPhrase,tempStr);
+								}
+								// do the gbIsGlossing case in next block
+							}
+                            // the next stuff is taken from code earlier than the DoModal()
+                            // call, so comments will not be repeated here - see above if
+                            // the details are wanted
+							if (gbAutoCaps)
+							{
+								bool bNoError = pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key);
+								if (bNoError && gbSourceIsUpperCase)
+								{
+									bNoError = pApp->GetView()->SetCaseParameters(tempStr,FALSE); 
+															// FALSE means "it's target text"
+									if (bNoError && !gbNonSourceIsUpperCase && 
+										(gcharNonSrcUC != _T('\0')))
+									{
+										pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC); 
+															// get m_adaption member done
+									}
+								}
+							}
+							if (!gbIsGlossing)
+							{
+								pApp->GetView()->MakeLineFourString(pSrcPhrase,finalStr); // handles 
+													// auto caps, punctuation, etc
+							}
+							else // we are in glossing mode
+							{
+								pKB->StoreText(pSrcPhrase,finalStr); // glossing store
+														// can have punctuation in it
+								if (gbAutoCaps)
+								{
+									// if Auto Caps is on, gloss text can be auto 
+									// capitalized too... check it out
+									wxString str_nopunct = finalStr;
+									pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
+									bool bNoError = pApp->GetView()->SetCaseParameters(str_nopunct,FALSE);
+															// FALSE means "using target punct list"
+									wxString strInitialPunct = SpanIncluding(
+														finalStr,pApp->m_punctuation[1]);
+									int punctLen = strInitialPunct.Length();
+									bNoError = pApp->GetView()->SetCaseParameters(str_nopunct,FALSE); // FALSE 
+															// means "using target punct list"
+									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
+										&& (gcharNonSrcUC != _T('\0')))
+									{
+										if (strInitialPunct.IsEmpty())
+										{
+											pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
+										}
+										else
+										{
+											finalStr.SetChar(punctLen,gcharNonSrcUC);
+											pSrcPhrase->m_gloss = finalStr;
+										}
+									}
+								}
+								else
+								{
+									pSrcPhrase->m_gloss = finalStr;
+								}
+							} // end of block for glossing mode
+						} // end of else block for test: if (gbIgnoreIt)
+
+						// show the progress window again
+y:						;
+#ifdef __WXMSW__
+						progDlg.Show(TRUE);
+#endif
+					} // end of TRUE block for test of ShowModal() == wxID_OK
+					else
+					{
+						// user cancelled
+						bUserCancelled = TRUE;
+#ifdef __WXMSW__
+						progDlg.Show(TRUE);
+						msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
+						progDlg.Update(counter,msgDisplayed);
+#endif
+						break;
+					}
+				} // end of else block for test of presence of an 
+				  // AutoFixRecord for this inconsistency
+			}
+#ifdef __WXMSW_
+			// update the progress bar every 20th iteration
+			if (counter % 1000 == 0) //if (20 * (counter / 20) == counter)
+			{
+				//prog.m_progress.SetValue(counter);
+				//prog.TransferDataToWindow(); //prog.UpdateData(FALSE);
+				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
+				progDlg.Update(counter,msgDisplayed);
+			}
+#endif
+		}// end of while (pos1 != NULL)
+
+		// save document and KB
+		pApp->m_pTargetBox->Hide(); //MFC calls DestroyWindow(); // this prevents
+                // DoFileSave() trying to store to kb with a source phrase with
+                // m_bHasKBEntry flag TRUE, which would cause an assert to trip
+		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
+											  // since it won't get recreated
+		// BEW changed 29Apr10 to give better data protection
+		//bool bSavedOK = pDoc->DoFileSave(TRUE);
+		bool bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+		if (!bSavedOK)
+		{
+			wxMessageBox(_("Warning: failure on document save operation."),
+			_T(""), wxICON_EXCLAMATION);
+		}
+		pApp->GetView()->ClobberDocument();
+
+		// delete the buffer containing the filed-in source text
+		if (pApp->m_pBuffer != NULL)
+		{
+			delete pApp->m_pBuffer;
+			pApp->m_pBuffer = NULL;
+		}
+#ifdef __WXMSW__
+		// remove the progress indicator window
+		progDlg.Destroy();
+#endif
+		if (bUserCancelled)
+			break; // don't do any more saves of the KB if user cancelled
+	}// end iteration of document files for (int i=0; i < nCount; i++)
+
+	// erase the copied CKB which is no longer needed
+	wxASSERT(pKBCopy != NULL);
+	EraseKB(pKBCopy); // don't want memory leaks!
+
+	// inform user of success and some statistics
+	if (!bUserCancelled)
+	{
+		// put up final statistics, provided user did not cancel from one
+		// of the dialogs
+		wxString stats;
+		// IDS_CONSCHECK_OK
+		stats = stats.Format(_(
+"The consistency check was successful. There were %d source words and phrases  in %d  files."),
+		nCumulativeTotal,nCount);
+		wxMessageBox(stats,_T(""),wxICON_INFORMATION);
+	}
+
+	// make sure the global flag is cleared
+	gbConsistencyCheckCurrent = FALSE;
+
+	// delete the contents of the pointer list, the list is local 
+	// so will go out of scope
+	if (!afList.IsEmpty())
+	{
+		AFList::Node* pos = afList.GetFirst();
+		wxASSERT(pos != 0);
+		while (pos != 0)
+		{
+			AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
+			pos = pos->GetNext();
+			delete pRec;
+		}
+	}
+	afList.Clear();
+	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
+}
+
+// the rpRec value will be undefined if FALSE is returned, if TRUE is returned, rpRec will
+// be the matched auto-fix item in the list. For version 2.0 and later which supports
+// glossing, rpRec could contain glossing or adapting information, depending on the setting
+// for the gbIsGlossing flag. Also, in support of auto capitalization; since these strings
+// are coming from the sourcephrase instances in the documents, they will have upper or
+// lower case as appropriate; but we will need to allow the user to just type lower case
+// strings when correcting in the context of AutoCaps being turned ON, so be careful!
+// BEW 12Apr10, no change needed for support of doc version 5
+// BEW 17May10, moved to here from CAdapt_ItView
+bool CAdapt_ItDoc::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
+									 AutoFixRecord*& rpRec)
+{
+	wxASSERT(pList != NULL);
+	wxASSERT(pSrcPhrase != NULL);
+	if (pList->IsEmpty())
+		return FALSE;
+	AFList::Node* pos = pList->GetFirst(); 
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
+		pos = pos->GetNext();
+		bool bTest = FALSE;
+		if (gbIsGlossing)
+		{
+			if (pRec->key == pSrcPhrase->m_key && 
+				pRec->oldAdaptation == pSrcPhrase->m_gloss)
+				bTest = TRUE;
+		}
+		else
+		{
+			if (pRec->key == pSrcPhrase->m_key && 
+				pRec->oldAdaptation == pSrcPhrase->m_adaption)
+				bTest = TRUE;
+		}
+		if (bTest)
+		{
+            // we can autofix with this one, so pass its values (including any upper case)
+            // to the caller (ie. to DoConsistencyCheck( )) for processing - remember, it
+            // may have an old gloss or adaptation which is upper case, and the user may
+            // have typed a lower case string for the finalAdaptation member, so this will
+            // need to be tested for
+			rpRec = pRec;
+			return TRUE;
+		}
+	}
+	// if we get to here, no match was made
+	rpRec = NULL;
+	return FALSE;
+}
+
+

@@ -3360,15 +3360,18 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
     // we are about to leave the current phrase box location, so we must try to store what
     // is now in the box, if the relevant flags allow it. Test to determine which KB to
     // store to. StoreText( ) has been ammended for auto-capitalization support (July 2003)
-	if (!gbIsGlossing)
+	if (gbIsGlossing)
+	{
+		bOK = pApp->m_pGlossingKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+	}
+	else // adapting
 	{
 		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+		gbInhibitLine4StrCall = TRUE;
+		bOK = pApp->m_pKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+		gbInhibitLine4StrCall = FALSE;
 	}
-	gbInhibitLine4StrCall = TRUE;
-	bOK = pView->StoreTextGoingBack(pView->GetKB(), pCurPile->GetSrcPhrase(), 
-									pApp->m_targetPhrase);
-	gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 	{
         // here, MoveToNextPile() calls DoStore_NormalOrTransliterateModes(), but for
@@ -5124,4 +5127,51 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 }
+
+// DoStore_ForPlacePhraseBox added 3Apr09; it factors out some of the incidental
+// complexity in the PlacePhraseBox() function, making the latter's design more
+// transparent and the function shorter
+// BEW 22Feb10 no changes needed for support of doc version 5
+bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase)
+{
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	bool bOK = TRUE;
+	if (gbIsGlossing)
+	{
+		if (targetPhrase.IsEmpty())
+			pApp->m_pActivePile->GetSrcPhrase()->m_gloss = targetPhrase;
+
+		// store will fail if the user edited the entry out of the glossing KB, since it
+		// cannot know which srcPhrases will be affected, so these will still have their
+		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
+		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
+		CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
+		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+		bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+	}
+	else // is adapting
+	{
+		if (targetPhrase.IsEmpty())
+			pApp->m_pActivePile->GetSrcPhrase()->m_adaption = targetPhrase;
+		// re-express the punctuation
+		pApp->GetView()->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+		pApp->GetView()->RemovePunctuation(pDoc, &targetPhrase, from_target_text);
+
+		// the store will fail if the user edited the entry out of the KB, as the latter
+		// cannot know which srcPhrases will be affected, so these will still have their
+		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
+		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
+		CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
+		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+		gbInhibitLine4StrCall = TRUE;
+		bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+		gbInhibitLine4StrCall = FALSE;
+	}
+	return bOK;
+}
+
 

@@ -89,7 +89,7 @@ extern bool bSupportNoAdaptationButton;
 extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbByCopyOnly;
 extern bool gbInhibitLine4StrCall;
-
+extern bool gbRemovePunctuationFromGlosses;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -1389,8 +1389,6 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					// the uuid is of the form "45a3c52b-79fd-4803-856b-207c3efdbaf8"
 					//const wxCharBuffer buff = pTU->GetUuid().utf8_str();
 					//guidForThisLexItem = buff;
-					
-					//guidForThisLexItem = ((wxString)GetUuid()).char_str; // get a genuine unique one, but for now, direct from helpers.cpp
 					composeXmlStr = indent2sp;
 					composeXmlStr += "<entry guid=\"";
 					composeXmlStr += guidForThisLexItem;
@@ -1826,6 +1824,335 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 		node = node->GetNext();
 	}
 	pKeys->Clear(); // get rid of the now hanging pointers
+}
+
+// like StoreAdaption, but with different assumptions since we need to be able to move back
+// when either there is nothing in the current phraseBox (in which case no store need be
+// done), or when the user has finished typing the current srcPhrase's adaption (since it
+// will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE
+// otherwise. For glossing, pKB must point to the glossing KB, for adapting, to the normal
+// KB.
+// BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 14May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
+bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
+{
+	// determine the auto caps parameters, if the functionality is turned on
+	bool bNoError = TRUE;
+	if (gbAutoCaps)
+	{
+		bNoError = m_pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
+	}
+
+	m_pApp->GetDocument()->Modify(TRUE);
+
+    // do not permit storage if the source phrase has an empty key (eg. user may have ...
+    // ellipsis in the source text, which generates an empty key and three periods in the
+    // punctuation)
+	if (pSrcPhrase->m_key.IsEmpty())
+	{
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE; // this is not an error, just suppression of the store
+	}
+
+	gbByCopyOnly = FALSE; // restore default setting
+
+	// is the m_targetPhrase empty?
+	if (tgtPhrase.IsEmpty())
+	{
+		// it's empty, so we can go back without saving anything in the kb
+		m_pApp->m_bForceAsk = FALSE; // must ensure this flag is off, no forcing of 
+						// Choose Translation dialog is required when moving back
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE;
+	}
+
+    // It's not empty, so go ahead and re-store it as-is (but if auto capitalization has
+    // just been turned on, it will be stored as a lower case entry if it is an upper case
+    // one in the doc) first, remove any phrase final space characters
+	int len;
+	int nIndexLast;
+	if (!tgtPhrase.IsEmpty())
+	{
+		len = tgtPhrase.Length();
+		nIndexLast = len-1;
+		do {
+			if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
+			{
+                // wxString.Remove must have 1 otherwise the default is to truncate the
+                // remainder of the string!
+				tgtPhrase.Remove(nIndexLast,1);
+				len = tgtPhrase.Length();
+				nIndexLast = len -1;
+			}
+			else
+			{
+				break;
+			}
+		} while (len > 0 && nIndexLast > -1);
+	}
+
+	// always place a copy in the source phrase's m_adaption member, etc
+	if (m_bGlossingKB)
+	{
+		wxString s = tgtPhrase;
+		if (gbAutoCaps)
+		{
+			bool bNoError = TRUE;
+			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+			{
+				bNoError = m_pApp->GetView()->SetCaseParameters(s,FALSE);
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change it to upper case
+					s.SetChar(0,gcharNonSrcUC);
+				}
+			}
+		}
+		pSrcPhrase->m_gloss = s;
+		if (gbRemovePunctuationFromGlosses)
+			m_pApp->GetView()->RemovePunctuation(m_pApp->GetDocument(),&pSrcPhrase->m_gloss,from_target_text);
+	}
+	else
+	{
+		if (tgtPhrase != _T("<Not In KB>"))
+		{
+			pSrcPhrase->m_adaption = tgtPhrase;
+			if (!gbInhibitLine4StrCall)
+				m_pApp->GetView()->MakeLineFourString(pSrcPhrase, tgtPhrase); // set m_targetStr member too
+		}
+	}
+	
+    // if the user doesn't want a store done (he checked the dialog bar's control for this
+    // choice) then return without saving after setting the source phrase's m_bNotInKB flag
+    // to TRUE
+	int nMapIndex;
+	if (!m_bGlossingKB && !m_pApp->m_bSaveToKB)
+	{
+		pSrcPhrase->m_bNotInKB = TRUE;
+		m_pApp->m_bForceAsk = FALSE; // its a valid 'store op' so must turn this flag back off
+		pSrcPhrase->m_bHasKBEntry = FALSE;
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE; // we want the caller to think all is well
+	}
+	else // adapting or glossing
+	{
+		if (m_bGlossingKB)
+			nMapIndex = 0;
+		else
+			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
+	}
+	// if there is a CTargetUnit associated with the current key, then get it; if not,
+	// create one and add it to the appropriate map
+
+    // if we have too many source words, then we cannot save to the KB, so detect this and
+    // warn the user that it will not be put in the KB, then return TRUE since all is
+    // otherwise okay; this check need be done only when adapting
+	if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
+	{
+		pSrcPhrase->m_bNotInKB = TRUE;
+		pSrcPhrase->m_bHasKBEntry = FALSE;
+		wxMessageBox(_(
+"Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
+		, _T(""), wxICON_INFORMATION);
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE;
+	}
+
+	// continue the storage operation
+	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done to it
+											  // (need this for lookups)
+	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
+	CTargetUnit* pTU;
+	CRefString* pRefString;
+	if (m_pMap[nMapIndex]->empty()) 
+	{
+		pTU = new CTargetUnit;
+		wxASSERT(pTU != NULL);
+		pRefString = new CRefString(pTU);
+		wxASSERT(pRefString != NULL);
+
+		pRefString->m_refCount = 1; // set the count
+		// add the translation string, or gloss string
+		if (bNoError)
+		{
+			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+		}
+		else
+		{
+			// if something went wrong, just save as if gbAutoCaps was FALSE
+			pRefString->m_translation = tgtPhrase;
+		}
+		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
+		if (m_pApp->m_bForceAsk)
+			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
+				// opportunity to add a new refString next time its matched
+
+		m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+		if (m_bGlossingKB)
+			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+		else
+			pSrcPhrase->m_bHasKBEntry = TRUE;
+
+		(*m_pMap[nMapIndex])[key] = pTU;
+		// update the maxWords limit
+		if (m_bGlossingKB)
+		{
+			m_nMaxWords = 1; // always 1 when glossing (ensures glossing 
+				// ignores maps with indices from 1 to 9; all is in 1st map only)
+		}
+		else
+		{
+			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+				m_nMaxWords = pSrcPhrase->m_nSrcWords;
+		}
+	}
+	else // do next block when the map is not empty
+	{
+        // there might be a pre-existing association between this key and a CTargetUnit, 
+        // so check it out
+		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey); 
+
+        // if not found, then create a targetUnit, and add the refString, etc, as above;
+        // but if one is found, then check whether we add a new refString or increment the
+        // refCount of an existing one
+		if(!bFound)
+		{
+			pTU = new CTargetUnit;
+			wxASSERT(pTU != NULL);
+			pRefString = new CRefString((CTargetUnit*)pTU);
+			wxASSERT(pRefString != NULL);
+
+			pRefString->m_refCount = 1; // set the count
+			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
+			if (m_pApp->m_bForceAsk)
+				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
+						// opportunity to add a new refString next time its matched
+
+			m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+			if (m_bGlossingKB)
+				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+			else
+				pSrcPhrase->m_bHasKBEntry = TRUE;
+
+			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit in the map 
+			// update the maxWords limit
+			if (m_bGlossingKB)
+			{
+				m_nMaxWords = 1; // for glossing it is always 1
+			}
+			else
+			{
+				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+					m_nMaxWords = pSrcPhrase->m_nSrcWords;
+			}
+		}
+		else // we found one
+		{
+            // we have a pTU for this key, so check for a matching CRefString, if there is
+            // no match, then add a new one (note: no need to set m_nMaxWords for this
+            // case)
+			bool bMatched = FALSE;
+			pRefString = new CRefString(pTU);
+			wxASSERT(pRefString != NULL);
+			pRefString->m_refCount = 1; // set the count, assuming this will be stored 
+										// (it may not be)
+            // set its gloss or adaptation string; the fancy test is required because the
+            // refStr entry may have been stored in the kb when auto-caps was off, and if
+            // it was upper case for the source text's first letter, then it will have been
+            // looked up only on the second attempt, for which gbMatchedKB_UCentry will
+            // have been set TRUE, and which means the gloss or adaptation will not have
+            // been made lower case - so we must allow for this possibility
+			if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
+				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
+			else
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+
+			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+			while (pos != NULL)
+			{
+				CRefString* pRefStr = (CRefString*)pos->GetData();
+				pos = pos->GetNext();
+				wxASSERT(pRefStr != NULL);
+
+				// does it match?
+				if (*pRefStr == *pRefString) // TRUE if pRStr->m_translation ==
+											 //				pRefString->m_translation
+				{
+					// if we get a match, then increment ref count and point to this, etc
+					bMatched = TRUE;
+					pRefStr->m_refCount++;
+					if (m_bGlossingKB)
+						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+					else
+						pSrcPhrase->m_bHasKBEntry = TRUE;
+					delete pRefString; // don't need this one
+					pRefString = (CRefString*)NULL;
+					if (m_pApp->m_bForceAsk)
+						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must 
+								// ensure it gets set if that is what the user wants
+					break;
+				}
+			}
+            // if we get here with bMatched == FALSE, then there was no match, so we must
+            // add the new pRefString to the targetUnit
+			if (!bMatched)
+			{
+				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
+				CRefString* pRefStr = (CRefString*)tpos->GetData();
+				if (!m_bGlossingKB && pRefStr->m_translation == _T("<Not In KB>"))
+				{
+                    // keep it that way (the way to cancel this setting is with the toolbar
+                    // checkbox) But leave m_adaption and m_targetStr (or m_gloss) having
+                    // whatever the user may have typed
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+					pSrcPhrase->m_bBeginRetranslation = FALSE;
+					pSrcPhrase->m_bEndRetranslation = FALSE;
+					delete pRefString; // don't leak memory
+					pRefString = (CRefString*)NULL;
+					m_pApp->m_bForceAsk = FALSE;
+					gbMatchedKB_UCentry = FALSE;
+					return TRUE; // all is well
+				}
+				else // either we are glossing, or we are adapting and it's a normal adaptation
+				{
+					// is the m_targetPhrase empty?
+					if (tgtPhrase.IsEmpty())
+					{
+						// don't store if it is empty, and then return; but if not empty
+						// then go on to do the storage
+						if (!m_bGlossingKB)
+						{
+							pSrcPhrase->m_bBeginRetranslation = FALSE;
+							pSrcPhrase->m_bEndRetranslation = FALSE;
+						}
+						m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
+						delete pRefString; // don't leak the memory
+						pRefString = (CRefString*)NULL;
+						gbMatchedKB_UCentry = FALSE;
+						return TRUE; // make caller think all is well
+					}
+
+					// recalculate the string to be stored, in case we looked up a
+					// stored upper case entry earlier
+					pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+					pTU->m_pTranslations->Append(pRefString); 
+					if (m_bGlossingKB)
+						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+					else
+						pSrcPhrase->m_bHasKBEntry = TRUE;
+				}
+			}
+		}
+	}
+	if (!m_bGlossingKB)
+		pSrcPhrase->m_bNotInKB = FALSE; // ensure correct flag value, 
+										// in case it was not in KB
+	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies 
+							   // to one store operation only
+	gbMatchedKB_UCentry = FALSE;
+	return TRUE;
 }
 
 // return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE
@@ -2426,5 +2753,434 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	return TRUE;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pKeys   <- pointer to the list of keys that is produced
+/// \remarks
+/// Called from: the App's OnFileRestoreKb().
+/// Gets a list of the keys which have a unique translation and for which the CTargetUnit
+/// instance's m_bAlwaysAsk attribute is set to TRUE. This function is only called when a
+/// corrupted KB was detected, so we cannot expect to be able to recover all such keys, but
+/// as many as we can, which will reduce the amount of manual setting of the flags in the
+/// KB editor after a KB restore is done.
+/// BEW 14May10, moved to here from CAdapt_ItApp class
+////////////////////////////////////////////////////////////////////////////////////////
+void CKB::GetForceAskList(KPlusCList* pKeys)
+// get a list of the keys which have a unique translation and for which the CTargetUnit
+// instance's m_bAlwaysAsk attribute is set TRUE. (Since we are using this with a probably
+// corrupted KB, we cannot expect to be able to recover all such keys, and we will have to
+// check carefully for corrupt pointers, etc. We will recover as many as we can, which will
+// reduce the amount of the user's manual setting of the flag in the KB editor, after the
+// KB restore is done.)
+// For glossing being ON, this function should work correctly without any changes needed,
+// provided the caller calls this function on the glossing KB
+{
+	wxASSERT(pKeys->IsEmpty());
+	for (int i=0; i < MAX_WORDS; i++)
+	{
+		MapKeyStringToTgtUnit* pMap = m_pMap[i];
+		if (!pMap->empty())
+		{
+			MapKeyStringToTgtUnit::iterator iter;
+			for (iter = pMap->begin(); iter != pMap->end(); iter++)
+			{
+				wxString key;
+				key.Empty();
+				CTargetUnit* pTU = (CTargetUnit*)NULL;
+				try
+				{
+					key = iter->first; 
+					pTU = iter->second;
+					if (key.Length() > 360)
+						break; // almost certainly a corrupt key string, so exit the map
+
+					// we have a valid pointer to a target unit, so see if the flag is set
+					// and if the translation is unique
+					if (pTU->m_pTranslations->GetCount() == 1)
+					{
+						if (pTU->m_bAlwaysAsk)
+						{
+							// we've found a setting which is to be preserved, so do so
+							KeyPlusCount* pKPlusC = new KeyPlusCount;
+							wxASSERT(pKPlusC != NULL);
+							pKPlusC->count = i+1; // which map we are in
+							pKPlusC->key = key;
+							pKeys->Append(pKPlusC); // add it to the list
+						}
+					}	
+				}
+				catch (...)
+				{
+					break; // exit from this map, as we no longer can be sure of a valid pos
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a CBString (byte string) containing the composed KB element (each
+///             element handles one CTargetUnit and its associated key string (the
+///             source text word or phrase, minus punctuation)
+/// \param      src       -> reference to the source text word or phrase
+/// \param      pTU       -> pointer to the associated CTargetUnit instance
+/// \param      nTabLevel -> how many tabs are to be put at the start of each line 
+///                          for indenting purposes (2)
+/// \remarks
+/// Called from: this class's DoKBSaveAsXML() member function
+/// Constructs a byte string containing a composed KB element in XML format in which one
+/// CTargetUnit and its associated key string is represented (the source text word or
+/// phrase, minus punctuation). This function is called once for each target unit in the
+/// KB's map.
+////////////////////////////////////////////////////////////////////////////////////////
+CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
+{
+	// Constructs
+	// <TU f="boolean" k="source text key (a word or phrase)">
+	// 	<RS n="reference count" a="adaptation (or gloss) word or phrase"/>
+	// 	... possibly more RS elements (for other adaptations of the same source)
+	// </TU>
+	// The RS element handles the contents of the CRefString instances stored 
+	// on the pTU instance
+	CBString aStr;
+	CRefString* pRefStr;
+	int i;
+	wxString intStr;
+    // wx note: the wx version in Unicode build refuses assign a CBString to
+    // char numStr[24] so I'll declare numStr as a CBString also
+	CBString numStr; //char numStr[24];
+
+#ifndef _UNICODE  // ANSI (regular) version
+
+	// start the targetUnit element
+	aStr.Empty();
+	for (i = 0; i < nTabLevel; i++)
+	{
+		aStr += "\t"; // tab the start of the line
+	}
+	aStr += "<TU f=\"";
+	intStr.Empty(); // needs to start empty, otherwise << will 
+					// append the string value of the int
+	intStr << (int)pTU->m_bAlwaysAsk;
+	numStr = intStr;
+	aStr += numStr;
+	aStr += "\" k=\"";
+	CBString s(src);
+	InsertEntities(s);
+	aStr += s;
+	aStr += "\">\r\n";
+
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	while (pos != NULL)
+	{
+		// there will always be at least one pRefStr in a pTU
+		pRefStr = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		CBString bstr(pRefStr->m_translation);
+		InsertEntities(bstr);
+		intStr.Empty(); // needs to start empty, otherwise << will 
+						// append the string value of the int
+		intStr << pRefStr->m_refCount;
+		numStr = intStr;
+
+		// construct the tabs
+		int j;
+		int last = nTabLevel + 1;
+		for (j = 0; j < last ; j++)
+		{
+			aStr += "\t"; // tab the start of the line
+		}
+		// construct the element
+		aStr += "<RS n=\"";
+		aStr += numStr;
+		aStr += "\" a=\"";
+		aStr += bstr;
+		aStr += "\"/>\r\n";
+	}
+
+	// construct the closing TU tab
+	for (i = 0; i < nTabLevel; i++)
+	{
+		aStr += "\t"; // tab the start of the line
+	}
+	aStr += "</TU>\r\n";
+
+#else  // Unicode version
+
+	// start the targetUnit element
+	aStr.Empty();
+	for (i = 0; i < nTabLevel; i++)
+	{
+		aStr += "\t"; // tab the start of the line
+	}
+	aStr += "<TU f=\"";
+	intStr.Empty(); // needs to start empty, otherwise << will 
+					// append the string value of the int
+	intStr << (int)pTU->m_bAlwaysAsk;
+	numStr = m_pApp->Convert16to8(intStr);
+	aStr += numStr;
+	aStr += "\" k=\"";
+	CBString s = m_pApp->Convert16to8(src);
+	InsertEntities(s);
+	aStr += s;
+	aStr += "\">\r\n";
+
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	while (pos != NULL)
+	{
+		// there will always be at least one pRefStr in a pTU
+		pRefStr = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		CBString bstr = m_pApp->Convert16to8(pRefStr->m_translation);
+		InsertEntities(bstr);
+		intStr.Empty(); // needs to start empty, otherwise << will 
+						// append the string value of the int
+		intStr << pRefStr->m_refCount;
+		numStr = m_pApp->Convert16to8(intStr);
+
+		// construct the tabs
+		int j;
+		int last = nTabLevel + 1;
+		for (j = 0; j < last ; j++)
+		{
+			aStr += "\t"; // tab the start of the line
+		}
+		// construct the element
+		aStr += "<RS n=\"";
+		aStr += numStr;
+		aStr += "\" a=\"";
+		aStr += bstr;
+		aStr += "\"/>\r\n";
+	}
+
+	// construct the closing TU tab
+	for (i = 0; i < nTabLevel; i++)
+	{
+		aStr += "\t"; // tab the start of the line
+	}
+	aStr += "</TU>\r\n";
+
+#endif // end of Unicode version
+	return aStr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      f               -> the wxFile instance used to save the KB file
+/// \param      bIsGlossingKB   -> TRUE if saving a glossing KB, otherwise FALSE 
+///                                (the default) for a regular KB
+/// \remarks
+/// Called from: the App's StoreGlossingKB() and StoreKB().
+/// Structures the KB data in XML form. Builds the XML file in a wxMemoryBuffer with sorted
+/// TU elements and finally writes the buffer to an external file.
+////////////////////////////////////////////////////////////////////////////////////////
+void CKB::DoKBSaveAsXML(wxFile& f)
+{
+ 	// Setup some local pointers
+	CBString aStr;
+	CTargetUnit* pTU;	
+	int mapIndex;
+
+   // whm modified 17Jan09 to build the entire XML file in a buffer in a wxMemoryBuffer.
+    // The wxMemoryBuffer is a dynamic buffer which increases its size as needed, which
+    // means we can set it up with a reasonable default size and not have to know its exact
+    // size ahead of time.
+	static const size_t blockLen = 2097152; // 1MB = 1048576 bytes //4096; 
+    // the buff block sise doesn't matter here for writing since we will write the whole
+    // buffer using whatever size it turns out to be in one Write operation.
+	wxMemoryBuffer buff(blockLen);
+
+	// The following strings can be pre-built before examining the maps.
+	CBString encodingStr;
+	//CBString aiKBBeginStr; //whm 31Aug09 removed at Bob Eaton's request
+	CBString msWordWarnCommentStr;
+	CBString kbElementBeginStr;
+	// .. [calculate the total bytes for MAP and TU Elements]
+	CBString kbElementEndStr;
+	
+	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
+	int maxWords;
+	if (m_bGlossingKB)
+	{
+		maxWords = 1; // GlossingKB uses only one map
+	}
+	else
+	{
+		maxWords = (int)MAX_WORDS;
+	}
+
+	
+	// Now, start building the fixed strings.
+    // construct the opening tag and add the list of targetUnits with their associated key
+    // strings (source text)
+    // prologue (Changed by BEW, 18june07, at request of Bob Eaton so as to support legacy
+    // KBs using his SILConverters software, UTF-8 becomes Windows-1252 for the Regular
+    // app)
+
+	m_pApp->GetEncodingStringForXmlFiles(encodingStr);
+	buff.AppendData(encodingStr,encodingStr.GetLength()); // AppendData internally uses 
+											// memcpy and GetAppendBuf and UngetAppendBuf
+	
+    /*  //whm 31Aug09 removed at Bob Eaton's request
+	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
+	aiKBBeginStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
+	buff.AppendData(aiKBBeginStr,aiKBBeginStr.GetLength());
+	*/
+	
+    // add the comment with the warning about not opening the XML file in MS WORD 'coz is
+    // corrupts it - presumably because there is no XSLT file defined for it as well. When
+    // the file is then (if saved in WORD) loaded back into Adapt It, the latter goes into
+    // an infinite loop when the file is being parsed in. (MakeMSWORDWarning is defined in
+    // XML.cpp)
+	msWordWarnCommentStr = MakeMSWORDWarning(TRUE); // the warning ends with \r\n so 
+				// we don't need to add them here; TRUE gives us a note included as well
+	buff.AppendData(msWordWarnCommentStr,msWordWarnCommentStr.GetLength());
+
+	wxString srcStr;
+	CBString tempStr;
+	wxString intStr;
+    // wx note: the wx version in Unicode build refuses assign a CBString to char
+    // numStr[24] so I'll declare numStr as a CBString also
+	CBString numStr; //char numStr[24];
+
+	// the KB opening tag
+	intStr.Empty();
+    // wx note: The itoa() operator is Microsoft specific and not standard; unknown to g++
+    // on Linux/Mac. The wxSprintf() statement below in Unicode build won't accept CBString
+    // or char numStr[24] for first parameter, therefore, I'll simply do the int to string
+    // conversion in UTF-16 with wxString's overloaded insertion operatior << then convert
+    // to UTF-8 with Bruce's Convert16to8() method. [We could also do it here directly with
+    // wxWidgets' conversion macros rather than calling Convert16to8() - see the
+    // Convert16to8() function in the App.]
+	//wxSprintf(numStr, 24,_T("%d"),(int)VERSION_NUMBER); 
+	// BEW note 19Apr10: docVersions 4 and 5 have different xml structure, but the KB doesn't.
+	intStr << m_pApp->GetDocument()->GetCurrentDocVersion(); // versionable schema number (see AdaptitConstants.h)
+#ifdef _UNICODE
+	numStr = m_pApp->Convert16to8(intStr);
+#else
+	numStr = intStr;
+#endif
+	
+	aStr = "<";
+	if (m_bGlossingKB)
+	{
+		aStr += xml_kb;
+		aStr += " docVersion=\""; // docVersion 4
+		aStr += numStr;
+		aStr += "\" max=\"1";
+	}
+	else
+	{
+		aStr += xml_kb;
+		aStr += " docVersion=\""; // docVersion 4
+		aStr += numStr;
+		aStr += "\" srcName=\"";
+#ifdef _UNICODE
+		tempStr = m_pApp->Convert16to8(m_sourceLanguageName);
+		InsertEntities(tempStr);
+		aStr += tempStr;
+		aStr += "\" tgtName=\"";
+		tempStr = m_pApp->Convert16to8(m_targetLanguageName);
+#else
+		tempStr = m_sourceLanguageName;
+		InsertEntities(tempStr);
+		aStr += tempStr;
+		aStr += "\" tgtName=\"";
+		tempStr = m_targetLanguageName;
+#endif
+		InsertEntities(tempStr);
+		aStr += tempStr;
+		aStr += "\" max=\"";
+		intStr.Empty(); // needs to start empty, otherwise << will 
+						// append the string value of the int
+		intStr << m_nMaxWords;
+#ifdef _UNICODE
+		numStr = m_pApp->Convert16to8(intStr);
+#else
+		numStr = intStr;
+#endif
+		aStr += numStr;
+	}
+	aStr += "\">\r\n";
+	kbElementBeginStr = aStr;
+	buff.AppendData(kbElementBeginStr,kbElementBeginStr.GetLength());
+
+	for (mapIndex = 0; mapIndex < maxWords; mapIndex++)
+	{
+		if (!m_pMap[mapIndex]->empty())
+		{
+			aStr = "\t<MAP mn=\"";
+			intStr.Empty(); // needs to start empty, otherwise << will 
+							// append the string value of the int
+			intStr << mapIndex + 1;
+#ifdef _UNICODE
+			numStr = m_pApp->Convert16to8(intStr);
+#else
+			numStr = intStr;
+#endif
+			aStr += numStr;
+			aStr += "\">\r\n";
+			buff.AppendData(aStr,aStr.GetLength());
+			MapKeyStringToTgtUnit::iterator iter;
+#ifdef SHOW_KB_I_O_BENCHMARKS
+				wxDateTime dt1 = wxDateTime::Now(),
+						   dt2 = wxDateTime::UNow();
+#endif
+			wxArrayString TUkeyArrayString;
+			TUkeyArrayString.Clear();
+			TUkeyArrayString.Alloc(m_pMap[mapIndex]->size()); // Preallocate 
+								// enough memory to store all keys in current map
+			for( iter = m_pMap[mapIndex]->begin(); iter != m_pMap[mapIndex]->end(); ++iter )
+			{
+				TUkeyArrayString.Add(iter->first);
+			}
+			TUkeyArrayString.Sort(); // sort the array in ascending 
+									 // alphabetical order
+			wxASSERT(TUkeyArrayString.GetCount() == m_pMap[mapIndex]->size());
+            // Get the key elements from TUkeyArrayString in sequence and fetch the
+            // associated pTU from the map and do the usual MakeKBElementXML() and
+            // DoWrite() calls.
+			int ct;
+			for (ct = 0; ct < (int)TUkeyArrayString.GetCount(); ct++)
+			{
+				iter = m_pMap[mapIndex]->find(TUkeyArrayString[ct]);
+				if (iter != m_pMap[mapIndex]->end())
+				{
+					srcStr = iter->first;
+					pTU = iter->second;
+					wxASSERT(pTU != NULL);
+					aStr = MakeKBElementXML(srcStr,pTU,2); // 2 = two left-margin tabs
+					buff.AppendData(aStr,aStr.GetLength());
+				}
+			}
+#ifdef SHOW_KB_I_O_BENCHMARKS
+			dt1 = dt2;
+			dt2 = wxDateTime::UNow();
+			wxLogDebug(_T("Sorted Map %d executed in %s ms"), mapIndex, 
+								(dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+			// close off this map
+			aStr = "\t</MAP>\r\n";
+			buff.AppendData(aStr,aStr.GetLength());
+		}
+	}
+	// KB closing tag
+	aStr = "</";
+	aStr += xml_kb;
+	aStr += ">\r\n";
+	kbElementEndStr = aStr;
+	buff.AppendData(kbElementEndStr,kbElementEndStr.GetLength());
+	// BEW added 0Apr06 for .NET parsing support for xml
+	// whm 5Sept09 Bob Eaton says we should now eliminate both aiKBEndStr and aiKBBeginStr
+	//aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
+	//buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
+
+	wxLogNull logNo; // avoid spurious messages from the system
+
+    const char *pByteStr = wx_static_cast(const char *, buff);
+	f.Write(pByteStr,buff.GetDataLen());
+	// The buff wxMemoryBuffer is automatically destroyed when 
+	// it goes out of scope
+}
 
 

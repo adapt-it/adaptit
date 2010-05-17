@@ -36,6 +36,14 @@ class CLayout;
 class CFreeTrans;
 class CNotes;
 
+struct AutoFixRecord;
+
+/// wxList declaration and partial implementation of the AFList class being
+/// a list of pointers to AutoFixRecord objects
+WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
+
+
+
 enum SaveType {
 	normal_save,
 	save_as
@@ -247,7 +255,8 @@ public:
 
 protected:
 
-// Generated message map functions (from MFC version)
+	// Generated message map functions (from MFC version) ... most of these should not be
+	// public!!! (BEW 17May10)
 public:
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
@@ -270,6 +279,8 @@ public:
 	void OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event));
 	void OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
+	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 
   private:
     int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
@@ -278,6 +289,8 @@ public:
 	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
+	void	DoConsistencyCheck(CAdapt_ItApp* pApp);
+	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
 
 	DECLARE_EVENT_TABLE()
 };

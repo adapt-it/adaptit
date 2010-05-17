@@ -61,12 +61,6 @@ class PileList;
 //#define ID_BUTTON_ENABLE_PUNCT_COPY 6004
 #define ID_CANVAS_WINDOW 6005
 
-struct AutoFixRecord;
-
-/// wxList declaration and partial implementation of the AFList class being
-/// a list of pointers to AutoFixRecord objects
-WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
-
 /// wxList declaration and partial implementation of the WordList class being
 /// a list of pointers to wxString objects
 WX_DECLARE_LIST(wxString, WordList); // see list definition macro in .cpp file
@@ -154,7 +148,6 @@ public:
 
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE);
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE); // BEW added 1Aug08
-	void		DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc);
 	void		DoFileSaveKB();
 	bool		DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
 						bool bSpecialSearch,bool bSrcOnly, bool bTgtOnly, bool bSrcAndTgt,
@@ -266,7 +259,6 @@ public:
 	void		StatusBarMessage(wxString& message);
 	bool		StoreBeforeProceeding(CSourcePhrase* pSrcPhrase);
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
-	bool		StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
 	void		ToggleGlossingMode(); // BEW added 19Sep08
 	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
 	int			TokenizeTextString(SPList* pNewList,wxString& str,int nInitialSequNum);
@@ -317,7 +309,6 @@ protected:
 	void		DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
 								int selector, CPile* pActivePile, wxString& str, bool bHasNothing,
 								bool bNoValidText, bool bSomethingIsCopied); // added 3Apr09
-	bool		DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	bool		DoTgtOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
 								wxString& tgt,bool bIgnoreCase, int& nSequNum, int& nCount);
 	void		DoSrcPhraseSelCopy();
@@ -350,7 +341,6 @@ public:
 protected:
 	bool		IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasAdaptations); // BEW added 15July08
-	//bool		IsAlreadyInKB(int nWords,wxString key,wxString adaptation); // 13May10 moved to CKB
 	bool		IsFreeTranslationInSelection(SPList* pList); // BEW added 21Nov05, (for edit source text support)
 	bool		IsFilteredInfoInSelection(SPList* pList); // whm added 14Aug06
 	bool		IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
@@ -359,16 +349,11 @@ protected:
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
-	bool		MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
-	void		PadOrShortenAtEnd(SPList* pSrcPhrases,
-					int nStartSequNum,int nEndSequNum,int nNewLength,int nCount,TextType myTextType,
-					bool& bDelayRemovals);
 	void		RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
 	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec, 
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,
 					bool remFT, bool remBT); // BEW added 27Apr08
-	void		RemoveUnwantedSrcPhrasesInDocList(int nSaveSequNum,int nNewCount,int nCount);
 	void		RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 27May08
 public: // edb 05 March 2010 - need this public in order to call it from CRetranslation
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
@@ -380,7 +365,6 @@ protected:
 							wxArrayString* pNoteList); //BEW added 30Apr08
 	bool		ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, EditRecord* pRec,
 					int nStartingSN, int nEndingSN, wxString& strSource); //BEW added 5May08
-	void		TransferCompletedSrcPhrases(SPList* pNewSrcPhrasesList,int nSaveSequNum);
 	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
 	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases, 
@@ -428,8 +412,6 @@ protected:
 	void OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event);
 	void OnFileExport(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileExport(wxUpdateUIEvent& event);
-	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 	void OnToolsKbEditor(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateToolsKbEditor(wxUpdateUIEvent& event);
 	void OnGoTo(wxCommandEvent& WXUNUSED(event));

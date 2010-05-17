@@ -83,6 +83,7 @@ protected:
 
 public:
 	void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
+	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 	bool LookAhead(CAdapt_ItView* pAppView, CPile* pNewPile);
 	void Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView, 

@@ -10835,7 +10835,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	DoKBSaveAsXML(f,TRUE); // TRUE means that we want a glossing KB file
+	m_pGlossingKB->DoKBSaveAsXML(f); // TRUE means that we want a glossing KB file
 
 	// close the file
 	f.Close();
@@ -10914,7 +10914,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	DoKBSaveAsXML(f);
+	m_pKB->DoKBSaveAsXML(f);
 
 	// close the file
 	f.Close();
@@ -12372,8 +12372,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	else
 		pKB = m_pKB;
 
-	// recover as many m_bAlwaysAsk flag = TRUE instances as possible from the corrupted
-	// KB 
+	// recover as many m_bAlwaysAsk flag = TRUE instances as possible
+	// from the corrupted KB 
 	bool bRescueFlags = FALSE;
 	value = wxMessageBox(_(
 "Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
@@ -12383,7 +12383,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	KPlusCList keys;
 	if (bRescueFlags)
 	{
-		GetForceAskList(pKB,&keys);
+		pKB->GetForceAskList(&keys);
 	}
 
 	// clear out the KB, actually erase it & create a new empty one & store it ready 
@@ -12731,72 +12731,6 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
             // files, so we need to allow different functionalities to interpret an empty
             // list in different ways
 }
-
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      pKB     -> pointer to the affected KB (can be glossing or the regular KB)
-/// \param      pKeys   <- pointer to the list of keys that is produced
-/// \remarks
-/// Called from: the App's OnFileRestoreKb().
-/// Gets a list of the keys which have a unique translation and for which the CTargetUnit
-/// instance's m_bAlwaysAsk attribute is set to TRUE. This function is only called when a
-/// corrupted KB was detected, so we cannot expect to be able to recover all such keys, but
-/// as many as we can, which will reduce the amount of manual setting of the flags in the
-/// KB editor after a KB restore is done.
-////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::GetForceAskList(CKB* pKB, KPlusCList* pKeys) // MFC has CPtrList
-// get a list of the keys which have a unique translation and for which the CTargetUnit
-// instance's m_bAlwaysAsk attribute is set TRUE. (Since we are using this with a probably
-// corrupted KB, we cannot expect to be able to recover all such keys, and we will have to
-// check carefully for corrupt pointers, etc. We will recover as many as we can, which will
-// reduce the amount of the user's manual setting of the flag in the KB editor, after the
-// KB restore is done.)
-// For glossing being ON, this function should work correctly without any changes needed,
-// provided the caller gives the pointer to the glossing KB as the first parameter.
-{
-	wxASSERT(pKeys->IsEmpty());
-	for (int i=0; i < MAX_WORDS; i++)
-	{
-		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[i];
-		if (!pMap->empty())
-		{
-			MapKeyStringToTgtUnit::iterator iter;
-			for (iter = pMap->begin(); iter != pMap->end(); iter++)
-			{
-				wxString key;
-				key.Empty();
-				CTargetUnit* pTU = (CTargetUnit*)NULL;
-				try
-				{
-					key = iter->first; 
-					pTU = iter->second;
-					if (key.Length() > 360)
-						break; // almost certainly a corrupt key string, so exit the map
-
-					// we have a valid pointer to a target unit, so see if the flag is set
-					// and if the translation is unique
-					if (pTU->m_pTranslations->GetCount() == 1)
-					{
-						if (pTU->m_bAlwaysAsk)
-						{
-							// we've found a setting which is to be preserved, so do so
-							KeyPlusCount* pKPlusC = new KeyPlusCount;
-							wxASSERT(pKPlusC != NULL);
-							pKPlusC->count = i+1; // which map we are in
-							pKPlusC->key = key;
-							pKeys->Append(pKPlusC); // add it to the list
-						}
-					}	
-				}
-				catch (...)
-				{
-					break; // exit from this map, as we no longer can be sure of a valid pos
-				}
-			}
-		}
-	}
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -20285,152 +20219,6 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a CBString (byte string) containing the composed KB element (each
-///             element handles one CTargetUnit and its associated key string (the
-///             source text word or phrase, minus punctuation)
-/// \param      src       -> reference to the source text word or phrase
-/// \param      pTU       -> pointer to the associated CTargetUnit instance
-/// \param      nTabLevel -> how many tabs are to be put at the start of each line 
-///                          for indenting purposes (2)
-/// \remarks
-/// Called from: the App's DoKBSaveAsXML().
-/// Constructs a byte string containing a composed KB element in XML format in which one
-/// CTargetUnit and its associated key string is represented (the source text word or
-/// phrase, minus punctuation). This function is called once for each target unit in the
-/// KB's map.
-////////////////////////////////////////////////////////////////////////////////////////
-CBString CAdapt_ItApp::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
-{
-	// Constructs
-	// <TU f="boolean" k="source text key (a word or phrase)">
-	// 	<RS n="reference count" a="adaptation (or gloss) word or phrase"/>
-	// 	... possibly more RS elements (for other adaptations of the same source)
-	// </TU>
-	// The RS element handles the contents of the CRefString instances stored 
-	// on the pTU instance
-	CBString aStr;
-	CRefString* pRefStr;
-	int i;
-	wxString intStr;
-    // wx note: the wx version in Unicode build refuses assign a CBString to
-    // char numStr[24] so I'll declare numStr as a CBString also
-	CBString numStr; //char numStr[24];
-
-#ifndef _UNICODE  // ANSI (regular) version
-
-	// start the targetUnit element
-	aStr.Empty();
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "<TU f=\"";
-	intStr.Empty(); // needs to start empty, otherwise << will 
-					// append the string value of the int
-	intStr << (int)pTU->m_bAlwaysAsk;
-	numStr = intStr;
-	aStr += numStr;
-	aStr += "\" k=\"";
-	CBString s(src);
-	InsertEntities(s);
-	aStr += s;
-	aStr += "\">\r\n";
-
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	while (pos != NULL)
-	{
-		// there will always be at least one pRefStr in a pTU
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		CBString bstr(pRefStr->m_translation);
-		InsertEntities(bstr);
-		intStr.Empty(); // needs to start empty, otherwise << will 
-						// append the string value of the int
-		intStr << pRefStr->m_refCount;
-		numStr = intStr;
-
-		// construct the tabs
-		int j;
-		int last = nTabLevel + 1;
-		for (j = 0; j < last ; j++)
-		{
-			aStr += "\t"; // tab the start of the line
-		}
-		// construct the element
-		aStr += "<RS n=\"";
-		aStr += numStr;
-		aStr += "\" a=\"";
-		aStr += bstr;
-		aStr += "\"/>\r\n";
-	}
-
-	// construct the closing TU tab
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "</TU>\r\n";
-
-#else  // Unicode version
-
-	// start the targetUnit element
-	aStr.Empty();
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "<TU f=\"";
-	intStr.Empty(); // needs to start empty, otherwise << will 
-					// append the string value of the int
-	intStr << (int)pTU->m_bAlwaysAsk;
-	numStr = gpApp->Convert16to8(intStr);
-	aStr += numStr;
-	aStr += "\" k=\"";
-	CBString s = Convert16to8(src);
-	InsertEntities(s);
-	aStr += s;
-	aStr += "\">\r\n";
-
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	while (pos != NULL)
-	{
-		// there will always be at least one pRefStr in a pTU
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		CBString bstr = Convert16to8(pRefStr->m_translation);
-		InsertEntities(bstr);
-		intStr.Empty(); // needs to start empty, otherwise << will 
-						// append the string value of the int
-		intStr << pRefStr->m_refCount;
-		numStr = gpApp->Convert16to8(intStr);
-
-		// construct the tabs
-		int j;
-		int last = nTabLevel + 1;
-		for (j = 0; j < last ; j++)
-		{
-			aStr += "\t"; // tab the start of the line
-		}
-		// construct the element
-		aStr += "<RS n=\"";
-		aStr += numStr;
-		aStr += "\" a=\"";
-		aStr += bstr;
-		aStr += "\"/>\r\n";
-	}
-
-	// construct the closing TU tab
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "</TU>\r\n";
-
-#endif // end of Unicode version
-	return aStr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxFontEncoding value that is the closest equivalent to the MFC Charset
 /// \param      Charset   -> the MFC Charset value
 /// \remarks
@@ -21063,239 +20851,6 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 #endif
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      f               -> the wxFile instance used to save the KB file
-/// \param      bIsGlossingKB   -> TRUE if saving a glossing KB, otherwise FALSE 
-///                                (the default) for a regular KB
-/// \remarks
-/// Called from: the App's StoreGlossingKB() and StoreKB().
-/// Structures the KB data in XML form. Builds the XML file in a wxMemoryBuffer with sorted
-/// TU elements and finally writes the buffer to an external file.
-////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
-{
-    // In DoKBSaveAsXML, the bIsGlossingKB parameter has a default FALSE value (ie. normal
-    // KB), and must be explicitly included as TRUE for the glossing KB
-	CBString aStr;
-	
-    // whm modified 17Jan09 to build the entire XML file in a buffer in a wxMemoryBuffer.
-    // The wxMemoryBuffer is a dynamic buffer which increases its size as needed, which
-    // means we can set it up with a reasonable default size and not have to know its exact
-    // size ahead of time.
-	static const size_t blockLen = 2097152; // 1MB = 1048576 bytes //4096; 
-    // the buff block sise doesn't matter here for writing since we will write the whole
-    // buffer using whatever size it turns out to be in one Write operation.
-	wxMemoryBuffer buff(blockLen);
-
-	// The following strings can be pre-built before examining the maps.
-	CBString encodingStr;
-	//CBString aiKBBeginStr; //whm 31Aug09 removed at Bob Eaton's request
-	CBString msWordWarnCommentStr;
-	CBString kbElementBeginStr;
-	// .. [calculate the total bytes for MAP and TU Elements]
-	CBString kbElementEndStr;
-	
-	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
-	int maxWords;
-	if (bIsGlossingKB)
-	{
-		maxWords = 1; // GlossingKB has only one map
-	}
-	else
-	{
-		maxWords = (int)MAX_WORDS;
-	}
-
-	// Setup some local pointers
-	CTargetUnit* pTU;
-	CKB* pKB;
-	if (bIsGlossingKB)
-		pKB = m_pGlossingKB;
-	else
-		pKB = m_pKB;
-	
-	int mapIndex;
-	
-	// Now, start building the fixed strings.
-    // construct the opening tag and add the list of targetUnits with their associated key
-    // strings (source text)
-    // prologue (Changed by BEW, 18june07, at request of Bob Eaton so as to support legacy
-    // KBs using his SILConverters software, UTF-8 becomes Windows-1252 for the Regular
-    // app)
-
-	GetEncodingStringForXmlFiles(encodingStr);
-	buff.AppendData(encodingStr,encodingStr.GetLength()); // AppendData internally uses 
-											// memcpy and GetAppendBuf and UngetAppendBuf
-	
-    /*  //whm 31Aug09 removed at Bob Eaton's request
-	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
-	aiKBBeginStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
-	buff.AppendData(aiKBBeginStr,aiKBBeginStr.GetLength());
-	*/
-	
-    // add the comment with the warning about not opening the XML file in MS WORD 'coz is
-    // corrupts it - presumably because there is no XSLT file defined for it as well. When
-    // the file is then (if saved in WORD) loaded back into Adapt It, the latter goes into
-    // an infinite loop when the file is being parsed in. (MakeMSWORDWarning is defined in
-    // XML.cpp)
-	msWordWarnCommentStr = MakeMSWORDWarning(TRUE); // the warning ends with \r\n so 
-				// we don't need to add them here; TRUE gives us a note included as well
-	buff.AppendData(msWordWarnCommentStr,msWordWarnCommentStr.GetLength());
-
-	wxString srcStr;
-	CBString tempStr;
-	wxString intStr;
-    // wx note: the wx version in Unicode build refuses assign a CBString to char
-    // numStr[24] so I'll declare numStr as a CBString also
-	CBString numStr; //char numStr[24];
-
-	// the KB opening tag
-	intStr.Empty();
-    // wx note: The itoa() operator is Microsoft specific and not standard; unknown to g++
-    // on Linux/Mac. The wxSprintf() statement below in Unicode build won't accept CBString
-    // or char numStr[24] for first parameter, therefore, I'll simply do the int to string
-    // conversion in UTF-16 with wxString's overloaded insertion operatior << then convert
-    // to UTF-8 with Bruce's Convert16to8() method. [We could also do it here directly with
-    // wxWidgets' conversion macros rather than calling Convert16to8() - see the
-    // Convert16to8() function in the App.]
-	//wxSprintf(numStr, 24,_T("%d"),(int)VERSION_NUMBER); 
-	// BEW note 19Apr10: docVersions 4 and 5 have different xml structure, but the KB doesn't.
-	intStr << GetDocument()->GetCurrentDocVersion(); // versionable schema number (see AdaptitConstants.h)
-#ifdef _UNICODE
-	numStr = gpApp->Convert16to8(intStr);
-#else
-	numStr = intStr;
-#endif
-	
-	aStr = "<";
-	if (bIsGlossingKB)
-	{
-		aStr += xml_kb;
-		aStr += " docVersion=\"";
-		aStr += numStr;
-		aStr += "\" max=\"1";
-	}
-	else
-	{
-		aStr += xml_kb;
-		aStr += " docVersion=\"";
-		aStr += numStr;
-		aStr += "\" srcName=\"";
-#ifdef _UNICODE
-		tempStr = Convert16to8(pKB->m_sourceLanguageName);
-		InsertEntities(tempStr);
-		aStr += tempStr;
-		aStr += "\" tgtName=\"";
-		tempStr = Convert16to8(pKB->m_targetLanguageName);
-#else
-		tempStr = pKB->m_sourceLanguageName;
-		InsertEntities(tempStr);
-		aStr += tempStr;
-		aStr += "\" tgtName=\"";
-		tempStr = pKB->m_targetLanguageName;
-#endif
-		InsertEntities(tempStr);
-		aStr += tempStr;
-		aStr += "\" max=\"";
-		intStr.Empty(); // needs to start empty, otherwise << will 
-						// append the string value of the int
-		intStr << pKB->m_nMaxWords;
-#ifdef _UNICODE
-		numStr = gpApp->Convert16to8(intStr);
-#else
-		numStr = intStr;
-#endif
-		aStr += numStr;
-	}
-	aStr += "\">\r\n";
-	kbElementBeginStr = aStr;
-	buff.AppendData(kbElementBeginStr,kbElementBeginStr.GetLength());
-
-	for (mapIndex = 0; mapIndex < maxWords; mapIndex++)
-	{
-		if (!pKB->m_pMap[mapIndex]->empty())
-		{
-			aStr = "\t<MAP mn=\"";
-			intStr.Empty(); // needs to start empty, otherwise << will 
-							// append the string value of the int
-			intStr << mapIndex + 1;
-#ifdef _UNICODE
-			numStr = gpApp->Convert16to8(intStr);
-#else
-			numStr = intStr;
-#endif
-			aStr += numStr;
-			aStr += "\">\r\n";
-			buff.AppendData(aStr,aStr.GetLength());
-			MapKeyStringToTgtUnit::iterator iter;
-#ifdef SHOW_KB_I_O_BENCHMARKS
-				wxDateTime dt1 = wxDateTime::Now(),
-						   dt2 = wxDateTime::UNow();
-#endif
-			wxArrayString TUkeyArrayString;
-			TUkeyArrayString.Clear();
-			TUkeyArrayString.Alloc(pKB->m_pMap[mapIndex]->size()); // Preallocate 
-								// enough memory to store all keys in current map
-			for( iter = pKB->m_pMap[mapIndex]->begin(); iter != pKB->m_pMap[mapIndex]->end(); ++iter )
-			{
-				TUkeyArrayString.Add(iter->first);
-			}
-			TUkeyArrayString.Sort(); // sort the array in ascending 
-									 // alphabetical order
-			wxASSERT(TUkeyArrayString.GetCount() == pKB->m_pMap[mapIndex]->size());
-            // Get the key elements from TUkeyArrayString in sequence and fetch the
-            // associated pTU from the map and do the usual MakeKBElementXML() and
-            // DoWrite() calls.
-			int ct;
-			for (ct = 0; ct < (int)TUkeyArrayString.GetCount(); ct++)
-			{
-				iter = pKB->m_pMap[mapIndex]->find(TUkeyArrayString[ct]);
-				if (iter != pKB->m_pMap[mapIndex]->end())
-				{
-					srcStr = iter->first;
-					pTU = iter->second;
-					wxASSERT(pTU != NULL);
-					aStr = MakeKBElementXML(srcStr,pTU,2); // 2 = two left-margin tabs
-					buff.AppendData(aStr,aStr.GetLength());
-				}
-			}
-#ifdef SHOW_KB_I_O_BENCHMARKS
-			dt1 = dt2;
-			dt2 = wxDateTime::UNow();
-			wxLogDebug(_T("Sorted Map %d executed in %s ms"), mapIndex, 
-								(dt2 - dt1).Format(_T("%l")).c_str());
-#endif
-			// close off this map
-			aStr = "\t</MAP>\r\n";
-			buff.AppendData(aStr,aStr.GetLength());
-		}
-	}
-	// KB closing tag
-	aStr = "</";
-	if (bIsGlossingKB)
-	{
-		aStr += xml_kb;
-	}
-	else
-	{
-		aStr += xml_kb;
-	}
-	aStr += ">\r\n";
-	kbElementEndStr = aStr;
-	buff.AppendData(kbElementEndStr,kbElementEndStr.GetLength());
-	// BEW added 0Apr06 for .NET parsing support for xml
-	// whm 5Sept09 Bob Eaton says we should now eliminate both aiKBEndStr and aiKBBeginStr
-	//aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
-	//buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
-
-	wxLogNull logNo; // avoid spurious messages from the system
-
-    const char *pByteStr = wx_static_cast(const char *, buff);
-	f.Write(pByteStr,buff.GetDataLen());
-	// The buff wxMemoryBuffer is automatically destroyed when 
-	// it goes out of scope
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

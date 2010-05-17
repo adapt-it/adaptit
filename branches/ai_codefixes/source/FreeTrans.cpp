@@ -49,6 +49,7 @@
 #include "Strip.h"
 #include "Pile.h"
 #include "Cell.h"
+#include "KB.h"
 #include "Layout.h"
 #include "FreeTrans.h"
 #include "helpers.h"
@@ -1375,7 +1376,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 			// left it here -- may need to ensure m_targetPhrase has no punct before 
 			// passing to StoreTextGoingBack()
 			bool bOK;
-			bOK = m_pView->StoreTextGoingBack(pKB,pSP,m_pApp->m_targetPhrase); // store, so we can 
+			bOK = pKB->StoreTextGoingBack(pSP,m_pApp->m_targetPhrase); // store, so we can 
 																// forget this location
 		}
 		while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)

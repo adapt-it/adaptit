@@ -116,19 +116,22 @@ public:
 	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
 	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
 	void			DoKBImport(wxTextFile* pFile);
+	void			DoKBSaveAsXML(wxFile& f);
 	void			DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
 	bool			FindMatchInKB(int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
 	void			GetAndRemoveRefString(CSourcePhrase* pSrcPhrase,
 								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
+	void			GetForceAskList(KPlusCList* pKeys);
 	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);	
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
 	bool			IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
+	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
 	void			RestoreForceAskSettings(KPlusCList* pKeys);
 	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
-
+	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
 
   private:
 

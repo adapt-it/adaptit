@@ -2422,7 +2422,6 @@ protected:
 	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
 						wxString& basePath, wxString& localPath);
 	void	FixConfigFileFonts(wxTextFile* pf); // whm added 24Feb10
-	void	GetForceAskList(CKB* pKB, KPlusCList* pKeys);
 	void	GetValue(const wxString strReadIn, wxString& strValue, wxString& name);
 	wxSize	GetExtentOfLongestSfm(wxDC* pDC);
 	bool	IsAdaptitProjectDirectory(wxString title);
@@ -2430,7 +2429,6 @@ protected:
 											wxString* adminConfigFNamePtr);
 	void	MakeForeignProjectConfigFileSafe(wxString& configFName,wxString& folderPath,
 											wxString* adminConfigFNamePtr); // whm added 9Mar10
-	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
 	void	SetDefaults(bool bAllowCustomLocationCode = TRUE);
 	void	StringToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
@@ -2493,7 +2491,6 @@ public:
 				enum Reparse reparseDoc); // whm added 23May05; BEW added bSetChanged 12Jun05
 	bool	DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, enum Reparse reparseDoc);
 	void	DoKBBackup();
-	void	DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB = FALSE) ;
 	void	DoGlossingKBBackup();
 	void	DoFileOpen(); // DoFileOpen() calls OnOpenDocument() which is in the Doc
 	bool	DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event));
