@@ -660,7 +660,7 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 		int nRemoved = 0;
 		if (gbAutoCaps)
 		{
-			bNoError = gpApp->GetView()->SetCaseParameters(s1);
+			bNoError = gpApp->GetDocument()->SetCaseParameters(s1);
 			if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 			{
 				// make it start with lower case letter

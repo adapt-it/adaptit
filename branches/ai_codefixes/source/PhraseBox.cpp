@@ -488,10 +488,10 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		pView->RemovePunctuation(pDoc,&str1,from_target_text);
 		if (gbAutoCaps)
 		{
-			bool bNoError = pView->SetCaseParameters(pSP->m_key);
+			bool bNoError = pApp->GetDocument()->SetCaseParameters(pSP->m_key);
 			if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 			{
-				bNoError = pView->SetCaseParameters(str1,FALSE);
+				bNoError = pApp->GetDocument()->SetCaseParameters(str1,FALSE);
 				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 				{
 					// a change to upper case is called for
@@ -2035,7 +2035,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 	// is utilized by the user
 	if (gbAutoCaps && gbSourceIsUpperCase)
 	{
-		bool bNoError = pView->SetCaseParameters(translation,FALSE);
+		bool bNoError = pApp->GetDocument()->SetCaseParameters(translation,FALSE);
 		if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 		{
 			// make it upper case
@@ -2567,7 +2567,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			wxString str;
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 			wxASSERT(pSrcPhrase != NULL);
-			bool bNoError = pView->SetCaseParameters(pSrcPhrase->m_key);
+			bool bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
 			if (bNoError && gbSourceIsUpperCase)
 			{
 				// a change of case might be called for... first
@@ -2591,7 +2591,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 						int nStart = 1; int nEnd = 1;
 				
 						// check out its case status
-						bNoError = pView->SetCaseParameters(str,FALSE); // FALSE is value for bIsSrcText
+						bNoError = pApp->GetDocument()->SetCaseParameters(str,FALSE); // FALSE is value for bIsSrcText
 
 						// change to upper case if required
 						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
@@ -4758,10 +4758,10 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 		if (gbAutoCaps)
 		{
 			//bNoError = pView->SetCaseParameters(pApp->m_pActivePile->m_pSrcPhrase->m_key);
-			bNoError = pView->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
+			bNoError = pApp->GetDocument()->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
 			if (bNoError && gbSourceIsUpperCase)
 			{
-				bNoError = pView->SetCaseParameters(translation, FALSE);
+				bNoError = pApp->GetDocument()->SetCaseParameters(translation, FALSE);
 				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 				{
 					translation.SetChar(0, gcharNonSrcUC);
@@ -5058,7 +5058,7 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 	// is utilized by the user
 	if (gbAutoCaps && gbSourceIsUpperCase)
 	{
-		bool bNoError = pView->SetCaseParameters(translation, FALSE);
+		bool bNoError = pApp->GetDocument()->SetCaseParameters(translation, FALSE);
 		if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 		{
 			// make it upper case

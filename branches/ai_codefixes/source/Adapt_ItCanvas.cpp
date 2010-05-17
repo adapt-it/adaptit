@@ -1572,7 +1572,7 @@ t:	if (pCell == NULL)
 					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 
 					// make m_bIsCurrentFreeTransSection FALSE on every pile
-					pView->MakeAllPilesNonCurrent(pLayout);
+					pApp->m_pLayout->MakeAllPilesNonCurrent();
 
 					// BEW added 8Apr10, the global wxString translation has to be given
 					// the value for the phrase box at the new location, otherwise the

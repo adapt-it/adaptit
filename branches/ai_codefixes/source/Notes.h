@@ -21,6 +21,10 @@
 #pragma interface "Notes.h"
 #endif
 
+/// wxList declaration and partial implementation of the WordList class being
+/// a list of pointers to wxString objects
+WX_DECLARE_LIST(wxString, WordList); // see list definition macro in .cpp file
+
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CNotes class contains notes-related functionality originally found in

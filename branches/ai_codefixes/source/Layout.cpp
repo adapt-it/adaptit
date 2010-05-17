@@ -3617,6 +3617,32 @@ void CLayout::CleanUpTheLayoutFromStripAt(int nIndexOfStripToStartAt, int nHowMa
 #endif
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return         nothing
+///
+/// \remarks
+///	Resets the m_bIsCurrentFreeTransSection member of CPile instances
+///	through the whole doc to FALSE. Use this prior, followed by
+///	MarkFreeTranslationPilesForColoring(), when the current section changes
+///	to a new location, so that colouring gets done correctly at the right places
+/// BEW 22Feb10 no changes needed for support of doc version 5
+/// BEW 17May10, moved to CLayout from CAdapt_ItView class
+/////////////////////////////////////////////////////////////////////////////////
+void CLayout::MakeAllPilesNonCurrent()
+{
+	PileList* pList = GetPileList();
+	PileList::Node* pos = pList->GetFirst();
+	CPile* pPile = NULL;
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		pPile->SetIsCurrentFreeTransSection(FALSE);
+		pos = pos->GetNext();
+	}
+	// makes them ALL false
+}
+
+
 /* 
 // created for identifying where some piles didn't get their m_nPile values updated -- turned out
 // to be the leftover ones in the strip after flow up to the preceding strip finished

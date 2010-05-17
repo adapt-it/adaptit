@@ -61,10 +61,6 @@ class PileList;
 //#define ID_BUTTON_ENABLE_PUNCT_COPY 6004
 #define ID_CANVAS_WINDOW 6005
 
-/// wxList declaration and partial implementation of the WordList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, WordList); // see list definition macro in .cpp file
-
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItView class is the most complex class in the application. 
 /// It controls every aspect of how the data is presented to the user, 
@@ -164,61 +160,46 @@ public:
 	bool		ExtendSelectionRight();
 	bool		ExtractChapterAndVerse(wxString& s,int& nChapter,int& nVerse,bool& bHasChapters,
 									bool& bIsVerseRange,int& nFinalVerse);
-	int			FindFilteredInsertionLocation(wxString& rStr, wxString& mkr);
 	void		FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSelectionExtension = TRUE);
-	wxString	GetAssocTextWithoutMarkers(wxString mkrStr); // whm added 18Nov05
 	wxPanel*	GetBar(enum VertEditBarType vertEditBarType); // BEW added 9Aug08
 	wxComboBox*	GetRemovalsComboBox(); // BEW added 18July08
 	wxString	GetChapterAndVerse(CSourcePhrase* pSrcPhrase);
 	bool		GetChapterAndVerse(SPList* pList, CSourcePhrase* pSrcPhrase, wxString& strChapVerse); // BEW added 12Mar07
 	CCell*		GetClickedCell(const wxPoint* pPoint);
-	wxChar		GetFirstChar(wxString& strText);
 	CKB*		GetKB();
 	CLayout*	GetLayout();
 	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum, 
 							int nEndingFreeTransSequNum, bool bFreeTransPresent); // BEW added 01Oct08
 							// moved to public GDLC 2010-02-15
-	void		GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	CStrip*		GetNearestStrip(const wxPoint *pPoint); // moved here from protected
 	CPile*		GetNextEmptyPile(CPile* pPile);
 	CSourcePhrase* GetNextEmptySrcPhrase(int nStartingSequNum);
 	CPile*		GetNextPile(CPile* pPile);
-	wxChar		GetOtherCaseChar(wxString& charSet, int nOffset);
 	CPile*		GetPile(const int nSequNum);
 	CPile*		GetPrevPile(CPile* pPile);
 	CSourcePhrase*  GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase);
 	CSourcePhrase*  GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Node*& posPrev);
 	CSourcePhrase*  GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase);
-	//CRefString*	    GetRefString(CKB* pKB, int nSrcWords, wxString keyStr, wxString adaptation); moved to CKB class
 	CSourcePhrase*  GetSrcPhrase(int nSequNum);
 	bool		GetSublist(SPList* pSaveList,SPList* pOriginalList,int nBeginSequNum,
 						int nEndSequNum);
 	int			GetSelectionWordCount();
 	void		GetVisibleStrips(int& nFirstStrip,int&nLastStrip);
-	wxString	GetWholeMarkerFromString(wxString mkrStr, int nBeginPos); // whm added 18Oct05
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
-	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
-					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
 
-	bool		IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	bool		IsUnstructuredData(SPList* pList);
 	bool		IsWrapMarker(CSourcePhrase* pSrcPhrase);
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr);
-	void		MakeAllPilesNonCurrent(CLayout* pLayout); // moved here from protected
-	bool		MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxString& wantedEndMkr); // whm added 18Nov05
 	void		MakeLineFourString(CSourcePhrase* pSrcPhrase, wxString targetStr);
 	void		MergeWords();
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
-	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);	
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
-	void		RemoveContentWrappers(CSourcePhrase*& pSrcPhrase, wxString mkr, int offset); // BEW 12 Sept05
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
-	//void		RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase); moved to CKB class
 	void		RemoveSelection();
 	
 	// Bruce put the following functions in helpers.h and .cpp, but it is only used in the View so I'm putting it
@@ -250,7 +231,6 @@ public:
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
-	bool		SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 					const int nToV,wxPrintData* WXUNUSED(pPrintData),
 					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE), 

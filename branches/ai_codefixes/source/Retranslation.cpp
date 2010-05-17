@@ -1321,7 +1321,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = m_pView->SetCaseParameters(pSrcPhrase->m_key);
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
 	}
 	
     // although this function strictly speaking is not necessarily invoked in the context
@@ -1353,7 +1353,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 		
 		if (gbAutoCaps && gbSourceIsUpperCase)
 		{
-			bNoError = m_pView->SetCaseParameters(str,FALSE);
+			bNoError = m_pApp->GetDocument()->SetCaseParameters(str,FALSE);
 			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 			{
 				// change first letter to upper case

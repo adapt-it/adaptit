@@ -5968,17 +5968,17 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 
 	// if control gets here then the copy must therefore be going to the phrase box; so
 	// store a copy of phrase box text here in case Undo Last Copy button is used later
-	gOldEditBoxTextStr = gpApp->m_pTargetBox->GetValue(); 
+	gOldEditBoxTextStr = pApp->m_pTargetBox->GetValue(); 
 
 	// if auto capitalization is on, determine the source text's case propertiess
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = pView->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key); 
+		bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key); 
 																// bIsSrcText is TRUE
 		if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 		{
-			bNoError = pView->SetCaseParameters(theText,FALSE); // testing the non-source text
+			bNoError = pApp->GetDocument()->SetCaseParameters(theText,FALSE); // testing the non-source text
 			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 			{
 				// a change to upper case is called for

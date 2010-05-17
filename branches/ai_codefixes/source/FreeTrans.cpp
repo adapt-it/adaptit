@@ -2604,7 +2604,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			gbSuppressSetup = FALSE; // make sure it is off
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			m_pView->MakeAllPilesNonCurrent(m_pLayout);
+			m_pLayout->MakeAllPilesNonCurrent();
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
@@ -2717,7 +2717,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			m_pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			m_pView->MakeAllPilesNonCurrent(m_pLayout);
+			m_pLayout->MakeAllPilesNonCurrent();
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
@@ -3038,7 +3038,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			m_pApp->m_nActiveSequNum = pPrevPile->GetSrcPhrase()->m_nSequNumber;
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			m_pView->MakeAllPilesNonCurrent(m_pLayout);
+			m_pLayout->MakeAllPilesNonCurrent();
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPrevPile->GetCell(1);

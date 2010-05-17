@@ -285,6 +285,14 @@ extern wxChar gcharSrcUC;
 bool	gbIgnoreIt = FALSE; // used when "Ignore it, I will fix it later" button was hit
 							// in consistency check dlg
 
+// whm added 6Apr05 for support of export filtering of sfms and RTF output of the same in
+// the appropriate functions in the Export-Import file, etc. These globals are defined 
+// in ExportSaveAsDlg.cpp
+extern wxArrayString m_exportMarkerAndDescriptions;
+extern wxArrayString m_exportBareMarkers;
+extern wxArrayInt m_exportFilterFlags;
+extern wxArrayInt m_exportFilterFlagsBeforeEdit;
+
 // support for USFM and SFM Filtering
 // Since these special filter markers will be visible to the user in certain dialog
 // controls, I've opted to use marker labels that should be unique (starting with \~) and
@@ -16023,10 +16031,10 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
                         // to be fixed.
 						if (gbAutoCaps)
 						{
-							bool bNoError = pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key);
+							bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
 							if (bNoError && gbSourceIsUpperCase)
 							{
-								bNoError = pApp->GetView()->SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
+								bNoError = SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
 								if (bNoError && !gbNonSourceIsUpperCase &&
 									(gcharNonSrcUC != _T('\0')))
 								{
@@ -16072,7 +16080,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
 								// use the punctuation-less string to get the initial charact and
 								// its upper case equivalent if it exists
-								bool bNoError = pApp->GetView()->SetCaseParameters(str_nopunct,FALSE);
+								bool bNoError = SetCaseParameters(str_nopunct,FALSE);
 															 // FALSE means "using target punct list"
 								// span punctuation-having str using target lang's punctuation...
 								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
@@ -16081,7 +16089,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 
 								// work out if there is a case change needed, and set the
 								// relevant case globals
-								bNoError = pApp->GetView()->SetCaseParameters(tempStr,FALSE);  
+								bNoError = SetCaseParameters(tempStr,FALSE);  
 															// FALSE means "it's target text"
 								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
 									&& (gcharNonSrcUC != _T('\0')))
@@ -16264,10 +16272,10 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
                             // the details are wanted
 							if (gbAutoCaps)
 							{
-								bool bNoError = pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key);
+								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
 								if (bNoError && gbSourceIsUpperCase)
 								{
-									bNoError = pApp->GetView()->SetCaseParameters(tempStr,FALSE); 
+									bNoError = SetCaseParameters(tempStr,FALSE); 
 															// FALSE means "it's target text"
 									if (bNoError && !gbNonSourceIsUpperCase && 
 										(gcharNonSrcUC != _T('\0')))
@@ -16292,12 +16300,12 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 									// capitalized too... check it out
 									wxString str_nopunct = finalStr;
 									pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
-									bool bNoError = pApp->GetView()->SetCaseParameters(str_nopunct,FALSE);
+									bool bNoError = SetCaseParameters(str_nopunct,FALSE);
 															// FALSE means "using target punct list"
 									wxString strInitialPunct = SpanIncluding(
 														finalStr,pApp->m_punctuation[1]);
 									int punctLen = strInitialPunct.Length();
-									bNoError = pApp->GetView()->SetCaseParameters(str_nopunct,FALSE); // FALSE 
+									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE 
 															// means "using target punct list"
 									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
 										&& (gcharNonSrcUC != _T('\0')))
@@ -16469,5 +16477,438 @@ bool CAdapt_ItDoc::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
 	rpRec = NULL;
 	return FALSE;
 }
+
+// BEW 24Mar10, updated for support of doc version 5 (some changes needed)
+void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
+{
+    // Scans all the doc's source phrase m_markers and m_filteredInfo members and
+    // inventories all the markers used in the current document, storing all unique markers
+    // in m_exportBareMarkers, the full markers and their descriptions in the CStringArray
+    // called m_exportMarkerAndDescriptions, and their corresponding include/exclude states
+    // (boolean flags) in the CUIntArray called m_exportFilterFlagsBeforeEdit. A given
+    // marker may occur more than once in a given document, but is only stored once in
+    // these inventory arrays.
+	// All the boolean flags in the m_exportFilterFlagsBeforeEdit array
+	// are initially set to FALSE indicating that no markers are to be
+	// filtered out of the export by default. If the user accesses and/or
+	// changes the export options via the "Export/Filter Options" dialog
+	// and thereby filters one or markers from export, then their
+	// corresponding flags in the CUIntArray called m_exportFilterFlags
+	// will be set to TRUE.
+
+	// Any sfms that are currently filtered are listed with [FILTERED] prefixed
+	// to the description. Unknown markers are listed with [UNKNOWN MARKER] as
+	// their description. We list all markers that are used in the document, and
+	// if the user excludes things illogically, then the output will reflect
+	// that.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxArrayString MarkerList;	// gets filled with all the currently
+							    // used markers including filtered ones
+	wxArrayString* pMarkerList = &MarkerList;
+	SPList::Node* posn;
+	USFMAnalysis* pSfm;
+	wxString key;
+	wxString lbStr;
+
+	MapSfmToUSFMAnalysisStruct* pSfmMap;
+	pSfmMap = pApp->GetCurSfmMap(pApp->gCurrentSfmSet);
+
+	// Gather markers from all source phrase m_marker strings
+	// BEW 24Mar10 changes for support of doc version 5: markers are now stored in
+	// m_markers and in m_filteredInfo (markers and content wrapped, in the latter, with
+	// \~FILTER and \~FILTER* bracketing markers). Also, in the legacy versions, free
+	// translations, collected back translations, and notes, were stored likewise in
+	// m_markers and wrapped with filter bracket markers, but now for doc version 5 these
+	// three information types have dedicated wxString member storage in CSourcePhrase. So
+	// for correct behaviour with the functionalities dependent on
+	// GetMarkerInventoryFromCurrentDoc() we have to here treat those three information
+	// types as logically "filtered" and supply \free & \free* wrapping markers to the
+	// free translation string we recover, and \note & \note* to the note string we
+	// recover, and \bt for any collected back translation string, when any of these is
+	// present in m_freeTrans, m_note, and m_collectedBackTrans, respectively. We do that
+	// below after the call to GetMarkersAndTextFromString(), as the latter can handle the
+	// m_markers added to m_filteredInfo in the parameter list. 
+	posn = pList->GetFirst();
+	wxASSERT(posn != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)posn->GetData();
+	wxASSERT(pSrcPhrase);
+	wxString str;
+	str.Empty();
+	wxString filtermkr = wxString(filterMkr);
+	wxString filtermkrend = wxString(filterMkrEnd);
+	while (posn != 0)
+	{
+		pSrcPhrase = (CSourcePhrase*)posn->GetData();
+		posn = posn->GetNext();
+		wxASSERT(pSrcPhrase);
+		// retrieve sfms used from pSrcPhrase->m_markers & m_filteredInfo, etc
+		if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetFilteredInfo().IsEmpty())
+		{
+            // GetMarkersAndTextFromString() retrieves each marker and its associated
+            // string and places them in the CStringList. Any Filtered markers are stored
+            // as a list item bracketed by \~FILTER ... \~FILTER* markers.
+			// To avoid a large CStringList developing we'll process the markers in each
+			// m_markers string individually, so empty the list. Information in
+			// m_freeTrans, m_note, or m_collectedBackTrans is handled after the
+			// GetMarkersAndTextFromString() call
+			pMarkerList->Clear();
+			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\free ") + pSrcPhrase->GetFreeTrans() + _T("\\free* ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\note ") + pSrcPhrase->GetNote() + _T("\\note* ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\bt ") + pSrcPhrase->GetCollectedBackTrans() + _T(" ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			wxString resultStr;
+			resultStr.Empty();
+			wxString displayStr;
+			wxString bareMarker;
+			wxString temp;
+			int ct;
+			for (ct = 0; ct < (int)pMarkerList->GetCount(); ct++)
+			{
+				resultStr = pMarkerList->Item(ct);
+				bool markerIsFiltered;
+				if (resultStr.Find(filterMkr) != -1)
+				{
+					resultStr = RemoveAnyFilterBracketsFromString(resultStr);
+					markerIsFiltered = TRUE;
+				}
+				else
+				{
+					markerIsFiltered = FALSE;
+				}
+				resultStr.Trim(FALSE); // trim left end
+				resultStr.Trim(TRUE); // trim right end
+				wxASSERT(resultStr.Find(gSFescapechar) == 0);
+				int strLen = resultStr.Length();
+				int posm = 1; // skip initial backslash
+				bareMarker.Empty();
+				displayStr.Empty();
+				while (posm < strLen && resultStr[posm] != _T(' ') && 
+						resultStr[posm] != gSFescapechar)
+				{
+					bareMarker += resultStr[posm];
+					posm++;
+				}
+				bareMarker.Trim(FALSE); // trim left end
+				bareMarker.Trim(TRUE); // trim right end
+
+				// do not include end markers in this inventory
+				int aPos = bareMarker.Find(_T('*'));
+				if (aPos == (int)bareMarker.Length() -1)
+					bareMarker.Remove(aPos,1);
+				wxASSERT(bareMarker.Length() > 0);
+				// lookup the marker in the active USFMAnalysis struct map
+                // whm ammended 11Jul05 Here we want to use the LookupSFM() routine which
+                // treats all \bt... initial back-translation markers as known markers all
+                // under the \bt marker with its description "Back-translation"
+                // whm revised again 14Nov05. For output filtering purposes, we need to
+                // treat all \bt... initial forms the same as simple \bt, in order to give
+                // the user the placement options (boxed paragraphs or footnote format for
+                // sfm RTF output; new table row or footnote format for interlinear RTF
+                // output). Handling all backtranslation the same for the sake of these
+                // placement options I think is preferable to not having the placement
+                // options and being able to filter from output the possible different
+                // kinds of backtranslation \bt... markers. Therefore here we will make all
+                // \bt... be just simple \bt and hence only have \bt in the export options
+                // list box. I've also renamed the \bt marker's description in AI_USFM.xml
+                // file to read: "Back Translation (and all \bt... initial forms)".
+				if (bareMarker.Find(_T("bt")) == 0)
+				{
+					bareMarker = _T("bt"); // make any \bt... initial forms be just 
+										   // \bt in the listbox
+				}
+				pSfm = LookupSFM(bareMarker); // use LookupSFM which properly 
+													// handles \bt... forms as \bt
+				bool bFound = pSfm != NULL;
+				lbStr = _T(' '); // prefix one initial space - looks better 
+								 // in a CCheckListBox
+				lbStr += gSFescapechar; // add backslash
+				// Since LookupSFM will find any back-translation marker of the form
+				// bt... we'll use the actual bareMarker to build the list box string
+				lbStr += bareMarker;
+                // We don't worry about adjusting for text extent here - that is done below
+                // in FormatMarkerAndDescriptionsStringArray(). Here we will just add a
+                // single space as delimiter between the whole marker and its description
+				lbStr += _T(' ');
+				if (!bFound)
+				{
+					// unknown marker so make the description [UNKNOWN MARKER]
+					// IDS_UNKNOWN_MARKER
+					temp = _("[UNKNOWN MARKER]"); // prefix description 
+												  // with "[UNKNOWN MARKER]"
+					lbStr = lbStr + temp;
+				}
+				else
+				{
+					if (markerIsFiltered)
+					{
+						// IDS_FILTERED
+						temp = _("[FILTERED]"); // prefix description 
+												// with "[FILTERED] ..."
+						lbStr += temp;
+						lbStr += _T(' ');
+						lbStr += pSfm->description;
+					}
+					else
+					{
+						lbStr += pSfm->description;
+					}
+				}
+				// Have we already stored this marker?
+				bool mkrAlreadyExists = FALSE;
+				for (int ct = 0; ct < (int)m_exportMarkerAndDescriptions.GetCount(); ct++)
+				{
+					if (lbStr == m_exportMarkerAndDescriptions[ct])
+					{
+						mkrAlreadyExists = TRUE;
+						break;
+					}
+				}
+				if (!mkrAlreadyExists)
+				{
+					// BEW addition 16Aug09, to exclude \note, \bt and/or \free markers
+					// when exporting either free translations or glosses as text
+					if (pApp->m_bExportingFreeTranslation || pApp->m_bExportingGlossesAsText)
+					{
+						if (bareMarker == _T("note") || 
+							bareMarker == _T("free") ||
+							bareMarker == _T("bt"))
+						{
+							continue; // ignore any of these marker types
+						}
+						else
+						{
+							// anything else gets added to the inventory
+							m_exportBareMarkers.Add(bareMarker);
+							m_exportMarkerAndDescriptions.Add(lbStr);
+							m_exportFilterFlags.Add(FALSE);
+							m_exportFilterFlagsBeforeEdit.Add(FALSE); 
+						}
+					}
+					else
+					{
+						m_exportBareMarkers.Add(bareMarker);
+						m_exportMarkerAndDescriptions.Add(lbStr);
+						m_exportFilterFlags.Add(FALSE); // export defaults to nothing 
+														// filtered out
+						m_exportFilterFlagsBeforeEdit.Add(FALSE); // export defaults to 
+																  // nothing filtered out
+					}
+				}
+			}
+		}
+	}
+	wxClientDC dC(pApp->GetMainFrame()->canvas);
+	pApp->FormatMarkerAndDescriptionsStringArray(&dC,
+							&m_exportMarkerAndDescriptions, 2, NULL);
+	// last parameter in call above is 2 spaces min 
+	// between whole marker and its description
+}
+
+/////////////////////////////////////////////////
+///
+/// Functions for support of Auto-Capitalization
+///
+////////////////////////////////////////////////
+
+inline wxChar CAdapt_ItDoc::GetFirstChar(wxString& strText)
+{
+	return strText.GetChar(0);
+}
+
+// takes the input character chTest, and attempts to Find() it in the CString theCharSet,
+// returning TRUE if it finds it, and setting index to the character index for its position
+// in the string buffer; if not found, then index will be set to -1.
+bool CAdapt_ItDoc::IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index)
+{
+	index = theCharSet.Find(chTest);
+	if (index > -1)
+	{
+		// it is in the list
+		return TRUE;
+	}
+	else
+	{
+		// it is not in the list
+		return FALSE;
+	}
+}
+
+// returns the TCHAR at the passed in offset
+wxChar CAdapt_ItDoc::GetOtherCaseChar(wxString& charSet, int nOffset)
+{
+	wxASSERT(nOffset < (int)charSet.Length());
+	return charSet.GetChar(nOffset);
+}
+
+//return TRUE if all was well, FALSE if there was an error; strText is the language word or
+//phrase the first character of which this function tests to determine its case, and from
+//that to set up storage for the lower or upper case equivalent character, and the relevant
+//flags. strText can be source text, target text, or gloss text; for the latter two
+//possibilities bIsSrcText needs to be explicitly set to FALSE, otherwise it is TRUE by
+//default. This is a diagnostic function used for Auto-Capitalization support.
+bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (strText.IsEmpty())
+	{
+		return FALSE;
+	}
+	int nOffset = -1;
+	wxChar chFirst = GetFirstChar(strText);
+
+	bool bIsLower;
+	bool bIsUpper;
+	if (bIsSrcText)
+	{
+		// exit prematurely if the user has not defined any source case equivalents
+		if (gbNoSourceCaseEquivalents)
+		{
+			gbSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+			return FALSE;
+		}
+
+		// determine if it is a lower case source character 
+		// which has an upper case equivalent
+		bIsLower = IsInCaseCharSet(chFirst,pApp->m_srcLowerCaseChars,nOffset);
+		if (bIsLower)
+		{
+			// it's a lower case belonging to the source set,
+			// so we don't have to capitalize it
+			gbSourceIsUpperCase = FALSE;
+			gcharSrcLC = chFirst;
+			wxASSERT(nOffset >= 0);
+			gcharSrcUC = GetOtherCaseChar(pApp->m_srcUpperCaseChars,nOffset);
+		}
+		else
+		{
+            // chFirst is not a lower case source character which has an upper case
+            // equivalent, so it might be an upper case source character (having a lower
+            // case equivalent), or it is of indeterminate case - in which case we treat
+            // it as lower case
+			bIsUpper = IsInCaseCharSet(chFirst,pApp->m_srcUpperCaseChars,nOffset);
+			if (bIsUpper)
+			{
+				// it is an upper case source char for which there is a lower case 
+				// equivalent
+				gbSourceIsUpperCase = TRUE;
+				gcharSrcUC = chFirst;
+				wxASSERT(nOffset >= 0);
+				gcharSrcLC = GetOtherCaseChar(pApp->m_srcLowerCaseChars,nOffset);
+			}
+			else
+			{
+				// it has indeterminate case, so treat as lower case with zero as its 
+				// upper case equiv
+				gbSourceIsUpperCase = FALSE;
+				gcharSrcLC = chFirst;
+				wxASSERT(nOffset == -1);
+				gcharSrcUC = _T('\0');
+			}
+		}
+	}
+	else
+	{
+        // it is either gloss or adaptation data: use gbIsGlossing to determine which...
+        // determine if it is a lower case character which has an upper case equivalent
+		if (gbIsGlossing)
+		{
+			// it's gloss data
+			// exit prematurely if the user has not specified any gloss case equivalents
+			if (gbNoGlossCaseEquivalents)
+			{
+				gbNonSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+				gcharNonSrcUC = _T('\0'); // use the value as a test indicating failure here
+				return FALSE;
+			}
+			bIsLower = IsInCaseCharSet(chFirst,pApp->m_glossLowerCaseChars,nOffset);
+		}
+		else
+		{
+			// it's adaptation data
+			// exit prematurely if the user has not specified any target case equivalents
+			if (gbNoTargetCaseEquivalents)
+			{
+				gbNonSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+				gcharNonSrcUC = _T('\0'); // use the value as a test indicating failure
+				return FALSE;
+			}
+			bIsLower = IsInCaseCharSet(chFirst,pApp->m_tgtLowerCaseChars,nOffset);
+		}
+		if (bIsLower)
+		{
+			// it's a lower case belonging to the gloss or adaptation set,
+			// so we don't have to capitalize it
+			gbNonSourceIsUpperCase = FALSE;
+			gcharNonSrcLC = chFirst;
+			wxASSERT(nOffset >= 0);
+			if (gbIsGlossing)
+			{
+				gcharNonSrcUC = GetOtherCaseChar(pApp->m_glossUpperCaseChars,nOffset);
+			}
+			else
+			{
+				gcharNonSrcUC = GetOtherCaseChar(pApp->m_tgtUpperCaseChars,nOffset);
+			}
+		}
+		else // it's not lower case...
+		{
+            // chFirst is not a lower case adaptation or gloss character which has an upper
+            // case equivalent, so it might be an upper case adaptation or gloss character
+            // (having a lower case equivalent), or it is of indeterminate case - in which
+            // case we treat it as lower case
+			if (gbIsGlossing)
+			{
+				bIsUpper = IsInCaseCharSet(chFirst,pApp->m_glossUpperCaseChars,nOffset);
+			}
+			else
+			{
+				bIsUpper = IsInCaseCharSet(chFirst,pApp->m_tgtUpperCaseChars,nOffset);
+			}
+			if (bIsUpper)
+			{
+				// it is an upper case gloss or adaptation char for which there is a lower
+				// case equivalent
+				gbNonSourceIsUpperCase = TRUE;
+				gcharNonSrcUC = chFirst;
+				wxASSERT(nOffset >= 0);
+				if (gbIsGlossing)
+				{
+					gcharNonSrcLC = GetOtherCaseChar(pApp->m_glossLowerCaseChars,nOffset);
+				}
+				else
+				{
+					gcharNonSrcLC = GetOtherCaseChar(pApp->m_tgtLowerCaseChars,nOffset);
+				}
+			}
+			else
+			{
+				// it has indeterminate case, so treat as lower case with zero as 
+				// its upper case equiv
+				gbNonSourceIsUpperCase = FALSE;
+				gcharNonSrcLC = chFirst;
+				wxASSERT(nOffset == -1);
+				gcharNonSrcUC = _T('\0');
+			}
+		}
+	}
+	return TRUE;
+}
+
 
 

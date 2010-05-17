@@ -39,6 +39,7 @@
 
 #include "Adapt_It.h"
 #include "ExportInterlinearDlg.h"
+#include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h" 
 #include "ExportOptionsDlg.h"
 
@@ -233,7 +234,7 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	bPlaceBackTransCheckboxEnabled = TRUE; // changed to TRUE; in v 3.0.1 after table row code added
 	bPlaceAINotesCheckboxEnabled = TRUE;
 
-	gpApp->GetView()->GetMarkerInventoryFromCurrentDoc();
+	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc();
 
 	TransferDataToWindow(); // needed here to get ch::vs data into edit controls
 

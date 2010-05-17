@@ -342,6 +342,7 @@ public:
                         // saved in the CAdapt_ItApp:m_saveDocSize member, back to
                         // m_logicalDocSize here in CLayout, for use again in the view
                         // refreshes, after printing
+	void		MakeAllPilesNonCurrent(); // moved here 17May10
 
 	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
 	PileList*		GetPileList();

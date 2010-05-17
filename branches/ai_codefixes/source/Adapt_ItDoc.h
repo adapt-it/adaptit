@@ -180,6 +180,7 @@ public:
 											// the project configuration file to the project's directory
 	int				GetCurrentDocVersion();
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
+	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
 	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
@@ -240,6 +241,7 @@ public:
 															  // output equivalent function is SetupBufferForOutput
 	int				RetokenizeText(	bool bChangedPunctuation,
 									bool bChangedFiltering, bool bChangedSfmSet);
+	bool			SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
 	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
 	wxString		SetupBufferForOutput(wxString* pCString);
@@ -291,6 +293,9 @@ public:
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
 	void	DoConsistencyCheck(CAdapt_ItApp* pApp);
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
+	wxChar	GetFirstChar(wxString& strText);
+	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
+	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
 
 	DECLARE_EVENT_TABLE()
 };

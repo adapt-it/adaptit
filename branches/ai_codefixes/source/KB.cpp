@@ -312,7 +312,7 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 	if (gbAutoCaps && gbSourceIsUpperCase && !gbMatchedKB_UCentry && !adaptation.IsEmpty())
 	{
 		// possibly we may need to change the case of first character of 'adaptation'
-		bNoError = m_pApp->GetView()->SetCaseParameters(adaptation, FALSE); // FALSE means it is an
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(adaptation, FALSE); // FALSE means it is an
 														 // adaptation or a gloss
 		if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
 		{
@@ -379,7 +379,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			goto a;
 
 		// auto capitalization is ON, so determine the relevant parameters etc.
-		bool bNoError = m_pApp->GetView()->SetCaseParameters(keyStr); // extra param is TRUE since
+		bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param is TRUE since
 												   // it is source text
 		if (!bNoError)
 			goto a; // keyStr must have been empty (impossible) or the user
@@ -552,7 +552,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = m_pApp->GetView()->SetCaseParameters(s1);
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(s1);
 		if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
 			// make it start with lower case letter
@@ -732,7 +732,7 @@ wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 		// must be a gloss or adaptation string
 		if (gbAutoCaps && gbSourceIsUpperCase)
 		{
-			bNoError = m_pApp->GetView()->SetCaseParameters(str,FALSE);
+			bNoError = m_pApp->GetDocument()->SetCaseParameters(str,FALSE);
 			if (!bNoError)
 				goto a;
 			if (gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
@@ -1678,7 +1678,7 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
                     // we must convert the key to lower case for the removal operation (so
                     // that it succeeds, since the KB would have a lower case key stored,
                     // not upper case
-					bool bNoError = m_pApp->GetView()->SetCaseParameters(temp); // TRUE for default 
+					bool bNoError = m_pApp->GetDocument()->SetCaseParameters(temp); // TRUE for default 
 															 // parameter = src text
 					if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 					{
@@ -1749,7 +1749,7 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
                 // must convert the key to lower case for the removal operation (so that it
                 // succeeds, since the KB would have a lower case key stored, not upper
                 // case
-				bool bNoError = m_pApp->GetView()->SetCaseParameters(temp); // TRUE for default 
+				bool bNoError = m_pApp->GetDocument()->SetCaseParameters(temp); // TRUE for default 
 														 // parameter = src text
 				if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 				{
@@ -1840,7 +1840,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = m_pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
 	}
 
 	m_pApp->GetDocument()->Modify(TRUE);
@@ -1900,7 +1900,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			bool bNoError = TRUE;
 			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 			{
-				bNoError = m_pApp->GetView()->SetCaseParameters(s,FALSE);
+				bNoError = m_pApp->GetDocument()->SetCaseParameters(s,FALSE);
 				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 				{
 					// change it to upper case
@@ -2194,7 +2194,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 	if (gbAutoCaps)
 	{
-		bNoError = m_pApp->GetView()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
 	}
 
     // If the source word (or phrase) has not been previously encountered, then
@@ -2367,7 +2367,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			bool bNoError = TRUE;
 			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 			{
-				bNoError = m_pApp->GetView()->SetCaseParameters(s,FALSE);
+				bNoError = m_pApp->GetDocument()->SetCaseParameters(s,FALSE);
 				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 				{
 					// change it to upper case

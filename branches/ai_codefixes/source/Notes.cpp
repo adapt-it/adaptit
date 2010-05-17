@@ -67,6 +67,14 @@ extern bool gbVerticalEditInProgress;
 extern int	gnOldSequNum;
 extern wxPoint gptLastClick;
 
+// Define type safe pointer lists
+#include "wx/listimpl.cpp"
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called WordList.
+WX_DEFINE_LIST(WordList);
+
+
 // *******************************************************************
 // Event handlers
 // *******************************************************************
