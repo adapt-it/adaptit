@@ -115,7 +115,7 @@ public:
 	bool			AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
 	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
 	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
-	void			DoKBImport(wxTextFile* pFile);
+	void			DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType);
 	void			DoKBSaveAsXML(wxFile& f);
 	void			DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
 	bool			FindMatchInKB(int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);

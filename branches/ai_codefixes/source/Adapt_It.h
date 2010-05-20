@@ -278,17 +278,17 @@ const char xml_fi[] = "fi"; // m_filteredInfo
 
 // tag & attribute names for KB i/o
 
-/// Attribute name used in Adapt It XML KB i/o
+/// Tag name used in Adapt It XML KB i/o
 const char xml_aikb[] = "AdaptItKnowledgeBase";
-/// Attribute name used in Adapt It XML KB i/o
+/// Tag name used in Adapt It XML KB i/o
 const char xml_kb[] = "KB";
-/// Attribute name used in Adapt It XML KB i/o
+/// Tag name used in Adapt It XML KB i/o
 const char xml_gkb[] = "GKB";
-/// Attribute name used in Adapt It XML KB i/o
+/// Tag name used in Adapt It XML KB i/o
 const char xml_map[] = "MAP";
-/// Attribute name used in Adapt It XML KB i/o
+/// Tag name used in Adapt It XML KB i/o
 const char xml_tu[] = "TU";
-/// Attribute name used in Adapt It XML KB i/o
+/// Tag name used in Adapt It XML KB i/o
 const char xml_rs[] = "RS";
 /// Attribute name used in Adapt It XML KB i/o
 const char xml_srcnm[] = "srcName";
@@ -302,6 +302,35 @@ const char xml_max[] = "max";
 const char xml_mn[] = "mn";
 /// Attribute name used in Adapt It XML KB i/o
 const char xml_xmlns[] = "xmlns";
+
+// tag names for LIFT i/o
+
+/// Tag name used in LIFT XML i/o
+const char xml_lift[] = "lift";
+/// Tag name used in LIFT XML i/o
+const char xml_entry[] = "entry";
+/// Tag name used in LIFT XML i/o
+const char xml_lexical_unit[] = "lexical-unit";
+/// Tag name used in LIFT XML i/o
+const char xml_form[] = "form";
+/// Tag name used in LIFT XML i/o
+const char xml_text[] = "text";
+/// Tag name used in LIFT XML i/o
+const char xml_sense[] = "sense";
+/// Tag name used in LIFT XML i/o
+const char xml_definition[] = "definition";
+
+// attribute names for LIFT i/o
+
+/// Attribute name used in LIFT XML i/o
+const char xml_lift_version[] = "version";
+/// Attribute name used in LIFT XML i/o
+const char xml_guid[] = "guid";
+/// Attribute name used in LIFT XML i/o
+const char xml_id[] = "id";
+/// Attribute name used in LIFT XML i/o
+const char xml_lang[] = "lang";
+
 
 /// struct for saving top and bottom logical coord offsets for printing pages, stored in
 /// m_pagesList Instances of PageOffsets are populated in the PaginateDoc() function in the
@@ -376,6 +405,13 @@ enum KBExportSaveAsType
 	KBExportSaveAsLIFT_XML,
 	KBExportSaveAsSFM_TXT,
 	KBExportAllFiles
+};
+
+enum KBImportFileOfType
+{
+	KBImportFileOfLIFT_XML,
+	KBImportFileOfSFM_TXT,
+	KBImportAllFiles
 };
 
 /// An enum for return error-state from GetNewFile()

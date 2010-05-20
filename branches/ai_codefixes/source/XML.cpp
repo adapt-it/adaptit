@@ -1050,6 +1050,9 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
 	}
 	
 	// it's XML, so skip the rest of the prologue
+	// whm Note: Warning the following while loop would go infinite if the xml file were
+	// truncated in the middle of the prologue, i.e., not '>' exists in the remainder of
+	// the file! TODO: Fix This!! (add: && pPos < pEnd)
 	while (*pPos != '>') pPos++;
 	pPos++; // skip the final >
 	SkipWhiteSpace(pPos,pEnd); // skip any newline and or indenting
@@ -3873,6 +3876,342 @@ CBString MakeFlags(CSourcePhrase* pSP)
 
 /********************************************************************************
 *
+*  LIFT input as XML - call back functions
+*
+*********************************************************************************/
+// whm added 19May10
+
+bool AtLIFTTag(CBString& tag)
+{
+	if (tag == xml_lift)
+	{
+		// nothing to do, because the map number is not parsed yet
+		return TRUE;
+	}
+	else if (tag == xml_entry)
+	{
+		// create a new CTargetUnit instance on the heap
+		gpTU = new CTargetUnit;
+	}
+	else if (tag == xml_sense)
+	{
+		// create a new CRefString instance on the heap
+		gpRefStr = new CRefString;
+
+		// set the pointer to the owning CTargetUnit, and add it to the m_translations member
+		gpRefStr->m_pTgtUnit = gpTU; // the current one
+		gpTU->m_pTranslations->Append(gpRefStr);
+	}
+	else if (tag == xml_definition)
+	{
+		;
+	}
+	else if (tag == xml_text)
+	{
+		;
+	}
+	else if (tag == xml_form)
+	{
+		;
+	}
+	else if (tag == xml_lexical_unit)
+	{
+		;
+	}
+	else
+	{
+		// unknown tag
+		return FALSE;
+	}
+	return TRUE; // no error
+}
+
+bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag))
+{
+	// unused
+	return TRUE;
+}
+
+bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue)
+{
+	/*
+	int num;
+	if ((tag == xml_kb || tag == xml_gkb) && attrName == xml_docversion)
+	{
+		// (the docVersion attribute is not versionable, so have it outside of the switch)
+		// set the gnDocVersion global with the document's versionable schema number
+		gnDocVersion = atoi(attrValue);
+		return TRUE;
+	}
+	// put the more commonly encountered tags at the top, for speed
+#ifndef _UNICODE // ANSI version (ie. regular)
+	if (tag == xml_rs)
+	{
+		if (attrName == xml_n)
+		{
+			gpRefStr->m_refCount = atoi(attrValue);
+		}
+		else if (attrName == xml_a)
+		{
+			ReplaceEntities(attrValue);
+			gpRefStr->m_translation = attrValue;
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_tu)
+	{
+		if (attrName == xml_f)
+		{
+			// code below avoids: warning C4800: 'int' : 
+			// forcing value to bool 'true' or 'false' (performance warning)
+			if (attrValue == "0")
+				gpTU->m_bAlwaysAsk = FALSE;
+			else
+				gpTU->m_bAlwaysAsk = TRUE;
+		}
+		else if (attrName == xml_k)
+		{
+			ReplaceEntities(attrValue);
+			gKeyStr = attrValue; // key string for the map hashing to use
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_map)
+	{
+		if (attrName == xml_mn)
+		{
+			// set the map index (one less than the map number)
+			num = atoi(attrValue);
+			gnMapIndex = num - 1;
+			wxASSERT(gnMapIndex >= 0);
+
+			// now we know the index, we can set the map pointer
+			gpMap = gpKB->m_pMap[gnMapIndex];
+			wxASSERT(gpMap->size() == 0); // has to start off empty
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_kb || tag == xml_gkb)
+	{
+		if (attrName == xml_srcnm)
+		{
+			ReplaceEntities(attrValue);
+			gpKB->m_sourceLanguageName = attrValue;
+		}
+		else if (attrName == xml_tgtnm)
+		{
+			ReplaceEntities(attrValue);
+			gpKB->m_targetLanguageName = attrValue;
+		}
+		else if (attrName == xml_max)
+		{
+			gpKB->m_nMaxWords = atoi(attrValue);
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_aikb)
+	{
+		if (attrName == xml_xmlns)
+		{
+			// .NET support for xml parsing of KB file;
+			//*ATTENTION BOB*  add any bool setting you need here
+			wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+										 // here in a local wxString for now, in case you need to use it
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else
+	{
+		// unknown tag
+		return FALSE;
+	}
+#else // Unicode version
+	if (tag == xml_rs)
+	{
+		if (attrName == xml_n)
+		{
+			gpRefStr->m_refCount = atoi(attrValue);
+		}
+		else if (attrName == xml_a)
+		{
+			ReplaceEntities(attrValue);
+			gpRefStr->m_translation = gpApp->Convert8to16(attrValue);
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_tu)
+	{
+		if (attrName == xml_f)
+		{
+			if (attrValue == "0")
+				gpTU->m_bAlwaysAsk = FALSE;
+			else
+				gpTU->m_bAlwaysAsk = TRUE;
+		}
+		else if (attrName == xml_k)
+		{
+			ReplaceEntities(attrValue);
+			gKeyStr = gpApp->Convert8to16(attrValue); // key string for the map hashing to use
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_map)
+	{
+		if (attrName == xml_mn)
+		{
+			// set the map index (one less than the map number)
+			num = atoi(attrValue);
+			gnMapIndex = num - 1;
+			wxASSERT(gnMapIndex >= 0);
+
+			// now we know the index, we can set the map pointer
+			gpMap = gpKB->m_pMap[gnMapIndex];
+			wxASSERT(gpMap->size() == 0); // has to start off empty
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_kb || tag == xml_gkb)
+	{
+		if (attrName == xml_srcnm)
+		{
+			ReplaceEntities(attrValue);
+			gpKB->m_sourceLanguageName = gpApp->Convert8to16(attrValue);
+		}
+		else if (attrName == xml_tgtnm)
+		{
+			ReplaceEntities(attrValue);
+			gpKB->m_targetLanguageName = gpApp->Convert8to16(attrValue);
+		}
+		else if (attrName == xml_max)
+		{
+			gpKB->m_nMaxWords = atoi(attrValue);
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else if (tag == xml_aikb)
+	{
+		if (attrName == xml_xmlns)
+		{
+			// .NET support for xml parsing of KB file;
+			//*ATTENTION BOB*  add any bool setting you need here
+			// TODO: whm check the following conversion
+			wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+												// here in a local wxString for now, in case you need to use it
+		}
+		else
+		{
+			// unknown attribute
+			return FALSE;
+		}
+	}
+	else
+	{
+		// unknown tag
+		return FALSE;
+	}
+#endif // for _UNICODE #defined
+	*/
+	return TRUE; // no error
+}
+
+bool AtLIFTEndTag(CBString& tag)
+{
+	if (tag == xml_entry)
+	{
+		// add the completed CTargetUnit to the CKB's m_pTargetUnits SPList
+		gpKB->m_pTargetUnits->Append(gpTU);
+
+		// set up the association between this CTargetUnit's pointer and the source text key
+		// in the current map
+		(*gpMap)[gKeyStr] = gpTU;
+
+		// clear the pointer (not necessary, but a good idea for making sure the code is sound)
+		gpTU = NULL; // the m_pTargetUnits list will manage the pointer from now on
+	}
+	else if (tag == xml_lift)
+	{
+		// nothing to be done
+		;
+	}
+	else if (tag == xml_sense)
+	{
+		// nothing to be done
+		;
+	}
+	else if (tag == xml_definition)
+	{
+		// nothing to be done
+		;
+	}
+	else if (tag == xml_text)
+	{
+		// nothing to do
+		;
+	}
+	else if (tag == xml_form)
+	{
+		// nothing to do
+		;
+	}
+	else if (tag == xml_lexical_unit)
+	{
+		// nothing to do
+		;
+	}
+	else
+	{
+		// unknown tag
+		return FALSE;
+	}
+	return TRUE;
+}
+
+bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
+{
+	// 
+	return TRUE;
+}
+
+
+
+/********************************************************************************
+*
 *  Adapt It KB and GlossingKB input as XML - call back functions
 *
 *********************************************************************************/
@@ -4364,6 +4703,27 @@ bool ReadKB_XML(wxString& path, CKB* pKB)
 	gpKB = pKB; // set the global gpKB used by the callback functions
 	bool bXMLok = ParseXML(path,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
 							AtKBEndTag,AtKBPCDATA);
+	return bXMLok;
+}	
+
+/*****************************************************************
+*
+* ReadLIFT_XML
+*
+* Returns: TRUE if no error, else FALSE
+*
+* Parameters:
+*	path  -> (wxString) absolute path to the *.xml KB or GlossingKB file on the storage medium
+*	pKB   -> pointer to the CKB instance being filled out
+*
+* Calls ParseXML to parse a LIFT xml file
+*
+*******************************************************************/
+
+bool ReadLIFT_XML(wxString& path, CKB* pKB)
+{
+	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
+							AtLIFTEndTag,AtLIFTPCDATA);
 	return bXMLok;
 }	
 

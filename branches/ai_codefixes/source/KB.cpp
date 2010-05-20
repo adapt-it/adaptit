@@ -838,7 +838,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	return FALSE; // did not find a match
 }
 
-void CKB::DoKBImport(wxTextFile* pFile)
+void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
 	CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 	// guarantee safe value for storage of contents to KB, or glossing KB
@@ -859,125 +859,174 @@ void CKB::DoKBImport(wxTextFile* pFile)
 	int nOffset = -1;
 	m_pApp->m_bSaveToKB = TRUE;
 
-    // wx version: We are using wxTextFile which has already loaded its entire contents
-    // into memory with the Open call in OnImportToKb() above. wxTextFile knows how to
-    // handle Unicode data and the different end-of-line characters of the different
-    // platforms.
-    // Since the entire basic config file is now in memory we can read the information by
-    // scanning its virtual lines. In this routine we use the "direct access" method of
-    // retrieving the lines from storage in memory, using GetLine(ct).
-	int lineCount = pFile->GetLineCount();
-
-	int ct;
-	for (ct = 0; ct < lineCount; ct++)
+	if (kbImportFileOfType == KBImportFileOfLIFT_XML)
 	{
-		line = pFile->GetLine(ct);
-		// the data for each line is now in lineStr
-		// is the line a m_key member?
-		if (IsMember(line,keyMarker,nOffset) || nOffset >= 0)
+		// we're importing from a LIFT file
+		wxFile f;
+		wxLogNull logno; // prevent unwanted system messages
+		if( !f.Open( pathName, wxFile::read))
 		{
-			// it is a valid key
-			pSrcPhrase->m_key.Empty();
-			if (m_bGlossingKB)
-			{
-				pSrcPhrase->m_gloss.Empty();
-				pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-				pSrcPhrase->m_nSrcWords = 1; // temp default value
-			}
-			else
-			{
-				pSrcPhrase->m_adaption.Empty();
-				pSrcPhrase->m_bHasKBEntry = FALSE;
-				pSrcPhrase->m_nSrcWords = 1; // temp default value
-			}
-			bKeyDefined = TRUE;
+			wxMessageBox(_("Unable to open import file for reading."),
+		  _T(""), wxICON_WARNING);
+			return;
+		}
+		// For LIFT import we are using wxFile and we call xml processing functions
+		// from XML.cpp
+		bool bReadOK;
+		bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB); // assume LIFT import goes into the regular KB
 
-			// extract the actual srcPhrase's m_key from the read in string,
-			// to set the key variable
-			int keyLen = line.Length();
-			keyLen -= (4 + nOffset); // \lx followed by a space = 4 characters,
-									 // nOffset takes care of any leading spaces
-			if (keyLen > 0)
-			{
-				key = line.Right(keyLen);
-				int nWordCount;
-				if (gbIsGlossing)
-					nWordCount = 1;
-				else
-					nWordCount = CountSourceWords(key);
-				if (nWordCount == 0 || nWordCount > MAX_WORDS)
-				{
-					// error condition
-					pSrcPhrase->m_nSrcWords = 1;
-					key.Empty();
-					bKeyDefined = FALSE;
-				}
-				else
-				{
-					// we have an acceptable key
-					pSrcPhrase->m_nSrcWords = nWordCount;
-					pSrcPhrase->m_key = key; // CountSourceWords will strip off
-											 // leading or trailing spaces in key
-				}
-			}
-			else
-			{
-				key.Empty();
-				bKeyDefined = FALSE;
-				pSrcPhrase->m_nSrcWords = 1;
-			}
+		f.Close();
+	}
+	else
+	{
+		// we're importing from an SFM text file (\lx and \ge)
+		wxTextFile file;
+		wxLogNull logno; // prevent unwanted system messages
+		bool bSuccessful;
+		if (!::wxFileExists(pathName))
+		{
+			bSuccessful = FALSE;
 		}
 		else
 		{
-			if (IsMember(line,adaptionMarker,nOffset) || nOffset >= 0)
+	#ifndef _UNICODE
+			// ANSI
+			bSuccessful = file.Open(pathName); // read ANSI file into memory
+	#else
+			// UNICODE
+			bSuccessful = file.Open(pathName, wxConvUTF8); // read UNICODE file into memory
+	#endif
+		}
+		if (!bSuccessful)
+		{
+			// assume there was no configuration file in existence yet, 
+			// so nothing needs to be fixed
+			wxMessageBox(_("Unable to open import file for reading."));
+			return;
+		}
+
+		// For SFM import we are using wxTextFile which has already loaded its entire contents
+		// into memory with the Open call in OnImportToKb() above. wxTextFile knows how to
+		// handle Unicode data and the different end-of-line characters of the different
+		// platforms.
+		// Since the entire basic config file is now in memory we can read the information by
+		// scanning its virtual lines. In this routine we use the "direct access" method of
+		// retrieving the lines from storage in memory, using GetLine(ct).
+		int lineCount = file.GetLineCount();
+
+		int ct;
+		for (ct = 0; ct < lineCount; ct++)
+		{
+			line = file.GetLine(ct);
+			// the data for each line is now in lineStr
+			// is the line a m_key member?
+			if (IsMember(line,keyMarker,nOffset) || nOffset >= 0)
 			{
-				// an adaptation member exists for this key, so get the KB updated
-				// with this association provided a valid key was constructed
-				if (bKeyDefined)
+				// it is a valid key
+				pSrcPhrase->m_key.Empty();
+				if (m_bGlossingKB)
 				{
-					int adaptionLen = line.Length();
-					adaptionLen -= (4 + nOffset); // \ge followed by a space = 4 characters,
-												  // nOffset takes care of any leading spaces
-					if (adaptionLen > 0)
-					{
-						adaption = line.Right(adaptionLen);
-					}
-					else
-					{
-						adaption.Empty();
-					}
-
-					// store the association in the KB, provided it is not already there
-					if (m_bGlossingKB)
-					{
-						if (!IsAlreadyInKB(1,key,adaption)) // use 1, as m_nSrcWords could 
-						{									// be set > 1 for this pSrcPhrase
-							// adaption parameter is assumed to be a gloss if this is a
-							// glossing KB
-							StoreText(pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
-													// TRUE means "allow empty string save"
-						}
-					}
-					else
-					{
-						if (!IsAlreadyInKB(pSrcPhrase->m_nSrcWords,key,adaption))
-							StoreText(pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
-													// TRUE means "allow empty string save"
-					}
-
-					// prepare for another adaptation (or gloss) for this key
+					pSrcPhrase->m_gloss.Empty();
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+					pSrcPhrase->m_nSrcWords = 1; // temp default value
+				}
+				else
+				{
 					pSrcPhrase->m_adaption.Empty();
-					adaption.Empty();
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_nSrcWords = 1; // temp default value
+				}
+				bKeyDefined = TRUE;
+
+				// extract the actual srcPhrase's m_key from the read in string,
+				// to set the key variable
+				int keyLen = line.Length();
+				keyLen -= (4 + nOffset); // \lx followed by a space = 4 characters,
+										 // nOffset takes care of any leading spaces
+				if (keyLen > 0)
+				{
+					key = line.Right(keyLen);
+					int nWordCount;
+					if (gbIsGlossing)
+						nWordCount = 1;
+					else
+						nWordCount = CountSourceWords(key);
+					if (nWordCount == 0 || nWordCount > MAX_WORDS)
+					{
+						// error condition
+						pSrcPhrase->m_nSrcWords = 1;
+						key.Empty();
+						bKeyDefined = FALSE;
+					}
+					else
+					{
+						// we have an acceptable key
+						pSrcPhrase->m_nSrcWords = nWordCount;
+						pSrcPhrase->m_key = key; // CountSourceWords will strip off
+												 // leading or trailing spaces in key
+					}
+				}
+				else
+				{
+					key.Empty();
+					bKeyDefined = FALSE;
+					pSrcPhrase->m_nSrcWords = 1;
 				}
 			}
 			else
 			{
-				// it's neither a key nor an adaption (or gloss),
-				// so probably a blank line - just ignore it
-				;
+				if (IsMember(line,adaptionMarker,nOffset) || nOffset >= 0)
+				{
+					// an adaptation member exists for this key, so get the KB updated
+					// with this association provided a valid key was constructed
+					if (bKeyDefined)
+					{
+						int adaptionLen = line.Length();
+						adaptionLen -= (4 + nOffset); // \ge followed by a space = 4 characters,
+													  // nOffset takes care of any leading spaces
+						if (adaptionLen > 0)
+						{
+							adaption = line.Right(adaptionLen);
+						}
+						else
+						{
+							adaption.Empty();
+						}
+
+						// store the association in the KB, provided it is not already there
+						if (m_bGlossingKB)
+						{
+							if (!IsAlreadyInKB(1,key,adaption)) // use 1, as m_nSrcWords could 
+							{									// be set > 1 for this pSrcPhrase
+								// adaption parameter is assumed to be a gloss if this is a
+								// glossing KB
+								StoreText(pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
+														// TRUE means "allow empty string save"
+							}
+						}
+						else
+						{
+							if (!IsAlreadyInKB(pSrcPhrase->m_nSrcWords,key,adaption))
+								StoreText(pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
+														// TRUE means "allow empty string save"
+						}
+
+						// prepare for another adaptation (or gloss) for this key
+						pSrcPhrase->m_adaption.Empty();
+						adaption.Empty();
+					}
+				}
+				else
+				{
+					// it's neither a key nor an adaption (or gloss),
+					// so probably a blank line - just ignore it
+					;
+				}
 			}
 		}
+		file.Close();
 	}
+
 	// process the last line here ???
 	delete pSrcPhrase;
 }
@@ -1408,7 +1457,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					composeXmlStr += "<lexical-unit>";
 					composeXmlStr += "\r\n";
 					composeXmlStr += indent6sp;
-					composeXmlStr += "<form lang =\"";
+					composeXmlStr += "<form lang=\"";
 					composeXmlStr += srcLangCode;
 					composeXmlStr += "\">";
 					composeXmlStr += "\r\n";
@@ -1456,7 +1505,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					composeXmlStr += "<definition>";
 					composeXmlStr += "\r\n";
 					composeXmlStr += indent8sp;
-					composeXmlStr += "<form lang =\"";
+					composeXmlStr += "<form lang=\"";
 					composeXmlStr += tgtLangCode;
 					composeXmlStr += "\">";
 					composeXmlStr += "\r\n";
@@ -1512,7 +1561,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						composeXmlStr += "<definition>";
 						composeXmlStr += "\r\n";
 						composeXmlStr += indent8sp;
-						composeXmlStr += "<form lang =\"";
+						composeXmlStr += "<form lang=\"";
 						composeXmlStr += tgtLangCode;
 						composeXmlStr += "\">";
 						composeXmlStr += "\r\n";

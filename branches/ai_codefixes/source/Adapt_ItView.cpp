@@ -18306,12 +18306,9 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	wxFile f;
 	if( !f.Open( dicPath, wxFile::write))
 	{
-	   #ifdef __WXDEBUG__
-		  wxLogError(_("Unable to open knowledge base export file.\n"));
-		  wxMessageBox(_("Unable to open knowledge base export file."),
-		  _T(""), wxICON_WARNING);
-	   #endif
-	   return; // return since it is not a fatal error
+		wxMessageBox(_("Unable to open knowledge base export file."),
+		_T(""), wxICON_WARNING);
+		return; // return since it is not a fatal error
 	}
 
 	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, i.e., first item in drop down list
@@ -18630,11 +18627,11 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxString message;
 	message = _(
-	"Extend the knowledge base by importing dictionary records"); //IDS_IMPORT_DICT_RECORDS
+	"Extend the knowledge base by importing LIFT or SFM dictionary records");
 	wxString filter;
 	filter = _(
-	"Adapt It knowledge base import (*.txt)|*.txt|All Files (*.*)|*.*||"); //IDS_KB_IMPORT_FILTER
-	wxString exportFilename = _T(""); // empty string
+	"XML LIFT import (*.lift)|*.lift|SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||");
+	wxString importFilename = _T(""); // empty string
 	wxString defaultDir;
 	if (pApp->m_kbExportPath.IsEmpty())
 	{
@@ -18650,7 +18647,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		message,
 		defaultDir,	// empty string causes it to use the 
 					// current working directory (set above)
-		exportFilename,	// default filename
+		importFilename,	// default filename
 		filter,
 		wxFD_OPEN); 
 		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
@@ -18658,63 +18655,38 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	fileDlg.Centre();
 
 	// open as modal dialog
-	int returnValue = fileDlg.ShowModal();
-	if (returnValue == wxID_CANCEL)
+	if (fileDlg.ShowModal() != wxID_OK)
+		return; // user cancelled
+
+	wxString pathName;
+	pathName = fileDlg.GetPath();
+
+	// update m_kbExportPath
+	wxString importPath = fileDlg.GetPath();
+	wxString name = fileDlg.GetFilename();
+	int nameLen = name.Length();
+	int pathLen = importPath.Length();
+	wxASSERT(nameLen > 0 && pathLen > 0);
+	pApp->m_kbExportPath = importPath.Left(pathLen - nameLen - 1);
+	int filterIndex;
+	filterIndex = fileDlg.GetFilterIndex();
+
+	if (filterIndex == KBImportFileOfLIFT_XML)
 	{
-		return; // user Cancelled, or closed the dialog box
-	}
-	else // must be wxID_OK
-	{
-		wxString pathName;
-		pathName = fileDlg.GetPath();
-
-		// update m_kbExportPath
-		wxString exportPath = fileDlg.GetPath();
-		wxString name = fileDlg.GetFilename();
-		int nameLen = name.Length();
-		int pathLen = exportPath.Length();
-		wxASSERT(nameLen > 0 && pathLen > 0);
-		pApp->m_kbExportPath = exportPath.Left(pathLen - nameLen - 1);
-
-		wxTextFile file;
-        // Under wxWidgets wxTextFile actually reads the entire file into memory at the
-        // Open() call. It is set up so we can treat it as a line oriented text file while
-        // in memory, modifying it, then if not just reading it, we can write it back out
-        // to persistent storage with a single call to Write().
-
-		// open the config file for reading
-        // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
-        // Note: Need to check if file exists, otherwise if Open fails wxWidgets'
-        // wxTextFile conjures up its own error message to that fact which it issues in
-        // Idle time just after it's no longer busy.
-		bool bSuccessful;
-		if (!::wxFileExists(pathName))
-		{
-			bSuccessful = FALSE;
-		}
-		else
-		{
-	#ifndef _UNICODE
-			// ANSI
-			bSuccessful = file.Open(pathName); // read ANSI file into memory
-	#else
-			// UNICODE
-			bSuccessful = file.Open(pathName, wxConvUTF8); // read UNICODE file into memory
-	#endif
-		}
-		if (!bSuccessful)
-		{
-			// assume there was no configuration file in existence yet, 
-			// so nothing needs to be fixed
-			wxMessageBox(_("Unable to open import file for reading."));
-			return;
-		}
 		if (gbIsGlossing)
-			pApp->m_pGlossingKB->DoKBImport(&file);
+			pApp->m_pGlossingKB->DoKBImport(pathName,KBImportFileOfLIFT_XML);
 		else
-			pApp->m_pKB->DoKBImport(&file);
+			pApp->m_pKB->DoKBImport(pathName,KBImportFileOfLIFT_XML);
 	}
-	return;
+	else
+	{
+		// the  user chose File Of Type of "SFM plain text import (from \\lx & \\ge fields) (*.txt)"
+		// or "All Files (*.*)" which we assume would be same as "SFM plain text import..."
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->DoKBImport(pathName,KBImportFileOfSFM_TXT);
+		else
+			pApp->m_pKB->DoKBImport(pathName,KBImportFileOfSFM_TXT);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
