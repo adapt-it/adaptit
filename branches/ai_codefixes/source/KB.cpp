@@ -1296,7 +1296,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		// by GetEncodingStringForSmlFiles() below as <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		m_pApp->GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
 		composeXmlStr = xmlPrologue; // first string in xml file
-		CBString openLiftTag = "<lift version=\"0.12\">";
+		CBString openLiftTag = "<lift version=\"0.13\">";
 		composeXmlStr += openLiftTag;
 		composeXmlStr += "\r\n";
 		DoWrite(*pFile,composeXmlStr);
