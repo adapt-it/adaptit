@@ -177,7 +177,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
 		bool (*pAtEmptyElementClose)(CBString& tag),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
 		bool (*pAtEndTag)(CBString& tag),
-		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata));
+		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack));
 		
 #ifdef Output_Default_Style_Strings
 bool ParseXMLElement(wxFile& dfile,
@@ -187,7 +187,7 @@ bool ParseXMLElement(wxFile& dfile,
 		bool (*pAtEmptyElementClose)(CBString& tag),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
 		bool (*pAtEndTag)(CBString& tag),
-		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata));
+		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack));
 #else
 bool ParseXMLElement(CStack*& pStack,CBString& tagname,char*& pBuff,
 		char*& pPos,char*& pEnd,bool& bCallbackSucceeded,
@@ -195,7 +195,7 @@ bool ParseXMLElement(CStack*& pStack,CBString& tagname,char*& pBuff,
 		bool (*pAtEmptyElementClose)(CBString& tag),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
 		bool (*pAtEndTag)(CBString& tag),
-		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata));
+		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack));
 #endif
 		
 bool ParseXMLAttribute(CBString& WXUNUSED(tagname),char*& WXUNUSED(pBuff),char*& pPos,char*& pEnd,
@@ -229,28 +229,28 @@ bool AtBooksTag(CBString& tag);
 bool AtBooksEmptyElemClose(CBString& tag);
 bool AtBooksAttr(CBString& tag,CBString& attrName,CBString& attrValue);
 bool AtBooksEndTag(CBString& tag);
-bool AtBooksPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata));
+bool AtBooksPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
 
 // Functions used as callbacks for AI_USFM.xml
 bool AtSFMTag(CBString& tag);
 bool AtSFMEmptyElemClose(CBString& WXUNUSED(tag));
 bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue);
 bool AtSFMEndTag(CBString& tag);
-bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& pcdata);
+bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& WXUNUSED(pStack));
 
 // Functions used as callbacks for XML-marked-up Adapt It documents
 bool AtDocTag(CBString& tag);
 bool AtDocEmptyElemClose(CBString& WXUNUSED(tag));
 bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue);
 bool AtDocEndTag(CBString& tag);
-bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata));
+bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
 
 // Functions used as callbacks for XML-marked-up KB and GlossingKB files
 bool AtKBTag(CBString& tag);
 bool AtKBEmptyElemClose(CBString& WXUNUSED(tag));
 bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue);
 bool AtKBEndTag(CBString& tag);
-bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata));
+bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
 
 // Functions used as callbacks for XML-marked-up LIFT files
 // whm added 19May10
@@ -258,7 +258,7 @@ bool AtLIFTTag(CBString& tag);
 bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag));
 bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue);
 bool AtLIFTEndTag(CBString& tag);
-bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata));
+bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
 
 // the read and parse functions;
 bool ReadBooks_XML(wxString& path);

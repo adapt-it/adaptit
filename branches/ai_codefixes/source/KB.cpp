@@ -909,7 +909,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		// into memory with the Open call in OnImportToKb() above. wxTextFile knows how to
 		// handle Unicode data and the different end-of-line characters of the different
 		// platforms.
-		// Since the entire basic config file is now in memory we can read the information by
+		// Since the entire file is now in memory we can read the information by
 		// scanning its virtual lines. In this routine we use the "direct access" method of
 		// retrieving the lines from storage in memory, using GetLine(ct).
 		int lineCount = file.GetLineCount();

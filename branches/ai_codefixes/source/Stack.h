@@ -70,6 +70,8 @@ public:
 	bool IsFull() const; // true if index top equals MAX
 	bool Push(Item item); // push a Char array onto the stack
 	bool Pop(Item item); // pop the top element into item
+	// whm added below 24May10
+	bool Contains(const Item item); // true if item is contained in the stack
 };
 
 #endif

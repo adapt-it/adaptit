@@ -840,7 +840,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
 		bool (*pAtEmptyElementClose)(CBString& tag),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
 		bool (*pAtEndTag)(CBString& tag),
-		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata))
+		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 {
 	bool bReadAll = FALSE;
 	
@@ -1051,7 +1051,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
 	
 	// it's XML, so skip the rest of the prologue
 	// whm Note: Warning the following while loop would go infinite if the xml file were
-	// truncated in the middle of the prologue, i.e., not '>' exists in the remainder of
+	// truncated in the middle of the prologue, i.e., no '>' exists in the remainder of
 	// the file! TODO: Fix This!! (add: && pPos < pEnd)
 	while (*pPos != '>') pPos++;
 	pPos++; // skip the final >
@@ -1069,6 +1069,9 @@ r:		comp = strncmp(pPos,comment,4);
 		{
 			// we are at a comment
 			pPos += 4;
+			// whm Note: Warning the following while loop would go infinite if the xml file were
+			// truncated in the middle of an xml comment, i.e., no '-->' exists in the remainder of
+			// the file! TODO: Fix This!! (add: && pPos < pEnd)
 			while (strncmp(pPos,endcomment,3))
 			{
 				pPos++;
@@ -1190,7 +1193,7 @@ bool ParseXMLElement(wxFile& dfile,
 		bool (*pAtEmptyElementClose)(CBString& tag),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
 		bool (*pAtEndTag)(CBString& tag),
-		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata))
+		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 
 #else
 bool ParseXMLElement(CStack*& pStack,CBString& tagname,char*& pBuff,
@@ -1199,7 +1202,7 @@ bool ParseXMLElement(CStack*& pStack,CBString& tagname,char*& pBuff,
 		bool (*pAtEmptyElementClose)(CBString& tag),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
 		bool (*pAtEndTag)(CBString& tag),
-		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata))
+		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 #endif
 {
 	char* pAux = pPos;
@@ -1401,7 +1404,7 @@ c:		if (!bWithinOpeningTag)
 			// empty string just in case this attribute can sometimes be
 			// <TAG> PCDATA </TAG>, that is, sometimes have nonempty PCDATA
 			pcdata.Empty();
-			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata);
+			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack);
 			if (!bCallbackSucceeded)
 				return FALSE; // halt parsing if there was a callback failure
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1460,7 +1463,7 @@ b:		bWithinOpeningTag = FALSE;
 			// therefore empty - so we must allow the callback for
 			// PCDATA to find an empty string here.
 			pcdata.Empty();
-			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata);
+			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack);
 			if (!bCallbackSucceeded)
 				return FALSE; // alert the user if there was a callback failure
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1487,7 +1490,7 @@ b:		bWithinOpeningTag = FALSE;
 			}
 			
 			// allow the application to do something with the PCDATA
-			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata);
+			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack);
 			if (!bCallbackSucceeded)
 				return FALSE; // alert the user if there was a callback failure
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1857,7 +1860,7 @@ bool AtBooksAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 	return TRUE;
 }
 
-bool AtBooksPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
+bool AtBooksPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
 {
 	// there is no PCDATA in books.xml
 	return TRUE;
@@ -2260,7 +2263,7 @@ bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 // the Unicode case will need a conditional compile here
 // because the UTF-8 will have to be converted to UTF-16
 
-bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
+bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
 {
 	// we don't use PCDATA in AI_USFM.xml
 	return TRUE;
@@ -3150,7 +3153,7 @@ bool AtDocEndTag(CBString& tag)
 	return TRUE;
 }
 
-bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
+bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
 {
 	// we don't have any PCDATA in the document XML files
 	return TRUE;
@@ -4202,9 +4205,29 @@ bool AtLIFTEndTag(CBString& tag)
 	return TRUE;
 }
 
-bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
+bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack)
 {
-	// 
+	// we use PCDATA in LIFT imports for the content delimited by <text>...</text> tags
+	// in LIFT data <text> can occur as a tag embedded in either <lexical-unit> or <sense>
+	if (pStack->Contains(xml_lexical_unit))
+	{
+		ReplaceEntities(pcdata);
+#ifdef _UNICODE
+		gKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
+#else
+		gKeyStr = pcdata.GetBuffer();
+#endif
+	}
+	else if (pStack->Contains(xml_sense))
+	{
+		ReplaceEntities(pcdata);
+		wxASSERT(gpRefStr != NULL);
+#ifdef _UNICODE
+		gpRefStr->m_translation = gpApp->Convert8to16(pcdata);
+#else
+		gpRefStr->m_translation = pcdata.GetBuffer();
+#endif
+	}
 	return TRUE;
 }
 
@@ -4575,7 +4598,7 @@ bool AtKBEndTag(CBString& tag)
 	return TRUE;
 }
 
-bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
+bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
 {
 	// we don't have any PCDATA in the document XML files
 	return TRUE;

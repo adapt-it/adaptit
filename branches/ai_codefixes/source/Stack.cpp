@@ -19,7 +19,7 @@
 
 // **** The following conditional compile directives added for wxWidgets support
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "BString.h"
+    #pragma implementation "Stack.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
@@ -75,6 +75,26 @@ bool CStack::Pop(Item item)
 		strcpy(item,items[--top]);
 		memset(items[oldIndex],0,32);
 		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool CStack::Contains(const Item item)
+{
+	if (top > 0)
+	{
+		int i;
+		for (i = 0; i <= top; i++)
+		{
+			if (strcmp(item,items[i]) == 0)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	else
 	{
