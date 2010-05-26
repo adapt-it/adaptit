@@ -1356,7 +1356,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
 	// notification on wxGTK and wxMAC
 	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg(m_pApp->GetMainFrame());
+	CWaitDlg waitDlg((wxWindow*)m_pApp->GetMainFrame());
 	// indicate we want the reading file wait message
 	waitDlg.m_nWaitMsgNum = 14;	// 0 "Please wait while Adapt It exports the KB..."
 	waitDlg.Centre();
