@@ -4033,7 +4033,7 @@ bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 		if (attrName == xml_xmlns)
 		{
 			// .NET support for xml parsing of KB file;
-			//*ATTENTION BOB*  add any bool setting you need here
+			// *ATTENTION BOB*  add any bool setting you need here
 			wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 										 // here in a local wxString for now, in case you need to use it
 		}
@@ -4132,7 +4132,7 @@ bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 		if (attrName == xml_xmlns)
 		{
 			// .NET support for xml parsing of KB file;
-			//*ATTENTION BOB*  add any bool setting you need here
+			// *ATTENTION BOB*  add any bool setting you need here
 			// TODO: whm check the following conversion
 			wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 												// here in a local wxString for now, in case you need to use it
@@ -4421,7 +4421,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				if (attrName == xml_xmlns)
 				{
 					// .NET support for xml parsing of KB file;
-					//*ATTENTION BOB*  add any bool setting you need here
+					// *ATTENTION BOB*  add any bool setting you need here
 					wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 												 // here in a local wxString for now, in case you need to use it
 				}
@@ -4520,7 +4520,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				if (attrName == xml_xmlns)
 				{
 					// .NET support for xml parsing of KB file;
-					//*ATTENTION BOB*  add any bool setting you need here
+					// *ATTENTION BOB*  add any bool setting you need here
 					// TODO: whm check the following conversion
 					wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 														// here in a local wxString for now, in case you need to use it
