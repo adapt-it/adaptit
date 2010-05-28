@@ -140,7 +140,8 @@ public:
 
     // m_bGlossingKB will enable each CKB instantiation to know which kind of CKB class it
     // is, an (adapting) KB or a GlossingKB
-	bool			m_bGlossingKB; 
+	bool			m_bGlossingKB; // TRUE for a glossing KB, FALSE for an adapting KB
+	bool			m_bDeleted; // & the standoff data will have the dateTime for the deletion
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
 	CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
