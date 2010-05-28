@@ -18588,9 +18588,10 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // value to what would be expected from the kb file's extension, so we have to set
         // up alternate names and check for what file type is actually present, and use
         // that
-		wxString strOtherKBName = strOtherProjectName + _T(".KB");
+		// BEW changed 28May10, because from version 4.0.0 onwards we no longer support
+		// binary document and KB files ( so removed two wxString variables here, leaving
+		// only the xml ones)
 		wxString strOtherKBNameXML = strOtherProjectName + _T(".xml");
-		wxString strOtherKBPath = strOtherProjectPath + PathSeparator + strOtherKBName;
 		wxString strOtherKBPathXML = strOtherProjectPath + PathSeparator + strOtherKBNameXML;
 
         // count the entries in the current project's KB, since we must warn the user that
@@ -18647,20 +18648,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		}
 
         // if we get to here, the user is committed, the current project's kb is cleared,
-        // and so we go ahead with the transformations -- after we work out what kind of
-        // file the one we want is - binary (ie. .KB) or XML (ie. .xml)
-		bool bXMLforKB;
-		if (wxFileExists(strOtherKBPath))
-		{
-			// there is a binary KB file present - so use it
-			bXMLforKB = FALSE;
-		}
-		else if (wxFileExists(strOtherKBPathXML))
-		{
-			// there is an XML KB file present - so use that one
-			bXMLforKB = TRUE;
-		}
-		else
+        // and so we go ahead with the transformations - provided we can find the KB file
+		if (!wxFileExists(strOtherKBPathXML))
 		{
             // we could not detect any valid KB file, so abort the operation; don't expect
             // this to ever be the case, so it can be a hard coded English message for
@@ -18681,25 +18670,22 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // from the app class's LoadKB() function, but using a local CKB pointer to access
         // the KB
 		CKB* pOtherKB = new CKB(FALSE);
-		if (bXMLforKB)
+		bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
+		if (!bReadOK)
 		{
-			bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
-			if (!bReadOK)
-			{
-				// a bad read or parsing - if so, there will have been an XML error report
-				// already, so just abort the command
-				// IDS_NO_OTHER_KB
-				wxMessageBox(_(
+			// a bad read or parsing - if so, there will have been an XML error report
+			// already, so just abort the command
+			// IDS_NO_OTHER_KB
+			wxMessageBox(_(
 "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."),
-				_T(""), wxICON_INFORMATION);
-                // whm added 05Jan07 for safety sake restore the former current working
-                // directory to what it was on entry. The
-                // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
-                // working directory to m_curAdaptionsPath.
-				bool bOK;
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-				return FALSE; // abandon the command, the adaptations KB couldn't be opened
-			}
+			_T(""), wxICON_INFORMATION);
+            // whm added 05Jan07 for safety sake restore the former current working
+            // directory to what it was on entry. The
+            // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
+            // working directory to m_curAdaptionsPath.
+			bool bOK;
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			return FALSE; // abandon the command, the adaptations KB couldn't be opened
 		}
 
         // the other KB is now in memory, so we can scan its contents and transfer them to
