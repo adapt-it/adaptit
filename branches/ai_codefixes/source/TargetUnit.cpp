@@ -15,9 +15,6 @@
 // Pending Implementation Items in TargetUnit.cpp (in order of importance): (search for "TODO")
 // 1. Test to insure the wxWidgets version copy constructor works OK. [tested OK]
 // 2. Design an assignment = operator function for the class.
-//
-// Unanswered questions: (search for "???")
-// 1. Testing the wxWidgets implementation
 // 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -39,8 +36,8 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
+//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+//#include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
@@ -155,9 +152,15 @@ inline wxString CTargetUnit::GetUuid() { return m_uuid; }
 
 void CTargetUnit::SetUuid()
 {
-	wxString uuid = GetUuid(); // create a new uuid
+	wxString uuid = GetUuid(); // create a new uuid (see helpers.cpp)
 	m_uuid = uuid; // store it
 }
 
+inline wxString CTargetUnit::GetSourceKey() { return m_sourceKey; }
+
+void CTargetUnit::SetSourceKey(wxString srcKey)
+{
+	m_sourceKey = srcKey;
+}
 
 

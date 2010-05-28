@@ -4600,7 +4600,7 @@ bool AtKBEndTag(CBString& tag)
 
 bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
 {
-	// we don't have any PCDATA in the document XML files
+	// we don't have any PCDATA in the knowledge base XML files
 	return TRUE;
 }
 

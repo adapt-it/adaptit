@@ -3362,15 +3362,33 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
     // store to. StoreText( ) has been ammended for auto-capitalization support (July 2003)
 	if (gbIsGlossing)
 	{
-		bOK = pApp->m_pGlossingKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+		// BEW added 27May10, to not save contents if backing back from a halt
+		// location, when there is no content on the CSourcePhrase instance already
+		if (pCurPile->GetSrcPhrase()->m_gloss.IsEmpty())
+		{
+			bOK = TRUE;
+		}
+		else
+		{
+			bOK = pApp->m_pGlossingKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+		}
 	}
 	else // adapting
 	{
-		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
-		gbInhibitLine4StrCall = TRUE;
-		bOK = pApp->m_pKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		// BEW added 27May10, to not save contents if backing back from a halt
+		// location, when there is no content on the CSourcePhrase instance already
+		if (pCurPile->GetSrcPhrase()->m_adaption.IsEmpty())
+		{
+			bOK = TRUE;
+		}
+		else
+		{
+			pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+			pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+			gbInhibitLine4StrCall = TRUE;
+			bOK = pApp->m_pKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = FALSE;
+		}
 	}
 	if (!bOK)
 	{

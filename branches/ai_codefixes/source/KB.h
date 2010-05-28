@@ -27,8 +27,6 @@
 
 // forward declarations
 class CTargetUnit;
-//class wxDataOutputStream;
-//class wxDataInputStream;
 
 class TUList;	// This forward reference is needed because the macro 
 // declaration below must be in general namespace, before CKB is declared.
@@ -65,7 +63,9 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase
 /// \derivation		The CKB class is derived from wxObject.
 class CKB : public wxObject  
 {
-    DECLARE_DYNAMIC_CLASS(CKB)
+	friend class CKB_Standoff;
+	friend class CTargetUnit_Standoff;
+	friend class CRefString_Standoff;
 
 public:
 	CKB();
@@ -136,6 +136,8 @@ public:
   private:
 
 	CAdapt_ItApp*	m_pApp;
+	CKB_Standoff*	m_pKB_Standoff;
+
     // m_bGlossingKB will enable each CKB instantiation to know which kind of CKB class it
     // is, an (adapting) KB or a GlossingKB
 	bool			m_bGlossingKB; 
@@ -145,5 +147,6 @@ public:
 	int				CountSourceWords(wxString& rStr);
 	bool			IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 
+    DECLARE_DYNAMIC_CLASS(CKB)
 };
 #endif // KB_h

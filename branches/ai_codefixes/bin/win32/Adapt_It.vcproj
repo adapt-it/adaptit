@@ -515,6 +515,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CRefString_Standoff.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\DocPage.cpp"
 				>
 			</File>
@@ -580,6 +584,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KB.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KB_Standoff.cpp"
 				>
 			</File>
 			<File
@@ -728,6 +736,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\TargetUnit.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\TargetUnit_Standoff.cpp"
 				>
 			</File>
 			<File
@@ -892,6 +904,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CRefString_Standoff.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\DocPage.h"
 				>
 			</File>
@@ -965,6 +981,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KB.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KB_Standoff.h"
 				>
 			</File>
 			<File
@@ -1113,6 +1133,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\TargetUnit.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\TargetUnit_Standoff.h"
 				>
 			</File>
 			<File

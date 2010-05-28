@@ -61,22 +61,20 @@ public:
 	CTargetUnit(const CTargetUnit& tu); // MFC note: copy constructor -- it doesn't work, 
 	// see .cpp file for reason // whm moved it here after declaration of m_pTranslations
 
-	//wxOutputStream& SaveObject(wxOutputStream& stream);
-	//wxInputStream& LoadObject(wxInputStream& stream);
-
 	virtual ~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 
 private:
 	wxString	m_uuid;
+	wxString	m_sourceKey;
 
 
 	// getters and setters
 public:
 	wxString	GetUuid();
 	void		SetUuid(); // we'll create it on the fly and store it
-
-
+	wxString	GetSourceKey(); // returns m_sourceKey
+	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
 
 private:
 	// class attributes

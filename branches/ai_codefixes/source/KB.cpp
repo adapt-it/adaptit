@@ -110,6 +110,7 @@ CKB::CKB()
 		m_pMap[i] = new MapKeyStringToTgtUnit;
 		wxASSERT(m_pMap[i] != NULL);
 	}
+	m_kbVersionCurrent = 2; // current default
 }
 
 CKB::CKB(bool bGlossingKB)
@@ -129,6 +130,7 @@ CKB::CKB(bool bGlossingKB)
 	}
 	m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
 								   // FALSE for adapting KB
+	m_kbVersionCurrent = 2; // current default -- but add 2nd param soon for kb version
 }
 
 // copy constructor - it doesn't work, see header file for explanation
@@ -3231,5 +3233,6 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	// The buff wxMemoryBuffer is automatically destroyed when 
 	// it goes out of scope
 }
+
 
 

@@ -26,7 +26,7 @@
 // forward references:
 #include "Pile.h"
 class CStrip;
-class CLayout; // make the "friend class CLayout" declaration work
+class CLayout;
 
 WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
 

@@ -14,12 +14,6 @@
 /// from right to left.
 /// \derivation		The CStrip class is derived from wxObject.
 // *****************************************************************************
-// Pending Implementation Items (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 
-// *****************************************************************************
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
