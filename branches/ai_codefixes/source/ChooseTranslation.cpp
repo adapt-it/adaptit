@@ -11,13 +11,6 @@
 /// either an existing translation, or enter a new translation for a given source phrase.
 /// \derivation		The CChooseTranslation class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ChooseTranslation.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -652,9 +645,6 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 		else
 			pKB = gpApp->m_pKB;
 		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nWordsInPhrase-1];
-		//pMap->erase(curKey); //pMap->RemoveKey(curKey); // ignore int return value
-		// whm 3Aug06 substituted the next 20 lines for the above RemoveKey call, in order to 
-		//remove any different case key association existing in pMap. Changes also made to MFC version.
 		wxString s1 = curKey;
 		bool bNoError = TRUE;
 		int nRemoved = 0;
@@ -668,17 +658,20 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 			}
 			// try removing the lower case one first, this is the most likely one that
 			// was found by GetRefString( ) in the caller
-			nRemoved = pMap->erase(s1); //bRemoved = pMap->RemoveKey(s1); // also remove it from the map
+			nRemoved = pMap->erase(s1);
 		}
 		if (nRemoved == 0)
 		{
-			// have a second shot using the unmodified string curKey
-			nRemoved = pMap->erase(curKey);// also remove it from the map
+			// have a second shot using the unmodified string m_curKey
+			nRemoved = pMap->erase(curKey);
 		}
 		wxASSERT(nRemoved == 1);
-		TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTargetUnit);
-		wxASSERT(pos != NULL);
-		pKB->m_pTargetUnits->DeleteNode(pos);
+
+		// BEW removed 28May10, because TUList is redundant & now removed
+		//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTargetUnit);
+		//wxASSERT(pos != NULL);
+		//pKB->m_pTargetUnits->DeleteNode(pos);
+		
 		delete pCurTargetUnit; // ensure no memory leak
 		pCurTargetUnit = (CTargetUnit*)NULL;
 		// whm Note 3Aug06:
@@ -687,7 +680,8 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 		// dialog exits, but a later call to PlacePhraseBox copies the source again and
 		// echos it there. 
 	}
-	// do we need to show the Do Not Ask Again button?
+	// do we need to show the Do Not Ask Again button? (BEW 28May10: yes, if the flag is
+	// true, as in the test in next line)
 	if (nItems == 1 && pCurTargetUnit->m_bAlwaysAsk)
 	{
 		wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);

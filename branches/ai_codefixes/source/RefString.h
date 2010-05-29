@@ -24,8 +24,8 @@
 
 // forward references
 class CTargetUnit;
-class wxDataOutputStream;
-class wxDataInputStream;
+//class wxDataOutputStream;
+//class wxDataInputStream;
 
 /// The CRefString class stores the target text adaptation typed
 /// by the user for a given source word or phrase. It also keeps
@@ -60,6 +60,8 @@ protected:
 
 private:
 	// class attributes
+	bool	m_bDeleted; // & the standoff data will have the dateTime for the deletion
+
 
 	DECLARE_DYNAMIC_CLASS(CRefString) 
 	// Used inside a class declaration to declare that the objects of 

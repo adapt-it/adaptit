@@ -56,9 +56,10 @@
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called TUList.
-WX_DEFINE_LIST(TUList);	// see WX_DECLARE_LIST in the .h file
+// BEW removed 29May10, as TUList is redundant * now removed
+// This macro together with the macro list declaration in the .h file
+// complete the definition of a new safe pointer list class called TUList.
+//WX_DEFINE_LIST(TUList);	// see WX_DECLARE_LIST in the .h file
 
 IMPLEMENT_DYNAMIC_CLASS(CKB, wxObject) 
 
@@ -100,10 +101,11 @@ CKB::CKB()
 	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
 
+	// BEW removed 29May10, as TUList is redundant & now removed
 	// whm Note: I've changed the order of the following in order to create
 	// the TUList before the MapStringToOjbect maps. See notes in KB.h.
-	m_pTargetUnits = new TUList;
-	wxASSERT(m_pTargetUnits != NULL);
+	//m_pTargetUnits = new TUList;
+	//wxASSERT(m_pTargetUnits != NULL);
 
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
@@ -118,10 +120,11 @@ CKB::CKB(bool bGlossingKB)
 	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
 
+	// BEW removed 29May10, as TUList is redundant & now removed
 	// whm Note: I've changed the order of the following in order to create
 	// the TUList before the MapStringToOjbect maps. See notes in KB.h.
-	m_pTargetUnits = new TUList;
-	wxASSERT(m_pTargetUnits != NULL);
+	//m_pTargetUnits = new TUList;
+	//wxASSERT(m_pTargetUnits != NULL);
 
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
@@ -147,8 +150,9 @@ CKB::CKB(const CKB &kb)
 	m_sourceLanguageName = pCopy->m_sourceLanguageName;
 	m_targetLanguageName = pCopy->m_targetLanguageName;
 
-	CObList* pTUList = pCopy->m_pTargetUnits;
-
+	//CObList* pTUList = pCopy->m_pTargetUnits;
+*/
+/*
 	// make the new list by copying source list, using copy constructor for the target units
 	if (!pCopy->m_pTargetUnits->IsEmpty())
 	{
@@ -173,7 +177,8 @@ AfxMessageBox("Memory Exception creating CTargetUnit copy, copying list in copy 
 			}
 		}
 	}
-
+*/
+/*
 	// now copy the maps
 	for (int i=0; i < 10; i++)
 	{
@@ -217,13 +222,13 @@ CKB::~CKB()
 	// WX note: this destructor is called when closing project, but not when closing doc
 }
 
-void CKB::Copy(const CKB& kb)
 // the copy can be done efficiently only by scanning the maps one by one (so we know how many
 // source words are involved each time), and for each key, construct a copy of it (because RemoveAll()
 // done on a CMapStringToOb will delete the key strings, but leave the CObject* memory untouched, so
-// the keys have to be CString copies of the souce CKB's key CStrings), and then use
+// the keys have to be wxString copies of the souce CKB's key CStrings), and then use
 // StoreAdaptation to create the new CKB's contents; for glossing, the copy is done only for the
-// first map, and m_nMaxWords must always remain equal to 1.
+// first map, and its m_nMaxWords value must always remain equal to 1.
+void CKB::Copy(const CKB& kb)
 {
 
 	wxASSERT(this);
@@ -247,8 +252,9 @@ void CKB::Copy(const CKB& kb)
 	m_pApp = pCopy->m_pApp; // BEW added 12May10
 	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 
-	TUList* pTUList = pCopy->m_pTargetUnits;
-	wxASSERT(pTUList);
+	// BEW removed 29May10, as TUList is redundant & now removed
+	//TUList* pTUList = pCopy->m_pTargetUnits;
+	//wxASSERT(pTUList);
 
 	// now recreate the maps (note: can't copy, as we must associate what is in our new list)
 	// RemoveAll for a map deletes the key strings, but not the associated object pointers, so
@@ -295,7 +301,8 @@ void CKB::Copy(const CKB& kb)
 					// The only difference is that if the given key is not present in the hash map,
 					// an element with the default value_type() is inserted in the table."
 				}
-				pTUList->Append(pNewTU);
+				// BEW removed 29May10
+				//pTUList->Append(pNewTU);
 			}
 		}
 	}
@@ -358,7 +365,7 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 // in this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
-// poiner. This function, as the name suggests, has the smarts for AutoCapitalization being
+// pointer. This function, as the name suggests, has the smarts for AutoCapitalization being
 // On or Off.
 // WX Note: Changed second parameter to CTargetUnit*& pTU.
 // BEW 12Apr10, no changes needed for support of doc version 5
@@ -640,25 +647,20 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		{
 			// we are removing the only CRefString in the owning targetUnit, so the latter must
 			// go as well
-			CTargetUnit* pTgtUnit;
 			delete pRefString;
 			pRefString = (CRefString*)NULL;
-			// since we delete pRefString, TranslationsList::Clear() should do the job below
+			// since we deleted pRefString, TranslationsList::Clear() will remove the map entry
 			pTU->m_pTranslations->Clear();
 
-			TUList::Node* pos;
-
-			pos = m_pTargetUnits->Find(pTU); // find position of pRefString's
-												  // owning targetUnit
-
-            // Note: A check for NULL should probably be done here anyway even if when
-            // working properly a NULL return value on Find shouldn't happen.
-			pTgtUnit = (CTargetUnit*)pos->GetData(); // get the targetUnit in
-																	// the list
-			wxASSERT(pTgtUnit != NULL);
-			m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
-			delete pTgtUnit; // delete its instance from the heap
-			pTgtUnit = (CTargetUnit*)NULL;
+			// BEW removed 29May10, as TUList is redundant & now removed
+			//CTargetUnit* pTgtUnit;
+			//TUList::Node* pos;
+			//pos = m_pTargetUnits->Find(pTU); // find position of pRefString's owning targetUnit
+			//pTgtUnit = (CTargetUnit*)pos->GetData(); // get the targetUnit in the list
+			//wxASSERT(pTgtUnit != NULL);
+			//m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
+			delete pTU; // delete its instance from the heap
+			pTU = (CTargetUnit*)NULL;
 
 			MapKeyStringToTgtUnit* pMap = m_pMap[nWordsInPhrase - 1];
 			int bRemoved = 0;
@@ -1403,11 +1405,11 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				{
 					m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
 														// invalid association
-					TUList::Node* pos = m_pTargetUnits->Find(pTU); 
-					wxASSERT(pos != NULL);
-					m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
-													 // gone from list
-					delete pTU; // and its memory chunk is freed
+					// BEW removed 29May10, as TUList is redundant & now removed
+					//TUList::Node* pos = m_pTargetUnits->Find(pTU); 
+					//wxASSERT(pos != NULL);
+					//m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now gone from list
+					delete pTU; // its memory chunk is freed (don't leak memory)
 					continue;
 				}
 				else
@@ -1709,16 +1711,15 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 				}
 				pList->Clear();
 
-				// have to get rid of the pTgtUnit too, as its m_translation list 
-				// must not be empty
-				TUList::Node* tupos = m_pTargetUnits->Find(pTgtUnit); // find 
+				// BEW removed 29May10, as TUList is redundant & now removed
+				//TUList::Node* tupos = m_pTargetUnits->Find(pTgtUnit); // find 
 										// position of the bad targetUnit in the list
 				// get the targetUnit in the list
-				CTargetUnit* pTU = (CTargetUnit*)tupos->GetData(); 
-				wxASSERT(pTU != NULL && pTU->m_pTranslations->IsEmpty()); // have we found it?
-				m_pTargetUnits->DeleteNode(tupos); // remove it from the list
-				delete pTU; // delete it from the heap
-				pTU = (CTargetUnit*)NULL;
+				//CTargetUnit* pTU = (CTargetUnit*)tupos->GetData(); 
+				//wxASSERT(pTU != NULL && pTU->m_pTranslations->IsEmpty()); // have we found it?
+				//m_pTargetUnits->DeleteNode(tupos); // remove it from the list
+				delete pTgtUnit; // don't leak memory
+				pTgtUnit = (CTargetUnit*)NULL;
 
 				MapKeyStringToTgtUnit* pMap = m_pMap[pSrcPhrase->m_nSrcWords - 1];
 				// handle auto-caps tweaking, if it is on
@@ -1809,14 +1810,14 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 			}
 			bRemoved = pMap->erase(temp); // remove it from the map
 
-			// now remove the CTargetUnit instance too
-			TUList::Node* tupos;
-			tupos = m_pTargetUnits->Find(pTgtUnit); // find position of 
+			// BEW removed 29May10, as TUList is redundant & now removed
+			//TUList::Node* tupos;
+			//tupos = m_pTargetUnits->Find(pTgtUnit); // find position of 
 												// pRefString's owning targetUnit
-			pTgtUnit = (CTargetUnit*)tupos->GetData(); // get the targetUnit
+			//pTgtUnit = (CTargetUnit*)tupos->GetData(); // get the targetUnit
 														  // in the list
-			wxASSERT(pTgtUnit != NULL);
-			m_pTargetUnits->DeleteNode(tupos); // remove it from the list
+			//wxASSERT(pTgtUnit != NULL);
+			//m_pTargetUnits->DeleteNode(tupos); // remove it from the list
 			delete pTgtUnit; // delete it from the heap
 			pTgtUnit = (CTargetUnit*)NULL;
 		}
@@ -2037,14 +2038,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		if (m_pApp->m_bForceAsk)
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
 				// opportunity to add a new refString next time its matched
-
-		m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+		// BEW removed 29May10, as TUList is redundant & now removed
+		//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 		else
 			pSrcPhrase->m_bHasKBEntry = TRUE;
 
-		(*m_pMap[nMapIndex])[key] = pTU;
+		(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit instance in the map
 		// update the maxWords limit
 		if (m_bGlossingKB)
 		{
@@ -2079,14 +2080,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			if (m_pApp->m_bForceAsk)
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
 						// opportunity to add a new refString next time its matched
-
-			m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+			// BEW removed 29May10, as TUList is redundant & now removed
+			//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 			if (m_bGlossingKB)
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 			else
 				pSrcPhrase->m_bHasKBEntry = TRUE;
 
-			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit in the map 
+			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit instance in the map 
 			// update the maxWords limit
 			if (m_bGlossingKB)
 			{
@@ -2298,7 +2299,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pRefString->m_refCount = 1; // set the count
 			pRefString->m_translation = strNot;
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-			m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+			// BEW removed 29May10, as TUList is redundant & now removed
+			//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 			if (m_bGlossingKB)
 			{
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // glossing KB has to treat 
@@ -2308,6 +2310,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			}
 			else
 			{
+				// <Not In KB> in transliterate mode isn't to be regarded as an entry, but
+				// as a trigger for using the transliterator instead of the KB
 				pSrcPhrase->m_bHasKBEntry = FALSE; // it's not a 'real' entry
 				pSrcPhrase->m_bNotInKB = TRUE;
 				pSrcPhrase->m_bBeginRetranslation = FALSE;
@@ -2336,18 +2340,19 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pRefString->m_refCount = 1; // set the count
 				pRefString->m_translation = strNot;
 				pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-				m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+				// BEW removed 29May10, as TUList is redundant & now removed
+				//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 				if (m_bGlossingKB)
 				{
 					pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					(*m_pMap[nMapIndex])[key] = pTU;
+					(*m_pMap[nMapIndex])[key] = pTU; // store in map
 					m_nMaxWords = 1;
 				}
 				else
 				{
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 					pSrcPhrase->m_bNotInKB = TRUE;
-					(*m_pMap[nMapIndex])[key] = pTU;
+					(*m_pMap[nMapIndex])[key] = pTU; // store in map
 					if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
 						m_nMaxWords = pSrcPhrase->m_nSrcWords;
 				}
@@ -2399,7 +2404,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			}
 		}
 		return TRUE;
-	}
+	} // end of block for processing a store when transliterating using SILConverters transliterator
 	gbByCopyOnly = FALSE; // restore default setting
 
 	// First get rid of final spaces, if tgtPhrase has content
@@ -2545,8 +2550,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
 					// opportunity to add a new refString next time its matched
 		}
-
-		m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+		// BEW removed 29May10, as TUList is redundant & now removed
+		//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 		if (m_bGlossingKB)
 		{
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // tell the src phrase it has
@@ -2566,7 +2571,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pSrcPhrase->m_bEndRetranslation = FALSE;
 
 			(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the 
-												  // map with appropriate index
+											 // map with appropriate index
 			// update the maxWords limit
 			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
 				m_nMaxWords = pSrcPhrase->m_nSrcWords;
@@ -2587,16 +2592,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 "Warning: the current storage operation has been skipped, and a bad storage element has been deleted."),
 			_T(""), wxICON_EXCLAMATION);
 
-			// fix the error
-			TUList::Node* pos = m_pTargetUnits->Find(pTU); // find position of the
+			// BEW removed 29May10, as TUList is redundant & now removed
+			//TUList::Node* pos = m_pTargetUnits->Find(pTU); // find position of the
 														   // bad targetUnit in the list
 			// get the targetUnit in the list
-			CTargetUnit* pTgtUnit = (CTargetUnit*)pos->GetData();
-			wxASSERT(pTgtUnit != NULL && pTgtUnit->m_pTranslations->IsEmpty()); // have we
+			//CTargetUnit* pTgtUnit = (CTargetUnit*)pos->GetData();
+			//wxASSERT(pTgtUnit != NULL && pTgtUnit->m_pTranslations->IsEmpty()); // have we
 																	// found the bad one?
-			m_pTargetUnits->DeleteNode(pos); // remove it from the list
-			delete pTgtUnit; // delete it from the heap
-			pTgtUnit = (CTargetUnit*)NULL;
+			//m_pTargetUnits->DeleteNode(pos); // remove it from the list
+			delete pTU; // delete it from the heap
+			pTU = (CTargetUnit*)NULL;
 
 			MapKeyStringToTgtUnit* pMap = m_pMap[nMapIndex];
 			int bRemoved;
@@ -2649,8 +2654,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
 					// opportunity to add a new refString next time its matched
 			}
-
-			m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
+			// BEW removed 29May10, as TUList is redundant & now removed
+			//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 			if (m_bGlossingKB)
 			{
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;

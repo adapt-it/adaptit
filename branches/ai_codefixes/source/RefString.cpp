@@ -46,6 +46,7 @@ CRefString::CRefString()
 {
 	m_refCount = 0;
 	m_translation = _T("");
+	m_bDeleted = FALSE;
 }
 
 // normal constructor, with a pointer to its owning CTargetUnit instance
@@ -53,6 +54,7 @@ CRefString::CRefString(CTargetUnit* pTargetUnit)
 {
 	m_refCount = 0;
 	m_translation = _T("");
+	m_bDeleted = FALSE;
 	m_pTgtUnit = pTargetUnit;
 }
 
@@ -70,6 +72,7 @@ CRefString::CRefString(const CRefString &rs, CTargetUnit* pTargetUnit)
 	}
 	m_refCount = rs.m_refCount;
 	m_translation = rs.m_translation;
+	m_bDeleted = rs.m_bDeleted;
 }
 
 CRefString::~CRefString()
@@ -80,6 +83,10 @@ CRefString::~CRefString()
 // overloaded equality operator
 bool CRefString::operator==(const CRefString& rs)
 {
+	// note, I've not involved the m_bDeleted value in the tests. So we would have
+	// equality when two differ only by the value of m_bDeleted. Would this ever be
+	// significant? I've no idea at the moment (May 2010) - it may need fixing later on
+	// when we make use of the m_bDeleted value in future versions
 	if (rs.m_translation.IsEmpty() && m_translation.IsEmpty())
 		return TRUE; // ensure two empty strings constitutes a TRUE value for the test
 	return m_translation == rs.m_translation;

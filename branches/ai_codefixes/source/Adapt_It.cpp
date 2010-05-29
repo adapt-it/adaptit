@@ -108,6 +108,12 @@
 // If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
 // uncomment the following include, recompile, run and exit the program for a more
 // detailed report of the memory leaks:
+// BEW ***** NOTE ***** with all the extra initialization AI now does, and the wxWidgets
+// layer as well, this has become useless. I could not get through the wizard - after a
+// quarter hour or so, it got to KB loading (500 entries or so) and after about another
+// half hour of that I gave up. Tried a small KB, but after half an hour it was still
+// loading the books.xml and ai_usfm.xml files! Not even as far as the wizard. So forget
+// it, finding leaks by trial and error is the only way.
 //#include "vld.h"
 
 // Other includes
@@ -2070,24 +2076,6 @@ LangInfo langsKnownToWX[] =
 	// using a while loop while langsKnownToWX[ct].name != NULL.
     { NULL, wxLANGUAGE_UNKNOWN, NULL}												// 1
 };
-
-int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr)
-{
-	// do a standard case-insensitive string compare, this should give best results except
-	// that special characters will all be treated differently perhaps; calls _tcsicmp
-	// which is defined as _wcsicmp
-	int value = ::wxStricmp(struct1Ptr->strOriginal,struct2Ptr->strOriginal);
-	return value; 
-}
-
-int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr)
-{
-	// do a standard case-insensitive string compare this should give best results except
-	// that special characters will all be treated differently perhaps; ; calls _tcsicmp
-	// which is defined as _wcsicmp
-	int value = ::wxStricmp(struct1Ptr->updatedString,struct2Ptr->updatedString);
-	return value; 
-}
 
 
 
@@ -7481,8 +7469,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int sizeofwxArrayInt = sizeof(wxArrayInt); // 12 bytes & its 16 int initial buffer is 4*16 = 64
 	int sizeofwxArrayPtrVoid = sizeof(wxArrayPtrVoid); // 12 bytes
 	int sizeofCLayout = sizeof(CLayout); // 252 bytes
+	int sizeofCKB = sizeof(CKB); // 80 bytes (tested 29May10)
+	int sizeofCRefString = sizeof(CRefString); // 20 bytes
+	int sizeofCTargetUnit = sizeof(CTargetUnit); // 24 bytes
 	*/
 
+	//int ii = 1; ii = ii;
 /*
 	// This test compared with the same code under MFC shows that
 	// simply moving the x (or MFC left coordinate) has different
@@ -18644,7 +18636,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 									 // contents left undisturbed
 			wxASSERT(m_pGlossingKB != NULL);
 			m_bGlossingKBReady = TRUE;
-			wxASSERT(m_pGlossingKB->m_pTargetUnits->GetCount() == 0);
+			// BEW removed 28May10, because TUList is redundant & is now removed
+			//wxASSERT(m_pGlossingKB->m_pTargetUnits->GetCount() == 0);
 		}
 
         // if we get to here, the user is committed, the current project's kb is cleared,
@@ -18728,15 +18721,15 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 					if (storedStr == _T("<Not In KB>"))
 						continue;
 
-					// if we get to here, then we have a target unit which has to go in the
-					// glossing KB's list, and its association with the key has to go into 
-					// the glossing KB's first map.
+                    // if we get to here, then we have a target unit which has to be
+                    // associated with the key and go into the glossing KB's first map.
 					CTargetUnit* pGlossingTgtUnit = new CTargetUnit; // create an empty one
 					wxASSERT(pGlossingTgtUnit != NULL);
 					pGlossingTgtUnit->Copy(*pTgtUnit); // copy it (a copy constructor does not
 													  // work, hence the two step workaround)
 					wxASSERT(pGlossingTgtUnit->m_pTranslations->GetCount() >= 1);
-					m_pGlossingKB->m_pTargetUnits->Append(pGlossingTgtUnit); // in the list
+					// BEW removed 28May10, TUList is redundant & now removed
+					//m_pGlossingKB->m_pTargetUnits->Append(pGlossingTgtUnit); // in the list
 					(*m_pGlossingKB->m_pMap[0])[key] = pGlossingTgtUnit; // in the map
 					m_pGlossingKB->m_nMaxWords = 1; // always 1 for the glossing KB
 				} // end block for scanning all associations stored in the current map
@@ -18753,7 +18746,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			m_pKB = new CKB(FALSE);
 			m_bKBReady = TRUE;
 			wxASSERT(m_pKB);
-			wxASSERT(m_pKB->m_pTargetUnits->GetCount() == 0);
+			// BEW removed 28May10, TUList is redundant & now removed
+			//wxASSERT(m_pKB->m_pTargetUnits->GetCount() == 0);
 			bool bStoredOK = StoreKB(m_bAutoBackupKB);
 			// unlikely to fail, so an English message hardcoded will do
 			if (!bStoredOK)

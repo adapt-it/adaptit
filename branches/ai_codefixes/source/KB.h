@@ -28,10 +28,12 @@
 // forward declarations
 class CTargetUnit;
 
-class TUList;	// This forward reference is needed because the macro 
+// BEW removed 29May10, as TUList is redundant * now removed
+//class TUList;	// This forward reference is needed because the macro 
 // declaration below must be in general namespace, before CKB is declared.
 // The macro below together with the macro list declaration in the .cpp file
 // define a new list class called TUList. Its list elements are of type CTargetUnit.
+
 class CKB; // needed for the macro below which must reside outside the class declaration
 class CRefString;
 class CSourcePhrase;
@@ -42,9 +44,10 @@ enum UseForLookup
      useTargetPhraseForLookup
 };
 
-/// wxList declaration and partial implementation of the TUList class being
-/// a list of pointers to CTargetUnit objects
-WX_DECLARE_LIST(CTargetUnit, TUList); // see WX_DEFINE_LIST macro in the .cpp file
+// BEW removed 29May10, as TUList is redundant * now removed
+// wxList declaration and partial implementation of the TUList class being
+// a list of pointers to CTargetUnit objects
+//WX_DECLARE_LIST(CTargetUnit, TUList); // see WX_DEFINE_LIST macro in the .cpp file
 
 // wxHashMap uses this macro for its declaration
 WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase string
@@ -104,7 +107,8 @@ public:
 
 	int				m_nMaxWords; // current number of words in max length of src phrase
 
-	TUList*			m_pTargetUnits; // stores translation equivalents for each source phrase
+	// BEW removed 29May10, as TUList is redundant * now removed
+	//TUList*			m_pTargetUnits; // stores translation equivalents for each source phrase
 
 	MapKeyStringToTgtUnit*	m_pMap[10]; // stores associations of key and ptr to CTargetUnit instances
 									   // where the key is a phrase with [index + 1] source words
@@ -141,7 +145,6 @@ public:
     // m_bGlossingKB will enable each CKB instantiation to know which kind of CKB class it
     // is, an (adapting) KB or a GlossingKB
 	bool			m_bGlossingKB; // TRUE for a glossing KB, FALSE for an adapting KB
-	bool			m_bDeleted; // & the standoff data will have the dateTime for the deletion
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
 	CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);

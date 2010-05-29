@@ -204,8 +204,9 @@ void CKB_Standoff::Copy_Standoff(const CKB_Standoff& kb)
 	m_pApp = pCopy->m_pApp; // BEW added 12May10
 	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 
-	TUList* pTUList = pCopy->m_pTargetUnits;
-	wxASSERT(pTUList);
+	// BEW removed 28May10, TUList is redundant & now removed
+	//TUList* pTUList = pCopy->m_pTargetUnits;
+	//wxASSERT(pTUList);
 
 	// now recreate the maps (note: can't copy, as we must associate what is in our new list)
 	// RemoveAll for a map deletes the key strings, but not the associated object pointers, so
@@ -252,7 +253,8 @@ void CKB_Standoff::Copy_Standoff(const CKB_Standoff& kb)
 					// The only difference is that if the given key is not present in the hash map,
 					// an element with the default value_type() is inserted in the table."
 				}
-				pTUList->Append(pNewTU);
+				// BEW removed 28May10, as TUList is redundant & now removed
+				//pTUList->Append(pNewTU);
 			}
 		}
 	}

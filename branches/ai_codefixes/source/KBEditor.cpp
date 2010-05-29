@@ -984,10 +984,11 @@ a:	nPreviousReferences = pRefString->m_refCount;
 	delete pRefString;
 	pCurTgtUnit->m_pTranslations->DeleteNode(pos);
 
-    // we'll also need the index of the source word/phrase selection. If it turns out that
-    // we delete all of a source word/phrase's translations, and need to also delete the
-    // source word from its list box we have its selection; if there are translation left
-    // after deleting the current one, nNewKeySel should remain at the same selection.
+    // we'll also need the index of the source word/phrase selected. If it turns out that
+    // we have just deleted all of a source word/phrase's translations, we therefore would
+    // need to also delete the source word from its list box and the owning CTargetUnit
+    // instance from the map; but if there are translation left after deleting the current
+    // one, nNewKeySel should remain at the same selection.
 	int nNewKeySel = m_pListBoxKeys->GetSelection();
     // are we deleting the last item in the translations list box? If so, we have to delete
     // the targetUnit as well (can't have one with no refStrings stored in it), and get rid
@@ -1000,6 +1001,8 @@ a:	nPreviousReferences = pRefString->m_refCount;
 		wxString s1 = m_curKey;
 		bool bNoError = TRUE;
 		int nRemoved = 0;
+		// remove it from the map - try the auto-caps adjusted key first, if that doesn't
+		// succeed, then try the unadjusted key
 		if (gbAutoCaps)
 		{
 			bNoError = gpApp->GetDocument()->SetCaseParameters(s1);
@@ -1010,17 +1013,19 @@ a:	nPreviousReferences = pRefString->m_refCount;
 			}
 			// try removing the lower case one first, this is the most likely one that
 			// was found by GetRefString( ) in the caller
-			nRemoved = pMap->erase(s1); // also remove it from the map
+			nRemoved = pMap->erase(s1); 
 		}
 		if (nRemoved == 0)
 		{
-			// have a second shot using the unmodified string curKey
-			nRemoved = pMap->erase(m_curKey);// also remove it from the map
+			// have a second shot using the unmodified string m_curKey
+			nRemoved = pMap->erase(m_curKey);
 		}
 		wxASSERT(nRemoved == 1);
-		TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
-		wxASSERT(pos != NULL);
-		pKB->m_pTargetUnits->DeleteNode(pos);
+		// BEW removed 28May10 because TUList is redundant
+		//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
+		//wxASSERT(pos != NULL);
+		//pKB->m_pTargetUnits->DeleteNode(pos);
+
 		delete pCurTgtUnit; // ensure no memory leak
 		pCurTgtUnit = (CTargetUnit*)NULL;
 
@@ -1028,7 +1033,7 @@ a:	nPreviousReferences = pRefString->m_refCount;
         // have to make the default selected key be the first, so everything will change)
 		// MFC Note: 
         // FindStringExact does only a caseless find, so it could find the wrong entry if
-        // two entries differ only by case, so we must also do a CSrtring compare, which is
+        // two entries differ only by case, so we must also do a CString compare, which is
         // case sensitive, to ensure we get the right entry. We also start with index = -1,
         // so we search from the list start.
 		// 
@@ -1682,9 +1687,11 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			if (pCurTgtUnit->m_pTranslations->IsEmpty())
 			{
 				pMap->erase(srcKeyStr); // the map now lacks this invalid association
-				TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
-				wxASSERT(pos != NULL);
-				pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
+
+				// BEW removed 28May10, because TUList is redundant & is now removed
+				//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
+				//wxASSERT(pos != NULL);
+				//pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
 													  // gone from list
 				delete pCurTgtUnit; // and its memory chunk is freed
 				continue;

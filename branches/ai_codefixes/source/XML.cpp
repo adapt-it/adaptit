@@ -8,13 +8,6 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for XML routines used in Adapt It for Dana and the WX version.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ClassName.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -4158,7 +4151,8 @@ bool AtLIFTEndTag(CBString& tag)
 	if (tag == xml_entry)
 	{
 		// add the completed CTargetUnit to the CKB's m_pTargetUnits SPList
-		gpKB->m_pTargetUnits->Append(gpTU);
+		// BEW 28May10 removed, as TUList is redundant
+		//gpKB->m_pTargetUnits->Append(gpTU);
 
 		// set up the association between this CTargetUnit's pointer and the source text key
 		// in the current map
@@ -4558,7 +4552,8 @@ bool AtKBEndTag(CBString& tag)
 			if (tag == xml_tu)
 			{
 				// add the completed CTargetUnit to the CKB's m_pTargetUnits SPList
-				gpKB->m_pTargetUnits->Append(gpTU);
+				// BEW 28May10 removed, as TUList is redundant
+				//gpKB->m_pTargetUnits->Append(gpTU);
 
 				// set up the association between this CTargetUnit's pointer and the source text key
 				// in the current map

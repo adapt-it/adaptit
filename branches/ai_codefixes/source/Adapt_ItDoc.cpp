@@ -11546,6 +11546,8 @@ bool CAdapt_ItDoc::DeleteContents()
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::EraseKB(CKB* pKB)
 {
+	/* BEW changed 28May10 to remove TUList, as it is redundant & now unused
+
 	// Empty the map and list and delete their contained objects
 	if (pKB != NULL)
 	{
@@ -11592,6 +11594,48 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 		pKB->m_pTargetUnits = (TUList*)NULL;
 	
 	}
+	*/
+
+	// Empty the map and delete their contained objects
+	if (pKB != NULL)
+	{
+		// Clear all elements from each map, and delete each map
+		for (int i = 0; i < MAX_WORDS; i++)
+		{
+			if (pKB->m_pMap[i] != NULL) // test for NULL whm added 10May04
+			{
+				if (!pKB->m_pMap[i]->empty())
+				{
+					MapKeyStringToTgtUnit::iterator iter;
+					for (iter = pKB->m_pMap[i]->begin(); iter != pKB->m_pMap[i]->end(); ++iter)
+					{
+						wxString srcKey = iter->first;
+						CTargetUnit* pTU = iter->second;
+						TranslationsList::Node* tnode = NULL;
+						if (pTU->m_pTranslations->GetCount() > 0)
+						{
+							for (tnode = pTU->m_pTranslations->GetFirst(); 
+									tnode; tnode = tnode->GetNext())
+							{
+								CRefString* pRefStr = (CRefString*)tnode->GetData();
+								if (pRefStr != NULL)
+								{
+									delete pRefStr;
+									pRefStr = (CRefString*)NULL; // whm added 10May04
+								}
+							}
+						}
+						delete pTU;
+						//pTU = (CTargetUnit*)NULL;
+					}
+					pKB->m_pMap[i]->clear();
+				}
+				delete pKB->m_pMap[i];
+				pKB->m_pMap[i] = (MapKeyStringToTgtUnit*)NULL; // whm added 10May04
+			}
+		}
+	}
+
 	if (pKB != NULL)
 	{
 		// Lastly delete the KB itself

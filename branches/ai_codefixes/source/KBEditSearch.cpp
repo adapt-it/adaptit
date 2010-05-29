@@ -51,6 +51,24 @@ extern CAdapt_ItApp* gpApp;
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 
+int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr)
+{
+	// do a standard case-insensitive string compare, this should give best results except
+	// that special characters will all be treated differently perhaps; calls _tcsicmp
+	// which is defined as _wcsicmp
+	int value = ::wxStricmp(struct1Ptr->strOriginal,struct2Ptr->strOriginal);
+	return value; 
+}
+
+int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr)
+{
+	// do a standard case-insensitive string compare this should give best results except
+	// that special characters will all be treated differently perhaps; ; calls _tcsicmp
+	// which is defined as _wcsicmp
+	int value = ::wxStricmp(struct1Ptr->updatedString,struct2Ptr->updatedString);
+	return value; 
+}
+
 // event handler table
 BEGIN_EVENT_TABLE(KBEditSearch, AIModalDialog)
 
@@ -88,7 +106,7 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	
 	pKBEditorDlg = (CKBEditor*)parent;
 	m_pKB = NULL;
-	m_pTUList = NULL;
+	//m_pTUList = NULL; // removed BEW 28May10
 
 	// the comparison functions, CompareMatchRecords() and CompareUpdateRecords(), each
 	// returning int, are defined as global functions in Adapt_It.h and implemented in
@@ -233,8 +251,9 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// CTargetUnit pointers
 	m_pKB = pKBEditorDlg->pKB;
 	wxASSERT(m_pKB != NULL);
-	m_pTUList = m_pKB->m_pTargetUnits;
-	wxASSERT(m_pTUList != NULL);
+	// BEW 28May10, removed because TUList is redundant
+	//m_pTUList = m_pKB->m_pTargetUnits;
+	//wxASSERT(m_pTUList != NULL);
 
 	m_pMatchListBox->Clear();
 	m_pUpdateListBox->Clear();
@@ -250,7 +269,8 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
 	// find the matches -- all search strings are tested against all of KB contents in the
-	// m_pTUList list of CTargetUnit pointer instances
+	// set of CTargetUnit pointer instances of all relevant maps (1 for glossing KB, 10
+	// for the adapting KB)
 	SetupMatchArray(&pApp->m_arrSearches, m_pKB, m_pMatchRecordArray, &gbIsGlossing);
 
 	// populate the Matched array
@@ -296,7 +316,28 @@ void KBEditSearch::PopulateMatchedList(wxArrayString* pMatchStrArray,
 	pListBox->Set((*pMatchStrArray),(void**)&pMatchRecordArray);
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pArrSearches    ->  string array, each entry is the one or more substrings
+///                                 on a single line, taken from the multiline wxTextCtrl
+///                                 in the KBEditor dialog, defining the search strings to
+///                                 be looked for
+/// \param      pKB             ->  pointer to the particular CKB instance (either the
+///                                 adapting one, or the glossing one)
+/// \param      pMatchRecordArray <- pointer to the (sorted) array of match records, each is
+///                                 a MatchRecord struct, for a match of the one or more
+///                                 substrings from a single line of the wxTextCtrl of search
+///                                 strings
+/// \param      pbIsGlossing    ->  pointer to boolean, defining whether the CKB we are looking
+///                                 at is an adapting one (FALSE) or glossing one (TRUE)
+/// \remarks
+/// The original version of this function accumulated all matches, searching with each
+/// search string in turn, over all CTargetUnit instances in TUList.
+/// BEW changed 28May10, because TUList is redundant and is being removed from CKB class,
+/// so the match will iterate through each map, for each search string, and for all maps
+/// which have content. (More work, but we now don't need to maintain a list of
+/// CTargetUnit instances.)
+///////////////////////////////////////////////////////////////////////////////////////
 void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					CKB* pKB, KBMatchRecordArray* pMatchRecordArray, bool* pbIsGlossing)
 {
@@ -307,11 +348,11 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 	bool bIsGlossing = *pbIsGlossing;
 	size_t numSearchStrings = pArrSearches->GetCount();
 	size_t subStrIndex;
-	wxArrayPtrVoid arrSubStringSet; // array of numSearchStrings of wxArrayString for the 
-								 // substrings tokenized from each of the user's search
-								 // strings (each array of substrings must match, in order
-								 // within any given adaptation (or gloss) string being
-								 // tested for a match, for the test to succeed
+	wxArrayPtrVoid arrSubStringSet; // array of numSearchStrings of wxArrayString for 
+							// the substrings tokenized from each of the user's search
+							// strings (each array of substrings must match, in order
+							// of occurrence within any given adaptation (or gloss) 
+							// string being tested for a match, for the test to succeed
 	// create the substring arrays, and fill each with its list of substrings (we use
 	// the helpers.cpp function, SmartTokenize(), using <space character> as delimiter
 	for (subStrIndex = 0; subStrIndex < numSearchStrings; subStrIndex++)
@@ -601,7 +642,7 @@ void KBEditSearch::OnOK(wxCommandEvent& event)
 	{
         // Update, in the in-memory KB, all the respelled adaptations or glosses from the
         // list if any. Returning to the parent dialog's caller, the OnButtonGo() handler,
-        // the rest of the tidy up is done there - which includes puting the search strings
+        // the rest of the tidy up is done there - which includes putting the search strings
         // (line by line) into the combobox of the parent for potential reuse by the user,
         // clearing the parent's m_arrSearches array (the combobox, and the m_pEditSearches
         // wxTextCtrl, use the Adapt_It.h wxArrayString members, m_arrOldSearches, and
@@ -750,10 +791,6 @@ void KBEditSearch::OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(e
 		::wxBell();
 	}
 }
-
-//void KBEditSearch::InsertInUpdateList(KBUpdateRecordArray* pMatchRecordArray, KBUpdateRecord* bRec, int index)
-//{
-//}
 
 unsigned int KBEditSearch::GetUpdateListIndexFromDataPtr(KBUpdateRecord* pCurRecord)
 {

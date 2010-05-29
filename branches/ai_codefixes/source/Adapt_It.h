@@ -1338,46 +1338,6 @@ typedef struct
     // process terminates
 } EditRecord;
 
-/// The following struct (one of two) supports the search functionality within the KB
-/// Editor dialog; instances of this struct are stored in their own wxSortedArray
-typedef struct
-{
-	wxString	updatedString;	  // either an 'adaptation' or a 'gloss' depending on which KB
-	wxUint32	nMatchRecordIndex; // index to the KBMatchRecord instance which resulted from
-                                  // a successful match in the KB; the KBMatchRecord has a
-                                  // constant index in the array which stores it
-} KBUpdateRecord;
-
-/// Define a sorted array of void* for storing instances of KBUpdateRecord
-WX_DEFINE_SORTED_ARRAY(KBUpdateRecord*, KBUpdateRecordArray);
-
-
-/// The following struct (one of two) supports the search functionality within the KB
-/// Editor dialog;  instances of this struct are stored in their own wxSortedArray
-typedef struct
-{
-	wxString		strOriginal;	 // adapatation (or gloss) which was matched, before
-									 // any spelling changes have been done
-	KBUpdateRecord*	pUpdateRecord;	 // pointer to the KBUpdateRecord which stores the
-									 // respelling of this entry; we use a pointer as
-									 // the pointed at struct will flop around in the
-									 // sorted array as the user edits matched items, so
-									 // while the index of it will flop abount, the pointer 
-									 // in memory will remain constant
-	wxString		strMapKey;		 // key string (i.e. source text) for the 
-									 // CTargetUnit* which stores the matched adaptation
-									 // (or gloss)
-	CRefString*		pRefString;		 // pointer to the CRefString instance whose index in
-									 // the pTU CTargetUnit instance is nRefStrIndex
-} KBMatchRecord;
-
-/// Define a sorted array of void* for storing instances of KBMatchRecord
-WX_DEFINE_SORTED_ARRAY(KBMatchRecord*, KBMatchRecordArray);
-
-int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr);
-int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr);
-
-
 /// The AIModalDialog class is used as the base class for most of Adapt It's modal dialogs.
 /// Its primary purpose is to turn off background idle processing while the dialog is being
 /// displayed.

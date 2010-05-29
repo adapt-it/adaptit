@@ -16302,7 +16302,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 
         // if we are at a <Not In KB> entry, clear this state because we are going to store
         // something for this entry now (and be sure its not in a retranslation - that is
-        // handled differently below
+        // handled differently above
 		if (!gbIsGlossing && !pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB && 
 			!pSrcPhrase->m_bRetranslation)
 		{
@@ -16328,14 +16328,16 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				MapKeyStringToTgtUnit* pMap = GetKB()->m_pMap[index];
 				pMap->erase(pSrcPhrase->m_key); // remove it from the map
 
+				// BEW removed 28May10, as TUList is redundant & now removed from the app...
+				// 
 				// now remove the CTargetUnit instance too
-				TUList::Node* tpos;
-				tpos = GetKB()->m_pTargetUnits->Find(pTgtUnit); // find position of
+				//TUList::Node* tpos;
+				//tpos = GetKB()->m_pTargetUnits->Find(pTgtUnit); // find position of
 														// pRefString's owning targetUnit
-				pTgtUnit = (CTargetUnit*)tpos->GetData(); // get the
+				//pTgtUnit = (CTargetUnit*)tpos->GetData(); // get the
 														  // targetUnit in the list
-				wxASSERT(pTgtUnit != NULL);
-				GetKB()->m_pTargetUnits->DeleteNode(tpos); // remove it from the list
+				//wxASSERT(pTgtUnit != NULL);
+				//GetKB()->m_pTargetUnits->DeleteNode(tpos); // remove it from the list
 				delete pTgtUnit; // delete it from the heap
 			}
 
@@ -16374,8 +16376,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			GetLayout()->PlaceBox();
 			return TRUE;
 		}
-		else if (!gbIsGlossing &&
-			pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
+		else if (!gbIsGlossing && pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
 		{
 			// we are changing tgt text in a null src phrase which is not in a retranslation
 			int nFound = -1;
