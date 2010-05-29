@@ -3346,15 +3346,34 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
     // we are about to leave the current phrase box location, so we must try to store what
     // is now in the box, if the relevant flags allow it. Test to determine which KB to
     // store to. StoreText( ) has been ammended for auto-capitalization support (July 2003)
-	if (!gbIsGlossing)
+	// whm 28May10 back ported change below from change BEW made to ai_codefixes on 27May10
+	if (gbIsGlossing)
 	{
-		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+		if (pCurPile->GetSrcPhrase()->m_gloss.IsEmpty())
+		{
+			bOK = TRUE;
+		}
+		else
+		{
+			bOK = pView->StoreTextGoingBack(pView->GetKB(), pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+		}
 	}
-	gbInhibitLine4StrCall = TRUE;
-	bOK = pView->StoreTextGoingBack(pView->GetKB(), pCurPile->GetSrcPhrase(), 
-									pApp->m_targetPhrase);
-	gbInhibitLine4StrCall = FALSE;
+	else // adapting
+	{
+		if (pCurPile->GetSrcPhrase()->m_adaption.IsEmpty())
+		{
+			bOK = TRUE;
+		}
+		else
+		{
+			pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+			pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
+			gbInhibitLine4StrCall = TRUE;
+			bOK = pView->StoreTextGoingBack(pView->GetKB(), pCurPile->GetSrcPhrase(), 
+											pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = FALSE;
+		}
+	}
 	if (!bOK)
 	{
         // here, MoveToNextPile() calls DoStore_NormalOrTransliterateModes(), but for
