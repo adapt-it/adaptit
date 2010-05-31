@@ -52,7 +52,6 @@
 #include "WaitDlg.h"
 #include <wx/textfile.h>
 
-
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
@@ -112,7 +111,7 @@ CKB::CKB()
 		m_pMap[i] = new MapKeyStringToTgtUnit;
 		wxASSERT(m_pMap[i] != NULL);
 	}
-	m_kbVersionCurrent = 2; // current default
+	m_kbVersionCurrent = (int)KB_VERSION2; // current default
 }
 
 CKB::CKB(bool bGlossingKB)
@@ -133,7 +132,7 @@ CKB::CKB(bool bGlossingKB)
 	}
 	m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
 								   // FALSE for adapting KB
-	m_kbVersionCurrent = 2; // current default -- but add 2nd param soon for kb version
+	m_kbVersionCurrent = (int)KB_VERSION2; // current default = 2
 }
 
 // copy constructor - it doesn't work, see header file for explanation
@@ -251,6 +250,10 @@ void CKB::Copy(const CKB& kb)
 	m_bGlossingKB = pCopy->m_bGlossingKB; // BEW added 12May10
 	m_pApp = pCopy->m_pApp; // BEW added 12May10
 	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
+
+// ***** TODO *****
+	// once we have a standoff set of classes, pointed at, the copy will have to make copies
+	// of each and set up the mutual pointers in the copies -- so add that code later on
 
 	// BEW removed 29May10, as TUList is redundant & now removed
 	//TUList* pTUList = pCopy->m_pTargetUnits;

@@ -27,16 +27,14 @@
 
 // forward declarations
 class CTargetUnit;
+class CKB; // needed for the macro below which must reside outside the class declaration
+class CRefString;
 
 // BEW removed 29May10, as TUList is redundant * now removed
 //class TUList;	// This forward reference is needed because the macro 
 // declaration below must be in general namespace, before CKB is declared.
 // The macro below together with the macro list declaration in the .cpp file
 // define a new list class called TUList. Its list elements are of type CTargetUnit.
-
-class CKB; // needed for the macro below which must reside outside the class declaration
-class CRefString;
-class CSourcePhrase;
 
 enum UseForLookup
 {
@@ -66,9 +64,8 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase
 /// \derivation		The CKB class is derived from wxObject.
 class CKB : public wxObject  
 {
-	friend class CKB_Standoff;
-	friend class CTargetUnit_Standoff;
-	friend class CRefString_Standoff;
+	friend class CTargetUnit;
+	friend class CRefString;
 
 public:
 	CKB();
@@ -95,7 +92,7 @@ public:
 	// since the compiler initializes the members in a class declaration IN THE ORDER they
 	// are declared in the class declaration. This is an attempt to correct problems that
 	// I've had (and possibly Bruce too) encountering NULL or bad m_pTargetUnits and m_pMap 
-	// pointers.
+	// pointers. BEW  note 29May10 -- this is no longer relevant, as TUList is removed now
 
 	// The names of the languages need to be stored, because the startup wizard's <Back
 	// button allows the user to create a project, then backtrack and choose an existing 
@@ -110,7 +107,7 @@ public:
 	// BEW removed 29May10, as TUList is redundant * now removed
 	//TUList*			m_pTargetUnits; // stores translation equivalents for each source phrase
 
-	MapKeyStringToTgtUnit*	m_pMap[10]; // stores associations of key and ptr to CTargetUnit instances
+	MapKeyStringToTgtUnit*	m_pMap[MAX_WORDS]; // stores associations of key and ptr to CTargetUnit instances
 									   // where the key is a phrase with [index + 1] source words
 
 	virtual ~CKB();
@@ -140,7 +137,6 @@ public:
   private:
 
 	CAdapt_ItApp*	m_pApp;
-	CKB_Standoff*	m_pKB_Standoff;
 
     // m_bGlossingKB will enable each CKB instantiation to know which kind of CKB class it
     // is, an (adapting) KB or a GlossingKB

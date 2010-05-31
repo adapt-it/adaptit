@@ -12,11 +12,6 @@
 /// source text word or phrase.
 /// \derivation		The CTargetUnit class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in TargetUnit.cpp (in order of importance): (search for "TODO")
-// 1. Test to insure the wxWidgets version copy constructor works OK. [tested OK]
-// 2. Design an assignment = operator function for the class.
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -146,21 +141,6 @@ CTargetUnit::~CTargetUnit()
 {
 	delete m_pTranslations;
 	m_pTranslations = (TranslationsList*)NULL;
-}
-
-inline wxString CTargetUnit::GetUuid() { return m_uuid; }
-
-void CTargetUnit::SetUuid()
-{
-	wxString uuid = GetUuid(); // create a new uuid (see helpers.cpp)
-	m_uuid = uuid; // store it
-}
-
-inline wxString CTargetUnit::GetSourceKey() { return m_sourceKey; }
-
-void CTargetUnit::SetSourceKey(wxString srcKey)
-{
-	m_sourceKey = srcKey;
 }
 
 

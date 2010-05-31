@@ -24,8 +24,6 @@
 
 // forward references
 class CTargetUnit;
-//class wxDataOutputStream;
-//class wxDataInputStream;
 
 /// The CRefString class stores the target text adaptation typed
 /// by the user for a given source word or phrase. It also keeps

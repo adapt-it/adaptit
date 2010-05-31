@@ -22,8 +22,6 @@
 #endif
 
 // forward references
-//class wxDataOutputStream;
-//class wxDataInputStream;
 
 class CTargetUnit;	// This forward reference is needed for the WX_DECLARE_LIST 
 // macro below. Without it the compiler will generate at least 6 cryptic error messages!
@@ -65,14 +63,10 @@ public:
 	// other methods
 
 private:
-	wxString	m_uuid;
 	wxString	m_sourceKey;
-
 
 	// getters and setters
 public:
-	wxString	GetUuid();
-	void		SetUuid(); // we'll create it on the fly and store it
 	wxString	GetSourceKey(); // returns m_sourceKey
 	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
 
