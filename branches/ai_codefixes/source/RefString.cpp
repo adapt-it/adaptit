@@ -36,6 +36,7 @@
 //#include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
 
 #include "Adapt_It.h"
+#include "RefStringMetadata.h"
 #include "RefString.h"
 #include "AdaptitConstants.h" 
 #include "TargetUnit.h"
@@ -47,6 +48,7 @@ CRefString::CRefString()
 	m_refCount = 0;
 	m_translation = _T("");
 	m_bDeleted = FALSE;
+	m_pRefStringMetadata = new CRefStringMetadata(this);
 }
 
 // normal constructor, with a pointer to its owning CTargetUnit instance
@@ -56,6 +58,7 @@ CRefString::CRefString(CTargetUnit* pTargetUnit)
 	m_translation = _T("");
 	m_bDeleted = FALSE;
 	m_pTgtUnit = pTargetUnit;
+	m_pRefStringMetadata = new CRefStringMetadata(this);
 }
 
 // copy constructor, where the target unit instance must NEVER be copied as a pointer
@@ -73,6 +76,13 @@ CRefString::CRefString(const CRefString &rs, CTargetUnit* pTargetUnit)
 	m_refCount = rs.m_refCount;
 	m_translation = rs.m_translation;
 	m_bDeleted = rs.m_bDeleted;
+	m_pRefStringMetadata = new CRefStringMetadata(this);
+	// the metadata has to be copies too, so now override the newly assigned creation
+	// dateTime, etc with the source once's values
+	m_pRefStringMetadata->m_creationDateTime = rs.m_pRefStringMetadata->m_creationDateTime;
+	m_pRefStringMetadata->m_modifiedDateTime = rs.m_pRefStringMetadata->m_modifiedDateTime;
+	m_pRefStringMetadata->m_deletedDateTime = rs.m_pRefStringMetadata->m_deletedDateTime;
+	m_pRefStringMetadata->m_whoCreated = rs.m_pRefStringMetadata->m_whoCreated;
 }
 
 CRefString::~CRefString()

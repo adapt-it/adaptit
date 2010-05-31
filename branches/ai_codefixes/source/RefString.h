@@ -24,6 +24,7 @@
 
 // forward references
 class CTargetUnit;
+class CRefStringMetadata;
 
 /// The CRefString class stores the target text adaptation typed
 /// by the user for a given source word or phrase. It also keeps
@@ -32,6 +33,8 @@ class CTargetUnit;
 /// \derivation		The CRefString class is derived from wxObject.
 class CRefString : public wxObject
 {
+	friend class CRefStringMetadata;
+
 public:
 	CRefString(void); // constructor
 	CRefString(CTargetUnit* pTargetUnit);
@@ -45,9 +48,9 @@ public:
 	CTargetUnit*	m_pTgtUnit; // is this needed?? Yes, it's needed for support of standoff markup file
 
 	// helpers
-	bool	operator==(const CRefString& rs); // equality operator overload
+	bool			operator==(const CRefString& rs); // equality operator overload
 
-	virtual ~CRefString(void); // destructor // whm make all destructors virtual
+	virtual			~CRefString(void); // destructor // whm make all destructors virtual
 	// other methods
 
 	// we'll need a method like:
@@ -58,8 +61,8 @@ protected:
 
 private:
 	// class attributes
-	bool	m_bDeleted; // & the standoff data will have the dateTime for the deletion
-
+	bool					m_bDeleted; // & the standoff data will have the dateTime for the deletion
+	CRefStringMetadata*		m_pRefStringMetadata;
 
 	DECLARE_DYNAMIC_CLASS(CRefString) 
 	// Used inside a class declaration to declare that the objects of 
