@@ -438,7 +438,7 @@ void CFindDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
+					pView->MakeTargetStringIncludingPunctuation(gpApp->m_pActivePile->GetSrcPhrase(),
 											gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
@@ -1232,7 +1232,7 @@ void CReplaceDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
+					pView->MakeTargetStringIncludingPunctuation(gpApp->m_pActivePile->GetSrcPhrase(),
 												gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}

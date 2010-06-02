@@ -43,20 +43,23 @@ IMPLEMENT_DYNAMIC_CLASS(CRefStringMetadata, wxObject)
 
 CRefStringMetadata::CRefStringMetadata()
 {
+	// we don't want this one to set initial values other than empty strings, and the hookup to the
+	// parent will need to be done by the caller
 	m_pRefStringOwner = NULL;
-	m_creationDateTime = GetDateTimeNow(); // see helpers.cpp
+	m_creationDateTime = _T("");
 	m_modifiedDateTime = _T("");
 	m_deletedDateTime = _T("");
 	m_whoCreated = _T("");
 }
 
-// normal constructor, with a pointer to its owning CRefString instance
+// normal constructor, with a pointer to its owning CRefString instance; this overload
+// hooks itself up to the owning CRefString instance automatically
 CRefStringMetadata::CRefStringMetadata(CRefString* pRefStringOwner)
 {
 	m_creationDateTime = GetDateTimeNow(); // see helpers.cpp
 	m_modifiedDateTime = _T("");
 	m_deletedDateTime = _T("");
-	m_whoCreated = _T("");
+	m_whoCreated = SetWho(); // param bool bOriginatedFromTheWeb is default FALSE
 	m_pRefStringOwner = pRefStringOwner;
 }
 
@@ -94,3 +97,24 @@ bool CRefStringMetadata::operator==(const CRefStringMetadata& rs)
 	
 }
 */
+
+void CRefStringMetadata::SetCreationDateTime(wxString creationDT)
+{
+	m_creationDateTime = creationDT;
+}
+
+void CRefStringMetadata::SetModifiedDateTime(wxString modifiedDT)
+{
+	m_modifiedDateTime = modifiedDT;
+}
+
+void CRefStringMetadata::SetDeletedDateTime(wxString deletedDT)
+{
+	m_deletedDateTime = deletedDT;
+}
+
+void CRefStringMetadata::SetWhoCreated(wxString whoCreated)
+{
+	m_whoCreated = whoCreated;
+}
+

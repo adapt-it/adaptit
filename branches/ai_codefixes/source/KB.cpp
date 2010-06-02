@@ -45,6 +45,7 @@
 #include "KB.h"
 #include "AdaptitConstants.h" 
 #include "TargetUnit.h"
+#include "RefStringMetadata.h"
 #include "RefString.h"
 #include "LanguageCodesDlg.h"
 #include "BString.h"
@@ -91,6 +92,12 @@ extern bool gbByCopyOnly;
 extern bool gbInhibitLine4StrCall;
 extern bool gbRemovePunctuationFromGlosses;
 
+// friend function
+bool GetGlossingKBFlag(CKB& kb)
+{
+	return kb.m_bGlossingKB;
+}
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -111,7 +118,7 @@ CKB::CKB()
 		m_pMap[i] = new MapKeyStringToTgtUnit;
 		wxASSERT(m_pMap[i] != NULL);
 	}
-	m_kbVersionCurrent = (int)KB_VERSION2; // current default
+	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
 }
 
 CKB::CKB(bool bGlossingKB)
@@ -132,7 +139,7 @@ CKB::CKB(bool bGlossingKB)
 	}
 	m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
 								   // FALSE for adapting KB
-	m_kbVersionCurrent = (int)KB_VERSION2; // current default = 2
+	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
 }
 
 // copy constructor - it doesn't work, see header file for explanation
@@ -1827,6 +1834,16 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 	}
 }
 
+inline int CKB::GetCurrentKBVersion()
+{
+	return m_kbVersionCurrent;
+}
+
+inline void CKB::SetCurrentKBVersion()
+{
+	m_kbVersionCurrent = (int)KB_VERSION2; // KB_VERSION2 is defined in Adapt_ItConstants.h
+}
+
 bool CKB::IsThisAGlossingKB() { return m_bGlossingKB; }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -1973,7 +1990,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		{
 			pSrcPhrase->m_adaption = tgtPhrase;
 			if (!gbInhibitLine4StrCall)
-				m_pApp->GetView()->MakeLineFourString(pSrcPhrase, tgtPhrase); // set m_targetStr member too
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase); // set m_targetStr member too
 		}
 	}
 	
@@ -2164,7 +2181,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					pSrcPhrase->m_bNotInKB = TRUE;
 					pSrcPhrase->m_bBeginRetranslation = FALSE;
 					pSrcPhrase->m_bEndRetranslation = FALSE;
-					delete pRefString; // don't leak memory
+					pRefString->DeleteRefString(); // don't leak memory
 					pRefString = (CRefString*)NULL;
 					m_pApp->m_bForceAsk = FALSE;
 					gbMatchedKB_UCentry = FALSE;
@@ -2183,7 +2200,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							pSrcPhrase->m_bEndRetranslation = FALSE;
 						}
 						m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
-						delete pRefString; // don't leak the memory
+						pRefString->DeleteRefString(); // don't leak the memory
 						pRefString = (CRefString*)NULL;
 						gbMatchedKB_UCentry = FALSE;
 						return TRUE; // make caller think all is well
@@ -2224,11 +2241,11 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // input the tgtPhrase parameter should have the text with punctuation removed, so this is
 // typically done in the caller with a call to RemovePunctuation( ). For versions prior to
 // 4.1.0, in order to support the user overriding the stored punctuation for the source
-// text, a call to MakeLineFourString( ) is done in the caller, and then RemovePunctuation(
-// ) is called in the caller, so a second call of MakeLineFourString( ) within StoreText( )
+// text, a call to MakeTargetStringIncludingPunctuation( ) is done in the caller, and then RemovePunctuation(
+// ) is called in the caller, so a second call of MakeTargetStringIncludingPunctuation( ) within StoreText( )
 // is not required in this circumstance - in this case, a global boolean
 // gbInhibitLine4StrCall is used to jump the call within StoreText( ). For 4.1.0 and later,
-// MakeLineFourString() is not now called. See below.
+// MakeTargetStringIncludingPunctuation() is not now called. See below.
 // 
 // Ammended, July 2003, for Auto-Capitalization support
 // BEW 22Feb10 no changes needed for support of doc version 5
@@ -2397,7 +2414,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							pSrcPhrase->m_bBeginRetranslation = FALSE;
 							pSrcPhrase->m_bEndRetranslation = FALSE;
 						}
-						delete pRefString; // don't need this one
+						pRefString->DeleteRefString(); // don't need this one
 						break;
 					}
 				}
@@ -2442,7 +2459,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		{
 			pSrcPhrase->m_adaption = tgtPhrase;
 			if (!gbInhibitLine4StrCall)
-				m_pApp->GetView()->MakeLineFourString(pSrcPhrase, tgtPhrase); // set m_targetStr member too
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase); // set m_targetStr member too
 		}
 	} 
     // if the source phrase is part of a retranslation, we allow updating of the m_adaption
@@ -2725,7 +2742,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pSrcPhrase->m_bBeginRetranslation = FALSE;
 						pSrcPhrase->m_bEndRetranslation = FALSE;
 					}
-					delete pRefString; // don't need this one
+					pRefString->DeleteRefString(); // don't need this one
 					pRefString = (CRefString*)NULL;
 					if (m_pApp->m_bForceAsk)
 					{
@@ -2753,7 +2770,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					pSrcPhrase->m_bNotInKB = TRUE;
 					pSrcPhrase->m_bBeginRetranslation = FALSE;
 					pSrcPhrase->m_bEndRetranslation = FALSE;
-					delete pRefString; // don't leak memory
+					pRefString->DeleteRefString(); // don't leak memory
 					pRefString = (CRefString*)NULL;
 					m_pApp->m_bForceAsk = FALSE;
 					gbMatchedKB_UCentry = FALSE;
@@ -2778,7 +2795,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								pSrcPhrase->m_bEndRetranslation = FALSE;
 							}
 							m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
-							delete pRefString; // don't leak the memory
+							pRefString->DeleteRefString(); // don't leak the memory
 							pRefString = (CRefString*)NULL;
 							gbMatchedKB_UCentry = FALSE;
 							return TRUE; // make caller think all is well
@@ -2891,6 +2908,18 @@ void CKB::GetForceAskList(KPlusCList* pKeys)
 /// CTargetUnit and its associated key string is represented (the source text word or
 /// phrase, minus punctuation). This function is called once for each target unit in the
 /// KB's map.
+/// BEW 31May10: simplified kbv2 design to just have a CRefStringMetadata class instance
+/// for each CRefString instance, stored on m_pRefStringMetadata, and the former class
+/// pointers to its owner with a member m_pRefStringOwner.
+/// Currently, there are four metadata wxStrings in the new class:
+/// m_creationDateTime which we'll use the xml attribute cDT for 
+/// m_modifiedDateTime which we'll use the xml attribute mDT for 
+/// m_deletedDateTime which we'll use the xml attribute dDT for 
+/// m_whoCreated which we'll use the xml attribute wC for
+/// all the above will be in the <RS> tag. Put m_creationDateTime and m_whoCreated on
+/// their own line, as these will be always present; the other two can be on the next line
+/// as they often will not be present. We'll not make an attribute for any of these
+/// strings if they are empty - defaults will handle these when the xml is parsed back in.
 ////////////////////////////////////////////////////////////////////////////////////////
 CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 {
@@ -2930,6 +2959,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	aStr += "\">\r\n";
 
 	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	CBString rsTabs; 
 	while (pos != NULL)
 	{
 		// there will always be at least one pRefStr in a pTU
@@ -2944,18 +2974,88 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 
 		// construct the tabs
 		int j;
+		rsTabs.Empty();
 		int last = nTabLevel + 1;
 		for (j = 0; j < last ; j++)
 		{
 			aStr += "\t"; // tab the start of the line
+			rsTabs += "\t"; // use rsTabs below to avoid a loop each time
 		}
 		// construct the element
-		aStr += "<RS n=\"";
+		aStr += "<RS n=\""; // reference count
 		aStr += numStr;
-		aStr += "\" a=\"";
+		aStr += "\" a=\""; // adaptation (or gloss for GlossingKB)
 		aStr += bstr;
-		aStr += "\"/>\r\n";
-	}
+		aStr += "\" df=\"";  // m_bDeleted flag
+		if (pRefStr->m_bDeleted)
+		{
+			aStr += "1";
+		}
+		else
+		{
+			aStr += "0";
+		}
+
+		// BEW 31May10, added code for kbv2's new attributes taken from the
+		// CRefStringMetadata class instance attached to this pRefStr
+		aStr += "\"\r\n"; // end the line
+		aStr += rsTabs; // start a new line at the same indentation
+		CBString attrStr = pRefStr->m_pRefStringMetadata->m_creationDateTime;
+		// no entities are in the dateTime strings, so don't call InsertEntities()
+		aStr += "cDT=\"";
+		aStr += attrStr; // the m_creationDateTime value
+
+		aStr += "\" wC=\"";
+		attrStr = pRefStr->m_pRefStringMetadata->m_whoCreated;
+		aStr += attrStr; // the m_whoCreated value
+
+		// how we finish off the line depends on whether more is present or not
+		if (pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty() 
+			&& pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+		{
+			// there is no more to be constructed, so finish off the RS element
+			aStr += "\"/>\r\n";
+		}
+		else
+		{
+			// another line is needed for one or both of the other dateTime members
+			aStr += "\"\r\n"; // end the line
+			aStr += rsTabs; // start a new line at the same indentation
+			attrStr = pRefStr->m_pRefStringMetadata->m_modifiedDateTime;
+			if (!attrStr.IsEmpty())
+			{
+				aStr += "mDT=\"";
+				aStr += attrStr; // the m_modifiedDateTime value
+
+				// we may have m_deletedDateTime non-empty too, so check it out and build
+				// it here if needed - then close off RS element
+				attrStr = pRefStr->m_pRefStringMetadata->m_deletedDateTime;
+				if (!attrStr.IsEmpty())
+				{
+					// there is a non-empty m_deletedDateTime stamp stored, so add it to
+					// the RS element
+					aStr += "\" dDT=\"";
+					aStr += attrStr; // the m_deletedDateTime value
+				}
+				else
+				{
+					// there is no m_deletedDateTime stamp available
+					;
+				}
+			}
+			else
+			{
+				// m_modifiedDateTime is empty, so it must be the case that
+				// m_deletedDateTime is not empty, so unilaterally build the xml for it
+				// and then close off the RS element
+				aStr += "dDT=\"";
+				attrStr = pRefStr->m_pRefStringMetadata->m_deletedDateTime;
+				aStr += attrStr; // the m_deletedDateTime value
+			}
+			// close off the RS element
+			aStr += "\"/>\r\n";
+		} // end of else block for test of both modifed and deleted dateTime stamps empty
+	} // end of loop: while (pos != NULL)
 
 	// construct the closing TU tab
 	for (i = 0; i < nTabLevel; i++)
@@ -2985,6 +3085,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	aStr += "\">\r\n";
 
 	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	CBString rsTabs; 
 	while (pos != NULL)
 	{
 		// there will always be at least one pRefStr in a pTU
@@ -2999,18 +3100,88 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 
 		// construct the tabs
 		int j;
+		rsTabs.Empty();
 		int last = nTabLevel + 1;
 		for (j = 0; j < last ; j++)
 		{
 			aStr += "\t"; // tab the start of the line
+			rsTabs += "\t"; // use rsTabs below to avoid a loop each time
 		}
 		// construct the element
 		aStr += "<RS n=\"";
 		aStr += numStr;
 		aStr += "\" a=\"";
 		aStr += bstr;
-		aStr += "\"/>\r\n";
-	}
+		aStr += "\" df=\"";  // m_bDeleted flag
+		if (pRefStr->m_bDeleted)
+		{
+			aStr += "1";
+		}
+		else
+		{
+			aStr += "0";
+		}
+
+		// BEW 31May10, added code for kbv2's new attributes taken from the
+		// CRefStringMetadata class instance attached to this pRefStr
+		aStr += "\"\r\n"; // end the line
+		aStr += rsTabs; // start a new line at the same indentation
+		CBString attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_creationDateTime);
+		// no entities are in the dateTime strings, so don't call InsertEntities()
+		aStr += "cDT=\"";
+		aStr += attrStr; // the m_creationDateTime value
+
+		aStr += "\" wC=\"";
+		attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_whoCreated);
+		aStr += attrStr; // the m_whoCreated value
+
+		// how we finish off the line depends on whether more is present or not
+		if (pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty() 
+			&& pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+		{
+			// there is no more to be constructed, so finish off the RS element
+			aStr += "\"/>\r\n";
+		}
+		else
+		{
+			// another line is needed for one or both of the other dateTime members
+			aStr += "\"\r\n"; // end the line
+			aStr += rsTabs; // start a new line at the same indentation
+			attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_modifiedDateTime);
+			if (!attrStr.IsEmpty())
+			{
+				aStr += "mDT=\"";
+				aStr += attrStr; // the m_modifiedDateTime value
+
+				// we may have m_deletedDateTime non-empty too, so check it out and build
+				// it here if needed - then close off RS element
+				attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_deletedDateTime);
+				if (!attrStr.IsEmpty())
+				{
+					// there is a non-empty m_deletedDateTime stamp stored, so add it to
+					// the RS element
+					aStr += "\" dDT=\"";
+					aStr += attrStr; // the m_deletedDateTime value
+				}
+				else
+				{
+					// there is no m_deletedDateTime stamp available
+					;
+				}
+			}
+			else
+			{
+				// m_modifiedDateTime is empty, so it must be the case that
+				// m_deletedDateTime is not empty, so unilaterally build the xml for it
+				// and then close off the RS element
+				aStr += "dDT=\"";
+				attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_deletedDateTime);
+				aStr += attrStr; // the m_deletedDateTime value
+			}
+			// close off the RS element
+			aStr += "\"/>\r\n";
+		} // end of else block for test of both modifed and deleted dateTime stamps empty
+	} // end of loop: while (pos != NULL)
 
 	// construct the closing TU tab
 	for (i = 0; i < nTabLevel; i++)
@@ -3026,12 +3197,24 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      f               -> the wxFile instance used to save the KB file
-/// \param      bIsGlossingKB   -> TRUE if saving a glossing KB, otherwise FALSE 
-///                                (the default) for a regular KB
 /// \remarks
 /// Called from: the App's StoreGlossingKB() and StoreKB().
 /// Structures the KB data in XML form. Builds the XML file in a wxMemoryBuffer with sorted
 /// TU elements and finally writes the buffer to an external file.
+/// BEW 28May10: removed TUList from CKB and the member m_pTargetUnits, TUList is redundant
+/// BEW 31May10: simplified kbv2 design to just have a CRefStringMetadata class instance
+/// for each CRefString instance, stored on m_pRefStringMetadata, and the former class
+/// pointers to its owner with a member m_pRefStringOwner.
+/// Currently, there are four metadata wxStrings in the new class:
+/// m_creationDateTime which we'll use the xml attribute cDT for 
+/// m_modifiedDateTime which we'll use the xml attribute mDT for 
+/// m_deletedDateTime which we'll use the xml attribute dDT for 
+/// m_whoCreated which we'll use the xml attribute wC for
+/// all the above will be in the <RS> tag.
+/// In the <KB> tag we make the following modifications:
+/// The inappropriate docVersion attribute will become kbVersion
+/// We add a glossingKB attibute to store the m_bGlossingKB boolean value as "1" (TRUE) or
+/// as "0" (FALSE). CTargetUnit has no changes, so the <TU> tag's attributes are unchanged
 ////////////////////////////////////////////////////////////////////////////////////////
 void CKB::DoKBSaveAsXML(wxFile& f)
 {
@@ -3113,7 +3296,11 @@ void CKB::DoKBSaveAsXML(wxFile& f)
     // Convert16to8() function in the App.]
 	//wxSprintf(numStr, 24,_T("%d"),(int)VERSION_NUMBER); 
 	// BEW note 19Apr10: docVersions 4 and 5 have different xml structure, but the KB doesn't.
-	intStr << m_pApp->GetDocument()->GetCurrentDocVersion(); // versionable schema number (see AdaptitConstants.h)
+	// BEW note 31May10: docVersion in the xml for the KB is a mistake. We will instead
+	// use an attribute called kbVersion from kbv2 and onwards, kbVersion will take the
+	// current kb version number, which is KB_VERSION2 (see Adapt_ItConstants.h), defined
+	// as 2.
+	intStr << GetCurrentKBVersion(); // see note above for 31May10
 #ifdef _UNICODE
 	numStr = m_pApp->Convert16to8(intStr);
 #else
@@ -3121,18 +3308,16 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 #endif
 	
 	aStr = "<";
+	aStr += xml_kb;
+	aStr += " kbVersion=\""; // kbVersion is currently 2
+	aStr += numStr;
 	if (m_bGlossingKB)
 	{
-		aStr += xml_kb;
-		aStr += " docVersion=\""; // docVersion 4
-		aStr += numStr;
 		aStr += "\" max=\"1";
+		aStr += "\" glossingKB=\"1";
 	}
 	else
 	{
-		aStr += xml_kb;
-		aStr += " docVersion=\""; // docVersion 4
-		aStr += numStr;
 		aStr += "\" srcName=\"";
 #ifdef _UNICODE
 		tempStr = m_pApp->Convert16to8(m_sourceLanguageName);
@@ -3159,6 +3344,10 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 		numStr = intStr;
 #endif
 		aStr += numStr;
+		aStr += "\" glossingKB=\"0"; // give an explicit value, rather
+									 // than rely on a default & not
+									 // output this attribute (in the
+									 // adaptation KB)
 	}
 	aStr += "\">\r\n";
 	kbElementBeginStr = aStr;

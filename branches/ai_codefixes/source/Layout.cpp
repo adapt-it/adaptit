@@ -435,7 +435,7 @@ void CLayout::Draw(wxDC* pDC)
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
-	// BEW added 1Jul09, to support suppressing multiple calls of MakeLineFourString()
+	// BEW added 1Jul09, to support suppressing multiple calls of MakeTargetStringIncludingPunctuation()
 	// (and therefore the potential for multiple shows of the placement dialog for
 	// medial punctuation) at a single active location
 	m_pApp->m_nPlacePunctDlgCallNumber = 0; // clear to default value of zero

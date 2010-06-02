@@ -141,8 +141,8 @@ extern const wxChar *FUNC_NAME_EC_INITIALIZE_CONVERTER_AW;
 extern const wxChar *FUNC_NAME_EC_IS_INSTALLED;
 extern const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW;
 
-extern bool gbSavedLineFourInReviewingMode;			// these two are defined in PhraseBox.cpp and are for support
-extern wxString gStrSaveLineFourInReviewingMode;	// of preserving a hole when phrase box lands and leaves while
+extern bool gbSavedTargetStringWithPunctInReviewingMode;			// these two are defined in PhraseBox.cpp and are for support
+extern wxString gStrSavedTargetStringWithPunctInReviewingMode;	// of preserving a hole when phrase box lands and leaves while
 													// Reviewing mode is turned on (added 19Dec07)
 /// This global is defined in SplitDialog.cpp.
 extern bool gbIsDocumentSplittingDialogActive; // see SplitDialog.cpp
@@ -181,10 +181,10 @@ extern wxChar gSFescapechar; // the escape char used for start of a standard for
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHasBookFolders; // TRUE when Adaptations folder is found to have Bible book
 
-// Used for inhibiting multiple accesses to MakeLineFourString when only one is needed.
+// Used for inhibiting multiple accesses to MakeTargetStringIncludingPunctuation when only one is needed.
 bool gbInhibitLine4StrCall = FALSE;
 
-// for suppressing MakeLineFourString in ReDoPhraseBox( ) when moving to the
+// for suppressing MakeTargetStringIncludingPunctuation in ReDoPhraseBox( ) when moving to the
 // previous pile (which might have internal punct & we don't want to see Place dialog)
 extern bool gbMovingToPreviousPile;
 
@@ -2175,10 +2175,10 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					// no text or punctuation, or no text and punctuation not yet placed,
 					// or no text and punctuation was earlier placed -- whichever is the case
 					// we need to preserve that state
-					gbSavedLineFourInReviewingMode = TRUE;  // it gets cleared again at
-															// end of MakeLineFourString()
-					gStrSaveLineFourInReviewingMode = pSrcPhrase->m_targetStr; // cleared
-															// at end of MakeLineFourString()
+					gbSavedTargetStringWithPunctInReviewingMode = TRUE;  // it gets cleared again at
+															// end of MakeTargetStringIncludingPunctuation()
+					gStrSavedTargetStringWithPunctInReviewingMode = pSrcPhrase->m_targetStr; // cleared
+															// at end of MakeTargetStringIncludingPunctuation()
 				}
 
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;	// don't throw away unedited
@@ -2274,10 +2274,10 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					// no text or punctuation, or no text and punctuation not yet placed,
 					// or no text and punctuation was earlier placed -- whichever is the case
 					// we need to preserve that state
-					gbSavedLineFourInReviewingMode = TRUE;	// it gets cleared again at end 
-															// of MakeLineFourString()
-					gStrSaveLineFourInReviewingMode = pSrcPhrase->m_targetStr; // cleared at
-																// end of MakeLineFourString()
+					gbSavedTargetStringWithPunctInReviewingMode = TRUE;	// it gets cleared again at end 
+															// of MakeTargetStringIncludingPunctuation()
+					gStrSavedTargetStringWithPunctInReviewingMode = pSrcPhrase->m_targetStr; // cleared at
+																// end of MakeTargetStringIncludingPunctuation()
 				}
 				pApp->m_pTargetBox->m_bAbandonable = FALSE; // don't throw away unedited
                     // phrase box contents when the phrase box leaves a location by a click
@@ -2330,7 +2330,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 						str = pSrcPhrase->m_adaption; // no punctuation to be shown
 						// BEW changed 28Apr05, this is a better choice for the box contents
 						// than to show punctuation if the m_bHidePunctuation flag is FALSE;
-						// always using m_adaption means MakeLineFourString() can then be
+						// always using m_adaption means MakeTargetStringIncludingPunctuation() can then be
 						// allowed to do its work when the phrase box moves on, that's best
 					}
 					pApp->m_pTargetBox->m_bAbandonable = FALSE;
@@ -6748,7 +6748,7 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 			if (!pApp->m_targetPhrase.IsEmpty())
 			{
 				// it has to be saved to the KB if not empty
-				MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
+				MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 				RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 				gbInhibitLine4StrCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
@@ -7083,7 +7083,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	gbEnableGlossing = FALSE;
 	gbIsGlossing = FALSE;
 
-	// inhibit the call to MakeLineFourString() within the StoreText() function
+	// inhibit the call to MakeTargetStringIncludingPunctuation() within the StoreText() function
 	// otherwise it will add punctuation to the m_targetStr field on the document's
 	// pSrcPhrase which is currently active, and that member already has the required
 	// punctuation because we have copied the old string prior to the rebuild
@@ -8317,7 +8317,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			//gbByCopyOnly = FALSE;
 			if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
 			{
-				MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
+				MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 				RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 
                 // the store will fail if the user edited the entry out of the KB, as the
@@ -9473,7 +9473,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
             // the selected pile is not the active one, so update the active one then make
             // the selected one the active one; so store the translation in the knowledge
             // base
-			MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
+			MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 			RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 			bool bOK = pApp->m_pKB->StoreText(pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 			if (!bOK)
@@ -12120,7 +12120,7 @@ void CAdapt_ItView::CloseProject()
 // The flag is automatically reset TRUE once the phrase box moves to a different location
 // by any method.
 // BEW 12Apr10, no changes needed for support of doc version 5
-void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targetStr)
+void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
@@ -12134,11 +12134,11 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
 
         // BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is
         // about to leave a hole which may or may not have had punctuation there; the
-        // former m_targetStr is preserved in the global gStrSaveLineFourInReviewingMode,
+        // former m_targetStr is preserved in the global gStrSavedTargetStringWithPunctInReviewingMode,
         // and the test for needing to do this restoration is that the global flag
-        // gbSavedLineFourInReviewingMode is TRUE, and we must clear the flag before
+        // gbSavedTargetStringWithPunctInReviewingMode is TRUE, and we must clear the flag before
         // returning
-		if (gbSavedLineFourInReviewingMode)
+		if (gbSavedTargetStringWithPunctInReviewingMode)
 		{
             // the flag will only be true when the location was a hole when the box landed
             // there, so we can rely on m_targetPhrase being empty provided the user has
@@ -12149,15 +12149,15 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
 			if (pApp->m_targetPhrase.IsEmpty())
 			{
 				// it is still empty, so do the restoration etc.
-				pSrcPhrase->m_targetStr = gStrSaveLineFourInReviewingMode;
-				gStrSaveLineFourInReviewingMode.Empty();
-				gbSavedLineFourInReviewingMode = FALSE; // restore default value
+				pSrcPhrase->m_targetStr = gStrSavedTargetStringWithPunctInReviewingMode;
+				gStrSavedTargetStringWithPunctInReviewingMode.Empty();
+				gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 				return;
 			}
 			// user must have typed something, so clean up and control can fall thru 
 			// to the rest
-			gStrSaveLineFourInReviewingMode.Empty();
-			gbSavedLineFourInReviewingMode = FALSE; // restore default value
+			gStrSavedTargetStringWithPunctInReviewingMode.Empty();
+			gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 		}
 
 		wxString str = targetStr; // make a copy
@@ -12309,7 +12309,7 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
 				}
 			}
             // if the word or phrase in the source had no preceding punctuation, then
-            // MakeLineFourString will do nothing, so that if the user elects to explicitly
+            // MakeTargetStringIncludingPunctuation will do nothing, so that if the user elects to explicitly
             // type some preceding punctuation, it will be accepted unconditionally
 
 			// ditto, for following punctuation
@@ -12331,7 +12331,7 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
                     // first time the phrasebox is accessed, :27 gets appended to 10,
                     // resulting in 10:27 as the target text - correctly; but if the user
                     // backtracks to that CSourcePhrase instance later on (by any means),
-                    // then MakeLineFourString will be called at least two more times, and
+                    // then MakeTargetStringIncludingPunctuation will be called at least two more times, and
                     // the next time round the passed in text would be 10:27 to which a
                     // further :27 gets added, producing 10:27:27 and then the caller would
                     // call RemovePunctuation( ) which is coded in such a way that this
@@ -12364,7 +12364,7 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
 				}
 			}
             // if the word or phrase in the source had no following punctuation, then
-            // MakeLineFourString will do nothing, so that if the user elects to explicitly
+            // MakeTargetStringIncludingPunctuation will do nothing, so that if the user elects to explicitly
             // type some following punctuation, it will be accepted unconditionally
 
 			// add the preceding punctuation, if any
@@ -12784,7 +12784,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 			}
 			else if (!bSkipStorage && !gbIsGlossing)
 			{
-				MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 				RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 
                 // the store will fail if the user edited the entry out of the KB, as the
@@ -13869,7 +13869,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		if (pApp->m_pTargetBox->IsShown())
 		{
 			if (!gbIsGlossing)
-				MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 			if (!gbIsGlossing)
 				RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
@@ -16432,7 +16432,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			RemovePunctuation(pDoc,&adaptionStr,from_target_text);
 			pSrcPhrase->m_adaption = adaptionStr;
 			pApp->m_targetPhrase = translation;
-			MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
+			MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 
 			// place the phrase box
 			PlacePhraseBox(pCell,1); // selector == 1 inhibits both the 
@@ -21794,7 +21794,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					}
 					else
 					{
-						MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),
+						MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),
 											pApp->m_targetPhrase);
 						RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
@@ -21837,7 +21837,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 				}
 				else // is adapting
 				{
-					MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),
+					MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),
 										pApp->m_targetPhrase);
 					RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
@@ -25358,7 +25358,7 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 			str = pApp->m_targetPhrase;
 			RemovePunctuation(GetDocument(),&str,from_target_text);
 			pSrcPhrase->m_adaption = str;
-			MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
+			MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 			pApp->m_bSaveToKB = FALSE;
 			pSrcPhrase->m_bHasKBEntry = FALSE;
 			pApp->m_bForceAsk = FALSE;
@@ -25370,7 +25370,7 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 				str = pApp->m_targetPhrase;
 				RemovePunctuation(GetDocument(),&str,from_target_text);
 				pSrcPhrase->m_adaption = str;
-				MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
+				MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 				bOK = pApp->m_pKB->StoreText(pSrcPhrase,str);
 			}
 		}

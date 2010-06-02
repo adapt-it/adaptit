@@ -230,6 +230,23 @@ const char xml_tgtname[] = "tgtname";
 /// Attribute name used in Adapt It XML documents
 const char xml_others[] = "others";
 
+// next ones added by BEW 1Jun10 for kbv2 support
+/// Attribute name used in Adapt It XML documents
+const char xml_kbversion[] = "kbVersion";
+/// Attribute name used in Adapt It XML documents
+const char xml_glossingKB[] = "glossingKB";
+/// Attribute name used in Adapt It XML documents
+const char xml_creationDT[] = "cDT";
+/// Attribute name used in Adapt It XML documents
+const char xml_modifiedDT[] = "mDT";
+/// Attribute name used in Adapt It XML documents
+const char xml_deletedDT[] = "dDT";
+/// Attribute name used in Adapt It XML documents
+const char xml_whocreated[] = "wC";
+/// Attribute name used in Adapt It XML documents
+const char xml_deletedflag[] = "df";
+
+
 // next ones are for the sourcephrases themselves
 
 /// Attribute name used in Adapt It XML documents
@@ -282,8 +299,8 @@ const char xml_fi[] = "fi"; // m_filteredInfo
 const char xml_aikb[] = "AdaptItKnowledgeBase";
 /// Tag name used in Adapt It XML KB i/o
 const char xml_kb[] = "KB";
-/// Tag name used in Adapt It XML KB i/o
-const char xml_gkb[] = "GKB";
+// Tag name used in Adapt It XML KB i/o
+//const char xml_gkb[] = "GKB"; // deprecated
 /// Tag name used in Adapt It XML KB i/o
 const char xml_map[] = "MAP";
 /// Tag name used in Adapt It XML KB i/o

@@ -1694,7 +1694,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		// the active location is not within the retranslation section, so update before
 		// throwing it all out
-		m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
+		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
 		m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
@@ -2254,7 +2254,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		{
             // the active location is not within the retranslation section, so update
             // before throwing it all out
-			m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
+			m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
@@ -2922,7 +2922,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		{
             // the active location is not within the retranslation section, so update
             // before throwing it all out
-			m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
+			m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
 			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 			if (m_pApp->m_targetPhrase != m_pApp->m_pActivePile->GetSrcPhrase()->m_adaption)
 			{

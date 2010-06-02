@@ -175,7 +175,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	// & make the punctuated target string
 	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-		m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
@@ -269,7 +269,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	// & make the punctuated target string
 	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-		m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
@@ -1341,7 +1341,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		pSrcPhraseFollowing->m_precPunct = pFirstOne->m_precPunct;
 		
 		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-		m_pView->MakeLineFourString(pSrcPhraseFollowing,pSrcPhraseFollowing->m_targetStr);
+		m_pView->MakeTargetStringIncludingPunctuation(pSrcPhraseFollowing,pSrcPhraseFollowing->m_targetStr);
 		
 		// anything else
 		pSrcPhraseFollowing->m_bFirstOfType = pFirstOne->m_bFirstOfType;
@@ -1366,7 +1366,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		pPrevSrcPhrase->m_bBoundary = pLastOne->m_bBoundary;
 		
 		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-		m_pView->MakeLineFourString(pPrevSrcPhrase,pPrevSrcPhrase->m_targetStr);
+		m_pView->MakeTargetStringIncludingPunctuation(pPrevSrcPhrase,pPrevSrcPhrase->m_targetStr);
 	}
 	// BEW added 25Jul05...
     // a m_bHasFreeTrans = TRUE value can be ignored provided m_bEndFreeTrans value is
@@ -1843,7 +1843,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		// & make the punctuated target string
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
-			m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 			
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
@@ -2024,7 +2024,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		// & make the punctuated target string
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
-			m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 			
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it

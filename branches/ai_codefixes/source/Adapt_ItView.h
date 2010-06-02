@@ -191,7 +191,7 @@ public:
 	bool		IsWrapMarker(CSourcePhrase* pSrcPhrase);
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr);
-	void		MakeLineFourString(CSourcePhrase* pSrcPhrase, wxString targetStr);
+	void		MakeTargetStringIncludingPunctuation(CSourcePhrase* pSrcPhrase, wxString targetStr);
 	void		MergeWords();
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code

@@ -1442,7 +1442,7 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 			wxMessageBox(_(
 "Sorry, the translation you are attempting to associate with the current source phrase already exists."),
 			_T(""),wxICON_INFORMATION);
-			delete pRefString; // don't need this one
+			pRefString->DeleteRefString(); // don't need this one
 			return FALSE;
 		}
 	}

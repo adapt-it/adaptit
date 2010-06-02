@@ -62,13 +62,13 @@ public:
 	virtual ~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 
-private:
-	wxString	m_sourceKey;
+//private:
+//	wxString	m_sourceKey;  I've decided this copy of the key is not needed
 
 	// getters and setters
 public:
-	wxString	GetSourceKey(); // returns m_sourceKey
-	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
+//	wxString	GetSourceKey(); // returns m_sourceKey
+//	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
 
 private:
 	// class attributes

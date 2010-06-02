@@ -26,7 +26,7 @@ class CRefString;
 /// \derivation		The CRefStringMetadata class is derived from wxObject.
 class CRefStringMetadata : public wxObject
 {
-	friend class CTargetUnit;
+	friend class CKB;
 	friend class CRefString;
 
 public:
@@ -46,8 +46,13 @@ private:
 	//bool			operator==(const CRefStringMetadata& rs); // equality operator overload, needed?
 public:
 	virtual			~CRefStringMetadata(void); // destructor
-	// other methods
+	// other methods -- setters the private members when accessed from xml.cpp, or Adapt_ItDoc.cpp
+	// or Adapt_It.cpp or Adapt_ItView.cpp
 	void			SetOwningRefString(CRefString* pRefStringOwner);
+	void			SetCreationDateTime(wxString creationDT);
+	void			SetModifiedDateTime(wxString modifiedDT);
+	void			SetDeletedDateTime(wxString deletedDT);
+	void			SetWhoCreated(wxString whoCreated);
 
 private:
 

@@ -75,6 +75,7 @@
 #include "Cell.h"
 #include "Adapt_ItDoc.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 //#include "ProgressDlg.h" // removed in svn revision #562
 #include "WaitDlg.h"
 #include "XML.h"
@@ -2664,7 +2665,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* p
 		{
 			if (!gbIsGlossing)
 			{
-				pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				pView->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
 			gbInhibitLine4StrCall = TRUE;
@@ -11543,59 +11544,11 @@ bool CAdapt_ItDoc::DeleteContents()
 /// subsequently). Doing this is appropriate in EraseKB() because EraseKB() is
 /// called whenever the project is being left by whoever has current ownership
 /// permission.
+/// BEW 28May10, removed TUList, as it is redundant & now unused
+/// BEW 1Jun10, added deletion of CRefStringMetadata instance
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::EraseKB(CKB* pKB)
 {
-	/* BEW changed 28May10 to remove TUList, as it is redundant & now unused
-
-	// Empty the map and list and delete their contained objects
-	if (pKB != NULL)
-	{
-		// Clear all elements from each map, and delete each map
-		for (int i = 0; i < MAX_WORDS; i++)
-		{
-			if (pKB->m_pMap[i] != NULL) // test for NULL whm added 10May04
-			{
-				if (!pKB->m_pMap[i]->empty())
-				{
-					pKB->m_pMap[i]->clear();
-				}
-				delete pKB->m_pMap[i];
-				pKB->m_pMap[i] = (MapKeyStringToTgtUnit*)NULL; // whm added 10May04
-			}
-		}
-
-		// Scan through each CTargetUnit in the m_pTargetUnits list. Delete each 
-		// CRefString in each CTargetUnit's TranslationsList, and delete each
-		// CTargetUnit. 
-		for (TUList::Node* node = pKB->m_pTargetUnits->GetFirst(); 
-				node; node = node->GetNext())
-		{
-			CTargetUnit* pTU = (CTargetUnit*)node->GetData();
-			if (pTU->m_pTranslations->GetCount() > 0)
-			{
-				for (TranslationsList::Node* tnode = pTU->m_pTranslations->GetFirst(); 
-						tnode; tnode = tnode->GetNext())
-				{
-					CRefString* pRefStr = (CRefString*)tnode->GetData();
-					if (pRefStr != NULL)
-					{
-						delete pRefStr;
-						pRefStr = (CRefString*)NULL; // whm added 10May04
-					}
-				}
-			}
-			delete pTU;
-			pTU = (CTargetUnit*)NULL; // whm added 10May04
-		}
-		// Clear the m_pTargetUnits list and delete the list.
-		pKB->m_pTargetUnits->Clear();
-		delete pKB->m_pTargetUnits;
-		pKB->m_pTargetUnits = (TUList*)NULL;
-	
-	}
-	*/
-
 	// Empty the map and delete their contained objects
 	if (pKB != NULL)
 	{
@@ -11620,8 +11573,7 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 								CRefString* pRefStr = (CRefString*)tnode->GetData();
 								if (pRefStr != NULL)
 								{
-									delete pRefStr;
-									pRefStr = (CRefString*)NULL; // whm added 10May04
+									pRefStr->DeleteRefString();
 								}
 							}
 						}
@@ -16093,7 +16045,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 							}
 						}
                         // In the next if/else block, the non-glossing-mode call of
-                        // MakeLineFourString() accomplishes the setting of the
+                        // MakeTargetStringIncludingPunctuation() accomplishes the setting of the
                         // pSrcPhrase's m_targetStr member, handling any needed lower case
                         // to upper case conversion (even when typed initial punctuation is
                         // present), and the punctuation override protocol if the passed in
@@ -16101,10 +16053,10 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
                         // punctuation.
 						if (!gbIsGlossing)
 						{
-							// for auto capitalization support, MakeLineFourString( ) is now
+							// for auto capitalization support, MakeTargetStringIncludingPunctuation( ) is now
 							// able to do any needed change to upper case initial letter even
 							// when there is initial punctuation on pAFRecord->finalAdaptation
-							pApp->GetView()->MakeLineFourString(pSrcPhrase, pAFRecord->finalAdaptation);
+							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, pAFRecord->finalAdaptation);
 						}
 						else
 						{
@@ -16289,7 +16241,7 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							{
 								tempStr = pSrcPhrase->m_adaption; // no punctuation on this one
 								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-								pApp->GetView()->MakeLineFourString(pSrcPhrase,pSrcPhrase->m_targetStr); 
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,pSrcPhrase->m_targetStr); 
 																// m_targetStr may have punct
 							}
 							gbIgnoreIt = FALSE;
@@ -16331,7 +16283,7 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							}
 							if (!gbIsGlossing)
 							{
-								pApp->GetView()->MakeLineFourString(pSrcPhrase,finalStr); // handles 
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,finalStr); // handles 
 													// auto caps, punctuation, etc
 							}
 							else // we are in glossing mode

@@ -55,6 +55,7 @@
 #include "KB.h"
 #include "TargetUnit.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 #include "MainFrm.h"
 #include "WaitDlg.h"
 
@@ -91,6 +92,12 @@ static CAdapt_ItDoc* gpDoc = NULL;
 extern CSourcePhrase* gpSrcPhrase; // this is already defined in the view class
 CSourcePhrase* gpEmbeddedSrcPhrase;
 int	gnDocVersion;
+
+// BEW 1Jun10, added this global for storing the kbVersion number from the xml file for a
+// CKB which is being loaded from LoadKB() or LoadGlossingKB()
+int gnKbVersionBeingParsed; // will have value 1 (for kbv1) or 2 (for kbv2)
+							// but actually we'll use the symbolic constants KB_VERSION1
+							// and KB_VERSION2, respectively, see Adapt_ItConstants.h
 
 // parsing KB files
 CKB* gpKB; // pointer to the adapting or glossing KB (both are instances of CKB)
@@ -4243,11 +4250,28 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack)
 // BEW 27Mar10 updated for support of doc version 5 (extra case needed)
 bool AtKBTag(CBString& tag)
 {
-	if (tag == xml_kb || tag == xml_gkb) // if it's a "KB" or "GKB" tag
+	//if (tag == xml_kb || tag == xml_gkb) // if it's a "KB" or "GKB" tag
+	if (tag == xml_kb) // if it's a "KB" tag
 	{
-		// this tag only has attributes, and the second attribute
-		// within the KB tag will set the docVersion number, and the rest
-		// of knowledge base input will then be versionable...
+		// this tag only has attributes; for kbv1 the second attribute
+		// within the KB tag was docVersion - which was a design mistake, as nothing in
+		// the KB xml relies on any particular version of the document; however, since we
+		// did not originally make the KB xml versionable except meaninglessly with the
+		// docVersion value, we can use the presence of docVersion attribute as a flag
+		// indicating we are about to parse in a kbv1 KB, and so set the
+		// gnKbVersionBeingParsed global boolean to KB_VERSION1 (defined as 1) in that
+		// circumstance; otherwise, this attribute will be absent and instead and
+		// attribute called kbVersion will replace it - in that circumstance, that
+		// attribute will hold the version number for the KB file being parsed - and
+		// currently that will mean KB_VERSION2 (defined as 2). Later versions of the KB,
+		// if ever needed, will bump the kbVersion attribute's content to a higher
+		// integer, and the KB code from that point on is duly versioned.
+		 
+		// ** note **, the next thing parsed will be either a docVersion attribute or
+		// kbVersion attribute, and the callback for those is AtKBAttr() - so there is
+		// where gbKbVersionBeingParsed will get set to whatever value it is to take in
+		// the rest of the parse.
+		
 		// set the gpDoc pointer
 		gpDoc = gpApp->GetDocument();
 		return TRUE;
@@ -4255,15 +4279,9 @@ bool AtKBTag(CBString& tag)
 	// remainder of the tag inventory are versionable except for the first attribute,
 	// which from version 3.1.0 and onwards is the KbType (the rest of the stuff is same
 	//  for regular and unicode apps, so no conditional compile required here)
-	switch (gnDocVersion)
+	switch (gnKbVersionBeingParsed)
 	{
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		default:
-		case 5:
+		case KB_VERSION1:
 		{
 			if (tag == xml_map)
 			{
@@ -4277,10 +4295,56 @@ bool AtKBTag(CBString& tag)
 			}
 			else if (tag == xml_rs)
 			{
-				// create a new CRefString instance on the heap
+				// create a new CRefString instance on the heap -- when parsing in kbv1,
+				// we must transition it to kbv2 automatically; to do that, we use the
+				// CRefString creator which takes the owning CTargetUnit* as a parameter -
+				// it not just hooks up to the owning CTargetUnit, but it calls a
+				// non-default creator for the CRefStringMetadata instance which hooks
+				// itself up to the owning CRefString instance and sets the members for
+				// creation datetime and whoCreated, as well -- transitioning the kbv1 to
+				// kbv2 in doing so
+				gpRefStr = new CRefString(gpTU);
+
+				// add it, plus its pointed at CRefStringMetadata instance, to the 
+				// m_pTranslations member of the owning CTargetUnit instance
+				gpTU->m_pTranslations->Append(gpRefStr);
+			}
+			else if (tag == xml_aikb)
+			{
+				// support .NET xml parsing -- nothing to be done here
+				;
+			}
+			else
+			{
+				// unknown tag
+				return FALSE;
+			}
+		}
+		break;
+		case KB_VERSION2:
+		{
+			if (tag == xml_map)
+			{
+				// nothing to do, because the map number is not parsed yet
+				return TRUE;
+			}
+			else if (tag == xml_tu)
+			{
+				// create a new CTargetUnit instance on the heap
+				gpTU = new CTargetUnit;
+			}
+			else if (tag == xml_rs)
+			{
+				// create a new CRefString instance on the heap; this for kbv2 requires we
+				// use the default CRefString creator, which doesn't try to initialize any
+				// of the members of its pointed at CRefStringMetadata instance except the
+				// m_pRefStringOwner member which points back to this owning CRefString
+				// instance; then later parsing of AtKBAttr() will set the relevant member
+				// variables of the CRefStringMetadata instance with the values parsed
 				gpRefStr = new CRefString;
 
-				// set the pointer to the owning CTargetUnit, and add it to the m_translations member
+				// set the pointer to the owning CTargetUnit, and add it to the 
+				// m_pTranslations member
 				gpRefStr->m_pTgtUnit = gpTU; // the current one
 				gpTU->m_pTranslations->Append(gpRefStr);
 			}
@@ -4294,8 +4358,8 @@ bool AtKBTag(CBString& tag)
 				// unknown tag
 				return FALSE;
 			}
-			break;
 		}
+		break;
 	}
 	return TRUE; // no error
 }
@@ -4310,23 +4374,46 @@ bool AtKBEmptyElemClose(CBString& WXUNUSED(tag))
 bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 {
 	int num;
-	if ((tag == xml_kb || tag == xml_gkb) && attrName == xml_docversion)
+	//if ((tag == xml_kb || tag == xml_gkb) && (attrName == xml_docversion || attrName == xml_kbversion))
+	if (tag == xml_kb && (attrName == xml_docversion || attrName == xml_kbversion))
 	{
-		// (the docVersion attribute is not versionable, so have it outside of the switch)
-		// set the gnDocVersion global with the document's versionable schema number
-		gnDocVersion = atoi(attrValue);
+		// (the kbVersion attribute is not versionable, so have it outside of the switch)
+		// see comments at the top of AtKBTag() about docVersion and kbVersion, the former
+		// is deprecated, we use the latter from now on (except when transitioning a kbv1
+		// KB to kbv2)
+		if (attrName == xml_docversion)
+		{
+			// it must be a kbv1 KB, so use KB_VERSION1 case in the switch
+			gnKbVersionBeingParsed = (int)KB_VERSION1;
+
+			// note: kbv1 should not try to compensate for the lack of the xml_glossingKB
+			// attribute (ie. to set or clear the m_bGlossingKB flag in CKB which defines
+			// whether the CKB is a glossing one, or adapting one, respectively - because
+			// the LoadGlossingKB() call and LoadKB() call will set or clear it instead
+		}
+		else
+		{
+			// it must be a kbv21 KB, so in the switch use whatever version number is
+			// stored, it will be 2 (or more if we someday have a version3 KB or higher)
+			gnKbVersionBeingParsed = atoi(attrValue);
+
+            // note: kbv2 should not try use the parsed value for the xml_glossingKB
+            // attribute to set or clear the m_bGlossingKB flag in CKB which defines
+            // whether the CKB is a glossing one, or adapting one, respectively. This flag
+            // is always set by the LoadGlossingKB() call, or the LoadKB() call,
+            // respectively. The most we should do in the XML.cpp functions is just check
+            // that the parsed in value is identical to that set by the LoadKB() or
+            // LoadGlossingKB() caller - each of those functions sets or clears the flag,
+            // before passing control to the xml parsing functions for loading of the rest
+			// of the CKB information, so we can here count on the appropriate value
+			// having been set already in the m_bGlossingKB member boolean.
+		}
 		return TRUE;
 	}
 	// the rest is versionable
-	switch (gnDocVersion)
+	switch (gnKbVersionBeingParsed)
 	{
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		default:
-		case 5:
+		case KB_VERSION1:
 		{
 			// put the more commonly encountered tags at the top, for speed
 #ifndef _UNICODE // ANSI version (ie. regular)
@@ -4388,7 +4475,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					return FALSE;
 				}
 			}
-			else if (tag == xml_kb || tag == xml_gkb)
+			//else if (tag == xml_kb || tag == xml_gkb)
+			else if (tag == xml_kb)
 			{
 				if (attrName == xml_srcnm)
 				{
@@ -4487,7 +4575,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					return FALSE;
 				}
 			}
-			else if (tag == xml_kb || tag == xml_gkb)
+			//else if (tag == xml_kb || tag == xml_gkb)
+			else if (tag == xml_kb)
 			{
 				if (attrName == xml_srcnm)
 				{
@@ -4532,6 +4621,340 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 			}
 #endif // for _UNICODE #defined
 		}
+		break;
+		case KB_VERSION2:
+		{
+			// put the more commonly encountered tags at the top, for speed
+#ifndef _UNICODE // ANSI version (ie. regular)
+			// new string contstants for kbv2 new attribute names
+			//const char xml_creationDT[] = "cDT";
+			//const char xml_modifiedDT[] = "mDT";
+			//const char xml_deletedDT[] = "dDT";
+			//const char xml_whocreated[] = "wC";
+			//const char xml_deletedflag[] = "df";
+
+			if (tag == xml_rs)
+			{
+				if (attrName == xml_n)
+				{
+					gpRefStr->m_refCount = atoi(attrValue);
+				}
+				else if (attrName == xml_a)
+				{
+					ReplaceEntities(attrValue);
+					gpRefStr->m_translation = attrValue;
+				}
+				else if (attrName == xml_deletedflag)
+				{
+					bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
+					gpRefStr->SetDeletedFlag(flag); 
+				}
+				else if (attrName == xml_creationDT)
+				{
+					// no entity replacement needed for datetime values
+					wxString value = attrValue;
+					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(value); 
+				}
+				else if (attrName == xml_whocreated)
+				{
+					// could potentially require entity replacement, so do it to be safe
+					ReplaceEntities(attrValue);
+					wxString value = attrValue;
+					gpRefStr->GetRefStringMetadata()->SetWhoCreated(value);
+				}
+				else if (attrName == xml_modifiedDT)
+				{
+					// no entity replacement needed for datetime values
+					wxString value = attrValue;
+					gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(value); 
+				}
+				else if (attrName == xml_deletedDT)
+				{
+					// no entity replacement needed for datetime values
+					wxString value = attrValue;
+					gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(value); 
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else if (tag == xml_tu)
+			{
+				if (attrName == xml_f)
+				{
+					// code below avoids: warning C4800: 'int' : 
+					// forcing value to bool 'true' or 'false' (performance warning)
+					if (attrValue == "0")
+						gpTU->m_bAlwaysAsk = FALSE;
+					else
+						gpTU->m_bAlwaysAsk = TRUE;
+				}
+				else if (attrName == xml_k)
+				{
+					ReplaceEntities(attrValue);
+					gKeyStr = attrValue; // key string for the map hashing to use
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else if (tag == xml_map)
+			{
+				if (attrName == xml_mn)
+				{
+					// set the map index (one less than the map number)
+					num = atoi(attrValue);
+					gnMapIndex = num - 1;
+					wxASSERT(gnMapIndex >= 0);
+
+					// now we know the index, we can set the map pointer
+					gpMap = gpKB->m_pMap[gnMapIndex];
+					wxASSERT(gpMap->size() == 0); // has to start off empty
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			//else if (tag == xml_kb || tag == xml_gkb)
+			else if (tag == xml_kb)
+			{
+				if (attrName == xml_max)
+				{
+					gpKB->m_nMaxWords = atoi(attrValue);
+				}
+				else if (attrName == xml_glossingKB)
+				{
+					// check the parsed value matches what was set by LoadKB() or
+					// LoadGlossingKB() as the case may be - if there is no match then we
+					// must abort the parse immediately because we'd either be trying to
+					// load a glossingKB into as the adapting KB, or vise versa
+					bool bGlossingKB;
+					if (attrValue == "0")
+					{
+						bGlossingKB = FALSE;
+					}
+					else
+					{
+						bGlossingKB = TRUE;
+					}
+					if (GetGlossingKBFlag(*gpKB) != bGlossingKB)
+					{
+						// there is no match of the flag value parsed in with the
+						// Load...() call, which is an error. This error should never
+						// happen, so it can have an error message which is not localizable. 
+						wxString str;
+						str = str.Format(_T(
+"Error. Adapt It is trying either to load a glossing knowledge base as if it was an adapting one, or an adapting one as if it was a glossing one. Either way, this must not happen so the load operation will now be aborted."));
+						wxMessageBox(str, _T("Bad LoadKB() or bad LoadGlossingKB() call"), wxICON_ERROR);
+						return FALSE;
+					}
+				}
+				else if (attrName == xml_srcnm)
+				{
+					ReplaceEntities(attrValue);
+					gpKB->m_sourceLanguageName = attrValue;
+				}
+				else if (attrName == xml_tgtnm)
+				{
+					ReplaceEntities(attrValue);
+					gpKB->m_targetLanguageName = attrValue;
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else if (tag == xml_aikb)
+			{
+				if (attrName == xml_xmlns)
+				{
+					// .NET support for xml parsing of KB file;
+					// *ATTENTION BOB*  add any bool setting you need here
+					wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+												 // here in a local wxString for now, in case you need to use it
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else
+			{
+				// unknown tag
+				return FALSE;
+			}
+#else // Unicode version
+			// new string contstants for kbv2 new attribute names
+			//const char xml_creationDT[] = "cDT";
+			//const char xml_modifiedDT[] = "mDT";
+			//const char xml_deletedDT[] = "dDT";
+			//const char xml_whocreated[] = "wC";
+			//const char xml_deletedflag[] = "df";
+
+			if (tag == xml_rs)
+			{
+				if (attrName == xml_n)
+				{
+					gpRefStr->m_refCount = atoi(attrValue);
+				}
+				else if (attrName == xml_a)
+				{
+					ReplaceEntities(attrValue);
+					gpRefStr->m_translation = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_deletedflag)
+				{
+					bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
+					gpRefStr->SetDeletedFlag(flag); 
+				}
+				else if (attrName == xml_creationDT)
+				{
+					// no entity replacement needed for datetime values
+					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(gpApp->Convert8to16(attrValue)); 
+				}
+				else if (attrName == xml_whocreated)
+				{
+					// could potentially require entity replacement, so do it to be safe
+					ReplaceEntities(attrValue);
+					gpRefStr->GetRefStringMetadata()->SetWhoCreated(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_modifiedDT)
+				{
+					// no entity replacement needed for datetime values
+					gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(gpApp->Convert8to16(attrValue)); 
+				}
+				else if (attrName == xml_deletedDT)
+				{
+					// no entity replacement needed for datetime values
+					gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(gpApp->Convert8to16(attrValue)); 
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else if (tag == xml_tu)
+			{
+				if (attrName == xml_f)
+				{
+					if (attrValue == "0")
+						gpTU->m_bAlwaysAsk = FALSE;
+					else
+						gpTU->m_bAlwaysAsk = TRUE;
+				}
+				else if (attrName == xml_k)
+				{
+					ReplaceEntities(attrValue);
+					gKeyStr = gpApp->Convert8to16(attrValue); // key string for the map hashing to use
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else if (tag == xml_map)
+			{
+				if (attrName == xml_mn)
+				{
+					// set the map index (one less than the map number)
+					num = atoi(attrValue);
+					gnMapIndex = num - 1;
+					wxASSERT(gnMapIndex >= 0);
+
+					// now we know the index, we can set the map pointer
+					gpMap = gpKB->m_pMap[gnMapIndex];
+					wxASSERT(gpMap->size() == 0); // has to start off empty
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			//else if (tag == xml_kb || tag == xml_gkb)
+			else if (tag == xml_kb)
+			{
+				if (attrName == xml_max)
+				{
+					gpKB->m_nMaxWords = atoi(attrValue);
+				}
+				else if (attrName == xml_glossingKB)
+				{
+					// check the parsed value matches what was set by LoadKB() or
+					// LoadGlossingKB() as the case may be - if there is no match then we
+					// must abort the parse immediately because we'd either be trying to
+					// load a glossingKB into as the adapting KB, or vise versa
+					bool bGlossingKB;
+					if (attrValue == "0")
+					{
+						bGlossingKB = FALSE;
+					}
+					else
+					{
+						bGlossingKB = TRUE;
+					}
+					if (GetGlossingKBFlag(*gpKB) != bGlossingKB)
+					{
+						// there is no match of the flag value parsed in with the
+						// Load...() call, which is an error. This error should never
+						// happen, so it can have an error message which is not localizable. 
+						wxString str;
+						str = str.Format(_T(
+"Error. Adapt It is trying either to load a glossing knowledge base as if it was an adapting one, or an adapting one as if it was a glossing one. Either way, this must not happen so the load operation will now be aborted."));
+						wxMessageBox(str, _T("Bad LoadKB() or bad LoadGlossingKB() call"), wxICON_ERROR);
+						return FALSE;
+					}
+				}
+				else if (attrName == xml_srcnm)
+				{
+					ReplaceEntities(attrValue);
+					gpKB->m_sourceLanguageName = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_tgtnm)
+				{
+					ReplaceEntities(attrValue);
+					gpKB->m_targetLanguageName = gpApp->Convert8to16(attrValue);
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else if (tag == xml_aikb)
+			{
+				if (attrName == xml_xmlns)
+				{
+					// .NET support for xml parsing of KB file;
+					// *ATTENTION BOB*  add any bool setting you need here
+					// TODO: whm check the following conversion
+					wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+														// here in a local wxString for now, in case you need to use it
+				}
+				else
+				{
+					// unknown attribute
+					return FALSE;
+				}
+			}
+			else
+			{
+				// unknown tag
+				return FALSE;
+			}
+#endif // for _UNICODE #defined
+		}
+		break;
 	}
 	return TRUE; // no error
 }
@@ -4539,15 +4962,10 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 // BEW 27Mar10 updated for support of doc version 5 (extra case needed)
 bool AtKBEndTag(CBString& tag)
 {
-	switch (gnDocVersion) 
+	switch (gnKbVersionBeingParsed) 
 	{
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		default:
-		case 5:
+		case KB_VERSION1:
+		case KB_VERSION2:
 		{
 			if (tag == xml_tu)
 			{
@@ -4572,11 +4990,11 @@ bool AtKBEndTag(CBString& tag)
 				// nothing to be done
 				;
 			}
-			else if (tag == xml_gkb)
-			{
+			//else if (tag == xml_gkb)
+			//{
 				// nothing to be done
-				;
-			}
+			//	;
+			//}
 			else if (tag == xml_aikb)
 			{
 				// nothing to do

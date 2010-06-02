@@ -104,16 +104,12 @@
 //    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
 // 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
 //    debug builds.
+// 4. VLD in 2010 is better, much much faster, etc. http://vld.codeplex.com for the
+// download, and documentation is at http://vld.codeplex.com/documentation
 // 
 // If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
 // uncomment the following include, recompile, run and exit the program for a more
 // detailed report of the memory leaks:
-// BEW ***** NOTE ***** with all the extra initialization AI now does, and the wxWidgets
-// layer as well, this has become useless. I could not get through the wizard - after a
-// quarter hour or so, it got to KB loading (500 entries or so) and after about another
-// half hour of that I gave up. Tried a small KB, but after half an hour it was still
-// loading the books.xml and ai_usfm.xml files! Not even as far as the wizard. So forget
-// it, finding leaks by trial and error is the only way.
 //#include "vld.h"
 
 // Other includes
@@ -7780,7 +7776,7 @@ int ii = 1;
 
 	// set these back to 0 and -1 when the phrase box location changes, after storage to
 	// the KB has been done
-	m_nPlacePunctDlgCallNumber = 0; // incrememted each time MakeLineFourString() is
+	m_nPlacePunctDlgCallNumber = 0; // incrememted each time MakeTargetStringIncludingPunctuation() is
 									// called from within StoreText()
 	m_nCurSequNum_ForPlacementDialog = -1; // -1 is default, it means "undefined"
 

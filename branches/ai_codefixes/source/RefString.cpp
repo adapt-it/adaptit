@@ -43,22 +43,35 @@
 
 IMPLEMENT_DYNAMIC_CLASS(CRefString, wxObject)
 
+// use this one when parsing in a kbv1 KB, and maybe some other circumstances - it will
+// hook up a CRefStringMetadata instance, but not set the latter's m_creationDateTime and
+// m_whoCreated member variables - as those would be supplied by the xml parse and so
+// default values don't need to be given at creation time; the caller will also need to
+// set the m_pTgtUnit pointer to the onwing CTargetUnit* instance
 CRefString::CRefString()
 {
 	m_refCount = 0;
 	m_translation = _T("");
 	m_bDeleted = FALSE;
-	m_pRefStringMetadata = new CRefStringMetadata(this);
+	m_pRefStringMetadata = new CRefStringMetadata; // deliberately use the default one
+	// this constructor just initializes to empty strings, and the
+	// m_pRefStringOwner value is initialized to NULL, so the next line is required
+	
+	// now hook it up to this, its owner
+	m_pRefStringMetadata->m_pRefStringOwner = this;
 }
 
-// normal constructor, with a pointer to its owning CTargetUnit instance
+// normal constructor, with a pointer to its owning CTargetUnit instance - this version
+// will set the CRefStringMetadata instance's m_creationDateTime and m_whoCreated member
+// variables - which is appropriate for when, say, storing a new adaptation or gloss, etc
 CRefString::CRefString(CTargetUnit* pTargetUnit)
 {
 	m_refCount = 0;
 	m_translation = _T("");
 	m_bDeleted = FALSE;
-	m_pTgtUnit = pTargetUnit;
-	m_pRefStringMetadata = new CRefStringMetadata(this);
+	m_pTgtUnit = pTargetUnit; // point to the owning CTargetUnit* instance
+	m_pRefStringMetadata = new CRefStringMetadata(this); // this constructor will initialize
+				// the m_creationDateTime and m_whoCreated member variables also
 }
 
 // copy constructor, where the target unit instance must NEVER be copied as a pointer
@@ -87,7 +100,29 @@ CRefString::CRefString(const CRefString &rs, CTargetUnit* pTargetUnit)
 
 CRefString::~CRefString()
 {
+}
 
+void CRefString::DeleteRefString()
+{
+		// first delete the pointed at CRefStringMetadata instance
+		if (m_pRefStringMetadata != NULL)
+		{
+			delete m_pRefStringMetadata;
+		}
+		// now delete the parent CRefString instance
+		delete this;
+}
+
+//inline CRefStringMetadata* CRefString::GetRefStringMetadata()
+//I tried making it inline, but the linker could not resolve it
+CRefStringMetadata* CRefString::GetRefStringMetadata()
+{
+	return m_pRefStringMetadata;
+}
+
+void CRefString::SetDeletedFlag(bool bValue)
+{
+	m_bDeleted = bValue;
 }
 
 // overloaded equality operator

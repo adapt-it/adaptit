@@ -74,10 +74,10 @@ bool gbTunnellingOut = FALSE; // TRUE when control needs to tunnel out of nested
 							  // has been posted in order to transition to a different edit step;
 							  // FALSE (default) in all other circumstances
 
-bool gbSavedLineFourInReviewingMode = FALSE; // TRUE if either or both of m_adaption and m_targetStr is empty
+bool gbSavedTargetStringWithPunctInReviewingMode = FALSE; // TRUE if either or both of m_adaption and m_targetStr is empty
 											 // and Reviewing mode is one (we want to preserve punctuation or
 											 // lack thereof if the location is a hole)
-wxString gStrSaveLineFourInReviewingMode; // works with the above flag, and stores whatever the m_targetStr was
+wxString gStrSavedTargetStringWithPunctInReviewingMode; // works with the above flag, and stores whatever the m_targetStr was
 										 // when the phrase box, in Reviewing mode, lands on a hole (we want to
 										 // preserve what we found if the user has not changed it)
 
@@ -103,7 +103,7 @@ bool gbSuppressStoreForAltBackspaceKeypress = FALSE;
 
 bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile( ) and the
 	// previous pile contains a merged phrase with internal punctuation - we don't want the
-	// ReDoPhraseBox( ) call to call MakeLineFourString( ) and so result in the PlaceMedialPunctuation
+	// ReDoPhraseBox( ) call to call MakeTargetStringIncludingPunctuation( ) and so result in the PlaceMedialPunctuation
 	// dialog being put up an unwanted couple of times. So we'll use the gbMovingToPreviousPile being
 	// set to then set the gbInhibitLine4StrCall to TRUE, at start of ReDoPhraseBox( ), and turn it off at
 	// the end of that function. That should fix it.
@@ -473,7 +473,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		{
 			pApp->m_bSaveToKB = TRUE; // it will be off, so we must turn it back on to get 
 									   // the string restored
-			// don't inhibit the call to MakeLineFourString( ) here, since the phrase passed
+			// don't inhibit the call to MakeTargetStringIncludingPunctuation( ) here, since the phrase passed
 			// in is the non-punctuated one
 			bool bOK;
 			bOK = pApp->m_pKB->StoreText(pSP, str);
@@ -504,7 +504,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		// the following function is now smart enough to capitalize m_targetStr in the context
 		// of preceding punctuation, etc, if required. No store done here, of course, since we
 		// are just restoring a <Not In KB> entry.
-		pView->MakeLineFourString(pSP, pApp->m_targetPhrase);
+		pView->MakeTargetStringIncludingPunctuation(pSP, pApp->m_targetPhrase);
 }
 
 // returns nothing
@@ -584,7 +584,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	// StoreText( ) has been ammended for auto-capitalization support (July 2003)
 	if (!gbIsGlossing)
 	{
-		pView->MakeLineFourString(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 	}
 	if (gbIsGlossing)
@@ -1307,7 +1307,7 @@ c:	bOK = TRUE;
 		// to get appropriate m_adaption and m_targetStr members set up for the doc...
 		// when adapting, fill out the m_targetStr member of the CSourcePhrase instance,
 		// and do any needed case conversion and get punctuation in place if required
-		pView->MakeLineFourString(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		pView->MakeTargetStringIncludingPunctuation(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 
 		// the m_targetStr member may now have punctuation, so get rid of it
 		// before assigning whatever is left to the m_adaption member
@@ -2420,8 +2420,8 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
             //text, we must instead check the CSourcePhrase instance explicitly to see if
             //m_adaption is empty, and if so, then we force the phrase box to remain empty
             //by clearing m_targetPhrase (later, when the box is moved to the next
-            //location, we must check again in MakeLineFourString() and restore the earlier
-            //state when the phrase box is moved on)
+            //location, we must check again in MakeTargetStringIncludingPunctuation() and
+            //restore the earlier state when the phrase box is moved on)
 								
 			//CSourcePhrase* pSPhr = pCell->m_pPile->m_pSrcPhrase;
 			CSourcePhrase* pSPhr = pCell->GetPile()->GetSrcPhrase();
@@ -2439,10 +2439,10 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// or no text and punctuation was earlier placed -- whichever is the case
 				// we need to preserve that state
 				pApp->m_targetPhrase.Empty();
-				gbSavedLineFourInReviewingMode = TRUE; // it gets cleared again at 
-													   // end of MakeLineFourString()
-				gStrSaveLineFourInReviewingMode = pSPhr->m_targetStr; // cleared at 
-													   // end of MakeLineFourString()
+				gbSavedTargetStringWithPunctInReviewingMode = TRUE; // it gets cleared again at 
+												// end of MakeTargetStringIncludingPunctuation()
+				gStrSavedTargetStringWithPunctInReviewingMode = pSPhr->m_targetStr; // cleared at 
+												// end of MakeTargetStringIncludingPunctuation()
 			}
 			// if neither test succeeds, then let 
 			// m_targetPhrase contents stand unchanged
@@ -3383,7 +3383,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 		}
 		else
 		{
-			pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+			pView->MakeTargetStringIncludingPunctuation(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 			pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bOK = pApp->m_pKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
@@ -3685,7 +3685,7 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
     // store to. StoreText( ) has been ammended for auto-capitalization support (July 2003)
 	if (!gbIsGlossing)
 	{
-		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+		pView->MakeTargetStringIncludingPunctuation(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text);
 	}
 	gbInhibitLine4StrCall = TRUE;
@@ -5174,7 +5174,7 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 		if (targetPhrase.IsEmpty())
 			pApp->m_pActivePile->GetSrcPhrase()->m_adaption = targetPhrase;
 		// re-express the punctuation
-		pApp->GetView()->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+		pApp->GetView()->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
 		pApp->GetView()->RemovePunctuation(pDoc, &targetPhrase, from_target_text);
 
 		// the store will fail if the user edited the entry out of the KB, as the latter

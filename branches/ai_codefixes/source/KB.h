@@ -66,6 +66,9 @@ class CKB : public wxObject
 {
 	friend class CTargetUnit;
 	friend class CRefString;
+	friend class CRefStringMetadata;
+	friend bool GetGlossingKBFlag(CKB& kb);  // or the public accessor, IsThisAGlossingKB()
+											   // can be used instead of this friend function
 
 public:
 	CKB();
@@ -127,12 +130,16 @@ public:
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
 	bool			IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
+	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
 	void			RestoreForceAskSettings(KPlusCList* pKeys);
-	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
 	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
+
+	// accessors for private members
+	int				GetCurrentKBVersion();
+	void			SetCurrentKBVersion();
 
   private:
 

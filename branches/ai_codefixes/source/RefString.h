@@ -33,7 +33,9 @@ class CRefStringMetadata;
 /// \derivation		The CRefString class is derived from wxObject.
 class CRefString : public wxObject
 {
+	friend class CKB;
 	friend class CRefStringMetadata;
+	friend class CTargetUnit;
 
 public:
 	CRefString(void); // constructor
@@ -51,12 +53,13 @@ public:
 	bool			operator==(const CRefString& rs); // equality operator overload
 
 	virtual			~CRefString(void); // destructor // whm make all destructors virtual
-	// other methods
 
-	// we'll need a method like:
-	// int WhichAmI(); which will return the index of self in the m_pTgtUnit parent's
-	// TranslationList list; which we'll pass to the function which links to the correct
-	// CRefString_Standoff instance in the standoff information
+	// other methods -- accessors, for doc class and the global functions in xml.cpp
+	CRefStringMetadata* GetRefStringMetadata(); // needed so CAdapt_ItDoc::EraseKB() can delete
+												// the instance on the heap
+	void			SetDeletedFlag(bool bValue);
+	void			DeleteRefString(); // deletes both the CRefString instance and its
+									   // pointed at CRefStringMetadata instance
 protected:
 
 private:
