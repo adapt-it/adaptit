@@ -567,9 +567,17 @@ char* FindElemEnd(char* pPos,char* pEnd)
 
 bool ParseAttrName(char*& pPos,char* pEnd)
 {
+	// BEW 3Jun10, added to tests to allow as legal all the following structures:
+	// attrname="value"   <<-- formerly we accepted just this, but LIFT can be different
+	// attrname ="value"
+	// attrname = "value"
+	// attrname= "value"
+	// and removed the useless tests, but keep the test for '>' in order to halt parsing
+	// when there has been no proper termination of the parse of the attr name
+	char* pAux = pPos; // in case of error, to enable repositioning pPos for the error dlg
 	do {
-		if ((*pPos == '=') || (strncmp(pPos,"/>",2) == 0) || 
-			IsWhiteSpace(pPos,pEnd) || (*pPos == '>') || (*pPos == '&'))
+		if ((*pPos == '=') || (strncmp(pPos," =",2) == 0) || (strncmp(pPos,"= ",2) == 0) 
+			|| (strncmp(pPos," = ",3) == 0) || (*pPos == '>'))
 		{
 			break;
 		}
@@ -581,16 +589,34 @@ bool ParseAttrName(char*& pPos,char* pEnd)
 				break;
 		}
 	} while (pPos < pEnd);
-	if (*pPos != '=')
+	if (*pPos == '>')
+	{
+		// we didn't find "=" or "= " or " =" or " = ", so we have a structure error
+		pPos = pAux;
 		return FALSE;
+	}
 	return TRUE;
 }
 
 bool ParseAttrValue(char*& pPos,char* pEnd)
 {
+	// I tried this simpler code, to see if it produced a quicker parse, but it didn't.
+	// Old code: LoadKB() in 156 ms, LoadGlossingKB() in 47 ms. This code, 156  & 47, so
+	// there is nothing to be gained by using it 
+	//char* pLocation = strstr(pPos,"\"");
+	//if (pLocation < pEnd)
+	//{
+	//	pPos = pLocation;
+	//	return TRUE;
+	//}
+	//else
+	//{
+	//	return FALSE;
+	//}
 	// enough tests are provided that if the attribute is not
 	// closed with a terminating quote symbol, the function will
-	// stop at /> or >, but only a quote is legal
+	// stop at /> or >, but only a quote is legal; if the xml is valid, only the first
+	// test will ever be made anyway, so strstr() would not be faster
 	do {
 		if ((*pPos == '\"') || (strncmp(pPos,"/>",2) == 0) || (*pPos == '>'))
 		{
@@ -843,7 +869,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
 		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 {
 	bool bReadAll = FALSE;
-	
+
 	// make a 40KB locked work buffer in dynamic heap for storing next 
 	// part of the stream which is due for parsing
 	char* pBuff = new char[BUFFSIZE];
@@ -969,9 +995,8 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
 #endif
 
 	// set up needed variables for the double-buffering which we do
-	char* pPos = pBuff; // pPos maintains the current position in the work buffer
-	char* pEnd = NULL; // current end of data (points to the byte after
-					   // the last character of the data) in the work buffer
+	char* pPos = pBuff;
+	char* pEnd = NULL;
 
 	// BEW added 10Aug05 to permit an edited xml Adapt It document file, which may
 	// have acquired a UTF-8 BOM in the process (unbeknown to the user), to still be
@@ -1539,12 +1564,17 @@ bool ParseXMLAttribute(CBString& WXUNUSED(tagname),char*& WXUNUSED(pBuff),char*&
 	{
 		MakeStrFromPtrs(pAux,pPos,attrName);
 	}
-	if (strncmp(pPos,"=\"",2) != 0)
-	{
-		// malformed document
-		return FALSE;
-	}
-	pPos += 2; // point to start of attribute
+	// BEW 3Jun10, ParseAttrName() was changed internally to allow the following
+	// substrings to terminate the attr name's parse (they vary with respect to spaces):
+	// attrname="value"   <<-- formerly we accepted just this, but LIFT can be different
+	// attrname ="value"
+	// attrname = "value"
+	// attrname= "value"
+	// So now we need not to test that =" follows, but rather parse over the space(s) and
+	// the first " character as well
+	while (*pPos == '=' || *pPos == ' ') { pPos++; }
+	if (*pPos == '\"') { pPos++; }
+	// pointing now to start of attribute, keep location
 	pAux = pPos;
 	bool bOkAttr = ParseAttrValue(pPos,pEnd);
 	if (!bOkAttr)
@@ -4317,7 +4347,12 @@ bool AtKBTag(CBString& tag)
 			else
 			{
 				// unknown tag
-				return FALSE;
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 		}
 		break;
@@ -4355,8 +4390,13 @@ bool AtKBTag(CBString& tag)
 			}
 			else
 			{
-				// unknown tag
-				return FALSE;
+				// unknown  tag
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 		}
 		break;
@@ -4431,7 +4471,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_tu)
@@ -4453,7 +4498,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_map)
@@ -4472,7 +4522,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			//else if (tag == xml_kb || tag == xml_gkb)
@@ -4495,7 +4550,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_aikb)
@@ -4510,13 +4570,23 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// unknown tag
-				return FALSE;
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 #else // Unicode version
 			if (tag == xml_rs)
@@ -4533,7 +4603,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_tu)
@@ -4553,7 +4628,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_map)
@@ -4572,7 +4652,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			//else if (tag == xml_kb || tag == xml_gkb)
@@ -4595,7 +4680,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_aikb)
@@ -4611,13 +4701,23 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// unknown tag
-				return FALSE;
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 #endif // for _UNICODE #defined
 		}
@@ -4677,7 +4777,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_tu)
@@ -4699,7 +4804,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_map)
@@ -4718,7 +4828,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			//else if (tag == xml_kb || tag == xml_gkb)
@@ -4768,7 +4883,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_aikb)
@@ -4783,13 +4903,23 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// unknown tag
-				return FALSE;
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 #else // Unicode version
 			// new string contstants for kbv2 new attribute names
@@ -4839,7 +4969,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_tu)
@@ -4859,7 +4994,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_map)
@@ -4878,7 +5018,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			//else if (tag == xml_kb || tag == xml_gkb)
@@ -4928,7 +5073,12 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_aikb)
@@ -4944,13 +5094,23 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// unknown tag
-				return FALSE;
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 #endif // for _UNICODE #defined
 		}
@@ -5003,7 +5163,12 @@ bool AtKBEndTag(CBString& tag)
 			else
 			{
 				// unknown tag
-				return FALSE;
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 			break;
 		}
