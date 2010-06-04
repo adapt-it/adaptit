@@ -82,7 +82,7 @@
 // External globals
 ///////////////////////////////////////////////////////////////////////////////
 extern bool gbIsGlossing;
-extern bool gbInhibitLine4StrCall;
+extern bool gbInhibitMakeTargetStringCall;
 extern bool gbAutoCaps;
 extern bool gbUnmergeJustDone;
 extern bool gbSourceIsUpperCase;
@@ -1696,9 +1696,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		// throwing it all out
 		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
 		m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-		gbInhibitLine4StrCall = TRUE;
+		gbInhibitMakeTargetStringCall = TRUE;
 		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		gbInhibitMakeTargetStringCall = FALSE;
 		if (!bOK)
 		{
 			m_bIsRetranslationCurrent = FALSE;
@@ -2258,10 +2258,10 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
-				gbInhibitLine4StrCall = TRUE;
+				gbInhibitMakeTargetStringCall = TRUE;
 				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 									 m_pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				gbInhibitMakeTargetStringCall = FALSE;
 				if (!bOK)
 				{
 					m_bIsRetranslationCurrent = FALSE;
@@ -2926,10 +2926,10 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 			if (m_pApp->m_targetPhrase != m_pApp->m_pActivePile->GetSrcPhrase()->m_adaption)
 			{
-				gbInhibitLine4StrCall = TRUE;
+				gbInhibitMakeTargetStringCall = TRUE;
 				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 												 m_pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				gbInhibitMakeTargetStringCall = FALSE;
 				if (!bOK)
 					return; // can't proceed until a valid adaption (which could be null)
 				// is supplied for the former active pile's srcPhrase

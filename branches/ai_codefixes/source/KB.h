@@ -30,12 +30,6 @@ class CTargetUnit;
 class CKB; // needed for the macro below which must reside outside the class declaration
 class CRefString;
 
-// BEW removed 29May10, as TUList is redundant * now removed
-//class TUList;	// This forward reference is needed because the macro 
-// declaration below must be in general namespace, before CKB is declared.
-// The macro below together with the macro list declaration in the .cpp file
-// define a new list class called TUList. Its list elements are of type CTargetUnit.
-
 enum UseForLookup
 {
      useGlossOrAdaptationForLookup,
@@ -106,9 +100,6 @@ public:
 	wxString			m_targetLanguageName;
 
 	int				m_nMaxWords; // current number of words in max length of src phrase
-
-	// BEW removed 29May10, as TUList is redundant * now removed
-	//TUList*			m_pTargetUnits; // stores translation equivalents for each source phrase
 
 	MapKeyStringToTgtUnit*	m_pMap[MAX_WORDS]; // stores associations of key and ptr to CTargetUnit instances
 									   // where the key is a phrase with [index + 1] source words

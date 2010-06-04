@@ -182,7 +182,7 @@ extern wxChar gSFescapechar; // the escape char used for start of a standard for
 extern bool gbHasBookFolders; // TRUE when Adaptations folder is found to have Bible book
 
 // Used for inhibiting multiple accesses to MakeTargetStringIncludingPunctuation when only one is needed.
-bool gbInhibitLine4StrCall = FALSE;
+bool gbInhibitMakeTargetStringCall = FALSE;
 
 // for suppressing MakeTargetStringIncludingPunctuation in ReDoPhraseBox( ) when moving to the
 // previous pile (which might have internal punct & we don't want to see Place dialog)
@@ -6750,9 +6750,9 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 				// it has to be saved to the KB if not empty
 				MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 				RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
-				gbInhibitLine4StrCall = TRUE;
+				gbInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				gbInhibitMakeTargetStringCall = FALSE;
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
@@ -7087,7 +7087,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	// otherwise it will add punctuation to the m_targetStr field on the document's
 	// pSrcPhrase which is currently active, and that member already has the required
 	// punctuation because we have copied the old string prior to the rebuild
-	gbInhibitLine4StrCall = TRUE;
+	gbInhibitMakeTargetStringCall = TRUE;
 	bool bOK = pApp->m_pKB->StoreText(pSrcPhrase,adaptationStr);
 
 	// now the glossing KB
@@ -7098,7 +7098,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	// restore current mode
 	gbEnableGlossing = bSaveEnableFlag;
 	gbIsGlossing = bSaveGlossingFlag;
-	gbInhibitLine4StrCall = FALSE; // restore the default setting
+	gbInhibitMakeTargetStringCall = FALSE; // restore the default setting
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -8329,10 +8329,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-				gbInhibitLine4StrCall = TRUE;
+				gbInhibitMakeTargetStringCall = TRUE;
 				bool bOK;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				gbInhibitMakeTargetStringCall = FALSE;
 			}
 
 			// get the first translation string, or something possibly useful, into the list
@@ -11987,11 +11987,11 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
 
 			// legacy code follows
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-			gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement 
+			gbInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement 
 										  // dialogs from showing
 			bool bOK = pKB->StoreText(pSrcPhrase,pSrcPhrase->m_adaption,
 									TRUE); // TRUE = support storing empty adaptation
-			gbInhibitLine4StrCall = FALSE;
+			gbInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// I don't expect any error here, but just in case ...
@@ -12796,10 +12796,10 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 								pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-				gbInhibitLine4StrCall = TRUE;
+				gbInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				gbInhibitMakeTargetStringCall = FALSE;
 			}
 		}
 	}
@@ -13898,10 +13898,10 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 				if (pRefStr == NULL || pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				// now do the store
-				gbInhibitLine4StrCall = TRUE;
+				gbInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				gbInhibitMakeTargetStringCall = FALSE;
 			}
 
 			// now get rid of the phrase box, until we need it again
@@ -21810,11 +21810,11 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 							pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 						if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-						gbInhibitLine4StrCall = TRUE;
+						gbInhibitMakeTargetStringCall = TRUE;
 						bool bOK;
 						bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 															pApp->m_targetPhrase);
-						gbInhibitLine4StrCall = FALSE;
+						gbInhibitMakeTargetStringCall = FALSE;
 					}
 				}
 			} // end block for non-empty box contents
@@ -21847,10 +21847,10 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					gbInhibitLine4StrCall = TRUE;
+					gbInhibitMakeTargetStringCall = TRUE;
 					bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 														pApp->m_targetPhrase);
-					gbInhibitLine4StrCall = FALSE;
+					gbInhibitMakeTargetStringCall = FALSE;
 				}
 
 				// check for a failure, abandon the function if the store failed? No, we'll

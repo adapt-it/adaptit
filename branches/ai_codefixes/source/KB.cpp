@@ -56,11 +56,6 @@
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-// BEW removed 29May10, as TUList is redundant * now removed
-// This macro together with the macro list declaration in the .h file
-// complete the definition of a new safe pointer list class called TUList.
-//WX_DEFINE_LIST(TUList);	// see WX_DECLARE_LIST in the .h file
-
 IMPLEMENT_DYNAMIC_CLASS(CKB, wxObject) 
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
@@ -89,7 +84,7 @@ extern wxChar gSFescapechar;
 extern bool bSupportNoAdaptationButton;
 extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbByCopyOnly;
-extern bool gbInhibitLine4StrCall;
+extern bool gbInhibitMakeTargetStringCall;
 extern bool gbRemovePunctuationFromGlosses;
 
 // friend function
@@ -107,12 +102,6 @@ CKB::CKB()
 	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
 
-	// BEW removed 29May10, as TUList is redundant & now removed
-	// whm Note: I've changed the order of the following in order to create
-	// the TUList before the MapStringToOjbect maps. See notes in KB.h.
-	//m_pTargetUnits = new TUList;
-	//wxASSERT(m_pTargetUnits != NULL);
-
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
 		m_pMap[i] = new MapKeyStringToTgtUnit;
@@ -125,12 +114,6 @@ CKB::CKB(bool bGlossingKB)
 {
 	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
-
-	// BEW removed 29May10, as TUList is redundant & now removed
-	// whm Note: I've changed the order of the following in order to create
-	// the TUList before the MapStringToOjbect maps. See notes in KB.h.
-	//m_pTargetUnits = new TUList;
-	//wxASSERT(m_pTargetUnits != NULL);
 
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
@@ -259,12 +242,8 @@ void CKB::Copy(const CKB& kb)
 	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 
 // ***** TODO *****
-	// once we have a standoff set of classes, pointed at, the copy will have to make copies
-	// of each and set up the mutual pointers in the copies -- so add that code later on
-
-	// BEW removed 29May10, as TUList is redundant & now removed
-	//TUList* pTUList = pCopy->m_pTargetUnits;
-	//wxASSERT(pTUList);
+	// once we have a CRefStringMetadata class, pointed at, the copy will have to make copies
+	// of them and set up the mutual pointers in the copies -- so add that code later on
 
 	// now recreate the maps (note: can't copy, as we must associate what is in our new list)
 	// RemoveAll for a map deletes the key strings, but not the associated object pointers, so
@@ -661,14 +640,6 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			pRefString = (CRefString*)NULL;
 			// since we deleted pRefString, TranslationsList::Clear() will remove the map entry
 			pTU->m_pTranslations->Clear();
-
-			// BEW removed 29May10, as TUList is redundant & now removed
-			//CTargetUnit* pTgtUnit;
-			//TUList::Node* pos;
-			//pos = m_pTargetUnits->Find(pTU); // find position of pRefString's owning targetUnit
-			//pTgtUnit = (CTargetUnit*)pos->GetData(); // get the targetUnit in the list
-			//wxASSERT(pTgtUnit != NULL);
-			//m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
 			delete pTU; // delete its instance from the heap
 			pTU = (CTargetUnit*)NULL;
 
@@ -1415,10 +1386,6 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				{
 					m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
 														// invalid association
-					// BEW removed 29May10, as TUList is redundant & now removed
-					//TUList::Node* pos = m_pTargetUnits->Find(pTU); 
-					//wxASSERT(pos != NULL);
-					//m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now gone from list
 					delete pTU; // its memory chunk is freed (don't leak memory)
 					continue;
 				}
@@ -1720,14 +1687,6 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 					}
 				}
 				pList->Clear();
-
-				// BEW removed 29May10, as TUList is redundant & now removed
-				//TUList::Node* tupos = m_pTargetUnits->Find(pTgtUnit); // find 
-										// position of the bad targetUnit in the list
-				// get the targetUnit in the list
-				//CTargetUnit* pTU = (CTargetUnit*)tupos->GetData(); 
-				//wxASSERT(pTU != NULL && pTU->m_pTranslations->IsEmpty()); // have we found it?
-				//m_pTargetUnits->DeleteNode(tupos); // remove it from the list
 				delete pTgtUnit; // don't leak memory
 				pTgtUnit = (CTargetUnit*)NULL;
 
@@ -1819,15 +1778,6 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 				}
 			}
 			bRemoved = pMap->erase(temp); // remove it from the map
-
-			// BEW removed 29May10, as TUList is redundant & now removed
-			//TUList::Node* tupos;
-			//tupos = m_pTargetUnits->Find(pTgtUnit); // find position of 
-												// pRefString's owning targetUnit
-			//pTgtUnit = (CTargetUnit*)tupos->GetData(); // get the targetUnit
-														  // in the list
-			//wxASSERT(pTgtUnit != NULL);
-			//m_pTargetUnits->DeleteNode(tupos); // remove it from the list
 			delete pTgtUnit; // delete it from the heap
 			pTgtUnit = (CTargetUnit*)NULL;
 		}
@@ -1906,6 +1856,7 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // KB.
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 14May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
+// BEW 4Jun10, updated to support kbVersion 2
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -1941,26 +1892,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
     // It's not empty, so go ahead and re-store it as-is (but if auto capitalization has
     // just been turned on, it will be stored as a lower case entry if it is an upper case
     // one in the doc) first, remove any phrase final space characters
-	int len;
-	int nIndexLast;
 	if (!tgtPhrase.IsEmpty())
 	{
-		len = tgtPhrase.Length();
-		nIndexLast = len-1;
-		do {
-			if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
-			{
-                // wxString.Remove must have 1 otherwise the default is to truncate the
-                // remainder of the string!
-				tgtPhrase.Remove(nIndexLast,1);
-				len = tgtPhrase.Length();
-				nIndexLast = len -1;
-			}
-			else
-			{
-				break;
-			}
-		} while (len > 0 && nIndexLast > -1);
+		tgtPhrase.Trim();
 	}
 
 	// always place a copy in the source phrase's m_adaption member, etc
@@ -1989,8 +1923,11 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		if (tgtPhrase != _T("<Not In KB>"))
 		{
 			pSrcPhrase->m_adaption = tgtPhrase;
-			if (!gbInhibitLine4StrCall)
-				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase); // set m_targetStr member too
+			if (!gbInhibitMakeTargetStringCall)
+			{
+				// sets m_targetStr member too
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
+			}
 		}
 	}
 	
@@ -2040,7 +1977,8 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	{
 		pTU = new CTargetUnit;
 		wxASSERT(pTU != NULL);
-		pRefString = new CRefString(pTU);
+		pRefString = new CRefString(pTU); // also creates CRefStringMetadata with creation
+										  // datetime and m_whoCreated members set
 		wxASSERT(pRefString != NULL);
 
 		pRefString->m_refCount = 1; // set the count
@@ -2058,8 +1996,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		if (m_pApp->m_bForceAsk)
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
 				// opportunity to add a new refString next time its matched
-		// BEW removed 29May10, as TUList is redundant & now removed
-		//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 		else
@@ -2091,17 +2027,18 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		{
 			pTU = new CTargetUnit;
 			wxASSERT(pTU != NULL);
-			pRefString = new CRefString((CTargetUnit*)pTU);
+			pRefString = new CRefString((CTargetUnit*)pTU); // also creates CRefStringMetadata
+									// with m_creationDateTime and m_whoCreated members set
 			wxASSERT(pRefString != NULL);
 
 			pRefString->m_refCount = 1; // set the count
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE); // FALSE
+								// is value of bIsSrc (auto-caps needs to know whether the
+								// string is source text versus adaptation (or gloss) text
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
 						// opportunity to add a new refString next time its matched
-			// BEW removed 29May10, as TUList is redundant & now removed
-			//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 			if (m_bGlossingKB)
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 			else
@@ -2158,7 +2095,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 					else
 						pSrcPhrase->m_bHasKBEntry = TRUE;
-					delete pRefString; // don't need this one
+					pRefString->DeleteRefString(); // don't need this one nor its CMetadata
 					pRefString = (CRefString*)NULL;
 					if (m_pApp->m_bForceAsk)
 						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must 
@@ -2167,7 +2104,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				}
 			}
             // if we get here with bMatched == FALSE, then there was no match, so we must
-            // add the new pRefString to the targetUnit
+            // add the new pRefString to the CTargetUnit instance
 			if (!bMatched)
 			{
 				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
@@ -2244,12 +2181,13 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // text, a call to MakeTargetStringIncludingPunctuation( ) is done in the caller, and then RemovePunctuation(
 // ) is called in the caller, so a second call of MakeTargetStringIncludingPunctuation( ) within StoreText( )
 // is not required in this circumstance - in this case, a global boolean
-// gbInhibitLine4StrCall is used to jump the call within StoreText( ). For 4.1.0 and later,
+// gbInhibitMakeTargetStringCall is used to jump the call within StoreText( ). For 4.1.0 and later,
 // MakeTargetStringIncludingPunctuation() is not now called. See below.
 // 
 // Ammended, July 2003, for Auto-Capitalization support
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 13May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
+// BEW 4Jun10, updated to support kbVersion 2
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -2303,7 +2241,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
         // is unlikely to be the case when Bob's modification is being used.
 		if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
 		{
-			::wxBell(); //MessageBeep(0);
+			::wxBell();
 			return TRUE;
 		}
 
@@ -2315,12 +2253,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		if (m_pMap[nMapIndex]->empty())
 		{
 			pTU = new CTargetUnit;
-			pRefString = new CRefString(pTU); // the pTU argument sets the m_pTgtUnit member
+			pRefString = new CRefString(pTU); // the pTU argument sets the m_pTgtUnit member, and
+								// creating a CRefString automatically creates a CRefStringMetadata
+								// instance & sets is m_creationDateTime and m_whoCreated members
 			pRefString->m_refCount = 1; // set the count
 			pRefString->m_translation = strNot;
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-			// BEW removed 29May10, as TUList is redundant & now removed
-			//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 			if (m_bGlossingKB)
 			{
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // glossing KB has to treat 
@@ -2360,8 +2298,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pRefString->m_refCount = 1; // set the count
 				pRefString->m_translation = strNot;
 				pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-				// BEW removed 29May10, as TUList is redundant & now removed
-				//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 				if (m_bGlossingKB)
 				{
 					pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
@@ -2458,8 +2394,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		if (tgtPhrase != _T("<Not In KB>"))
 		{
 			pSrcPhrase->m_adaption = tgtPhrase;
-			if (!gbInhibitLine4StrCall)
-				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase); // set m_targetStr member too
+			if (!gbInhibitMakeTargetStringCall)
+			{
+				// sets m_targetStr member too
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
+			}
 		}
 	} 
     // if the source phrase is part of a retranslation, we allow updating of the m_adaption
@@ -2550,7 +2489,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// we didn't return, so continue on to create a new CTargetUnit for storing to
 		pTU = new CTargetUnit;
 		wxASSERT(pTU != NULL);
-		pRefString = new CRefString(pTU);
+		pRefString = new CRefString(pTU); // automatically creates and hooks up its owned
+					// CRefStringMetadata instance and sets creator and creation datetime
 		wxASSERT(pRefString != NULL);
 
 		pRefString->m_refCount = 1; // set the count
@@ -2570,8 +2510,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
 					// opportunity to add a new refString next time its matched
 		}
-		// BEW removed 29May10, as TUList is redundant & now removed
-		//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 		if (m_bGlossingKB)
 		{
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // tell the src phrase it has
@@ -2606,20 +2544,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// check we have a valid pTU
 		if (bFound && pTU->m_pTranslations->IsEmpty())
 		{
-			// this is an error condition, targetUnits must NEVER have an 
+			// this is an error condition, CTargetUnits must NEVER have an 
 			// empty m_translations list
 			wxMessageBox(_T(
 "Warning: the current storage operation has been skipped, and a bad storage element has been deleted."),
 			_T(""), wxICON_EXCLAMATION);
 
-			// BEW removed 29May10, as TUList is redundant & now removed
-			//TUList::Node* pos = m_pTargetUnits->Find(pTU); // find position of the
-														   // bad targetUnit in the list
-			// get the targetUnit in the list
-			//CTargetUnit* pTgtUnit = (CTargetUnit*)pos->GetData();
-			//wxASSERT(pTgtUnit != NULL && pTgtUnit->m_pTranslations->IsEmpty()); // have we
-																	// found the bad one?
-			//m_pTargetUnits->DeleteNode(pos); // remove it from the list
 			delete pTU; // delete it from the heap
 			pTU = (CTargetUnit*)NULL;
 
@@ -2662,7 +2592,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 			pTU = new CTargetUnit;
 			wxASSERT(pTU != NULL);
-			pRefString = new CRefString(pTU);
+			pRefString = new CRefString(pTU); // creates its CRefStringMetadata instance too
 			wxASSERT(pRefString != NULL);
 
 			pRefString->m_refCount = 1; // set the count
@@ -2674,8 +2604,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
 					// opportunity to add a new refString next time its matched
 			}
-			// BEW removed 29May10, as TUList is redundant & now removed
-			//m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
 			if (m_bGlossingKB)
 			{
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;

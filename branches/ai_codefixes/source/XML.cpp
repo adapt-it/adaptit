@@ -4001,7 +4001,6 @@ bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& WXUNUSED(attrValue))
 			;
 		}
 	}
-
 	return TRUE; // no error
 }
 
@@ -4157,7 +4156,6 @@ bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& pStack)
 // BEW 27Mar10 updated for support of doc version 5 (extra case needed)
 bool AtKBTag(CBString& tag)
 {
-	//if (tag == xml_kb || tag == xml_gkb) // if it's a "KB" or "GKB" tag
 	if (tag == xml_kb) // if it's a "KB" tag
 	{
 		// this tag only has attributes; for kbv1 the second attribute
@@ -4291,7 +4289,6 @@ bool AtKBEmptyElemClose(CBString& WXUNUSED(tag))
 bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 {
 	int num;
-	//if ((tag == xml_kb || tag == xml_gkb) && (attrName == xml_docversion || attrName == xml_kbversion))
 	if (tag == xml_kb && (attrName == xml_docversion || attrName == xml_kbversion))
 	{
 		// (the kbVersion attribute is not versionable, so have it outside of the switch)
@@ -4407,7 +4404,6 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					return TRUE;
 				}
 			}
-			//else if (tag == xml_kb || tag == xml_gkb)
 			else if (tag == xml_kb)
 			{
 				if (attrName == xml_srcnm)
@@ -4537,7 +4533,6 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					return TRUE;
 				}
 			}
-			//else if (tag == xml_kb || tag == xml_gkb)
 			else if (tag == xml_kb)
 			{
 				if (attrName == xml_srcnm)
@@ -4713,7 +4708,6 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					return TRUE;
 				}
 			}
-			//else if (tag == xml_kb || tag == xml_gkb)
 			else if (tag == xml_kb)
 			{
 				if (attrName == xml_max)
@@ -4903,7 +4897,6 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					return TRUE;
 				}
 			}
-			//else if (tag == xml_kb || tag == xml_gkb)
 			else if (tag == xml_kb)
 			{
 				if (attrName == xml_max)
@@ -5027,11 +5020,6 @@ bool AtKBEndTag(CBString& tag)
 				// nothing to be done
 				;
 			}
-			//else if (tag == xml_gkb)
-			//{
-				// nothing to be done
-			//	;
-			//}
 			else if (tag == xml_aikb)
 			{
 				// nothing to do

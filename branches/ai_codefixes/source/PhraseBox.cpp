@@ -105,15 +105,15 @@ bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile
 	// previous pile contains a merged phrase with internal punctuation - we don't want the
 	// ReDoPhraseBox( ) call to call MakeTargetStringIncludingPunctuation( ) and so result in the PlaceMedialPunctuation
 	// dialog being put up an unwanted couple of times. So we'll use the gbMovingToPreviousPile being
-	// set to then set the gbInhibitLine4StrCall to TRUE, at start of ReDoPhraseBox( ), and turn it off at
+	// set to then set the gbInhibitMakeTargetStringCall to TRUE, at start of ReDoPhraseBox( ), and turn it off at
 	// the end of that function. That should fix it.
 	
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbInhibitLine4StrCall; // see view for reason for this
+extern bool gbInhibitMakeTargetStringCall; // see view for reason for this
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbInhibitLine4StrCall; // see view for reason for this
+extern bool gbInhibitMakeTargetStringCall; // see view for reason for this
 
 // for support of auto-capitalization
 
@@ -3392,9 +3392,9 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 		{
 			pView->MakeTargetStringIncludingPunctuation(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 			pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
-			gbInhibitLine4StrCall = TRUE;
+			gbInhibitMakeTargetStringCall = TRUE;
 			bOK = pApp->m_pKB->StoreTextGoingBack(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			gbInhibitMakeTargetStringCall = FALSE;
 		}
 	}
 	if (!bOK)
@@ -3695,12 +3695,12 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 		pView->MakeTargetStringIncludingPunctuation(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text);
 	}
-	gbInhibitLine4StrCall = TRUE;
+	gbInhibitMakeTargetStringCall = TRUE;
 	if (gbIsGlossing)
 		bOK = pApp->m_pGlossingKB->StoreText(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 	else
 		bOK = pApp->m_pKB->StoreText(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-	gbInhibitLine4StrCall = FALSE;
+	gbInhibitMakeTargetStringCall = FALSE;
 	if (!bOK)
 	{
 		// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -5192,9 +5192,9 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
 		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-		gbInhibitLine4StrCall = TRUE;
+		gbInhibitMakeTargetStringCall = TRUE;
 		bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		gbInhibitMakeTargetStringCall = FALSE;
 	}
 	return bOK;
 }

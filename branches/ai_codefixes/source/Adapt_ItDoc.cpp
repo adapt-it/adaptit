@@ -187,7 +187,7 @@ extern bool gbPropagationNeeded;
 extern TextType gPropagationType;
 
 // This global is defined in Adapt_ItView.cpp.  BEW removed 27Jan09
-extern bool gbInhibitLine4StrCall; // see view for reason for this
+extern bool gbInhibitMakeTargetStringCall; // see view for reason for this
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbIsUnstructuredData;
@@ -2668,12 +2668,12 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* p
 				pView->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
-			gbInhibitLine4StrCall = TRUE;
+			gbInhibitMakeTargetStringCall = TRUE;
 			if (gbIsGlossing)
 				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 			else
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			gbInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// something is wrong if the store did not work, but we can tolerate the error 
