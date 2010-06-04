@@ -59,6 +59,32 @@ extern bool gbIsGlossing;
 //  helper functions
 
 //////////////////////////////////////////////////////////////
+/// \return the number of words in the string
+/// \param      <- str  the string to check (by reference)
+/// \remarks
+/// A Helper function for counting the number of words in a string.
+/// Note: Any initial and final whitespace is trimmed from the string
+/// and the trimmed string is returned by reference to the caller.
+/////////////////////////////////////////////////////////////
+int TrimAndCountWordsInString(wxString& str)
+{
+	// this function works like the CountSourceWords() function in KB.cpp
+	// except that medial space, tab, CR, or LF or any combination of them
+	// in succession are all considered as a single whitespace delimiter
+	if (str.Length() == 0)
+		return 0;
+
+	wxString tempStr = str; // work on a copy of the str
+	tempStr.Trim(TRUE); // remove whitespace from right
+	tempStr.Trim(FALSE); // remove whitespace from left
+	str = tempStr; // update the string in the caller so it has no leading or trailing spaces
+
+	// count the word tokens in str using a wxStringTokenizer method
+	wxStringTokenizer tkz(tempStr); // by default any white space delimits the tokens
+	return tkz.CountTokens();
+}
+
+//////////////////////////////////////////////////////////////
 /// \return nothing
 /// \remarks
 /// A Helper function for doing a time delay in 1/100ths of a second.

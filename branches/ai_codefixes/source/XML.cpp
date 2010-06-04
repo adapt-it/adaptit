@@ -107,7 +107,8 @@ MapKeyStringToTgtUnit* gpMap; // pointer to the current map
 int gnMapIndex; // 0-based index to the current map
 wxString gKeyStr;// source text key string for the map entry
 int gnRefCount; // reference count for the current CRefString instance
-//extern bool gbIsGlossing;
+bool bKeyDefined = FALSE;
+extern bool gbIsGlossing;
 
 
 /// This global is defined in MainFrm.cpp.
@@ -3918,7 +3919,7 @@ bool AtLIFTTag(CBString& tag)
 {
 	if (tag == xml_lift)
 	{
-		// nothing to do, because the map number is not parsed yet
+		gpSrcPhrase = new CSourcePhrase;
 		return TRUE;
 	}
 	else if (tag == xml_entry)
@@ -3934,6 +3935,10 @@ bool AtLIFTTag(CBString& tag)
 		// set the pointer to the owning CTargetUnit, and add it to the m_translations member
 		gpRefStr->m_pTgtUnit = gpTU; // the current one
 		gpTU->m_pTranslations->Append(gpRefStr);
+	}
+	else if (tag == xml_gloss)
+	{
+		;
 	}
 	else if (tag == xml_definition)
 	{
@@ -3965,221 +3970,38 @@ bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag))
 	return TRUE;
 }
 
-bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue)
+bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& WXUNUSED(attrValue))
 {
-	/*
-	int num;
-	if ((tag == xml_kb || tag == xml_gkb) && attrName == xml_docversion)
+	if (tag == xml_lift)
 	{
-		// (the docVersion attribute is not versionable, so have it outside of the switch)
-		// set the gnDocVersion global with the document's versionable schema number
-		gnDocVersion = atoi(attrValue);
-		return TRUE;
-	}
-	// put the more commonly encountered tags at the top, for speed
-#ifndef _UNICODE // ANSI version (ie. regular)
-	if (tag == xml_rs)
-	{
-		if (attrName == xml_n)
+		if (attrName == xml_lift_version)
 		{
-			gpRefStr->m_refCount = atoi(attrValue);
-		}
-		else if (attrName == xml_a)
-		{
-			ReplaceEntities(attrValue);
-			gpRefStr->m_translation = attrValue;
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
+			// unused
+			;
 		}
 	}
-	else if (tag == xml_tu)
+	if (tag == xml_entry)
 	{
-		if (attrName == xml_f)
+		if (attrName == xml_guid)
 		{
-			// code below avoids: warning C4800: 'int' : 
-			// forcing value to bool 'true' or 'false' (performance warning)
-			if (attrValue == "0")
-				gpTU->m_bAlwaysAsk = FALSE;
-			else
-				gpTU->m_bAlwaysAsk = TRUE;
+			// unused
+			;
 		}
-		else if (attrName == xml_k)
+		else if (attrName == xml_id)
 		{
-			ReplaceEntities(attrValue);
-			gKeyStr = attrValue; // key string for the map hashing to use
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
+			// unused
+			;
 		}
 	}
-	else if (tag == xml_map)
+	if (tag == xml_form)
 	{
-		if (attrName == xml_mn)
+		if (attrName == xml_lang)
 		{
-			// set the map index (one less than the map number)
-			num = atoi(attrValue);
-			gnMapIndex = num - 1;
-			wxASSERT(gnMapIndex >= 0);
+			// unused
+			;
+		}
+	}
 
-			// now we know the index, we can set the map pointer
-			gpMap = gpKB->m_pMap[gnMapIndex];
-			wxASSERT(gpMap->size() == 0); // has to start off empty
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else if (tag == xml_kb || tag == xml_gkb)
-	{
-		if (attrName == xml_srcnm)
-		{
-			ReplaceEntities(attrValue);
-			gpKB->m_sourceLanguageName = attrValue;
-		}
-		else if (attrName == xml_tgtnm)
-		{
-			ReplaceEntities(attrValue);
-			gpKB->m_targetLanguageName = attrValue;
-		}
-		else if (attrName == xml_max)
-		{
-			gpKB->m_nMaxWords = atoi(attrValue);
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else if (tag == xml_aikb)
-	{
-		if (attrName == xml_xmlns)
-		{
-			// .NET support for xml parsing of KB file;
-			// *ATTENTION BOB*  add any bool setting you need here
-			wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
-										 // here in a local wxString for now, in case you need to use it
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else
-	{
-		// unknown tag
-		return FALSE;
-	}
-#else // Unicode version
-	if (tag == xml_rs)
-	{
-		if (attrName == xml_n)
-		{
-			gpRefStr->m_refCount = atoi(attrValue);
-		}
-		else if (attrName == xml_a)
-		{
-			ReplaceEntities(attrValue);
-			gpRefStr->m_translation = gpApp->Convert8to16(attrValue);
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else if (tag == xml_tu)
-	{
-		if (attrName == xml_f)
-		{
-			if (attrValue == "0")
-				gpTU->m_bAlwaysAsk = FALSE;
-			else
-				gpTU->m_bAlwaysAsk = TRUE;
-		}
-		else if (attrName == xml_k)
-		{
-			ReplaceEntities(attrValue);
-			gKeyStr = gpApp->Convert8to16(attrValue); // key string for the map hashing to use
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else if (tag == xml_map)
-	{
-		if (attrName == xml_mn)
-		{
-			// set the map index (one less than the map number)
-			num = atoi(attrValue);
-			gnMapIndex = num - 1;
-			wxASSERT(gnMapIndex >= 0);
-
-			// now we know the index, we can set the map pointer
-			gpMap = gpKB->m_pMap[gnMapIndex];
-			wxASSERT(gpMap->size() == 0); // has to start off empty
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else if (tag == xml_kb || tag == xml_gkb)
-	{
-		if (attrName == xml_srcnm)
-		{
-			ReplaceEntities(attrValue);
-			gpKB->m_sourceLanguageName = gpApp->Convert8to16(attrValue);
-		}
-		else if (attrName == xml_tgtnm)
-		{
-			ReplaceEntities(attrValue);
-			gpKB->m_targetLanguageName = gpApp->Convert8to16(attrValue);
-		}
-		else if (attrName == xml_max)
-		{
-			gpKB->m_nMaxWords = atoi(attrValue);
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else if (tag == xml_aikb)
-	{
-		if (attrName == xml_xmlns)
-		{
-			// .NET support for xml parsing of KB file;
-			// *ATTENTION BOB*  add any bool setting you need here
-			// TODO: whm check the following conversion
-			wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
-												// here in a local wxString for now, in case you need to use it
-		}
-		else
-		{
-			// unknown attribute
-			return FALSE;
-		}
-	}
-	else
-	{
-		// unknown tag
-		return FALSE;
-	}
-#endif // for _UNICODE #defined
-	*/
 	return TRUE; // no error
 }
 
@@ -4191,22 +4013,74 @@ bool AtLIFTEndTag(CBString& tag)
 		// BEW 28May10 removed, as TUList is redundant
 		//gpKB->m_pTargetUnits->Append(gpTU);
 
+		// The following is patterned after the code in the sfm processing part
+		// of DoKBImport().
+		gpSrcPhrase->m_key.Empty();
+		int nWordCount;
+		
+		// store the association in the KB, provided it is not already there
+		if (gbIsGlossing)
+		{
+			gpSrcPhrase->m_gloss.Empty();
+			gpSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+			nWordCount = 1;
+			gpSrcPhrase->m_nSrcWords = 1; // temp default value
+		}
+		else
+		{
+			gpSrcPhrase->m_adaption.Empty();
+			gpSrcPhrase->m_bHasKBEntry = FALSE;
+			nWordCount = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+			gpSrcPhrase->m_nSrcWords = nWordCount;
+		}
+
+		if (nWordCount == 0 || nWordCount > MAX_WORDS)
+		{
+			// error condition
+			gpSrcPhrase->m_nSrcWords = 1;
+			gKeyStr.Empty();
+			bKeyDefined = FALSE;
+		}
+		else
+		{
+			gpSrcPhrase->m_nSrcWords = nWordCount;
+			gpSrcPhrase->m_key = gKeyStr;
+		}
+
 		// set up the association between this CTargetUnit's pointer and the source text key
 		// in the current map
 		(*gpMap)[gKeyStr] = gpTU;
 
 		// clear the pointer (not necessary, but a good idea for making sure the code is sound)
 		gpTU = NULL; // the m_pTargetUnits list will manage the pointer from now on
+		// clear the gKeyStr
+		gKeyStr.Empty();
+		bKeyDefined = FALSE;
 	}
 	else if (tag == xml_lift)
 	{
-		// nothing to be done
-		;
+		delete gpSrcPhrase;
 	}
-	else if (tag == xml_sense)
+	else if (tag == xml_sense || tag == xml_gloss) // treat sense and gloss the same
 	{
-		// nothing to be done
-		;
+		if (bKeyDefined)
+		{
+			if (gbIsGlossing)
+			{
+				if (!gpApp->m_pGlossingKB->IsAlreadyInKB(1,gKeyStr,gpRefStr->m_translation))
+					gpApp->m_pGlossingKB->StoreText(gpSrcPhrase,gpRefStr->m_translation,TRUE);
+													// TRUE means "allow empty string save"
+			}
+			else
+			{
+				if (!gpApp->m_pKB->IsAlreadyInKB(gpSrcPhrase->m_nSrcWords,gKeyStr,gpRefStr->m_translation))
+					gpApp->m_pKB->StoreText(gpSrcPhrase,gpRefStr->m_translation,TRUE);
+													// TRUE means "allow empty string save"
+			}
+			// prepare for another adaptation (or gloss) for this key
+			gpSrcPhrase->m_adaption.Empty();
+			gpRefStr->m_translation.Empty();
+		}
 	}
 	else if (tag == xml_definition)
 	{
@@ -4236,7 +4110,7 @@ bool AtLIFTEndTag(CBString& tag)
 	return TRUE;
 }
 
-bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack)
+bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& pStack)
 {
 	// we use PCDATA in LIFT imports for the content delimited by <text>...</text> tags
 	// in LIFT data <text> can occur as a tag embedded in either <lexical-unit> or <sense>
@@ -4248,8 +4122,10 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack)
 #else
 		gKeyStr = pcdata.GetBuffer();
 #endif
+		gpSrcPhrase->m_key = gKeyStr;
+		bKeyDefined = TRUE;
 	}
-	else if (pStack->Contains(xml_sense))
+	else if (pStack->Contains(xml_sense) || pStack->Contains(xml_gloss))
 	{
 		ReplaceEntities(pcdata);
 		wxASSERT(gpRefStr != NULL);
@@ -4258,6 +4134,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack)
 #else
 		gpRefStr->m_translation = pcdata.GetBuffer();
 #endif
+		gpSrcPhrase->m_adaption = gpRefStr->m_translation;
 	}
 	return TRUE;
 }
@@ -5178,7 +5055,7 @@ bool AtKBEndTag(CBString& tag)
 
 bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
 {
-	// we don't have any PCDATA in the knowledge base XML files
+	// we don't have any PCDATA in the document XML files
 	return TRUE;
 }
 
@@ -5321,7 +5198,7 @@ bool ReadKB_XML(wxString& path, CKB* pKB)
 *
 *******************************************************************/
 
-bool ReadLIFT_XML(wxString& path, CKB* pKB)
+bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB))
 {
 	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);

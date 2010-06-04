@@ -3136,6 +3136,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			// save old sequ number in case required for toolbar's Back button
 			gnOldSequNum = pApp->m_nActiveSequNum;
 
+			// whm Note: Beware! Setting breakpoints in OnChar() before this point can 
+			// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+			// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
+			// register properly.
 			if (wxGetKeyState(WXK_SHIFT))
 			{
 				// shift key is down, so move back a pile
@@ -3158,11 +3162,11 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				// save the phrase box's text, in case user hits SHIFT+End to unmerge a phrase
 				gSaveTargetPhrase = pApp->m_targetPhrase;
 				return;
-			} // end keyState < 0 block
+			}
 			else // we are moving forwards rather than backwards
 			{
 				JumpForward(pView);
-			} // end keyState >= 0 block
+			}
 		} // end case 13: block
 		return;
 	case WXK_TAB: //9:		// TAB key
@@ -3171,6 +3175,9 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			gnOldSequNum = pApp->m_nActiveSequNum;
 
 			// SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
+			// whm Note: Beware! Setting breakpoints in OnChar() before this point can 
+			// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+			// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
 			if (wxGetKeyState(WXK_SHIFT))
 			{
 				// shift key is down, so move back a pile

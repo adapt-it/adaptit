@@ -30,6 +30,8 @@ class CSourcePhrase;
 ////////////////////////////////////////////
 //  helper functions
 
+int TrimAndCountWordsInString(wxString& str);
+
 void DoDelay();
 
 int NegHeightToPointSize(const long& height);

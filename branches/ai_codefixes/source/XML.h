@@ -256,9 +256,9 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 // whm added 19May10
 bool AtLIFTTag(CBString& tag);
 bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag));
-bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue);
+bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& WXUNUSED(attrValue));
 bool AtLIFTEndTag(CBString& tag);
-bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
+bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& pStack);
 
 // the read and parse functions;
 bool ReadBooks_XML(wxString& path);
@@ -278,7 +278,7 @@ bool ReadKB_XML(wxString& path, CKB* pKB);
 // read and parse function for LIFT xml files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
-bool ReadLIFT_XML(wxString& path, CKB* pKB);
+bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB));
 
 // Conversion functions for converting between different xml formats for
 // VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5

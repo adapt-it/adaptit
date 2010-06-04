@@ -336,6 +336,8 @@ const char xml_text[] = "text";
 const char xml_sense[] = "sense";
 /// Tag name used in LIFT XML i/o
 const char xml_definition[] = "definition";
+/// Tag name used in LIFT XML i/o
+const char xml_gloss[] = "gloss";
 
 // attribute names for LIFT i/o
 
@@ -1519,7 +1521,7 @@ public:
     /// stored in m_curOutputPath).
 	wxString m_curOutputFilename;
 
-    /// The m_curOutputPath member holds the path of the file currently functioning as an
+    /// The m_curOutputPath member holds the path of the file currently functioining as an
     /// output file. It generally only represents the path and not the file name itself
     /// (which is stored in m_curOutputFilename).
 	wxString m_curOutputPath;
@@ -2022,7 +2024,7 @@ public:
 				// m_theWorkFolder part
 	wxString	m_adaptionsFolder;	// "Adaptations" folder
 	wxString	m_curProjectName;	// <Project Name> in the form 
-				// "<SourceLanguageName> to <TargetLanguageName> adaptations"
+				// "<SourceLanguageName> to <TargetLanguageName> Adaptations"
 	wxString	m_curProjectPath;	// "C:\My Documents\Adapt It Work\<Project Name>"
 	wxString	m_curAdaptionsPath;	// "C:\My Documents\Adapt It Work\<Project Name>\Adaptations"
 	wxString	m_lastSourceFileFolder;	// path to the folder from which last 
@@ -2396,7 +2398,7 @@ public:
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
-	//void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
+	void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 	
 	void OnFilePageSetup(wxCommandEvent& WXUNUSED(event));
