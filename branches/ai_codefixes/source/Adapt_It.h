@@ -338,18 +338,23 @@ const char xml_sense[] = "sense";
 const char xml_definition[] = "definition";
 /// Tag name used in LIFT XML i/o
 const char xml_gloss[] = "gloss";
-
-// attribute names for LIFT i/o
-
-/// Attribute name used in LIFT XML i/o
+/// Tag name used in LIFT XML i/o
 const char xml_lift_version[] = "version";
-/// Attribute name used in LIFT XML i/o
+/// Tag name used in LIFT XML i/o
 const char xml_guid[] = "guid";
-/// Attribute name used in LIFT XML i/o
+/// Tag name used in LIFT XML i/o
 const char xml_id[] = "id";
-/// Attribute name used in LIFT XML i/o
+/// Tag name used in LIFT XML i/o
 const char xml_lang[] = "lang";
-
+/* the function MyParentsAre() makes these unneeded
+const char xml_annotation[] = "annotation";
+const char xml_grammatical_info[] = "grammatical-info";
+const char xml_relation[] = "relation";
+const char xml_note[] = "note";
+const char xml_example[] = "example";
+const char xml_reversal[] = "reversal";
+const char xml_illustration[] = "illustration";
+*/
 
 /// struct for saving top and bottom logical coord offsets for printing pages, stored in
 /// m_pagesList Instances of PageOffsets are populated in the PaginateDoc() function in the

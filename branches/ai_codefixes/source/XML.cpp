@@ -107,8 +107,14 @@ MapKeyStringToTgtUnit* gpMap; // pointer to the current map
 int gnMapIndex; // 0-based index to the current map
 wxString gKeyStr;// source text key string for the map entry
 int gnRefCount; // reference count for the current CRefString instance
-bool bKeyDefined = FALSE;
-extern bool gbIsGlossing;
+//bool bKeyDefined = FALSE;
+//extern bool gbIsGlossing;
+
+static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
+						// for a given key, the relevant map contains a CTargetUnit
+						// instance, and this will be a pointer to it
+static char emptyStr[32];
+void* r = memset((void*)emptyStr,0,32); // after the above line
 
 
 /// This global is defined in MainFrm.cpp.
@@ -863,10 +869,10 @@ bool WriteDoc_XML(CBString& path)
 *
 *********************************************************************/
 
-bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag),
-		bool (*pAtEmptyElementClose)(CBString& tag),
-		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
-		bool (*pAtEndTag)(CBString& tag),
+bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
+		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
+		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
+		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 {
 	bool bReadAll = FALSE;
@@ -1215,19 +1221,19 @@ r:		comp = strncmp(pPos,comment,4);
 bool ParseXMLElement(wxFile& dfile,
 		CStack*& pStack,CBString& tagname,char*& pBuff,
 		char*& pPos,char*& pEnd,bool& bCallbackSucceeded,
-		bool (*pAtTag)(CBString& tag),
-		bool (*pAtEmptyElementClose)(CBString& tag),
-		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
-		bool (*pAtEndTag)(CBString& tag),
+		bool (*pAtTag)(CBString& tag,CStack*& pStack),
+		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
+		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
+		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 
 #else
 bool ParseXMLElement(CStack*& pStack,CBString& tagname,char*& pBuff,
 		char*& pPos,char*& pEnd,bool& bCallbackSucceeded,
-		bool (*pAtTag)(CBString& tag),
-		bool (*pAtEmptyElementClose)(CBString& tag),
-		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue),
-		bool (*pAtEndTag)(CBString& tag),
+		bool (*pAtTag)(CBString& tag,CStack*& pStack),
+		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
+		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
+		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 #endif
 {
@@ -1306,7 +1312,7 @@ go:	pAux = pPos; // save start of tag location
 	bContainsAttr = FALSE;
 
 	// allow the application to do something now the tag has been identified
-	bCallbackSucceeded = (*pAtTag)(tagname);
+	bCallbackSucceeded = (*pAtTag)(tagname,pStack); // BEW 4Jun10, added pStack param
 	if (!bCallbackSucceeded)
 		return FALSE; // halt parsing if the callback fails
 	bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1335,7 +1341,7 @@ e:			bContainsAttr = TRUE;
 			
 			// allow the app to do something with the attribute name
 			// and its string value, using a callback
-			bCallbackSucceeded = (*pAtAttr)(tagname,attrName,attrValue);
+			bCallbackSucceeded = (*pAtAttr)(tagname,attrName,attrValue,pStack); // BEW 4Jun10, added pStack param
 			if (!bCallbackSucceeded)
 				return FALSE; // halt parsing if the callback fails
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1397,7 +1403,7 @@ f:		pPos += 2;
 		
 		// all's well, so allow the application to do something now the 
 		// closing tag has been identified
-		bCallbackSucceeded = (*pAtEndTag)(tagname);
+		bCallbackSucceeded = (*pAtEndTag)(tagname,pStack); // BEW 4Jun10, added pStack param
 		if (!bCallbackSucceeded)
 			return FALSE; // halt parsing if there was a callback failure
 		bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1430,7 +1436,7 @@ c:		if (!bWithinOpeningTag)
 			// empty string just in case this attribute can sometimes be
 			// <TAG> PCDATA </TAG>, that is, sometimes have nonempty PCDATA
 			pcdata.Empty();
-			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack);
+			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack); // Bill added this one
 			if (!bCallbackSucceeded)
 				return FALSE; // halt parsing if there was a callback failure
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1439,7 +1445,7 @@ c:		if (!bWithinOpeningTag)
 		
 		// allow the app to do something now we are at the closure of
 		// an empty tag (which may have had attributes)
-		bCallbackSucceeded = (*pAtEmptyElementClose)(tagname);
+		bCallbackSucceeded = (*pAtEmptyElementClose)(tagname,pStack); // BEW 4Jun10, added pStack param
 		if (!bCallbackSucceeded)
 			return FALSE; // halt parsing if there was a callback failure
 		bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1489,7 +1495,7 @@ b:		bWithinOpeningTag = FALSE;
 			// therefore empty - so we must allow the callback for
 			// PCDATA to find an empty string here.
 			pcdata.Empty();
-			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack);
+			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack); // Bill added pStack
 			if (!bCallbackSucceeded)
 				return FALSE; // alert the user if there was a callback failure
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1516,7 +1522,7 @@ b:		bWithinOpeningTag = FALSE;
 			}
 			
 			// allow the application to do something with the PCDATA
-			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack);
+			bCallbackSucceeded = (*pAtPCDATA)(tagname,pcdata,pStack); // Bill added pStack
 			if (!bCallbackSucceeded)
 				return FALSE; // alert the user if there was a callback failure
 			bCallbackSucceeded = TRUE; // reset default, in case markup error follows
@@ -1727,7 +1733,7 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 	char* pFinis = pPos;
 	do {
 		--pFinis;
-		if (pFinis <= pAux)
+		if (pFinis < pAux)
 		{
 			// the PCDATA must have been an empty string,
 			// so just return an empty string
@@ -1739,12 +1745,13 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 			continue;
 		else
 		{
-			if (pFinis < pEnd)
-				++pFinis;
+			++pFinis;
 			break;
 		}
 	} while (pFinis > pAux);
 	MakeStrFromPtrs(pAux,pFinis,pcdata);
+
+	//MakeStrFromPtrs(pAux,pPos,pcdata);
 	return TRUE;
 }
 
@@ -1777,7 +1784,7 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 *
 ****************************************************************************/
 
-bool AtBooksTag(CBString& tag)
+bool AtBooksTag(CBString& tag,CStack*& WXUNUSED(pStack))
 {	
 	if (tag == namepair)
 	{
@@ -1811,7 +1818,7 @@ bool AtBooksTag(CBString& tag)
 	return TRUE; // no error
 }
 
-bool AtBooksEmptyElemClose(CBString& tag)
+bool AtBooksEmptyElemClose(CBString& tag,CStack*& WXUNUSED(pStack))
 {
 	if (tag == namepair)
 	{
@@ -1833,7 +1840,7 @@ bool AtBooksEmptyElemClose(CBString& tag)
 // because the UTF-8 will have to be converted to UTF-16; since BookNamePair
 // contains CStrings internally, not CBStrings
 
-bool AtBooksAttr(CBString& tag,CBString& attrName,CBString& attrValue)
+bool AtBooksAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack))
 {
 #ifdef _UNICODE // Unicode application
 	wxString valueStr;
@@ -1897,7 +1904,7 @@ bool AtBooksPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& W
 	return TRUE;
 }
 
-bool AtBooksEndTag(CBString& tag)
+bool AtBooksEndTag(CBString& tag,CStack*& WXUNUSED(pStack))
 {
 	if (tag == books)
 	{
@@ -1910,7 +1917,7 @@ bool AtBooksEndTag(CBString& tag)
 /***************************************************************************
 * Callbacks - for parsing the AI_USFM.xml data. whm added 19Jan05
 ****************************************************************************/
-bool AtSFMTag(CBString& tag)
+bool AtSFMTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == sfm)
 	{
@@ -1957,7 +1964,7 @@ bool AtSFMTag(CBString& tag)
 	return TRUE;
 }
 
-bool AtSFMEmptyElemClose(CBString& WXUNUSED(tag))
+bool AtSFMEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 {
 	// AI_USFM.xml uses the explicit element name in close tags, i.e.,
 	// <SFM ... attributes ...></SFM> so it doesn't add elements to the
@@ -1974,7 +1981,7 @@ bool AtSFMEmptyElemClose(CBString& WXUNUSED(tag))
 // because the UTF-8 will have to be converted to UTF-16; since BookNamePair
 // contains CStrings internally, not CBStrings
 
-bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue)
+bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
 {
 	wxASSERT(gpUsfmAnalysis);
 #ifdef _UNICODE
@@ -2300,7 +2307,7 @@ bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXU
 	return TRUE;
 }
 
-bool AtSFMEndTag(CBString& tag)
+bool AtSFMEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	// AI_USFM.xml uses end tag xml format, whereas books.xml has empty end tag format
 	if (tag == sfm)
@@ -2383,7 +2390,7 @@ bool AtSFMEndTag(CBString& tag)
 *********************************************************************************/
 
 
-bool AtDocTag(CBString& tag)
+bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == xml_adaptitdoc) // if it's an "AdaptItDoc" tag
 	{
@@ -2466,13 +2473,13 @@ bool AtDocTag(CBString& tag)
 	return TRUE; // no error
 }
 
-bool AtDocEmptyElemClose(CBString& WXUNUSED(tag))
+bool AtDocEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 {
 	// unused
 	return TRUE;
 }
 
-bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
+bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
 {
 	int num;
 	if (tag == xml_settings && attrName == xml_docversion)
@@ -3113,7 +3120,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 	return TRUE; // no error
 }
 
-bool AtDocEndTag(CBString& tag)
+bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	switch (gnDocVersion) 
 	{
@@ -3184,7 +3191,7 @@ bool AtDocEndTag(CBString& tag)
 	return TRUE;
 }
 
-bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
+bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata), CStack*& WXUNUSED(pStack))
 {
 	// we don't have any PCDATA in the document XML files
 	return TRUE;
@@ -3913,8 +3920,8 @@ CBString MakeFlags(CSourcePhrase* pSP)
 *  LIFT input as XML - call back functions
 *
 *********************************************************************************/
+/*
 // whm added 19May10
-
 bool AtLIFTTag(CBString& tag)
 {
 	if (tag == xml_lift)
@@ -4137,7 +4144,232 @@ bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& pStack)
 	}
 	return TRUE;
 }
+*/
 
+bool AtLIFTTag(CBString& tag, CStack*& pStack)
+{
+	if (tag == xml_entry)
+	{
+		// create a new CTargetUnit instance on the heap - this may eventually be managed
+		// by one of the maps, or if there is an instance in the map for the key later
+		// being tested, this will needed to be deleted before the next xml_entry start
+		// tag is encountered
+		gpTU = new CTargetUnit;
+
+        // this is tag stores (nested within its <lexical-unit> element) a lexeme, which to
+        // Adapt It will become a KB adaptation or gloss, depending on whether we are
+        // importing an adaptingKB or a glossingKB; do prepare an empty wxString ready to
+        // receive its value
+		gKeyStr.Empty(); // prepare for PCDATA parse later on (the wxChar string)
+	}
+	else if (tag == xml_sense)
+	{
+        // Note: we accept only a <text> tag which is in a definition or gloss, either of
+        // which is embedded in a sense. But there can be many other <text> elements in a
+        // <sense>, but at deeper levels of nesting than <gloss> or <definition>. The
+        // deeper ones will have different parent tags on the stack, a fact which we'll use
+        // to advantage with a function called MyParentsAre(), in order to exclude parsing
+        // <text> elements which have nothing to do with a gloss or definition. Tags which
+        // can be in <sense> and which can have <text> embedded in them are:
+        // relation, grammatical-info, note, example, reversal or illustration (but we
+        // allow subsense - which can contain additional <sense> elements... -- the best
+        // way to handle complex nesting conditions like this is to have a function that
+        // checks for explicit tags above the current one - hence MyParentsAre() which can
+        // test for up to 3 explicit parent tags for the current one
+
+		// To prepare for the possibility that we will add it to the KB, 
+		// create a new CRefString instance on the heap (we won't do anything except
+		// delete it if we later find that it already is on the heap)
+		gpRefStr = new CRefString; // also creates and initializes an owned CRefStringMetadata
+	}
+	else
+	{
+		// unknown tag
+		return TRUE; // ignore other tags
+	}
+	return TRUE; // no error
+}
+
+bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
+{
+	// unused
+	return TRUE;
+}
+
+bool AtLIFTAttr(CBString& WXUNUSED(tag),CBString& WXUNUSED(attrName),
+				CBString& WXUNUSED(attrValue),CStack*& WXUNUSED(pStack))
+{
+	// there are no attributes in LIFT that we need to process
+	return TRUE; // no error
+}
+
+bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
+{
+	if (tag == xml_sense)
+	{
+		//if (gpRefStr != NULL)
+		//{
+			gpRefStr->DeleteRefString(); // also deletes its CRefStringMetadata instance
+		//}
+	}
+	else if (tag == xml_entry)
+	{
+		//if (gpTU != NULL)
+		//{
+			// this one is not being managed by an entry in a map, and so we must delete
+			// it here to avoid a memory leak
+			delete gpTU; // we've not added anything to its m_pTranslations list, 
+						 // so it's safe to just delete it alone here
+		//}
+	}
+	else
+	{
+		// unknown tag
+		return TRUE; // ignore other irrelevant tags
+	}
+	return TRUE;
+}
+
+bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
+{
+	// we use PCDATA in LIFT imports for the content delimited by <text>...</text> tags
+	// in LIFT data <text> can occur as a tag embedded in either <lexical-unit> or <sense>
+	if (pStack->MyParentsAre(3, xml_form, xml_lexical_unit, xml_entry) )
+	{
+		// this is tag stores a lexeme, which to Adapt It will become a KB adaptation or
+		// gloss, depending on whether we are importing an adaptingKB or a glossingKB
+		ReplaceEntities(pcdata);
+#ifdef _UNICODE
+		gKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
+#else
+		gKeyStr = pcdata.GetBuffer();
+#endif
+		// set up the map pointer - this depends on how many words there are in the source
+		// text in gKeyStr if the KB is an adapting one, but for a glossingKB it is always
+		// the first map
+		int numWords = 1;
+		if (gpKB->IsThisAGlossingKB())
+		{
+			gpMap = gpApp->m_pGlossingKB->m_pMap[0];
+		}
+		else
+		{
+			numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+			gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
+		}
+
+		// find out if there is CTargetUnit in this map already, for this key; the
+		// following call returns NULL if there is no CTargetUnit for the key yet in the
+		// map, otherwise it returns the map's CTargetUnit instance
+		gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
+		// if gpTU_From_Map is non-NULL, then each <definition> tag, or <gloss> tag, will
+		// yield a potential adaptation (or gloss if the KB is a glossingKB) which will
+		// either belong to this CTargetUnit already, or it won't - in which case we'll
+		// have to add it. We can't do this test until we've re-entered AtLiftPCDATA() in
+		// order to process PCDATA from the <text> tag within either a <definition> tag or
+		// a <gloss> tag 
+	}
+	else if (pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense) ||
+			 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry) )
+	{
+		ReplaceEntities(pcdata);
+		wxASSERT(gpRefStr != NULL);
+		wxString textStr;
+#ifdef _UNICODE
+		textStr = gpApp->Convert8to16(pcdata);
+#else
+		textStr = pcdata.GetBuffer();
+#endif
+		if (gpTU_From_Map == NULL)
+		{
+			// there is no CTargetUnit pointer instance in the map for the given key, so
+			// put add the gpRefStr instance to the gpTU instance, and fill out the value
+			// of the members, as this gpTU will have to be managed henceforth by the map,
+			// so we don't delete it...
+			// set the pointer to the owning CTargetUnit, and add it to the m_translations
+			// member
+			gpRefStr->m_pTgtUnit = gpTU;
+			gpTU->m_pTranslations->Append(gpRefStr);
+
+			// add its adaptation, or gloss if the pKB is a glossingKB (creation datetime
+			// is the datetime of the import - this is potentially more useful than any
+			// other datetime, so leave it that way)
+			gpRefStr->m_translation = textStr;
+			gpRefStr->m_refCount = 1;
+			gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+			gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
+
+            // it's ready, so store it in the map
+			(*gpMap)[gKeyStr] = gpTU;
+
+            // we create a new pointer, as the map now manages the old one; we use the
+            // default constructor, which does not pre-fill the m_creatorDateTime and
+            // m_whoCreated members of its owned CRefStringMetadata - this is better, to
+            // set these explicitly only for those CRefString instances whose management is
+            // to be taken over by the map, (this saves time, as not all CRefString
+            // instances created by the parser succeed in being managed by the map, those
+            // that don't have to be deleted from the heap)
+			gpRefStr = new CRefString; 
+
+			// now that pTU is managed by the map, we can't risk leaving it non-NULL
+			// because later on it would be deleted in AtLIFTEndTag(); so instead, create a
+			// new one to replace it and continue with that one - if the new one is to be
+			// deleted, it won't then matter
+			gpTU = new CTargetUnit;
+		}
+		else
+		{
+			// there is a CTargetUnit pointer in the map for the given key; so find out if
+			// there is a CRefString instance for the given textStr
+			textStr.Trim();
+			textStr.Trim(FALSE);
+			CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
+			if (pRefStr_In_TU == NULL)
+			{
+                // this particular adaptation or gloss is not yet in the map's CTargetUnit
+                // instance, so put it in there and have the map manage the CRefString
+                // instance's pointer, but the gpTU instance we created earlier in the
+                // callbacks is not then needed once all the <sense> elements relevant to 
+                // it have been processed, and so it will have to be removed from the heap
+                // eventually (at AtLIFTEndTag() callback)
+				gpRefStr->m_refCount = 1;
+				gpRefStr->m_translation = textStr;
+				gpRefStr->m_pTgtUnit = gpTU_From_Map;
+				gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+				gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
+				// the CRefStringMetadata has been initialized with this use:computer's
+				// m_whoCreated value, and the import datetime as the m_creationDateTime
+				// (the latter is more meaningful than using the a creation datetime from
+				// the imported file - especially if we mistakenly are importing malicious
+				// data and need to remove it later on)
+				gpTU_From_Map->m_pTranslations->Append(gpRefStr); // the map entry now manages
+																  // this CRefString instance
+
+				// we create a new pointer, as the map now manages the old one; we use the
+				// default constructor, which does not pre-fill the m_creatorDateTime and
+				// m_whoCreated members of its owned CRefStringMetadata - this is better, to
+				// set these explicitly only for those CRefString instances whose management is
+				// to be taken over by the map, (this saves time, as not all CRefString
+				// instances created by the parser succeed in being managed by the map, those
+				// that don't have to be deleted from the heap)
+				gpRefStr = new CRefString; 
+
+				// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
+                // when the current <entry> contents have finished being processed
+			}
+			else
+			{
+				// this particular adaptation or gloss is in the map's CTargetUnit pointer
+				// already, so we can ignore it. We must delete both the gpRefStr (and
+				// its owned CRefStringMetadata instance), and also delete the gpTU we
+				// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
+				// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
+				;
+			}
+		}
+	}
+	return TRUE;
+}
 
 
 /********************************************************************************
@@ -4154,7 +4386,7 @@ bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& pStack)
 // Adapt_It.cpp file, so we there used KB rather than GKB for the element name, a very trivial change
 
 // BEW 27Mar10 updated for support of doc version 5 (extra case needed)
-bool AtKBTag(CBString& tag)
+bool AtKBTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == xml_kb) // if it's a "KB" tag
 	{
@@ -4279,14 +4511,14 @@ bool AtKBTag(CBString& tag)
 	return TRUE; // no error
 }
 
-bool AtKBEmptyElemClose(CBString& WXUNUSED(tag))
+bool AtKBEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 {
 	// unused
 	return TRUE;
 }
 
 // BEW 27Mar10 updated for support of doc version 5 (extra case needed)
-bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
+bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
 {
 	int num;
 	if (tag == xml_kb && (attrName == xml_docversion || attrName == xml_kbversion))
@@ -4990,7 +5222,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 }
 
 // BEW 27Mar10 updated for support of doc version 5 (extra case needed)
-bool AtKBEndTag(CBString& tag)
+bool AtKBEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	switch (gnKbVersionBeingParsed) 
 	{
@@ -5186,8 +5418,10 @@ bool ReadKB_XML(wxString& path, CKB* pKB)
 *
 *******************************************************************/
 
-bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB))
+bool ReadLIFT_XML(wxString& path, CKB* pKB)
 {
+	wxASSERT(pKB);
+	gpKB = pKB; // set the global gpKB used by the callback functions
 	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);
 	return bXMLok;

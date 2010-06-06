@@ -72,6 +72,8 @@ public:
 	bool Pop(Item item); // pop the top element into item
 	// whm added below 24May10
 	bool Contains(const Item item); // true if item is contained in the stack
+	bool MyParentsAre(int nThisMany, const Item item_up1, const Item item_up2,
+						const Item item_up3);
 };
 
 #endif

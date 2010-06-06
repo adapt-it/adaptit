@@ -478,6 +478,22 @@ CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 	return (CRefString*)NULL;
 }
 
+// this overload of GetRefString() is useful for LIFT imports
+CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
+{
+	wxASSERT(pTU);
+	CRefString* pRefStr = AutoCapsFindRefString(pTU,valueStr);
+	if (pRefStr == NULL)
+	{
+		// it's not in the m_translations list, so return NULL
+		return (CRefString*)NULL;
+	}
+	else
+	{
+		return pRefStr;
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pRefString      ->  pointer to the CRefString object to be deleted
@@ -857,8 +873,16 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		}
 		// For LIFT import we are using wxFile and we call xml processing functions
 		// from XML.cpp
+		// BEW 4Jun10, to permit more flexibility (ie. allow LIFT import to the glossingKB
+		// as well as to the adapting one), and to use the second param in the call below,
+		// because kbv2 CKB class has a member bool m_bGlossingKB which knows whether it
+		// is a glossingKB or not - and passing that to XML.cpp permits us to avoid using
+		// the "extern bool gbIsGlossing" declaration in the global namespace there
 		bool bReadOK;
-		bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB); // assume LIFT import goes into the regular KB
+		if (m_bGlossingKB)
+			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pGlossingKB);
+		else
+			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB);
 
 		f.Close();
 	}

@@ -117,7 +117,8 @@ public:
 	void			GetAndRemoveRefString(CSourcePhrase* pSrcPhrase,
 								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
 	void			GetForceAskList(KPlusCList* pKeys);
-	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);	
+	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);
+	CRefString*		GetRefString(CTargetUnit* pTU, wxString valueStr); // an overload useful for LIFT imports
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
 	bool			IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);

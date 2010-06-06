@@ -110,7 +110,7 @@
 // If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
 // uncomment the following include, recompile, run and exit the program for a more
 // detailed report of the memory leaks:
-//#include "vld.h"
+#include "vld.h"
 
 // Other includes
 #include "AIPrintout.h"
