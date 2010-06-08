@@ -675,13 +675,6 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item29 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NL, _("Check the box below only if the standard format markers in the source language input data always start on new lines"), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item28->Add( item29, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxCheckBox *item30 = new wxCheckBox( parent, IDC_CHECK_SFM_AFTER_NEWLINES, _("Recognise standard format markers only following newlines"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Check this box only if the standard format markers always start on new lines") );
-    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
-
     item2->Add( item28, 0, wxGROW|wxALL, 5 );
 
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );

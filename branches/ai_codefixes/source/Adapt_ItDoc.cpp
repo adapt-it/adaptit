@@ -209,8 +209,10 @@ extern bool  gbForceUTF8; // defined in CDocPage
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
-/// This global is defined in Adapt_It.cpp.
-extern bool  gbSfmOnlyAfterNewlines;
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+// This global is defined in Adapt_It.cpp.
+//extern bool  gbSfmOnlyAfterNewlines;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool  gbDoingInitialSetup;
@@ -7572,38 +7574,41 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
             // accidently may start the file - that's too unlikely to bother about), so for
             // such a possibility we'll do a USFMAnalysis lookup and if we detect one of
             // the markers, we'll assume that it's a valid SFM and halt parsing, if not a
-            // known marker we'll let the gbSfmOnlyAfterNewlines flag decide.
-			if (gbSfmOnlyAfterNewlines)
-			{
+            // known marker we'll let the gbSfmOnlyAfterNewlines flag decide
+            
+			// BEW 8Jun10, removed support for checkbox "Recognise standard format
+			// markers only following newlines"
+			//if (gbSfmOnlyAfterNewlines)
+			//{
 				// the flag is on, so parse over the backslash provided it and what follows
 				// is not identified as a character string identical to a known SFM
-				USFMAnalysis* pUsfmAnalysis = LookupSFM(ptr);
-				if (pUsfmAnalysis != NULL)
-				{
+			//	USFMAnalysis* pUsfmAnalysis = LookupSFM(ptr);
+			//	if (pUsfmAnalysis != NULL)
+			//	{
 					// it's a known marker, so halt right here
-					goto m; // a little further down
-				}
-				else
-				{
+			//		goto m; // a little further down
+			//	}
+			//	else
+			//	{
 					// it's not a known marker, so assume its a word-building character & 
 					// keep parsing
 
                     // if we are turned on and not pointing at white space either, then
                     // turn off and reset the pointers for a following punctuation span
-					if (bStarted)
-					{
+			//		if (bStarted)
+			//		{
 						// the punctuation span was word-internal, so we forget about it
-						bStarted = FALSE;
-						pPunctStart = ptr;
-						pPunctEnd = ptr;
-					}
+			//			bStarted = FALSE;
+			//			pPunctStart = ptr;
+			//			pPunctEnd = ptr;
+			//		}
 					// move on & iterate
-					ptr++;
-					len++;
-				}
-			}
-			else
-			{
+			//		ptr++;
+			//		len++;
+			//	}
+			//}
+			//else
+			//{
 				// the flag is off, so every backslash is to be interpretted as an SFM,
 				// so halt parsing early, that is, right here; and return the len value....
 				// But before we return, if detection of (following) punctuation was turned
@@ -7618,10 +7623,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 				// work if the app is compiled for 64 bit systems - a fact reported by David 
 				// Gardner who successfully compiled the sources for 64-bit AMD64, but only
 				// by removing the (wxUint32) casts.
-//m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 
-//					&& pPunctEnd == ptr)
-m:				if (bStarted && (pPunctEnd - pPunctStart) > 0 
-					&& pPunctEnd == ptr)
+				
+				// BEW 8Jun10, removed support for checkbox "Recognise standard format
+				// markers only following newlines"
+//m:				if (bStarted && (pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
+				if (bStarted && (pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
 				{
 					// there is word-final punctuation content to be dealt with
 					// BEW modified 23Feb07; when working in Unicode, UTF-16 characters are
@@ -7636,7 +7642,7 @@ m:				if (bStarted && (pPunctEnd - pPunctStart) > 0
 					followPunct = finals;
 				}
 				return len;
-			}
+			//}
 		}
 	}
     // now, work backwards first - we may have stopped at a space and there could have been
@@ -7678,28 +7684,33 @@ m:				if (bStarted && (pPunctEnd - pPunctStart) > 0
 	smchunk.Empty();
 	int nChunkLen = 0;
 	bool bFoundDetachedRightQuote = FALSE;
-	if (gbSfmOnlyAfterNewlines)
-	{
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//if (gbSfmOnlyAfterNewlines)
+	//{
         // treat the escape character as if it is an alphabetic word-building character and
         // so don't test for it as a loop ending criterion
-		if (!IsEnd(ptr))
-		{
-			goto c;
-		}
-		else
-		{
-			goto d;
-		}
-	}
-	else
-	{
+	//	if (!IsEnd(ptr))
+	//	{
+	//		goto c;
+	//	}
+	//	else
+	//	{
+	//		goto d;
+	//	}
+	//}
+	//else
+	//{
         // treat the escape character as indicating the presence of a (U)SFM, so test for
         // it as a loop ending criterion
 		wxChar* ptr2;
 		wxChar* ptr3;
 a:		if (!IsEnd(ptr) && *ptr != gSFescapechar)
 		{
-c:			if	(IsWhiteSpace(ptr))
+			// BEW 8Jun10, removed support for checkbox "Recognise standard format
+			// markers only following newlines"
+//c:			if (IsWhiteSpace(ptr))
+			if (IsWhiteSpace(ptr))
 			{
 				smchunk += _T(' '); // we may as well normalize to space 
 									// while we are at it
@@ -7905,9 +7916,12 @@ b:					wxString spaceless = smchunk;
 		else
 		{
 			// we are at the end or at the start of a (U)SFM, so we cannot iterate further
-d:			goto b;
+			// BEW 8Jun10, removed support for checkbox "Recognise standard format
+			// markers only following newlines"
+//d:			goto b;
+			goto b;
 		}	
-	}
+	//}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -8632,6 +8646,11 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarker(wxChar *pChar, wxChar* pBufStart)
 {
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	pBufStart = pBufStart; // after removing support for the checkbox this
+						   // parameter became unused, so suppress compiler warning
+
 	// from version 1.4.1 onwards, we have to allow for contextually defined
 	// sfms. If the gbSfmOnlyAfterNewlines flag is TRUE, then sfms are only
 	// identified as such when a newline precedes the sfm escape character (a backslash)
@@ -8643,49 +8662,52 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar, wxChar* pBufStart)
 	{
 		// pointing at a potential SFM, so check the flag which asks for markers
 		// only to be defined if they follow newlines
-		if (gbSfmOnlyAfterNewlines)
-		{
+		
+		// BEW 8Jun10, removed support for checkbox "Recognise standard format
+		// markers only following newlines"
+		//if (gbSfmOnlyAfterNewlines)
+		//{
 			// the flag is turned on, but we'll have to pass this marker through as a
 			// valid marker, unilaterally, if it is an inLine marker - because these can
 			// be not line initial yet the source file still is marked up correctly; so
 			// check for the inLine == TRUE value, by looking up the marker in its 
 			// USFMAnalysis struct & checking the inLine value
-			USFMAnalysis* pUsfmAnalysis = LookupSFM(pChar);
-			if (pUsfmAnalysis == NULL)
-			{
+		//	USFMAnalysis* pUsfmAnalysis = LookupSFM(pChar);
+		//	if (pUsfmAnalysis == NULL)
+		//	{
 				// it is not a known marker, so treat it as an unknown marker only
 				// provided a newline precedes it; otherwise, it's an instance of
 				// backslash which we want to ignore for marker identification purposes
-				goto a;
-			}
-			if (pUsfmAnalysis->inLine)
-			{
+		//		goto a;
+		//	}
+		//	if (pUsfmAnalysis->inLine)
+		//	{
 				// we don't care whether or not newline precedes, its a valid SFM
-				return TRUE;
-			}
-			else
-			{
+		//		return TRUE;
+		//	}
+		//	else
+		//	{
 				// its not inLine == TRUE, so now it can be a valid SFM only provided
 				// it follows a newline
-a:				if (IsPrevCharANewline(pChar,pBufStart))
-				{
-					return TRUE; // well-formed SFM file, marker is at start of line
-				}
-				else
-				{
+//a:				if (IsPrevCharANewline(pChar,pBufStart))
+		//		{
+		//			return TRUE; // well-formed SFM file, marker is at start of line
+		//		}
+		//		else
+		//		{
                     // marker is not at the start of the line - it's either a malformed SFM
                     // file, or the 'marker' is not to be interpretted as an SFM so that
                     // the backslash is treated as part of the word
-					return FALSE;
-				}
-			}
-		}
-		else
-		{
+		//			return FALSE;
+		//		}
+		//	}
+		//}
+		//else
+		//{
 			// the flag is not turned on, so this backslash is to be interpretted
 			// as starting an SFM
 			return TRUE;
-		}
+		//}
 	}
 	else
 	{

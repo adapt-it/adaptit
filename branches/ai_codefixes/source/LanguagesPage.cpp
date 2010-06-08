@@ -65,8 +65,10 @@ extern CAdapt_ItApp*	gpApp; // if we want to access it fast
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar;
 
-/// This global is defined in Adapt_It.cpp.
-extern bool	  gbSfmOnlyAfterNewlines;
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+// This global is defined in Adapt_It.cpp.
+//extern bool	  gbSfmOnlyAfterNewlines;
 
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
@@ -105,7 +107,9 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	tempSourceLangCode = gpApp->m_sourceLanguageCode; // whm added 10May10
 	tempTargetLangCode = gpApp->m_targetLanguageCode; // whm added 10May10
 	tempSfmEscCharStr = gSFescapechar;
-	tempSfmOnlyAfterNewlines = gbSfmOnlyAfterNewlines;
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//tempSfmOnlyAfterNewlines = gbSfmOnlyAfterNewlines;
 
 	// use wxGenericValidator for simple dialog data transfer
 	pSrcBox = (wxTextCtrl*)FindWindowById(IDC_SOURCE_LANGUAGE);
@@ -124,11 +128,15 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	wxASSERT(pButtonLookupCodes != NULL);
 
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticSFMsAlwasStNewLine = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NL);
-	wxASSERT(pTextCtrlAsStaticSFMsAlwasStNewLine != NULL);
-	pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(gpApp->sysColorBtnFace);
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//pTextCtrlAsStaticSFMsAlwasStNewLine = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NL);
+	//wxASSERT(pTextCtrlAsStaticSFMsAlwasStNewLine != NULL);
+	//pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(gpApp->sysColorBtnFace);
 
-	pSfmOnlyAfterNLCheckBox = (wxCheckBox*)FindWindowById(IDC_CHECK_SFM_AFTER_NEWLINES);
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//pSfmOnlyAfterNLCheckBox = (wxCheckBox*)FindWindowById(IDC_CHECK_SFM_AFTER_NEWLINES);
 }
 
 CLanguagesPage::~CLanguagesPage() // destructor
@@ -223,9 +231,11 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	pTgtBox->ChangeValue(tempTargetName);
 	pSrcLangCodeBox->ChangeValue(tempSourceLangCode); // whm added 10May10
 	pTgtLangCodeBox->ChangeValue(tempTargetLangCode); // whm added 10May10
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
 	// Note: tempSfmOnlyAfterNewLines is initialized in constructor above which happens only
 	// once when the languages page is created in the App
-	pSfmOnlyAfterNLCheckBox->SetValue(tempSfmOnlyAfterNewlines);
+	//pSfmOnlyAfterNLCheckBox->SetValue(tempSfmOnlyAfterNewlines);
 
 	//pDefaultSystemLanguageBox->SetValue(gpApp->m_languageInfo->Description);
 
@@ -321,7 +331,9 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		pApp->m_sourceLanguageCode = pSrcLangCodeBox->GetValue();
 		pApp->m_targetLanguageCode = pTgtLangCodeBox->GetValue();
 		//gSFescapechar = pSfmBox->GetValue().GetChar(0);
-		gbSfmOnlyAfterNewlines = pSfmOnlyAfterNLCheckBox->GetValue();
+		// BEW 8Jun10, removed support for checkbox "Recognise standard format
+		// markers only following newlines"
+		//gbSfmOnlyAfterNewlines = pSfmOnlyAfterNLCheckBox->GetValue();
 		
 		// whm: The stuff below was in MFC's fontPage, but it should go here in the languagesPage.
 		// set up the directories using the new names, plus a KB, for the new project

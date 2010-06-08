@@ -93,8 +93,10 @@ extern wxString freeHaltingMarkers;
 
 extern CSourcePhrase* gpSrcPhrase; // defined in Adapt_ItView.cpp
 
-/// This global is defined in Adapt_It.cpp.
-extern bool gbSfmOnlyAfterNewlines;
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+// This global is defined in Adapt_It.cpp.
+//extern bool gbSfmOnlyAfterNewlines;
 
 extern SPList gSrcPhrases;
 
@@ -14865,25 +14867,27 @@ void FormatMarkerBufferForOutput(wxString& text)
 					// add eol unless the marker's attribute is inLine.
 					if (!IsInLineMarker)
 					{
-						if (gbSfmOnlyAfterNewlines)
-						{
+						// BEW 8Jun10, removed support for checkbox "Recognise standard format
+						// markers only following newlines"
+						//if (gbSfmOnlyAfterNewlines)
+						//{
 							// Backslashes initiate markers only after new lines.
 							// Don't add eol char(s) unless there is already a preceding
 							// space or tab.
 							// TODO: Get clarification of this from Bruce ???
-							if (*(pOld-1) == _T(' ') || *(pOld-1) == _T('\t'))
-							{
+						//	if (*(pOld-1) == _T(' ') || *(pOld-1) == _T('\t'))
+						//	{
 								// insert the eol char(s) into the new buffer
-								int cteol;
-								for (cteol = 0; cteol < lenEolStr; cteol++)
-								{
-									*pNew = gpApp->m_eolStr.GetChar(cteol);
-									pNew++;
-								}
-							}
-						}
-						else
-						{
+						//		int cteol;
+						//		for (cteol = 0; cteol < lenEolStr; cteol++)
+						//		{
+						//			*pNew = gpApp->m_eolStr.GetChar(cteol);
+						//			pNew++;
+						//		}
+						//	}
+						//}
+						//else
+						//{
 							// Backslashes may initiate markers anywhere in the file - after new lines,
 							// or in the midst of text lines.
 							// when inserting eolStr, if preceding char is a space, first remove that
@@ -14897,7 +14901,7 @@ void FormatMarkerBufferForOutput(wxString& text)
 								*pNew = gpApp->m_eolStr.GetChar(cteol);
 								pNew++;
 							}
-						}
+						//}
 					}
 					else if (IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) != _T(' '))
 					{

@@ -65,9 +65,11 @@ public:
 	wxTextCtrl*	pTgtLangCodeBox;
 	wxButton* pButtonLookupCodes;
 
-	wxTextCtrl* pTextCtrlAsStaticSFMsAlwasStNewLine;
-	wxCheckBox*	pSfmOnlyAfterNLCheckBox;
-	bool		tempSfmOnlyAfterNewlines;
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//wxTextCtrl* pTextCtrlAsStaticSFMsAlwasStNewLine;
+	//wxCheckBox*	pSfmOnlyAfterNLCheckBox;
+	//bool		tempSfmOnlyAfterNewlines;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnUILanguage(wxCommandEvent& WXUNUSED(event));

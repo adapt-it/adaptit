@@ -450,14 +450,17 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
-/// When FALSE back slash characters found anywhere in a text are interpreted as
-/// introducing standard format markers (the default). When TRUE back slash characters may
-/// be interpreted as word-building characters. When the gbSfmOnlyAfterNewlines flag is
-/// TRUE, any standard format marker escape characters which do not follow a newline are
-/// not assumed to belong to a sfm, and so we treat them in such cases as ordinary
-/// word-building characters (on the assumption we are dealing with a hacked legacy
-/// encoding in which the escape character is an alphabetic glyph in the font).
-bool gbSfmOnlyAfterNewlines = FALSE;
+// When FALSE back slash characters found anywhere in a text are interpreted as
+// introducing standard format markers (the default). When TRUE back slash characters may
+// be interpreted as word-building characters. When the gbSfmOnlyAfterNewlines flag is
+// TRUE, any standard format marker escape characters which do not follow a newline are
+// not assumed to belong to a sfm, and so we treat them in such cases as ordinary
+// word-building characters (on the assumption we are dealing with a hacked legacy
+// encoding in which the escape character is an alphabetic glyph in the font)
+
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+//bool gbSfmOnlyAfterNewlines = FALSE;
 
 /// Defined as the backslash character.
 /// NOTE: Older versions of Adapt It allowed the user to designate the character to be
@@ -5076,7 +5079,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bAutoInsert = FALSE;
 	m_bTablesLoaded = FALSE; // whm added 23May04 not initialized in MFC
 	
-	gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
 #ifdef _RTL_FLAGS
 	// default reading order should be LTR unless user changes it, or config file changes it
 	m_bSrcRTL = FALSE;
@@ -15773,10 +15778,12 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << gSFescapechar;
 	pf->AddLine(data);
 
-	if (gbSfmOnlyAfterNewlines)
-		number = _T("1");
-	else
-		number = _T("0");
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//if (gbSfmOnlyAfterNewlines)
+	//	number = _T("1");
+	//else
+		number = _T("0"); // now always is FALSE
 	data.Empty();
 	data << szSFMafterNewlines << tab << number;
 	pf->AddLine(data);
@@ -16395,13 +16402,16 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szSFMafterNewlines)
 		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 0;
-			if (num == 1)
-				gbSfmOnlyAfterNewlines = TRUE;
-			else
-				gbSfmOnlyAfterNewlines = FALSE;
+			// BEW 8Jun10, removed support for checkbox "Recognise standard format
+			// markers only following newlines"
+			//num = wxAtoi(strValue);
+			//if (!(num == 0 || num == 1))
+			//	num = 0;
+			//if (num == 1)
+			//	gbSfmOnlyAfterNewlines = TRUE;
+			//else
+			//	gbSfmOnlyAfterNewlines = FALSE;
+			; // deprecated
 		}
 
 #ifdef _RTL_FLAGS
