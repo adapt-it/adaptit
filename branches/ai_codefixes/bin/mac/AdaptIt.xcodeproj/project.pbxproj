@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
+		0396BFCB11BEA67600100CC4 /* CRefString_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */; };
+		0396BFCC11BEA67600100CC4 /* KB_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */; };
+		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
+		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
+		0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
@@ -119,6 +124,16 @@
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
 		0386CB741140CEB9000F9E2E /* Retranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Retranslation.cpp; path = ../../source/Retranslation.cpp; sourceTree = SOURCE_ROOT; };
+		0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CRefString_Standoff.cpp; path = ../../source/CRefString_Standoff.cpp; sourceTree = SOURCE_ROOT; };
+		0396BFC211BEA67600100CC4 /* CRefString_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CRefString_Standoff.h; path = ../../source/CRefString_Standoff.h; sourceTree = SOURCE_ROOT; };
+		0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KB_Standoff.cpp; path = ../../source/KB_Standoff.cpp; sourceTree = SOURCE_ROOT; };
+		0396BFC411BEA67600100CC4 /* KB_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KB_Standoff.h; path = ../../source/KB_Standoff.h; sourceTree = SOURCE_ROOT; };
+		0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageCodesDlg.cpp; path = ../../source/LanguageCodesDlg.cpp; sourceTree = SOURCE_ROOT; };
+		0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LanguageCodesDlg.h; path = ../../source/LanguageCodesDlg.h; sourceTree = SOURCE_ROOT; };
+		0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RefStringMetadata.cpp; path = ../../source/RefStringMetadata.cpp; sourceTree = SOURCE_ROOT; };
+		0396BFC811BEA67600100CC4 /* RefStringMetadata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RefStringMetadata.h; path = ../../source/RefStringMetadata.h; sourceTree = SOURCE_ROOT; };
+		0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TargetUnit_Standoff.cpp; path = ../../source/TargetUnit_Standoff.cpp; sourceTree = SOURCE_ROOT; };
+		0396BFCA11BEA67600100CC4 /* TargetUnit_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TargetUnit_Standoff.h; path = ../../source/TargetUnit_Standoff.h; sourceTree = SOURCE_ROOT; };
 		03D7A717112A2601004F6D39 /* Notes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Notes.h; path = ../../source/Notes.h; sourceTree = "<group>"; };
 		03D7A718112A2601004F6D39 /* Notes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Notes.cpp; path = ../../source/Notes.cpp; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
@@ -360,6 +375,16 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */,
+				0396BFC211BEA67600100CC4 /* CRefString_Standoff.h */,
+				0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */,
+				0396BFC411BEA67600100CC4 /* KB_Standoff.h */,
+				0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */,
+				0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */,
+				0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */,
+				0396BFC811BEA67600100CC4 /* RefStringMetadata.h */,
+				0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */,
+				0396BFCA11BEA67600100CC4 /* TargetUnit_Standoff.h */,
 				031BF31811932FF6005223ED /* Uuid_AI.cpp */,
 				031BF31911932FF6005223ED /* Uuid_AI.h */,
 				C805DBEE11705519006919E2 /* Placeholder.h */,
@@ -771,6 +796,11 @@
 				C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */,
 				C805DBF011705519006919E2 /* Placeholder.cpp in Sources */,
 				031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */,
+				0396BFCB11BEA67600100CC4 /* CRefString_Standoff.cpp in Sources */,
+				0396BFCC11BEA67600100CC4 /* KB_Standoff.cpp in Sources */,
+				0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */,
+				0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */,
+				0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -803,7 +833,7 @@
 					"__WXDEBUG__=1",
 				);
 				GCC_VERSION_i386 = 4.0;
-				GCC_VERSION_ppc = 3.3;
+				GCC_VERSION_ppc = 4.0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Development";
@@ -858,7 +888,7 @@
 					MACOS_CLASSIC,
 				);
 				GCC_VERSION_i386 = 4.0;
-				GCC_VERSION_ppc = 3.3;
+				GCC_VERSION_ppc = 4.0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Deployment";
