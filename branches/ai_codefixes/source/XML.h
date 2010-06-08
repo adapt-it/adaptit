@@ -254,8 +254,8 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 
 // Functions used as callbacks for XML-marked-up LIFT files
 // whm added 19May10
-bool AtLIFTTag(CBString& tag,CStack*& pStack);
-bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag),CStack*& pStack);
+bool AtLIFTTag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtLIFTEmptyElemClose(CBString& tag,CStack*& pStack);
 bool AtLIFTAttr(CBString& WXUNUSED(tag),CBString& WXUNUSED(attrName),
 				CBString& WXUNUSED(attrValue),CStack*& WXUNUSED(pStack));
 bool AtLIFTEndTag(CBString& tag,CStack*& WXUNUSED(pStack));

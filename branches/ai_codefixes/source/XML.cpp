@@ -9,6 +9,9 @@
 /// \description	This is the implementation file for XML routines used in Adapt It for Dana and the WX version.
 /////////////////////////////////////////////////////////////////////////////
 
+// for debugging LIFT AtLIFTxxxx() callback functions
+//#define _debugLIFT_
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "XML.h"
@@ -3920,233 +3923,8 @@ CBString MakeFlags(CSourcePhrase* pSP)
 *  LIFT input as XML - call back functions
 *
 *********************************************************************************/
-/*
-// whm added 19May10
-bool AtLIFTTag(CBString& tag)
-{
-	if (tag == xml_lift)
-	{
-		gpSrcPhrase = new CSourcePhrase;
-		return TRUE;
-	}
-	else if (tag == xml_entry)
-	{
-		// create a new CTargetUnit instance on the heap
-		gpTU = new CTargetUnit;
-	}
-	else if (tag == xml_sense)
-	{
-		// create a new CRefString instance on the heap
-		gpRefStr = new CRefString;
 
-		// set the pointer to the owning CTargetUnit, and add it to the m_translations member
-		gpRefStr->m_pTgtUnit = gpTU; // the current one
-		gpTU->m_pTranslations->Append(gpRefStr);
-	}
-	else if (tag == xml_gloss)
-	{
-		;
-	}
-	else if (tag == xml_definition)
-	{
-		;
-	}
-	else if (tag == xml_text)
-	{
-		;
-	}
-	else if (tag == xml_form)
-	{
-		;
-	}
-	else if (tag == xml_lexical_unit)
-	{
-		;
-	}
-	else
-	{
-		// unknown tag
-		return FALSE;
-	}
-	return TRUE; // no error
-}
-
-bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag))
-{
-	// unused
-	return TRUE;
-}
-
-bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& WXUNUSED(attrValue))
-{
-	if (tag == xml_lift)
-	{
-		if (attrName == xml_lift_version)
-		{
-			// unused
-			;
-		}
-	}
-	if (tag == xml_entry)
-	{
-		if (attrName == xml_guid)
-		{
-			// unused
-			;
-		}
-		else if (attrName == xml_id)
-		{
-			// unused
-			;
-		}
-	}
-	if (tag == xml_form)
-	{
-		if (attrName == xml_lang)
-		{
-			// unused
-			;
-		}
-	}
-	return TRUE; // no error
-}
-
-bool AtLIFTEndTag(CBString& tag)
-{
-	if (tag == xml_entry)
-	{
-		// add the completed CTargetUnit to the CKB's m_pTargetUnits SPList
-		// BEW 28May10 removed, as TUList is redundant
-		//gpKB->m_pTargetUnits->Append(gpTU);
-
-		// The following is patterned after the code in the sfm processing part
-		// of DoKBImport().
-		gpSrcPhrase->m_key.Empty();
-		int nWordCount;
-		
-		// store the association in the KB, provided it is not already there
-		if (gbIsGlossing)
-		{
-			gpSrcPhrase->m_gloss.Empty();
-			gpSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-			nWordCount = 1;
-			gpSrcPhrase->m_nSrcWords = 1; // temp default value
-		}
-		else
-		{
-			gpSrcPhrase->m_adaption.Empty();
-			gpSrcPhrase->m_bHasKBEntry = FALSE;
-			nWordCount = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
-			gpSrcPhrase->m_nSrcWords = nWordCount;
-		}
-
-		if (nWordCount == 0 || nWordCount > MAX_WORDS)
-		{
-			// error condition
-			gpSrcPhrase->m_nSrcWords = 1;
-			gKeyStr.Empty();
-			bKeyDefined = FALSE;
-		}
-		else
-		{
-			gpSrcPhrase->m_nSrcWords = nWordCount;
-			gpSrcPhrase->m_key = gKeyStr;
-		}
-
-		// set up the association between this CTargetUnit's pointer and the source text key
-		// in the current map
-		(*gpMap)[gKeyStr] = gpTU;
-
-		// clear the pointer (not necessary, but a good idea for making sure the code is sound)
-		gpTU = NULL; // the m_pTargetUnits list will manage the pointer from now on
-		// clear the gKeyStr
-		gKeyStr.Empty();
-		bKeyDefined = FALSE;
-	}
-	else if (tag == xml_lift)
-	{
-		delete gpSrcPhrase;
-	}
-	else if (tag == xml_sense || tag == xml_gloss) // treat sense and gloss the same
-	{
-		if (bKeyDefined)
-		{
-			if (gbIsGlossing)
-			{
-				if (!gpApp->m_pGlossingKB->IsAlreadyInKB(1,gKeyStr,gpRefStr->m_translation))
-					gpApp->m_pGlossingKB->StoreText(gpSrcPhrase,gpRefStr->m_translation,TRUE);
-													// TRUE means "allow empty string save"
-			}
-			else
-			{
-				if (!gpApp->m_pKB->IsAlreadyInKB(gpSrcPhrase->m_nSrcWords,gKeyStr,gpRefStr->m_translation))
-					gpApp->m_pKB->StoreText(gpSrcPhrase,gpRefStr->m_translation,TRUE);
-													// TRUE means "allow empty string save"
-			}
-			// prepare for another adaptation (or gloss) for this key
-			gpSrcPhrase->m_adaption.Empty();
-			gpRefStr->m_translation.Empty();
-		}
-	}
-	else if (tag == xml_definition)
-	{
-		// nothing to be done
-		;
-	}
-	else if (tag == xml_text)
-	{
-		// nothing to do
-		;
-	}
-	else if (tag == xml_form)
-	{
-		// nothing to do
-		;
-	}
-	else if (tag == xml_lexical_unit)
-	{
-		// nothing to do
-		;
-	}
-	else
-	{
-		// unknown tag
-		return FALSE;
-	}
-	return TRUE;
-}
-
-bool AtLIFTPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& pStack)
-{
-	// we use PCDATA in LIFT imports for the content delimited by <text>...</text> tags
-	// in LIFT data <text> can occur as a tag embedded in either <lexical-unit> or <sense>
-	if (pStack->Contains(xml_lexical_unit))
-	{
-		ReplaceEntities(pcdata);
-#ifdef _UNICODE
-		gKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
-#else
-		gKeyStr = pcdata.GetBuffer();
-#endif
-		gpSrcPhrase->m_key = gKeyStr;
-		bKeyDefined = TRUE;
-	}
-	else if (pStack->Contains(xml_sense) || pStack->Contains(xml_gloss))
-	{
-		ReplaceEntities(pcdata);
-		wxASSERT(gpRefStr != NULL);
-#ifdef _UNICODE
-		gpRefStr->m_translation = gpApp->Convert8to16(pcdata);
-#else
-		gpRefStr->m_translation = pcdata.GetBuffer();
-#endif
-		gpSrcPhrase->m_adaption = gpRefStr->m_translation;
-	}
-	return TRUE;
-}
-*/
-
-bool AtLIFTTag(CBString& tag, CStack*& pStack)
+bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == xml_entry)
 	{
@@ -4181,6 +3959,14 @@ bool AtLIFTTag(CBString& tag, CStack*& pStack)
 		// create a new CRefString instance on the heap (we won't do anything except
 		// delete it if we later find that it already is on the heap)
 		gpRefStr = new CRefString; // also creates and initializes an owned CRefStringMetadata
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+		void* refstrPtr = (void*)gpRefStr;
+		void* tuPtr = (void*)gpTU;
+		wxLogDebug(_T("in <sense> AtLIFTTag gKeyStr= %s , new gpRefstr= %x , gpTU= %x"),
+			gKeyStr.c_str(),refstrPtr,tuPtr);
+#endif
+#endif
 	}
 	else
 	{
@@ -4190,8 +3976,148 @@ bool AtLIFTTag(CBString& tag, CStack*& pStack)
 	return TRUE; // no error
 }
 
-bool AtLIFTEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
+bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 {
+	if (tag == xml_sense)
+	{
+		if (pStack->MyParentsAre(1,xml_entry,emptyStr,emptyStr))
+		{
+			int numWords = 1;
+			if (gpKB->IsThisAGlossingKB())
+			{
+				gpMap = gpApp->m_pGlossingKB->m_pMap[0];
+			}
+			else
+			{
+				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
+			}
+			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
+			wxString textStr = _T(""); // we will be storing an empty string as the adaptation or gloss
+			if (gpTU_From_Map == NULL)
+			{
+				// there is no CTargetUnit pointer instance in the map for the given key, so
+				// put add the gpRefStr instance to the gpTU instance, and fill out the value
+				// of the members, as this gpTU will have to be managed henceforth by the map,
+				// so we don't delete it...
+				// set the pointer to the owning CTargetUnit, and add it to the m_translations
+				// member
+				gpRefStr->m_pTgtUnit = gpTU;
+				gpTU->m_pTranslations->Append(gpRefStr);
+
+				// add its adaptation, or gloss if the pKB is a glossingKB (creation datetime
+				// is the datetime of the import - this is potentially more useful than any
+				// other datetime, so leave it that way)
+				gpRefStr->m_translation = textStr;
+				gpRefStr->m_refCount = 1;
+				gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+				gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
+
+				// it's ready, so store it in the map
+				(*gpMap)[gKeyStr] = gpTU;
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose"));
+				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, stored gpTU = %x ; with gpRefStr = %x"),
+							gpTU,gpRefStr);
+#endif
+#endif
+				// we create a new pointer, as the map now manages the old one; we use the
+				// default constructor, which does not pre-fill the m_creatorDateTime and
+				// m_whoCreated members of its owned CRefStringMetadata - this is better, to
+				// set these explicitly only for those CRefString instances whose management is
+				// to be taken over by the map, (this saves time, as not all CRefString
+				// instances created by the parser succeed in being managed by the map, those
+				// that don't have to be deleted from the heap)
+				gpRefStr = new CRefString; 
+
+				// now that pTU is managed by the map, we can't risk leaving it non-NULL
+				// because later on it would be deleted in AtLIFTEndTag(); so instead, create a
+				// new one to replace it and continue with that one - if the new one is to be
+				// deleted, it won't then matter
+				gpTU = new CTargetUnit;
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, replaced with gpTU = %x ; and gpRefStr = %x  before leaving block"),
+							gpTU,gpRefStr);
+#endif
+#endif
+			}
+			else
+			{
+				// there is a CTargetUnit pointer in the map for the given key; so find out if
+				// there is a CRefString instance for the given textStr
+				textStr.Trim();
+				textStr.Trim(FALSE);
+				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
+				if (pRefStr_In_TU == NULL)
+				{
+					// this particular adaptation or gloss is not yet in the map's CTargetUnit
+					// instance, so put it in there and have the map manage the CRefString
+					// instance's pointer, but the gpTU instance we created earlier in the
+					// callbacks is not then needed once all the <sense> elements relevant to 
+					// it have been processed, and so it will have to be removed from the heap
+					// eventually (at AtLIFTEndTag() callback)
+					gpRefStr->m_refCount = 1;
+					gpRefStr->m_translation = textStr;
+					gpRefStr->m_pTgtUnit = gpTU_From_Map;
+					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+					gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
+					// the CRefStringMetadata has been initialized with this use:computer's
+					// m_whoCreated value, and the import datetime as the m_creationDateTime
+					// (the latter is more meaningful than using the a creation datetime from
+					// the imported file - especially if we mistakenly are importing malicious
+					// data and need to remove it later on)
+					gpTU_From_Map->m_pTranslations->Append(gpRefStr); // the map entry now manages
+																	  // this CRefString instance
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose"));
+					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose, appended gpRefStr = %x ; to map's gpTU_FROM_MAP = %x"),
+								gpRefStr,gpTU_From_Map);
+#endif
+#endif
+					// we create a new pointer, as the map now manages the old one; we use the
+					// default constructor, which does not pre-fill the m_creatorDateTime and
+					// m_whoCreated members of its owned CRefStringMetadata - this is better, to
+					// set these explicitly only for those CRefString instances whose management is
+					// to be taken over by the map, (this saves time, as not all CRefString
+					// instances created by the parser succeed in being managed by the map, those
+					// that don't have to be deleted from the heap)
+					gpRefStr = new CRefString; 
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %x ; unchanged gpTU = %x"),gpRefStr,gpTU);
+#endif
+#endif
+					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
+					// when the current <entry> contents have finished being processed
+				}
+				else
+				{
+					// this particular adaptation or gloss is in the map's CTargetUnit pointer
+					// already, so we can ignore it. We must delete both the gpRefStr (and
+					// its owned CRefStringMetadata instance), and also delete the gpTU we
+					// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
+					// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
+					;
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+					wxLogDebug(_T("Block 3 in AtLIFTEmptyElemClose"));
+					wxLogDebug(_T("Block 3 in AtLIFTEmptyElemClose, already in map, DO NOTHING"));
+#endif
+#endif
+				}
+			} // end of else block for test of gpTU_From_Map being NULL
+			// we need the next block because we won't subsequently encounter a </sense>
+			// end-tag for this current empty string as gloss or adaptation
+			if (gpRefStr != NULL)
+			{
+				gpRefStr->DeleteRefString(); // also deletes its CRefStringMetadata instance
+				gpRefStr = (CRefString*)NULL;
+			}
+		}
+	}
 	// unused
 	return TRUE;
 }
@@ -4207,20 +4133,45 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == xml_sense)
 	{
-		//if (gpRefStr != NULL)
-		//{
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+		void* refstrPtr = (void*)gpRefStr;
+		void* tuPtr = (void*)gpTU;
+		wxLogDebug(_T("in </sense> AtLIFTEndTag gKeyStr= %s , gpRefstr= %x , gpTU= %x  [[ deleting that ref string ]]"),
+					gKeyStr.c_str(),refstrPtr,tuPtr);
+#endif
+#endif
+		if (gpRefStr != NULL)
+		{
 			gpRefStr->DeleteRefString(); // also deletes its CRefStringMetadata instance
-		//}
+			gpRefStr = (CRefString*)NULL;
+		}
 	}
 	else if (tag == xml_entry)
 	{
-		//if (gpTU != NULL)
-		//{
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+		void* refstrPtr = (void*)gpRefStr;
+		void* tuPtr = (void*)gpTU;
+		wxLogDebug(_T("in </entry> AtLIFTEndTag gKeyStr= %s , gpRefstr= %x , gpTU= %x"),
+					gKeyStr.c_str(),refstrPtr,tuPtr);
+#endif
+#endif
+		if (gpTU != NULL)
+		{
 			// this one is not being managed by an entry in a map, and so we must delete
 			// it here to avoid a memory leak
-			delete gpTU; // we've not added anything to its m_pTranslations list, 
-						 // so it's safe to just delete it alone here
-		//}
+			//gpTU->DeleteTargetUnit(gpTU);
+			gpTU->DeleteTargetUnitContents();
+			delete gpTU;
+			gpTU = (CTargetUnit*)NULL;
+
+			if (gpRefStr != NULL)
+			{
+				gpRefStr->DeleteRefString(); // also deletes its CRefStringMetadata instance
+				gpRefStr = (CRefString*)NULL;
+			}
+		}
 	}
 	else
 	{
@@ -4234,117 +4185,120 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 {
 	// we use PCDATA in LIFT imports for the content delimited by <text>...</text> tags
 	// in LIFT data <text> can occur as a tag embedded in either <lexical-unit> or <sense>
-	if (pStack->MyParentsAre(3, xml_form, xml_lexical_unit, xml_entry) )
+	if (tag == xml_text)
 	{
-		// this is tag stores a lexeme, which to Adapt It will become a KB adaptation or
-		// gloss, depending on whether we are importing an adaptingKB or a glossingKB
-		ReplaceEntities(pcdata);
+		if (pStack->MyParentsAre(3, xml_form, xml_lexical_unit, xml_entry) )
+		{
+			// this is tag stores a lexeme, which to Adapt It will become a KB adaptation or
+			// gloss, depending on whether we are importing an adaptingKB or a glossingKB
+			ReplaceEntities(pcdata);
 #ifdef _UNICODE
-		gKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
+			gKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
 #else
-		gKeyStr = pcdata.GetBuffer();
+			gKeyStr = pcdata.GetBuffer();
 #endif
-		// set up the map pointer - this depends on how many words there are in the source
-		// text in gKeyStr if the KB is an adapting one, but for a glossingKB it is always
-		// the first map
-		int numWords = 1;
-		if (gpKB->IsThisAGlossingKB())
-		{
-			gpMap = gpApp->m_pGlossingKB->m_pMap[0];
-		}
-		else
-		{
-			numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
-			gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
-		}
-
-		// find out if there is CTargetUnit in this map already, for this key; the
-		// following call returns NULL if there is no CTargetUnit for the key yet in the
-		// map, otherwise it returns the map's CTargetUnit instance
-		gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
-		// if gpTU_From_Map is non-NULL, then each <definition> tag, or <gloss> tag, will
-		// yield a potential adaptation (or gloss if the KB is a glossingKB) which will
-		// either belong to this CTargetUnit already, or it won't - in which case we'll
-		// have to add it. We can't do this test until we've re-entered AtLiftPCDATA() in
-		// order to process PCDATA from the <text> tag within either a <definition> tag or
-		// a <gloss> tag 
-	}
-	else if (pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense) ||
-			 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry) )
-	{
-		ReplaceEntities(pcdata);
-		wxASSERT(gpRefStr != NULL);
-		wxString textStr;
-#ifdef _UNICODE
-		textStr = gpApp->Convert8to16(pcdata);
-#else
-		textStr = pcdata.GetBuffer();
-#endif
-		if (gpTU_From_Map == NULL)
-		{
-			// there is no CTargetUnit pointer instance in the map for the given key, so
-			// put add the gpRefStr instance to the gpTU instance, and fill out the value
-			// of the members, as this gpTU will have to be managed henceforth by the map,
-			// so we don't delete it...
-			// set the pointer to the owning CTargetUnit, and add it to the m_translations
-			// member
-			gpRefStr->m_pTgtUnit = gpTU;
-			gpTU->m_pTranslations->Append(gpRefStr);
-
-			// add its adaptation, or gloss if the pKB is a glossingKB (creation datetime
-			// is the datetime of the import - this is potentially more useful than any
-			// other datetime, so leave it that way)
-			gpRefStr->m_translation = textStr;
-			gpRefStr->m_refCount = 1;
-			gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
-			gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
-
-            // it's ready, so store it in the map
-			(*gpMap)[gKeyStr] = gpTU;
-
-            // we create a new pointer, as the map now manages the old one; we use the
-            // default constructor, which does not pre-fill the m_creatorDateTime and
-            // m_whoCreated members of its owned CRefStringMetadata - this is better, to
-            // set these explicitly only for those CRefString instances whose management is
-            // to be taken over by the map, (this saves time, as not all CRefString
-            // instances created by the parser succeed in being managed by the map, those
-            // that don't have to be deleted from the heap)
-			gpRefStr = new CRefString; 
-
-			// now that pTU is managed by the map, we can't risk leaving it non-NULL
-			// because later on it would be deleted in AtLIFTEndTag(); so instead, create a
-			// new one to replace it and continue with that one - if the new one is to be
-			// deleted, it won't then matter
-			gpTU = new CTargetUnit;
-		}
-		else
-		{
-			// there is a CTargetUnit pointer in the map for the given key; so find out if
-			// there is a CRefString instance for the given textStr
-			textStr.Trim();
-			textStr.Trim(FALSE);
-			CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
-			if (pRefStr_In_TU == NULL)
+			// set up the map pointer - this depends on how many words there are in the source
+			// text in gKeyStr if the KB is an adapting one, but for a glossingKB it is always
+			// the first map
+			int numWords = 1;
+			if (gpKB->IsThisAGlossingKB())
 			{
-                // this particular adaptation or gloss is not yet in the map's CTargetUnit
-                // instance, so put it in there and have the map manage the CRefString
-                // instance's pointer, but the gpTU instance we created earlier in the
-                // callbacks is not then needed once all the <sense> elements relevant to 
-                // it have been processed, and so it will have to be removed from the heap
-                // eventually (at AtLIFTEndTag() callback)
-				gpRefStr->m_refCount = 1;
+				gpMap = gpApp->m_pGlossingKB->m_pMap[0];
+			}
+			else
+			{
+				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
+			}
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+			void* refstrPtr = (void*)gpRefStr;
+			void* tuPtr = (void*)gpTU;
+			if (gpKB->IsThisAGlossingKB())
+				wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] GLOSSING_KB"),
+						gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
+			else
+				wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] ADAPTING_KB"),
+						gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
+#endif
+#endif
+		}
+		else if (pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense) ||
+				 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry) )
+		{
+			// The lookup of the KB has to be done here, each time we come to a <text>,
+			// because there could be more than one <sense> in an <entry>, and so while
+			// the first <sense> might lead to a new pTU being stored in the map, if we
+			// looked up the map only in the <lexical-unit> part of the LIFT file, we'd
+			// miss doing lookups for second or later <sense>s of the same gKeyStr - and
+			// so not find the pTU we'd already stored in the map so as to add new
+			// CRefString instances to its m_pTranslations list. So we do it here instead.
+			// gpMap has already been set in the <lexical-unit> block above...
+			// Find out if there is CTargetUnit in this map already, for this key; the
+			// following call returns NULL if there is no CTargetUnit for the key yet in the
+			// map, otherwise it returns the map's CTargetUnit instance
+			int numWords = 1; // always true for a glossingKB
+			if (!gpKB->IsThisAGlossingKB())
+			{
+				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+			}
+			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("within <sense> AtLIFTPCDATA numWords= %d , gKeyStr= %s , gpTU_From_Map= %x"),
+							numWords, gKeyStr.c_str(), gpTU_From_Map);
+#endif
+#endif
+			// If gpTU_From_Map is non-NULL, then each <definition> tag, or <gloss> tag, will
+			// yield a potential adaptation (or gloss if the KB is a glossingKB) which will
+			// either belong to this CTargetUnit already, or it won't - in which case we'll
+			// have to add it. We can't do this test until we've re-entered AtLiftPCDATA() in
+			// order to process PCDATA from the <text> tag within either a <definition> tag or
+			// a <gloss> tag 
+			
+			ReplaceEntities(pcdata);
+			wxASSERT(gpRefStr != NULL);
+			wxString textStr;
+#ifdef _UNICODE
+			textStr = gpApp->Convert8to16(pcdata);
+#else
+			textStr = pcdata.GetBuffer();
+#endif
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+			void* refstrPtr = (void*)gpRefStr;
+			void* tuPtr = (void*)gpTU;
+			wxLogDebug(_T("in <sense> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x, adaptation= %s"),
+						gKeyStr.c_str(),refstrPtr,tuPtr,textStr.c_str());
+#endif
+#endif
+			if (gpTU_From_Map == NULL)
+			{
+				// there is no CTargetUnit pointer instance in the map for the given key, so
+				// put add the gpRefStr instance to the gpTU instance, and fill out the value
+				// of the members, as this gpTU will have to be managed henceforth by the map,
+				// so we don't delete it...
+				// set the pointer to the owning CTargetUnit, and add it to the m_translations
+				// member
+				gpRefStr->m_pTgtUnit = gpTU;
+				gpTU->m_pTranslations->Append(gpRefStr);
+
+				// add its adaptation, or gloss if the pKB is a glossingKB (creation datetime
+				// is the datetime of the import - this is potentially more useful than any
+				// other datetime, so leave it that way)
 				gpRefStr->m_translation = textStr;
-				gpRefStr->m_pTgtUnit = gpTU_From_Map;
+				gpRefStr->m_refCount = 1;
 				gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
 				gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
-				// the CRefStringMetadata has been initialized with this use:computer's
-				// m_whoCreated value, and the import datetime as the m_creationDateTime
-				// (the latter is more meaningful than using the a creation datetime from
-				// the imported file - especially if we mistakenly are importing malicious
-				// data and need to remove it later on)
-				gpTU_From_Map->m_pTranslations->Append(gpRefStr); // the map entry now manages
-																  // this CRefString instance
 
+				// it's ready, so store it in the map
+				(*gpMap)[gKeyStr] = gpTU;
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+				wxLogDebug(_T("Block 1"));
+				wxLogDebug(_T("Block 1, stored gpTU = %x ; with gpRefStr = %x"),gpTU,gpRefStr);
+#endif
+#endif
 				// we create a new pointer, as the map now manages the old one; we use the
 				// default constructor, which does not pre-fill the m_creatorDateTime and
 				// m_whoCreated members of its owned CRefStringMetadata - this is better, to
@@ -4354,23 +4308,89 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 				// that don't have to be deleted from the heap)
 				gpRefStr = new CRefString; 
 
-				// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
-                // when the current <entry> contents have finished being processed
+				// now that pTU is managed by the map, we can't risk leaving it non-NULL
+				// because later on it would be deleted in AtLIFTEndTag(); so instead, create a
+				// new one to replace it and continue with that one - if the new one is to be
+				// deleted, it won't then matter
+				gpTU = new CTargetUnit;
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+				wxLogDebug(_T("Block 1, replaced with gpTU = %x ; and gpRefStr = %x  before leaving block"),
+							gpTU,gpRefStr);
+#endif
+#endif
 			}
 			else
 			{
-				// this particular adaptation or gloss is in the map's CTargetUnit pointer
-				// already, so we can ignore it. We must delete both the gpRefStr (and
-				// its owned CRefStringMetadata instance), and also delete the gpTU we
-				// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
-				// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
-				;
+				// there is a CTargetUnit pointer in the map for the given key; so find out if
+				// there is a CRefString instance for the given textStr
+				textStr.Trim();
+				textStr.Trim(FALSE);
+				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
+				if (pRefStr_In_TU == NULL)
+				{
+					// this particular adaptation or gloss is not yet in the map's CTargetUnit
+					// instance, so put it in there and have the map manage the CRefString
+					// instance's pointer, but the gpTU instance we created earlier in the
+					// callbacks is not then needed once all the <sense> elements relevant to 
+					// it have been processed, and so it will have to be removed from the heap
+					// eventually (at AtLIFTEndTag() callback)
+					gpRefStr->m_refCount = 1;
+					gpRefStr->m_translation = textStr;
+					gpRefStr->m_pTgtUnit = gpTU_From_Map;
+					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+					gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
+					// the CRefStringMetadata has been initialized with this use:computer's
+					// m_whoCreated value, and the import datetime as the m_creationDateTime
+					// (the latter is more meaningful than using the a creation datetime from
+					// the imported file - especially if we mistakenly are importing malicious
+					// data and need to remove it later on)
+					gpTU_From_Map->m_pTranslations->Append(gpRefStr); // the map entry now manages
+																	  // this CRefString instance
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+					wxLogDebug(_T("Block 2"));
+					wxLogDebug(_T("Block 2, appended gpRefStr = %x ; to map's gpTU_FROM_MAP = %x"),
+								gpRefStr,gpTU_From_Map);
+#endif
+#endif
+					// we create a new pointer, as the map now manages the old one; we use the
+					// default constructor, which does not pre-fill the m_creatorDateTime and
+					// m_whoCreated members of its owned CRefStringMetadata - this is better, to
+					// set these explicitly only for those CRefString instances whose management is
+					// to be taken over by the map, (this saves time, as not all CRefString
+					// instances created by the parser succeed in being managed by the map, those
+					// that don't have to be deleted from the heap)
+					gpRefStr = new CRefString; 
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %x ; unchanged gpTU = %x"),
+								gpRefStr,gpTU);
+#endif
+#endif
+					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
+					// when the current <entry> contents have finished being processed
+				}
+				else
+				{
+					// this particular adaptation or gloss is in the map's CTargetUnit pointer
+					// already, so we can ignore it. We must delete both the gpRefStr (and
+					// its owned CRefStringMetadata instance), and also delete the gpTU we
+					// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
+					// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
+					;
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+					wxLogDebug(_T("Block 3"));
+					wxLogDebug(_T("Block 3, already in map, DO NOTHING"));
+#endif
+#endif
+				}
 			}
 		}
 	}
 	return TRUE;
 }
-
 
 /********************************************************************************
 *
@@ -5422,6 +5442,10 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB)
 {
 	wxASSERT(pKB);
 	gpKB = pKB; // set the global gpKB used by the callback functions
+	// clear some important globals used in the parse
+	gKeyStr.Empty();
+	gpTU = NULL;
+	gpRefStr = NULL;
 	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);
 	return bXMLok;

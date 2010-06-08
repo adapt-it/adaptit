@@ -650,6 +650,13 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		wxASSERT(nTranslations > 0); // must be at least one
 		if (nTranslations == 1)
 		{
+			// BEW 8Jun10, changed next section to kbVersion 2 protocol; DO NOT DELETE OLD CODE
+			// because it may be required later if we provide a "clear" option for deleted
+			// entries in the KB
+			// kbv2 code retains the entry in the map, but sets m_bDeleted flag and deletion datetime
+			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+			pRefString->m_bDeleted = TRUE;
+			/* The legacy code
 			// we are removing the only CRefString in the owning targetUnit, so the latter must
 			// go as well
 			delete pRefString;
@@ -677,23 +684,32 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
             // caps is ON, and the user stores an entry with source text starting with
             // upper case, (which will be changed to lower case for the storage), and then
             // later on s/he turns auto caps OFF, then the entry would not be found by the
-            // above line:
-            // bRemoved = pMap->erase(s); and then the wxASSERT would trip; however, we
-            // are saved from this happening because the pRefString passed in is provided
+            // above line: bRemoved = pMap->erase(s); and then the wxASSERT would trip; however,
+            // we are saved from this happening because the pRefString passed in is provided
             // by a prior GetRefString( ) call in the caller, and that would not find the
             // pRefString, and as a consequence it would return NULL, and so the in this
             // block of RemoveRefString( ) the removal would not be asked for; so the
             // wxASSERT would not trip.
+            */
 		}
 		else
 		{
 			// there are other CRefString instances, so don't remove its owning targetUnit
+			
+			// BEW 8Jun10, changed next section to kbVersion 2 protocol; DO NOT DELETE OLD CODE
+			// because it may be required later if we provide a "clear" option for deleted
+			// entries in the KB
+			// kbv2 code retains the entry in the map, but sets m_bDeleted flag and deletion datetime
+			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+			pRefString->m_bDeleted = TRUE;
+			/* legacy code - DO NOT DELETE IT
 			TranslationsList::Node* pos = pTU->m_pTranslations->Find(pRefString);
 			wxASSERT(pos != NULL); // it must be in the list somewhere
 			pTU->m_pTranslations->DeleteNode(pos); // remove that refString from the list
-												   // in the targetUnit
+												   // in the CTargetUnit instance
 			delete pRefString; // delete it from the heap
 			pRefString = (CRefString*)NULL;
+			*/
 		}
 
 		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
@@ -842,6 +858,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
 	CSourcePhrase* pSrcPhrase = new CSourcePhrase;
+
 	// guarantee safe value for storage of contents to KB, or glossing KB
 	if (m_bGlossingKB)
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
@@ -864,7 +881,9 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	{
 		// we're importing from a LIFT file
 		wxFile f;
-		wxLogNull logno; // prevent unwanted system messages
+		//wxLogNull logno; // prevent unwanted system messages
+		// (until wxLogNull goes out of scope, ALL log messages are suppressed - be warned)
+
 		if( !f.Open( pathName, wxFile::read))
 		{
 			wxMessageBox(_("Unable to open import file for reading."),
@@ -880,17 +899,20 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		// the "extern bool gbIsGlossing" declaration in the global namespace there
 		bool bReadOK;
 		if (m_bGlossingKB)
+		{
 			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pGlossingKB);
+		}
 		else
+		{
 			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB);
-
+		}
 		f.Close();
 	}
 	else
 	{
 		// we're importing from an SFM text file (\lx and \ge)
 		wxTextFile file;
-		wxLogNull logno; // prevent unwanted system messages
+		//wxLogNull logno; // prevent unwanted system messages
 		bool bSuccessful;
 		if (!::wxFileExists(pathName))
 		{
@@ -1036,8 +1058,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		file.Close();
 	}
 
-	// process the last line here ???
-	delete pSrcPhrase;
+	// process the last line here ??? (FALSE is bool bDoPartnerPileDeletionAlso)
+	m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 }
 
 bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)

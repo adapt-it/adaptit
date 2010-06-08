@@ -59,7 +59,10 @@ public:
 	CTargetUnit(const CTargetUnit& tu); // MFC note: copy constructor -- it doesn't work, 
 	// see .cpp file for reason // whm moved it here after declaration of m_pTranslations
 
-	virtual ~CTargetUnit(void); // destructor // whm make all destructors virtual
+	//void				DeleteTargetUnit(CTargetUnit* pTU);
+	void				DeleteTargetUnitContents();
+
+	virtual				~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 
 //private:

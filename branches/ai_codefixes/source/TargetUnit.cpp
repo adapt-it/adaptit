@@ -143,4 +143,25 @@ CTargetUnit::~CTargetUnit()
 	m_pTranslations = (TranslationsList*)NULL;
 }
 
-
+// BEW 7Jun10, added, as the legacy code in destructor was inadequate for all contexts (it
+// didn't work for the xml LIFT parser for example)
+//void CTargetUnit::DeleteTargetUnit(CTargetUnit* pTU)
+void CTargetUnit::DeleteTargetUnitContents()
+{
+	TranslationsList::Node* tnode = NULL;
+	//if (pTU->m_pTranslations->GetCount() > 0)
+	if (m_pTranslations->GetCount() > 0)
+	{
+		//for (tnode = pTU->m_pTranslations->GetFirst(); tnode; tnode = tnode->GetNext())
+		for (tnode = m_pTranslations->GetFirst(); tnode; tnode = tnode->GetNext()) 		
+		{
+			CRefString* pRefStr = (CRefString*)tnode->GetData();
+			if (pRefStr != NULL)
+			{
+				pRefStr->DeleteRefString(); // deletes the CRefStringMetadata too
+				pRefStr = (CRefString*)NULL;
+			}
+		}
+	}
+	m_pTranslations->clear(); // leave ~CTargetUnit() to delete the list object from heap
+}
