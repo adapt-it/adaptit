@@ -143,7 +143,7 @@ public:
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
 	CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
-	int				CountSourceWords(wxString& rStr);
+	//int			CountSourceWords(wxString& rStr); // use helpers.cpp TrimAndCountWordsInString() instead
 	bool			IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 
     DECLARE_DYNAMIC_CLASS(CKB)

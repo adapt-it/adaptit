@@ -4275,7 +4275,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			if (gpTU_From_Map == NULL)
 			{
 				// there is no CTargetUnit pointer instance in the map for the given key, so
-				// put add the gpRefStr instance to the gpTU instance, and fill out the value
+				// add the gpRefStr instance to the gpTU instance's list, and fill out the value
 				// of the members, as this gpTU will have to be managed henceforth by the map,
 				// so we don't delete it...
 				// set the pointer to the owning CTargetUnit, and add it to the m_translations

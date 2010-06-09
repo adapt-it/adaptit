@@ -855,15 +855,18 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	return FALSE; // did not find a match
 }
 
+// BEW 9Jun10, modified to suport kbVersion 2, and also to simplify the parsing code for
+// SFM kb import (to remove use of pSrcPhrase) - using code similar to that used for the
+// xml parse of a LIFT file being imported
 void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
-	CSourcePhrase* pSrcPhrase = new CSourcePhrase;
+	//CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 
 	// guarantee safe value for storage of contents to KB, or glossing KB
-	if (m_bGlossingKB)
-		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-	else
-		pSrcPhrase->m_bHasKBEntry = FALSE;
+	//if (m_bGlossingKB)
+	//	pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+	//else
+	//	pSrcPhrase->m_bHasKBEntry = FALSE;
 	wxString key;
 	key.Empty();
 	wxString adaption; // use for actual adaptation, or gloss when glossing is ON
@@ -875,13 +878,29 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	wxString adaptionMarker = ss1 + _T("ge");
 	bool bKeyDefined = FALSE;
 	int nOffset = -1;
-	m_pApp->m_bSaveToKB = TRUE;
+	//m_pApp->m_bSaveToKB = TRUE;
+
+	// BEW 9Jun10 support for kbVersion 2, uses the custom markers:
+	// \del  for the m_bDeleted flag value "0" or "1" values (for FALSE or TRUE)
+	// \cdt  for the m_creationDateTime string
+	// \mdt  for the m_modifiedDateTime string
+	// \ddt  for the m_deletedDateTime string
+	// \wc   for the m_whoCreated string
+	// As for AI_USFM.xml, any of the above for which the string is empty, will not be
+	// included in the output - because defaults will handle those cases at import
+	wxString s1 = gSFescapechar;
+	// note: delimiting space is not included in the next four wxString definitions
+	wxString delflag = s1 + _T("del");
+	wxString createDT = s1 + _T("cdt");
+	wxString modDT = s1 + _T("mdt");
+	wxString delDT = s1 + _T("ddt");
+	wxString whoCr = s1 + _T("wc");
 
 	if (kbImportFileOfType == KBImportFileOfLIFT_XML)
 	{
 		// we're importing from a LIFT file
 		wxFile f;
-		//wxLogNull logno; // prevent unwanted system messages
+		wxLogNull logno; // prevent unwanted system messages
 		// (until wxLogNull goes out of scope, ALL log messages are suppressed - be warned)
 
 		if( !f.Open( pathName, wxFile::read))
@@ -910,9 +929,10 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	}
 	else
 	{
-		// we're importing from an SFM text file (\lx and \ge)
+		// we're importing from an SFM text file (\lx and \ge, and addition data
+		// for kbVersion 2)
 		wxTextFile file;
-		//wxLogNull logno; // prevent unwanted system messages
+		wxLogNull logno; // prevent unwanted system messages
 		bool bSuccessful;
 		if (!::wxFileExists(pathName))
 		{
@@ -946,6 +966,11 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		int lineCount = file.GetLineCount();
 
 		int ct;
+		int nWordCount;
+		MapKeyStringToTgtUnit* pMap; // pointer to the map to use for a given entry
+		CTargetUnit* pTU = NULL;
+		CRefString* pRefStr = NULL;
+		int numWords = 0;
 		for (ct = 0; ct < lineCount; ct++)
 		{
 			line = file.GetLine(ct);
@@ -954,65 +979,69 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			if (IsMember(line,keyMarker,nOffset) || nOffset >= 0)
 			{
 				// it is a valid key
-				pSrcPhrase->m_key.Empty();
-				if (m_bGlossingKB)
-				{
-					pSrcPhrase->m_gloss.Empty();
-					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-					pSrcPhrase->m_nSrcWords = 1; // temp default value
-				}
-				else
-				{
-					pSrcPhrase->m_adaption.Empty();
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_nSrcWords = 1; // temp default value
-				}
+				// default the pMap pointer to the first map in this KB
+				pMap = m_pMap[0];
+				pTU = NULL;
+				pRefStr = NULL;
 				bKeyDefined = TRUE;
-
+				nWordCount = 1;
 				// extract the actual srcPhrase's m_key from the read in string,
 				// to set the key variable
-				int keyLen = line.Length();
+				int keyLen = line.Len();
 				keyLen -= (4 + nOffset); // \lx followed by a space = 4 characters,
 										 // nOffset takes care of any leading spaces
 				if (keyLen > 0)
 				{
 					key = line.Right(keyLen);
-					int nWordCount;
-					if (gbIsGlossing)
-						nWordCount = 1;
-					else
-						nWordCount = CountSourceWords(key);
-					if (nWordCount == 0 || nWordCount > MAX_WORDS)
+					nWordCount = TrimAndCountWordsInString(key);
+
+					// test we can store it in this KB
+					if (!m_bGlossingKB && (nWordCount > MAX_WORDS))
 					{
-						// error condition
-						pSrcPhrase->m_nSrcWords = 1;
+						// error condition for this entry - so ignore it
 						key.Empty();
 						bKeyDefined = FALSE;
-					}
-					else
-					{
-						// we have an acceptable key
-						pSrcPhrase->m_nSrcWords = nWordCount;
-						pSrcPhrase->m_key = key; // CountSourceWords will strip off
-												 // leading or trailing spaces in key
 					}
 				}
 				else
 				{
 					key.Empty();
 					bKeyDefined = FALSE;
-					pSrcPhrase->m_nSrcWords = 1;
+				}
+				if (bKeyDefined && !key.IsEmpty())
+				{
+					// define the map to be used, the default is currently
+					// the first in the CKB instance, which is correct for a glossingKB
+					// but may be wrong for an adaptingKB
+					numWords = 1;
+					if (!m_bGlossingKB)
+					{
+						// it's an adaptingKB, so set pMap correctly
+						numWords = TrimAndCountWordsInString(key);
+						pMap = m_pMap[numWords - 1]; // for this record we lookup and store in this map
+					}
+
+					// look up the map to see if it has a matching CTargetUnit* instance,
+					// & get it if it is there, else return NULL if not
+					pTU = GetTargetUnit(numWords, key); // does an AutoCapsLookup()
+				}
+				else
+				{
+					pTU = NULL;
 				}
 			}
 			else
 			{
 				if (IsMember(line,adaptionMarker,nOffset) || nOffset >= 0)
 				{
-					// an adaptation member exists for this key, so get the KB updated
-					// with this association provided a valid key was constructed
+                    // an 'adaptation' member (for a glossingKB, this is actually a gloss,
+                    // but we use this adaptation name for both here) exists for this key,
+                    // so get the KB updated with this association provided a valid key was
+                    // constructed
+                    adaption.Empty();
 					if (bKeyDefined)
 					{
-						int adaptionLen = line.Length();
+						int adaptionLen = line.Len();
 						adaptionLen -= (4 + nOffset); // \ge followed by a space = 4 characters,
 													  // nOffset takes care of any leading spaces
 						if (adaptionLen > 0)
@@ -1021,45 +1050,212 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 						}
 						else
 						{
-							adaption.Empty();
+							adaption.Empty(); // support storing empty strings
 						}
-
-						// store the association in the KB, provided it is not already there
-						if (m_bGlossingKB)
+						if (pTU == NULL)
 						{
-							if (!IsAlreadyInKB(1,key,adaption)) // use 1, as m_nSrcWords could 
-							{									// be set > 1 for this pSrcPhrase
-								// adaption parameter is assumed to be a gloss if this is a
-								// glossing KB
-								StoreText(pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
-														// TRUE means "allow empty string save"
+                            // there is no CTargetUnit pointer instance in the map for the
+                            // given key, so fill out the pRefStr and store pTU in the map
+							// set the pointer to the owning CTargetUnit, and add it to the m_translations
+							// member
+							pTU = new CTargetUnit;
+							pRefStr = new CRefString; // default constructor doesn't set 
+										// CRefStringMetadata members, we will do them
+										// explicitly below					
+							pRefStr->m_pTgtUnit = pTU;
+							pRefStr->m_translation = adaption;
+							pRefStr->m_refCount = 1;
+							pTU->m_pTranslations->Append(pRefStr);
+							
+							// so store it in the map (this doesn't stop us from adding
+							// metadata strings from subsequent parsed lines)
+							pMap = m_pMap[numWords - 1]; // set it again to avoid compiler warning
+							if (pMap != NULL)
+							{
+								(*pMap)[key] = pTU;
 							}
 						}
 						else
 						{
-							if (!IsAlreadyInKB(pSrcPhrase->m_nSrcWords,key,adaption))
-								StoreText(pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
-														// TRUE means "allow empty string save"
+                            // there is a CTargetUnit pointer in the map for the given key;
+                            // so find out if there is a CRefString instance for the given
+                            // adaption value
+                            wxASSERT(pTU);
+							adaption.Trim();
+							adaption.Trim(FALSE);
+							CRefString* pRefStr = GetRefString(pTU,adaption); // returns
+									// NULL if there was no maatching CRefString instance
+							if (pRefStr == NULL)
+							{
+                                // this particular adaptation or gloss is not yet in the
+                                // map's CTargetUnit instance, so put create a CRefString
+                                // (and CRefStringMetatdata), and add to the pTU's list
+								pRefStr = new CRefString; // default constructor doesn't set 
+											// CRefStringMetadata members, we will do them
+											// explicitly below				
+								pRefStr->m_pTgtUnit = pTU;
+								pRefStr->m_translation = adaption;
+								pRefStr->m_refCount = 1;
+								pTU->m_pTranslations->Append(pRefStr);
+							}
+							else
+							{
+                                // this particular adaptation or gloss is in the map's
+                                // CTargetUnit pointer already, so we should ignore it; to
+                                // do that we just need to set pRefStr to NULL, so that
+								// parsing of subsequent metadata lines in the code
+								// further down will ignore this CRefString and its metadata
+								pRefStr = NULL;
+							}
 						}
-
-						// prepare for another adaptation (or gloss) for this key
-						pSrcPhrase->m_adaption.Empty();
-						adaption.Empty();
-					}
-				}
+					} // end TRUE block for test: if( bKeyDefined )
+				} // end TRUE block for test that the line is a \ge line
 				else
 				{
-					// it's neither a key nor an adaption (or gloss),
-					// so probably a blank line - just ignore it
-					;
+					// it's neither a key nor an adaption (or gloss), so check for metadata,
+					// but if the required pointer(s) are NULL, skip everything until the
+					// next \lx field or next \ge field
+					if (pRefStr == NULL || pTU == NULL)
+					{
+						// ignore anything when pRefSt is NULL, or pTU
+						continue; 
+					}
+					else
+					{
+						// process any metadata lines
+						if (IsMember(line,delflag,nOffset) || nOffset >= 0)
+						{
+							// this marker, if present, will always have either "0" or "1"
+							// as its content
+							wxString delStr;
+							int delLen = line.Len();
+							delLen -= (5 + nOffset); // \del followed by a space = 5 characters,
+													 // nOffset takes care of any leading spaces
+							if (delLen > 0)
+							{
+								delStr = line.Right(delLen);
+							}
+							else
+							{
+								delStr.Empty();
+							}
+							if (!delStr.IsEmpty())
+							{
+								wxASSERT(pRefStr);
+								if (delStr.GetChar(0) == _T('1'))
+								{
+									pRefStr->m_bDeleted = TRUE;
+								}
+								else
+								{
+									pRefStr->m_bDeleted = FALSE;
+								}
+							}
+						} // end of TRUE block for test: the line has a \del marker in it
+						else if (IsMember(line,whoCr,nOffset) || nOffset >= 0)
+						{
+							wxString whoCreatedStr;
+							int whoCreatedLen = line.Len();
+							whoCreatedLen -= (4 + nOffset); // \wC followed by a space = 4 characters,
+													 // nOffset takes care of any leading spaces
+							if (whoCreatedLen > 0)
+							{
+								whoCreatedStr = line.Right(whoCreatedLen);
+							}
+							else
+							{
+								whoCreatedStr.Empty(); // this member should not be empty
+							}
+							wxASSERT(pRefStr);
+							if (!whoCreatedStr.IsEmpty())
+							{
+								pRefStr->m_pRefStringMetadata->m_whoCreated = whoCreatedStr;
+							}
+							else
+							{
+								// if it is empty, then supply the user:localhost now
+								pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+							}
+						} // end of TRUE block for test: the line has a \cdt marker in it
+						else if (IsMember(line,createDT,nOffset) || nOffset >= 0)
+						{
+							wxString createDTStr;
+							int createDTLen = line.Len();
+							createDTLen -= (5 + nOffset); // \cdt followed by a space = 5 characters,
+													 // nOffset takes care of any leading spaces
+							if (createDTLen > 0)
+							{
+								createDTStr = line.Right(createDTLen);
+							}
+							else
+							{
+								createDTStr.Empty(); // this member should not be empty
+							}
+							wxASSERT(pRefStr);
+							if (!createDTStr.IsEmpty())
+							{
+								pRefStr->m_pRefStringMetadata->m_creationDateTime = createDTStr;
+							}
+							else
+							{
+								// if no creation datetime was supplied, give it current datetime
+								pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+							}
+						} // end of TRUE block for test: the line has a \cdt marker in it
+						else if (IsMember(line,modDT,nOffset) || nOffset >= 0)
+						{
+							wxString modDTStr;
+							int modDTLen = line.Len();
+							modDTLen -= (5 + nOffset); // \mdt followed by a space = 5 characters,
+													 // nOffset takes care of any leading spaces
+							if (modDTLen > 0)
+							{
+								modDTStr = line.Right(modDTLen);
+							}
+							else
+							{
+								modDTStr.Empty(); // this member can be empty, & usually is
+							}
+							wxASSERT(pRefStr);
+							if (!modDTStr.IsEmpty())
+							{
+								pRefStr->m_pRefStringMetadata->m_modifiedDateTime = modDTStr;
+							}
+						} // end of TRUE block for test: the line has a \mdt marker in it
+						else if (IsMember(line,delDT,nOffset) || nOffset >= 0)
+						{
+							wxString delDTStr;
+							int delDTLen = line.Len();
+							delDTLen -= (5 + nOffset); // \ddt followed by a space = 5 characters,
+													 // nOffset takes care of any leading spaces
+							if (delDTLen > 0)
+							{
+								delDTStr = line.Right(delDTLen);
+							}
+							else
+							{
+								delDTStr.Empty(); // this member can be empty, & usually is
+							}
+							wxASSERT(pRefStr);
+							if (!delDTStr.IsEmpty())
+							{
+								pRefStr->m_pRefStringMetadata->m_deletedDateTime = delDTStr;
+							}
+						} // end of TRUE block for test: the line has a \ddt marker in it
+						else
+						{
+							// it's nothing that we know about, so just ignore this line
+							continue; 
+						}
+					} // end of block for processing any CRefString metadata lines
 				}
-			}
-		}
+			} // end of else block for test that line has a \lx marker
+		} // end of loop over all lines
 		file.Close();
 	}
 
 	// process the last line here ??? (FALSE is bool bDoPartnerPileDeletionAlso)
-	m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
+	//m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 }
 
 bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
@@ -1077,6 +1273,7 @@ bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 		return FALSE;
 }
 
+/* BEW 9Jun10, deprecated 
 int CKB::CountSourceWords(wxString& rStr)
 {
 	int len = rStr.Length();
@@ -1148,6 +1345,7 @@ d:		nFound = reverse.Find(ch);
 	else
 		return count;
 }
+*/
 
 bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 {
@@ -1197,6 +1395,7 @@ bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 // of a bDelayed boolean flag & simplify the logic
 // whm modified 3May10 to add LIFT format XML export. 
 // BEW 13May10 moved it here from CAdapt_ItView class
+// BEW 9Jun10, added markers and code for support of kbVersion 2 data additions
 void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 {
 	wxASSERT(pFile != NULL);
@@ -1216,7 +1415,21 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						    // contains a <Not In KB> string, we don't export those
 	wxString strNotInKB = _T("<Not In KB>");
 	gloss.Empty(); // this name used for the "adaptation" when adapting,
-				   // or the "gloss" when glossing
+				   // or the "gloss" when glossing 
+	
+	// BEW 9Jun10 support for kbVersion 2, uses the custom markers:
+	// \del  for the m_bDeleted flag value "0" or "1" values (for FALSE or TRUE)
+	// \cdt  for the m_creationDateTime string
+	// \mdt  for the m_modifiedDateTime string
+	// \ddt  for the m_deletedDateTime string
+	// \wc   for the m_whoCreated string
+	// As for AI_USFM.xml, any of the above for which the string is empty, will not be
+	// included in the output - because defaults will handle those cases at import
+	wxString delflag = s1 + _T("del ");
+	wxString createDT = s1 + _T("cdt ");
+	wxString modDT = s1 + _T("mdt ");
+	wxString delDT = s1 + _T("ddt ");
+	wxString whoCr = s1 + _T("wc ");
 
     // MFC's WriteString() function automatically converts any \n embedded within the
     // buffer to the \r\n pair on output. The wxWidgets wxFile::Write() function, however,
@@ -1342,7 +1555,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	CTargetUnit* pTU_sim = 0;
 	for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
 	{
-		if (gbIsGlossing && numWords_sim > 1)
+		if (m_bGlossingKB && numWords_sim > 1)
 			continue; // when glossing we want to consider only the first map, the others
 					  // are all empty
 		if (m_pMap[numWords_sim-1]->size() == 0) 
@@ -1403,7 +1616,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	CRefString* pRefStr;
 	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
 	{
-		if (gbIsGlossing && numWords > 1)
+		if (m_bGlossingKB && numWords > 1)
 			continue; // when glossing we want to consider only the first map, the others
 					  // are all empty
 		if (m_pMap[numWords-1]->size() == 0) 
@@ -1455,16 +1668,11 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 				{
 					// build xml composeXmlStr for the <lexical-unit> ... </lexical-unit>
-					// 
+					
 					// Get the uuid from the CTargetUnit object using pTU->GetUuid()
-					// TODO: use the commented out one below after Bruce implements CTargetUnit::GetUuid()
-					// next three lines are temporary...
 					wxString tempGuid = GetUuid();
 					const wxCharBuffer buff = tempGuid.utf8_str();
 					guidForThisLexItem = buff;
-					// the uuid is of the form "45a3c52b-79fd-4803-856b-207c3efdbaf8"
-					//const wxCharBuffer buff = pTU->GetUuid().utf8_str();
-					//guidForThisLexItem = buff;
 					composeXmlStr = indent2sp;
 					composeXmlStr += "<entry guid=\"";
 					composeXmlStr += guidForThisLexItem;
@@ -1472,7 +1680,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 #ifdef _UNICODE
 					tempCBstr = m_pApp->Convert16to8(baseKey);
 #else
-					tempCBstr = baseKey.c_str(); // check this use of .c_str()???
+					tempCBstr = baseKey.c_str();
 #endif
 					InsertEntities(tempCBstr);
 					composeXmlStr += tempCBstr;
@@ -1493,7 +1701,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 #ifdef _UNICODE
 					tempCBstr = m_pApp->Convert16to8(baseKey);
 #else
-					tempCBstr = baseKey.c_str(); // check this use of .c_str()???
+					tempCBstr = baseKey.c_str();
 #endif
 					InsertEntities(tempCBstr);
 					composeXmlStr += tempCBstr;
@@ -1518,6 +1726,32 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				{
 					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
 					outputSfmStr += gloss + m_pApp->m_eolStr;
+
+					// BEW 9Jun10, add extra data for kbVersion 2
+					// first the m_bDeleted flag value
+					if (pRefStr->m_bDeleted)
+					{
+						outputSfmStr += delflag + _T("1") + m_pApp->m_eolStr;
+					}
+					else
+					{
+						outputSfmStr += delflag + _T("0") + m_pApp->m_eolStr;
+					}
+					// next, the m_whoCreated value
+					outputSfmStr += whoCr + pRefStr->m_pRefStringMetadata->m_whoCreated + m_pApp->m_eolStr;
+					// next, whichever of the three datetime strings which are non-empty
+					if (!pRefStr->m_pRefStringMetadata->m_creationDateTime.IsEmpty())
+					{
+						outputSfmStr += createDT + pRefStr->m_pRefStringMetadata->m_creationDateTime + m_pApp->m_eolStr;
+					}
+					if (!pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty())
+					{
+						outputSfmStr += modDT + pRefStr->m_pRefStringMetadata->m_modifiedDateTime + m_pApp->m_eolStr;
+					}
+					if (!pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+					{
+						outputSfmStr += delDT + pRefStr->m_pRefStringMetadata->m_deletedDateTime + m_pApp->m_eolStr;
+					}
 				}
 
 				// reject any xml output which contains "<Not In KB>"
@@ -1541,7 +1775,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 #ifdef _UNICODE
 					tempCBstr = m_pApp->Convert16to8(baseGloss);
 #else
-					tempCBstr = baseGloss.c_str(); // check this use of .c_str()???
+					tempCBstr = baseGloss.c_str();
 #endif
 					InsertEntities(tempCBstr);
 					composeXmlStr += tempCBstr;
@@ -1573,8 +1807,33 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					{
 						gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
 						outputSfmStr += gloss + m_pApp->m_eolStr;
-					}
 
+						// BEW 9Jun10, add extra data for kbVersion 2
+						// first the m_bDeleted flag value
+						if (pRefStr->m_bDeleted)
+						{
+							outputSfmStr += delflag + _T("1") + m_pApp->m_eolStr;
+						}
+						else
+						{
+							outputSfmStr += delflag + _T("0") + m_pApp->m_eolStr;
+						}
+						// next, the m_whoCreated value
+						outputSfmStr += whoCr + pRefStr->m_pRefStringMetadata->m_whoCreated + m_pApp->m_eolStr;
+						// next, whichever of the three datetime strings which are non-empty
+						if (!pRefStr->m_pRefStringMetadata->m_creationDateTime.IsEmpty())
+						{
+							outputSfmStr += createDT + pRefStr->m_pRefStringMetadata->m_creationDateTime + m_pApp->m_eolStr;
+						}
+						if (!pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty())
+						{
+							outputSfmStr += modDT + pRefStr->m_pRefStringMetadata->m_modifiedDateTime + m_pApp->m_eolStr;
+						}
+						if (!pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+						{
+							outputSfmStr += delDT + pRefStr->m_pRefStringMetadata->m_deletedDateTime + m_pApp->m_eolStr;
+						}
+					}
 
 					// reject any xml output which contains "<Not In KB>"
 					if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
@@ -1597,7 +1856,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	#ifdef _UNICODE
 						tempCBstr = m_pApp->Convert16to8(baseGloss);
 	#else
-						tempCBstr = baseGloss.c_str(); // check this use of .c_str()???
+						tempCBstr = baseGloss.c_str();
 	#endif
 						InsertEntities(tempCBstr);
 						composeXmlStr += tempCBstr;
@@ -1622,7 +1881,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						progDlg.Update(counter,msgDisplayed);
 					}
 #endif
-				}
+				} // end of inner loop for looping over CRefString instances
 
 				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 				{
