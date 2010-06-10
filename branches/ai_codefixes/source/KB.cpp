@@ -858,6 +858,8 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 // BEW 9Jun10, modified to suport kbVersion 2, and also to simplify the parsing code for
 // SFM kb import (to remove use of pSrcPhrase) - using code similar to that used for the
 // xml parse of a LIFT file being imported
+// BEW 8Jun10, added markers and code for support of kbVersion 2 data additions, and for
+// support of both LIFT import and \lx &\ge -based SFM KB import
 void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
 	//CSourcePhrase* pSrcPhrase = new CSourcePhrase;
@@ -1065,6 +1067,18 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 							pRefStr->m_pTgtUnit = pTU;
 							pRefStr->m_translation = adaption;
 							pRefStr->m_refCount = 1;
+							// the next two are defaults, set to the current datetime and
+							// the local user's username:machinename; to ensure these
+							// members are set in the eventuality that the file being
+							// parsed in may be a kbVersion 1 \lx & \ge file (which, of
+							// course, as no metadata), but if the file being parsed in is
+							// a kbVersion 2 one, then the values in these two members
+							// will be overridden by what is read from the file when the
+							// \cdt and \wc lines are parsed in
+							pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+							pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+							// append the CRefString to the CTargetUnit's list that is to
+							// manage it
 							pTU->m_pTranslations->Append(pRefStr);
 							
 							// so store it in the map (this doesn't stop us from adding
@@ -1096,6 +1110,18 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 								pRefStr->m_pTgtUnit = pTU;
 								pRefStr->m_translation = adaption;
 								pRefStr->m_refCount = 1;
+								// the next two are defaults, set to the current datetime and
+								// the local user's username:machinename; to ensure these
+								// members are set in the eventuality that the file being
+								// parsed in may be a kbVersion 1 \lx & \ge file (which, of
+								// course, as no metadata), but if the file being parsed in is
+								// a kbVersion 2 one, then the values in these two members
+								// will be overridden by what is read from the file when the
+								// \cdt and \wc lines are parsed in
+								pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+								pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+								// append the CRefString to the CTargetUnit's list that is to
+								// manage it
 								pTU->m_pTranslations->Append(pRefStr);
 							}
 							else
