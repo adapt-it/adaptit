@@ -179,5 +179,6 @@ void		AddAnyBasedonNext(wxString& tempStr, USFMAnalysis* pSfm);
 wxString	RemoveFreeTransWordCountFromStr(wxString freeStr); // whm added 3Dec05
 wxString	GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 							wxArrayString& StyleDefStrArray, int& indx); // whm added 18Oct05
+void		RemoveMarkersOfType(enum TextType textType, wxString& text);
 
 #endif //ExportFunctions_h

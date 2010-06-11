@@ -14161,6 +14161,14 @@ int RebuildFreeTransText(wxString& freeTrans)
 	// because of the way free translation strings are stored, such as \it \it* for an
 	// italicized word, or \k and \k* for a keyword, etc -- this will be in the output
 	// together, after the free translation section in which they were stored. No big deal.
+	// 
+	// BEW comment 11Jun10, docVersion 5 doesn't store all the filtered material in
+	// m_markers any more, but in dedicated wxString members of the CSourcePhrase; also,
+	// we will ignore any markers which have the textType 'none' - because these are the
+	// things likely to be medial in a merger (the user doesn't see them in the GUI), and
+	// if medial and a RTF export is wanted, that could result in an endmarker without
+	// matching start-marker, etc - which would cause the RTF scanning loop to terminate
+	// prematurely - so it's best to just get rid of such markers 
 	freeTrans.Empty();
 	wxString tempStr;
     // BEW added 16Jan08 A boolean added in support of adequate handling of markers which
@@ -14325,8 +14333,118 @@ int RebuildFreeTransText(wxString& freeTrans)
 
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
+	// remove any marker or end-marker which has textType of 'none'
+	RemoveMarkersOfType(none, freeTrans);
+
 	// update length
 	return freeTrans.Length();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+/// \returns                nothing
+/// \param  theTextType ->  the TextType enum value for the marker type to be removed
+/// \param  text        ->  the wxString which has the text we wish to remove from
+/// \remarks
+/// Currently called only from RebuildFreeTransText(), to remove markers of TextType none
+/// Creates a copy-buffer of same size as for the text param, and then scans through the passed
+/// in buffer looking for markers with the passed in TextType value. Any such are skipped,
+/// and all other characters scanned over are copied to the copy-buffer. The final
+/// contents of the copy-buffer are then returned to the caller by value via the text parameter
+/// BEW created 11Jun10, to fix an RTF free translation bug where the RTF production
+/// halted prematurely because a merger over a \w marker made it medial to the merger, and
+/// so not in the free translation SFM, leaving its \w* end-marker in the SFM as an orphan,
+/// and that kills the RTF production code. \w is of TextType none, and so all markers of
+/// that type should be omitted from a free translation export (i.e. remove markers for
+/// things like bolding, glossary markers, wordlist markers, italics markers, and so forth)
+///////////////////////////////////////////////////////////////////////////////////////////////
+void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	int len = text.Len();
+
+    // Since we require a read-only buffer for our main buffer we use GetData
+    // which just returns a const wxChar* to the data in the string.
+	const wxChar* pBuff = text.GetData();
+	wxChar* pBufStart = (wxChar*)pBuff;
+	wxChar* pEnd = pBufStart + len;
+	wxASSERT(*pEnd == _T('\0'));
+	wxChar* pOld = pBufStart;
+
+	// For a copy-to buffer we'll base it on text2 with a same-sized buffer
+	wxString text2;
+	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it
+	wxChar* pBuff2 = text2.GetWriteBuf(len + 1);
+	wxChar* pBufStart2 = pBuff2;
+	wxChar* pEnd2;
+	pEnd2 = pBufStart2 + len;
+	wxChar* pNew = pBuff2;
+
+	wxString wholeMkr;
+	wxString bareMkr;
+	wholeMkr.Empty();
+	bool bIsMkrOfTypeToRemove = FALSE;
+	int itemLen; // stores length of parsed marker
+	while (*pOld != (wxChar)0 && pOld < pEnd)
+	{
+		// scan & copy across until next backslash (this test assumes we will no longer
+		// support the legacy feature that \ is to be interpretted as a SF escape
+		// character only before newlines)
+		while (*pOld != gSFescapechar && pOld < pEnd)
+		{
+			*pNew++ = *pOld++;
+		}
+		if (pOld == pEnd)
+		{
+			// all transfers are done, return the string to the caller
+			*pNew = (wxChar)0; // terminate the new buffer string with null char
+			text2.UngetWriteBuf();
+			text = text2; // replace old string with new one
+			return;
+		}
+		// at an SF marker, we determine if it is one we wish to remove, or not, and in
+		// the former case we jump it and and continue searching, but if not for removal
+		// then we copy it across & continue searching
+		if (pDoc->IsMarker(pOld, pBufStart))
+		{
+			// we are pointing at a marker; get the marker into the wholeMkr
+			wholeMkr = pDoc->GetWholeMarker(pOld);
+
+			// get the length of the marker
+			itemLen = pDoc->ParseMarker(pOld);
+			// check integrity of results from ParseMarker
+			wxASSERT(itemLen > 0);
+			wxASSERT(itemLen == (int)wholeMkr.Len());
+
+			// get the bare marker, lookupable, (ie. no \ and no final *)
+			bareMkr = wholeMkr.Mid(1); // remove initial backslash
+			if (bareMkr.Last() == _T('*'))
+			{
+				bareMkr = bareMkr.Left(itemLen - 2);
+			}
+
+			// is it a marker of the type we want to remove?
+			USFMAnalysis* pUSFMStruct = pDoc->LookupSFM(bareMkr);
+			bIsMkrOfTypeToRemove = pUSFMStruct->textType == theTextType ? TRUE : FALSE;
+			if (bIsMkrOfTypeToRemove)
+			{
+				// don't copy it across, just put pOld pointing at first character after
+				// it
+				pOld += itemLen;
+			}
+			else
+			{
+				// it's not for removal, so copy it across
+				int ctmkr;
+				for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
+				{
+					*pNew++ = *pOld++;
+				}
+			}
+		} // end of TRUE block for test: if (pDoc->IsMarker(pOld, pBufStart))
+	} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
+	*pNew = (wxChar)0; // terminate the new buffer string with null char
+	text2.UngetWriteBuf();
+	text = text2; // replace old string with new one
 }
 
 // BEW revised 31Oct05
