@@ -73,11 +73,11 @@ protected:
 							// BEW added 24Mar09, to simplify MoveToNextPile()
 	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect);
 							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
-	bool MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile);
-	bool MoveToNextPile_InTransliterationMode(CAdapt_ItView* pView, CPile* pCurPile); // BEW added 24Mar09
+	bool MoveToNextPile(CPile* pCurPile);
+	bool MoveToNextPile_InTransliterationMode(CPile* pCurPile); // BEW added 24Mar09
 							// to simplify the syntax for MoveToNextPile()
-	bool MoveToPrevPile(CAdapt_ItView* pView, CPile* pCurPile);
-	bool MoveToImmedNextPile(CAdapt_ItView* pView, CPile* pCurPile);
+	bool MoveToPrevPile(CPile* pCurPile);
+	bool MoveToImmedNextPile(CPile* pCurPile);
 	bool IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile);
 	void JumpForward(CAdapt_ItView* pView);
 
@@ -85,13 +85,11 @@ public:
 	void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
-	bool LookAhead(CAdapt_ItView* pAppView, CPile* pNewPile);
-	void Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView, 
-							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
+	bool LookAhead(CPile* pNewPile);
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);
 	bool OnePass(CAdapt_ItView *pView);
 	bool ChooseTranslation(bool bHideCancelAndSelectButton = FALSE);
-	bool LookUpSrcWord(CAdapt_ItView* pAppView, CPile* pNewPile);
+	bool LookUpSrcWord(CPile* pNewPile);
 	//SPList::Node* GetSrcPhrasePos(int nSequNum, SPList* pSourcePhrases);
 	void SetModify(bool modify);
 	bool GetModify();

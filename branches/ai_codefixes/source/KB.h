@@ -61,9 +61,8 @@ class CKB : public wxObject
 	friend class CTargetUnit;
 	friend class CRefString;
 	friend class CRefStringMetadata;
-	friend bool GetGlossingKBFlag(CKB& kb);  // or the public accessor, IsThisAGlossingKB()
-											   // can be used instead of this friend function
-
+	friend bool GetGlossingKBFlag(CKB* pKB);  // or the public accessor, IsThisAGlossingKB()
+											  // can be used instead of this friend function
 public:
 	CKB();
 	CKB(bool bGlossingKB); // BEW 12May10, use this constructor everywhere from 5.3.0 onwards
@@ -109,11 +108,13 @@ public:
 	// Public implementation functions
 	bool			AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
 	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
+	int				CountNonDeletedRefStringInstances(CTargetUnit* pTU);
 	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
 	void			DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType);
 	void			DoKBSaveAsXML(wxFile& f);
 	void			DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
 	bool			FindMatchInKB(int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
+	void			Fix_NotInKB_WronglyEditedOut(CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	void			GetAndRemoveRefString(CSourcePhrase* pSrcPhrase,
 								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
 	void			GetForceAskList(KPlusCList* pKeys);

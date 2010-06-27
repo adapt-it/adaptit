@@ -1330,7 +1330,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 	gbUnmergeJustDone = TRUE; // prevent second OnButtonRestore() call from within
 	// ChooseTranslation() within LookUpSrcWord() if user happens to
 	// cancel the Choose Translation dialog (see CPhraseBox code)
-	bGotTranslation = m_pApp->m_pTargetBox->LookUpSrcWord(m_pView,m_pApp->m_pActivePile);
+	bGotTranslation = m_pApp->m_pTargetBox->LookUpSrcWord(m_pApp->m_pActivePile);
 	gbUnmergeJustDone = FALSE; // clear flag to default value, since it is a global boolean
 	wxASSERT(m_pApp->m_pActivePile); // it was created in the caller just prior to this
 	// function being called 

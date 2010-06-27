@@ -43,6 +43,11 @@
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
 #include "Uuid_AI.h" // for uuid support
+// the following includes support friend functions for various classes
+#include "TargetUnit.h"
+#include "KB.h"
+#include "KBEditor.h"
+#include "RefString.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -1171,7 +1176,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 	if (pListBox->GetCount() == 0)
 		return FALSE;
 
-	// If we get here we know there is at least one item in the list. Insure we have a valid selection. 
+	// If we get here we know there is at least one item in the list. Ensure we have a valid selection. 
 	// Sanity check #3 check that at least one item in the control is selected/highlighted
 	int nSelTemp;
 	nSelTemp = pListBox->GetSelection();
@@ -2897,6 +2902,15 @@ wxString SetWho(bool bOriginatedFromTheWeb)
 }
 
 
+//*************************************
+// Friend functions for various classes
+//*************************************
+
+// friend function for CKB class, to access private m_bGlossingKB flag
+bool GetGlossingKBFlag(CKB* pKB)
+{
+	return pKB->m_bGlossingKB;
+}
 
 
 

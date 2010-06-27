@@ -38,6 +38,7 @@
 #include "ChooseTranslation.h"
 #include "TargetUnit.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 #include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "KB.h"
@@ -112,7 +113,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 // This global is defined in Adapt_It.cpp.
 //extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the NRoman version, using the extra Layout menu
-extern CTargetUnit* pCurTargetUnit;
+extern CTargetUnit* pCurTargetUnit; // defined PhraseBox.cpp
 extern wxString		curKey;
 extern int			nWordsInPhrase;
 extern bool			gbInspectTranslations;
@@ -436,18 +437,7 @@ void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED
 	s = s.Format(_("<no adaptation>")); // get ready "<no adaptation>" in case needed
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
-	//if (nSel == -1)//LB_ERR
-	//{
-	//	// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
-	//	// handler. The following message is of little help to the user even if it were called for a genuine
-	//	// problem, so I've commented it out, so the present handler can exit gracefully
-	//	//wxMessageBox(_("List box error when getting the current selection"), 
-	//	//	_T(""), wxICON_ERROR);
-	//	//wxASSERT(FALSE);
-	//	return; //wxExit();
-	//}
-	wxString str;
-	str = m_pMyListBox->GetString(nSel);
+	wxString str = m_pMyListBox->GetString(nSel);
 	int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
 	wxASSERT(nNewSel != -1);
 	m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nNewSel);
@@ -473,28 +463,16 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
 	{
-		// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
-		// handler. The following message is of little help to the user even if it were called for a genuine
-		// problem, so I've commented it out, so the present handler can exit gracefully
+        // In wxGTK, when m_pMyListBox->Clear() is called it triggers this
+        // OnSelchangeListExistingTranslations handler.
 		wxMessageBox(_("List box error when getting the current selection"),
-			_T(""), wxICON_EXCLAMATION);
-		return; //wxASSERT(FALSE);
+		_T(""), wxICON_EXCLAMATION);
+		return;
 	}
 
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
-	//if (nSel == -1)// LB_ERR
-	//{
-	//	// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
-	//	// handler. The following message is of little help to the user even if it were called for a genuine
-	//	// problem, so I've commented it out, so the present handler can exit gracefully
-	//	wxMessageBox(_("List box error when getting the current selection"),
-	//		_T(""), wxICON_EXCLAMATION);
-	//	wxASSERT(FALSE);
-	//	//wxExit();
-	//}
-	wxString str;
-	str = m_pMyListBox->GetString(nSel);
+	wxString str = m_pMyListBox->GetString(nSel);
 	int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
 	wxASSERT(nNewSel != -1);
 	m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nNewSel);
@@ -525,38 +503,32 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		return;
 
 	wxString s;
-	// IDS_NO_ADAPTATION
 	s = s.Format(_("<no adaptation>")); // that is, "<no adaptation>" in case we need it
 
-	// this button must remove the selected translation from the KB, which means that
-	// user must be shown a child dialog or message to the effect that there are m_refCount instances
-	// of that translation in this and previous document files which will then not agree with
-	// the state of the knowledge base, and the user is then to be urged to do a Verify operation
-	// on each of the existing document files to get the KB and those files in synch with each other.
-
+    // this button must remove the selected translation from the KB, which means that user
+    // must be shown a child dialog or message to the effect that there are m_refCount
+    // instances of that translation in this and previous document files which will then
+    // not agree with the state of the knowledge base, and the user is then to be urged to
+    // do a Verify operation on each of the existing document files to get the KB and those
+    // files in synch with each other.
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
 	{
 		// message can be in English, it's never likely to occur
-		wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_ERROR);
-		return; //wxASSERT(FALSE);
+		wxMessageBox(_("List box error when getting the current selection"),
+		_T(""), wxICON_ERROR);
+		return;
 	}
 
-	// get the index of the selected translation string (this will be same index for the CRefString
-	// stored in pCurTargetUnit)
+    // get the index of the selected translation string (this will be same index for the
+	// CRefString stored in pCurTargetUnit if there are no deleted CRefString instances,
+	// but if there area deleted ones, the indices will not be in sync)
 	int nSel;
 	wxString str;
 	nSel = m_pMyListBox->GetSelection();
-	//if (nSel == -1)// LB_ERR
-	//{
-	//	// message can be in English, it's never likely to occur
-	//	wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_ERROR);
-	//	wxASSERT(FALSE);
-	//	//wxExit();
-	//}
 
-	// get the selected string into str; it could be upper or lower case, even when auto caps
-	// is ON, because the user could have made KB entries with auto caps OFF previously. But
-	// we take the string as is, and don't make case conversions here
+    // get the selected string into str; it could be upper or lower case, even when auto
+    // caps is ON, because the user could have made KB entries with auto caps OFF
+    // previously. But we take the string as is, and don't make case conversions here
 	str = m_pMyListBox->GetString(nSel); // the list box translation string being deleted
 	wxString str2 = str;
 	wxString message;
@@ -565,31 +537,44 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
-	// then go ahead and do the removals. (Note: the global pCurTargetUnit is set to a
-	// target unit in either the glossing KB (when glossing is ON) or to one in the normal KB
-	// when adapting, so we don't need to test gbIsGlossing here.
-	TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(nSel);
+	// then go ahead and do the removals. 
+    // Note: the global pCurTargetUnit is set to a target unit in either the glossing KB
+    // (when glossing is ON) or to one in the normal KB when adapting, so we don't need to
+    // test for the KB type here.
+	// BEW 25Jun10, because of the possible presence of deletions, we must get pos by a
+	// find rather than rely on the selection index
+	int itemIndex = pCurTargetUnit->FindRefString(str);
+	wxASSERT(itemIndex != wxNOT_FOUND);
+	TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(itemIndex);
 	wxASSERT(pos != NULL);
 	CRefString* pRefString = (CRefString*)pos->GetData();
 	wxASSERT(pRefString != NULL);
 
-	// check that we have the right reference string instance; we must allow for equality of two empty
-	// strings to be considered to evaluate to TRUE
+    // check that we have the right reference string instance; we must allow for equality
+    // of two empty strings to be considered to evaluate to TRUE
 	if (str.IsEmpty() && pRefString->m_translation.IsEmpty())
-		goto a;
-	if (str != pRefString->m_translation)
 	{
-		// message can be in English, it's never likely to occur
-		wxMessageBox(_T("OnButtonRemove() error: Knowledge bases's adaptation text does not match that selected in the list box\n"),
-			_T(""), wxICON_EXCLAMATION);
+		// both empty, so they match
+		;
 	}
-
-	// get the ref count, use it to warn user about how many previous references this will mess up
-a:	int nPreviousReferences = pRefString->m_refCount;
+	else
+	{
+		if (str != pRefString->m_translation)
+		{
+			// message can be in English, it's never likely to occur
+			wxMessageBox(_T(
+"OnButtonRemove() error: Knowledge bases's adaptation text does not match that selected in the list box\n"),
+			_T(""), wxICON_EXCLAMATION);
+		}
+	}
+	// get the ref count, use it to warn user about how many previous references 
+	// this will mess up
+	int nPreviousReferences = pRefString->m_refCount;
 
 	// warn user about the consequences, allow him to get cold feet & back out
-	// IDS_VERIFY_NEEDED
-	message = message.Format(_("Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),str2.c_str(),nPreviousReferences);
+	message = message.Format(_(
+"Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
+		str2.c_str(),nPreviousReferences);
 	int response = wxMessageBox(message, _T(""), wxYES_NO | wxICON_WARNING);
 	if (!(response == wxYES))
 	{
@@ -612,24 +597,30 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 	}
 	m_refCountStr.Empty();
 	m_refCountStr << m_refCount;
-	// m_refCount will have been set to -1 (ie. LB_ERR) if we remove the last thing in the list box,
-	// so we have to detect that & change it to zero, otherwise bounds checking won't let us exit
-	// the box
+    // m_refCount will have been set to -1 if we remove the last thing in the list box, so
+    // we have to detect that & change it to zero, otherwise bounds checking won't let us
+    // exit the box
 	if (m_refCount < 0)
 		m_refCount = 0;
 	if (str == s)
 	{
-		str = _T(""); // not needed I think, but I'll leave it here, it's harmless
+		// if str was reset to "<no adaptation>" then make it empty for any kb check below
+		str = _T("");
 	}
 
 	// in support of removal when autocapitalization might be on - see the OnButtonRemove handler
 	// in KBEditor.cpp for a full explanation of the need for this flag
 	gbCallerIsRemoveButton = TRUE;
 
-	// remove the corresponding CRefString instance from the knowledge base
-	delete pRefString;
-	pRefString = (CRefString*)NULL;
-	pCurTargetUnit->m_pTranslations->DeleteNode(pos);
+	// remove the corresponding CRefString instance from the knowledge base...
+	// BEW 25Jun10, 'remove' now means, set m_bDeleted = TRUE, etc, and hide it in the GUI
+	wxASSERT(pRefString != NULL);
+	pRefString->SetDeletedFlag(TRUE);
+	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+	pRefString->m_refCount = 0;
+	
+
+//*** UP TO HERE ***
 
 	// are we about to delete the last item in the box?
 	int nItems = m_pMyListBox->GetCount();
@@ -698,6 +689,7 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 		m_pMyListBox->SetFocus();
 }
 
+// BEW 25Jun10, changes needed for support of kbVersion 2
 void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
@@ -730,13 +722,14 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	#endif
 
 	// set the "matched source text" edit box contents
-	m_pSourcePhraseBox->SetValue(curKey);
+	m_pSourcePhraseBox->ChangeValue(curKey);
 
 	// set the "new translation" edit box contents to a null string
-	m_pNewTranslationBox->SetValue(_T(""));
+	m_pNewTranslationBox->ChangeValue(_T(""));
 
 	// set the list box contents to the translation or gloss strings stored
-	// in the global variable pTargetUnit, which has just been matched
+	// in the global variable pCurTargetUnit, which has just been matched
+	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
 	CRefString* pRefString;
 	TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->GetFirst();
 	wxASSERT(pos != NULL);
@@ -744,16 +737,21 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	{
 		pRefString = (CRefString*)pos->GetData();
 		pos = pos->GetNext();
-		wxString str = pRefString->m_translation;
-		if (str.IsEmpty())
+		if (!pRefString->GetDeletedFlag())
 		{
-			str = s;
+			// this one is not deleted, so show it to the user
+			wxString str = pRefString->m_translation;
+			if (str.IsEmpty())
+			{
+				str = s;
+			}
+			m_pMyListBox->Append(str);
+			// m_pMyListBox is NOT sorted but it is safest to find the just-inserted
+			// item's index before calling SetClientData()
+			int nLocation = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
+			wxASSERT(nLocation != -1); // we just added it so it must be there!
+			m_pMyListBox->SetClientData(nLocation,&pRefString->m_refCount);
 		}
-		m_pMyListBox->Append(str);
-		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's index before calling SetClientData()
-		int nLocation = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
-		wxASSERT(nLocation != -1); // we just added it so it must be there!
-		m_pMyListBox->SetClientData(nLocation,&pRefString->m_refCount);
 	}
 
 	// select the first string in the listbox by default

@@ -5170,7 +5170,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					{
 						bGlossingKB = TRUE;
 					}
-					if (GetGlossingKBFlag(*gpKB) != bGlossingKB)
+					if (GetGlossingKBFlag(gpKB) != bGlossingKB)
 					{
 						// there is no match of the flag value parsed in with the
 						// Load...() call, which is an error. This error should never

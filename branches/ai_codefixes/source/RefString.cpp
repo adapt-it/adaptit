@@ -113,6 +113,8 @@ void CRefString::DeleteRefString()
 		delete this;
 }
 
+bool CRefString::GetDeletedFlag() { return m_bDeleted; }
+
 //inline CRefStringMetadata* CRefString::GetRefStringMetadata()
 //I tried making it inline, but the linker could not resolve it
 CRefStringMetadata* CRefString::GetRefStringMetadata()

@@ -143,6 +143,41 @@ CTargetUnit::~CTargetUnit()
 	m_pTranslations = (TranslationsList*)NULL;
 }
 
+// returns an index to a non-deleted CRefString instance whose m_translation member matches
+// the passed in translationStr; otherwise returns wxNOT_FOUND if there was no match
+// 
+// BEW created 25Jun10, for support of kbVersion2, since a CTargetUnit may store one or
+// more deleted CRefString instances, we cannot rely on an index value from a selection in
+// a list box in a dialog in order to access the CRefString which corresponds to the
+// selection. So we loop over them all, ignoring deleted ones, and checking for a match
+// within the others.
+int CTargetUnit::FindRefString(wxString& translationStr)
+{
+	CRefString* pRefString = NULL;
+	int anIndex = -1;
+	wxString emptyStr; emptyStr.Empty();
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		anIndex++;
+		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pRefString != NULL);
+		pos = pos->GetNext();
+		if (!pRefString->GetDeletedFlag())
+		{
+			wxString str = pRefString->m_translation;
+			if ( (translationStr.IsEmpty() && str.IsEmpty()) || (translationStr == str))
+			{
+				// we have a match
+				return anIndex;
+			}
+		} // end of block for test: m_bDeleted == FALSE
+	}
+	// if control gets to here, we have no match
+	return (int)wxNOT_FOUND;
+}
+
 // BEW 7Jun10, added, as the legacy code in destructor was inadequate for all contexts (it
 // didn't work for the xml LIFT parser for example)
 //void CTargetUnit::DeleteTargetUnit(CTargetUnit* pTU)

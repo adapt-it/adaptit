@@ -39,11 +39,15 @@
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
+//#include "Adapt_ItCanvas.h"
+//#include "MainFrm.h"
 #include "SourcePhrase.h"
 #include "helpers.h"
 #include "Adapt_ItDoc.h"
 #include "KB.h"
 #include "AdaptitConstants.h" 
+#include "Pile.h"
+//#include "Layout.h"
 #include "TargetUnit.h"
 #include "RefStringMetadata.h"
 #include "RefString.h"
@@ -62,6 +66,10 @@ IMPLEMENT_DYNAMIC_CLASS(CKB, wxObject)
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
+//extern wxString translation;
+//extern int nWordsInPhrase;
+//extern CTargetUnit* pCurTargetUnit;
+//extern wxString curKey;
 
 // globals needed due to moving functions here from mainly the view class
 // next group for auto-capitalization support
@@ -86,12 +94,6 @@ extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbByCopyOnly;
 extern bool gbInhibitMakeTargetStringCall;
 extern bool gbRemovePunctuationFromGlosses;
-
-// friend function
-bool GetGlossingKBFlag(CKB& kb)
-{
-	return kb.m_bGlossingKB;
-}
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -300,7 +302,11 @@ void CKB::Copy(const CKB& kb)
 // the "adaptation" parameter will contain an adaptation if gbIsGlossing is FALSE, or if
 // TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will have
 // come from either the adaptation KB or the glossing KB.
+// Returns NULL if no CRefString instance matching the criterion was found
 // BEW 11May10, moved from view class, and made private (it's only called once, in GetRefString())
+// BEW 18Jun10, changes needed for support of kbVersion 2, if an instance is found which
+// matches the adaptation parameter, but the m_bDeleted flag is TRUE, then that is
+// regarded as a failure to find an instance, and NULL is returned
 CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation)
 {
 	CRefString* pRefStr = (CRefString*)NULL;
@@ -336,14 +342,26 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 		pos = pos->GetNext();
 		wxASSERT(pRefStr != NULL);
 		if (pRefStr->m_translation == adaptation)
-			return pRefStr; // we found it
+		{
+			if (pRefStr->m_bDeleted)
+			{
+				// regard this as unmatched
+				return (CRefString*)NULL;
+			}
+			else
+			{
+				return pRefStr; // we found it
+			}
+		}
 		else
 		{
 			if (adaptation.IsEmpty())
 			{
-				// it might be a <Not In KB> source phrase, check it out
-				if (pRefStr->m_translation == _T("<Not In KB>"))
+				// it might be a <Not In KB> CSourcePhrase, check it out
+				if (pRefStr->m_translation == _T("<Not In KB>") && !pRefStr->m_bDeleted)
+				{
 					return pRefStr; // we return the pointer to this too
+				}
 			}
 		}
 	}
@@ -359,6 +377,7 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 // WX Note: Changed second parameter to CTargetUnit*& pTU.
 // BEW 12Apr10, no changes needed for support of doc version 5
 // BEW 13May10, moved here from CAdapt_ItView class
+// BEW 18Jun10, no changes needed for support of kbVersion 2
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
 	wxString saveKey;
@@ -377,8 +396,8 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			goto a;
 
 		// auto capitalization is ON, so determine the relevant parameters etc.
-		bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param is TRUE since
-												   // it is source text
+		bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param
+													// is TRUE since it is source text
 		if (!bNoError)
 			goto a; // keyStr must have been empty (impossible) or the user
 					// did not define any source language case correspondences
@@ -452,12 +471,16 @@ a:		iter = pMap->find(keyStr);
 // nSrcWords-1, for the key keyStr and then searches the list in the CTargetUnit for the
 // CRefString with m_translation member identical to valueStr, and returns a pointer to
 // that CRefString instance. If it fails, it returns a null pointer. 
-// (Note: Jan 27 2001 changed so that returns the pRefString for a <Not In KB> entry). For
-// version 2.0 and later, pKB will point to the glossing KB when gbIsGlossing is TRUE.
+// (Note: Jan 27 2001 changed so that it returns the pRefString for a <Not In KB> entry).
+// For version 2.0 and later, pKB will point to the glossing KB when gbIsGlossing is TRUE.
 // Ammended, July 2003, to support auto capitalization
 // BEW 11May10, moved from CAdapt_ItView class
-// BEW changed signature 12May10, because from 5.3.0 and onwards, each KB now knows whether
-// it is a glossing KB or an adapting KB -- using private member boolean m_bGlossingKB
+// BEW 12May10, changed signature, because from 5.3.0 and onwards, each KB now knows
+// whether it is a glossing KB or an adapting KB -- using the private member boolean
+// m_bGlossingKB
+// BEW 21Jun10, no changes needed for support of kbVersion 2, because internally
+// the call of AutoCapsFindRefString() returns NULL if the only match was of a CRefString
+// instance with m_bDeleted set to TRUE
 CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 {
 	// ensure nSrcWords is 1 if this is a GlossingKB access
@@ -479,6 +502,9 @@ CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 }
 
 // this overload of GetRefString() is useful for LIFT imports
+// BEW 21Jun10, no changes needed for support of kbVersion 2, because internally
+// the call of AutoCapsFindRefString() returns NULL if the only match was of a CRefString
+// instance with m_bDeleted set to TRUE
 CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
 {
 	wxASSERT(pTU);
@@ -526,6 +552,8 @@ CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
 /// needlessly
 /// BEW 11May10, moved from CAdapt_ItView class
 /// BEW changed 12May10, to use private member boolean m_bGlossingKB for tests
+/// BEW 8Jun10, updated for kbVersion 2 support (legacy code kept, commented out, in case
+/// at a future date we want to use it for a 'clear kb' [of deleted entries] capability)
 void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase)
 {
 	if (m_bGlossingKB)
@@ -725,7 +753,8 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 // have all the smarts for determining if a change of case for first character
 // is needed, and return the string, the same or suitably ammended, back to the
 // caller. bIsSrc parameter is TRUE by default.
-// BEW 12Apr10, no changes needed for support of _DOVCER5
+// BEW 12Apr10, no changes needed for support of docVersion 5
+// BEW 18Jun10, no changes needed for support of kbVersion 2
 wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 {
 	bool bNoError = TRUE;
@@ -772,6 +801,7 @@ a:	return str;
 // and the m_gloss or m_adaption member of the passed in pSrcPhrase is used for lookup -
 // depending on the value of the private member m_bGlossingKB, when TRUE, m_gloss is used,
 // when FALSE, m_adaption is used.
+// BEW 17Jun10, no changes needed for support of kbVersion 2
 void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhrase, 
 								enum UseForLookup useThis)
 {
@@ -814,6 +844,7 @@ void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhras
 // adapting it points to the normal KB
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 13May10, moved here from CPhraseBox class
+// BEW 21Jun10, no changes needed for support of kbVersion 2
 bool CKB::FindMatchInKB(int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 {
 	MapKeyStringToTgtUnit* pMap = m_pMap[numWords-1];
@@ -828,6 +859,7 @@ bool CKB::FindMatchInKB(int numWords, wxString keyStr, CTargetUnit *&pTargetUnit
 }
 
 // Modified to work for either glossing or adapting KBs
+// BEW 21Jun10, changes needed for supporting kbVersion 2's m_bDeleted flag
 bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 {
 	CTargetUnit* pTgtUnit = 0;
@@ -843,6 +875,10 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 		return FALSE;
 
 	// check if there is a matching adaptation
+	// BEW 21Jun10, FindMatchInKB() only returns a pointer to a CTargetUnit instance, and
+	// that instance may contain CRefString instances marked as deleted. So matching any
+	// of these in the loop below has to be deemed a non-match, so that only matches with
+	// the m_bDeleted flag with value FALSE qualify as a match
 	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst(); 
 	while (pos != 0)
 	{
@@ -850,7 +886,13 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 		pos = pos->GetNext();
 		wxASSERT(pRefStr);
 		if (adaptation == pRefStr->m_translation)
-			return TRUE; // adaptation, or gloss, matches this entry
+		{
+			if (!pRefStr->m_bDeleted)
+			{
+				// this adaptation (or gloss) qualifies as a match
+				return TRUE;
+			}
+		}
 	}
 	return FALSE; // did not find a match
 }
@@ -1299,6 +1341,32 @@ bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 		return FALSE;
 }
 
+// counts the number of CRefString instances stored in the passed in CTargetUnit instance,
+// but counting only those for which m_bDeleted is FALSE;
+int CKB::CountNonDeletedRefStringInstances(CTargetUnit* pTU)
+{
+	wxASSERT(pTU);
+	if (pTU->m_pTranslations->IsEmpty())
+	{
+		return 0;
+	}
+	int counter = 0;
+	TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (!pRefStr->m_bDeleted)
+		{
+			counter++;
+		}
+	}
+	return counter;
+}
+
+
 /* BEW 9Jun10, deprecated 
 int CKB::CountSourceWords(wxString& rStr)
 {
@@ -1373,6 +1441,14 @@ d:		nFound = reverse.Find(ch);
 }
 */
 
+// returns TRUE if, for the pSrcPhrase->m_key key value, the KB (adaptation KB only, the
+// caller will not call this function if the mode is glossing mode) contains a CTargetUnit
+// instance which has a CRefString instance which is not storing "<Not In KB>". Else it
+// returns FALSE.
+// Called in: PlacePhraseBox(), RestoreOriginalMinPhrases() and OnRemoveRetranslation().
+// BEW 21Jun10, changed for support of kbVersion 2's m_bDeleted flag; any matches of 
+// <Not In KB> are deemed to be non-matches if the storing CRefString instance has its
+// m_bDeleted flag set to TRUE 
 bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 {
 	// determine if it is an <Not In KB> entry in the KB
@@ -1403,16 +1479,24 @@ bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 		else
 		{
 			// pTU exists, so check its first refString to see if it stores <Not In KB>
+			// BEW 21Jun10, changed, because pTU for kbVersion 2 may store one or more
+			// deleted CRefString instances besides that which stores a <Not In KB>
+			// string, and so we can't rely on <Not In KB> being first in the list
 			TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
-			CRefString* pRefStr = (CRefString*)tpos->GetData();
-			if (pRefStr->m_translation == _T("<Not In KB>"))
+			CRefString* pRefStr = NULL;
+			while (tpos != NULL)
 			{
-				return TRUE;
+				pRefStr = (CRefString*)tpos->GetData();
+				wxASSERT(pRefStr != NULL);
+				tpos = tpos->GetNext();
+				if (pRefStr->m_translation == _T("<Not In KB>") && !pRefStr->m_bDeleted)
+				{
+					return TRUE;
+				}
 			}
-			else
-			{
-				return FALSE;
-			}
+			// if control gets to here, there is no non-deleted CRefString instance
+			// storing the string <Not In KB>
+			return FALSE;
 		}
 	}
 }
@@ -1433,12 +1517,10 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	wxString gloss;
 	wxString baseKey;
 	wxString baseGloss;
-	//wxString outputStr; // accumulate a whole "record" here, but abandon if it contains
-						// a <Not In KB> string, we don't export those
-	wxString outputSfmStr; // accumulate a whole SFM "record" here, but abandon if it
-						   // contains a <Not In KB> string, we don't export those
+	wxString outputSfmStr; // accumulate a whole SFM "record" here, and retain
+						   // <Not In KB> entries in this \lx & \ge type of export
 	CBString outputLIFTStr; // accumulate a whole LIFT "record" here, but abandon if it
-						    // contains a <Not In KB> string, we don't export those
+						    // has a <Not In KB> string, we don't export those for LIFT
 	wxString strNotInKB = _T("<Not In KB>");
 	gloss.Empty(); // this name used for the "adaptation" when adapting,
 				   // or the "gloss" when glossing 
@@ -1634,7 +1716,18 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 #endif
-	
+	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
+	if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+	{
+		wxString message;
+		message = message.Format(_("Deleted entries are kept in the knowledge base but are hidden. Do you want these included in the export?\n(Click No only if you intend to later import the data to a legacy version of Adapt It, otherwise click Yes.)"));
+		int result = wxMessageBox(message,_("How should deleted entries be handled?"), wxYES_NO | wxICON_QUESTION);
+		if (result == wxNO)
+		{
+			bSuppressDeletionsInSFMexport = TRUE;
+		}
+	}
+
 	int numWords;
 	int counter = 0;
 	MapKeyStringToTgtUnit::iterator iter;
@@ -1681,7 +1774,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				counter += pTU->m_pTranslations->GetCount();
 
 				// if control gets here, there will be at least one non-null posRef and so
-				// we can now unilaterally write out the key or basekey data. 
+				// we can now begin to construct the next record, but beware if the user
+				// wants suppression of any deleted entries - this could mean the \lx
+				// field has to be abandoned if there are no \ge lines to write. 
 
 				// For Sfm data the key line is represented as a \lx source text field,
 				// followed by the adaptation or gloss we've already found associated with it
@@ -1744,39 +1839,47 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 
 				pRefStr = (CRefString*)posRef->GetData();
 				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
-				wxASSERT(pRefStr != NULL); 
+				wxASSERT(pRefStr != NULL);
 				gloss = pRefStr->m_translation;
 				baseGloss = gloss;
 
 				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
 				{
-					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-					outputSfmStr += gloss + m_pApp->m_eolStr;
-
-					// BEW 9Jun10, add extra data for kbVersion 2
-					// first the m_bDeleted flag value
-					if (pRefStr->m_bDeleted)
+					if (bSuppressDeletionsInSFMexport && pRefStr->m_bDeleted)
 					{
-						outputSfmStr += delflag + _T("1") + m_pApp->m_eolStr;
+						// don't include this one in the export
+						;
 					}
 					else
 					{
-						outputSfmStr += delflag + _T("0") + m_pApp->m_eolStr;
-					}
-					// next, the m_whoCreated value
-					outputSfmStr += whoCr + pRefStr->m_pRefStringMetadata->m_whoCreated + m_pApp->m_eolStr;
-					// next, whichever of the three datetime strings which are non-empty
-					if (!pRefStr->m_pRefStringMetadata->m_creationDateTime.IsEmpty())
-					{
-						outputSfmStr += createDT + pRefStr->m_pRefStringMetadata->m_creationDateTime + m_pApp->m_eolStr;
-					}
-					if (!pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty())
-					{
-						outputSfmStr += modDT + pRefStr->m_pRefStringMetadata->m_modifiedDateTime + m_pApp->m_eolStr;
-					}
-					if (!pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
-					{
-						outputSfmStr += delDT + pRefStr->m_pRefStringMetadata->m_deletedDateTime + m_pApp->m_eolStr;
+						gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
+						outputSfmStr += gloss + m_pApp->m_eolStr;
+
+						// BEW 9Jun10, add extra data for kbVersion 2
+						// first the m_bDeleted flag value
+						if (pRefStr->m_bDeleted)
+						{
+							outputSfmStr += delflag + _T("1") + m_pApp->m_eolStr;
+						}
+						else
+						{
+							outputSfmStr += delflag + _T("0") + m_pApp->m_eolStr;
+						}
+						// next, the m_whoCreated value
+						outputSfmStr += whoCr + pRefStr->m_pRefStringMetadata->m_whoCreated + m_pApp->m_eolStr;
+						// next, whichever of the three datetime strings which are non-empty
+						if (!pRefStr->m_pRefStringMetadata->m_creationDateTime.IsEmpty())
+						{
+							outputSfmStr += createDT + pRefStr->m_pRefStringMetadata->m_creationDateTime + m_pApp->m_eolStr;
+						}
+						if (!pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty())
+						{
+							outputSfmStr += modDT + pRefStr->m_pRefStringMetadata->m_modifiedDateTime + m_pApp->m_eolStr;
+						}
+						if (!pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+						{
+							outputSfmStr += delDT + pRefStr->m_pRefStringMetadata->m_deletedDateTime + m_pApp->m_eolStr;
+						}
 					}
 				}
 
@@ -1831,37 +1934,51 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 
 					if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
 					{
-						gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-						outputSfmStr += gloss + m_pApp->m_eolStr;
-
-						// BEW 9Jun10, add extra data for kbVersion 2
-						// first the m_bDeleted flag value
-						if (pRefStr->m_bDeleted)
+						if (bSuppressDeletionsInSFMexport && pRefStr->m_bDeleted)
 						{
-							outputSfmStr += delflag + _T("1") + m_pApp->m_eolStr;
+							// don't include this one in the export
+							;
 						}
 						else
 						{
-							outputSfmStr += delflag + _T("0") + m_pApp->m_eolStr;
-						}
-						// next, the m_whoCreated value
-						outputSfmStr += whoCr + pRefStr->m_pRefStringMetadata->m_whoCreated + m_pApp->m_eolStr;
-						// next, whichever of the three datetime strings which are non-empty
-						if (!pRefStr->m_pRefStringMetadata->m_creationDateTime.IsEmpty())
-						{
-							outputSfmStr += createDT + pRefStr->m_pRefStringMetadata->m_creationDateTime + m_pApp->m_eolStr;
-						}
-						if (!pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty())
-						{
-							outputSfmStr += modDT + pRefStr->m_pRefStringMetadata->m_modifiedDateTime + m_pApp->m_eolStr;
-						}
-						if (!pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
-						{
-							outputSfmStr += delDT + pRefStr->m_pRefStringMetadata->m_deletedDateTime + m_pApp->m_eolStr;
+							gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
+							outputSfmStr += gloss + m_pApp->m_eolStr;
+
+							// BEW 9Jun10, add extra data for kbVersion 2
+							// first the m_bDeleted flag value
+							if (pRefStr->m_bDeleted)
+							{
+								outputSfmStr += delflag + _T("1") + m_pApp->m_eolStr;
+							}
+							else
+							{
+								outputSfmStr += delflag + _T("0") + m_pApp->m_eolStr;
+							}
+							// next, the m_whoCreated value
+							outputSfmStr += whoCr + pRefStr->m_pRefStringMetadata->m_whoCreated + m_pApp->m_eolStr;
+							// next, whichever of the three datetime strings which are non-empty
+							if (!pRefStr->m_pRefStringMetadata->m_creationDateTime.IsEmpty())
+							{
+								outputSfmStr += createDT + pRefStr->m_pRefStringMetadata->m_creationDateTime + m_pApp->m_eolStr;
+							}
+							if (!pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty())
+							{
+								outputSfmStr += modDT + pRefStr->m_pRefStringMetadata->m_modifiedDateTime + m_pApp->m_eolStr;
+							}
+							if (!pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+							{
+								outputSfmStr += delDT + pRefStr->m_pRefStringMetadata->m_deletedDateTime + m_pApp->m_eolStr;
+							}
 						}
 					}
 
 					// reject any xml output which contains "<Not In KB>"
+					// BEW 18Jun10 -- this decision to exclude <Not In KB> from
+					// LIFT exports makes good sense - the LIFT file would not
+					// know what to make of it, and any 3rd party app that reads
+					// the LIFT file with that kind of entry would no doubt choke,
+					// but we do permit such data to be export for a \lx & \ge 
+					// SFM dictionary record export (see below)
 					if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
 						&& baseGloss.Find(strNotInKB) == wxNOT_FOUND)
 					{
@@ -1935,18 +2052,48 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				}
 				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
 				{
-					// reject any outputSfmStr which contains "<Not In KB>"
-					if (outputSfmStr.Find(strNotInKB) == wxNOT_FOUND)
-					{
-							// the entry is good, so output it
-							#ifndef _UNICODE // ANSI version
-								pFile->Write(outputSfmStr); 
-							#else // Unicode version
-								m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputSfmStr);
-							#endif
-					}
-				}
 
+                    // BEW 18Jun10: changed <Not In KB> behaviour to allow such data to be
+                    // in the SFM export of the KB, because it is only Adapt It that is
+                    // likely to use such an export, and we want all relevant KB data to be
+                    // preserved in this type of export, because we can't do so in a LIFT
+                    // export
+					if (bSuppressDeletionsInSFMexport)
+					{
+						// check that suppression of deletions did not suppress output of
+						// all the \ge fields and their associated data - if that were the
+						// case, then we must not output the \lx line as an orphaned field
+						if (outputSfmStr.Find(geSFM) != wxNOT_FOUND)
+						{
+							// there is at least on \ge field, so go ahead and export this
+							// record
+							#ifndef _UNICODE // ANSI version
+							pFile->Write(outputSfmStr); 
+							#else // Unicode version
+							m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputSfmStr);
+							#endif
+						}
+					}
+					else
+					{
+						// deletions are to be included in the export, so no check needed
+						#ifndef _UNICODE // ANSI version
+						pFile->Write(outputSfmStr); 
+						#else // Unicode version
+						m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputSfmStr);
+						#endif
+					}
+					// 18Jun10 retain the legacy code for the present
+					//if (outputSfmStr.Find(strNotInKB) == wxNOT_FOUND)
+					//{
+					//		// the entry is good, so output it
+					//		#ifndef _UNICODE // ANSI version
+					//			pFile->Write(outputSfmStr); 
+					//		#else // Unicode version
+					//			m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputSfmStr);
+					//		#endif
+					//}
+				}
 #ifdef __WXMSW__
 				// update the progress bar every 200th iteration
 				if (counter % 200 == 0)
@@ -1972,12 +2119,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 }
 
 // looks up the knowledge base to find if there is an entry in the map with index
-// nSrcWords-1, for the key keyStr and returns the CTargetUnit pointer it finds. If it
+// nSrcWords-1, for the key keyStr, and returns the CTargetUnit pointer it finds. If it
 // fails, it returns a null pointer.
-// version 2.0 and onwards supports glossing, so pKB param could point to the glossing KB or the
-// adapting one, as set by the caller; and for glossing it is the caller's responsibility
-// to ensure that nSrcWords has the value 1 only.
+// version 2.0 and onwards supports glossing, so for glossing mode it is the caller's
+// responsibility to ensure that nSrcWords has the value 1 only.
 // BEW 13May10, moved here from CAdapt_ItView and removed pKB param from signature
+// BEW 21Jun10: no changes needed for support of kbVersion 2
 CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 {
 	MapKeyStringToTgtUnit* pMap = m_pMap[nSrcWords-1];
@@ -1994,12 +2141,21 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 	return (CTargetUnit*)NULL;
 }
 
+// This is the inner workings of the handler OnCheckKBSave() -- the latter being called
+// when the user clicks the GUI checkbox "Save to knowledge base" (the latter is checked
+// by default, it takes a user click to uncheck it, and that results in "<Not In KB>"
+// replacing the adaptations (or glosses) for the CTargetUnit instance associated with the
+// source text key at that location. The other function which calls DoNotInKB() is the
+// call of RedoStorage().
+// BEW 18Jun10, changes made for supporting kbVersion 2
 void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 {
 	if (bChoice)
 	{
         // user wants it to not be in the KB, so set it up accordingly... first thing to do
         // is to remove all existing translations from this source phrase's entry in the KB
+        // BEW 18Jun10, for kbVersion 2, they are not physically removed, but m_bDeleted is
+        // set TRUE for each, and m_deletedDateTime member gets the current datetime value
 		CTargetUnit* pTgtUnit = GetTargetUnit(pSrcPhrase->m_nSrcWords,pSrcPhrase->m_key);
 		if (pTgtUnit != NULL)
 		{
@@ -2013,10 +2169,15 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 					pos = pos->GetNext();
 					if (pRefString != NULL)
 					{
+						pRefString->m_bDeleted = TRUE;
+						pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+						/* 18Jun10 retain legacy code for the present
 						delete pRefString;
 						pRefString = (CRefString*)NULL;
+						*/
 					}
 				}
+				/* 18Jun10 retain legacy code for the present
 				pList->Clear();
 				delete pTgtUnit; // don't leak memory
 				pTgtUnit = (CTargetUnit*)NULL;
@@ -2040,6 +2201,7 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 				int bRemoved;
 				bRemoved = pMap->erase(temp); // also remove it from the map 
 				wxASSERT(bRemoved != 0);
+				*/
 			}
 		}
 
@@ -2071,18 +2233,39 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 												pSrcPhrase->m_key,str);
 		if (pRefString == NULL)
 		{
-            // user must have already deleted the <Not In KB> while in the KB editor, so
-            // our work is done
+            // it's not present, so our work is done
 			return;
 		}
 		wxASSERT(pRefString);
 		if (pRefString != NULL)
 		{
+			// BEW 18Jun10, for kbVersion 2, we must undo any deletions we made earlier
+			// when we set up the <Not In KB> entry, and make the CRefString with
+			// translation test "<Not In KB>" become the deleted one
 			CTargetUnit* pTgtUnit = pRefString->m_pTgtUnit;
 			wxASSERT(pTgtUnit);
 			TranslationsList* pList = pTgtUnit->m_pTranslations;
-			wxASSERT(!pList->IsEmpty() && pList->GetCount() == 1);
+			//wxASSERT(!pList->IsEmpty() && pList->GetCount() == 1);
+			wxASSERT(!pList->IsEmpty());
 			TranslationsList::Node* pos = pList->GetFirst();
+			// BEW 18Jun10 the new code follows..., first, scan through all CRefString
+			// instances in the list and any with m_bDeleted set TRUE, undelete them
+			while (pos != NULL)
+			{
+				CRefString* pRefStr = (CRefString*)pos->GetData();
+				pos = pos->GetNext();
+				if (pRefStr != NULL && pRefStr->m_bDeleted)
+				{
+					pRefStr->m_bDeleted = FALSE;
+					pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+				}
+			}
+			
+			// finally make the <Not In KB> entry become the deleted one
+			pRefString->m_bDeleted = TRUE;
+			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+
+			/* retain legacy code for the present
 			delete pRefString; // deletes the CRefString having the text "<Not In KB>"
 			pRefString = (CRefString*)NULL;
 			pList->DeleteNode(pos);
@@ -2111,6 +2294,7 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 			bRemoved = pMap->erase(temp); // remove it from the map
 			delete pTgtUnit; // delete it from the heap
 			pTgtUnit = (CTargetUnit*)NULL;
+			*/
 		}
 	}
 }
@@ -2136,6 +2320,7 @@ bool CKB::IsThisAGlossingKB() { return m_bGlossingKB; }
 /// instance's m_bAlwaysAsk attribute was set to TRUE (the list was previously generated by
 /// a call to the App's GetForceAskList() function), and insures that the appropriate
 /// target unit's m_bAlwaysAsk member is set to TRUE.
+/// BEW 21Jun10, no changes needed for support of kbVersion 2
 ////////////////////////////////////////////////////////////////////////////////////////
 void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 {
@@ -2256,7 +2441,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			pSrcPhrase->m_adaption = tgtPhrase;
 			if (!gbInhibitMakeTargetStringCall)
 			{
-				// sets m_targetStr member too
+				// sets m_targetStr member too, and handles auto-capitalization
 				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
 			}
 		}
@@ -2421,16 +2606,33 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				{
 					// if we get a match, then increment ref count and point to this, etc
 					bMatched = TRUE;
+					if (pRefStr->m_bDeleted)
+					{
+						// we've matched a deleted entry, so we must undelete it
+						pRefStr->m_bDeleted = FALSE;
+						pRefStr->m_refCount = 1;
+						pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+						pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+						// in next call, param bool bOriginatedFromTheWeb is default FALSE
+						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+					}
+					else
+					{
+						pRefStr->m_refCount++;
+					}
 					pRefStr->m_refCount++;
+					pRefString = (CRefString*)NULL;
 					if (m_bGlossingKB)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 					else
 						pSrcPhrase->m_bHasKBEntry = TRUE;
 					pRefString->DeleteRefString(); // don't need this one nor its CMetadata
-					pRefString = (CRefString*)NULL;
 					if (m_pApp->m_bForceAsk)
+					{
 						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must 
 								// ensure it gets set if that is what the user wants
+					}
 					break;
 				}
 			}
@@ -2586,29 +2788,22 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pTU = new CTargetUnit;
 			pRefString = new CRefString(pTU); // the pTU argument sets the m_pTgtUnit member, and
 								// creating a CRefString automatically creates a CRefStringMetadata
-								// instance & sets is m_creationDateTime and m_whoCreated members
+								// instance & sets its m_creationDateTime and m_whoCreated members
 			pRefString->m_refCount = 1; // set the count
-			pRefString->m_translation = strNot;
+			pRefString->m_translation = strNot; // set to "<Not In KB>"
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-			if (m_bGlossingKB)
-			{
-				pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // glossing KB has to treat 
-														  // <Not In KB> as a 'real' gloss
-				(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map
-				m_nMaxWords = 1;
-			}
-			else
-			{
-				// <Not In KB> in transliterate mode isn't to be regarded as an entry, but
-				// as a trigger for using the transliterator instead of the KB
-				pSrcPhrase->m_bHasKBEntry = FALSE; // it's not a 'real' entry
-				pSrcPhrase->m_bNotInKB = TRUE;
-				pSrcPhrase->m_bBeginRetranslation = FALSE;
-				pSrcPhrase->m_bEndRetranslation = FALSE;
 
-				(*m_pMap[nMapIndex])[key] = pTU;
-				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
-					m_nMaxWords = pSrcPhrase->m_nSrcWords;
+			// <Not In KB> in transliterate mode isn't to be regarded as an entry, but
+			// as a trigger for using the transliterator instead of the KB
+			pSrcPhrase->m_bHasKBEntry = FALSE; // it's not a 'real' entry
+			pSrcPhrase->m_bNotInKB = TRUE;
+			pSrcPhrase->m_bBeginRetranslation = FALSE;
+			pSrcPhrase->m_bEndRetranslation = FALSE;
+
+			(*m_pMap[nMapIndex])[key] = pTU;
+			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+			{
+				m_nMaxWords = pSrcPhrase->m_nSrcWords;
 			}
 		}
 		else // this block for when map is not empty
@@ -2629,19 +2824,15 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pRefString->m_refCount = 1; // set the count
 				pRefString->m_translation = strNot;
 				pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-				if (m_bGlossingKB)
+
+				// <Not In KB> in transliterate mode isn't to be regarded as an entry, but
+				// as a trigger for using the transliterator instead of the KB
+				pSrcPhrase->m_bHasKBEntry = FALSE;
+				pSrcPhrase->m_bNotInKB = TRUE;
+				(*m_pMap[nMapIndex])[key] = pTU; // store in map
+				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
 				{
-					pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					(*m_pMap[nMapIndex])[key] = pTU; // store in map
-					m_nMaxWords = 1;
-				}
-				else
-				{
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_bNotInKB = TRUE;
-					(*m_pMap[nMapIndex])[key] = pTU; // store in map
-					if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
-						m_nMaxWords = pSrcPhrase->m_nSrcWords;
+					m_nMaxWords = pSrcPhrase->m_nSrcWords;
 				}
 			}
 			else // we found one
@@ -2651,10 +2842,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
                 // for this case)
 				bool bMatched = FALSE;
 				pRefString = new CRefString(pTU);
-				pRefString->m_refCount = 1; // set the count, assuming this will
-											// be stored (it may not be)
-				pRefString->m_translation = strNot;
-
+				pRefString->m_refCount = 0; // set the count, assuming this will be
+								// stored (it may not be), count is 0 for <Not In KB>
+				pRefString->m_translation = strNot; // store "<Not In KB>" since we are
+													// in transliterate mode
 				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
 				while (pos != NULL)
 				{
@@ -2670,18 +2861,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// etc 
 						bMatched = TRUE;
 						pRefStr->m_refCount++;
-						if (m_bGlossingKB)
-						{
-							pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-						}
-						else
-						{
-							pSrcPhrase->m_bHasKBEntry = FALSE;
-							pSrcPhrase->m_bNotInKB = TRUE;
-							pSrcPhrase->m_bBeginRetranslation = FALSE;
-							pSrcPhrase->m_bEndRetranslation = FALSE;
-						}
-						pRefString->DeleteRefString(); // don't need this one
+
+                        // <Not In KB> in transliterate mode isn't to be regarded as an
+                        // entry, but as a trigger for using the transliterator instead of
+                        // the KB
+						pSrcPhrase->m_bHasKBEntry = FALSE;
+						pSrcPhrase->m_bNotInKB = TRUE;
+						pSrcPhrase->m_bBeginRetranslation = FALSE;
+						pSrcPhrase->m_bEndRetranslation = FALSE;
+						
+						pRefString->DeleteRefString(); // don't need this new one
 						break;
 					}
 				}
@@ -2692,6 +2881,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		}
 		return TRUE;
 	} // end of block for processing a store when transliterating using SILConverters transliterator
+
 	gbByCopyOnly = FALSE; // restore default setting
 
 	// First get rid of final spaces, if tgtPhrase has content
@@ -2727,7 +2917,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pSrcPhrase->m_adaption = tgtPhrase;
 			if (!gbInhibitMakeTargetStringCall)
 			{
-				// sets m_targetStr member too
+				// sets m_targetStr member too, also does auto-capitalization adjustments
 				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
 			}
 		}
@@ -2748,8 +2938,23 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	}
 
     // if the user doesn't want a store done (he checked the dialog bar's control for this
-    // choice) then return, without saving, after setting the source phrases m_bNotInKB
+    // choice) then return, without saving, after setting the source phrase's m_bNotInKB
     // flag to TRUE (ignore this block when glossing)
+    // BEW 18Jun10 change....
+	// Note, DoNotInKB() is called from OnCheckKBSave() and in the former StoreText() is
+	// called, and the m_bSaveToKB value is not changed to its final value until after
+	// DoNotInKB() returns - so if the checkbox was ticked and the user has just unticked
+	// it, m_bSaveToKB will still be TRUE at this point, and the following block won't be
+	// entered ... check if we really need this block, as the normal blocks below actually
+	// do the store of <Not In KB> string, and then higher level callers such as
+	// DoNotInKB() and its OnCheckKBSave() caller re-set the CSourcePhrase flags to be
+	// what is appropriate for a <Not In KB> location; so when the user clicks to make the
+	// checkbox be unticked (ie. no store to KB) then the block below is not called. On
+	// the other hand, when he clicks the unticked checkbox to have saving to the KB
+	// restored for that current source text key, what does DoNotInKB() do? It does not
+	// call StoreText(), and neither does it's OnCheckKBSave() caller. This means that the
+	// block below is NEVER entered, and so I have commented it out
+	/* I verified this block is never called, whether the checkbox is on or off
 	if (!m_bGlossingKB && !m_pApp->m_bSaveToKB)
 	{
 		pSrcPhrase->m_bNotInKB = TRUE;
@@ -2761,7 +2966,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		gbMatchedKB_UCentry = FALSE;
 		return TRUE; // we want the caller to think all is well
 	}
-
+	*/
     // if there is a CTargetUnit associated with the current key, then get it; if not,
     // create one and add it to the appropriate map; we start by computing which map we
     // need to store to
@@ -2960,6 +3165,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // we found a pTU for this key, so check for a matching CRefString, if there is
             // no match, then add a new one (note: no need to set m_nMaxWords for this
             // case)
+            // BEW addition 17Jun10, we may match a CRefString instance for which
+            // m_bDeleted is TRUE, and in that case we have to undelete it - so check for
+            // this and branch accordingly
 			bool bMatched = FALSE;
 			pRefString = new CRefString(pTU);
 			wxASSERT(pRefString != NULL);
@@ -2973,7 +3181,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // been made lower case - so we must allow for this possibility
 			if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
 				pRefString->m_translation = tgtPhrase; // use the unchanged string, 
-													   // could be uc
+													   // could be upper case
 			else
 				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
 
@@ -2989,8 +3197,25 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 											 //         pRefString->m_translation
 				{
 					// if we get a match, then increment ref count and point to this, etc
+					// - but allow for the possibility we may have matched a m_bDeleted one
 					bMatched = TRUE;
-					pRefStr->m_refCount++;
+					if (pRefStr->m_bDeleted)
+					{
+						// we've matched a deleted entry, so we must undelete it
+						pRefStr->m_bDeleted = FALSE;
+						pRefStr->m_refCount = 1;
+						pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+						pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+						// in next call, param bool bOriginatedFromTheWeb is default FALSE
+						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+					}
+					else
+					{
+						pRefStr->m_refCount++;
+					}
+					pRefString->DeleteRefString(); // don't need this new one
+					pRefString = (CRefString*)NULL;
 					if (m_bGlossingKB)
 					{
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
@@ -3001,8 +3226,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pSrcPhrase->m_bBeginRetranslation = FALSE;
 						pSrcPhrase->m_bEndRetranslation = FALSE;
 					}
-					pRefString->DeleteRefString(); // don't need this one
-					pRefString = (CRefString*)NULL;
 					if (m_pApp->m_bForceAsk)
 					{
 						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
@@ -3109,6 +3332,7 @@ void CKB::GetForceAskList(KPlusCList* pKeys)
 // KB restore is done.)
 // For glossing being ON, this function should work correctly without any changes needed,
 // provided the caller calls this function on the glossing KB
+// BEW 21Jun10, no changes needed for support of kbVersion 2
 {
 	wxASSERT(pKeys->IsEmpty());
 	for (int i=0; i < MAX_WORDS; i++)
@@ -3688,6 +3912,63 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	f.Write(pByteStr,buff.GetDataLen());
 	// The buff wxMemoryBuffer is automatically destroyed when 
 	// it goes out of scope
+}
+
+// returns nothing
+// restores a correct <Not_In_KB> entry for the pile pCurPile, if the user has edited it
+// out of the KB within the KB editor - which is not the correct way to do it
+// Note: all calling environments have just checked that the active CSourcePhrase instance
+// has its m_bNotInKB flag set TRUE, which is how we know this call is required. The
+// callers are: PlacePhraseBox(), MoveToNextPile(), MoveToNextPile_InTransliterationMode(),
+// MoveToPrevPile() and MoveToImmedNextPile().
+// BEW 13Apr10, no changes needed for support of doc version 5
+// BEW 21Jun10, moved to CKB class and signature simplified
+// BEW 21Jun10, no changes needed for support of kbVersion 2
+void CKB::Fix_NotInKB_WronglyEditedOut(CPile* pCurPile)
+{
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	CAdapt_ItView* pView = m_pApp->GetView(); // <<-- BEWARE if we later support multiple views/panes
+											  // as this call gets the interlinear strips view/pane
+	wxString str = _T("<Not In KB>");
+	CSourcePhrase* pSP = pCurPile->GetSrcPhrase();
+	CRefString* pRefStr = GetRefString(pSP->m_nSrcWords, pSP->m_key, str);
+	if (pRefStr == NULL)
+	{
+		m_pApp->m_bSaveToKB = TRUE; // it will be off, so we must turn it back on to get 
+								   // the string restored
+        // don't inhibit the call to MakeTargetStringIncludingPunctuation( ) here,
+        // since the phrase passed in is the non-punctuated one
+		bool bOK;
+		bOK = StoreText(pSP, str);
+		// set the flags to ensure the asterisk shows above the pile, etc.
+		pSP->m_bHasKBEntry = FALSE;
+		pSP->m_bNotInKB = TRUE; 
+	}
+
+    // for version 1.4.0 and onwards, we have to permit the construction of the
+    // punctuated target string; for auto caps support, we may have to change to UC
+    // here too
+	wxString str1 = m_pApp->m_targetPhrase;
+	pView->RemovePunctuation(pDoc,&str1,from_target_text);
+	if (gbAutoCaps)
+	{
+		bool bNoError = pDoc->SetCaseParameters(pSP->m_key);
+		if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+		{
+			bNoError = pDoc->SetCaseParameters(str1,FALSE);
+			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+			{
+				// a change to upper case is called for
+				str1.SetChar(0,gcharNonSrcUC);
+			}
+		}
+	}
+	pSP->m_adaption = str1;
+
+	// the following function is now smart enough to capitalize m_targetStr in the context
+	// of preceding punctuation, etc, if required. No store done here, of course, since we
+	// are just restoring a <Not In KB> entry.
+	pView->MakeTargetStringIncludingPunctuation(pSP, m_pApp->m_targetPhrase);
 }
 
 

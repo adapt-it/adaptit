@@ -72,6 +72,7 @@ public:
 public:
 //	wxString	GetSourceKey(); // returns m_sourceKey
 //	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
+	int			FindRefString(wxString& translationStr);
 
 private:
 	// class attributes

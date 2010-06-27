@@ -337,6 +337,8 @@ void KBEditSearch::PopulateMatchedList(wxArrayString* pMatchStrArray,
 /// so the match will iterate through each map, for each search string, and for all maps
 /// which have content. (More work, but we now don't need to maintain a list of
 /// CTargetUnit instances.)
+/// BEW 25Jun10, changes needed for support of kbVersion 2; we don't match any CRefString
+/// instances for which the m_bDeleted flag is set TRUE
 ///////////////////////////////////////////////////////////////////////////////////////
 void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					CKB* pKB, KBMatchRecordArray* pMatchRecordArray, bool* pbIsGlossing)
@@ -366,16 +368,13 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
         // such if we use a space as delimiter)
 	}
 
-	// set up an iterator that will iterate across all the maps (we have to do it this way
-	// if we want to show the user the particular source text string which is associated
-	// with a given matched adaptation (or gloss), since the m_pTargetUnits list has no
-	// knowledge at all of which source text words/phrases go with the data it stores);
-	// and the find each and every stored word or phrase, and against it test the
-	// substrings for a match - if there are any matches, a KBMatchRecord pointer has to
-	// be created on the heap, it's members filled out, and Add()ed to pMatchRecordArray -
-	// it is the latter which, on return, is used to populate the "Matched" wxListBox
-	// which the user sees (code for the following loop is plagiarized from DoKBExport()
-	// which is a member function of CAdapt_ItView class, see Adapt_ItView.cpp)
+    // set up an iterator that will iterate across all the maps and the find each and every
+    // stored word or phrase, and against it test the substrings for a match - if there are
+    // any matches, a KBMatchRecord pointer has to be created on the heap, it's members
+    // filled out, and Add()ed to pMatchRecordArray - it is the latter which, on return, is
+    // used to populate the "Matched" wxListBox which the user sees (code for the following
+    // loop is plagiarized from DoKBExport() which is a member function of CAdapt_ItView
+    // class, see Adapt_ItView.cpp)
 	wxASSERT(pKB != NULL);
 	wxString strNotInKB = _T("<Not In KB>");
 	wxString key;
@@ -401,6 +400,13 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 			do {
 				testStr.Empty(); // make ready for a new value
 				key = iter->first; // the source text (or gloss if bIsGlossing is TRUE) 
+#if defined __WXDEBUG__
+				//int offset = wxNOT_FOUND;
+				//if ( (offset = key.Find(_T("downcase"))) != wxNOT_FOUND)
+				//{
+				//	offset = offset; // put a breakpoint here
+				//}
+#endif
 				pTU = (CTargetUnit*)iter->second;
 				wxASSERT(pTU != NULL); 
 
@@ -426,15 +432,9 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					posRef = posRef->GetNext(); // prepare for possibility of another CRefString*
 					testStr = pRefStr->m_translation;
 
-					// reject empty strings - we can't match anything in one
-					if (testStr.IsEmpty())
-					{
-						iter++;
-						continue;
-					}
-
-					// reject any testStr which contains "<Not In KB>" (if present, it is
-					// the only CRefString entry in the pTU, so only need test here)
+                    // reject any testStr which contains "<Not In KB>" (if present, it is
+                    // the only non-deleted CRefString entry in the pTU, so iterate the
+                    // outer loop, skip the inner one which checks individual CRefStrings)
 					int anOffset = testStr.Find(strNotInKB);
 					if (anOffset != wxNOT_FOUND)
 					{
@@ -443,28 +443,35 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						continue;
 					}
 
-					#ifdef __WXDEBUG__
-					wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
-					anItemsCount++;
-					#endif //__WXDEBUG__
-
-					bool bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
-					if (bSuccessfulMatch)
+                    // BEW 25Jun10, for the inner loop, reject any instance which has its
+                    // m_bDeleted flag set TRUE, also reject empty strings - we can't match
+                    // anything in one of those either
+					if (!pRefStr->GetDeletedFlag() && !testStr.IsEmpty() )
 					{
-						pMatchRec = new KBMatchRecord;
+						// check this entry out for a match, it's not deleted nor empty
 						#ifdef __WXDEBUG__
-						wxLogDebug(_T("Matched:  %s"),testStr.c_str());
+						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
+						anItemsCount++;
 						#endif //__WXDEBUG__
 
-						// fill it out
-						pMatchRec->strOriginal = testStr; // adaptation, or gloss
-						pMatchRec->pUpdateRecord = NULL; // as yet, undefined
-						pMatchRec->strMapKey = key;
-						pMatchRec->pRefString = pRefStr;
+						bool bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
+						if (bSuccessfulMatch)
+						{
+							pMatchRec = new KBMatchRecord;
+							#ifdef __WXDEBUG__
+							wxLogDebug(_T("Matched:  %s"),testStr.c_str());
+							#endif //__WXDEBUG__
 
-						// store it
-						pMatchRecordArray->Add(pMatchRec);
-					}
+							// fill it out
+							pMatchRec->strOriginal = testStr; // adaptation, or gloss
+							pMatchRec->pUpdateRecord = NULL; // as yet, undefined
+							pMatchRec->strMapKey = key;
+							pMatchRec->pRefString = pRefStr;
+
+							// store it
+							pMatchRecordArray->Add(pMatchRec);
+						}
+					} // end block for checking first non-deleted and non-empty CRefString
 
 					// now deal with any additional CRefString instances within the same
 					// CTargetUnit instance
@@ -475,35 +482,46 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						posRef = posRef->GetNext(); // prepare for possibility of yet another
 						testStr = pRefStr->m_translation;
 
-						// reject empty strings - we can't match anything in one
-						if (testStr.IsEmpty())
+						// reject any testStr which contains "<Not In KB>" (if present, it is
+						// the only non-deleted CRefString entry in the pTU, so iterate the
+						// outer loop, skip the rest of the inner one which checks individual
+						// CRefStrings because they can only be ones with m_bDeleted set TRUE)
+						int anOffset = testStr.Find(strNotInKB);
+						if (anOffset != wxNOT_FOUND)
 						{
+							// the entry has <Not In KB> so don't accept this string
 							iter++;
 							continue;
 						}
 
-						#ifdef __WXDEBUG__
-						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
-						anItemsCount++;
-						#endif //__WXDEBUG__
-
-						bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
-						if (bSuccessfulMatch)
+                        // BEW 25Jun10, for the inner loop, reject any instance which has
+                        // its m_bDeleted flag set TRUE, also reject empty strings - we
+                        // can't match anything in one of those either
+						if (!pRefStr->GetDeletedFlag() && !testStr.IsEmpty() )
 						{
-							pMatchRec = new KBMatchRecord;
+							// check this entry out for a match, it's not deleted nor empty
 							#ifdef __WXDEBUG__
-							wxLogDebug(_T("Matched:  %s"),testStr.c_str());
+							wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
+							anItemsCount++;
 							#endif //__WXDEBUG__
-							// fill it out
-							pMatchRec->strOriginal = testStr; // adaptation, or gloss
-							pMatchRec->pUpdateRecord = NULL; // as yet, undefined
-							pMatchRec->strMapKey = key;
-							pMatchRec->pRefString = pRefStr;
 
-							// store it
-							pMatchRecordArray->Add(pMatchRec);
+							int bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
+							if (bSuccessfulMatch)
+							{
+								pMatchRec = new KBMatchRecord;
+								#ifdef __WXDEBUG__
+								wxLogDebug(_T("Matched:  %s"),testStr.c_str());
+								#endif //__WXDEBUG__
+								// fill it out
+								pMatchRec->strOriginal = testStr; // adaptation, or gloss
+								pMatchRec->pUpdateRecord = NULL; // as yet, undefined
+								pMatchRec->strMapKey = key;
+								pMatchRec->pRefString = pRefStr;
+
+								// store it
+								pMatchRecordArray->Add(pMatchRec);
+							}
 						}
-
 					}
 
 					// point at the next CTargetUnit instance, or at end() (which is NULL) if
@@ -539,7 +557,6 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 bool KBEditSearch::TestForMatch(wxArrayPtrVoid* pSubStringSet, wxString& testStr)
 {
 	// test for match of any line (all substrings in the line must match within testStr)
-	// 
 	size_t searchLineCount = pSubStringSet->GetCount();
 	size_t subStringsCount;
 	size_t lineIndex;

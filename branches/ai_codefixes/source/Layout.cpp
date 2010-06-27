@@ -544,6 +544,7 @@ bool CLayout::GetFullWindowDrawFlag()
 }
 #endif
 
+// BEW 22Jun10, no changes needed for support of kbVersion 2
 void CLayout::PlaceBox()
 {
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint

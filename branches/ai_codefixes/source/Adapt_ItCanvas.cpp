@@ -13,13 +13,6 @@
 /// does not have an equivalent for the CScrolledView in MFC.
 /// \derivation		The CAdapt_ItCanvas class is derived from wxScrolledWindow.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // uncomment out next line in order to turn on wxLogDebug calls in ScrollIntoView()
 //#define DEBUG_ScrollIntoView
@@ -497,6 +490,7 @@ void CAdapt_ItCanvas::DiscardEdits()
 {
 }
 
+// BEW 22Jun10, no changes needed for support of kbVersion 2
 void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

@@ -2160,7 +2160,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					return;
 				}
 				// it's not free translation mode, so try find something
-				bGotOne = pApp->m_pTargetBox->LookAhead(this, pApp->m_pActivePile);
+				bGotOne = pApp->m_pTargetBox->LookAhead(pApp->m_pActivePile);
 			}
 			else // we are in reviewing mode for the code in next block
 			{
@@ -2548,6 +2548,7 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 // which would bloat the app's size 
 // Ammended, July 2003, for auto-capitalization support
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 22Jun10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 {
 	// refactored 2Apr09
@@ -2641,8 +2642,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
             // put it back so that the setting is preserved (the "right" way to change the
             // setting is to use the toolbar checkbox - this applies when adapting, not
             // glossing)
-			pApp->m_pTargetBox->Fix_NotInKB_WronglyEditedOut(pApp, pLayout->m_pDoc, this, 
-																pApp->m_pActivePile);
+			pApp->m_pKB->Fix_NotInKB_WronglyEditedOut(pApp->m_pActivePile);
 		}
 		else // a normal situation, such as a click on a new active location
 		{
@@ -9588,7 +9588,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 		gbUnmergeJustDone = TRUE; // prevent second OnButtonRestore() call from within
 								  // ChooseTranslation() within LookUpSrcWord() if user happens
 								  // to cancel the Choose Translation dialog (see CPhraseBox code)
-		bGotTranslation = pApp->m_pTargetBox->LookUpSrcWord(this, pApp->m_pActivePile);
+		bGotTranslation = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
 		gbUnmergeJustDone = FALSE; // clear flag, ready for next time
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum); // restore pointer, since 
 											// LookUpSrcWord() now calls RecalcLayout()
@@ -11868,6 +11868,7 @@ void CAdapt_ItView::DoStartupWizardOnLaunch()
 // correct KB pointer in the first parameter.
 // whm modified 27Apr09 to report errors of punctuation existing in documents discovered 
 // during KB Restore
+// BEW 18Jun10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -21977,7 +21978,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	if (!pRec->bGlossingModeOnEntry)
 	{
 		if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-			bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(this, pApp->m_pActivePile);
+			bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
 		if (bFoundSomething)
 		{
 			pApp->m_targetPhrase = translation;
@@ -21991,7 +21992,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	else
 	{
 		if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
-			bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(this, pApp->m_pActivePile);
+			bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
 		if (bFoundSomething)
 		{
 			pApp->m_targetPhrase = translation;
@@ -24186,15 +24187,20 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec),
 									   // done internally will have box placement 
 									   // skipped if we get here and it is -1
 	pApp->m_pActivePile = GetPile(nSequNum);
+	bool bFoundSomething;
 	if (gbIsGlossing)
+	{
 		translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+	}
 	else
+	{
 		translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+	}
 	if (translation.IsEmpty())
 	{
-		bool bFoundSomething;
-		bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(this, 
-															pApp->m_pActivePile);
+		// this call sets translation to something, or leaves it empty if the lookup
+		// found nothing
+		bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
 	}
 	pApp->m_targetPhrase = translation; // global CString  translation is set 
         // by whatever is adaptation or gloss if user switched modes, and if there is no

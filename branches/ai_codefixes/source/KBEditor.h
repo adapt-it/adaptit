@@ -37,6 +37,10 @@ class MapKeyStringToTgtUnit;
 
 class CKBEditor : public AIModalDialog
 {
+	// friend functions (definitions are in helpers.cpp)
+	friend void PopulateTranslationsListBox(CKB* pKB, CTargetUnit* pTgtUnit, 
+											CKBEditor* pKBEditor);
+
 public:
 	CKBEditor(wxWindow* parent); // constructor
 	virtual ~CKBEditor(void); // destructor
@@ -111,7 +115,7 @@ protected:
 	void OnButtonAdd(wxCommandEvent& event);
 	void OnButtonRemove(wxCommandEvent& WXUNUSED(event));
 	void OnButtonMoveUp(wxCommandEvent& WXUNUSED(event));
-	void OnButtonMoveDown(wxCommandEvent& WXUNUSED(event));
+	void OnButtonMoveDown(wxCommandEvent& event);
 	void OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event));
 
 	void OnButtonGo(wxCommandEvent& WXUNUSED(event));
@@ -124,6 +128,8 @@ private:
 	void DoRestoreSearchStrings();
 	bool bKBEntryTemporarilyAddedForLookup;
 	void MessageForConsistencyCheck();
+	//void PopulateTranslationsListBox(CTargetUnit* pTgtUnit); // not needed
+	//void EraseTranslationsListBox(); // not needed
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

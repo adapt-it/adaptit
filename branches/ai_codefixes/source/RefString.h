@@ -57,6 +57,7 @@ public:
 	// other methods -- accessors, for doc class and the global functions in xml.cpp
 	CRefStringMetadata* GetRefStringMetadata(); // needed so CAdapt_ItDoc::EraseKB() can delete
 												// the instance on the heap
+	bool			GetDeletedFlag();
 	void			SetDeletedFlag(bool bValue);
 	void			DeleteRefString(); // deletes both the CRefString instance and its
 									   // pointed at CRefStringMetadata instance
