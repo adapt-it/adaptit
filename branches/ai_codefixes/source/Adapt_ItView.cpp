@@ -1469,9 +1469,11 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// destroyed, all child windows (including our target box) are automatically
 	// destroyed too. Therefore, the target box must not be deleted again in
 	// the App's OnExit() method, when the App terminates.
+	
 	pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1,_T(""),
 			wxDefaultPosition,wxDefaultSize,
 			wxSIMPLE_BORDER | wxWANTS_CHARS);
+
 	// whm Notes on the wxTextCtrl style flags:
 	// wxSIMPLE_BORDER - Displays a thin border around the window.
 	// wxWANTS_CHARS - According to the wx docs Use this to indicate that 
@@ -2969,6 +2971,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			}
 		}
 	}
+	//wxLogDebug(_T("2972 before RecalcLayout in view PlacePhraseBox(), m_bCancelAndSelectButtonPressed = %d"),
+	//	pApp->m_pTargetBox->GetCancelAndSelectFlag());
 
     // recalculate the layout; before the actual strips are rebuilt, doc class member
     // ResetPartnerPileWidth(), with bool param, bNoActiveLocationCalculation, default

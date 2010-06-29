@@ -3535,6 +3535,9 @@ bool CAdapt_ItDoc::OnSaveModified()
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) 
 {
+	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
+	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
+
 	// refactored 10Mar09
 	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc 
 	
@@ -3795,7 +3798,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		{
 			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 		}
-
 
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // selector = 2, because we
 			// were not at any previous location, so inhibit the initial StoreText call,
@@ -5501,7 +5503,8 @@ h:						bool bIsInitial = TRUE;
 
 						pSublist->Clear(); // clear the local list (but leave the memory chunks in RAM)
 
- 						wxLogDebug(_T("Loc doc4603 INNER LOOP ; before SequNum Update: curSequNum %d ,  SN = %d"), curSequNum, gpApp->m_nActiveSequNum);
+ 						//wxLogDebug(_T("Loc doc4603 INNER LOOP ; before SequNum Update: curSequNum %d ,  SN = %d"), curSequNum, gpApp->m_nActiveSequNum);
+						
 						// update the active sequence number on the view
 						// BEW changed 29Jul09, the test needs to be > rather than >=,
 						// because otherwise a spurious increment by 1 can happen at the

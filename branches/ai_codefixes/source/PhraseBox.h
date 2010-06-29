@@ -38,10 +38,14 @@ class CPhraseBox : public wxTextCtrl
 {
 public:
 	CPhraseBox(void); // wx needs the explicit constructor here
+
 	CPhraseBox(wxWindow *parent, wxWindowID id, const wxString &value,
 				const wxPoint &pos, const wxSize &size, int style = 0)
 				: wxTextCtrl(parent, id, value, pos, size, style)
 	{
+		m_textColor = wxColour(0,0,0); // default to black
+		m_bMergeWasDone = FALSE;
+		m_bCancelAndSelectButtonPressed = FALSE;
 	}
 	virtual ~CPhraseBox(void);
 

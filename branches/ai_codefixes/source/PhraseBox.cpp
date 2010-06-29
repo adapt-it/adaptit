@@ -4964,6 +4964,9 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	nWordsInPhrase = 0;	  // assume no match
 	gbByCopyOnly = FALSE; // restore default setting
 
+	//wxLogDebug(_T("4967 near start of LookUpSrcWord(), m_bCancelAndSelectButtonPressed = %d"),
+	//	pApp->m_pTargetBox->GetCancelAndSelectFlag());
+	
 	// we should never have an active selection at this point, so ensure it
 	pView->RemoveSelection();
 

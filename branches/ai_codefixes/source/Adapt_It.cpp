@@ -7889,6 +7889,9 @@ int ii = 1;
     // whatever is the current value of m_docVersionCurrent. So set the current value:
 	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
 
+	wxLogDebug(_T("7892 at end of app OnInit(), m_bCancelAndSelectButtonPressed = %d"),
+		m_pTargetBox->GetCancelAndSelectFlag());
+
     return TRUE;
 }
 
