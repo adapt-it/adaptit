@@ -35,13 +35,13 @@
 #include <wx/tooltip.h> // for wxToolTip
 
 #include "Adapt_It.h"
+#include "KB.h"
 #include "ChooseTranslation.h"
 #include "TargetUnit.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
 #include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
-#include "KB.h"
 #include "helpers.h"
 #include "Adapt_ItView.h"
 
@@ -190,6 +190,21 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
+	// get pointers to the CKB instance & the map which stores the pCurTargetUnit contents
+	// being viewed
+	m_nWordsInPhrase = nWordsInPhrase; // RHS is a global we need to eliminate eventually,
+									   // as also is gbIsGlossing, and gpApp too
+	if (gbIsGlossing)
+	{
+		wxASSERT(m_nWordsInPhrase == 1);
+		m_pKB = gpApp->m_pGlossingKB;
+	}
+	else
+	{
+		wxASSERT( m_nWordsInPhrase <= MAX_WORDS && m_nWordsInPhrase > 0);
+		m_pKB = gpApp->m_pKB;
+	}
+	m_pMap = m_pKB->m_pMap[m_nWordsInPhrase-1];
 
 	// Note: We don't need to set up any SetValidators for data transfer 
 	// in this class since all assignment of values is done in OnOK()
@@ -227,42 +242,37 @@ void CChooseTranslation::OnUpdateButtonMoveUp(wxUpdateUIEvent& event)
 	}
 }
 
+// BEW 28Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
 void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event)) 
 {
-	// Bruce's email of July 10, 2006 has an idea of how to consolidate and simplify
-	// the OnButtonMoveUp and OnButtonMoveDown here and in the KB Editor dialog. I've
-	// not implemented his suggestion. He says,
-	// "In the legacy app, the KB editor dialog, and the Choose Translation dialog, each 
-	// have Move Up and Move Down buttons. The handlers for these have overlapping code, 
-	// so are wasteful. It is better to have just a enum such as the following:
-	// typedef enum {
-	//	 Up,
-	//	 Down
-	// } Move;
-	//and then have just the one handler for each button, with the signature having and 
-	// additional member "enum Move direction" in it. Then it is possible to consolidate 
-	// the handlers into one. (Well, at least one for the KB editor dialog, and maybe 
-	// another for the Choose Translation dialog - I've not checked out how compatible 
-	// they are between those dialogs.)"
-	//
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
-	// whm Note: The next check for lack of a good selection here is OK. We need not use our
-	// ListBoxPassesSanitCheck() here since a Move Up action should do nothing if the user
-	// hasn't selected anything to move up.
-	if (nSel == -1) // LB_ERR
+    // whm Note: The next check for lack of a good selection here is OK. We need not use
+    // our ListBoxPassesSanitCheck() here since a Move Up action should do nothing if the
+    // user hasn't selected anything to move up.
+	if (nSel == -1)
 	{
-		// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
-		// handler. The following message is of little help to the user even if it were called for a genuine
-		// problem, so I've commented it out, so the present handler can exit gracefully
-		//wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
 		return;
 	}
 	int nOldSel = nSel; // save old selection index
+	wxString itemStr = m_pMyListBox->GetString(nOldSel);
+	wxString s;
+	s = s.Format(_("<no adaptation>"));
+	if (itemStr == s)
+	{
+		// CTargetUnit stores empty string, not <no adaptation
+		itemStr.Empty();
+	}
+	int nListIndex = (int)wxNOT_FOUND;
+	TranslationsList::Node* pos = NULL;
 
 	// change the order of the string in the list box
-	int count;
-	count = pCurTargetUnit->m_pTranslations->GetCount();
+	// BEW 28Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
+	// may contain one or more "removed" (i.e. with their m_bDeleted flags set TRUE)
+	// CRefString instances, and so we can't rely on the list box index for the selection
+	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
+	// we have to find by searching, and we have to skip over any removed ones, etc
+	int count = pCurTargetUnit->m_pTranslations->GetCount();
 	wxASSERT(nSel < count);
 	if (nSel > 0)
 	{
@@ -270,15 +280,30 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		wxString tempStr;
 		tempStr = m_pMyListBox->GetString(nOldSel);
 		int nLocation = gpApp->FindListBoxItem(m_pMyListBox,tempStr,caseSensitive,exactString);
-		wxASSERT(nLocation != -1); // we just added it so it must be there!
-		// wx note: In the GetClientData() call below it returns a pointer to void; therefore we need
-		// to first cast it to a 32-bit int (wxUint32*) then dereference it to its value with *
+		wxASSERT(nLocation != wxNOT_FOUND); // we just added it so it must be there!
+        // wx note: In the GetClientData() call below it returns a pointer to void;
+        // therefore we need to first cast it to a 32-bit int (wxUint32*) then dereference
+        // it to its value with *
 		wxUint32 value = *(wxUint32*)m_pMyListBox->GetClientData(nLocation);
+
+		// get the index for the selected CRefString instance being moved (this call
+		// handles the possible presence of deleted instances) and from it, the
+		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
+		nListIndex = pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
+		wxASSERT(nListIndex != wxNOT_FOUND);
+		pos = pCurTargetUnit->m_pTranslations->Item(nListIndex);
+		wxASSERT(pos != NULL);
+
+		// now delete the label at nLocation, so the label following then occupies its index
+		// value in the ListBox, and then insert the deleted label preceding the latter,
+		// and nSel will index its new location
 		m_pMyListBox->Delete(nLocation);
 		m_pMyListBox->InsertItems(1,&tempStr,nSel);
-		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's index before calling SetClientData()
+		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's 
+		// index before calling SetClientData()
 		nLocation = gpApp->FindListBoxItem(m_pMyListBox,tempStr,caseSensitive,exactString);
-		wxASSERT(nLocation != -1); // we just added it so it must be there!
+		wxASSERT(nLocation != wxNOT_FOUND); // we just added it so it must be there!
+		// nLocation and nSel now index the same location
 		m_pMyListBox->SetSelection(nSel);
 		m_pMyListBox->SetClientData(nLocation,&value);
 		m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nLocation);
@@ -286,23 +311,48 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		m_refCountStr << m_refCount;
 	}
 	else
+	{
 		return; // impossible to move up the first element in the list!
-
+	}
 	// now change the order of the CRefString in pCurTargetUnit to match the new order
-	CRefString* pRefString;
+	CRefString* pRefString = NULL;
 	if (nSel < nOldSel)
 	{
-		TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(nOldSel);
+		// BEW 29Jun10, for support of kbVersion 2, nSel and nOldSel apply only to the GUI
+		// list, which does not show stored CRefString instances marked as deleted. The
+		// potential presence of deleted instances means that we must search for the
+		// instance to be moved earlier in the list, and moving it means we must move over
+		// each preceding deleted instance, if any, until we get to the location of the
+		// first preceding non-deleted element, and insert at that location 
+		//TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(nOldSel);
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
 		wxASSERT(pRefString != NULL);
-		pCurTargetUnit->m_pTranslations->DeleteNode(pos);
-		pos = pCurTargetUnit->m_pTranslations->Item(nSel);
+		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		CRefString* aRefStrPtr = NULL;
+		do {
+			// jump over any deleted earlier CRefString instances, break when a
+			// non-deleted one is found
+			pos = pos->GetPrevious();
+			aRefStrPtr = pos->GetData();
+			if (!aRefStrPtr->GetDeletedFlag())
+			{
+				break;
+			}
+		} while(aRefStrPtr->GetDeletedFlag());
+
+		// pos now points at the first previous non-deleted CRefString instance, which is
+		// the one before which we want to put pOldRefStr by way of insertion, but first
+		// delete the node containing the old location's instance
+		pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
 		wxASSERT(pos != NULL);
-		// Note: wxList::Insert places the item before the given item and the inserted item then
-		// has the insertPos node position.
-		TranslationsList::Node* newPos = pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
-		if (newPos == NULL)
+
+        // now do the insertion, bringing the pCurTargetUnit's list into line with what the
+        // listbox in the GUI shows to the user
+        // Note: wxList::Insert places the item before the given item and the inserted item
+        // then has the pos node position.
+		pos = pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
+		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T("Error: Move Up button failed to reinsert the translation being moved\n"),
@@ -344,10 +394,6 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	// hasn't selected anything to move down.
 	if (nSel == -1)// LB_ERR
 	{
-		// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
-		// handler. The following message is of little help to the user even if it were called for a genuine
-		// problem, so I've commented it out, so the present handler can exit gracefully
-		//wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
 		return;
 	}
 	int nOldSel = nSel; // save old selection index
@@ -496,6 +542,7 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 }
 
+// BEW 28Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
 void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event)) 
 {
 	// whm added: If the m_pMyListBox is empty, just return as there is nothing to remove
@@ -618,62 +665,27 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->SetDeletedFlag(TRUE);
 	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
 	pRefString->m_refCount = 0;
-	
 
-//*** UP TO HERE ***
+	// get the count of non-deleted CRefString instances for this CTargetUnit instance
+	int numNotDeleted = m_pKB->CountNonDeletedRefStringInstances(pCurTargetUnit);
 
-	// are we about to delete the last item in the box?
-	int nItems = m_pMyListBox->GetCount();
-	if (nItems == 0)
+	// did we remove the last item in the box?
+	if (numNotDeleted == 0)
 	{
-		// this means the pTargetUnit has no CRefString instances left, so we have to remove the
-		// association of this target unit and its key from the KB as well (global curKey has it)
-		wxString str = curKey;
-		wxASSERT(!str.IsEmpty());
-		CKB* pKB;
-		if (gbIsGlossing)
-			pKB = gpApp->m_pGlossingKB;
-		else
-			pKB = gpApp->m_pKB;
-		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nWordsInPhrase-1];
-		wxString s1 = curKey;
-		bool bNoError = TRUE;
-		int nRemoved = 0;
-		if (gbAutoCaps)
-		{
-			bNoError = gpApp->GetDocument()->SetCaseParameters(s1);
-			if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-			{
-				// make it start with lower case letter
-				s1.SetChar(0,gcharSrcLC);
-			}
-			// try removing the lower case one first, this is the most likely one that
-			// was found by GetRefString( ) in the caller
-			nRemoved = pMap->erase(s1);
-		}
-		if (nRemoved == 0)
-		{
-			// have a second shot using the unmodified string m_curKey
-			nRemoved = pMap->erase(curKey);
-		}
-		wxASSERT(nRemoved == 1);
-
-		// BEW removed 28May10, because TUList is redundant & now removed
-		//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTargetUnit);
-		//wxASSERT(pos != NULL);
-		//pKB->m_pTargetUnits->DeleteNode(pos);
+		// this means the pCurTargetUnit has no undeleted CRefString instances left
 		
-		delete pCurTargetUnit; // ensure no memory leak
-		pCurTargetUnit = (CTargetUnit*)NULL;
+		// legacy code here has been omitted -- nothing to do in this block now
+		
 		// whm Note 3Aug06:
-		// The user wanted to delete the translation from the KB, so it would be nice if
-		// the the phrasebox did not show the removed translation again after ChooseTranslation 
-		// dialog exits, but a later call to PlacePhraseBox copies the source again and
-		// echos it there. 
+        // The user wanted to delete the translation from the KB, so it would be nice
+        // if the the phrasebox did not show the removed translation again after
+        // ChooseTranslation dialog exits, but a later call to PlacePhraseBox copies
+        // the source again and echos it there. <<-- check if this still applies
+		;
 	}
-	// do we need to show the Do Not Ask Again button? (BEW 28May10: yes, if the flag is
-	// true, as in the test in next line)
-	if (nItems == 1 && pCurTargetUnit->m_bAlwaysAsk)
+    // do we need to show the Do Not Ask Again button? (BEW 28May10: yes, if the flag
+    // is true, as in the test in next line)
+	if ((numNotDeleted == 1) && pCurTargetUnit->m_bAlwaysAsk)
 	{
 		wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
 		wxASSERT(pButton != NULL);
@@ -681,9 +693,9 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 	TransferDataToWindow();
 	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
-	// If the last translation was removed set focus to the New Translation edit box, otherwise to the
-	// Translations list box. (requested by Wolfgang Stradner).
-	if (nItems == 0)
+    // If the last translation was removed set focus to the New Translation edit box,
+    // otherwise to the Translations list box. (requested by Wolfgang Stradner).
+	if (numNotDeleted == 0)
 		m_pNewTranslationBox->SetFocus();
 	else
 		m_pMyListBox->SetFocus();
@@ -698,7 +710,6 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	m_bCancelAndSelect = FALSE;
 	
 	wxString s;
-	//IDS_NO_ADAPTATION
 	s = s.Format(_("<no adaptation>")); // that is, "<no adaptation>", ready in case we need it
 
 	// first, use the current source and target language fonts for the list box

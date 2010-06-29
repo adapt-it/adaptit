@@ -1096,7 +1096,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		tempStr = m_pListBoxExistingTranslations->GetString(nOldSel);
 		int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,tempStr,
 											caseSensitive,exactString); // whm added
-		wxASSERT(nLocation != -1); // LB_ERR;
+		wxASSERT(nLocation != wxNOT_FOUND);
 		CRefString* pRefStr = (CRefString*)
 							m_pListBoxExistingTranslations->GetClientData(nLocation);
 		pOldRefStr = pRefStr; // BEW added 22Jun10, for use when searching below

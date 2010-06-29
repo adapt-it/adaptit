@@ -22,6 +22,7 @@
 
 #include "MyListBox.h"
 
+class MapKeyStringToTgtUnit;; 
 class CAdapt_ItView;
 
 /// The CChooseTranslation class provides a dialog in which the user can choose 
@@ -65,6 +66,9 @@ public:
 	void OnKeyDown(wxKeyEvent& event);
 
 private:
+	CKB* m_pKB;
+	int  m_nWordsInPhrase;
+	MapKeyStringToTgtUnit* m_pMap;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
