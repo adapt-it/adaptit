@@ -2437,8 +2437,8 @@ protected:
 
 	void	AddWedgePunctPair(wxChar wedge);
 	void	DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulativeTotal);
-	bool	DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& folderPath, 
-						wxString& bookFolderName, bool bSuppressStatistics = FALSE);
+	bool	DoTransformationsToGlosses(wxArrayString& tgtDocsList, CAdapt_ItDoc* pDoc,
+				wxString& folderPath, wxString& bookFolderName, bool bSuppressStatistics = FALSE);
 	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
 						wxString& basePath, wxString& localPath);
 	void	FixConfigFileFonts(wxTextFile* pf); // whm added 24Feb10
@@ -2518,6 +2518,7 @@ public:
 				enum Reparse reparseDoc); // whm revised 23May05
 	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath, 
 				bool bSuppressDialog = FALSE);
+	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);

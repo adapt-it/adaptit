@@ -7869,7 +7869,12 @@ int ii = 1;
 	m_pPlaceholder = new CPlaceholder(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
-	
+
+	wxASSERT(m_pRetranslation);
+	m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // must start off FALSE, otherwise
+			// it will suppress the mechanism for decrementing the m_refCount value, etc, if
+			// the box is made to land on a non-hole
+
     // BEW added 19Apr for Save As... support. The document version will henceforth be
     // parameterized. The doc class now has a private int member, m_docVersionCurrent which
     // is used for constructing the XML for doc and KB which has the docVersion parameter
@@ -10833,7 +10838,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	m_pGlossingKB->DoKBSaveAsXML(f); // TRUE means that we want a glossing KB file
+	m_pGlossingKB->DoKBSaveAsXML(f);
 
 	// close the file
 	f.Close();
@@ -12729,6 +12734,60 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
             // files, so we need to allow different functionalities to interpret an empty
             // list in different ways
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if all was okay, FALSE if the path to the folder could not be 
+///             made the current directory
+/// \param      docNamesList -> a wxArrayString to store the documents' filenames 
+/// \param      folderPath   -> a wxString representing the full path to the folder which 
+///                             is to have its document files enumerated
+/// \remarks
+/// Called from: the App's AccessOtherAdaptionProjects().
+/// This is a similar function to EnumerateDocFiles, but with a few differencesas follows:
+/// 1.  EnumerateDocFiles() stores in CAdapt_ItApp::m_acceptedFilesList, and so is not a 
+///     useful function if we wish to enumerate the documents in more than one folder (which
+///     is the case when transforming adaptations to glosses); so we pass in the storage
+///     array as the first parameter
+/// 2.  EnumerateDocFiles_ParametizedStore() enumerates all doc files in the folder, there
+///     is no provision for a dialog for the user to select which ones are to kept for use
+/// 3.  EnumerateDocFiles_ParametizedStore((), on exit, restores the caller's work directory
+///     to what it was prior to being called
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList,
+													  wxString folderPath)
+{
+	// first, save the caller's current working directory
+	wxString saveWorkDir = ::wxGetCwd();
+
+	// reset the current working directory to the path passed in
+	wxASSERT(!folderPath.IsEmpty());
+	bool bOK = ::wxSetWorkingDirectory(folderPath);
+	if (!bOK)
+	{
+		// something's real wrong!
+		wxMessageBox(_T(
+		"Failed to set the current directory to the passed in folder, in EnumerateDocFiles_ParametizedStore(). Command aborted."),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+
+    // enumerate the document files in the folder ( excludes any files with names
+    // of the form *.BAK.xml )
+	GetPossibleAdaptionDocuments(&docNamesList, folderPath);
+
+	// restore the working directory
+	bOK = ::wxSetWorkingDirectory(saveWorkDir);
+	if (!bOK)
+	{
+		// something's real wrong!
+		wxMessageBox(_T(
+		"Failed to re-set the work directory in EnumerateDocFiles_ParametizedStore(). Command aborted."),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+	return TRUE; // return TRUE even if the list is empty
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -18468,7 +18527,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
         // reliable way to do otherwise, such as to have the process support document
         // settings originally in the receptor project, since typically there will be no
         // documents in the receptor project when the process is initiated. The last
-        // secttion of code in this block will therefore aim to get the application
+        // section of code in this block will therefore aim to get the application
         // consistent with whatever was the last document processed
 
 		bool bOK;
@@ -18531,6 +18590,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 /// Note 2: The both source and target projects will be, and must be, within the one work
 /// folder. It is not possible to perform this transformation across work folders on
 /// different machines, nor between two work folders on the same machine. (BEW 11Sep09)
+/// BEW 2July10, updated for support of kbVersion 2
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AccessOtherAdaptionProject()
 {
@@ -18597,6 +18657,23 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		wxString strOtherKBNameXML = strOtherProjectName + _T(".xml");
 		wxString strOtherKBPathXML = strOtherProjectPath + PathSeparator + strOtherKBNameXML;
 
+		// BEW 6July10, I've made this functionality able to preserve any adapting (and
+		// even any glossing) work done in the target project as follows: before
+		// transforming the KB, both the target projects glossing KB and adapting KB are
+		// exported (in SFM form) to temporary files in the project folder, and after the
+		// transformations are completed, these are imported back to the glossing and
+		// adapting KBs. Also, if any document in the "other" project (i.e. the source of
+		// the documents to be transformed) has the same filename as a document in the
+		// target (i.e. transformed) project, then that other project's document is
+		// skipped -- doing this ensures that the doc transformations do not overwrite any
+		// transformed document in which the user has done some adapting work. Supporting
+		// these changes requires a new function, EnumerateDocFiles_ParametizedStore()
+		// which passes in by reference the wxArrayString to be used for temporarily
+		// storing the enumerated document files from the target project's current folder
+		// (either Adaptations, or a Bible book folder, as the case may require).
+		// A beneficial effect of these changes is that it is no longer necessary to warn
+		// the user about the KB contents being cleared, so that is comment out (below)
+		/* 
         // count the entries in the current project's KB, since we must warn the user that
         // it's contents are now about to be removed, so if the user is in a project in
         // which some work has been done, he better know that this operation (if he
@@ -18618,7 +18695,6 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		// the user will have to decide if he is willing to let the current kb's contents
 		// be cleared, likewise the current glossing KB
 		wxString message;
-		// IDS_ABOUT_TO_CLOBBER_KB
 		message = message.Format(_(
 "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\nLikewise for the glossing knowledge base, which contains %d entries.\nAre you willing for this to happen?"),
 		nCount,nGlossingCount);
@@ -18635,11 +18711,53 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			return FALSE; // user baled out by clicking NO button, so do nothing
 		}
+		*/
+		// enumerate the target project's doc files (Note: we must also do this again
+		// below if book folders are involved, once per book folder), and set up paths for
+		// the needed KB exports and do the exports
+		wxArrayString targetProjectDocsList;
+		wxString glossesKBExportFilename = _T("TEMP_AI_GlossesKB_Exported");
+		wxString adaptionsKBExportFilename = _T("TEMP_AI_AdaptionsKB_Exported");
+		wxString glossesKBExportPath = m_curProjectPath + PathSeparator + glossesKBExportFilename;
+		wxString adaptionsKBExportPath = m_curProjectPath + PathSeparator + adaptionsKBExportFilename;
 
-        // okay, clean out the glossing KB ready for the new content (we don't want to just
+		wxFile f;
+		// first, the glossing KB export
+		if( !f.Open( glossesKBExportPath, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // return, do nothing
+		}
+		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+		f.Close();
+		// second, the adapting KB export
+		if( !f.Open( adaptionsKBExportPath, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // return, do nothing
+		}
+		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+		f.Close();
+		// now get the list of documents in the target project's Adaptations folder
+        // (any from the "other" project which match these, we just won't have converted,
+        // so that data overwrite accidents won't happen)
+		if (!EnumerateDocFiles_ParametizedStore(targetProjectDocsList,m_curAdaptionsPath))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // return, do nothing
+		}
+
+		// okay, clean out the glossing KB ready for the new content (we don't want to just
         // add the new content, since the user might invoke the Transform Adaptations Into
         // Glosses command more than once, so that an addition schema would result in
         // duplicates and hence a glossing KB with incorrect reference counts)
+		int nGlossingCount = m_pGlossingKB->m_pMap[0]->size();
 		if (nGlossingCount > 0)
 		{
 			pDoc->EraseKB(m_pGlossingKB);
@@ -18647,12 +18765,13 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 									 // contents left undisturbed
 			wxASSERT(m_pGlossingKB != NULL);
 			m_bGlossingKBReady = TRUE;
-			// BEW removed 28May10, because TUList is redundant & is now removed
-			//wxASSERT(m_pGlossingKB->m_pTargetUnits->GetCount() == 0);
 		}
 
-        // if we get to here, the user is committed, the current project's kb is cleared,
-        // and so we go ahead with the transformations - provided we can find the KB file
+        // if we get to here, the user is committed, the current project's kb will be
+        // cleared further down, because we delay in case the load of the 'other' project's
+        // KB failed, and we don't want to clobber our kb until we know we've not had a
+        // failure; and so we go ahead with the transformations - provided we can find the
+        // KB file
 		if (!wxFileExists(strOtherKBPathXML))
 		{
             // we could not detect any valid KB file, so abort the operation; don't expect
@@ -18673,13 +18792,12 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // "Load" the other project's adaptations KB. Code for this will be plagiarized
         // from the app class's LoadKB() function, but using a local CKB pointer to access
         // the KB
-		CKB* pOtherKB = new CKB(FALSE);
+		CKB* pOtherKB = new CKB(FALSE); // FALSE means "not a glossing KB"
 		bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
 		if (!bReadOK)
 		{
 			// a bad read or parsing - if so, there will have been an XML error report
 			// already, so just abort the command
-			// IDS_NO_OTHER_KB
 			wxMessageBox(_(
 "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."),
 			_T(""), wxICON_INFORMATION);
@@ -18712,59 +18830,88 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			else // the map is not empty, so process its contents
 			{
 				iter = pMap->begin(); 
-				while (iter != pMap->end()) //while (pos != 0)
+				while (iter != pMap->end())
 				{
 					// get the next association (ie. a CTargetUnit instance associated
-					// with a key string
+					// with a key string)
 					key = iter->first;
 					pTgtUnit = iter->second; 
 					iter++;
 	
-                    // we now have a key, and its associated CTargetUnit instance. These
+					// BEW 2July10, additions to the tests have to be made for kbVersion
+					// 2, and the copy actions modified somewhat - see below. 
+					// We now have a key, and its associated CTargetUnit instance. These
                     // will need to go in the glossing KB except as follows: we throw away
                     // the CTargetUnit instance if it is for a null source phrase (key =
-                    // "..."), or if it contains "<Not In KB>"
+                    // "..."), or if it contains a non-deleted CRefString storing the
+					// string "<Not In KB>", or if all the stored CRefString instances are
+					// marked as deleted. Also, when copying the CRefString instances
+					// across, we don't copy any for which the m_bDeleted flag is TRUE
 					if (key == _T("..."))
-						continue;
-					TranslationsList::Node* tuPos = pTgtUnit->m_pTranslations->GetFirst();
-					pRefString = (CRefString*)tuPos->GetData();
-					storedStr = pRefString->m_translation;
-					if (storedStr == _T("<Not In KB>"))
-						continue;
+						continue; // skip any placeholder entries - we handle these when
+								  // we later convert the documents, because we do it there
+								  // selectively - we call StoreText() on those inserted
+								  // manually, but don't for those auto-inserted to pad
+								  // out a retranslation; we don't have enuf info to do it
+								  // here now
+					if (pTgtUnit->CountNonDeletedRefStringInstances() == 0)
+						continue; // skip any in which every CRefString is deleted
 
-                    // if we get to here, then we have a target unit which has to be
-                    // associated with the key and go into the glossing KB's first map.
+                    // if we get to here, then we may have a target unit which has to be
+                    // associated with the key and go into the glossing KB's first map -
+                    // but one which just has a non-deleted "<Not In KB>" adaptation will
+                    // need to be ignored - so check for that and if found then delete the
+					// new CTargetUnit and iterate; otherwise, accept all the contents
+					// that remain unremoved
 					CTargetUnit* pGlossingTgtUnit = new CTargetUnit; // create an empty one
 					wxASSERT(pGlossingTgtUnit != NULL);
 					pGlossingTgtUnit->Copy(*pTgtUnit); // copy it (a copy constructor does not
 													  // work, hence the two step workaround)
-					wxASSERT(pGlossingTgtUnit->m_pTranslations->GetCount() >= 1);
-					// BEW removed 28May10, TUList is redundant & now removed
-					//m_pGlossingKB->m_pTargetUnits->Append(pGlossingTgtUnit); // in the list
-					(*m_pGlossingKB->m_pMap[0])[key] = pGlossingTgtUnit; // in the map
-					m_pGlossingKB->m_nMaxWords = 1; // always 1 for the glossing KB
+					// find and throw away any CRefString instances which are marked as
+					// deleted, and SetNewValue means that any non-deleted CRefString
+					// instances that remain will have their m_modifiedDateTime member set
+					// to the current datetime
+					pGlossingTgtUnit->EraseDeletions(SetNewValue);
+					// if pGlossingTgtUnit contains a CRefString with "<Not In KB>" then
+					// that will now be the only CRefString in gGlossingTgtUnit
+
+					// check now for <Not In KB> entry  -- delete pGLossingTgtUnit if we
+					// find this string in its CRefString instance; otherwise, we keep all
+					// the CRefString instances that remain after the removals done by the
+					// EraseDeletions() call above
+					TranslationsList::Node* tuPos = pGlossingTgtUnit->m_pTranslations->GetFirst();
+					pRefString = (CRefString*)tuPos->GetData();
+					storedStr = pRefString->m_translation;
+					if (storedStr == _T("<Not In KB>"))
+					{
+						pGlossingTgtUnit->DeleteTargetUnitContents();
+						delete pGlossingTgtUnit; // don't leak memory
+						continue;
+					}
+
+					wxASSERT(pGlossingTgtUnit->CountNonDeletedRefStringInstances() >= 1);
+					(*m_pGlossingKB->m_pMap[0])[key] = pGlossingTgtUnit; // put it into the map
+					m_pGlossingKB->m_nMaxWords = 1; // always is 1 for the glossing KB
 				} // end block for scanning all associations stored in the current map
 			} // end block for processing a map with contents
 		} // end for loop for processing all maps
 
 		// clean up the kbs
-		if (nCount > 0)
-		{
+//		if (nCount > 0)
+//		{
 			// clean out the adaptations kb (actually delete it and make a new empty one)
 			// (delayed to here, in case the transformation process failed, in which case
 			// we'd prefer the current adaptations KB to be left untouched)
-			pDoc->EraseKB(m_pKB); //pDoc->EraseKB(m_pKB);
+			pDoc->EraseKB(m_pKB);
 			m_pKB = new CKB(FALSE);
 			m_bKBReady = TRUE;
 			wxASSERT(m_pKB);
-			// BEW removed 28May10, TUList is redundant & now removed
-			//wxASSERT(m_pKB->m_pTargetUnits->GetCount() == 0);
 			bool bStoredOK = StoreKB(m_bAutoBackupKB);
 			// unlikely to fail, so an English message hardcoded will do
 			if (!bStoredOK)
-				wxMessageBox(_T("The erased adaptations KB did not successfully store to disk"),
+				wxMessageBox(_T("The new empty adaptations KB did not successfully store to disk"),
 				_T(""), wxICON_INFORMATION);
-		}
+//		}
 
 		// delete the other project's KB from the heap
 		pDoc->EraseKB(pOtherKB); 
@@ -18785,6 +18932,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // project's Adaptations folder. Code for this kind of stuff is to be found in the
         // handler OnFileRestoreKB( ) and its auxiliary function, DoKBRestore( ), with a
         // few modifications needed for our present task
+		// BEW 6July10, as above except that now we only process doc files with filename
+		// not in the targetProjectDocsList array.
 
         // first, get a list of all the documents the user wants transformed (normally all
         // of them, but the dialog which comes up allows fewer than all to be worked on)
@@ -18815,7 +18964,9 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			return FALSE;
+			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // do nothing
 		}
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 		{
@@ -18835,10 +18986,15 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
         // do the transformation of the other project's documents - changing adaptations
         // into glosses, and storing the transformed documents in the current project
+		// (Since there may be some documents in the Adaptations folder, as well as more
+		// documents in Bible book folders within the former, we must do the
+		// transformations on the Adaptations' folder's documents first, and then on any
+		// book folders which contain one or more documents.)
 		wxString bookFolderName;
-		bookFolderName.Empty();
+		bookFolderName.Empty(); // this ensures the next call works on Adaptations folder only
 		bool bTransformedOK;
-		bTransformedOK = DoTransformationsToGlosses(pDoc, strOtherAdaptationsPath, bookFolderName);
+		bTransformedOK = DoTransformationsToGlosses(targetProjectDocsList, pDoc,
+										strOtherAdaptationsPath, bookFolderName);
 
 		if (gbHasBookFolders)
 		{
@@ -18887,7 +19043,6 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
                     // - a difference we must account for here in the wx version.
                     // whm Note: The Exists() method of wxDIR used below returns TRUE if
                     // the passed name IS a directory. 
-                    // TODO: Test that this while loop succeeds in traversing all book folders
 					if (finder.Exists(strOtherAdaptationsPath + PathSeparator + str))
 					{
 						// BEW changed 25Aug05, so that other user-defined folders can be
@@ -18920,12 +19075,27 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 								continue;
 							}
 
+							// BEW 6July10, enumerate the target project's equivalent
+							// bible book folder for doc files
+							wxString bibleBookPath = m_curAdaptionsPath +
+											PathSeparator + str;
+							targetProjectDocsList.Clear(); // it's already cleared, but no harm
+														   // in doing it again
+							if (!EnumerateDocFiles_ParametizedStore(targetProjectDocsList,bibleBookPath))
+							{
+								// we don't expect failure, English message will do
+								wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."),
+								_T(""), wxICON_WARNING);
+								return FALSE; // return, do nothing
+							}
+
                             // there are files to be processed, so do the transformations
                             // (the function internally does the required saving of the
                             // transformed document as part of the current project) TRUE
                             // parameter suppresses the statistics dialog.
-							bTransformedOK = DoTransformationsToGlosses(
+							bTransformedOK = DoTransformationsToGlosses(targetProjectDocsList,
 														pDoc,otherFolderPath,str,TRUE);
+							// note, the function clears targetProjectDocsList before returning
 						}
 						else
 						{
@@ -18945,7 +19115,18 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		}
 
 		// clean out the app's string list for the list of doc files
-		m_acceptedFilesList.Clear(); //m_acceptedFilesList.RemoveAll();
+		m_acceptedFilesList.Clear();
+
+		// import the temporary files with the exported glossing and adapting KBs back to
+		// the  target project, so that KB data is not lost from either one
+		bool bSuccessful = TRUE;
+		m_pGlossingKB->DoKBImport(glossesKBExportPath, KBImportFileOfSFM_TXT);
+		bSuccessful = ::wxRemoveFile(glossesKBExportPath);
+		wxASSERT(bSuccessful);
+
+		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
+		bSuccessful = ::wxRemoveFile(adaptionsKBExportPath);
+		wxASSERT(bSuccessful);
 	}
 
 	// BEW added 05Jan07 to restore the former current working directory
@@ -18958,6 +19139,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
+/// \param      tgtDocsList          -> ref to array of target project's document filenames
+///                                     (used for preventing overwrites)
 /// \param      pDoc                 -> a pointer to the document
 /// \param      folderPath           <- the full path to whatever folder in the other
 ///                                     project is supplying the documents being currently
@@ -18974,9 +19157,19 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 /// Called from: the App's AccessOtherAdaptionProject().
 /// Transforms another project's documents - changing adaptations into glosses, and stores
 /// the transformed documents in the current project.
+/// BEW 2July10, updated for support of kbVersion 2 (no changes here, but changes within
+/// the TransformSourcePhraseAdaptationsToGlosses() function which it calls for each
+/// CSourcePhrase instance's transformation)
+/// BEW 6July10, updated to add tgtDocsList parameter, so that we can test for same
+/// document filenames and skip the transform process for any such matches (which protects
+/// against inadventent data loss because the user may have done some adapting work in the
+/// target project since the last transformation process)
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& folderPath, 
-									wxString& bookFolderName, bool bSuppressStatistics)
+bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList, 
+											  CAdapt_ItDoc* pDoc,
+											  wxString& folderPath, 
+											  wxString& bookFolderName, 
+											  bool bSuppressStatistics)
 {
     // BEW updated it on 31Aug05 to comply with version 3 - specifically, to handle book
     // folders, and the possibility of some or all documents being XML rather than binary).
@@ -18999,6 +19192,15 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 	for (int i=0; i < nCount; i++)
 	{
 		wxString newDocName = List[i];
+
+		// BEW 6July10, test for same names, and skip any that comply
+		int anIndex = wxNOT_FOUND;
+		anIndex = tgtDocsList.Index(newDocName);
+		if (anIndex != wxNOT_FOUND)
+		{
+			// don't transform this document
+			continue;
+		}
 		wxASSERT(!newDocName.IsEmpty());
 		wxString ourProjectsDocFileName = newDocName;
 		wxString curOutputPath; // for full path to the transformed document to 
@@ -19109,7 +19311,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 				// update the glossing or adapting KB for this source phrase
 				bool bRemoveIt = FALSE;
 				bRemoveIt = pView->TransformSourcePhraseAdaptationsToGlosses(
-									savePos,pos1,pSrcPhrase);
+									this,savePos,pos1,pSrcPhrase);
 
                 // if it needs to be removed, do so; (any adjustments to flags which are
                 // needed will already have been done in the
@@ -19156,8 +19358,11 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 		}
 	}
 
-	// inform user of success and some statistics
-	if (!bSuppressStatistics)
+	// clear the tgt list of doc names
+	tgtDocsList.Clear();
+
+	// inform user of success and some statistics, but only if not processing book folders
+	if (!bSuppressStatistics && bookFolderName.IsEmpty())
 	{
         // we suppress this information when processing through the documents in the 67
         // Bible book folders - otherwise the user might have to manually dismiss an

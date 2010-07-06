@@ -1822,7 +1822,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	//BEW 21Jun10, for kbVersion 2 we want a count of all non-deleted CRefString
 	//instances, not the total number in the list, because there could be deletions stored
 	//int count = pTargetUnit->m_pTranslations->GetCount();
-	int count = pKB->CountNonDeletedRefStringInstances(pTargetUnit);
+	int count = pTargetUnit->CountNonDeletedRefStringInstances();
 	// For kbVersion 2, a CTargetUnit can store only deleted CRefString instances, so that
 	// means count can be zero - if this is the case, this is an 'unmatched' situation,
 	// and should be handled the same as the if(!bFound) test above
@@ -4947,12 +4947,14 @@ void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 21Jun10: simplified signature
 // BEW 21Jun10: changed to support kbVersion 2's m_bDeleted flag
+// BEW 6July10, added test for converting a looked-up <Not In KB> string to an empty string
 bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 {
 	// refactored 2Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItView *pView = pApp->GetView(); // <<-- BEWARE if we later have multiple views/panes
 	CLayout* pLayout = pApp->m_pLayout;
+	wxString strNot = _T("<Not In KB>");
 	int	nNewSequNum;
 	nNewSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber; // sequ number at the new location
 	wxString	phrases[1]; // store built phrases here, for testing 
@@ -5012,7 +5014,7 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 								// the caller
     // BEW 21Jun10, for kbVersion 2 support, count the number of non-deleted CRefString
     // instances stored on this pTargetUnit
-    int count =  pKB->CountNonDeletedRefStringInstances(pTargetUnit);
+    int count =  pTargetUnit->CountNonDeletedRefStringInstances();
 	if (count == 0)
 	{
 		// nothing in the KB for this key (except, possibly, one or more deleted
@@ -5097,7 +5099,16 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 			pos = pos->GetNext();
 			if (!pRefStr->GetDeletedFlag())
 			{
+				// the adaptation string returned could be a "<Not In KB>" string, which
+				// is something which never must be put into the phrase box, so check for
+				// this and change to an empty string if that was what was fetched by the
+				// lookup
 				translation = pRefStr->m_translation;
+				if (translation == strNot)
+				{
+					// change "<Not In KB>" to an empty string
+					translation.Empty();
+				}
 				break;
 			}
 		}

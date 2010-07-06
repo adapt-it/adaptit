@@ -1979,6 +1979,7 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 					pApp->m_pTargetBox->ChangeValue(_T(""));
 					pApp->m_targetPhrase = pPile->GetSrcPhrase()->m_adaption;
 					pApp->m_pActivePile = pPile;
+					pApp->m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // ensure it's turned back off
 					return FALSE; // Note: of 9 calls in the app, only 2 actually use this returned
 					// FALSE VALUE - once in OnButtonRetranslation() and the other in 
 					// OnButtonEditRetranslation - where they, in the legacy version, caused a
@@ -1998,6 +1999,7 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 	}
 	nActiveSequNum = nSaveActiveSequNum; // ensure value of pApp->m_nActiveSequNum agrees with any
 										 // adjustments
+	pApp->m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // ensure it's turned back off
 	return TRUE;
 }
 
@@ -2134,6 +2136,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		CSourcePhrase* pSrcPhrase, int selector, CPile* pActivePile, wxString& str,
 		bool bHasNothing, bool bNoValidText, bool bSomethingIsCopied)
 {
+	selector = selector; // to avoid a compiler warning
 	wxASSERT(pApp);
 	bool bGotOne = FALSE;
 
@@ -2145,8 +2148,14 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 	}
 	else
 	{
-		// this block is for lookup, merger, failure to find a KB entry, and landing on
-		// a "hole" when in free translation mode and Advance or Next> was pressed
+        // This block is for when the current active location has adaptation content (or,
+        // in glossing mode, gloss content) -- FALSE for bHasNothing is the default value,
+        // so in effect control usually routes through this block unless the caller sets
+        // bHasNothing to TRUE explicitly. In fact, the app setting m_bCopySource being set
+        // with its default value of TRUE is sufficient to ensure the bHasNothing flag is
+        // never set TRUE, regardless of the value of the m_bHasKBEntry and m_bNotInKB
+		// flags. It's then the bNoValidText which is significant, and that has to be TRUE
+		// (indicative of a "hole") for lookup to take place.
 		gbByCopyOnly = FALSE;
 		if (bNoValidText)
 		{
@@ -2256,7 +2265,10 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 				str = translation; // adapting or glossing, put the final translation into str
 			}
 		}
-		else // there is valid text -- this is typically the case when in Reviewing mode
+		else // there is valid text -- this is typically the case when in Reviewing mode; it
+			 // also is the case when the user uses the mouse to click on a non-hole location
+			 // -- but we exclude doing anything in the latter situation by an explicit test 
+			 // within this block for review mode - ie. we test for m_bDrafting is FALSE
 		{
             // when in Reviewing mode and the user clicks on existing adaptation or gloss
             // text, no lookup is done because bNoValidText is FALSE, and so control will
@@ -2360,35 +2372,14 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		} // end block for tests: bGotOne == FALSE and "is split dialog is 
 		  // active currently?" == FALSE
 
-        // don't do the following selection when PlacePhraseBox() is called from deep in
-        // some other function before the phrasebox is finally rebuilt (such as in the
-        // SetActivePilePointerSafely() call in the OnButtonRetranslation() call; since it
-        // would then either decrement a refCount, or remove a translation association,
-        // wrongly) - in such instances, we must suppress the removal
-		if (pApp->GetRetranslation()->GetSuppressRemovalOfRefString() == FALSE)
-		{
-			// remove the CRefString from the KB if it is referenced only once, otherwise
-			// decrement its reference count by one, so that if user edits the string the KB
-			// (or if glossing, then the glossing KB) will be kept up to date
-			if (selector != 1) // see comments under the function header for explanation
-			{
-				// do this for selector values 0 or 2
-				wxString emptyStr = _T("");
-				if (gbIsGlossing)
-					pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
-												emptyStr, useGlossOrAdaptationForLookup);
-				else
-					pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
-												emptyStr, useGlossOrAdaptationForLookup);
-			}
-		}
 		// this next call relies for it's success on pActivePile being the CPile* at the
 		// new active location, and that the partner CSourcePhrase instance has its
 		// m_nSequNumber value set to the same value as the app's member m_nActiveSequNum
-		// - these conditions are guaranteed by code above in this function (360 lines up)
+		// - these conditions are guaranteed by code in the caller before this function is
+		// called
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to 
                     // same value that it sets in the active pile's m_nWidth member
-	} // end of block for lookup, merger, and failure to find a KB entry
+	} // end of else block for test: if (bHasNothing)
 }
 
 // Returns nothing. 
@@ -2950,6 +2941,39 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		}
 	}
 	gSaveTargetPhrase = pApp->m_targetPhrase;
+
+	// BEW 1Jun10, moved to here from within DoGetSuitableText_ForPlacePhraseBox(), as it
+	// logically makes no sense in the latter, and is more relevant here (particularly as
+	// a goto to label a: would bypass the latter function call and so this code would be
+	// missed (wrongly so) -- what we do here is to auto-adjust the KB CRefString entry
+	// for this new location so as to decrement by one the m_refCount, or if it was
+	// already just equal to 1, to 'remove' it (ie. set its m_bDeleted flag to TRUE)
+	if (!bHasNothing)
+	{
+        // don't do the following selection when PlacePhraseBox() is called from deep in
+        // some other function before the phrasebox is finally rebuilt (such as in the
+        // SetActivePilePointerSafely() call in the OnButtonRetranslation() call; since it
+        // would then either decrement a refCount, or remove a translation association,
+        // wrongly) - in such instances, we must suppress the removal
+		if (pApp->GetRetranslation()->GetSuppressRemovalOfRefString() == FALSE)
+		{
+			// remove the CRefString from the KB if it is referenced only once, otherwise
+			// decrement its reference count by one, so that if user edits the string the KB
+			// (or if glossing, then the glossing KB) will be kept up to date
+			if (selector != 1 && selector != 3) // see comments under the function header
+												// for an explanation of the selector values
+			{
+				// do this for selector values 0 or 2
+				wxString emptyStr = _T("");
+				if (gbIsGlossing)
+					pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+												emptyStr, useGlossOrAdaptationForLookup);
+				else
+					pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+												emptyStr, useGlossOrAdaptationForLookup);
+			}
+		}
+	}
 
 	// mark invalid the strip following the new active strip, so as to allow
 	// migration upwards of pile in a strip which sometimes may not be full; but do this
@@ -11598,8 +11622,9 @@ void CAdapt_ItView::ChooseTranslation()
 	}
 }
 
-void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 // Modified for support of glossing.
+// BEW 2July10, updated for support of kbVersion 2
+void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -11624,6 +11649,32 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		nCurLongest = pKB->m_nMaxWords; // no matches are possible for phrases
 										// longer than nCurLongest
 	}
+
+    // BEW added 2July10 if a selection is current, tell the user that the phrase box must
+    // first be placed there in order to make the Choose Translation dialog accessible from
+    // that location (but say nothing if the box is already at the start of the selection)
+	if (!pApp->m_selection.IsEmpty())
+	{
+		// we don't support opening the dialog on a selection disconnected from the active
+		// location because the Choose Translation dialog for an OK click will deposit the
+		// selected list item at the active location - which would put a wrong adaptation
+		// or gloss at a location for which the source text is not an appropriate
+		// translation equivalent
+		CCellList::Node* cpos = pApp->m_selection.GetFirst();
+		CCell* pCell = cpos->GetData();
+		CPile* pPile = pCell->GetPile(); // parent pile for this cell
+		if (pApp->m_pActivePile != pPile)
+		{
+			// we have an illegal situation for opening the dialog, so tell the user and
+			// exit when he dismisses the message box
+			wxString msg = _(
+"The dialog can be opened at a selection only if the phrase box is located at the first word of the selection.");
+			wxString title = _("Illegal attempt to open ChooseTranslation dialog");
+			wxMessageBox(msg, title, wxICON_WARNING);
+			return;
+		}
+	}
+
 	// check we are within bounds
 	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 	if (gbIsGlossing)
@@ -11654,17 +11705,20 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_targetPhrase.IsEmpty())
 	{
 		bEmptyBox = TRUE;
-		goto jp;
 	}
-	temp = pApp->m_targetPhrase;
-	if (!gbIsGlossing || gbRemovePunctuationFromGlosses)
-		RemovePunctuation(GetDocument(),&temp,from_target_text);
-	bOK = pKB->StoreText(pSrcPhrase, temp, TRUE); // TRUE means we can store an empty 
-												  // adaptation or gloss
-	wxASSERT(bOK);
-
+	else
+	{
+		temp = pApp->m_targetPhrase;
+		if (!gbIsGlossing || gbRemovePunctuationFromGlosses)
+		{
+			RemovePunctuation(GetDocument(),&temp,from_target_text);
+		}
+		// TRUE in the next call means we can store an empty adaptation or gloss
+		bOK = pKB->StoreText(pSrcPhrase, temp, TRUE); 										  
+		wxASSERT(bOK);
+	}
 	// get a pointer to the target unit for the current key
-jp:	pCurTargetUnit = pKB->GetTargetUnit(nWordsInPhrase, pSrcPhrase->m_key);
+	pCurTargetUnit = pKB->GetTargetUnit(nWordsInPhrase, pSrcPhrase->m_key);
 	if (pCurTargetUnit == NULL)
 	{
 		// IDS_NO_KB_ENTRY
@@ -11691,8 +11745,8 @@ jp:	pCurTargetUnit = pKB->GetTargetUnit(nWordsInPhrase, pSrcPhrase->m_key);
 			// set the translation static var from the member m_chosenText
 			translation = dlg.m_chosenTranslation;
 			if (dlg.m_bEmptyAdaptationChosen)
-				gbEmptyAdaptationChosen = TRUE; // enable PlacePhraseBox to use the null string
-												// chosen
+				gbEmptyAdaptationChosen = TRUE; // enable PlacePhraseBox to use the
+												// null string chosen
 		}
 		else
 		{
@@ -11702,22 +11756,29 @@ jp:	pCurTargetUnit = pKB->GetTargetUnit(nWordsInPhrase, pSrcPhrase->m_key);
 		}
 		gbInspectTranslations = FALSE;
 
-		// remove the refString again, to restore the phrase box and KB to the proper state
-		// for having landed there - if the user removed the refString in the dialog, pRefString
-		// will be NULL and no damage will be done as RemoveRefString checks for this condition
+        // remove the refString again, to restore the phrase box and KB to the proper state
+        // for having landed there - if the user removed the refString in the dialog,
+        // pRefString will be NULL and no damage will be done as RemoveRefString checks for
+        // this condition <<-- BEW 2Jul10, as of kbVersion 2 the user can't physically
+        // remove it, but only cause it to be hidden while its m_bDeleted flag is TRUE
 		wxString emptyStr = _T("");
-		if (bEmptyBox)
-			goto ed;
-
-		if (gbIsGlossing)
-			pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+		if (!bEmptyBox)
+		{
+			// "remove" the CRefString instance, or decrement is m_refCount if the latter
+			// is > 1
+			if (gbIsGlossing)
+			{
+				pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
 										emptyStr, useGlossOrAdaptationForLookup);
-		else
-			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+			}
+			else
+			{
+				pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
 										emptyStr, useGlossOrAdaptationForLookup);
-
+			}
+		}
 		// if user hit the cancell button, we can return immediately
-ed:		if (bCancelled)
+		if (bCancelled)
 		{
 			nWordsInPhrase = 0;
 			pCurTargetUnit = NULL;
@@ -11726,7 +11787,8 @@ ed:		if (bCancelled)
 			return;
 		}
 
-		// use the translation global variable to set the phrase box to the chosen adaptation
+		// use the translation global variable to set the phrase box to the 
+		// chosen adaptation
 		pApp->m_targetPhrase = translation;
 		pApp->m_pTargetBox->ChangeValue(translation);
 		PlacePhraseBox(pApp->m_pActivePile->GetCell(1), 1); // selector = 1 inhibits the 
@@ -25534,81 +25596,113 @@ void CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-// called by the application class's DoTransformationsToGlosses( ) function. pSrcPhrase
-// points to a source phrase on the heap, and the source phrase belows to the list of
-// sourcephrases in the document (from another project) currently being transformed. When
+// Called by the application class's DoTransformationsToGlosses( ) function. pSrcPhrase
+// points to a source phrase on the heap, and the source phrase belongs to the list of
+// m_pSourcePhrases (but are loaded from another project) currently being transformed. When
 // all such belonging to the current document are transformed, the document is resaved but
 // as a document belonging to the current project. The latter fact allows us to simply
-// transform each sourcephrase instance that is on the heap, rather than doing the changes
+// transform each CSourcePhrase instance that is on the heap, rather than doing the changes
 // on copies.
 // The transformations ALWAYS take the m_adaption member and transform it, never the
-// m_srcPhrase member since the latter may contain unwanted punctuation.
-// If the sourcephrase needs to be removed by the caller, return TRUE; null sourcephrases
-// are an example of such. The current and next POSITIONs are passed in, in case the
-// function needs to access the previous, current or next sourcephrase entry in the list;
-// the pointer to the list of the document's sourcephrase instances is pPhrases
-// BEW ammended 30Aug05 to bring it into line with version 3; note, m_markers content is
-// untouched and so the transformation process preserves filtering, notes, free
-// translations, and the like,
+// m_srcPhrase member since the latter may contain unwanted punctuation. If the
+// CSourcePhrase needs to be removed by the caller, return TRUE; placeholder CSourcePhrase
+// instances are an example of such. The current and next iterator positions are passed in,
+// in case the function needs to access the previous, current or next sourcephrase entry in
+// the list
+// BEW ammended 30Aug05 to bring it into line with version 3; note, m_markers etc content
+// is untouched and so the transformation process preserves filtering, notes, free
+// translations, and the like
 // BEW addition 05Jan06 except when m_markers containing a note was moved leftwards by
 // right association to a placeholder (pSrcPhrase) in which case we must move it back to
-// the sourcephrase which follows the placeholder
-bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(SPList::Node* curPos, 
-								SPList::Node* nextPos, CSourcePhrase* pSrcPhrase)
+// the CSourcePhrase which follows the placeholder
+// BEW changes 2July10, handle mergers better by converting the CSourcePhrase instances in
+// the m_pSavedWords list also; we also changed the protocols so that retranslations and
+// placeholders (whether in retranslations or not) are retained, but the adaptations are
+// made into glosses for these. Glossing mode can sustain placeholders entered into the
+// document earlier in a different mode, so this decision does not impinge on robustness   
+bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp, 
+			SPList::Node* curPos, SPList::Node* nextPos, CSourcePhrase* pSrcPhrase)
 {
+	// BEW 2Julyl10, changes herein render the nextPos and curPos parameters unused, so
+	// we'll do identity assignments to avoid compiler warnings. We retain the parameters
+	// for the present in case we later decide to restore legacy code in part or whole
+	curPos = curPos;
+	nextPos = nextPos;
+	
     // <Not In KB> instances are changed to normal instances, and if there is an adaptation
     // then make it the gloss, but if not then it is assumed to be not in the glossing KB
 
-    // start with checking for any <Not In KB> entries; since retranslations have the same
-    // flag set, we are interested here only in those sourcephrases which are not
-    // retranslations
+    // Start with checking for any <Not In KB> entries; which are not within
+    // retranslations; our transform of the adapting KB simply ignored any entries marked
+    // "<Not In KB>" because we could not transform those because there was no adaptation
+    // information present -- that means we had to defer handling those until now, when we
+    // transform the documents' entries. So we look for any with m_bNotInKB set true, and
+    // get the adaptation string and here call StoreText() in order to make them normal
+    // glossing KB entries. We also pass TRUE as the second parameter of the StoreTextIO
+    // call to force any empty string adaptations to be stored as empty strings in the
+    // glossing KB, for these entries.
 	if (pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bRetranslation)
 	{
+		pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
+		pSrcPhrase->m_adaption.Empty( );
+		pSrcPhrase->m_targetStr.Empty();
+
 		pSrcPhrase->m_bNotInKB = FALSE;
 		pSrcPhrase->m_bNullSourcePhrase = FALSE;
-		pSrcPhrase->m_bRetranslation = FALSE;
 		pSrcPhrase->m_bHasKBEntry = FALSE;
-		if (pSrcPhrase->m_adaption.IsEmpty())
-		{
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		}
-		else
-		{
-			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-			pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
-			pSrcPhrase->m_adaption.Empty( );
-		}
-		pSrcPhrase->m_targetStr.Empty(); // play safe
+		pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+
+		pApp->m_pGlossingKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss, TRUE);
+
 		return FALSE; // we are done with this one, but don't remove it
 	}
 
-    // any null sourcephrase instances have to be removed, whether in a retranslation or
-    // not, but first we need to check if punctuation was moved from a neighbouring
-    // sourcephrase instance, and it so, move it back there
+    // Legacy behaviour: any null sourcephrase instances have to be removed, whether in a
+    // retranslation or not, but first we need to check if punctuation was moved from a
+    // neighbouring sourcephrase instance, and it so, move it back there
+	// BEW changed 2July10 - throwing away placeholders is not what we want to do,
+	// instead, we'll retain them, and make the adaptation into glosses as per normal,
+	// since glossing mode can sustain placeholders already put into the doc in adapting
+	// mode, it's just that glossing mode doesn't allow their creation, so we now don't
+	// tell the caller to remove these, and we retain any retranslation, but do the
+	// transforms for the data
 	if (pSrcPhrase->m_bNullSourcePhrase)
 	{
-        // content can differ depending on whether the null source phrase is part of a
-        // retranslation or not. If it is, then no transfers of punctuation will have been
-        // done, and we can just throw the null source phrase away; but if it is not then
-        // it may be the case that punctuation was moved on to it, so we have to do more
-        // tests and move the punctuation back if it was moved, then indicate that the
-        // caller must remove the null source phrase
+        // Legacy comment: content can differ depending on whether the null source phrase
+        // is part of a retranslation or not. If it is, then no transfers of punctuation
+        // will have been done, and we can just throw the null source phrase away; but if
+        // it is not then it may be the case that punctuation was moved on to it, so we
+        // have to do more tests and move the punctuation back if it was moved, then
+        // indicate that the caller must remove the null source phrase
+		// BEW 2July10, if we now keep the placeholders, we no longer have to bother about
+		// moving any punctuation
 		if (pSrcPhrase->m_bRetranslation)
 		{
-            // it is part of a retranslation, so we can abandon it (note: boundary flag
-            // settings are not moved when a retranslation is padded with nulls, so we
-            // don't have to worry about restoring a boundary when we delete the null
-            // source phrase in a retranslation) retranslations, when they accept null
-            // sourcephrase padding, only fiddle with the m_bRetranslation and m_bNotInKB
-            // flag values, nothing else is affected.
+            // Legacy comment: it is part of a retranslation, so we can abandon it (note:
+            // boundary flag settings are not moved when a retranslation is padded with
+            // nulls, so we don't have to worry about restoring a boundary when we delete
+            // the null source phrase in a retranslation) retranslations, when they accept
+            // null sourcephrase padding, only fiddle with the m_bRetranslation and
+            // m_bNotInKB flag values, nothing else is affected.
             // BEW changed 30Aug05 -- but in version 3 we have to consider the possibility
             // that the last placeholder may be a free translation end (which was moved to
             // the last inserted placeholder) and move it back to where it was originally
 			//
-            // BEW note 05Jan06: we also assume that the user would not place a note on a
-            // placeholder within a retranslation; but if he did then this assumption would
-            // result in it being lost in the transform process -- to fix this, add
-            // code to what is below
+			// BEW changed 2July10, we now retain placeholders in a retranslation, and we
+			// retain the retranslation too
+			pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
+			pSrcPhrase->m_adaption.Empty();
+			pSrcPhrase->m_targetStr.Empty();
+			pSrcPhrase->m_bNotInKB = TRUE;
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // retranslations are not in the KB
+										// so no entry will be in the glossingKB & we
+										// won't call StoreText() to put one in for any
+										// placeholder within a retranslation; but the
+										// document can show nonempty glosses & indeed, it
+										// should do so because the former adaptations for
+										// these placeholders were 'real' translations
+			return FALSE; // don't remove it
+			/* legacy code
 			if (pSrcPhrase->m_bEndFreeTrans)
 			{
 				// move it back to the last non-placeholder sourcephrase
@@ -25619,12 +25713,28 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(SPList::Node* curP
 				pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
 			}
 			return TRUE; //  remove now
+			*/
 		}
 		else
 		{
-            // it is not part of a retranslation, so do the extra checks related to
-            // punctuation... first, get the the previous source phrase, if it exists, in
-            // case we need it
+            // Legacy comment: it is not part of a retranslation, so do the extra checks
+            // related to punctuation... first, get the the previous source phrase, if it
+            // exists, in case we need it
+			// BEW 2July10, all of the legacy code here becomes redundant by the choice to
+			// retain placeholders - so we can comment it out, and just do the required
+			// data transformation, & a StoreText() call to have it go into the glossing KB
+			pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
+			pSrcPhrase->m_adaption.Empty();
+			pSrcPhrase->m_targetStr.Empty();
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+            // bSupportNoAdaptationButton is default FALSE in the next call because we
+            // assume nobody would, in adaptation mode, have a placeholder inserted only to
+            // leave it's adaptation empty, so if it was left empty we assume it was a user
+            // mistake and we'll just here refrain from saving to KB
+			pApp->m_pGlossingKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss); 
+			return FALSE;
+
+			/* legacy code
 			SPList::Node* prevPos = curPos; 
 			CSourcePhrase* pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
 			prevPos = prevPos->GetPrevious();
@@ -25675,8 +25785,8 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(SPList::Node* curP
 			// check for leftwards move of punctuation
 			if (nextPos == NULL)
 			{
-				// at the end of the document, so no possibility of a rightwards
-				// association so get rid of this null source phrase now
+                // at the end of the document, so no possibility of a rightwards
+                // association so get rid of this null source phrase now
 				return TRUE;
 			}
 			else
@@ -25760,33 +25870,78 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(SPList::Node* curP
 				// end 30Aug05 additions
 			}
 			return TRUE; // needs to be removed
+			*/
 		} // end block for null source phrase not a part of a retranslation
 	} // end block for null source phrases
 
-	// now we have to check for retranslation sourcephrases which are not placeholders
-	// - these have no KB presence, so all we can do is leave the m_gloss member empty
-	// under the transform operation
+    // Legacy comment: now we have to check for retranslation sourcephrases which are not
+    // placeholders - these have no KB presence, so all we can do is leave the m_gloss
+    // member empty under the transform operation
+	// BEW changed 2July10, since we now retain retranslations and placeholders, we do the
+	// minimal set of data transforms here
 	if (pSrcPhrase->m_bRetranslation)
 	{
-		pSrcPhrase->m_gloss.Empty();
+		pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
+		//pSrcPhrase->m_gloss.Empty();
 		pSrcPhrase->m_adaption.Empty();
 		pSrcPhrase->m_targetStr.Empty();
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		pSrcPhrase->m_bNotInKB = FALSE;
-		pSrcPhrase->m_bRetranslation = FALSE;
-		pSrcPhrase->m_bBeginRetranslation = FALSE;
-		pSrcPhrase->m_bEndRetranslation = FALSE;
+		pSrcPhrase->m_bNotInKB = TRUE;
+		//pSrcPhrase->m_bNotInKB = FALSE;
+		//pSrcPhrase->m_bRetranslation = FALSE;
+		//pSrcPhrase->m_bBeginRetranslation = FALSE;
+		//pSrcPhrase->m_bEndRetranslation = FALSE;
 		return FALSE; // don't remove this one
 	}
 
-	// anything else is normal srcphrase and just do the transformations required
+	// Legacy comment: anything else is normal srcphrase and just do the 
+	// transformations required
+	// BEW changed 2July10, we add code here for transforming the CSourcePhrase instances
+	// within the m_pSavedWords list member of a merger too, in case the user of the new
+	// transformed project decides to unmerge the merger, we'll want him to see glosses,
+	// not adaptations untransformed
 	pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
 	pSrcPhrase->m_adaption.Empty();
 	pSrcPhrase->m_targetStr.Empty();
 	pSrcPhrase->m_bHasKBEntry = FALSE;
 	pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-
+	if (pSrcPhrase->m_nSrcWords > 1)
+	{
+		// we have a merger, so process m_pSavedWords too
+		SPList* pOriginals = pSrcPhrase->m_pSavedWords;
+		wxASSERT(!pOriginals->IsEmpty());
+		SPList::Node* pos = pOriginals->GetFirst();
+		while (pos != NULL)
+		{
+			CSourcePhrase* pSPhr = pos->GetData();
+			wxASSERT(pSPhr);
+			pos = pos->GetNext();
+            // the transformations for these are simple; however as we can't be certain the
+            // originals were formerly adapted and had presence in the KB, we'll examine
+            // their flags and if m_bHasKBEntry is TRUE, we'll set m_bHasGlossingKBEntry to
+            // TRUE (provided the adaptation string was non-empty), otherwise we won't
+			pSPhr->m_gloss = pSPhr->m_adaption; // could be an empty string
+			pSPhr->m_adaption.Empty();
+			pSPhr->m_targetStr.Empty();
+			if (pSPhr->m_bHasKBEntry)
+			{
+				if (pSPhr->m_gloss.IsEmpty())
+				{
+					pSPhr->m_bHasGlossingKBEntry = FALSE;
+				}
+				else
+				{
+					pSPhr->m_bHasGlossingKBEntry = TRUE;
+				}
+			}
+			else
+			{
+				pSPhr->m_bHasGlossingKBEntry = FALSE;
+			}
+			pSPhr->m_bHasKBEntry = FALSE;
+		}
+	}
 	return FALSE; // don't delete this one
 }
 

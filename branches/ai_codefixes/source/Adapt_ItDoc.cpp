@@ -2661,26 +2661,54 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* p
 
 	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
 	// should be a sufficient test. 
+    // BEW 6July10, code added for handling situation when the phrase box location has just
+    // been made a <Not In KB> one (which marks all CRefString instances for that key as
+    // m_bDeleted set TRUE and also stores a <Not In KB> for that key in the adaptation KB)
+    // and then the user saves or closes and saves the document. Without this extra code,
+    // the block immediatly below would re-store the active location's adaptation string
+    // under the same key, thereby undeleting one of the deleted CRefString entries in the
+    // KB for that key -- so we must prevent this happening by testing for m_bNotInKB set
+    // TRUE in the CSourcePhrase instance there and if so, inhibiting the save
+    bool bInhibitSave = FALSE;
+	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 	if (pApp->m_pTargetBox != NULL)
 	{
 		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
 		{
 			if (!gbIsGlossing)
 			{
-				pView->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase,pApp->m_targetPhrase);
 				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
 			gbInhibitMakeTargetStringCall = TRUE;
 			if (gbIsGlossing)
-				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			{
+				bOK = pApp->m_pGlossingKB->StoreText(pActiveSrcPhrase,pApp->m_targetPhrase);
+			}
 			else
-				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			{
+				// do the store, but don't store if it is a <Not In KB> location
+				if (pActiveSrcPhrase->m_bNotInKB)
+				{
+					bInhibitSave = TRUE;
+					bOK = TRUE; // need this, otherwise the message below will get shown
+					// set the m_adaption member of the active CSourcePhrase instance,
+					// because not doing the StoreText() call means it would not otherwise
+					// get set; the above MakeTargetStringIncludingPunctuation() has
+					// already set the m_targetStr member to include any punctuation
+					// stored or typed
+					pActiveSrcPhrase->m_adaption = pApp->m_targetPhrase; // punctuation was removed above
+				}
+				else
+				{
+					bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase,pApp->m_targetPhrase);
+				}
+			}
 			gbInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// something is wrong if the store did not work, but we can tolerate the error 
 				// & continue
-				// IDS_KB_STORE_FAIL
 				wxMessageBox(_(
 "Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
 				_T(""),wxICON_EXCLAMATION);
@@ -2689,9 +2717,20 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* p
 			else
 			{
 				if (gbIsGlossing)
-					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
+				{
+					pActiveSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+				}
 				else
-					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
+				{
+					if (!bInhibitSave)
+					{
+						pActiveSrcPhrase->m_bHasKBEntry = TRUE;
+					}
+					else
+					{
+						bNoStore = TRUE;
+					}
+				}
 			}
 		}
 	}

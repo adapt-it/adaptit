@@ -90,7 +90,7 @@ CRefString::CRefString(const CRefString &rs, CTargetUnit* pTargetUnit)
 	m_translation = rs.m_translation;
 	m_bDeleted = rs.m_bDeleted;
 	m_pRefStringMetadata = new CRefStringMetadata(this);
-	// the metadata has to be copies too, so now override the newly assigned creation
+	// the metadata has to be copied too, so now override the newly assigned creation
 	// dateTime, etc with the source once's values
 	m_pRefStringMetadata->m_creationDateTime = rs.m_pRefStringMetadata->m_creationDateTime;
 	m_pRefStringMetadata->m_modifiedDateTime = rs.m_pRefStringMetadata->m_modifiedDateTime;
@@ -105,7 +105,8 @@ CRefString::~CRefString()
 void CRefString::DeleteRefString()
 {
 		// first delete the pointed at CRefStringMetadata instance
-		if (m_pRefStringMetadata != NULL)
+
+	if (m_pRefStringMetadata != NULL)
 		{
 			delete m_pRefStringMetadata;
 		}

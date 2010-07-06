@@ -250,7 +250,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	m_pListBoxExistingTranslations->Clear();
 	if (pCurTgtUnit != NULL)
 	{
-		int countNonDeleted = pKB->CountNonDeletedRefStringInstances(pCurTgtUnit);
+		int countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
 		int countShowable = 0;
@@ -1021,7 +1021,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->m_refCount = 0;
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
-	int numNotDeleted = pKB->CountNonDeletedRefStringInstances(pCurTgtUnit);
+	int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 	
     // We'll also need the index of the source word/phrase selected in the keys list box.
     // If it turns out that we have just deleted all of a source word/phrase's
@@ -1218,7 +1218,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		tempStr = m_pListBoxExistingTranslations->GetString(nOldSel);
 		int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,tempStr,
 												caseSensitive,exactString); // whm added
-		wxASSERT(nLocation != -1); // LB_ERR;
+		wxASSERT(nLocation != wxNOT_FOUND);
 		CRefString* pRefStr = (CRefString*)
 								m_pListBoxExistingTranslations->GetClientData(nLocation);
 		pOldRefStr = pRefStr; // BEW added 24Jun10, for use when searching below
@@ -1227,7 +1227,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		// m_pListBoxExistingTranslations is not sorted
 		nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,tempStr,
 												caseSensitive,exactString); // whm added
-		wxASSERT(nLocation != -1); // LB_ERR;
+		wxASSERT(nLocation != wxNOT_FOUND);
 		m_pListBoxExistingTranslations->SetSelection(nSel);
 		m_pListBoxExistingTranslations->SetClientData(nSel,pRefStr);
 		pRefStr = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nSel);
@@ -1256,20 +1256,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		wxASSERT(pRefString  == pOldRefStr);
 		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
 		CRefString* aRefStrPtr = NULL;
-		//pCurTgtUnit->m_pTranslations->DeleteNode(pos);
-		//pos = pCurTgtUnit->m_pTranslations->Item(nOldSel);
-		//wxASSERT(pos != NULL);
 
-        // wxList has no equivalent to InsertAfter(). The wxList Insert() method inserts
-        // the new node BEFORE the current position/node. To emulate what the MFC code
-        // does, I can advance one node before calling Insert() Get a node called
-        // posNextHigher which points to the next node beyond savePos in pList and use its
-        // position in the Insert() call (which only inserts BEFORE the indicated
-        // position). The result will be that the insertions will get placed in the list
-        // the same way that MFC's InsertAfter() places them. wx additional note: If the
-        // item is to be inserted after the last item in the list pos will return
-        // NULL, in that case, just append the new item to the list.
-        // 
 		// BEW 24Jun10, moving down becomes a two step process - first step is to loop
 		// over any deleted CRefString instances until the iterator points at the next
 		// non-deleted one (there will ALWAYS be such a one, as this block's entry
@@ -1303,7 +1290,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
         // check the insertion or appending was done correctly - tell developer if not so,
         // and don't delete the original if the error message shows, instead, maintain the
         // earlier state of the CTargetUnit & because the GUI doesn't agree with it any
-        // more, the message should tell the user/developer iti will automatically close
+        // more, the message should tell the user/developer it will automatically close
         // the KB Editor without saving (by calling OnClose()), and then the KB Editor can
         // be launched again without data loss from the KB and the user/developer can try
         // again
@@ -1832,7 +1819,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			// example, the user may have manually used the KBEditor to Remove each one);
 			// when this is the case, such a CTargetUnit instance should not have it's key
 			// listed in the list box - so test for this and handle it appropriately
-			int numNotDeleted = pKB->CountNonDeletedRefStringInstances(pCurTgtUnit);
+			int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 			if (numNotDeleted > 0)
 			{
 				// there is at least one non-deleted element, so put this one in the list
@@ -1954,7 +1941,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// non-deleted instances, so use CKB::CountNonDeletedRefStringInstances(CTargetUnit*)
 	if (pCurTgtUnit != NULL)
 	{
-		int countNonDeleted = pKB->CountNonDeletedRefStringInstances(pCurTgtUnit);
+		int countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
 		int nMatchedRefString = -1; // whm added 24Jan09

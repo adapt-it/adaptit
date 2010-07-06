@@ -38,6 +38,8 @@
 #include "TargetUnit.h"
 #include "AdaptitConstants.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
+#include "helpers.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp" // this should always be included before WX_DEFINE_LIST
@@ -127,7 +129,7 @@ void CTargetUnit::Copy(const CTargetUnit &tu)
 	TranslationsList::Node *node = tu.m_pTranslations->GetFirst();
 	while (node)
 	{
-		CRefString* pRefStr = (CRefString*)node->GetData();
+		CRefString* pRefStr = (CRefString*)node->GetData(); // remember it has a CRefStringMetadata too
 		node = node->GetNext();
 		wxASSERT(pRefStr != NULL);
 		CRefString* pRefStrCopy = new CRefString(*pRefStr, this); // use copy constructor
@@ -176,6 +178,69 @@ int CTargetUnit::FindRefString(wxString& translationStr)
 	}
 	// if control gets to here, we have no match
 	return (int)wxNOT_FOUND;
+}
+
+// pass in a modification choice as the modChoice param; allows values are LeaveUnchanged
+// (which is the default if no param is supplied), or SetNewValue -- the latter choice
+// will overwrite any earlier modification datetime value which may have been stored
+// earlier 
+// Currently this function is only used in the transformation process which converts
+// adaptations in one project to glosses in the new (empty) project -- see the Transform
+// Adaptations Into Glosses... command; and since adaptations are becoming glosses is is
+// reasonable to mark the time at which that transformation took place. The copy
+// constructor used for the transformations will copy all the CRefString and
+// CRefStringMetadata contents unchanged, and since EraseDeletions() is called after that
+// with modChoice SetNewValue, the modification datetime values are set to the datetime at
+// which each new CRefString instance in the glossing KB is created in the copy process.
+void CTargetUnit::EraseDeletions(enum ModifiedAction modChoice)
+{
+	CRefString* pRefString = NULL;
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	TranslationsList::Node* savepos = NULL;
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pRefString = pos->GetData();
+		wxASSERT(pRefString != NULL);
+		savepos = pos; // in case we need to delete this node
+		pos = pos->GetNext();
+		if (pRefString->GetDeletedFlag())
+		{
+			pRefString->DeleteRefString();
+			m_pTranslations->DeleteNode(savepos);
+		}
+		else
+		{
+			if (modChoice == SetNewValue)
+			{
+				pRefString->m_pRefStringMetadata->m_modifiedDateTime = GetDateTimeNow();
+			}
+		}
+	}
+}
+
+// counts the number of CRefString instances stored in this CTargetUnit instance,
+// but counting only those for which m_bDeleted is FALSE;
+int CTargetUnit::CountNonDeletedRefStringInstances()
+{
+	if (m_pTranslations->IsEmpty())
+	{
+		return 0;
+	}
+	int counter = 0;
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (!pRefStr->m_bDeleted)
+		{
+			counter++;
+		}
+	}
+	return counter;
 }
 
 // BEW 7Jun10, added, as the legacy code in destructor was inadequate for all contexts (it

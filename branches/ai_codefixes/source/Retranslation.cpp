@@ -1918,11 +1918,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		{
 			// legacy behaviour
 			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
-			// PlacePhraseBox()
+												  // PlacePhraseBox()
 			bool bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 														 m_pApp->m_nActiveSequNum,nFinish);
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-			// PlacePhraseBox() calls
+												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
 			if(!bSetSafely)
 			{
@@ -1973,14 +1973,14 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			}
 			
 			nSaveActiveSequNum = nPotentialActiveSequNum; // we need a value to work with below
-			// even if we suppress reconstituting of the phrase box
+										// even if we suppress reconstituting of the phrase box
 			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
-			// PlacePhraseBox()
+												  // PlacePhraseBox()
 			bool bSetSafely;
 			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 													m_pApp->m_nActiveSequNum,nFinish);
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-			// PlacePhraseBox() calls
+												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
 		}
 	}
@@ -1990,7 +1990,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_bIsRetranslationCurrent = FALSE;
 		wxASSERT(pSaveList);
 		int nCurCount = nEndSequNum - nSaveSequNum + 1; // what the selection now numbers,
-		// after unmerge etc.
+														// after unmerge etc.
 		int nOldCount = pSaveList->GetCount();
 		wxASSERT(nOldCount >0);
 		int nExtras = nCurCount - nOldCount; // needed for adjusting indices
@@ -2556,10 +2556,11 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		if (!gbVerticalEditInProgress)
 		{
 			// legacy behaviour
+			m_bSuppressRemovalOfRefString = TRUE;
 			bool bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 														 m_pApp->m_nActiveSequNum,nFinish);
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-			// PlacePhraseBox() calls
+												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
 			if(!bSetSafely)
 			{
@@ -2611,7 +2612,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 													m_pApp->m_nActiveSequNum,nFinish);
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-			// PlacePhraseBox() calls
+												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
 		}
 	}

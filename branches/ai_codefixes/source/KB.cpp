@@ -1341,106 +1341,6 @@ bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 		return FALSE;
 }
 
-// counts the number of CRefString instances stored in the passed in CTargetUnit instance,
-// but counting only those for which m_bDeleted is FALSE;
-int CKB::CountNonDeletedRefStringInstances(CTargetUnit* pTU)
-{
-	wxASSERT(pTU);
-	if (pTU->m_pTranslations->IsEmpty())
-	{
-		return 0;
-	}
-	int counter = 0;
-	TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
-	CRefString* pRefStr = NULL;
-	while (tpos != NULL)
-	{
-		pRefStr = (CRefString*)tpos->GetData();
-		wxASSERT(pRefStr != NULL);
-		tpos = tpos->GetNext();
-		if (!pRefStr->m_bDeleted)
-		{
-			counter++;
-		}
-	}
-	return counter;
-}
-
-
-/* BEW 9Jun10, deprecated 
-int CKB::CountSourceWords(wxString& rStr)
-{
-	int len = rStr.Length();
-	if (len == 0)
-		return 0;
-
-	// remove any final spaces
-	wxString reverse = rStr;
-	reverse = MakeReverse(reverse);
-	wxChar ch = _T(' ');
-a:	int nFound = reverse.Find(ch);
-	if (nFound == 0)
-	{
-		// found one, so remove it and iterate
-		reverse = reverse.Right(len-1);
-		len = reverse.Length();
-		goto a;
-	}
-	else
-	{
-		// restore correct order
-		reverse = MakeReverse(reverse);
-	}
-
-	// remove initial spaces, if any
-	len = reverse.Length();
-b:	nFound = reverse.Find(ch);
-	if (nFound == 0)
-	{
-		// found one, so remove it and iterate
-		reverse = reverse.Right(len-1);
-		len = reverse.Length();
-		goto b;
-	}
-
-	rStr = reverse; // updates string in the caller, so it has 
-					// no trailing nor leading spaces
-
-	if (rStr.IsEmpty())
-	{
-		// if it was only spaces, we have no valid string
-		return 0;
-	}
-
-	// now parse words
-	int count = 1;
-	len = reverse.Length();
-c:	nFound = reverse.Find(ch);
-	if (nFound > 0)
-	{
-		// found a space, so must be an additional word
-		count++; // count it
-
-		// reduce reverse by one word
-		reverse = reverse.Right(len-nFound-1);
-
-		// there might be a sequence of spaces, so skip any 
-		// leading spaces on the reduced string
-d:		nFound = reverse.Find(ch);
-		if (nFound == 0)
-		{
-			reverse = reverse.Right(len-1);
-			len = reverse.Length();
-			goto d;
-		}
-		len = reverse.Length();
-		goto c;
-	}
-	else
-		return count;
-}
-*/
-
 // returns TRUE if, for the pSrcPhrase->m_key key value, the KB (adaptation KB only, the
 // caller will not call this function if the mode is glossing mode) contains a CTargetUnit
 // instance which has a CRefString instance which is not storing "<Not In KB>". Else it
@@ -1691,7 +1591,16 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 #ifdef __WXMSW__
 	wxString progMsg = _("%d of %d Total entries and senses");
 	wxString msgDisplayed = progMsg.Format(progMsg,1,nTotal);
-	wxProgressDialog progDlg(_("Exporting the KB in LIFT format"),
+	wxString titleStr;
+	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
+	{
+		titleStr = _("Exporting the KB in LIFT format");
+	}
+	else
+	{
+		titleStr = _("Exporting the KB in SFM format");
+	}
+	wxProgressDialog progDlg(titleStr,
 							msgDisplayed,
 							nTotal,    // range
 							(wxWindow*)m_pApp->GetMainFrame(),   // parent
@@ -1704,6 +1613,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 							wxPD_REMAINING_TIME
 							| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 							);
+
 #else
 	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
 	// notification on wxGTK and wxMAC
@@ -2621,21 +2531,23 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					{
 						pRefStr->m_refCount++;
 					}
-					pRefStr->m_refCount++;
-					pRefString = (CRefString*)NULL;
 					if (m_bGlossingKB)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 					else
 						pSrcPhrase->m_bHasKBEntry = TRUE;
-					pRefString->DeleteRefString(); // don't need this one nor its CMetadata
+
+					// delete the just created pRefString as we won't use it
+					pRefString->DeleteRefString(); // also deletes its CMetadata
+					pRefString = (CRefString*)NULL;
+					// ensure the user's setting is retained for 'force choice for this item'
 					if (m_pApp->m_bForceAsk)
 					{
 						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must 
 								// ensure it gets set if that is what the user wants
 					}
 					break;
-				}
-			}
+				} // end of block for processing a matched CRefString entry
+			} // end of while loop
             // if we get here with bMatched == FALSE, then there was no match, so we must
             // add the new pRefString to the CTargetUnit instance
 			if (!bMatched)
@@ -2755,6 +2667,26 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // (I've fixed it now). So before the store it done, the RemoveRefString call will now
     // clear the relevant flag; so we don't need to test and clear it in the following
     // block. (block below removed, but the comments are retained in case useful)
+    // 
+	// BEW 1Jun10: Okay, despite the above two comments, I still want some safety first
+	// protection here. Why? Because the code which calls RefmoveRefString() and/or
+	// GetAndRemoveRefString() will skip these calls if a CRetranslation class member
+	// boolean is left TRUE - namely, m_bSuppressRemovalOfRefString, after being used for
+	// suppression. So 'just in case'....
+	if (m_bGlossingKB)
+	{
+		if (pSrcPhrase->m_bHasGlossingKBEntry)
+		{
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		}
+	}
+	else
+	{
+		if (pSrcPhrase->m_bHasKBEntry)
+		{
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+		}
+	}
 	m_pApp->GetDocument()->Modify(TRUE);
 
     // BEW added 20Apr06, to store <Not In KB> when gbSuppressStoreForAltBackspaceKeypress

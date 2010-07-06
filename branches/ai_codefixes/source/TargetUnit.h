@@ -21,6 +21,11 @@
     #pragma interface "TargetUnit.h"
 #endif
 
+enum ModifiedAction {
+	LeaveUnchanged,
+	SetNewValue
+};
+
 // forward references
 
 class CTargetUnit;	// This forward reference is needed for the WX_DECLARE_LIST 
@@ -61,6 +66,10 @@ public:
 
 	//void				DeleteTargetUnit(CTargetUnit* pTU);
 	void				DeleteTargetUnitContents();
+	void				EraseDeletions(enum ModifiedAction modChoice = LeaveUnchanged); // physically
+							// deletes any CRefString instances with m_bDeleted set TRUE; either
+							// sets or leaves unchanged (default) each non-deleted instance's 
+							// m_modifiedDateTime member, according to passed in enum value
 
 	virtual				~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
@@ -73,6 +82,7 @@ public:
 //	wxString	GetSourceKey(); // returns m_sourceKey
 //	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
 	int			FindRefString(wxString& translationStr);
+	int			CountNonDeletedRefStringInstances();
 
 private:
 	// class attributes

@@ -21,6 +21,7 @@
 
 // forward references
 class CRefString;
+class CTargetUnit;
 
 /// The CRefStringMetadata class stores metadata pertinent to the CRefString class
 /// \derivation		The CRefStringMetadata class is derived from wxObject.
@@ -28,6 +29,7 @@ class CRefStringMetadata : public wxObject
 {
 	friend class CKB;
 	friend class CRefString;
+	friend class CTargetUnit;
 
 public:
 	CRefStringMetadata(void); // constructor

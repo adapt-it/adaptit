@@ -1013,11 +1013,15 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
-			// m_nActiveSequNum might have been changed by the preceding call, so reset 
-			// the active pile
-			pPile = pView->GetPile(pApp->m_nActiveSequNum);
-			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-			pView->Jump(pApp,pSrcPhrase); // jump there
+            // BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
+            // above call, and so the ones below should be redundant (and if
+            // ChooseTranslation was called in the earlier Jump() it would then get called
+            // again, which is confusing - so we need to not have this second call)
+            // Legacy comment: m_nActiveSequNum might have been changed by the preceding
+            // call, so reset the active pile
+			//pPile = pView->GetPile(pApp->m_nActiveSequNum);
+			//CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+			//pView->Jump(pApp,pSrcPhrase); // jump there
 		}
 		gbDoingInitialSetup = FALSE;
 

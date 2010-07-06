@@ -59,7 +59,7 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the whole sfm marker (with bac
                     wxStringEqual,
 					MapMkrToColorStr );
 
-/* defined in Adapt_It.h
+/* defined in KB.h
 enum ExportType
 {
 	sourceTextExport,

@@ -242,7 +242,7 @@ public:
 	void		ToggleGlossingMode(); // BEW added 19Sep08
 	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
 	int			TokenizeTextString(SPList* pNewList,wxString& str,int nInitialSequNum);
-	bool		TransformSourcePhraseAdaptationsToGlosses(SPList::Node* curPos,
+	bool		TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp, SPList::Node* curPos,
 										SPList::Node* nextPos, CSourcePhrase* pSrcPhrase);
 	void		AdjustDialogPosition(wxDialog* pDlg);
 	void		AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick);

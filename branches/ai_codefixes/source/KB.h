@@ -108,7 +108,6 @@ public:
 	// Public implementation functions
 	bool			AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
 	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
-	int				CountNonDeletedRefStringInstances(CTargetUnit* pTU);
 	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
 	void			DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType);
 	void			DoKBSaveAsXML(wxFile& f);

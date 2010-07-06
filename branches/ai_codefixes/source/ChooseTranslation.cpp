@@ -10,6 +10,7 @@
 /// The CChooseTranslation class provides a dialog in which the user can choose 
 /// either an existing translation, or enter a new translation for a given source phrase.
 /// \derivation		The CChooseTranslation class is derived from AIModalDialog.
+/// BEW 2July10, this class has been updated to support kbVersion 2
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -49,6 +50,7 @@
 BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
 EVT_INIT_DIALOG(CChooseTranslation::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, CChooseTranslation::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CChooseTranslation::OnCancel)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnButtonMoveUp)
 	EVT_UPDATE_UI(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnUpdateButtonMoveUp)
 	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CChooseTranslation::OnButtonMoveDown)
@@ -272,8 +274,12 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	// CRefString instances, and so we can't rely on the list box index for the selection
 	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
 	// we have to find by searching, and we have to skip over any removed ones, etc
-	int count = pCurTargetUnit->m_pTranslations->GetCount();
+	int count = m_pMyListBox->GetCount(); // how many there are that are visible
+	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
+	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
+	numNotDeleted = numNotDeleted; // prevent compiler warning in Release build
+
 	if (nSel > 0)
 	{
 		nSel--;
@@ -298,14 +304,13 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// value in the ListBox, and then insert the deleted label preceding the latter,
 		// and nSel will index its new location
 		m_pMyListBox->Delete(nLocation);
-		m_pMyListBox->InsertItems(1,&tempStr,nSel);
+		m_pMyListBox->Insert(tempStr,nSel,(void*)&value);
 		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's 
-		// index before calling SetClientData()
+		// index before calling a function which needs to know the location
 		nLocation = gpApp->FindListBoxItem(m_pMyListBox,tempStr,caseSensitive,exactString);
 		wxASSERT(nLocation != wxNOT_FOUND); // we just added it so it must be there!
 		// nLocation and nSel now index the same location
 		m_pMyListBox->SetSelection(nSel);
-		m_pMyListBox->SetClientData(nLocation,&value);
 		m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nLocation);
 		m_refCountStr.Empty();
 		m_refCountStr << m_refCount;
@@ -318,30 +323,29 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	CRefString* pRefString = NULL;
 	if (nSel < nOldSel)
 	{
-		// BEW 29Jun10, for support of kbVersion 2, nSel and nOldSel apply only to the GUI
+		// BEW 28Jun10, for support of kbVersion 2, nSel and nOldSel apply only to the GUI
 		// list, which does not show stored CRefString instances marked as deleted. The
 		// potential presence of deleted instances means that we must search for the
 		// instance to be moved earlier in the list, and moving it means we must move over
 		// each preceding deleted instance, if any, until we get to the location of the
 		// first preceding non-deleted element, and insert at that location 
-		//TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(nOldSel);
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
 		wxASSERT(pRefString != NULL);
 		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
 		CRefString* aRefStrPtr = NULL;
 		do {
-			// jump over any deleted earlier CRefString instances, break when a
-			// non-deleted one is found
+            // jump over any deleted previous CRefString instances, break out when a
+            // non-deleted one is found
 			pos = pos->GetPrevious();
 			aRefStrPtr = pos->GetData();
 			if (!aRefStrPtr->GetDeletedFlag())
 			{
 				break;
 			}
-		} while(aRefStrPtr->GetDeletedFlag());
+		} while(aRefStrPtr->GetDeletedFlag() && pos != NULL);
 
-		// pos now points at the first previous non-deleted CRefString instance, which is
+		// pos now points at the first preceding non-deleted CRefString instance, which is
 		// the one before which we want to put pOldRefStr by way of insertion, but first
 		// delete the node containing the old location's instance
 		pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
@@ -358,10 +362,17 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(_T("Error: Move Up button failed to reinsert the translation being moved\n"),
 				_T(""), wxICON_ERROR);
 			wxASSERT(FALSE);
-			wxExit();
 		}
 	}
-	TransferDataToWindow();
+	if (nSel < nOldSel)
+	{
+		TransferDataToWindow();
+		// try repopulating the ListBox to see if it cures the failure to retain the
+		// client data of the moved list item beyond a single Move Up button click...
+		// Yes, it does. See comments in OnButtonMoveDown() for more information about
+		// this error and its fix.
+		PopulateList(pCurTargetUnit, nSel, Yes);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -385,6 +396,7 @@ void CChooseTranslation::OnUpdateButtonMoveDown(wxUpdateUIEvent& event)
 	}
 }
 
+// BEW 30Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
 void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event)) 
 {
 	int nSel;
@@ -397,77 +409,158 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 	int nOldSel = nSel; // save old selection index
+	wxString itemStr = m_pMyListBox->GetString(nOldSel);
+	wxString s;
+	s = s.Format(_("<no adaptation>"));
+	if (itemStr == s)
+	{
+		// CTargetUnit stores empty string, not <no adaptation
+		itemStr.Empty();
+	}
+	int nListIndex = (int)wxNOT_FOUND;
+	TranslationsList::Node* pos = NULL;
 
 	// change the order of the string in the list box
-	int count = pCurTargetUnit->m_pTranslations->GetCount();
+	// BEW 30Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
+	// may contain one or more "removed" (i.e. with their m_bDeleted flags set TRUE)
+	// CRefString instances, and so we can't rely on the list box index for the selection
+	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
+	// we have to find by searching, and we have to skip over any removed ones, etc
+	int count = m_pMyListBox->GetCount(); // how many there are that are visible
+	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
+	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
+	numNotDeleted = numNotDeleted; // prevent compiler warning in Release build
+
 	if (nSel < count-1)
 	{
 		nSel++;
 		wxString tempStr;
 		tempStr = m_pMyListBox->GetString(nOldSel);
+        // This wxLogDebug section exposes a bug wherein a second Move Down button click
+        // fails to retain the client data value - it becomes a huge garbage value after
+        // the item has been deleted, then inserted elsewhere and the client data reset;
+        // the cure was to repopulate the ListBox after every Move Down click, resetting
+        // the client data values for each entry - see PopulateListBox() call at end of
+        // this function. The probable cause may be explained by this wxWidgets
+        // documentation comment for SetClientData() in wxControlWithItems. "...it is an
+        // error to call this function if any typed client data pointers had been
+        // associated with the control items before"
+		//#if defined __WXDEBUG__
+		//	int index;
+		//	for (index = 0; index < count; index++)
+		//	{
+		//		wxLogDebug(_T("Item label:   %s    index:   %d    client data value:  %d"),
+		//			m_pMyListBox->GetString(index),index,*(wxUint32*)m_pMyListBox->GetClientData(index));
+		//	}
+		//#endif
 		int nLocation = gpApp->FindListBoxItem(m_pMyListBox,tempStr,caseSensitive,exactString);
-		wxASSERT(nLocation != -1); //LB_ERR
+		wxASSERT(nLocation != wxNOT_FOUND);
 		wxUint32 value = *(wxUint32*)m_pMyListBox->GetClientData(nLocation);
+
+		// get the index for the selected CRefString instance being moved (this call
+		// handles the possible presence of deleted instances) and from it, the
+		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
+		nListIndex = pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
+		wxASSERT(nListIndex != wxNOT_FOUND);
+		pos = pCurTargetUnit->m_pTranslations->Item(nListIndex);
+		wxASSERT(pos != NULL);
+
+		// now delete the label at nLocation, so the label following then occupies its index
+		// value in the ListBox, and then insert the deleted label preceding the one which
+		// follows the latter -- that is, insert at nSel index value
 		m_pMyListBox->Delete(nLocation);
-		m_pMyListBox->InsertItems(1,&tempStr,nSel);
-		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's index before calling SetClientData()
+		if (nSel >= count - 1)
+		{
+			m_pMyListBox->Append(tempStr,(void*)&value);
+		}
+		else
+		{
+			m_pMyListBox->Insert(tempStr,nSel,(void*)&value);
+		}
+		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's
+		// index before calling a function which needs to know the location
 		nLocation = gpApp->FindListBoxItem(m_pMyListBox,tempStr,caseSensitive,exactString);
-		wxASSERT(nLocation != -1); //LB_ERR
+		wxASSERT(nLocation != wxNOT_FOUND);
 		m_pMyListBox->SetSelection(nSel);
-		m_pMyListBox->SetClientData(nLocation,&value);
 		m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nLocation);
 		m_refCountStr.Empty();
 		m_refCountStr << m_refCount;
 	}
 	else
+	{
 		return; // impossible to move the list element of the list further down!
+	}
 
 	// now change the order of the CRefString in pCurTargetUnit to match the new order
-	CRefString* pRefString;
+	CRefString* pRefString = NULL;
 	if (nSel > nOldSel)
 	{
-		TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(nOldSel);
+        // BEW 30Jun10, for support of kbVersion 2, nSel and nOldSel apply only to the GUI
+        // list, which does not show stored CRefString instances marked as deleted. The
+        // potential presence of deleted instances means that we must search for the
+        // instance to be moved later in the list, and moving it means we must move over
+        // each following deleted instance, if any, until we get to the location of the
+        // first following non-deleted element, move over it and then insert at that
+        // location
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
 		wxASSERT(pRefString != NULL);
-		pCurTargetUnit->m_pTranslations->DeleteNode(pos);
-		pos = pCurTargetUnit->m_pTranslations->Item(nOldSel);
-		wxASSERT(pos != NULL);
-		// wxList has no equivalent to InsertAfter(). The wxList Insert() method 
-		// inserts the new node BEFORE the current position/node. To emulate what
-		// the MFC code does, I can advance one node before calling Insert()
-		// Get a node called posNextHigher which points to the next node beyond savePos
-		// in pList and use its position in the Insert() call (which only inserts 
-		// BEFORE the indicated position). The result should be that the insertions 
-		// will get placed in the list the same way that MFC's InsertAfter() places them.
-		// wx additional note: If the item is to be inserted after the last item in the list 
-		// posNextHigher will return NULL, in that case, just append the new item to the list.
-		TranslationsList::Node* posNextHigher = pos->GetNext();
-		TranslationsList::Node* newPos = NULL;
-		if (posNextHigher == NULL)
+		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		CRefString* aRefStrPtr = NULL;
+		do {
+			// jump over any deleted following CRefString instances, break when a
+			// non-deleted one is found
+			pos = pos->GetNext();
+			aRefStrPtr = pos->GetData();
+			if (!aRefStrPtr->GetDeletedFlag())
+			{
+				break;
+			}
+		} while(aRefStrPtr->GetDeletedFlag() && pos != NULL);
+        // now advance over this non-deleted one -- this may make the iterator return NULL
+        // if we are at the end of the list; then the insertion, bringing the
+        // pCurTargetUnit's list into line with what the listbox in the GUI shows to the
+        // user
+        // Note: wxList::Insert places the item before the given item and the inserted item
+        // then has the pos node position
+		pos = pos->GetNext();
+		if (pos == NULL)
+		{
+			// we are at the list's end
 			pCurTargetUnit->m_pTranslations->Append(pRefString);
+		}
 		else
-			pCurTargetUnit->m_pTranslations->Insert(posNextHigher,pRefString);
-		newPos = pCurTargetUnit->m_pTranslations->Find(pRefString);
-		if (newPos == NULL)
+		{	
+			// we are at a CRefString instance, so we can insert before it
+			pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
+		}
+		// delete the node containing the old location's instance
+		pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
+
+		// check the insertion or append got done right, a simple message will do (in
+		// English) for the developer if it didn't work - this error is unlikely to ever
+		// happen 
+		pos = pCurTargetUnit->m_pTranslations->Find(pRefString);
+		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T("Error: Move Down button failed to reinsert the translation being moved\n"),
 				_T(""), wxICON_ERROR);
 			wxASSERT(FALSE);
-			//wxExit();
 		}
 	}
-
-	TransferDataToWindow();
-}
-
-void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event)) 
-{
-	// don't need to do anything
-	
-	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
+	if (nSel > nOldSel)
+	{
+		TransferDataToWindow();
+		// try repopulating the ListBox to see if it cures the failure to retain the
+		// client data of the moved list item beyond a single Move Down button click...
+		// Yes, it does. So this is a fix, see the comment above the wxLogDebug() call
+		// above for a potential explanation for this error.
+		// (If you comment out this next PopulateList() call and the error will reappear,
+		// and if you uncomment out the wxLogDebug code above, you'll see what I mean)
+		PopulateList(pCurTargetUnit, nSel, Yes);
+	}
 }
 
 void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED(event)) 
@@ -667,7 +760,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->m_refCount = 0;
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
-	int numNotDeleted = m_pKB->CountNonDeletedRefStringInstances(pCurTargetUnit);
+	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances();
 
 	// did we remove the last item in the box?
 	if (numNotDeleted == 0)
@@ -741,6 +834,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// set the list box contents to the translation or gloss strings stored
 	// in the global variable pCurTargetUnit, which has just been matched
 	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
+	/*
 	CRefString* pRefString;
 	TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->GetFirst();
 	wxASSERT(pos != NULL);
@@ -764,6 +858,8 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 			m_pMyListBox->SetClientData(nLocation,&pRefString->m_refCount);
 		}
 	}
+	*/
+	PopulateList(pCurTargetUnit, 0, No);
 
 	// select the first string in the listbox by default
 	m_pMyListBox->SetSelection(0);
@@ -814,6 +910,44 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 }
 
+// pass 0 for selectionIndex if doSel has value No
+void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum SelectionWanted doSel)
+{
+	m_pMyListBox->Clear();
+	wxString s = _T("<no adaptation>");
+
+	// set the list box contents to the translation or gloss strings stored
+	// in the global variable pCurTargetUnit, which has just been matched
+	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
+	CRefString* pRefString;
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pRefString = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		if (!pRefString->GetDeletedFlag())
+		{
+			// this one is not deleted, so show it to the user
+			wxString str = pRefString->m_translation;
+			if (str.IsEmpty())
+			{
+				str = s;
+			}
+			m_pMyListBox->Append(str);
+			// m_pMyListBox is NOT sorted but it is safest to find the just-inserted
+			// item's index before calling SetClientData()
+			int nLocation = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
+			wxASSERT(nLocation != -1); // we just added it so it must be there!
+			m_pMyListBox->SetClientData(nLocation,&pRefString->m_refCount);
+		}
+	}
+	if (doSel == Yes)
+	{
+		m_pMyListBox->SetSelection(selectionIndex);
+	}
+}
+
 void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event) 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -846,6 +980,12 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 				return; // ignore the keypress when the button is invisible
 		}
 	}
+}
+
+void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event)) 
+{
+	// don't need to do anything
+	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
