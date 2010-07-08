@@ -373,7 +373,9 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
 // pointer. This function, as the name suggests, has the smarts for AutoCapitalization being
-// On or Off.
+// On or Off. A failure to find an associated CTargetUnit instance for the passed in keyStr
+// results in FALSE being returned, and also pTU is returned as NULL; otherwise, TRUE is
+// returned and pTU is a pointer to the matched instance.
 // WX Note: Changed second parameter to CTargetUnit*& pTU.
 // BEW 12Apr10, no changes needed for support of doc version 5
 // BEW 13May10, moved here from CAdapt_ItView class
@@ -1513,7 +1515,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						langStr += _T('\n');
 						langStr += _("target langugage code");
 					}
-					message = message.Format(_("You did not enter a language code for the following language(s):\n\n%s\n\nLIFT XML Export requires 3-letter language codes.\nDo you to try again?"),langStr.c_str());
+					message = message.Format(_("You did not enter a language code for the following language(s):\n\n%s\n\nLIFT XML Export requires 3-letter language codes.\nDo you want to try again?"),langStr.c_str());
 					int response = wxMessageBox(message, _("Language code(s) missing"), wxYES_NO | wxICON_WARNING);
 					if (response == wxNO)
 					{
@@ -2069,50 +2071,7 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 		CTargetUnit* pTgtUnit = GetTargetUnit(pSrcPhrase->m_nSrcWords,pSrcPhrase->m_key);
 		if (pTgtUnit != NULL)
 		{
-			TranslationsList* pList = pTgtUnit->m_pTranslations;
-			if (!pList->IsEmpty())
-			{
-				TranslationsList::Node* pos = pList->GetFirst();
-				while (pos != NULL)
-				{
-					CRefString* pRefString = (CRefString*)pos->GetData();
-					pos = pos->GetNext();
-					if (pRefString != NULL)
-					{
-						pRefString->m_bDeleted = TRUE;
-						pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
-						/* 18Jun10 retain legacy code for the present
-						delete pRefString;
-						pRefString = (CRefString*)NULL;
-						*/
-					}
-				}
-				/* 18Jun10 retain legacy code for the present
-				pList->Clear();
-				delete pTgtUnit; // don't leak memory
-				pTgtUnit = (CTargetUnit*)NULL;
-
-				MapKeyStringToTgtUnit* pMap = m_pMap[pSrcPhrase->m_nSrcWords - 1];
-				// handle auto-caps tweaking, if it is on
-				wxString temp = pSrcPhrase->m_key;
-				if (gbAutoCaps && !gbNoSourceCaseEquivalents)
-				{
-                    // auto caps is on and there are case equivalences defined, so check if
-                    // we must convert the key to lower case for the removal operation (so
-                    // that it succeeds, since the KB would have a lower case key stored,
-                    // not upper case
-					bool bNoError = m_pApp->GetDocument()->SetCaseParameters(temp); // TRUE for default 
-															 // parameter = src text
-					if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-					{
-						temp.SetChar(0,gcharSrcLC); // make first char lower case
-					}
-				}
-				int bRemoved;
-				bRemoved = pMap->erase(temp); // also remove it from the map 
-				wxASSERT(bRemoved != 0);
-				*/
-			}
+			pTgtUnit->DeleteAllToPrepareForNotInKB();
 		}
 
 		// we make it's KB translation be a unique "<Not In KB>" - 
@@ -2155,7 +2114,6 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 			CTargetUnit* pTgtUnit = pRefString->m_pTgtUnit;
 			wxASSERT(pTgtUnit);
 			TranslationsList* pList = pTgtUnit->m_pTranslations;
-			//wxASSERT(!pList->IsEmpty() && pList->GetCount() == 1);
 			wxASSERT(!pList->IsEmpty());
 			TranslationsList::Node* pos = pList->GetFirst();
 			// BEW 18Jun10 the new code follows..., first, scan through all CRefString
@@ -2174,37 +2132,6 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 			// finally make the <Not In KB> entry become the deleted one
 			pRefString->m_bDeleted = TRUE;
 			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
-
-			/* retain legacy code for the present
-			delete pRefString; // deletes the CRefString having the text "<Not In KB>"
-			pRefString = (CRefString*)NULL;
-			pList->DeleteNode(pos);
-
-            // we must also delete the target unit, since we are setting up a situation
-            // where in effect the current matched item was never previously matched, ie.
-            // it's a big error to have a target unit with no reference string in it.
-			int index = pSrcPhrase->m_nSrcWords - 1;
-			MapKeyStringToTgtUnit* pMap = m_pMap[index];
-			int bRemoved;
-			// handle auto-caps tweaking, if it is on
-			wxString temp = pSrcPhrase->m_key;
-			if (gbAutoCaps && !gbNoSourceCaseEquivalents)
-			{
-                // auto caps is on and there are case equivalences defined, so check if we
-                // must convert the key to lower case for the removal operation (so that it
-                // succeeds, since the KB would have a lower case key stored, not upper
-                // case
-				bool bNoError = m_pApp->GetDocument()->SetCaseParameters(temp); // TRUE for default 
-														 // parameter = src text
-				if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-				{
-					temp.SetChar(0,gcharSrcLC); // make first char lower case
-				}
-			}
-			bRemoved = pMap->erase(temp); // remove it from the map
-			delete pTgtUnit; // delete it from the heap
-			pTgtUnit = (CTargetUnit*)NULL;
-			*/
 		}
 	}
 }

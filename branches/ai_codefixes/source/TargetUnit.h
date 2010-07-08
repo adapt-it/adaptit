@@ -65,6 +65,7 @@ public:
 	// see .cpp file for reason // whm moved it here after declaration of m_pTranslations
 
 	//void				DeleteTargetUnit(CTargetUnit* pTU);
+	void				DeleteAllToPrepareForNotInKB();
 	void				DeleteTargetUnitContents();
 	void				EraseDeletions(enum ModifiedAction modChoice = LeaveUnchanged); // physically
 							// deletes any CRefString instances with m_bDeleted set TRUE; either

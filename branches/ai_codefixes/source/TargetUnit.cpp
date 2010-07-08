@@ -180,6 +180,38 @@ int CTargetUnit::FindRefString(wxString& translationStr)
 	return (int)wxNOT_FOUND;
 }
 
+// Checks the CRefString instances, and any with m_bDeleted cleared to FALSE, it sets it
+// TRUE and sets the m_deletedDateTime value to the current datetime. If one of the
+// undeleted instances stores "<Not In KB>" already, it too is made deleted, because this
+// function is called before a StoreText(), and if the store then stores <Not In KB>, the
+// deleted CRefString storing that is undeleted - so we don't have to take into account
+// whether or not a <Not In KB> CRefString is within the list or now, we just make all
+// instances be deleted.
+// This function is called in the KB.cpp's DoNotInKB() called from the view's
+// OnCheckKBSave() which handles the Save to knowledge base checkbox clicks, and in the
+// doc's DoConsistencyCheck() to help fix "<Not In KB> inconsistencies when found
+void CTargetUnit::DeleteAllToPrepareForNotInKB()
+{
+	TranslationsList* pList = m_pTranslations;
+	if (!pList->IsEmpty())
+	{
+		TranslationsList::Node* pos = pList->GetFirst();
+		while (pos != NULL)
+		{
+			CRefString* pRefString = (CRefString*)pos->GetData();
+			pos = pos->GetNext();
+			if (pRefString != NULL)
+			{
+				if (!pRefString->m_bDeleted)
+				{
+					pRefString->m_bDeleted = TRUE;
+					pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+				}
+			}
+		} // end of loop
+	}
+}
+
 // pass in a modification choice as the modChoice param; allows values are LeaveUnchanged
 // (which is the default if no param is supplied), or SetNewValue -- the latter choice
 // will overwrite any earlier modification datetime value which may have been stored

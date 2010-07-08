@@ -291,7 +291,9 @@ public:
 	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
-	void	DoConsistencyCheck(CAdapt_ItApp* pApp);
+	void	DoConsistencyCheck(CAdapt_ItApp* pApp);	// the legacy function 
+	void	DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy);	// BEW added 9July10
+											// for support of looping over all book folders
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
 	wxChar	GetFirstChar(wxString& strText);
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
