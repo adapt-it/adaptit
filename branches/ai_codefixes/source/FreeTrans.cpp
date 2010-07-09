@@ -272,6 +272,7 @@ bool CFreeTrans::ContainsFreeTranslation(CPile* pPile)
 /// whm added additional parameters on 24Aug06 and later on 31May07
 /// BEW 19Feb10, updated for support of doc version 5 (one change, elimination of
 /// GetExistingMarkerContent() call by making GetFreeTrans() call)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
 										 enum DrawFTCaller drawFTCaller)
@@ -1058,6 +1059,7 @@ c:	pPile = m_pView->GetNextPile(pPile);
 // adaptation (or gloss) there when the phrase box is subsequently moved, we must make sure
 // the flag has the appropriate value
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 {
 	if (gbIsGlossing)
@@ -1108,6 +1110,7 @@ void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 /// m_targetStr member is empty, we will indeed instead check for a non-empty m_follPunct
 /// member!
 /// BEW 19Feb10, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, 
 											wxString& punctSet)
@@ -1160,6 +1163,7 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 /// 
 /// BEW modified 19Feb10, for support of doc version 5. New version does not have endmarkers in
 /// m_markers any more, but in m_endMarkers (and only endmarkers there, else it is empty)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
 {
@@ -1296,12 +1300,14 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
 ///	\param pPile	->	pointer to the pile which stores the pSrcPhrase pointer being 
 ///	                    examined
 ///	BEW 19Feb10, no change needed for support of doc version 5
+///	BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 {
 	return pPile->GetSrcPhrase()->m_bStartFreeTrans == TRUE;
 }
 
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
@@ -1587,6 +1593,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = m_pView->GetDocument();
@@ -1628,7 +1635,6 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		return;
 	}
 
-	// IDS_DELETE_ALL_FT_ASK
 	int nResult = wxMessageBox(_(
 "You are about to delete all the free translations in the document. Is this what you want to do?"),
 	_T(""), wxYES_NO);
@@ -1732,6 +1738,7 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 ///	BEW 19Feb10, no changes needed for support of doc version 5 (but the function
 ///	IsFreeTranslationEndDueToMarker() called internally has extensive changes for
 ///	doc version 5)
+///	BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
@@ -2012,6 +2019,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 ///    always gets the string to be stored from the input parameter storeStr.
 ///	whm 23Aug06 added the last two parameters
 ///	BEW 19Feb10, updated for support of doc version 5 (changes needed)
+///	BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,
 	CPile*& pLastPile,enum EditBoxContents editBoxContents, const wxString& storeStr)
@@ -2110,6 +2118,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 // at the point in the vertical edit process where control is about to leave the
 // freeTranslationsStep and so the current free translation needs to be made to 'stick'
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::StoreFreeTranslationOnLeaving()
 {
 	if (m_pFrame->m_pComposeBar != NULL)
@@ -2160,6 +2169,7 @@ void CFreeTrans::StoreFreeTranslationOnLeaving()
 ///	Called in DrawFreeTranslations() when there is a need to shorten a text substring to fit
 ///	within the available drawing space in the layout
 ///	BEW 19Feb10 no change needed for support of doc version 5
+///	BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 wxString CFreeTrans::TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 									  int totalHExtent)
@@ -2232,6 +2242,7 @@ a:	text.Remove(text.Length() - 1,1);
 ///    string too early and the last rectangle's text got truncated - so we want a second
 ///    run with no scaling so that we minimize the possibility of truncation being needed
 ///    BEW 22Feb10 no changes needed for support of doc version 5
+///    BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 									 wxString&	str,
@@ -2345,6 +2356,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::ToggleFreeTranslationMode()
 {
 	if (gbVerticalEditInProgress)
@@ -2453,6 +2465,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 
 // handler for the IDC_APPLY_BUTTON, renamed Advance after first being called Apply
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
     // BEW added 19Oct06; if the ENTER key is pressed when not in Free Translation mode and
@@ -2632,6 +2645,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten or 
@@ -2756,6 +2770,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 // whm revised 24Aug06 to allow Prev button to move back to the previous actual or
 // potential free translation segment in the text
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten 
@@ -3075,6 +3090,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -3132,6 +3148,7 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from wiping
@@ -3206,6 +3223,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 /// if the active sequence number is negative (-1). But the button is enabled as long as
 /// there is at least one pile left.
 /// BEW 22Feb10 no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 {
@@ -3443,6 +3461,7 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
@@ -3520,6 +3539,7 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
@@ -3598,6 +3618,7 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 {
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -3638,6 +3659,7 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 {
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -3862,6 +3884,7 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /// translation functionality to ensure this constraint is never violated. (see change of
 /// 14July below, for example)
 /// BEW 22Feb10 no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 {
@@ -3923,6 +3946,7 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 /// in two or more consecutive strips - hence the size of the pSubstrings array must be the
 /// same as or less than totalRects.
 /// BEW 19Feb10, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 											wxString&		str, 
@@ -4043,6 +4067,7 @@ void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 }
 
 // BEW 2Mar10, updated for doc version 5 (no changes needed)
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CCollectBacktranslations dlg(m_pFrame);
@@ -4067,6 +4092,7 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 
 
 // BEW 2Mar10; updated for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
     // whm added 23Jan07 check below to determine if the doc has any back translations. If
@@ -4189,6 +4215,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 ///     former one. Again, this is the user's responsibility to check for and rectify if he
 ///     wishes, and the View Filtered material dialog is again the way to do it.)
 /// BEW 26Mar10, changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 {
@@ -4401,6 +4428,7 @@ b:	if (bSelectionExists)
 
 // a utility to return TRUE if pSrcPhrase contains a \bt or \bt-prefixed marker
 // BEW 2Mar10, updated for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 {
 	wxString btMkr = _T("\\bt");
@@ -4436,6 +4464,7 @@ bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 ///	Comments above say it all. The function assumes and relies on there being a space
 /// following whatever marker it is
 /// BEW 2Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 wxString CFreeTrans::WhichMarker(wxString& markers, int nAtPos)
 {
@@ -4475,6 +4504,7 @@ wxString CFreeTrans::WhichMarker(wxString& markers, int nAtPos)
 /// there is already backtranslation content present, what is inserted replaces the content
 /// already there.
 /// BEW 2Mar10, updated for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 //////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr)
 {
@@ -4503,6 +4533,7 @@ void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxSt
 ///    
 ///    BEW 2Mar10, updated for support of doc version 5 (no changes needed) (the legacy
 ///    version of this function was called GetPrevMarker() and it scanned backwards)
+///    BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
 {
@@ -4583,6 +4614,7 @@ bool CFreeTrans::GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
 ///    4. any unknown marker type in m_markers
 ///    5. any known marker type in m_markers which does not have the TextType of 'none'
 ///    BEW 2Mar10, updated for support of doc version 5
+///    BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr)
 {

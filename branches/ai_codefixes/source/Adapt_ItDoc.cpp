@@ -9592,6 +9592,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// process to determine each source phrase's many attributes and flags, stores any
 /// filtered information in its m_filteredInfo member.
 /// BEW Feb10, updated for support of doc version 5 (changes were needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
 							   int nTextLength)
@@ -10783,7 +10784,9 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///         the navigation text and text colouring and (cryptic) TextType assignments.
 /// NOTE: m_FilterStatusMap.Clear(); is done early in DoMarkerHousekeeping(), so the prior
 ///         contents of the former will be lost.
-/// BEW 24Mar10, updated for support of doc version 5(changes needed - just a block of code removed)
+/// BEW 24Mar10, updated for support of doc version 5(changes needed - just a block of code
+/// removed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired)
@@ -12830,6 +12833,7 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 /// rebuilding the document - as when filtering changes are made, or a change of SFM set
 /// which has the side effect of altering filtering settings as well, or the insertion of a
 /// sourcephrase with an \id in m_markers and a 3-letter book ID code in the m_key member.
+/// BEW 9July10, no changes needed for support of kbVersion 2
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 {

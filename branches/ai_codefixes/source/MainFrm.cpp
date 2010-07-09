@@ -881,10 +881,12 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 	return FALSE;
 }
 
+// BEW 9July10, no changes needed for support of kbVersion 2
 int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxString& strChapVerse)
 {
-	// NOTE: in Adapt It, chapterless Bible books use 0 as the chapter number in the ch:verse string, so we must
-	// test for nChap == 1 and if so, also check for a match of 0:verse
+    // NOTE: in Adapt It, chapterless Bible books use 0 as the chapter number in the
+    // ch:verse string, so we must test for nChap == 1 and if so, also check for a match of
+    // 0:verse
 	int sequNum = -1;
 	bool bSecondTest = FALSE;
 	int nOffset = -1;
@@ -909,9 +911,9 @@ int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxSt
 			// there is content in the m_chapterVerse member, so check it out
 			refStr = pSrcPhrase->m_chapterVerse; // copy to local wxString
 
-			// the first of the test battery is to try find an initial ch:verse, or 0:verse if
-			// the bSecondTest flag is TRUE, at the start of the refStr - if we succeed, we need
-			// go no further
+            // the first of the test battery is to try find an initial ch:verse, or 0:verse
+            // if the bSecondTest flag is TRUE, at the start of the refStr - if we succeed,
+            // we need go no further
 			nOffset = refStr.Find(strChapVerse); // returns -1 if not found
 			if (bSecondTest)
 			{
@@ -2842,6 +2844,7 @@ void CMainFrame::OnViewComposeBar(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::ComposeBarGuts()
 {
 	if (m_pComposeBar == NULL)
@@ -3340,6 +3343,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 // The wxEVT_Adaptations_Edit event is sent to the window event loop by a 
 // wxPostEvent() call in OnEditSourceText().
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// adaptations updating is required
@@ -4030,6 +4034,7 @@ cancel:		;
 // The following is the handler for a custom wxEVT_Glosses_Edit event message, sent
 // to the window event loop by a wxPostEvent() call
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// glosses updating is potentially required
@@ -4653,6 +4658,7 @@ cancel:		;
 // The following is the handler for a custom wxEVT_Free_Translations_Edit event message,
 // sent to the window event loop by a wxPostEvent call
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// free translations updating is potentially required
@@ -5253,6 +5259,7 @@ cancel:		;
 // The following is the handler for a CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT event message, sent
 // to the window event loop by a PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0) call
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -5285,6 +5292,7 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 }
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();

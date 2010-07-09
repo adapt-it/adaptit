@@ -137,6 +137,7 @@ CNotes::~CNotes()
 /// is no note already present there.
 /// 
 /// BEW 24Feb10, updated for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
@@ -194,6 +195,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 /// it sets it.
 /// 20June08 created by BEW
 /// BEW 24Feb10, updated for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -772,6 +774,7 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 /// follNotesMoveSpanList and precNotesMoveSpanList members.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
@@ -1457,6 +1460,7 @@ void CNotes::MoveToAndOpenLastNote()
 /// notes to be placed, the caller will attempt to move the note which is the right bound
 /// to the right to create the needed gaps.)
 /// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
@@ -1515,6 +1519,7 @@ bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLef
 /// unreplaceable ones are simply lost - but the user is given a message saying so.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -2052,6 +2057,7 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 /// CSourcePhrase without a Note after the consecutive series ends. The function can be 
 /// used even when the location passed in is the only one which has a stored Note.
 /// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
@@ -2166,6 +2172,7 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 /// to this bound, we'll return to the caller to let the above algorithm for placing the
 /// remainder do its job.
 /// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, 
 									int nEditSpanCount, wxArrayInt* pUnsqueezedArr, 

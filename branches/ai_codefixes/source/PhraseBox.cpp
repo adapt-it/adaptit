@@ -1701,6 +1701,7 @@ bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView)
 // index within the m_pSourcePhrases list for the CSourcePhrase instance pointed at by the
 // m_pSrcPhrase member of pNewPile
 // BEW 13Apr10, a small change needed for support of doc version 5
+// BEW 21Jun10, updated for support of kbVersion 2
 bool CPhraseBox::LookAhead(CPile* pNewPile)
 {
 	// refactored 25Mar09 (old code is at end of file)
@@ -1994,11 +1995,12 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	}
 	else // count == 1 case (ie. a unique adaptation, or a unique gloss when glossing)
 	{
-		// BEW added 08Sep08 to suppress inserting placeholder translations for ... matches when in
-		// glossing mode and within the end of a long retranslation
+        // BEW added 08Sep08 to suppress inserting placeholder translations for ... matches
+        // when in glossing mode and within the end of a long retranslation
 		if (curKey == _T("..."))
 		{
-			// don't allow an ellipsis (ie. placeholder) to trigger an insertion, leave translation empty
+			// don't allow an ellipsis (ie. placeholder) to trigger an insertion, 
+			// leave translation empty
 			translation.Empty();
 			return TRUE;
 		}
@@ -2034,6 +2036,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 }
 
 // BEW 13Apr10, no changes needed for support of doc version 5
+// BEW 8July10, no changes needed for support of kbVersion 2
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
 	#ifdef _FIND_DELAY
@@ -2315,18 +2318,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			return;
 		}
 
-		/* removed 25Mar09
-		// we have to check here if we have moved into the area where it is 
-		// necessary to move the bundle down, and if so, then do it, & update 
-		// everything again
-		bool bNeedAdvance = pView->NeedBundleAdvance(pApp->m_nActiveSequNum);
-		if (bNeedAdvance)
-		{
-			// do the advance, return a new (valid) pointer to the active pile
-			pApp->m_pActivePile = pView->AdvanceBundle(pApp->m_nActiveSequNum);
-			m_pActivePile = pApp->m_pActivePile; // put copy on the CPhraseBox too
-		}
-		*/
 		// Note: transliterate mode is not supported in Review mode, so there is no
 		// function such as MoveToImmedNextPile_InTransliterationMode()
 		int bSuccessful = MoveToImmedNextPile(pApp->m_pActivePile);
@@ -2338,7 +2329,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			if (pFwdPile == NULL)
 			{
 				// tell the user EOF has been reached
-				// IDS_AT_END
+
 				wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 				_T(""), wxICON_INFORMATION);
@@ -2357,7 +2348,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
 				pApp->m_targetPhrase.Empty();
 				pApp->m_nActiveSequNum = -1;
-				//pView->LayoutStrip(pApp->m_pSourcePhrases,nOldStripIndex,pApp->m_pBundle);
 				pApp->m_pActivePile = NULL; // can use this as a flag for 
 											// at-EOF condition too
 				// recalc the layout without any gap for the phrase box, as it's hidden
@@ -2369,7 +2359,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			}
 			else // pFwdPile is valid, so must have bumped against a retranslation
 			{
-				// IDS_CANNOT_GO_FORWARD
 				wxMessageBox(_(
 "Sorry, the next pile cannot be a valid active location, so no move forward was done."),
 				_T(""), wxICON_INFORMATION);
@@ -2435,18 +2424,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// m_targetPhrase contents stand unchanged
 
 			gbEnterTyped = FALSE;
-
-            // BEW added 19Dec07: force immediate draw of window (an UpdateWindow() call
-            // doesn't do it for us, so just do a RemakePhraseBox() call here, as for
-            // drafting mode case (this addition is needed because if app is launched, doc
-            // opened in drafting mode, phrase box placed by a click at the pile before a
-            // hole and then Enter pressed, the view is recalculated and drawn and the box
-            // created, but it remains hidden. The addition of the RemakePhraseBox() call
-            // gets it shown. I remember having to do this years ago for the Drafting mode
-            // block above. Why the UpdateWindow() call won't do it is a mystery.
-			//pView->m_targetBox.UpdateWindow();
-			//pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase); 
-											// BEW 25Mar09 -- needed?? assume not
 			
 			pLayout->m_docEditOperationType = relocate_box_op;
 		} // end of block for bSuccessful == TRUE
@@ -2454,19 +2431,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 		gSaveTargetPhrase = pApp->m_targetPhrase;
 
-		/* whm Note: The following kluge is not needed for the wx version:
-        // BEW added 21Dec07: get everything redrawn (invalidating the view and phrase box
-        // here does not redraw the phrase box when using the Enter key in Reviewing mode
-        // to step the phrase box through consecutive holes(but it is created in its
-        // correct position each time and each time has the input focus, it just can't be
-        // seen!); but for an unknown reason destroying it and recreating it within a
-        // single function works. Since RedrawEverything() already does these things plus
-        // calls Invalidate() on the view, it fixes the glitch as well as handling all that
-        // the older code handled. Another kluge for an incomprehensible reason.
-		//pView->Invalidate();
-		//pView->m_targetBox.Invalidate();
-		pView->RedrawEverything(pView->m_nActiveSequNum);
-		*/
 #ifdef _NEW_LAYOUT
 		#ifdef _FIND_DELAY
 			wxLogDebug(_T("10. Start of RecalcLayout in JumpForward"));
@@ -2481,11 +2445,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 		wxASSERT(pApp->m_pActivePile != NULL);
 
-		//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
-		pView->Invalidate(); // it should be okay in the refactored code 
-							 // (cf. Bill's comment above)
+		pView->Invalidate();
 		pLayout->PlaceBox();
 	} // end Review mode (single src phrase move) block
 	#ifdef _FIND_DELAY
@@ -4160,12 +4122,12 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				_T(""),wxICON_INFORMATION);
 				return;
 			}
-			pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a 
-			GetLayout()->m_docEditOperationType = unmerge_op;
-				// lookup, so don't remake the phrase box with the global (CString) gSaveTargetPhrase,
+			pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a lookup,
+				// so don't remake the phrase box with the global (CString) gSaveTargetPhrase,
 				// otherwise it will override a successful lookkup and make the ALT+Delete give
 				// a different result than the Unmerge button on the toolbar. So we in effect
 				// are ignoring gSaveTargetPhrase (the former is used in PlacePhraseBox() only
+			GetLayout()->m_docEditOperationType = unmerge_op;
 
 			// save old sequ number in case required for toolbar's Back button - the only safe
 			// value is the first pile of the unmerged phrase, which is where the phrase box 
@@ -4332,7 +4294,9 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
-/* turned out to be a pseudo key binding in accelerator keys code, in CMainFrame creator
+/* 
+// "2" key not doing anything turned out to be a pseudo key binding in 
+// accelerator keys code, in CMainFrame creator
 #if defined(KEY_2_KLUGE) && !defined(__GNUG__) && !defined(__APPLE__)
     // kluge to workaround the problem of a '2' (event.m_keycode = 50) keypress being
     // interpretted as a F10 function keypress (event.m_keyCode == 121)

@@ -6008,6 +6008,7 @@ void CAdapt_ItView::DeepCopySublist2Sublist(SPList* pOriginalList, SPList* pCopi
 // removes "\~FILTER" and "\~FILTER*" from str, but leaves the SFM, its content, and any
 // following endmarker followed by any whitespace etc.
 // BEW 23Mar10 updated for support of doc version 5 (no changes needed)
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::RemoveFilterWrappersButLeaveContent(wxString& str)
 {
 	// uses global strings, filterMkr and filterMkrEnd; removes the latter first, and then
@@ -6117,6 +6118,7 @@ void CAdapt_ItView::RemoveFilterWrappersButLeaveContent(wxString& str)
 /// control to a block of code which merely appends the replacements, rather than trying to
 /// do insertions.
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
@@ -6469,6 +6471,7 @@ bool CAdapt_ItView::IsMarkerInArray(wxArrayString* pStrArr, const wxString& mark
 ///    removed from the code because they are no longer needed (the other is
 ///    CopyStringToStringMap())
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::AreMarkerSetsDifferent(const wxString& str1, const wxString& str2, 
 								bool& bUnfilteringRequired,bool& bFilteringRequired)
@@ -11222,6 +11225,7 @@ CSourcePhrase* CAdapt_ItView::GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Nod
 // We accumulate 40 words of preceding context and 30 words of following context, and we
 // omit any m_markers content from the accumulations - we are just interested in the text.
 // BEW 23Mar10, updated for support of doc version 5 (no changes needed)
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							   wxString& strFoll,wxString& strPreTgt, wxString& strFollTgt)
 {
@@ -12592,6 +12596,7 @@ void CAdapt_ItView::DoFileSaveKB()
 // least none yet).
 // returns TRUE if there was no error, FALSE if there was an error
 // BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+// BEW 9July10, no changes needed for support of kbVersion 2
 bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequNum, 
 								int nEndingSequNum, SPList* pCopiedSublist)
 {
@@ -12652,6 +12657,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 // sequence number of the first element tokenized
 // BEW 23Mar10, updated for support of doc version 5 (no changes needed, except in internally
 // called function)
+// BEW 9July10, no changes needed for support of kbVersion 2
 int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str, int nInitialSequNum)
 {
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -19130,6 +19136,7 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 /// if we are dealing with a right-to-left language data, it would be rightwards to the
 /// user.
 /// BEW checked 18Feb10, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSN,
 												  int& nEndingSN, bool& bIsExtended)
@@ -19299,6 +19306,7 @@ bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nSta
 /// first. Used to set or clear the bEditSpanHasAdaptations flag in the global struct
 /// gEditRecord.
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, 
 													 int& nEndingSN, bool* pbHasAdaptations)
@@ -19361,6 +19369,7 @@ bool CAdapt_ItView::IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& 
 /// the end of the span, or till we find the first gloss, whichever comes first. Used to
 /// set or clear the bEditSpanHasGlosses flag in the global struct gEditRecord.
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, 
 												 int& nEndingSN, bool* pbHasGlosses)
@@ -19459,6 +19468,7 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 /// latter was FALSE, meaning a verse-length section, then we return TRUE; and vise versa)
 /// 
 /// BEW 19Feb120, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 	int nStartingFreeTransSequNum, int nEndingFreeTransSequNum, bool bFreeTransPresent)
@@ -19702,6 +19712,7 @@ bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPh
 /// section at higher sequence number than nEndingSN, or at nEndingSN if there was no free
 /// translation at the end of the passed in span, whichever is the case.
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, 
 						int& nStartingSN, int& nEndingSN,int& nStartingFreeTransSequNum, 
@@ -20465,6 +20476,7 @@ void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 /// session.
 /// 29Apr08 function created as part of refactoring the Edit Source Text functionality
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec)
 {
@@ -20582,6 +20594,7 @@ bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum 
 /// 27Apr08	function created as part of refactoring the Edit Source Text functionality; no 
 /// list for removed collected back translations, we throw them away & recollect later
 /// BEW 23Mar10, updated for support of doc version 5 (changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::RemoveInformationDuringEdit(CSourcePhrase*	pSrcPhrase, 
 												int				nSequNum, 
@@ -20882,6 +20895,7 @@ f:	if ((nBackTranslationSpanStart != -1 && nSequNum >= nBackTranslationSpanStart
 /// intact on return.
 /// 19May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed, except in function call)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList,
@@ -20965,6 +20979,7 @@ bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 /// members
 /// 5May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 23Mar10 updated for support of doc version 5 (some changes were needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, 
 									EditRecord* pRec, int nStartingSN, int nEndingSN, 
@@ -21105,6 +21120,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 /// pOriginalList, if appropriate, on return.)
 /// BEW 13May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, 
 							SPList* pDestinationList, int nOldList_StartingSN, 
@@ -21262,6 +21278,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 /// caveats as for (2) and (3) apply here also.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -21304,14 +21321,10 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
                 // if we have an error while restoring the original document, then we can't
                 // get back the document as it was, so it is best to abort the app and lose
                 // recent changes than to continue and risk a malformed document or with
-                // content lacking somewhere within
+                // content lacking somewhere within. Error is unlikely, so English will do
 				error = _T(
-				"Restoration following context potential moved notes span failed, ");
-				error += _T(
-				" so rather than save a bad document, we abort the ");
-				error += _T(
-				"application now, losing the work done since the last save.");
-				wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+"Restoration of the following context's span of potentially moved notes failed, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
+				wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
 				wxExit();
 			}
 		}
@@ -21332,12 +21345,10 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
                 // if we have an error while restoring the original document, then we can't
                 // get back the document as it was, so it is best to abort the app and lose
                 // recent changes than to continue and risk a malformed document or with
-                // content lacking somewhere within
+                // content lacking somewhere within. English will do, error is unlikely.
 				error = _T(
-				"Restoration preceding context potential moved notes span failed, ");
-				error += _T(" so rather than save a bad document, we abort the ");
-				error += _T("application now, losing the work done since the last save.");
-				wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+"Restoration of the preceding context's span of potential moved notes failed, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
+				wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
 				wxExit();
 			}
 		}
@@ -21360,12 +21371,10 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
             // if we have an error while restoring the original document, then we can't get
             // back the document as it was, so it is best to abort the app and lose recent
             // changes than to continue and risk a malformed document or with content
-            // lacking somewhere within
+            // lacking somewhere within. Don't localize the message
 			error = _T(
-			"Restoration of the document failed in the initial replacements from the ");
-			error += _T("cancel span, so rather than save a bad document, we abort the ");
-			error += _T("application now, losing the work done since the last save.");
-			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+"Restoration of the document failed in the initial replacements from the cancel span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
+			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
 			wxExit();
 		}
 	}
@@ -21388,12 +21397,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
         // back the document as it was, so it is best to abort the app and lose recent
         // changes than to continue and risk a malformed document or with content lacking
         // somewhere within
-		error = _T("Restoration of the document failed in the replacements from the ");
-		error += _T(
-		"editable span within the cancel span, so rather than save a bad document, ");
-		error += _T(
-		"we abort the application now, losing the work done since the last save.");
-		wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+		error = _T(
+"Restoration of the document failed in the replacements from the editable span within the cancel span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
+		wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
 		wxExit();
 	}
 	// update the sequence numbers, starting from the start of the cancel span
@@ -21417,12 +21423,10 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
             // if we have an error while restoring the original document, then we can't get
             // back the document as it was, so it is best to abort the app and lose recent
             // changes than to continue and risk a malformed document or with content
-            // lacking somewhere within
+            // lacking somewhere within. Don't localize message
 			error = _T(
-			"Restoration of the document failed in the final replacements from the ");
-			error += _T("cancel span, so rather than save a bad document, we abort the ");
-			error += _T("application now, losing the work done since the last save.");
-			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+"Restoration of the document failed in the final replacements from the cancel span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
+			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_EXCLAMATION);
 			wxExit();
 		}
 	}
@@ -21453,12 +21457,10 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
             // if we have an error while restoring the original document, then we can't get
             // back the document as it was, so it is best to abort the app and lose recent
             // changes than to continue and risk a malformed document or with content
-            // lacking somewhere within
-			error = _T("Restoration of the document failed in the replacements from the ");
-			error += _T(
-			"propagation span, so rather than save a bad document, we abort the ");
-			error += _T("application now, losing the work done since the last save.");
-			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+            // lacking somewhere within. Don't localize the message
+			error = _T(
+"Restoration of the document failed in the replacements from the propagation span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
+			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
 			wxExit();
 		}
 	}
@@ -21528,6 +21530,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 /// won't be recreated. The chances of that being a problem, however, are miniscule.
 /// BEW created 5July08, for support of refactored Source Text Edit functionality
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ExtendEditableSpanForFiltering(
 										EditRecord*					pRec, 
@@ -21615,6 +21618,7 @@ bool CAdapt_ItView::ExtendEditableSpanForFiltering(
 /// the EditRecord, rolls back through the lists of CSourcePhrases using the user's
 /// chosen order and restores the former document state
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -21677,7 +21681,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 		// layout not valid, shouldn't happen so just give a message & abort
 		wxMessageBox(_T(
 		"Null active pile pointer in BailOutFromEditProcess(), so will abort..."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_ERROR);
 		wxExit();
 	}
 
@@ -21740,6 +21744,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 /// but could be used elsewhere if we ever refactor other code - the code here is cloned 
 /// from part of PlacePhraseBox() and tweaked a bit
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 {
@@ -21933,6 +21938,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 }
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 {
 	EditRecord* pRec = &gEditRecord;
@@ -22099,19 +22105,20 @@ void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
 /// (adaptation, gloss, free translation, back translation) at or overlapping the edited
 /// region of the document, and if there is any such, it drops into a 'vertical edit' mode
 /// at the appropriate entry point - depending on what dependent information is present
-/// This function relinguishes responsibility for managing the document at view once
-/// vertical edit has been entered; the vertical edit process manages itself until
-/// completion or until the user exits it in one of a few prescribed ways.
+/// This function relinguishes responsibility for managing the document and view once
+/// vertical edit has been entered; the vertical edit process manages itself (using custom
+/// events) until completion or until the user exits it in one of a few prescribed ways.
 /// 
 /// BEW updated, 11Apr08++ to remove modalities, show filtered info with selected text,
 /// extend selection if necessary to accomodate editing within or overlapping a
 /// retranslation, handle endmarkers of the USFM standard adequately, and remove the child
 /// dialog for marker transfer (This refactored version is part of a staged process, called
 /// "vertical editing" which makes use of a global struct, gEditRecord, defined at the top
-/// of this file.)
+/// of this file. The struct, EditRecord, is itself defined in Adapt_It.h)
 /// BEW modified 13Nov09, if the local user has only read-only access to a remote
 /// project folder, do not permit him to force a source text edit upon the remote
-// user! (suppress here, and also in the update handler)
+/// user! (suppress here, and also in the update handler)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 {
@@ -22153,8 +22160,6 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
     // track the sequence number for the start of the (possibly extended programmatically)
     // selection (we don't actually extend the selection but just work out the new starting
     // and ending sequence number values)
-	//gnOldMaxIndex = pApp->GetMaxIndex(); // store the old value 
-										 // -- this global may not be needed
 	pRec->nNewSpanCount = -1; // -1 means "this value is undefined thus far"
 	wxString str; // a temporary storage string
 	str.Empty();
@@ -22329,8 +22334,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		}
 	}
     // the cancelSpan_SrcPhraseList is always co-extensive with the modifications span, so
-    // deep copy the one just delineated; we don't ever expect this to fail, so internally
-    // just use try and catch blocks to check for any memory exceptions
+    // deep copy the one just delineated; we don't ever expect this to fail
 	DeepCopySublist2Sublist(&pRec->cancelSpan_SrcPhraseList, 
 							&pRec->modificationsSpan_SrcPhraseList);
 
@@ -23749,6 +23753,7 @@ bailout:	pAdaptList->Clear();
 /// gpFollSrcPhrase which is first in the following context.
 /// BEW 7May08, function created as part of refactoring the Edit Source Text functionality
 /// BEW 23Mar10, updated for support of doc version 5 (some changes were needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases, 
 			CSourcePhrase* pFollSrcPhrase, EditRecord* pRec)
@@ -23779,26 +23784,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 	SPList::Node* lastPos = pNewSrcPhrases->GetLast();
 	CSourcePhrase* pLastSrcPhrase = lastPos->GetData();
 	wxASSERT(pLastSrcPhrase != NULL);
-	/*
-	if (pLastSrcPhrase->GetFilteredInfo().IsEmpty() && pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_precPunct.IsEmpty())
-	{
-		// no now-filtered information to transfer, and no prededing punctuation which
-		// would require the CSourcePhrase instance to remain
-		pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // none to transfer
-		pRec->bDocEndPreventedTransfer = FALSE; // a TRUE value is pointless if 
-												// m_filteredInfo is empty
-		return FALSE; 
-	}
-	if (!pLastSrcPhrase->m_precPunct.IsEmpty())
-	{
-		pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // none to transfer
-		pRec->bDocEndPreventedTransfer = FALSE; // a TRUE value is misleading if 
-                    // the final one was retained for a different reason than being 
-                    // at the document's end
-		return FALSE; // this punctuation prevents widow CSourcePhrase instance removal, 
-					  // see description above for why
-	}
-	*/
+
     // m_filteredInfo may have some content. We handle filtered info first.
     // BEW added 24Jan09: support for non-endmarker(s) in m_markers of a carrier
     // CSourcePhrase with m_srcPhrase and m_follPunct members empty (this can happen if, in
@@ -23974,6 +23960,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 ///	BEW created 1Aug08, for support of vertical editing in the refactored 
 ///	Edit Source Text handler
 /// BEW 26Mar10, no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RestoreMode(bool WXUNUSED(bSeeGlossesEnabled), 
 								bool WXUNUSED(bIsGlossing), EditRecord* pRec)
@@ -24142,6 +24129,7 @@ wxComboBox* CAdapt_ItView::GetRemovalsComboBox()
 // glosses, or free translations - by passing in the appropriate enum value, rather than
 // the current value in the global gEditStep
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 bool CAdapt_ItView::PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRec)
 {
 	wxComboBox* pCombo = GetRemovalsComboBox();
@@ -24238,6 +24226,7 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 
 // use the following when placing the phrase box in vertical editing moode's steps
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), 
 												   int nSequNum)
 {
@@ -24306,6 +24295,7 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec),
 /// DoCollectBacktranslations() function.
 /// BEW 26Mar10, no changes needed for support of doc version 5 (but a couple of called
 /// functions do have some changes)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* pRec, 
 														enum EntryPoint anEntryPoint)
@@ -24418,6 +24408,7 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 /// 3. bundle end has been reached in the search for a "hole" to jump to, in which case
 ///    this really means we've moved into the gray area, so TRUE would be appropriate.
 /// BEW 22Feb10 no changes needed for support of doc version 5
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, 
 							ActionSelector select, bool bForceTransition)
@@ -24784,6 +24775,7 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 /// the context following the editable span.)
 /// BEW added 8May08 to support refactored Edit Source Text functionality
 /// BEW 24Mar10, updated for support of doc version 5 (no changes needed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec, 
 									SPList* pNewSrcPhrasesList, SPList* pSrcPhrases, 
@@ -25086,6 +25078,7 @@ void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 
 // BEW added 19Sep08 in support of mode changing within the vertical edit process
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::ToggleSeeGlossesMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -25284,6 +25277,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 9July10, no changes needed for support of kbVersion 2
 void CAdapt_ItView::ToggleGlossingMode() 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

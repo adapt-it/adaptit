@@ -2849,14 +2849,18 @@ wxString GetUuid()
 	return anUuid;
 }
 
-// support getting current date-time in format "YYYY:MM:DD hh:mm:ss", which is useful as a
-// potential sort key; that is: "year:month:day hours:minutes:seconds"
-// BEW created 10May10
+// support getting current date-time in format "YYYY:MM:DD hh:mm:ssZ", which is useful as a
+// potential sort key; that is: "year:month:day hours:minutes:seconds" Z suffix is 'Zulu 
+// time zone', that is, UTC (GMT).
+// BEW created 10May10, modified 9July10 to make it be UTC time, and adding Z suffix
 wxString GetDateTimeNow()
 {
 	wxDateTime theDateTime = wxDateTime::Now();
+	// we want it as UTC datetime
+	theDateTime = theDateTime.ToUTC(); // param noDST is default false, so it does daylight
+									   // savings time adjustment too
 	wxString dateTimeStr;
-	dateTimeStr = theDateTime.Format(_T("%Y:%m:%d %H:%M:%S")).c_str();
+	dateTimeStr = theDateTime.Format(_T("%Y:%m:%d %H:%M:%SZ")).c_str();
 	return dateTimeStr;
 }
 

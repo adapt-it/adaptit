@@ -7772,8 +7772,8 @@ int ii = 1;
 // test getting current date-time in format "year:month:day hours:minutes:seconds"
 //wxString dt = GetDateTimeNow();
 
-// test GetWho() in helpers.cpp
-//wxString str = GetWho();
+// test SetWho() in helpers.cpp
+//wxString str = SetWho();
 
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
