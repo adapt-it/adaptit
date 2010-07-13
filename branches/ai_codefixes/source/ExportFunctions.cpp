@@ -3234,7 +3234,6 @@ void DoExportInterlinearRTF()
 	wxString CellxNum;
 	CellxNum.Empty();
 
-#ifdef __WXMSW__
 	int nTotal,counter;
 	nTotal = pList->GetCount();
 	counter = 0;
@@ -3253,18 +3252,6 @@ void DoExportInterlinearRTF()
                     wxPD_REMAINING_TIME
                     | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                     );
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 1;	// 1 "Please wait for Adapt It to output the RTF file. This may take a while..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 
 	// START of MAIN LOOP SCANNING THROUGH ALL SOURCE PHRASES
 	// start at beginning of pList of SourcePhrases
@@ -3272,14 +3259,12 @@ void DoExportInterlinearRTF()
 	wxASSERT(pos != NULL);
 	while (pos != NULL) // cycle through all SourcePhrases
 	{
-#ifdef __WXMSW__
 		counter++;
 		if (counter % 200 == 0)
 		{
 			msgDisplayed = progMsg.Format(progMsg,exportFilename.c_str(),counter,nTotal);
 			progDlg.Update(counter,msgDisplayed);
 		}
-#endif
 
 		savePos = pos;
 
@@ -5764,6 +5749,9 @@ b:						// b: is exit point to write the last columns of data
 	hstr = _T('}');
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 		return;
+	
+	// remove the progress indicator window
+	progDlg.Destroy();
 
 	// we must call DeleteContents(TRUE) on the lists in order to free the wxString data
 	// put on the heap. It should be done here at the end of DoExportInterlinearRTF to insure
@@ -6768,7 +6756,6 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 				return;
 	}
 
-#ifdef __WXMSW__
 	// Put up a progress dialog
 	int nTotal,beginInt,counter;
 	beginInt = (int)ptr;
@@ -6789,23 +6776,10 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
                     wxPD_REMAINING_TIME
                     | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                     );
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 1;	// 1 "Please wait for Adapt It to output the RTF file. This may take a while..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 
 	// Scan through Buffer
 	while (ptr < pEnd)
 	{
-#ifdef __WXMSW__
 		counter++;
 		if (counter % 500 == 0)	// the counter moves character by character through the buffer
 									// so pick a large number for updating the progress dialog
@@ -6813,7 +6787,6 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 			msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),(int)ptr - beginInt,nTotal);
 			progDlg.Update((int)ptr - beginInt,msgDisplayed);
 		}
-#endif
 
 		bHitMarker = FALSE;
 		if (pDoc->IsWhiteSpace(ptr))
@@ -8880,6 +8853,9 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 	}// end of while (ptr < pEnd)
 
 d: // exit point for if ptr == pEnd
+
+	// remove the progress indicator window
+	progDlg.Destroy();
 
 	// if a set of USFM table markers (\tr, \th1, \th2...\tc1, \tc2... etc) comes at the end of
 	// the document there will not be a following marker to signal the processing of the last

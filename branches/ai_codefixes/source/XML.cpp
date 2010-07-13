@@ -5362,7 +5362,6 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc)
 	// set the static document pointer used only for parsing the XML document
 	gpDoc = pDoc;
 
-#ifdef __WXMSW__
 	// whm added 27May07 put up a progress dialog. Since we do not know the length of the
 	// document at this point the dialog will simply display the message
 	// "Reading XML Data For: <filename> Please Wait..." until the whole doc has been read.
@@ -5382,22 +5381,14 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc)
                     //wxPD_REMAINING_TIME |
                     wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                     );
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 2;	// 2 "Please wait while Adapt It opens the document..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 
 
 	bool bXMLok = ParseXML(path,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
 							AtDocEndTag,AtDocPCDATA);
+
+	// remove the progress indicator window
+	progDlg.Destroy();
+	
 	return bXMLok;
 }	
 

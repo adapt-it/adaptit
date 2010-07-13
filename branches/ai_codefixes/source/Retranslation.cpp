@@ -241,7 +241,6 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	nTotal = pList->GetCount();
 	wxASSERT(nTotal > 0);
 	
-#ifdef __WXMSW__
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
 	wxString msgDisplayed = progMsg.Format(progMsg,name.c_str(),1,nTotal);
 	wxProgressDialog progDlg(_("Retranslation Report"),
@@ -257,20 +256,6 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 							 wxPD_REMAINING_TIME
 							 | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 							 );
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until 
-	// the operation is done
-	CWaitDlg waitDlg(m_pApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only 
-	// "Please wait..." in title bar
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 	
 	// compose the output data & write it out, phrase by phrase
 	SPList::Node* pos = pList->GetFirst();
@@ -378,18 +363,19 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 		// whm note: Yield operations tend to hang in wxGTK, so I'm going to just use the
 		// wxBusyInfo message and not worry about the message being repainted if covered
 		// and uncovered by another window.
-#ifdef __WXMSW__
 		// update the progress bar
 		if (counter % 1000 == 0) 
 		{
 			msgDisplayed = progMsg.Format(progMsg,name.c_str(),counter,nTotal);
 			progDlg.Update(counter,msgDisplayed);
 		}
-#endif
 		
 		if (bStartOver)
 			goto b;
 	}
+	
+	// remove the progress indicator window
+	progDlg.Destroy();
 	
 	if (count == 0)
 	{

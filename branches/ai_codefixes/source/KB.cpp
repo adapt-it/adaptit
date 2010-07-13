@@ -1588,9 +1588,6 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		}
 	}
 	
-
-
-#ifdef __WXMSW__
 	wxString progMsg = _("%d of %d Total entries and senses");
 	wxString msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 	wxString titleStr;
@@ -1616,18 +1613,6 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 							| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 							);
 
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg((wxWindow*)m_pApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 14;	// 0 "Please wait while Adapt It exports the KB..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
 	if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
 	{
@@ -1928,14 +1913,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						composeXmlStr += "\r\n";
 						outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
 					}
-#ifdef __WXMSW__
 					// update the progress bar every 20th iteration
 					if (counter % 200 == 0)
 					{
 						msgDisplayed = progMsg.Format(progMsg,counter,nTotal);
 						progDlg.Update(counter,msgDisplayed);
 					}
-#endif
 				} // end of inner loop for looping over CRefString instances
 
 				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
@@ -2006,14 +1989,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					//		#endif
 					//}
 				}
-#ifdef __WXMSW__
 				// update the progress bar every 200th iteration
 				if (counter % 200 == 0)
 				{
 					msgDisplayed = progMsg.Format(progMsg,counter,nTotal);
 					progDlg.Update(counter,msgDisplayed);
 				}
-#endif
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map 
 				iter++;
@@ -2028,6 +2009,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		composeXmlStr += "\r\n";
 		DoWrite(*pFile,composeXmlStr);
 	}
+
+	// remove the progress indicator window
+	progDlg.Destroy();
 }
 
 // looks up the knowledge base to find if there is an entry in the map with index

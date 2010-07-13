@@ -7772,8 +7772,8 @@ int ii = 1;
 // test getting current date-time in format "year:month:day hours:minutes:seconds"
 //wxString dt = GetDateTimeNow();
 
-// test SetWho() in helpers.cpp
-//wxString str = SetWho();
+// test GetWho() in helpers.cpp
+//wxString str = GetWho();
 
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
@@ -12867,7 +12867,6 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 		nCumulativeTotal += nTotal;
 
 		// put up a progress indicator
-#ifdef __WXMSW__
 		wxString progMsg = _("%s  - %d of %d Total words and phrases");
 		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
 		wxProgressDialog progDlg(_("Restoring the Knowledge Base"),
@@ -12883,18 +12882,6 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 								wxPD_REMAINING_TIME
 								| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 								);
-#else
-		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-		// notification on wxGTK and wxMAC
-		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 0;	// 0 "Please wait while Adapt It Restores the Knowledge Base..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 		SPList* pPhrases = m_pSourcePhrases;
 		SPList::Node* pos1 = pPhrases->GetFirst();
 		int counter = 0;
@@ -12915,14 +12902,12 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 				errorStr.Empty(); // for next iteration
 			}
 
-#ifdef __WXMSW__
 			// update the progress bar every 20th iteration
 			if (counter % 1000 == 0) //if (20 * (counter / 20) == counter)
 			{
 				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
 				progDlg.Update(counter,msgDisplayed);
 			}
-#endif
 		}
 		// whm added 27Apr09 to save any changes made by RedoStorage above
 		if (bThisDocChanged)
@@ -12961,7 +12946,11 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
 							_T(""), wxICON_INFORMATION);
 		}
+		
+		// remove the progress indicator window
+		progDlg.Destroy();
 	}
+	
 	if (bAnyDocChanged)
 	{
 	
@@ -19263,7 +19252,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 			nTotal = m_pSourcePhrases->GetCount();
 			wxASSERT(nTotal > 0);
 			nCumulativeTotal += nTotal;
-#ifdef __WXMSW__
 			wxString progMsg = _("%s  - %d of %d Total words and phrases");
 			wxString msgDisplayed = progMsg.Format(
 									progMsg,ourProjectsDocFileName.c_str(),1,nTotal);
@@ -19280,21 +19268,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
                             wxPD_REMAINING_TIME
                             | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                             );
-#else
-            // wxProgressDialog tends to hang on wxGTK so I'll just use the simpler
-            // CWaitDlg notification on wxGTK and wxMAC
-			// put up a Wait dialog - otherwise nothing visible will happen 
-			// until the operation is done
-			CWaitDlg waitDlg(gpApp->GetMainFrame());
-			// indicate we want the reading file wait message
-			waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only 
-										// "Please wait..." in title bar
-			waitDlg.Centre();
-			waitDlg.Show(TRUE);
-			waitDlg.Update();
-			// the wait dialog is automatically destroyed when it 
-			// goes out of scope below.
-#endif
 
 			SPList* pPhrases = m_pSourcePhrases;
 			SPList::Node* pos1;
@@ -19324,7 +19297,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 					pPhrases->DeleteNode(savePos);
 					pDoc->UpdateSequNumbers(0); // update from the start to be safe
 				}
-#ifdef __WXMSW__
 				// update the progress bar every 20th iteration
 				if (counter % 1000 == 0)
 				{
@@ -19332,8 +19304,10 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 									counter,nTotal);
 					progDlg.Update(counter,msgDisplayed);
 				}
-#endif
 			}
+			
+			// remove the progress indicator window
+			progDlg.Destroy();
 
 			bool bSavedOK;
 			bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);

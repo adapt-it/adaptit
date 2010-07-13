@@ -2978,7 +2978,6 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
 	if (bShowWaitDlg)
 	{
-#ifdef __WXMSW__
 		// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
 		// progress dialog here (not done in the MFC version)
 		//wxProgressDialog progDlg(_("Saving File"),
@@ -2995,18 +2994,6 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 						wxPD_REMAINING_TIME
 						| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 						);
-#else
-		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-		// notification on wxGTK and wxMAC
-		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 4;	// 4 "Please wait while Adapt It Saves the File..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 	}
 
 	// process through the list of CSourcePhrase instances, building an xml element from
@@ -3028,14 +3015,12 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		{
 			if (bShowWaitDlg)
 			{
-#ifdef __WXMSW__
 				counter++;
 				if (counter % 1000 == 0) 
 				{
 					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
 					pProgDlg->Update(counter,msgDisplayed);
 				}
-#endif
 			}
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			// get a deep copy, so that we can change the data to what is compatible with
@@ -3074,14 +3059,12 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		{
 			if (bShowWaitDlg)
 			{
-#ifdef __WXMSW__
 				counter++;
 				if (counter % 1000 == 0) 
 				{
 					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
 					pProgDlg->Update(counter,msgDisplayed);
 				}
-#endif
 			}
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			pos = pos->GetNext();
@@ -3129,10 +3112,8 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 												   // used for this save operation
 	if (bShowWaitDlg)
 	{
-#ifdef __WXMSW__
 		progMsg = _("Please wait while Adapt It saves the KB...");
 		pProgDlg->Pulse(progMsg); // more general message during KB save
-#endif
 	}
 
 	// Do the document backup if required (This call supports a docVersion 4 choice, and
@@ -3209,10 +3190,8 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			}
 		}
 	}
-#ifdef __WXMSW__
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
-#endif
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
 	return TRUE;
 }
@@ -4895,7 +4874,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	}
 	int nOldCount = 0;
 
-#ifdef __WXMSW__
 	wxString progMsg = _("Pass 1 - File: %s  - %d of %d Total words and phrases");
 	wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nOldTotal);
     wxProgressDialog progDlg(_("Processing Filtering Change(s)"),
@@ -4911,18 +4889,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                             wxPD_REMAINING_TIME
                             | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                             );
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 
 	// BEW added 29Jul09, turn off CLayout Draw() while strips and piles could get
 	// inconsistent with each other
@@ -5600,7 +5566,6 @@ h:						bool bIsInitial = TRUE;
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 			}
 
-#ifdef __WXMSW_
 			// update progress bar every 20 iterations
 			++nOldCount;
 			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
@@ -5608,7 +5573,6 @@ h:						bool bIsInitial = TRUE;
 				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 				progDlg.Update(nOldCount,msgDisplayed);
 			}
-#endif
 
 			endingMkrsStr.Empty();
 		} // loop end for checking each pSrcPhrase for presence of material to be unfiltered
@@ -5650,10 +5614,8 @@ h:						bool bIsInitial = TRUE;
 		}
 		nOldCount = 0;
 
-#ifdef __WXMSW_
 		progMsg = _("Pass 2 - File: %s  - %d of %d Total words and phrases");
 		msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nOldCount);
-#endif
 
         // the following variables are for tracking how the active sequence number has to
         // be updated after each span of material designated for filtering is filtered out
@@ -5734,7 +5696,6 @@ h:						bool bIsInitial = TRUE;
 			if (pSrcPhrase->m_markers.IsEmpty())
 			{
 
-#ifdef __WXMSW__
 				// the following copied from bottom of loop to here in order to 
 				// remove the goto c; and label
 				++nOldCount;
@@ -5744,7 +5705,6 @@ h:						bool bIsInitial = TRUE;
 						gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 						progDlg.Update(nOldCount,msgDisplayed);
 				}
-#endif
 
 				continue;
 			}
@@ -5766,7 +5726,6 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                 // either wholeMkr is not filterable, or its not in strMarkersToBeFiltered,
                 // or its an endmarker -- if so, just iterate to the next sourcephrase
 
-#ifdef __WXMSW__
 				// the following copied from bottom of loop to here in order to remove the 
 				// goto c; and label
 				++nOldCount;
@@ -5776,7 +5735,6 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 						gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 						progDlg.Update(nOldCount,msgDisplayed);
 				}
-#endif
 
 				continue;
 			}
@@ -6518,7 +6476,6 @@ d:				if (!bAtEnd || bGotEndmarker)
 			}
 			// update progress bar every 20 iterations
 //c:			
-#ifdef __WXMSW__
 			++nOldCount;
 			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
@@ -6526,8 +6483,10 @@ d:				if (!bAtEnd || bGotEndmarker)
 					gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 					progDlg.Update(nOldCount,msgDisplayed);
 			}
-#endif
 		} // end of loop for scanning contents of successive pSrcPhrase instances
+		
+		// remove the progress indicator window
+		progDlg.Destroy();
 
         // prepare for update of view... locate the phrase box approximately where it was,
         // but if that is not a valid location then put it at the end of the doc
@@ -9592,7 +9551,6 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// process to determine each source phrase's many attributes and flags, stores any
 /// filtered information in its m_filteredInfo member.
 /// BEW Feb10, updated for support of doc version 5 (changes were needed)
-/// BEW 9July10, no changes needed for support of kbVersion 2
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
 							   int nTextLength)
@@ -12833,7 +12791,6 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 /// rebuilding the document - as when filtering changes are made, or a change of SFM set
 /// which has the side effect of altering filtering settings as well, or the insertion of a
 /// sourcephrase with an \id in m_markers and a 3-letter book ID code in the m_key member.
-/// BEW 9July10, no changes needed for support of kbVersion 2
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 {
@@ -15998,7 +15955,6 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 		nCumulativeTotal += nTotal;
 
 		// put up a progress indicator
-#ifdef __WXMSW__
 		wxString progMsg = _("%s  - %d of %d Total words and phrases");
 		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
 		wxProgressDialog progDlg(_("Consistency Checking"),
@@ -16016,18 +15972,6 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
                        // but wxPD_SMOOTH is not supported (see wxGauge) on all platforms, so
                        // perhaps this is why Bill didn't get good behaviour on gtk or mac
                         );
-#else
-		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-		// notification on wxGTK and wxMAC
-		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-		CWaitDlg waitDlg(pApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 		SPList* pPhrases = pApp->m_pSourcePhrases;
 		SPList::Node* pos1; 
 		pos1 = pPhrases->GetFirst();
@@ -16184,10 +16128,8 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 				else
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 
-#ifdef __WXMSW__
 				// hide the progress window
 				progDlg.Hide(); 
-#endif
                 // work out if this is an auto-fix item, if so, don't show the dialog, but
                 // use the stored AutoFixRecord to fix the inconsistency without user
                 // intervention (note: any items for which the "Ignore it, I will fix it 
@@ -16327,10 +16269,8 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 					}
 					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
 							// of the box should show the current adaptation, or gloss, string
-#ifdef __WXMSW__
 					// show the progress window again but don't update it here
 					progDlg.Show(TRUE); 
-#endif
 				}
 				else
 				{
@@ -16536,28 +16476,23 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 
 						// show the progress window again
 y:						;
-#ifdef __WXMSW__
 						progDlg.Show(TRUE); // ensure it is visible
-#endif
 					} // end of TRUE block for test of ShowModal() == wxID_OK
 					else
 					{
 						// user cancelled
 						bUserCancelled = TRUE;
-#ifdef __WXMSW__
 						progDlg.Show(TRUE);
 						// to get the progress dialog hidden, simulate having reached the
 						// end of the range -- need the appropriate Update() call
 						int bUpdated = FALSE;
 						msgDisplayed = progMsg.Format(progMsg,newName.c_str(),nTotal,nTotal);
 						bUpdated = progDlg.Update(nTotal,msgDisplayed);
-#endif
 						break;
 					}
 				} // end of else block for test of presence of an 
 				  // AutoFixRecord for this inconsistency
 			}
-#ifdef __WXMSW__
 			// update the progress bar every nth iteration (don't use a constant for n,
 			// instead use the count of CSourcePhrase instances to set a value that will
 			// result in at least a few advances of the progress bar - e.g. 5)
@@ -16582,7 +16517,6 @@ y:						;
 				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),nTotal,nTotal);
 				bUpdated = progDlg.Update(nTotal,msgDisplayed);
 			}
-#endif	
 		}// end of while (pos1 != NULL)
 
 		// save document and KB
@@ -16613,10 +16547,8 @@ y:						;
 			delete pApp->m_pBuffer;
 			pApp->m_pBuffer = NULL;
 		}
-#ifdef __WXMSW__
 		// remove the progress indicator window
 		progDlg.Destroy();
-#endif
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
