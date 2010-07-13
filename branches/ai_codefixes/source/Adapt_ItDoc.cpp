@@ -2988,11 +2988,11 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 						//wxPD_CAN_ABORT |
 						//wxPD_CAN_SKIP |
 						wxPD_APP_MODAL |
-						// wxPD_AUTO_HIDE | -- try this as well
-						wxPD_ELAPSED_TIME |
-						wxPD_ESTIMATED_TIME |
-						wxPD_REMAINING_TIME
-						| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+						wxPD_AUTO_HIDE //| -- try this as well
+						//wxPD_ELAPSED_TIME |
+						//wxPD_ESTIMATED_TIME |
+						//wxPD_REMAINING_TIME
+						//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 						);
 	}
 
@@ -4883,11 +4883,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                             //wxPD_CAN_ABORT |
                             //wxPD_CAN_SKIP |
                             wxPD_APP_MODAL |
-                            // wxPD_AUTO_HIDE | -- try this as well
-                            wxPD_ELAPSED_TIME |
-                            wxPD_ESTIMATED_TIME |
-                            wxPD_REMAINING_TIME
-                            | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                            wxPD_AUTO_HIDE //| -- try this as well
+                            //wxPD_ELAPSED_TIME |
+                            //wxPD_ESTIMATED_TIME |
+                            //wxPD_REMAINING_TIME
+                            //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                             );
 
 	// BEW added 29Jul09, turn off CLayout Draw() while strips and piles could get

@@ -12876,11 +12876,11 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 								//wxPD_CAN_ABORT |
 								//wxPD_CAN_SKIP |
 								wxPD_APP_MODAL |
-								// wxPD_AUTO_HIDE | -- try this as well
-								wxPD_ELAPSED_TIME |
-								wxPD_ESTIMATED_TIME |
-								wxPD_REMAINING_TIME
-								| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+								wxPD_AUTO_HIDE //| -- try this as well
+								//wxPD_ELAPSED_TIME |
+								//wxPD_ESTIMATED_TIME |
+								//wxPD_REMAINING_TIME
+								//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 								);
 		SPList* pPhrases = m_pSourcePhrases;
 		SPList::Node* pos1 = pPhrases->GetFirst();
@@ -19262,11 +19262,11 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
                             //wxPD_CAN_ABORT |
                             //wxPD_CAN_SKIP |
                             wxPD_APP_MODAL |
-                            // wxPD_AUTO_HIDE | -- try this as well
-                            wxPD_ELAPSED_TIME |
-                            wxPD_ESTIMATED_TIME |
-                            wxPD_REMAINING_TIME
-                            | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                            wxPD_AUTO_HIDE //| -- try this as well
+                            //wxPD_ELAPSED_TIME |
+                            //wxPD_ESTIMATED_TIME |
+                            //wxPD_REMAINING_TIME
+                            //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                             );
 
 			SPList* pPhrases = m_pSourcePhrases;

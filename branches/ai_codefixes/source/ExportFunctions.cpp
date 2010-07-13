@@ -3246,11 +3246,11 @@ void DoExportInterlinearRTF()
                     //wxPD_CAN_ABORT |
                     //wxPD_CAN_SKIP |
                     wxPD_APP_MODAL |
-                    // wxPD_AUTO_HIDE | -- try this as well
-                    wxPD_ELAPSED_TIME |
-                    wxPD_ESTIMATED_TIME |
-                    wxPD_REMAINING_TIME
-                    | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                    wxPD_AUTO_HIDE //| -- try this as well
+                    //wxPD_ELAPSED_TIME |
+                    //wxPD_ESTIMATED_TIME |
+                    //wxPD_REMAINING_TIME
+                    //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                     );
 
 	// START of MAIN LOOP SCANNING THROUGH ALL SOURCE PHRASES
@@ -6770,11 +6770,11 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
                     //wxPD_CAN_ABORT |
                     //wxPD_CAN_SKIP |
                     wxPD_APP_MODAL |
-                    // wxPD_AUTO_HIDE | -- try this as well
-                    wxPD_ELAPSED_TIME |
-                    wxPD_ESTIMATED_TIME |
-                    wxPD_REMAINING_TIME
-                    | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                    wxPD_AUTO_HIDE //| -- try this as well
+                    //wxPD_ELAPSED_TIME |
+                    //wxPD_ESTIMATED_TIME |
+                    //wxPD_REMAINING_TIME
+                    //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                     );
 
 	// Scan through Buffer

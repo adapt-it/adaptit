@@ -1606,11 +1606,11 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 							//wxPD_CAN_ABORT |
 							//wxPD_CAN_SKIP |
 							wxPD_APP_MODAL |
-							// wxPD_AUTO_HIDE | -- try this as well
-							wxPD_ELAPSED_TIME |
-							wxPD_ESTIMATED_TIME |
-							wxPD_REMAINING_TIME
-							| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+							wxPD_AUTO_HIDE //| -- try this as well
+							//wxPD_ELAPSED_TIME |
+							//wxPD_ESTIMATED_TIME |
+							//wxPD_REMAINING_TIME
+							//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 							);
 
 	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
