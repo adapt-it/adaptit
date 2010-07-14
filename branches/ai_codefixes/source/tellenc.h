@@ -1,0 +1,1 @@
+const char* tellenc2(const unsigned char* const buffer, const size_t len);
