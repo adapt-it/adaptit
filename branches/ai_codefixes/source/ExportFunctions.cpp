@@ -6757,9 +6757,10 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	}
 
 	// Put up a progress dialog
-	int nTotal,beginInt,counter;
-	beginInt = (int)ptr;
-	nTotal = (int)pEnd - (int)ptr;
+	int nTotal,counter;
+	wxChar* beginPtr;
+	beginPtr = ptr;
+	nTotal = pEnd - ptr;
 	counter = 0;
 	wxString progMsg = _("%s  - %d of %d Total Steps");
 	wxString msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),0,nTotal);
@@ -6784,8 +6785,8 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		if (counter % 500 == 0)	// the counter moves character by character through the buffer
 									// so pick a large number for updating the progress dialog
 		{
-			msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),(int)ptr - beginInt,nTotal);
-			progDlg.Update((int)ptr - beginInt,msgDisplayed);
+			msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),ptr - beginPtr,nTotal);
+			progDlg.Update(ptr - beginPtr,msgDisplayed);
 		}
 
 		bHitMarker = FALSE;
