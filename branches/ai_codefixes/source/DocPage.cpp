@@ -1001,7 +1001,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			// initialize m_nActiveSequNum to the nLastActiveSequNum value
 			pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
 			// set the active pile
-			CPile* pPile = pView->GetPile(pApp->nLastActiveSequNum);
+			CPile* pPile;
+			pPile = pView->GetPile(pApp->nLastActiveSequNum);
 			wxASSERT(pPile != NULL);
 
             // this could turn out to be a retranslation pile (if user removed a

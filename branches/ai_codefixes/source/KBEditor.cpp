@@ -1087,7 +1087,8 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	CRefString* pOldRefStr = NULL; // temporary store of CRefString ptr being moved
 
 	// change the order of the string in the list box
-	int count = m_pListBoxExistingTranslations->GetCount();
+	int count;
+	count = m_pListBoxExistingTranslations->GetCount();
 	wxASSERT(nSel < count);
 	if (nSel > 0)
 	{
@@ -1941,7 +1942,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// non-deleted instances, so use CKB::CountNonDeletedRefStringInstances(CTargetUnit*)
 	if (pCurTgtUnit != NULL)
 	{
-		int countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
+		int countNonDeleted;
+		countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
 		int nMatchedRefString = -1; // whm added 24Jan09

@@ -274,7 +274,8 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	// CRefString instances, and so we can't rely on the list box index for the selection
 	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
 	// we have to find by searching, and we have to skip over any removed ones, etc
-	int count = m_pMyListBox->GetCount(); // how many there are that are visible
+	int count;
+	count = m_pMyListBox->GetCount(); // how many there are that are visible
 	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
 	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);

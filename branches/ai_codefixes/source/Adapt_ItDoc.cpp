@@ -1163,7 +1163,8 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
 						// restore the document file using the backup renamed
 						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
 						wxASSERT(bRemovedSuccessfully);
-						bool bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
+						bool bRenamedSuccessfully;
+						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
 						wxASSERT(bRenamedSuccessfully);
 					}
 				}
@@ -1346,7 +1347,8 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 						// restore the document file using the backup renamed
 						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
 						wxASSERT(bRemovedSuccessfully);
-						bool bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
+						bool bRenamedSuccessfully;
+						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
 						wxASSERT(bRenamedSuccessfully);
 					}
 				}
