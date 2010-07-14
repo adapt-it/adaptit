@@ -7775,6 +7775,14 @@ int ii = 1;
 // test GetWho() in helpers.cpp
 //wxString str = GetWho();
 
+// test IsLoadableFile() in helpers.cpp
+//wxString aPath = _T("C:\\Card1\\biggie.xml");
+//wxString aPath = _T("C:\\Card1\\binaryfile");
+//wxString aPath = _T("C:\\Card1\\Heztext");
+wxString aPath = _T("C:\\Card1\\Hezdocxml");
+bool bIsLoadable = IsLoadableFile(aPath);
+bIsLoadable = bIsLoadable;
+
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
 	if (m_pMainFrame->canvas->IsDoubleBuffered())

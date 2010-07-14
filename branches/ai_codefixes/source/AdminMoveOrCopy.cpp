@@ -86,11 +86,12 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_RENAME, AdminMoveOrCopy::OnBnClickedRename)
 	EVT_BUTTON(ID_BUTTON_COPY, AdminMoveOrCopy::OnBnClickedCopy)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
+	EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
 
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Move or Copy Folders Or Files"),
+	: AIModalDialog(parent, -1, _("Move Or Copy Folders Or Files"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	pSrcList = NULL;
@@ -1928,3 +1929,10 @@ _("You first need to select at least one item in the left list before clicking t
 	SetupDestList(m_strDestFolderPath);
 	SetupSrcList(m_strSrcFolderPath);
 }
+
+// BEW added 13July10
+void AdminMoveOrCopy::OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event))
+{
+	
+}
+

@@ -184,4 +184,7 @@ wxString GetDateTimeNow();
 // possibilities
 wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
 
+//size_t GetFileSize_t(wxString& absPathToFile);
+bool IsLoadableFile(wxString& absPathToFile);
+
 #endif	// helpers_h

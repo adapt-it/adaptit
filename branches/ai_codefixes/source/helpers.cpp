@@ -48,6 +48,7 @@
 #include "KB.h"
 #include "KBEditor.h"
 #include "RefString.h"
+#include "tellenc.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -2903,6 +2904,154 @@ wxString SetWho(bool bOriginatedFromTheWeb)
 		whoStr = whoStr.Format(_T("%s:%s"),strUserID.c_str(),strMachineID.c_str()).c_str();
 		return whoStr;
 	}
+}
+
+/* don't need this, it's legal to use wxFile::Length() and assign result to size_t
+size_t GetFileSize_t(wxString& absPathToFile)
+{
+	size_t len = 0;
+	wxFile f;
+	bool bOpened = f.Open(absPathToFile,wxFile::read);
+	if (!bOpened)
+	{
+		return len;
+	}
+	wxFileOffset start = 0;
+	wxFileOffset end = 0;
+	end = f.SeekEnd();
+	// if non-Windows compilers complain about assigning the difference between two
+	// wxFileOffset values (these are type wxLongLong_t) to a size_t, then comment out the
+	// len = end - start; line, and uncomment out the following loop
+	//wxFileOffset index;
+	//for (index = start; index < end; index++)
+	//{
+	//	len++;
+	//}
+	len = end - start; // this will work fine for all filesizes AI will encounter
+	f.Close();
+	return len;
+}
+*/
+// test that the file is suitable for creating an Adapt It adaptation document (we'll
+// believe that any extensions are reliable indicators of the file contents, for those
+// without extensions we'll use the tellenc.cpp function tellenc2()
+// (some tests of it are at Adapt_It.cpp about line 7783, using files in C:\Card1 folder)
+bool IsLoadableFile(wxString& absPathToFile)
+{
+	wxArrayString illegalExtensions;
+	wxString extn = _T("doc");
+	illegalExtensions.Add(extn);
+	extn = _T("docx");
+	illegalExtensions.Add(extn);
+	extn = _T("odt");
+	illegalExtensions.Add(extn);
+	extn = _T("html");
+	illegalExtensions.Add(extn);
+	extn = _T("htm");
+	illegalExtensions.Add(extn);
+	extn = _T("xml");
+	illegalExtensions.Add(extn);
+	extn = _T("KB"); // the old legacy Adapt It's binary knowledge base file extension
+	illegalExtensions.Add(extn);
+	extn = _T("adt"); // the old legacy Adapt It's binary doc extension
+	illegalExtensions.Add(extn);
+
+	wxArrayString legalExtensions;
+	extn = _T("txt");
+	legalExtensions.Add(extn);
+	extn = _T("sfm");
+	legalExtensions.Add(extn);
+
+	wxFileName fn(absPathToFile);
+	wxString fullName = fn.GetFullName(); // file title & extension
+	wxString extension = fn.GetExt(); // gets extension without preceding .
+	fullName = fullName.Lower();
+	extension = extension.Lower();
+
+	// handle the know legals first
+	int index;
+	int max = legalExtensions.GetCount();
+	bool bIsLegal = FALSE;
+	for (index = 0; index < max; index++)
+	{
+		// if one of the legal extensions matches, then declare it legal
+		if (extension == legalExtensions.Item(index))
+		{
+			bIsLegal = TRUE;
+		}
+	}
+	if (bIsLegal) return TRUE;
+
+	// if not one of the legals, check for illegals
+	bool bIsIllegal = FALSE;
+	max = illegalExtensions.GetCount();
+	for (index = 0; index < max; index++)
+	{
+		// if one of the illegal extensions matches, then declare it illegal
+		if (extension == illegalExtensions.Item(index))
+		{
+			bIsIllegal = TRUE;
+		}
+	}
+	if (bIsIllegal) return FALSE;
+
+	// if not one of our known illegals, have a look inside the file
+	// (use CBString, which is for single-byte strings, and suits use of tellenc.cpp)
+	wxFile f;
+	bool bOpened = f.Open(absPathToFile,wxFile::read);
+	if (!bOpened)
+	{
+		// don't expect this error, so use English message
+		wxMessageBox(_T("IsLoadableFile() could not open file. File will be treated as non-loadable."),
+			_T("Error"),wxICON_WARNING);
+		return FALSE;
+	}
+	//size_t len = GetFileSize_t(absPathToFile); // not needed
+	size_t len = f.Length(); // it's legal to assign to size_t
+	wxMemoryBuffer* pBuffer = new wxMemoryBuffer(len + 2);
+	// ensure the last two bytes are nulls, and create acceptable pointers for calls below
+	char* ptr = (char*)pBuffer->GetData();
+	const unsigned char* const saved_ptr = (const unsigned char* const)ptr;
+	*(ptr + len) = '\0';
+	*(ptr + len + 1) = '\0';
+	// get the file opened and read it into a memory buffer
+	size_t numRead = f.Read(ptr,len);
+	if (numRead < len)
+	{
+		// don't expect this error, so use English message
+		wxMessageBox(_T("IsLoadableFile() read in less then all of the file. File will be treated as non-loadable."),
+			_T("Error"),wxICON_WARNING);
+		delete pBuffer;
+		f.Close();
+		return FALSE;
+	}
+	// now find out what the file's data is
+	CBString resultStr;
+	resultStr.Empty();
+	resultStr = tellenc2(saved_ptr, len); // xml files are returned as "binary" too
+										  // so hopefull html files without an extension
+										  // will likewise be "binary" & so be rejected
+	f.Close();
+	// check it's not xml
+	bool bIsXML = FALSE;
+	char cstr[6] = {'\0','\0','\0','\0','\0','\0'};
+	cstr[0] = *(ptr + 0);
+	cstr[1] = *(ptr + 1);
+	cstr[2] = *(ptr + 2);
+	cstr[3] = *(ptr + 3);
+	cstr[4] = *(ptr + 4);
+	CBString aStr = cstr;
+	if (aStr == "<?xml")
+	{
+		bIsXML = TRUE;
+	}
+	delete pBuffer;
+
+	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 
 

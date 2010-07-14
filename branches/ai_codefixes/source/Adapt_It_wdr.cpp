@@ -6730,7 +6730,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG, _("Warning: innappropriate use of this dialog may cause loss of data. The item, or items, being moved or copied may be file or folders or both. Moving or copying a folder moves or copies all its contents. The direction of the move or copy is always from the left list to the right list.  For moving or copying, first select the items you  want in the list on the left. Selections in the right hand list allow you to delete or rename what you select. Double-clicking a folder in the list open that folder and the list is updated to show the folder's contents. To reopen the parent folder click the green 'Up Arrow' button.  If there is a danger of overwriting a file, a dialog will open and allow you to choose to overwrite, not move or copy, or to have the file renamed and then moved or copied. Beware: deletions are unrecoverable. Be safe: first make a backup somewhere if you are unsure whether a file contains important data or not. Click Close when finished."), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG, _("Warning: innappropriate use of this dialog may cause loss of data. The items being moved or copied may be files or folders or both. Moving or copying a folder moves or copies all its contents. The direction of the move or copy is always from the left list to the right list.  For moving or copying, first select the items you want in the left list. Selections in the right hand list allow you to delete or rename what you select. Double-clicking a folder in the list opens that folder and its contents are listed. To reopen the parent folder click the green 'Up Arrow' button.  If there is a danger of overwriting a file, a dialog will open and allow you to choose to overwrite, not move or copy, or to have the file renamed and then moved or copied. Beware: deletions are unrecoverable; so be safe - first make a backup somewhere if you are unsure whether a file contains important data or not.  The Source Data Folder button shows the Source Data folder's contents in the right hand list, creating the folder first if it does not already exist. (If the Source Data folder exists and has at least one file in it, the application automatically configures itself to protect the user from folder navigation - so adaptation documents can then only be created from the files listed in the Source Data folder.)"), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxNO_BORDER | wxGROW );
     item2->Add( item3, 1, wxGROW|wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6741,7 +6741,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item7 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the source folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item7 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the start folder"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );
 
     item6->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -6753,7 +6753,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to source folder (selections here can be copied or moved):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to the start folder (selections here can be copied or moved):"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
@@ -6767,7 +6767,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the source folder:") );
+    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the start folder:") );
     wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxHORIZONTAL );
 
     wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
@@ -6790,7 +6790,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the destination folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the finish folder"), wxDefaultPosition, wxDefaultSize, 0 );
     item20->Add( item21, 0, wxALIGN_CENTER, 5 );
 
     item20->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -6802,7 +6802,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to destination folder (selections here can be deleted or renamed):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to the finish folder (selections here can be deleted or renamed):"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item19->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
@@ -6816,7 +6816,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the destination folder:") );
+    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the finish folder:") );
     wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxHORIZONTAL );
 
     wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
@@ -6835,26 +6835,31 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item34 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item35 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item36 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetDefault();
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item31->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item37 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetDefault();
+    item31->Add( item37, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
 

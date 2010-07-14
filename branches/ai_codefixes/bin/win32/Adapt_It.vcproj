@@ -1124,6 +1124,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\tellenc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.h"
 				>
 			</File>

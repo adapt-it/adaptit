@@ -115,6 +115,7 @@ protected:
 	void OnBnClickedDelete(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedCopy(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedMove(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event));
 
 	void EnableCopyButton(bool bEnableFlag);
 	void EnableMoveButton(bool bEnableFlag);
