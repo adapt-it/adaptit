@@ -4869,7 +4869,7 @@ wxSizer *CCTableEditDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_CCT, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_CCT, wxT(""), wxDefaultPosition, wxSize(640,420), wxTE_MULTILINE );
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 10, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -6835,12 +6835,12 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item34 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
@@ -6850,16 +6850,21 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxButton *item35 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxSize(50,-1), 0 );
     item31->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item37 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->SetDefault();
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item37, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item31->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetDefault();
+    item31->Add( item38, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
 
@@ -7237,6 +7242,44 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item1->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_MSG, _("A maximum of 200 lines are shown. The text is read-only, any changes you type will not be accepted. Font, encoding and direction use the source text settings."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( 20, 2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
+    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( 20, 2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item5 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetDefault();
+    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

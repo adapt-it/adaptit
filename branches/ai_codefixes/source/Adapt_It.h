@@ -2036,10 +2036,18 @@ public:
                 // source text file was taken; used for config file read and write
 
 	wxString	m_setupFolder;			// whm renamed m_setupFolder to this 
-				// and moved to App class 31July06
+										// and moved to App class 31July06
 	wxString	m_executingAppPathName;	// whm added to get the path and file 
-				// name of executing app
-	
+										// name of executing app
+	// BEW 14July10, added next two to support Admin menu's Source Data button in the Move
+	// Or Copy Folders Or Files dialog (part of the system for hiding folder navigation
+	// from the user), along with the m_sourceDataFolderPath variable which follows
+	wxString	m_sourceDataFolderName; // in OnInit() we set to "Source Data"
+	wxString	m_sourceDataFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where the latter
+										// gets defined (but the folder is not created until
+										// the administrator requests it)
+
     /// m_appInstallPathOnly stores the path (only the path, not path and name) where the
     /// executable application file is installed on the given platform.
     /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 

@@ -5122,6 +5122,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_adaptionsFolder = _("Adaptations");
 	m_lastSourceFileFolder = m_workFolderPath; // don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
+	m_sourceDataFolderPath = _T(""); 
 	m_curAdaptionsPath = _T("");
 	m_curKBName = _T("");
 	m_curKBPath = _T("");
@@ -7783,6 +7784,15 @@ wxString aPath = _T("C:\\Card1\\Hezdocxml");
 bool bIsLoadable = IsLoadableFile(aPath);
 bIsLoadable = bIsLoadable;
 
+m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been created,
+		// has at least one file in it, then the app auto-configures to not show the user
+		// the standard file input dialog when File / New... is clicked, or <New Document>
+		// clicked in the wizard, instead a monocline list of acceptable (ie. loadable)
+		// files (all from the Source Data folder) are shown in a ListBox, and no folder
+		// navigation is possible. Turning on this support can only be done by the
+		// administrator from two of the Administrator menu's commands; this folder is
+		// always a child of the currently open project folder
+
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
 	if (m_pMainFrame->canvas->IsDoubleBuffered())
@@ -7853,6 +7863,7 @@ bIsLoadable = bIsLoadable;
 		wxString fullPath;
 		m_curProjectName = m_autoexport_projectname;
 		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
+		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
 		GetDocument()->OnOpenDocument(fullPath);
@@ -9060,6 +9071,7 @@ bool CAdapt_ItApp::SetupDirectories()
 		m_curProjectName = workFolder;
 		wxASSERT(!m_curProjectName.IsEmpty());
 		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
+		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 
 		// check to see if this folder already exists
 		bool bLangWorkFolderExists = FALSE;
@@ -9377,6 +9389,7 @@ bool CAdapt_ItApp::SetupDirectories()
 		m_curProjectName = workFolder;
 		wxASSERT(!m_curProjectName.IsEmpty());
 		m_curProjectPath = m_customWorkFolderPath + PathSeparator + m_curProjectName;
+		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 
 		// check to see if this folder already exists
 		bool bLangWorkFolderExists = FALSE;
@@ -14369,6 +14382,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szCurLanguagesPath)
 		{
 			m_curProjectPath = strValue;
+			m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 		}
 		else if (name == szCurAdaptionsPath)
 		{

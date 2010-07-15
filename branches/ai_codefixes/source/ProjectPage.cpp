@@ -492,6 +492,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator 
 										 + pApp->m_curProjectName;
 			}
+			pApp->m_sourceDataFolderPath = pApp->m_curProjectPath + pApp->PathSeparator + 
+											pApp->m_sourceDataFolderName; 
 
             // make sure the path to the Adaptations folder is correct (if omitted, it
             // would use the basic config file's "DocumentsFolderPath" line - which could

@@ -186,5 +186,6 @@ wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
 
 //size_t GetFileSize_t(wxString& absPathToFile);
 bool IsLoadableFile(wxString& absPathToFile);
+bool PopulateTextCtrlByLines(wxTextCtrl* pText, wxString* pPath, int numLines = -1);
 
 #endif	// helpers_h

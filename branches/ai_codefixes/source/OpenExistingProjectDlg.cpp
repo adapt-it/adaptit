@@ -203,6 +203,7 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 	{
 		gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
 	}
+	gpApp->m_sourceDataFolderPath = gpApp->m_curProjectPath + gpApp->PathSeparator + gpApp->m_sourceDataFolderName; 
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath);
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -268,6 +269,7 @@ void COpenExistingProjectDlg::OnDblclkListboxAdaptions(wxCommandEvent& WXUNUSED(
 	{
 		gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
 	}
+	gpApp->m_sourceDataFolderPath = gpApp->m_curProjectPath + gpApp->PathSeparator + gpApp->m_sourceDataFolderName; 
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath);
 	wxCommandEvent okevent = wxID_OK;
 	OnOK(okevent); //EndModal(wxID_OK);//EndDialog(IDOK);

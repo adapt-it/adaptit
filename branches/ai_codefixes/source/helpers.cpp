@@ -31,6 +31,7 @@
 #include <wx/tokenzr.h>
 #include <wx/colour.h>
 #include <wx/dir.h>
+#include <wx/textfile.h>
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -2943,11 +2944,15 @@ bool IsLoadableFile(wxString& absPathToFile)
 	illegalExtensions.Add(extn);
 	extn = _T("docx");
 	illegalExtensions.Add(extn);
+	extn = _T("rtf");
+	illegalExtensions.Add(extn);
 	extn = _T("odt");
 	illegalExtensions.Add(extn);
 	extn = _T("html");
 	illegalExtensions.Add(extn);
 	extn = _T("htm");
+	illegalExtensions.Add(extn);
+	extn = _T("aic");
 	illegalExtensions.Add(extn);
 	extn = _T("xml");
 	illegalExtensions.Add(extn);
@@ -2955,11 +2960,15 @@ bool IsLoadableFile(wxString& absPathToFile)
 	illegalExtensions.Add(extn);
 	extn = _T("adt"); // the old legacy Adapt It's binary doc extension
 	illegalExtensions.Add(extn);
+	extn = _T("aip"); // Adapt It's packed document extension
+	illegalExtensions.Add(extn);
 
 	wxArrayString legalExtensions;
 	extn = _T("txt");
 	legalExtensions.Add(extn);
 	extn = _T("sfm");
+	legalExtensions.Add(extn);
+	extn = _T("ptx");
 	legalExtensions.Add(extn);
 
 	wxFileName fn(absPathToFile);
@@ -2968,7 +2977,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	fullName = fullName.Lower();
 	extension = extension.Lower();
 
-	// handle the know legals first
+	// check the known legals first
 	int index;
 	int max = legalExtensions.GetCount();
 	bool bIsLegal = FALSE;
@@ -3053,6 +3062,51 @@ bool IsLoadableFile(wxString& absPathToFile)
 	}
 	return TRUE;
 }
+
+// returns TRUE if it succeeds, else FALSE, pText is a multiline text control (best if it
+// has horiz and vert scroll bars enabled), pPath is a pointer to the absolute path to the
+// file, numLines is how many of the first lines of the file are to be put into the control
+// - for all of them, use -1; if a file has fewer lines than the numLines value passed in,
+// all of its lines will be shown; the function uses the wxTextFile class to do the grunt
+// work
+bool PopulateTextCtrlByLines(wxTextCtrl* pText, wxString* pPath, int numLines)
+{
+	wxASSERT(pText);
+	wxASSERT(!pPath->IsEmpty());
+	pText->Clear();
+	wxString path = *pPath;
+	size_t lineCount = 0;
+	wxTextFile f;
+	bool bOpened = f.Open(path); // Unicode build assumes file data is valid UTF-8
+	if (bOpened)
+	{
+		lineCount = f.GetLineCount();
+		if (numLines == -1)
+		{
+			numLines = lineCount;
+		}
+		else
+		{
+			if ((size_t)numLines > lineCount)
+			{
+				numLines = lineCount;
+			}
+		}
+		wxString eolStr = f.GetEOL(); // whatever is native for current platform
+		size_t index;
+		wxString str;
+		for (index = 0; index < (size_t)numLines; index++)
+		{
+			str = f.GetLine(index);
+			pText->AppendText(str);
+			pText->AppendText(eolStr);
+		}
+		pText->SetSelection(0,0); // don't want anything selected
+
+	}
+	return bOpened;
+}
+
 
 
 //*************************************

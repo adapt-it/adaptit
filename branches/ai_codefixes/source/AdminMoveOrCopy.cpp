@@ -50,6 +50,7 @@
 						  // the relevant wxBitmap*
 #include "FilenameConflictDlg.h"
 #include "AdminMoveOrCopy.h"
+#include "PeekAtFile.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -87,6 +88,8 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_COPY, AdminMoveOrCopy::OnBnClickedCopy)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
 	EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
+	EVT_BUTTON(ID_BUTTON_PEEK, AdminMoveOrCopy::OnBnClickedPeek)
+	
 
 END_EVENT_TABLE()
 
@@ -830,11 +833,12 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 
 void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 {
-	// we repopulate the srcSelectionArray each time with the set of selected items 
+    // we repopulate the destSelectedFoldersArray and the destSelectedFilesArray each time
+    // with the set of selected items
 	//wxLogDebug(_T("OnDestListSelectItem"));
 	event.Skip();
-	SetupSelectionArrays(destinationSide); // update destSelectionArray 
-										  // with current selections
+	SetupSelectionArrays(destinationSide); // update destSelectedFoldersArray and
+										  // destSelectedFilesArray with current selections
 }
 
 void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
@@ -853,11 +857,12 @@ void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 
 void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
 {
-	// we repopulate the srcSelectionArray each time with the set of selected items 
+    // we repopulate the srcSelectedFoldersArray and the srcSelectedFilesArray each time
+    // with the set of selected items 
 	//wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
 	event.Skip();
-	SetupSelectionArrays(sourceSide); // update srcSelectionArray 
-									 // with current selections
+	SetupSelectionArrays(sourceSide); // update srcSelectedFoldersArray and
+									 // srcSelectedFilesArray with current selections
 }
 
 void AdminMoveOrCopy::OnSrcListDoubleclick(wxListEvent& event)
@@ -1930,9 +1935,82 @@ _("You first need to select at least one item in the left list before clicking t
 	SetupSrcList(m_strSrcFolderPath);
 }
 
+// BEW added 14July10
+void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
+{
+	if (destFilesCount > 0)
+	{
+		int count = destSelectedFilesArray.GetCount();
+		if (count == 0)
+		{
+			// nothing to Peek at, tell the user what to do
+			wxString str = _(
+"The Peek... button will show you up to the first 100 lines of a file selected in the right hand list.\nBut first, click on a file to select it, then click the Peek... button.");
+			wxMessageBox(str,_("Peek needs a selection"), wxICON_INFORMATION);
+			return;
+		}
+		else
+		{
+			// we've at least one file we can Peek at -- get the first in the array
+			wxString filename = destSelectedFilesArray.Item(0);
+			wxASSERT(!filename.IsEmpty());
+			// make the path
+			wxString path = m_strDestFolderPath + gpApp->PathSeparator + filename;
+
+			// set up the dialog
+			CPeekAtFileDlg peeker(this); // AdminMoveOrCopy is the parent dialog for it
+										 // and also its friend
+			peeker.m_filePath = path; // transfer the path to the file to be peeked at
+			wxASSERT(!peeker.m_filePath.IsEmpty());
+
+			if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
+			{
+			}
+		}
+	}
+	else
+	{
+		wxBell();
+	}
+}
+
 // BEW added 13July10
 void AdminMoveOrCopy::OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event))
 {
-	
+	if (gpApp->m_sourceDataFolderPath.IsEmpty())
+	{
+		// don't expect this to be empty, an English message will do
+		wxBell();
+		wxMessageBox(_T("m_sourceDataFolderPath is still empty, button will be ignored"),
+			_T("Error"), wxICON_WARNING);
+		return;
+	}
+	//CMainFrame* pFrame = gpApp->GetMainFrame();
+
+    // first, we must check if the "Source Data" folder actually exists yet - it can be
+    // created only by this handler's first invocation, or by the Administrator menu
+	// command "Populate Source Data Folder" on its first invocation. (No provision is
+	// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
+    // input dialog functionality. Someone or the administrator can do that in a file
+    // browser, by renaming, moving or deleting the Source Data folder.
+    bool bDirExists = TRUE;
+	if (!::wxDirExists(gpApp->m_sourceDataFolderPath) && 
+		!::wxDirExists(gpApp->m_sourceDataFolderPath))
+	{
+		// there is no such file or folder, so create the folder
+		bDirExists = ::wxMkdir(gpApp->m_sourceDataFolderPath,0777);
+	}
+	wxASSERT(bDirExists);
+
+	m_strDestFolderPath_OLD = m_strDestFolderPath; // save current path in case of error
+	m_strDestFolderPath = gpApp->m_sourceDataFolderPath;
+	if (m_strDestFolderPath.IsEmpty())
+	{
+		// restore the old path
+		m_strDestFolderPath = m_strDestFolderPath_OLD;
+	}
+	SetupDestList(m_strDestFolderPath);
+	EnableRenameButton(FALSE);
+	EnableDeleteButton(FALSE);
 }
 

@@ -40,6 +40,8 @@ enum CopyAction {
 /// folders or both. It is derived from AIModalDialog.
 class AdminMoveOrCopy : public AIModalDialog
 {
+	friend class AdminMoveOrCopy;
+
 public:
 	AdminMoveOrCopy(wxWindow* parent); // constructor
 	virtual ~AdminMoveOrCopy(void); // destructor
@@ -116,6 +118,7 @@ protected:
 	void OnBnClickedCopy(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedMove(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedPeek(wxCommandEvent& WXUNUSED(event));
 
 	void EnableCopyButton(bool bEnableFlag);
 	void EnableMoveButton(bool bEnableFlag);

@@ -643,6 +643,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\PeekAtFile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\PhraseBox.cpp"
 				>
 			</File>
@@ -1029,6 +1033,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\OutputFilenameDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\PeekAtFile.h"
 				>
 			</File>
 			<File
