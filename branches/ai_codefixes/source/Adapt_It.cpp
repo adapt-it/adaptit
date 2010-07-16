@@ -7780,9 +7780,9 @@ int ii = 1;
 //wxString aPath = _T("C:\\Card1\\biggie.xml");
 //wxString aPath = _T("C:\\Card1\\binaryfile");
 //wxString aPath = _T("C:\\Card1\\Heztext");
-wxString aPath = _T("C:\\Card1\\Hezdocxml");
-bool bIsLoadable = IsLoadableFile(aPath);
-bIsLoadable = bIsLoadable;
+//wxString aPath = _T("C:\\Card1\\Hezdocxml");
+//bool bIsLoadable = IsLoadableFile(aPath);
+//bIsLoadable = bIsLoadable;
 
 m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been created,
 		// has at least one file in it, then the app auto-configures to not show the user

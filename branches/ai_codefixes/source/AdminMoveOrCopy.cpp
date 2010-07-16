@@ -1531,13 +1531,24 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
+{
+	wxString msg;
+	msg = msg.Format(_(
+"One or more files selected for copying to the Source Data folder were not copied.\nThey were: %s"),
+	strAllInvalids);
+	wxMessageBox(msg.c_str(), _("Files not suitable for loading into adaptation documents"),
+	wxICON_WARNING);
+}
 
 // the MoveOrCopyFilesAndFolders() function is used in both the Move and the Copy button handlers
 // for file moves of file copying. Moving is done by copying, and then removing the original
 // source files which were copied. Copying does not do the removal step.
+// BEW 15July10, added bool bToSourceDataFolder (default FALSE), because we want to do file validity
+// checking if we are moving or copying to the Source Data folder, and reject any invalid ones
 void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
 				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
-				bool bDoMove)
+				bool bToSourceDataFolder, bool bDoMove)
 {
 	// copy the files first, then recurse for copying the one or more folders, if any
 	size_t limitSelectedFiles = pSrcSelectedFilesArray->GetCount();
@@ -1546,6 +1557,23 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 	size_t nItemIndex = 0;
 	bool bCopyWasSuccessful = TRUE;
 	arrCopiedOK.Clear();
+
+	// when the destination folder is Source Data, do not permit any Move request - we
+	// want to ensure some other app's data only gets copied, not moved
+	if (bDoMove && bToSourceDataFolder)
+	{
+		wxMessageBox(_(
+"Moving files to the Source Data folder is not permitted. You are allowed to copy them to that folder, so use the Copy button instead."),
+		_("Only copy files to Source Data folder"), wxICON_INFORMATION);
+		return;
+	}
+
+	// prepare for the possibility that we are copying to the Source Data folder (when
+	// doing that, this function is not re-entrant)
+	bool bInvalidFiles = FALSE;
+	//wxArrayString invalidFilesArray; // array of their filenames including any extensions
+	//invalidFilesArray.Clear();
+	wxString strAllInvalids;
 
 	// the passed in source folder may have no files in it - check, and only do this block
 	// if there is at least one file to be copied
@@ -1557,6 +1585,38 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 		wxASSERT(!aFilename.IsEmpty());
 		// loop across all files that were selected
 		do {
+            // BEW 15July10, add test for file contents validity (ie. loadable for creating
+            // a document) if the Source Data folder is the destination; construct a string
+            // listing the invalid ones in sequence, set the bInvalidFiles boolean, and
+            // after this do loop ends, check the boolean and inform the user of which ones
+            // were invalid and so did not get copied
+			if (bToSourceDataFolder)
+			{
+				wxString aPath = srcFolderPath + gpApp->PathSeparator + aFilename;
+				if (!IsLoadableFile(aPath))
+				{
+					// can't create an adaptation doc from a file of this type, so don't
+					// copy it to the Source Data folder, etc
+					bInvalidFiles = TRUE;
+					if (strAllInvalids.IsEmpty())
+					{
+						strAllInvalids = aFilename;
+					}
+					else
+					{
+						strAllInvalids += _T("  ") + aFilename;
+					}
+					arrCopiedOK.Add(0); // record the fact that the this file copy did not take place
+					// prepare for next iteration
+					nItemIndex++;
+					if (nItemIndex < limitSelectedFiles)
+					{
+						aFilename = pSrcSelectedFilesArray->Item(nItemIndex);
+					}
+					continue;
+				}
+			} // end of TRUE block for test: if (bToSourceDataFolder)
+
 			// process one file per iteration until the list of selected filenames is empty
 			bCopyWasSuccessful = CopySingleFile(srcFolderPath,destFolderPath,aFilename, 
 													m_bUserCancelled);
@@ -1570,6 +1630,12 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 				arrCopiedOK.Add(0); // record the fact that the last file copy did not take place
 				if (m_bUserCancelled)
 				{
+					// put up the message showing any invalid files (their names)
+					// encountered up to this point
+					if (bToSourceDataFolder && bInvalidFiles)
+					{
+						PutUpInvalidsMessage(strAllInvalids);
+					}
 					// force parent dialog to close, and if Move was being attempted, abandon that
 					// to without removing anything more at the source side
 					return;
@@ -1590,10 +1656,16 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 		} while (nItemIndex < limitSelectedFiles);
 	}
 
+	// tell the user if some files were not copied to Source Data folder
+	if (bToSourceDataFolder && bInvalidFiles)
+	{
+		PutUpInvalidsMessage(strAllInvalids);
+	}
+
 	// If Move was requested, remove each source filename for which there was a successful
 	// copy from the srcSelectedFilesArray, and then clear the srcSelectedFilesArray. 
 	// Also, for a Move, remove those same files from the src folder
-	if (bDoMove && limitSelectedFiles > 0)
+	if (bDoMove && limitSelectedFiles > 0 && !bToSourceDataFolder)
 	{
 		int flag; // will be 1 or 0, for each selected filename
 		wxString aFilename;
@@ -1627,108 +1699,131 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 	}  // end block for test: if (bDoMove)
 
 	// now handle any folder selections, these will be recursive calls within the loop
+	// BEW 15July10, added test for supporting Source Data monocline list folder of
+	// loadable source text files, and a message explaining to the user
+
 	if (limitSelectedFolders > 0)
 	{
-		// there are one or more folders to copy or move -- do it in a loop
-		size_t indexForLoop;
-		// loop over the selected directory names
-		for (indexForLoop = 0; indexForLoop < limitSelectedFolders; indexForLoop++)
+		// test for destination being the folder called Source Data, if so, we don't
+		// allow copying folders & their file contents, as the Source Data has to be a
+		// monocline. So we force the user to open any folder with source files for
+		// copying there and then he can select which files to copy.
+		if (bToSourceDataFolder)
 		{
-			wxString srcFolderPath2;
-			wxString destFolderPath2;
-			wxArrayString* pSrcSelectedFoldersArray2 = new wxArrayString;
-			wxArrayString* pSrcSelectedFilesArray2 = new wxArrayString;
-			wxString aFoldername = pSrcSelectedFoldersArray->Item(indexForLoop); // get next directory name
-			srcFolderPath2 = srcFolderPath + gpApp->PathSeparator + aFoldername; // we know this folder exists
-			// the following folder may or may not exist
-			destFolderPath2 = destFolderPath + gpApp->PathSeparator + aFoldername; 
-			bool bDirExists = ::wxDirExists(destFolderPath2.c_str());
-			bool bMadeOK = TRUE;
-			if (!bDirExists)
+			// the user has selected one or more folders to copy to Source Data, and this
+			// is taboo, so tell him and return (this makes the function reentrant in this
+			// circumstance)
+			wxMessageBox(_(
+"You are allowed only to copy files to the Source Data folder. The folders you selected have not been copied.\nInstead, in the left pane, choose a folder and open it, select the files you want to copy, then click Copy."),
+			_("Copy of folders to Source Data folder is not allowed"), wxICON_WARNING);
+			return;
+		}
+		else
+		{
+			// there are one or more folders to copy or move, and the destination folder is
+			// not the Source Data folder. Do the directory plus files copy in a loop
+			size_t indexForLoop;
+			// loop over the selected directory names
+			for (indexForLoop = 0; indexForLoop < limitSelectedFolders; indexForLoop++)
 			{
-				// destination directory does not yet exist, so create it (note, on Linux,
-				// or Mac/Unix, the permissions for this directory will be octal 0777,
-				// specified by a default int perm = 0777 parameter in the call)
-				bMadeOK = ::wxMkdir(destFolderPath2.c_str());
-
-				// If we fail to make this directory, we cannot proceed with the copy or
-				// move. The only bailout we support bails us out of the whole
-				// AdminMoveOrCopy dialog, for a Cancel click when the user has a file
-				// conflict to resolve. So we'll just use that, after giving the user a
-				// warning message.
-				if (!bMadeOK)
+				wxString srcFolderPath2;
+				wxString destFolderPath2;
+				wxArrayString* pSrcSelectedFoldersArray2 = new wxArrayString;
+				wxArrayString* pSrcSelectedFilesArray2 = new wxArrayString;
+				wxString aFoldername = pSrcSelectedFoldersArray->Item(indexForLoop); // get next directory name
+				srcFolderPath2 = srcFolderPath + gpApp->PathSeparator + aFoldername; // we know this folder exists
+				// the following folder may or may not exist
+				destFolderPath2 = destFolderPath + gpApp->PathSeparator + aFoldername; 
+				bool bDirExists = ::wxDirExists(destFolderPath2.c_str());
+				bool bMadeOK = TRUE;
+				if (!bDirExists)
 				{
-					wxString msg;
-					msg = msg.Format(
+					// destination directory does not yet exist, so create it (note, on Linux,
+					// or Mac/Unix, the permissions for this directory will be octal 0777,
+					// specified by a default int perm = 0777 parameter in the call)
+					bMadeOK = ::wxMkdir(destFolderPath2.c_str());
+
+					// If we fail to make this directory, we cannot proceed with the copy or
+					// move. The only bailout we support bails us out of the whole
+					// AdminMoveOrCopy dialog, for a Cancel click when the user has a file
+					// conflict to resolve. So we'll just use that, after giving the user a
+					// warning message.
+					if (!bMadeOK)
+					{
+						wxString msg;
+						msg = msg.Format(
 _("Failed to create the destination directory  %s  for the Copy or Move operation. The parent dialog will now close. Files and folders already copied or moved will remain so. You may need to use your system's file browser to clean up before you try again."),
-					destFolderPath2.c_str());
-					wxMessageBox(msg, _("Error: could not make directory"), wxICON_WARNING);
-					m_bUserCancelled = TRUE; // causes call of EndModal() at top level call
-					delete pSrcSelectedFoldersArray2; // don't leak memory
-					delete pSrcSelectedFilesArray2; // ditto
+						destFolderPath2.c_str());
+						wxMessageBox(msg, _("Error: could not make directory"), wxICON_WARNING);
+						m_bUserCancelled = TRUE; // causes call of EndModal() at top level call
+						delete pSrcSelectedFoldersArray2; // don't leak memory
+						delete pSrcSelectedFilesArray2; // ditto
+						return;
+					}
+				}
+				// The directory has now either been successfully made, or already exists.
+				// Now we must call GetFilesOnly() and GetFoldersOnly() in order to gather the
+				// source director's folder names and file names into the the arrays provided
+				// (Each call internally resets the working directory.) First TRUE is bool
+				// bSort, second TRUE is bool bSuppressMessage.
+				bool bHasFolders = GetFoldersOnly(srcFolderPath2, pSrcSelectedFoldersArray2, TRUE, TRUE);
+				bool bHasFiles = GetFilesOnly(srcFolderPath2, pSrcSelectedFilesArray2, TRUE, TRUE);
+				bHasFolders = bHasFolders; // avoid compiler warning
+				bHasFiles = bHasFiles; // avoid compiler warning
+
+				// Reenter
+	//			wxLogDebug(_T("Re-entering: srcPath = %s , destPath = %s, hasFolders %d , hasFiles %d"),
+	//				srcFolderPath2, destFolderPath2, (int)bHasFolders, (int)bHasFiles);
+				MoveOrCopyFilesAndFolders(srcFolderPath2, destFolderPath2, pSrcSelectedFoldersArray2,
+						pSrcSelectedFilesArray2, bDoMove);
+
+				// if Move was requested, the return of the above call will indicate that
+				// srcFolderPath2 might have been emptied of both files and folders, so try remove the
+				// possibly empty source folder -- if will be removed only if empty
+				if (bDoMove)
+				{
+					// the directory in srcFolderPath will be currently set as the working
+					// directory, and that prevents ::wxRmdir() from removing it, so first
+					// reset the working directory to its parent, and the removals will work
+					bool bOK = ::wxSetWorkingDirectory(srcFolderPath);
+					bOK = ::wxRmdir(srcFolderPath2);
+					// ::wxRmdir() will fail if it still contains a file or folder - this can
+					// happen if there was a file conflict and the user elected to do noCopy,
+					// which means the conflicting file remains in the source directory. We
+					// don't want to have an annoying message put up for each such 'failure'
+					// so just ignore the return value bOK
+					/*
+					if (!bOK)
+					{
+						wxString msg;
+						msg = msg.Format(_T("::Rmdir() failed to remove directory %s "),srcFolderPath2.c_str());
+						wxMessageBox(msg,_T("Couldn't remove directory"),wxICON_WARNING);
+					}
+					else
+					{
+						wxLogDebug(_T("Removed directory  %s  "),srcFolderPath2);
+					}
+					*/
+				}
+				// clean up for this iteration
+				pSrcSelectedFilesArray2->Clear();
+				pSrcSelectedFoldersArray2->Clear();
+				delete pSrcSelectedFilesArray2; // don't leak it
+				delete pSrcSelectedFoldersArray2; // don't leak it
+
+				// if the user asked for a cancel from the file conflict dialog, it halts
+				// recursion and cancels the AdminMoveOrCopy dialog
+				if (m_bUserCancelled)
+				{
+					// halt iterating over foldernames, prematurely return to caller, and top
+					// level call will call EndModal()
 					return;
 				}
-			}
-			// The directory has now either been successfully made, or already exists.
-            // Now we must call GetFilesOnly() and GetFoldersOnly() in order to gather the
-            // source director's folder names and file names into the the arrays provided
-			// (Each call internally resets the working directory.) First TRUE is bool
-			// bSort, second TRUE is bool bSuppressMessage.
-            bool bHasFolders = GetFoldersOnly(srcFolderPath2, pSrcSelectedFoldersArray2, TRUE, TRUE);
-			bool bHasFiles = GetFilesOnly(srcFolderPath2, pSrcSelectedFilesArray2, TRUE, TRUE);
-			bHasFolders = bHasFolders; // avoid compiler warning
-			bHasFiles = bHasFiles; // avoid compiler warning
+			} // end block for the for loop iterating over selected foldernames
+		} // end of else block for test: 	if (bToSourceDataFolder)
 
-			// Reenter
-//			wxLogDebug(_T("Re-entering: srcPath = %s , destPath = %s, hasFolders %d , hasFiles %d"),
-//				srcFolderPath2, destFolderPath2, (int)bHasFolders, (int)bHasFiles);
-			MoveOrCopyFilesAndFolders(srcFolderPath2, destFolderPath2, pSrcSelectedFoldersArray2,
-					pSrcSelectedFilesArray2, bDoMove);
+	} //end of TRUE block for test:	if (limitSelectedFolders > 0)
 
-			// if Move was requested, the return of the above call will indicate that
-			// srcFolderPath2 might have been emptied of both files and folders, so try remove the
-			// possibly empty source folder -- if will be removed only if empty
-			if (bDoMove)
-			{
-				// the directory in srcFolderPath will be currently set as the working
-				// directory, and that prevents ::wxRmdir() from removing it, so first
-				// reset the working directory to its parent, and the removals will work
-				bool bOK = ::wxSetWorkingDirectory(srcFolderPath);
-				bOK = ::wxRmdir(srcFolderPath2);
-				// ::wxRmdir() will fail if it still contains a file or folder - this can
-				// happen if there was a file conflict and the user elected to do noCopy,
-				// which means the conflicting file remains in the source directory. We
-				// don't want to have an annoying message put up for each such 'failure'
-				// so just ignore the return value bOK
-				/*
-				if (!bOK)
-				{
-					wxString msg;
-					msg = msg.Format(_T("::Rmdir() failed to remove directory %s "),srcFolderPath2.c_str());
-					wxMessageBox(msg,_T("Couldn't remove directory"),wxICON_WARNING);
-				}
-				else
-				{
-					wxLogDebug(_T("Removed directory  %s  "),srcFolderPath2);
-				}
-				*/
-			}
-			// clean up for this iteration
-			pSrcSelectedFilesArray2->Clear();
-			pSrcSelectedFoldersArray2->Clear();
-			delete pSrcSelectedFilesArray2; // don't leak it
-			delete pSrcSelectedFoldersArray2; // don't leak it
-
-			// if the user asked for a cancel from the file conflict dialog, it halts
-			// recursion and cancels the AdminMoveOrCopy dialog
-			if (m_bUserCancelled)
-			{
-				// halt iterating over foldernames, prematurely return to caller, and top
-				// level call will call EndModal()
-				return;
-			}
-		} // end block for the for loop iterating over selected foldernames
-	}
 	//unsigned int i;
 	//for (i=0; i < *pSrcSelectedFilesArray.GetCount(); i++)
 	//{
@@ -1796,6 +1891,19 @@ _("You first need to select at least one item in the left list before clicking t
 		pSrcSelectedFilesArray->Add(srcSelectedFilesArray.Item(index));
 	}
 
+	// do not allow copying of whole folders if the destination folder is "Source Data"
+	// (because we must have only a flat list of filenames in Source Data); and for a
+	// Move request, with destination folder "Source Data", we do not allow anything to be
+	// moved, (so as to protect source data files which may belong to a 3rd part app,) we
+	// allow only copying. This protocol is implemented with the call to
+	// MoveOrCopyFilesAndFolders() - OnBnClickedCopy() and OnBnClickedMove() just pass in
+	// the booleans so it can work out what to do and what to tell the administrator 
+	bool bCopyingToSourceDataFolder = FALSE;
+	if (m_strDestFolderPath == gpApp->m_sourceDataFolderPath)
+	{
+		bCopyingToSourceDataFolder = TRUE;
+	}
+
 	// initialize bail out flag, and boolean for doing it the same way henceforth,
 	// and set the default lastWay value to noCopy
 	m_bUserCancelled = FALSE;
@@ -1803,8 +1911,19 @@ _("You first need to select at least one item in the left list before clicking t
 	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
 						  // if there was one, was handled (see CopyAction enum for values)
 
-	MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
-					pSrcSelectedFilesArray, FALSE); // FALSE is  bool bDoMove
+	// do the copy
+	if (bCopyingToSourceDataFolder)
+	{
+		// 4th param, bToSourceDataFolder is TRUE
+		MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
+					pSrcSelectedFilesArray, TRUE, FALSE); // final param is FALSE, for bool bDoMove
+	}
+	else
+	{
+		// 4th param, bToSourceDataFolder is FALSE
+		MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
+					pSrcSelectedFilesArray, FALSE, FALSE); // final param is FALSE, for bool bDoMove
+	}
 
 	// clear the allocations to the heap
 	pSrcSelectedFilesArray->Clear(); // this one is on heap
@@ -1896,8 +2015,31 @@ _("You first need to select at least one item in the left list before clicking t
 	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
 						  // if there was one, was handled (see CopyAction enum for values)
 
-	MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
-					pSrcSelectedFilesArray); // last param  bool bDoMove is TRUE
+	// do not allow copying of whole folders if the destination folder is "Source Data"
+	// (because we must have only a flat list of filenames in Source Data); and for a
+	// Move request, with destination folder "Source Data", we do not allow anything to be
+	// moved, (so as to protect source data files which may belong to a 3rd part app,) we
+	// allow only copying. This protocol is implemented with the call to
+	// MoveOrCopyFilesAndFolders() - OnBnClickedCopy() and OnBnClickedMove() just pass in
+	// the booleans so it can work out what to do and what to tell the administrator 
+	bool bMovingToSourceDataFolder = FALSE;
+	if (m_strDestFolderPath == gpApp->m_sourceDataFolderPath)
+	{
+		bMovingToSourceDataFolder = TRUE;
+	}
+
+	if (bMovingToSourceDataFolder)
+	{
+		// the 4th param is bool bToSourceDataFolder, which is here set TRUE
+		MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
+					pSrcSelectedFilesArray,TRUE); // last (unseen) param  bool bDoMove is TRUE
+	}
+	else
+	{
+		// the 4th param is bool bToSourceDataFolder, which is here FALSE
+		MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
+					pSrcSelectedFilesArray,FALSE); // last (unseen) param  bool bDoMove is TRUE
+	}
 
 	// clear the allocations to the heap
 	pSrcSelectedFilesArray->Clear(); // this one is on heap

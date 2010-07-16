@@ -140,7 +140,7 @@ protected:
 private:
 	void MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
 				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
-				bool bDoMove = TRUE);
+				bool bToSourceDataFolder = FALSE, bool bDoMove = TRUE);
 	void RemoveFilesAndFolders(wxString destFolderPath, wxArrayString* pDestSelectedFoldersArray, 
 				wxArrayString* pDestSelectedFilesArray);
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
@@ -155,6 +155,7 @@ private:
 	void SetupSelectionArrays(enum whichSide side);
 	void DeselectSelectedFiles(enum whichSide side); // beware of wxWidgets bug in SetItemState()
 	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
+	void PutUpInvalidsMessage(wxString& strAllInvalids);
 
 	/* OBSOLETE
 
