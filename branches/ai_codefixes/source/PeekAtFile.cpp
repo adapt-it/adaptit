@@ -17,7 +17,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "PeekAtFileDlg.h"
+    #pragma implementation "PeekAtFile.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".

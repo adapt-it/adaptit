@@ -24,7 +24,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "ClassName.h"
+    #pragma interface "XML.h"
 #endif
 
 typedef short unsigned int UInt16;
