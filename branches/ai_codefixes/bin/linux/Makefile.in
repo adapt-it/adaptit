@@ -71,14 +71,15 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
 	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
 	FilenameConflictDlg.$(OBJEXT) FilterPage.$(OBJEXT) \
-	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) GoToDlg.$(OBJEXT) \
-	JoinDialog.$(OBJEXT) KB.$(OBJEXT) KBEditor.$(OBJEXT) \
-	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
-	LanguagesPage.$(OBJEXT) Layout.$(OBJEXT) \
-	ListDocumentsInOtherFolderDialog.$(OBJEXT) MainFrm.$(OBJEXT) \
-	MoveDialog.$(OBJEXT) Mover.$(OBJEXT) MyListBox.$(OBJEXT) \
-	NoteDlg.$(OBJEXT) OpenExistingProjectDlg.$(OBJEXT) \
-	OutputFilenameDlg.$(OBJEXT) PhraseBox.$(OBJEXT) Pile.$(OBJEXT) \
+	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	GoToDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
+	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
+	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
+	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
+	MainFrm.$(OBJEXT) MoveDialog.$(OBJEXT) Mover.$(OBJEXT) \
+	MyListBox.$(OBJEXT) NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
+	OpenExistingProjectDlg.$(OBJEXT) OutputFilenameDlg.$(OBJEXT) \
+	PhraseBox.$(OBJEXT) Pile.$(OBJEXT) Placeholder.$(OBJEXT) \
 	PlaceInternalMarkers.$(OBJEXT) PlaceInternalPunct.$(OBJEXT) \
 	PlaceRetranslationInternalMarkers.$(OBJEXT) \
 	PrintOptionsDlg.$(OBJEXT) ProjectPage.$(OBJEXT) \
@@ -91,10 +92,11 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) USFMPage.$(OBJEXT) \
 	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
-	UnpackWarningDlg.$(OBJEXT) ViewFilteredMaterialDlg.$(OBJEXT) \
-	ViewPage.$(OBJEXT) WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) \
-	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) XML.$(OBJEXT) \
-	XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
+	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
+	ViewFilteredMaterialDlg.$(OBJEXT) ViewPage.$(OBJEXT) \
+	WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) WhichBook.$(OBJEXT) \
+	WhichFilesDlg.$(OBJEXT) XML.$(OBJEXT) XMLErrorDlg.$(OBJEXT) \
+	helpers.$(OBJEXT)
 adaptit_OBJECTS = $(am_adaptit_OBJECTS)
 adaptit_LDADD = $(LDADD)
 adaptit_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -336,21 +338,27 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ComposeBarEditBox.h ../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/ExportFunctions.h ../../source/ExportInterlinearDlg.h \
-	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h ../../source/FilenameConflictDlg.h ../../source/FilterPage.h \
-	../../source/FindReplace.h ../../source/FontPage.h ../../source/GoToDlg.h \
-	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBEditSearch.h ../../source/KBPage.h \
-	../../source/LanguagesPage.h ../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
+	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h \
+	../../source/FilenameConflictDlg.h ../../source/FilterPage.h \
+	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h ../../source/GoToDlg.h \
+	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBEditSearch.h \
+	../../source/KBPage.h ../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
+	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
 	../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h ../../source/NoteDlg.h \
-	../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h ../../source/PhraseBox.h \
-	../../source/Pile.h ../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
+	../../source/Notes.h ../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h \
+	../../source/PhraseBox.h ../../source/Pile.h ../../source/Placeholder.h \
+	../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
 	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
-	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h ../../source/RetranslationDlg.h \
+	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h \
+	../../source/Retranslation.h ../../source/RetranslationDlg.h \
 	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
 	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
+	../../source/tellenc.h \
 	../../source/TransformToGlossesDlg.h ../../source/USFMPage.h ../../source/UnitsDlg.h \
-	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/ViewFilteredMaterialDlg.h \
-	../../source/ViewPage.h ../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
+	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
+	../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h ../../source/WaitDlg.h \
+	../../source/Welcome.h ../../source/WhichBook.h \
 	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h
 
 
@@ -370,30 +378,35 @@ htmlhelp_DATA = adaptit.htb
 # the application source, library search path, and link libraries
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
-	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
-	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp \
-	../../source/CCTableNameDlg.cpp ../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
-	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/ChooseTranslation.cpp \
-	../../source/CollectBacktranslations.cpp ../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp ../../source/AutoSavingPage.cpp \
+	../../source/BString.cpp ../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
+	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
+	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
+	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp \
+	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
+	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
-	../../source/FilenameConflictDlg.cpp ../../source/FilterPage.cpp ../../source/FindReplace.cpp ../../source/FontPage.cpp \
+	../../source/FilenameConflictDlg.cpp ../../source/FilterPage.cpp ../../source/FindReplace.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp \
 	../../source/GoToDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
-	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
+	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
+	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
-	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NoteDlg.cpp \
+	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NoteDlg.cpp ../../source/Notes.cpp \
 	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp ../../source/PhraseBox.cpp \
-	../../source/Pile.cpp ../../source/PlaceInternalMarkers.cpp \
+	../../source/Pile.cpp ../../source/Placeholder.cpp ../../source/PlaceInternalMarkers.cpp \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
-	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp ../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp \
-	../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp ../../source/SourcePhrase.cpp \
-	../../source/SplitDialog.cpp ../../source/Stack.cpp ../../source/StartWorkingWizard.cpp \
-	../../source/Strip.cpp ../../source/TargetUnit.cpp ../../source/tellenc.cpp \
-	../../source/TransformToGlossesDlg.cpp ../../source/USFMPage.cpp ../../source/UnitsDlg.cpp \
-	../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
-	../../source/ViewFilteredMaterialDlg.cpp ../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
+	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp ../../source/RetranslationDlg.cpp \
+	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp \
+	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
+	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
+	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp ../../source/USFMPage.cpp \
+	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
+	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
+	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
 	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
@@ -523,12 +536,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FilterPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FindReplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FontPage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTrans.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GoToDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JoinDialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KB.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditSearch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguageCodesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ListDocumentsInOtherFolderDialog.Po@am__quote@
@@ -537,6 +552,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mover.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MyListBox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NoteDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Notes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OpenExistingProjectDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OutputFilenameDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PhraseBox.Po@am__quote@
@@ -544,6 +560,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlaceInternalMarkers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlaceInternalPunct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlaceRetranslationInternalMarkers.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Placeholder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PrintOptionsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ProjectPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PunctCorrespPage.Po@am__quote@
@@ -564,6 +581,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnpackWarningDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Uuid_AI.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ViewFilteredMaterialDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ViewPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WaitDlg.Po@am__quote@
@@ -1072,6 +1090,20 @@ FontPage.obj: ../../source/FontPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FontPage.obj `if test -f '../../source/FontPage.cpp'; then $(CYGPATH_W) '../../source/FontPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FontPage.cpp'; fi`
 
+FreeTrans.o: ../../source/FreeTrans.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTrans.o -MD -MP -MF $(DEPDIR)/FreeTrans.Tpo -c -o FreeTrans.o `test -f '../../source/FreeTrans.cpp' || echo '$(srcdir)/'`../../source/FreeTrans.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTrans.Tpo $(DEPDIR)/FreeTrans.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTrans.cpp' object='FreeTrans.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTrans.o `test -f '../../source/FreeTrans.cpp' || echo '$(srcdir)/'`../../source/FreeTrans.cpp
+
+FreeTrans.obj: ../../source/FreeTrans.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTrans.obj -MD -MP -MF $(DEPDIR)/FreeTrans.Tpo -c -o FreeTrans.obj `if test -f '../../source/FreeTrans.cpp'; then $(CYGPATH_W) '../../source/FreeTrans.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTrans.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTrans.Tpo $(DEPDIR)/FreeTrans.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTrans.cpp' object='FreeTrans.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTrans.obj `if test -f '../../source/FreeTrans.cpp'; then $(CYGPATH_W) '../../source/FreeTrans.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTrans.cpp'; fi`
+
 GoToDlg.o: ../../source/GoToDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GoToDlg.o -MD -MP -MF $(DEPDIR)/GoToDlg.Tpo -c -o GoToDlg.o `test -f '../../source/GoToDlg.cpp' || echo '$(srcdir)/'`../../source/GoToDlg.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GoToDlg.Tpo $(DEPDIR)/GoToDlg.Po
@@ -1155,6 +1187,20 @@ KBPage.obj: ../../source/KBPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBPage.cpp' object='KBPage.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBPage.obj `if test -f '../../source/KBPage.cpp'; then $(CYGPATH_W) '../../source/KBPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBPage.cpp'; fi`
+
+LanguageCodesDlg.o: ../../source/LanguageCodesDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.o -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/LanguageCodesDlg.Tpo $(DEPDIR)/LanguageCodesDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/LanguageCodesDlg.cpp' object='LanguageCodesDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
+
+LanguageCodesDlg.obj: ../../source/LanguageCodesDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.obj -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.obj `if test -f '../../source/LanguageCodesDlg.cpp'; then $(CYGPATH_W) '../../source/LanguageCodesDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/LanguageCodesDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/LanguageCodesDlg.Tpo $(DEPDIR)/LanguageCodesDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/LanguageCodesDlg.cpp' object='LanguageCodesDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LanguageCodesDlg.obj `if test -f '../../source/LanguageCodesDlg.cpp'; then $(CYGPATH_W) '../../source/LanguageCodesDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/LanguageCodesDlg.cpp'; fi`
 
 LanguagesPage.o: ../../source/LanguagesPage.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguagesPage.o -MD -MP -MF $(DEPDIR)/LanguagesPage.Tpo -c -o LanguagesPage.o `test -f '../../source/LanguagesPage.cpp' || echo '$(srcdir)/'`../../source/LanguagesPage.cpp
@@ -1268,6 +1314,20 @@ NoteDlg.obj: ../../source/NoteDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NoteDlg.obj `if test -f '../../source/NoteDlg.cpp'; then $(CYGPATH_W) '../../source/NoteDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/NoteDlg.cpp'; fi`
 
+Notes.o: ../../source/Notes.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Notes.o -MD -MP -MF $(DEPDIR)/Notes.Tpo -c -o Notes.o `test -f '../../source/Notes.cpp' || echo '$(srcdir)/'`../../source/Notes.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Notes.Tpo $(DEPDIR)/Notes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Notes.cpp' object='Notes.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Notes.o `test -f '../../source/Notes.cpp' || echo '$(srcdir)/'`../../source/Notes.cpp
+
+Notes.obj: ../../source/Notes.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Notes.obj -MD -MP -MF $(DEPDIR)/Notes.Tpo -c -o Notes.obj `if test -f '../../source/Notes.cpp'; then $(CYGPATH_W) '../../source/Notes.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Notes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Notes.Tpo $(DEPDIR)/Notes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Notes.cpp' object='Notes.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Notes.obj `if test -f '../../source/Notes.cpp'; then $(CYGPATH_W) '../../source/Notes.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Notes.cpp'; fi`
+
 OpenExistingProjectDlg.o: ../../source/OpenExistingProjectDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT OpenExistingProjectDlg.o -MD -MP -MF $(DEPDIR)/OpenExistingProjectDlg.Tpo -c -o OpenExistingProjectDlg.o `test -f '../../source/OpenExistingProjectDlg.cpp' || echo '$(srcdir)/'`../../source/OpenExistingProjectDlg.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/OpenExistingProjectDlg.Tpo $(DEPDIR)/OpenExistingProjectDlg.Po
@@ -1323,6 +1383,20 @@ Pile.obj: ../../source/Pile.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Pile.cpp' object='Pile.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Pile.obj `if test -f '../../source/Pile.cpp'; then $(CYGPATH_W) '../../source/Pile.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Pile.cpp'; fi`
+
+Placeholder.o: ../../source/Placeholder.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Placeholder.o -MD -MP -MF $(DEPDIR)/Placeholder.Tpo -c -o Placeholder.o `test -f '../../source/Placeholder.cpp' || echo '$(srcdir)/'`../../source/Placeholder.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Placeholder.Tpo $(DEPDIR)/Placeholder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Placeholder.cpp' object='Placeholder.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Placeholder.o `test -f '../../source/Placeholder.cpp' || echo '$(srcdir)/'`../../source/Placeholder.cpp
+
+Placeholder.obj: ../../source/Placeholder.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Placeholder.obj -MD -MP -MF $(DEPDIR)/Placeholder.Tpo -c -o Placeholder.obj `if test -f '../../source/Placeholder.cpp'; then $(CYGPATH_W) '../../source/Placeholder.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Placeholder.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Placeholder.Tpo $(DEPDIR)/Placeholder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Placeholder.cpp' object='Placeholder.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Placeholder.obj `if test -f '../../source/Placeholder.cpp'; then $(CYGPATH_W) '../../source/Placeholder.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Placeholder.cpp'; fi`
 
 PlaceInternalMarkers.o: ../../source/PlaceInternalMarkers.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlaceInternalMarkers.o -MD -MP -MF $(DEPDIR)/PlaceInternalMarkers.Tpo -c -o PlaceInternalMarkers.o `test -f '../../source/PlaceInternalMarkers.cpp' || echo '$(srcdir)/'`../../source/PlaceInternalMarkers.cpp
@@ -1659,6 +1733,20 @@ UnpackWarningDlg.obj: ../../source/UnpackWarningDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/UnpackWarningDlg.cpp' object='UnpackWarningDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UnpackWarningDlg.obj `if test -f '../../source/UnpackWarningDlg.cpp'; then $(CYGPATH_W) '../../source/UnpackWarningDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/UnpackWarningDlg.cpp'; fi`
+
+Uuid_AI.o: ../../source/Uuid_AI.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Uuid_AI.o -MD -MP -MF $(DEPDIR)/Uuid_AI.Tpo -c -o Uuid_AI.o `test -f '../../source/Uuid_AI.cpp' || echo '$(srcdir)/'`../../source/Uuid_AI.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Uuid_AI.Tpo $(DEPDIR)/Uuid_AI.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Uuid_AI.cpp' object='Uuid_AI.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Uuid_AI.o `test -f '../../source/Uuid_AI.cpp' || echo '$(srcdir)/'`../../source/Uuid_AI.cpp
+
+Uuid_AI.obj: ../../source/Uuid_AI.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Uuid_AI.obj -MD -MP -MF $(DEPDIR)/Uuid_AI.Tpo -c -o Uuid_AI.obj `if test -f '../../source/Uuid_AI.cpp'; then $(CYGPATH_W) '../../source/Uuid_AI.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Uuid_AI.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Uuid_AI.Tpo $(DEPDIR)/Uuid_AI.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Uuid_AI.cpp' object='Uuid_AI.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Uuid_AI.obj `if test -f '../../source/Uuid_AI.cpp'; then $(CYGPATH_W) '../../source/Uuid_AI.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Uuid_AI.cpp'; fi`
 
 ViewFilteredMaterialDlg.o: ../../source/ViewFilteredMaterialDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ViewFilteredMaterialDlg.o -MD -MP -MF $(DEPDIR)/ViewFilteredMaterialDlg.Tpo -c -o ViewFilteredMaterialDlg.o `test -f '../../source/ViewFilteredMaterialDlg.cpp' || echo '$(srcdir)/'`../../source/ViewFilteredMaterialDlg.cpp

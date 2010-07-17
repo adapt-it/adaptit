@@ -3,10 +3,10 @@
 /// \file			AdminMoveOrCopy.h
 /// \author			Bruce Waters
 /// \date_created	30 November 2009
-/// \date_revised	
+/// \date_revised
 /// \copyright		2009 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the AdminMoveOrCopy class. 
+/// \description	This is the header file for the AdminMoveOrCopy class.
 /// The AdminMoveOrCopy class provides a dialog interface for the user (typically an administrator) to be able
 /// to move or copy files or folders or both from a source location into a destination
 /// folder; and also to delete files or folders, and also, one at a time, to rename a file
@@ -30,7 +30,7 @@ enum whichSide {
 };
 
 enum CopyAction {
-	copyAndReplace, // covers both copy which overwrites file of same name, 
+	copyAndReplace, // covers both copy which overwrites file of same name,
 					// and copy of a file with unique filename (default)
 	copyWithChangedName, // copy but with unique name, such as <filename>(2)
 	noCopy			// don't copy (nor move) the conflicting file
@@ -40,7 +40,7 @@ enum CopyAction {
 /// folders or both. It is derived from AIModalDialog.
 class AdminMoveOrCopy : public AIModalDialog
 {
-	friend class AdminMoveOrCopy;
+	friend class CPeekAtFileDlg;
 
 public:
 	AdminMoveOrCopy(wxWindow* parent); // constructor
@@ -58,7 +58,7 @@ public:
 	wxButton* pDeleteButton;
 	wxButton* pRenameButton;
 
-	wxBitmapButton* pUpSrcFolder; 
+	wxBitmapButton* pUpSrcFolder;
 	wxBitmapButton* pUpDestFolder;
 
 	wxButton* pLocateSrcFolderButton;
@@ -139,14 +139,14 @@ protected:
 
 private:
 	void MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
-				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
+				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray,
 				bool bToSourceDataFolder = FALSE, bool bDoMove = TRUE);
-	void RemoveFilesAndFolders(wxString destFolderPath, wxArrayString* pDestSelectedFoldersArray, 
+	void RemoveFilesAndFolders(wxString destFolderPath, wxArrayString* pDestSelectedFoldersArray,
 				wxArrayString* pDestSelectedFilesArray);
-	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
+	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename,
 				bool& bUserCancelled);
 	bool RemoveSingleFile(wxString& destPath, wxString& filename);
-	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
+	void GetListCtrlContents(enum whichSide side, wxString& folderPath,
 				bool& bHasFolders, bool& bHasFiles);
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	bool IsFileConflicted(wxString& srcFile, int* pConflictedDestFile, wxArrayString* pDestFilesArr);

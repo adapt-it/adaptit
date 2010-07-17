@@ -266,6 +266,10 @@
 		<Unit filename="../../source/KBEditor.h" />
 		<Unit filename="../../source/KBPage.cpp" />
 		<Unit filename="../../source/KBPage.h" />
+		<Unit filename="../../source/KB_Standoff.cpp" />
+		<Unit filename="../../source/KB_Standoff.h" />
+		<Unit filename="../../source/LanguageCodesDlg.cpp" />
+		<Unit filename="../../source/LanguageCodesDlg.h" />
 		<Unit filename="../../source/LanguagesPage.cpp" />
 		<Unit filename="../../source/LanguagesPage.h" />
 		<Unit filename="../../source/Layout.cpp" />
@@ -292,6 +296,8 @@
 		<Unit filename="../../source/OpenExistingProjectDlg.h" />
 		<Unit filename="../../source/OutputFilenameDlg.cpp" />
 		<Unit filename="../../source/OutputFilenameDlg.h" />
+		<Unit filename="../../source/PeekAtFile.cpp" />
+		<Unit filename="../../source/PeekAtFile.h" />
 		<Unit filename="../../source/PhraseBox.cpp" />
 		<Unit filename="../../source/PhraseBox.h" />
 		<Unit filename="../../source/Pile.cpp" />
@@ -314,6 +320,8 @@
 		<Unit filename="../../source/ReadOnlyProtection.h" />
 		<Unit filename="../../source/RefString.cpp" />
 		<Unit filename="../../source/RefString.h" />
+		<Unit filename="../../source/RefStringMetadata.cpp" />
+		<Unit filename="../../source/RefStringMetadata.h" />
 		<Unit filename="../../source/Retranslation.cpp" />
 		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
@@ -336,6 +344,8 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/TargetUnit_Standoff.cpp" />
+		<Unit filename="../../source/TargetUnit_Standoff.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
 		<Unit filename="../../source/TransformToGlossesDlg.h" />
 		<Unit filename="../../source/USFMPage.cpp" />
