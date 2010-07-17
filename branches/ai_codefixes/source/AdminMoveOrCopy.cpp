@@ -1536,8 +1536,8 @@ void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
 	wxString msg;
 	msg = msg.Format(_(
 "One or more files selected for copying to the Source Data folder were not copied.\nThey were: %s"),
-	strAllInvalids);
-	wxMessageBox(msg.c_str(), _("Files not suitable for loading into adaptation documents"),
+	strAllInvalids.c_str());
+	wxMessageBox(msg, _("Files not suitable for loading into adaptation documents"),
 	wxICON_WARNING);
 }
 
