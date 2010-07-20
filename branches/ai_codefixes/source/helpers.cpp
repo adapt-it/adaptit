@@ -3,10 +3,10 @@
 /// \file			helpers.cpp
 /// \author			Bruce Waters, revised for wxWidgets by Bill Martin
 /// \date_created	6 January 2005
-/// \date_revised	15 January 2008
+/// \date_revised	20 July 2010
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file containing some helper functions used by Adapt It. 
+/// \description	This is the implementation file containing some helper functions used by Adapt It.
 /// BEW 12Apr10, all changes for supporting doc version 5 are done for this file
 /////////////////////////////////////////////////////////////////////////////
 
@@ -153,13 +153,13 @@ void DoDelay()
 	if (endsecs > secsStart)
 	{
 		// the delay will take us into the next second's interval
-m:					//_ftime(&currentTime); 
+m:					//_ftime(&currentTime);
 		currentTime.SetToCurrent();
 		if (currentTime.GetSecond() < endsecs)
 			goto m; // loop till we get to the final second's interval
 	}
 	// loop for the remaining milliseconds in the delay
-n:				
+n:
 	currentTime.SetToCurrent();
 	if (currentTime.GetSecond() == endsecs && currentTime.GetMillisecond() <= endMsecs)
 		goto n;
@@ -172,7 +172,7 @@ n:
 /// A Helper function for converting negative lfHeight values in a LOGFONT
 /// to the equivalent point size. The absolute values of lfHeight
 /// are greater than point size by an increment which is on a sliding
-/// scale. Algorithm: if H = abs(lfHeight) or H= abs(lfHeight)-1 is a 
+/// scale. Algorithm: if H = abs(lfHeight) or H= abs(lfHeight)-1 is a
 /// multiple of 4, then increment Inc = H/4; else Inc =
 /// (abs(lfHeight)+1)/4. Then point size = abs(lfHeight)-Inc
 /////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ A:	inc=H/4;
 /// \param pointSize	-> the font's point size
 /// \remarks
 /// A helper function for converting pointsize to a lfHeight value; defined for use in
-/// versions 2.4.0 and onwards - these versions allow user-defined 
+/// versions 2.4.0 and onwards - these versions allow user-defined
 /// font size for the vernacular text in dialogs.
 /// Returns the (negative) lfHeight value corresponding to the passed in
 /// pointsize.
@@ -218,7 +218,7 @@ long PointSizeToNegHeight(const int& pointSize) // whm 9Mar04
 // The PointSizeToLFHeight() function below by bw for v.2.4.0
 // Not Used in the wxWidgets version
 // helper for converting pointsize to a lfHeight value; defined for use in
-//  versions 2.4.0 and onwards - these versions allow user-defined 
+//  versions 2.4.0 and onwards - these versions allow user-defined
 // font size for the vernacular text in dialogs.
 // Returns the (positive) lfHeight value corresponding to the passed in
 // pointsize
@@ -276,9 +276,9 @@ int WxColour2Int(wxColour colour)
 {
 	// Converts a wxColour value to an (int)COLORREF equivalent
 	int colourInt = 0x00000000;
-	// MFC's COLORREF value is of the form 0x00bbggrr, where 
+	// MFC's COLORREF value is of the form 0x00bbggrr, where
 	// rr is 8 bit value for red
-	// gg is the 8 bit value for green, and 
+	// gg is the 8 bit value for green, and
 	// bb is the 8 bit value for blue
 	wxUint32 r, g, b = 0x00000000;
 	// Shift the Blue value to the bb position in the 32 bit int
@@ -305,9 +305,9 @@ wxColour Int2wxColour(int colourInt)
 	wxUint8 rr,gg,bb;
 	wxUint32 shift = 0x00000000;
 	shift = colourInt;
-	// MFC's COLORREF value is of the form 0x00bbggrr, where 
+	// MFC's COLORREF value is of the form 0x00bbggrr, where
 	// rr is 8 bit value for red
-	// gg the 8 bit value for green, and 
+	// gg the 8 bit value for green, and
 	// bb the 8 bit value for blue
 	// Now convert the 32 bit int to 8 bit RGB values:
 	// Shift right 8 bits and mask them with 0x000000ff to get the rr value
@@ -369,7 +369,7 @@ bool IsXMLfile(wxString path)
 			return TRUE;
 	}
 	// if we get here, it's neither .XML nor .xml, so return FALSE and the
-	// caller should then assume we are dealing with a binary .adt file 
+	// caller should then assume we are dealing with a binary .adt file
 	return FALSE;
 }
 
@@ -402,7 +402,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	CBString str;
 
 	int nLength;
-	
+
 	if (::wxFileExists(FilePath))
 	{
 		wxFile file;
@@ -417,7 +417,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 			nLength = BufferLength-1;
 		wxUint32 numRead = file.Read(Buffer,nLength);
 		Buffer[numRead] = '\0'; // insure terminating null
-			
+
 		// remaining code from original MFC function
 		// it was a good read, so make the data into a CBString
 		str = Buffer;
@@ -426,7 +426,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 		if (curPos > 0)
 		{
 			// there is an \id marker, so get the book code -- we'll look for it in
-			// the preceding s="" attribute, which will be the first such attribute in 
+			// the preceding s="" attribute, which will be the first such attribute in
 			// the first S tag in the file.
 			int nFound = str.Find("S s=\"");
 			if (nFound > 0)
@@ -516,9 +516,9 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 /// \param	Bit1		-> the first part of the path to be concatenated
 /// \param	Bit2		-> the seconf part of the path to be concatenated
 /// \remarks
-/// The original MFC function with hard coded "\\" path separator will not work for 
-/// cross-platform coding because backslash is not used as path separator in 
-/// Linux or Mac. Instead the wxWidgets version calls the wxFileName::GetPathSeparator() 
+/// The original MFC function with hard coded "\\" path separator will not work for
+/// cross-platform coding because backslash is not used as path separator in
+/// Linux or Mac. Instead the wxWidgets version calls the wxFileName::GetPathSeparator()
 /// method to concatenate the path parts.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 wxString ConcatenatePathBits(wxString Bit1, wxString Bit2)
@@ -596,7 +596,7 @@ bool FileContainsBookIndicator(wxString FilePath, wxString& out_BookIndicatorInS
 	//	#define THIRD_BYTE_INDEX (sizeof Pattern - 2)
 	//	#endif
 
-	//	if (SearchFileContentForFixedLengthPattern(FilePath, Pattern, PatternMask, sizeof Pattern)) 
+	//	if (SearchFileContentForFixedLengthPattern(FilePath, Pattern, PatternMask, sizeof Pattern))
 	//	{
 	//		char BookIdAs8BitChars[4];
 	//		BookIdAs8BitChars[0] = (char)Pattern[FIRST_BYTE_INDEX];
@@ -610,9 +610,9 @@ bool FileContainsBookIndicator(wxString FilePath, wxString& out_BookIndicatorInS
 	//		#else
 	//		wxString s2 = s.Convert8To16();
 	//		#endif
-	//		if (s2.Length() == 3 && 
-	//			IsAnsiLetterOrDigit(s2.GetChar(0)) && 
-	//			IsAnsiLetterOrDigit(s2.GetChar(1)) && 
+	//		if (s2.Length() == 3 &&
+	//			IsAnsiLetterOrDigit(s2.GetChar(0)) &&
+	//			IsAnsiLetterOrDigit(s2.GetChar(1)) &&
 	//			IsAnsiLetterOrDigit(s2.GetChar(2)))
 	//		{
 	//			out_BookIndicatorInSpecifiedFile = s2;
@@ -626,13 +626,13 @@ bool FileContainsBookIndicator(wxString FilePath, wxString& out_BookIndicatorInS
 	return false;
 }
 
-/* 
-// whm note: This is not needed in wx version because it is used only for searches on binary 
+/*
+// whm note: This is not needed in wx version because it is used only for searches on binary
 // serialization files.
-// Opens the specified file, and searches through it in small chunks at a time (so that 
+// Opens the specified file, and searches through it in small chunks at a time (so that
 // the memory requirements are low) looking for the specified pattern.
 // Returns true if the pattern is found; false otherwise.
-// PatternMask allows a multibyte varying pattern to be found.  PatternMask is a parallel array to Pattern.  
+// PatternMask allows a multibyte varying pattern to be found.  PatternMask is a parallel array to Pattern.
 // If the entry in PatternMask is non-zero, then the entry in Pattern must be found.  If the entry in PatternMask is
 // zero, then any character in the file will match, and if a match is found on the entire pattern, then the 'found'
 // characters will be copied into the Pattern array, allowing the caller to determine the variable portion of the pattern.
@@ -661,11 +661,11 @@ bool SearchFileContentForFixedLengthPattern(wxString FilePath, wxInt8 *Pattern, 
 		}
 		// Loop through the file, reading in chunks, and searching for the specified pattern.
 		nBytesInBuffer = 0;
-		do 
+		do
 		{
-			//                    BufferReceivingBytes    numberOfBytesToRead           numberOfBytesRead             
-			//if (ReadFile(hFile, Buffer + BytesInBuffer, BufferLength - BytesInBuffer, &BytesRead, NULL)) 
-			nBytesRead = file.Read(Buffer + nBytesInBuffer,BufferLength - nBytesInBuffer);	
+			//                    BufferReceivingBytes    numberOfBytesToRead           numberOfBytesRead
+			//if (ReadFile(hFile, Buffer + BytesInBuffer, BufferLength - BytesInBuffer, &BytesRead, NULL))
+			nBytesRead = file.Read(Buffer + nBytesInBuffer,BufferLength - nBytesInBuffer);
 			if (nBytesRead > 0)
 			{
 				nBytesInBuffer += nBytesRead;
@@ -692,8 +692,8 @@ bool SearchFileContentForFixedLengthPattern(wxString FilePath, wxInt8 *Pattern, 
 						nBytesInBuffer = PatternLength - 1;
 					}
 				}
-			} 
-			else 
+			}
+			else
 				Abort = true;
 		} while (!rv && !Abort && nBytesRead != 0);
 	}
@@ -774,7 +774,7 @@ bool IsAnsiDigit(wxChar c)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE only if s contains at least one character and all characters in s are digits.
-///			If s is empty, or contains any whitespace or other non-digit characters, this function 
+///			If s is empty, or contains any whitespace or other non-digit characters, this function
 ///			returns false.
 /// \param	s			-> the string to be examined
 /// \remarks
@@ -798,7 +798,7 @@ bool IsAnsiDigitsOnly(wxString s)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool IsAnsiLetterOrDigit(wxChar c)
 {
-	return wxIsalnum(c) != FALSE; 
+	return wxIsalnum(c) != FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -827,7 +827,7 @@ bool IsValidFileName(wxString s)
 /// \param	FullPath			-> the string containing a path and file name
 /// \remarks
 /// Removes the path part of a file name that includes the path.
-/// The original MFC code is not suitable for cross-platform code because different platforms have 
+/// The original MFC code is not suitable for cross-platform code because different platforms have
 /// different path and filename conventions.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 wxString StripPath(wxString FullPath)
@@ -841,14 +841,14 @@ wxString StripPath(wxString FullPath)
 /// \param	MainList			-> the main list of source phrases from which a portion is split off
 /// \param	FirstIndexToKeep	-> the index of the first source phrase in MainList marking the end of the split off part
 /// \remarks
-/// Creates a new Source Phrase List to hold the split-off portion, and returns a pointer to that new List.  
+/// Creates a new Source Phrase List to hold the split-off portion, and returns a pointer to that new List.
 /// MainList is modified by having the first FirstIndexToKeep entries removed into the new List.
 /// BEW 23Mar10 updated for support of doc version 5 (change needed)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 {
 	SPList *rv = new SPList();
-	
+
 	// BEW added 15Aug07, to handle moving final endmarkers to the end of
 	// the split off part, when otherwise the splitting would divide
 	// a marker .... endmarker matched pair (eg. footnote)
@@ -856,9 +856,9 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 	wxASSERT(pos != NULL);
 
 	// Jonathan's original code block (note: FirstIndexToKeep is only
-	// used as a counter so as to determine when to quit the loop, it 
+	// used as a counter so as to determine when to quit the loop, it
 	// is not used for accessing list members)
-	while (FirstIndexToKeep != 0 && MainList->GetCount() > 0) 
+	while (FirstIndexToKeep != 0 && MainList->GetCount() > 0)
 	{
 		pos = MainList->GetFirst();
 		CSourcePhrase* pSrcPhrase = pos->GetData();
@@ -870,25 +870,25 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-/// \return	a substring that contains characters in the string that are in charSet, beginning with 
-///		the first character in the string and ending when a character is found in the inputStr 
-///		that is not in charSet. If the first character of inputStr is not in the charSet, then 
+/// \return	a substring that contains characters in the string that are in charSet, beginning with
+///		the first character in the string and ending when a character is found in the inputStr
+///		that is not in charSet. If the first character of inputStr is not in the charSet, then
 ///		it returns an empty string.
 /// \param	inputStr	-> the string whose characters are examined
 /// \param	charSet		-> a string of characters that may be included in the span of characters returned
 /// \remarks
 /// The wxWidgets wxString class has no SpanIncluding() method so this function
-/// does the equivalent of the CString.SpanIncluding() method 
+/// does the equivalent of the CString.SpanIncluding() method
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 wxString SpanIncluding(wxString inputStr, wxString charSet)
 {
-	// SpanIncluding() returns a substring that contains characters in the 
-	// string that are in charSet, beginning with the first character in 
+	// SpanIncluding() returns a substring that contains characters in the
+	// string that are in charSet, beginning with the first character in
 	// the string and ending when a character is found in the inputStr that
 	// is not in charSet. If the first character of inputStr is not in the
 	// charSet, then it returns an empty string.
 	wxString span = _T("");
-	if (charSet.Length() == 0) 
+	if (charSet.Length() == 0)
 		return span;
 	for (size_t i = 0; i < inputStr.Length(); i++)
 	{
@@ -901,21 +901,21 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-/// \return	all characters preceding the first occurrence of a character from charSet. The character 
+/// \return	all characters preceding the first occurrence of a character from charSet. The character
 ///				from charSet and all characters following it in the inputStr are not returned.
 /// \param	inputStr	-> the string whose characters are examined
 /// \param	charSet		-> a string of characters any one of which will preclude adding the remainder of characters
 /// \remarks
 /// The wxWidgets wxString class has no SpanIncluding() method so this function
-/// does the equivalent of the CString.SpanIncluding() method 
+/// does the equivalent of the CString.SpanIncluding() method
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 wxString SpanExcluding(wxString inputStr, wxString charSet)
 {
-	// SpanExcluding() extracts and returns all characters preceding the first 
+	// SpanExcluding() extracts and returns all characters preceding the first
 	// occurrence of a character from charSet. The character from charSet and
 	// all characters following it in the inputStr are not returned.
 	wxString span = _T("");
-	if (charSet.Length() == 0) 
+	if (charSet.Length() == 0)
 		return inputStr; // return the original string if charSet is empty
 	for (size_t i = 0; i < inputStr.Length(); i++)
 	{
@@ -937,7 +937,7 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 wxString MakeReverse(wxString inputStr)
 {
-	if (inputStr.Length() == 0) 
+	if (inputStr.Length() == 0)
 		return inputStr;
 	wxString reversed = _T("");
 	size_t siz = inputStr.Length();
@@ -949,7 +949,7 @@ wxString MakeReverse(wxString inputStr)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	the zero-based index position of the subStr if it exists in inputStr with a search starting
-///			at startAtPos; or -1 if the subStr is not found in inputStr from startAtPos to the end of 
+///			at startAtPos; or -1 if the subStr is not found in inputStr from startAtPos to the end of
 ///			the string.
 /// \param	inputStr	-> the string in which the find operation is to be done
 /// \param	subStr		-> the sub-string which is being searched for
@@ -967,7 +967,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 	int len = inputStr.Length();
 	if (len == 0 || startAtPos >= len)
 		return -1;
-	const wxChar* pBuf = inputStr.GetData(); 
+	const wxChar* pBuf = inputStr.GetData();
 	wxChar* pBufStart = (wxChar*)pBuf;
 	wxChar* pEnd = pBufStart + len;
 	wxASSERT(*pEnd == (wxChar)0);
@@ -1004,7 +1004,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-/// \return	the zero based index of the first character in inputStr that 
+/// \return	the zero based index of the first character in inputStr that
 ///			is also in charSet, or -1 if there is no match.
 /// \param	inputStr	-> the string in which the search operation is to be done
 /// \param	charSet		-> the sub-string any character of which, if found, will satisfy/end the search
@@ -1014,7 +1014,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 int FindOneOf(wxString inputStr, wxString charSet)
 {
-	// returns the zero based index of the first character in inputStr that 
+	// returns the zero based index of the first character in inputStr that
 	// is also in charSet, or -1 if there is no match
 	for (size_t i = 0; i < inputStr.Length(); i++)
 	{
@@ -1079,11 +1079,11 @@ wxString InsertInString(wxString targetStr, int ipos, wxString insertStr)
 /// The wxWidgets wxRect has no NormalizeRect method so this function does the same
 /// thing that MFC says theirs does.
 /// MFC docs say about NormalizeRect: "Normalizes CRect so that both the height and width
-/// are positive. The rectangle is normalized for fourth-quadrant positioning, which Windows 
-/// typically uses for coordinates. NormalizeRect compares the top and bottom values, and 
-/// swaps them if the top is greater than the bottom. Similarly, it swaps the left and right 
-/// values if the left is greater than the right. This function is useful when dealing with 
-/// different mapping modes and inverted rectangles." 
+/// are positive. The rectangle is normalized for fourth-quadrant positioning, which Windows
+/// typically uses for coordinates. NormalizeRect compares the top and bottom values, and
+/// swaps them if the top is greater than the bottom. Similarly, it swaps the left and right
+/// values if the left is greater than the right. This function is useful when dealing with
+/// different mapping modes and inverted rectangles."
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 wxRect NormalizeRect(const wxRect rect)
 {
@@ -1110,7 +1110,7 @@ wxRect NormalizeRect(const wxRect rect)
 /// \param	pCopyFromFont		-> pointer to the font from which the basic attributes are copied
 /// \param	pCopyToFont			<- pointer to the font to which the basic attributes are copied
 /// \remarks
-/// Copies only the basic attributes from pCopyFromFont to pCopyToFont. 
+/// Copies only the basic attributes from pCopyFromFont to pCopyToFont.
 /// Attributes that are copied are Encoding, Family, FaceName and Weight.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void CopyFontBaseProperties(const wxFont* pCopyFromFont, wxFont*& pCopyToFont)
@@ -1149,7 +1149,7 @@ void CopyAllFontAttributes(const wxFont* pFontCopyFrom, wxFont*& pFontCopyTo)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-/// \return	the number of significant digits padded to the left in the resubinaryValue string of 
+/// \return	the number of significant digits padded to the left in the resubinaryValue string of
 ///			characters representing the binary number.
 /// \param	decimalValue	-> the number which is to be represented as a string in binary notation
 /// \param	binaryValue		<- the string value of decimalValue formatted as a binary string
@@ -1162,7 +1162,7 @@ short DecimalToBinary(unsigned long decimalValue, char binaryValue[32])
 {
 	short index, significant_digits = 0;
 	unsigned long ulValue;
-	binaryValue[31] = 0; 
+	binaryValue[31] = 0;
 	for (index = 30; index >= 0; index--)
 	{
 		ulValue = decimalValue / (1 << index);
@@ -1197,7 +1197,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear().
 	// Also it is sometimes possible that a user could remove a selection from a list box on
-	// non-Windows platforms, so ListBoxPassesSanityCheck() does the following to insure that any 
+	// non-Windows platforms, so ListBoxPassesSanityCheck() does the following to insure that any
 	// wxListBox, wxCheckListBox, or wxComboBox is ready for action:
 	// 1. We check to see if pListBox is really there (not NULL).
 	// 2. We return FALSE if the control does not have any items in it.
@@ -1216,7 +1216,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 	if (pListBox->GetCount() == 0)
 		return FALSE;
 
-	// If we get here we know there is at least one item in the list. Ensure we have a valid selection. 
+	// If we get here we know there is at least one item in the list. Ensure we have a valid selection.
 	// Sanity check #3 check that at least one item in the control is selected/highlighted
 	int nSelTemp;
 	nSelTemp = pListBox->GetSelection();
@@ -1251,7 +1251,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 /// list pSrcPhrases, was taken from the target text line -- but we check only as far as five
 /// consecutive pSrcPhrase instances because we should be able to always detect which is the case
 /// by just testing the first one or two instances, so certainly 5 should be plenty. If after five
-/// we still don't know, then default to returning TRUE. 
+/// we still don't know, then default to returning TRUE.
 /// BEW added 26Oct08
 /// BEW 30Mar10, updated for support of doc version 5 (some changes needed)
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -1259,7 +1259,7 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 {
 		int nIteratorSN = nInitialSequNum;
 		SPList::Node* pos = pSrcPhrases->Item(nIteratorSN);
-		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail, 
+		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail,
 							   // so just ASSERT for a debug mode check
 		CSourcePhrase* pSrcPhrase = pos->GetData(); // this has the \bt marker
 		pos = pos->GetNext();
@@ -1302,7 +1302,7 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 			}
 			counter++; // count the iterations
 
-			// situation is still indeterminate (each string was in collectedStr), so 
+			// situation is still indeterminate (each string was in collectedStr), so
 			// iterate to check the m_adaption and m_gloss members of the next
 			// pSrcPhrase
 			if (pos == NULL)
@@ -1346,7 +1346,7 @@ bool IsReadOnlyProtection_LockFile(wxString& filename)
 		offset = filename.Find(lastPart);
 		if (offset == wxNOT_FOUND)
 			return FALSE;
-		else 
+		else
 		{
 			// return TRUE only if lastPart is filename-final, else return FALSE
 			int filenameLength = filename.Len();
@@ -1374,7 +1374,7 @@ bool IsReadOnlyProtection_LockFile(wxString& filename)
 /// Called from: the AdminMoveOrCopy class, when building a folder's list of folder names.
 /// Fills the string array pFolders with the folder names in the passed in folder
 /// specified by pathToFolder (it must exist - caller must ensure that). Returns FALSE
-/// if there were no folder names obtained from the enumeration; otherwise, returns TRUE 
+/// if there were no folder names obtained from the enumeration; otherwise, returns TRUE
 /// indicating there were folders present.
 /// The sort operation is option, but defaults to TRUE if not specified. On a MS Windows
 /// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
@@ -1401,10 +1401,10 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 		}
 		return FALSE;
 	}
-	else 
+	else
 	{
 		// wxDir must call .Open() before enumerating files
-		bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
+		bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder));
 		if (!bOK)
 		{
 			// unlikely to fail, but just in case...
@@ -1476,12 +1476,12 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 // want to tokenize, array is the array in which we return the tokenized strings, and
 // bStoreEmptyStringsToo allows us to control whether empty strings get appended to array
 // or not, default is to append them. Returns the count of the strings stored in array.
-// 
+//
 // Note: it internally trim spaces from the end tokenized strings, and really I've made
 // this function for getting logical lines from a multiline wxTextCtrl, so don't make space
 // or tab one of the delimiters if what you want is logical lines - otherwise it will
 // return an array of words rather than an array of lines
-long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
+long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 					  bool bStoreEmptyStringsToo)
 {
 	wxString aToken;
@@ -1531,12 +1531,12 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 	if (pathToFolder.IsEmpty())
 	{
 		// return silently, GetFoldersOnly() will already have put up the appropriate
-		// message 
+		// message
 		return FALSE;
 	}
 	wxDir dir;
 	// wxDir must call .Open() before enumerating files
-	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
+	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder));
 	if (!bOK)
 	{
 		// unlikely to fail, but just in case...
@@ -1554,7 +1554,7 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 	{
 		wxString str = _T("");
 		wxString filename = _T("");
-		bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_FILES);
 		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
 		// to include directories, OR with wxDIR_DIRS
 		// to include hidden files, OR with wxDIR_HIDDEN
@@ -1573,7 +1573,7 @@ _("Failed to make the directory  %s  the current working directory prior to gett
             // separator returned on the local machine is the native one (if this
             // assumption proves false, I'll have to make checks and do conditional blocks
             // for making calls using wxPath_UNIX (for Linux or Mac) versus wxPath_WIN
-			
+
             // get the filename part (including extension), we don't care about rest of
             // path and so it's thrown away in the next call; also don't add to the array
             // any read-only protection file encountered
@@ -1623,11 +1623,11 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return         TRUE if there is a \free marker in m_markers of pSrcPhrase, but with 
-///			        no content; else returns FALSE (and it also returns FALSE if there  
+/// \return         TRUE if there is a \free marker in m_markers of pSrcPhrase, but with
+///			        no content; else returns FALSE (and it also returns FALSE if there
 ///                 is no \free marker present)
 ///
-///	\param pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers 
+///	\param pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers
 ///					        member may or may not contain a free translation (filtered)
 /// \remarks
 ///    Used by the CCell.cpp Draw() function to control the colouring of the "green" wedge;
@@ -1646,8 +1646,8 @@ bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return         TRUE if there is a \bt or \bt derivative marker in m_markers of 
-///			        pSrcPhrase, but with no content, else returns FALSE (and it also 
+/// \return         TRUE if there is a \bt or \bt derivative marker in m_markers of
+///			        pSrcPhrase, but with no content, else returns FALSE (and it also
 ///			        returns FALSE if there is no \bt or \bt derivative marker present)
 ///
 /// Parameters:
@@ -1672,7 +1672,7 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return                 a string with the filtered information and wrapped by 
+/// \return                 a string with the filtered information and wrapped by
 ///                         appropriate markers but not any \~FILTER or \~FILTER* wrappers
 /// \param  pSrcPhrase  ->  the CSourcePhrase instance (it could be a placeholder) from
 ///                         which we want to extract the filtered information as a string,
@@ -1699,7 +1699,7 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 	wxASSERT(pSrcPhrases->GetCount() > 0);
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
-	// markers needed, since doc version 5 doesn't store some filtered 
+	// markers needed, since doc version 5 doesn't store some filtered
 	// stuff using them
 	wxString freeMkr(_T("\\free"));
 	wxString freeEndMkr = freeMkr + _T("*");
@@ -1709,14 +1709,14 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 	wxString aSpace = _T(" ");
 
 	// scratch strings, in wxWidgets these local string objects start off empty
-	wxString markersStr; 
+	wxString markersStr;
 	wxString endMarkersStr;
 	wxString freeTransStr;
 	wxString noteStr;
 	wxString collBackTransStr;
 	wxString filteredInfoStr;
 
-	// get the other string information we want, putting it in the 
+	// get the other string information we want, putting it in the
 	// scratch strings
 	GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
@@ -1752,7 +1752,7 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 			// after the \free marker and its following space. We will store it as
 			// follows: |@nnnn@|<space> so that we can search for the number and
 			// find it quickly and remove it if we later import the exported file
-			// into a project as source text. 
+			// into a project as source text.
 			// (Note: the following call has to do its word counting in the SPList,
 			// because only there is the filtered information, if any, still hidden
 			// and therefore unable to mess up the word count.)
@@ -1807,7 +1807,7 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 }
 
 void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
-								  wxString& markersStr, 
+								  wxString& markersStr,
 								  wxString& endMarkersStr,
 								  wxString& freeTransStr,
 								  wxString& noteStr,
@@ -1823,7 +1823,7 @@ void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
 }
 
 void EmptyMarkersAndFilteredStrings(
-								  wxString& markersStr, 
+								  wxString& markersStr,
 								  wxString& endMarkersStr,
 								  wxString& freeTransStr,
 								  wxString& noteStr,
@@ -1896,7 +1896,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content to be added at loop end
 
 	wxString aSpace = _T(" ");
-	wxString markersStr; 
+	wxString markersStr;
 	wxString endMarkersStr;
 	wxString freeTransStr;
 	wxString noteStr;
@@ -1940,7 +1940,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
         // after the \free marker and its following space. We will store it as
         // follows: |@nnnn@|<space> so that we can search for the number and
         // find it quickly and remove it if we later import the exported file
-		// into a project as source text. 
+		// into a project as source text.
         // (Note: the following call has to do its word counting in the SPList,
         // because only there is the filtered information, if any, still hidden
         // and therefore unable to mess up the word count.)
@@ -2076,7 +2076,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 		{
 			// this block is for m_markers and m_endMarkers stuff only, and accumulation
 			// for Sstr (no filtered info can be in the remaining CSourcePhrase instances)
-       
+
             // m_markers material belongs in the list for later placement in Tstr, but the
             // list is medial markers is already populated correctly before entry, however
             // for Sstr we must place m_markers content automatically because its position
@@ -2084,10 +2084,10 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 			if (!markersStr.IsEmpty())
 			{
 				bHasInternalMarkers = TRUE;
-				Sstr << markersStr; 
+				Sstr << markersStr;
 			}
 
-			// any m_endMarkers material will either be medial and so need to be put 
+			// any m_endMarkers material will either be medial and so need to be put
 			// in the list, or final (if this is the last CSourcePhrase of the
 			// retranslation, that is, if m_bEndRetranslation is TRUE)
 			bool bNonFinalEndmarkers = FALSE;
@@ -2158,7 +2158,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 		Tstr = dlg.GetPostPlacementString();
 	}
 
-	// now add the prefix string material not shown in the Place... dialog, 
+	// now add the prefix string material not shown in the Place... dialog,
 	// if it is not empty
 	if (!markersPrefix.IsEmpty())
 	{
@@ -2231,7 +2231,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content to be added at loop end
 
 	wxString aSpace = _T(" ");
-	wxString markersStr; 
+	wxString markersStr;
 	wxString endMarkersStr;
 	wxString freeTransStr;
 	wxString noteStr;
@@ -2326,7 +2326,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 		{
 			// this block is for m_markers and m_endMarkers stuff only, and accumulation
 			// for Sstr (no filtered info can be in the remaining CSourcePhrase instances)
-       
+
             // m_markers material belongs in the list for later placement in Gstr, but the
             // list is medial markers is already populated correctly before entry, however
             // for Sstr we must place m_markers content automatically because its position
@@ -2334,10 +2334,10 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 			if (!markersStr.IsEmpty())
 			{
 				bHasInternalMarkers = TRUE;
-				Sstr << markersStr; 
+				Sstr << markersStr;
 			}
 
-			// any m_endMarkers material will either be medial and so need to be put 
+			// any m_endMarkers material will either be medial and so need to be put
 			// in the list, or final (if this is the last CSourcePhrase of the
 			// retranslation, that is, if m_bEndRetranslation is TRUE)
 			bNonFinalEndmarkers = FALSE;
@@ -2413,7 +2413,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 		Gstr = dlg.GetPostPlacementString();
 	}
 
-	// now add the prefix string material not shown in the Place... dialog, 
+	// now add the prefix string material not shown in the Place... dialog,
 	// if it is not empty
 	if (!markersPrefix.IsEmpty())
 	{
@@ -2465,7 +2465,7 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 	str.Empty(); // clear it out
 
 	wxString aSpace = _T(" ");
-	wxString markersStr; 
+	wxString markersStr;
 	wxString endMarkersStr;
 	wxString freeTransStr;
 	wxString noteStr;
@@ -2482,7 +2482,7 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-	
+
 		// empty the scratch strings
 		EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
 										collBackTransStr, filteredInfoStr);
@@ -2504,12 +2504,12 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
             // this block is for m_markers, m_srcPhrase and m_endMarkers stuff only, and
             // accumulation to str (no filtered info can be in the remaining CSourcePhrase
             // instances)
-       
+
             // m_markers material is placed immediately whenever found
 			if (!markersStr.IsEmpty())
 			{
 				str.Trim(); // ensure we have just one delimiting space
-				str << aSpace << markersStr; 
+				str << aSpace << markersStr;
 			}
 
 
@@ -2571,7 +2571,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
 
 	wxString aSpace = _T(" ");
-	wxString markersStr; 
+	wxString markersStr;
 	wxString endMarkersStr;
 	wxString freeTransStr;
 	wxString noteStr;
@@ -2617,7 +2617,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
         // after the \free marker and its following space. We will store it as
         // follows: |@nnnn@|<space> so that we can search for the number and
         // find it quickly and remove it if we later import the exported file
-		// into a project as source text. 
+		// into a project as source text.
         // (Note: the following call has to do its word counting in the SPList,
         // because only there is the filtered information, if any, still hidden
         // and therefore unable to mess up the word count.)
@@ -2729,7 +2729,7 @@ int ParseMarker(const wxChar *pChar)
 	while (!IsWhiteSpace(ptr) && *ptr != _T('\0'))
 	{
 		if (ptr != pBegin && *ptr == gSFescapechar)
-			break; 
+			break;
 		ptr++;
 		len++;
 	}
@@ -2782,7 +2782,7 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 // retranslation; if TRUE, then also returns the first and last sequence numbers for the
 // retranslation in the last 2 parameters; these parameters are not defined if FALSE is
 // returned
-bool IsContainedByRetranslation(int	nFirstSequNum, 
+bool IsContainedByRetranslation(int	nFirstSequNum,
 												int	nCount,
 												int& nSequNumFirst,
 												int& nSequNumLast)
@@ -2793,7 +2793,7 @@ bool IsContainedByRetranslation(int	nFirstSequNum,
 	SPList* pList = pApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
 	CSourcePhrase* pSrcPhrase;
-	
+
 	SPList::Node* pos = pList->Item(nFirstSequNum);
 	wxASSERT(pos != NULL);
 	int count = 0;
@@ -2802,12 +2802,12 @@ bool IsContainedByRetranslation(int	nFirstSequNum,
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		wxASSERT(pSrcPhrase != NULL); 
+		wxASSERT(pSrcPhrase != NULL);
 		count++;
 		if (pSrcPhrase->m_bEndRetranslation)
 			bFoundEnd = TRUE; // next iteration will go out of retranslation,
 		// or into a following one
-		if (!pSrcPhrase->m_bRetranslation || 
+		if (!pSrcPhrase->m_bRetranslation ||
 			(pSrcPhrase->m_bBeginRetranslation && bFoundEnd))
 		{
 			return FALSE;
@@ -2815,12 +2815,12 @@ bool IsContainedByRetranslation(int	nFirstSequNum,
 		if (count >= nCount)
 			break;
 	}
-	
+
 	// lies within the retranslation, so get the bounds
 	nSequNumFirst = nFirstSequNum;
 	int nFirst = nFirstSequNum+1;
 	pos = pList->Item(nFirstSequNum);
-a:	pSrcPhrase = (CSourcePhrase*)pos->GetData(); 
+a:	pSrcPhrase = (CSourcePhrase*)pos->GetData();
 	pos = pos->GetPrevious();
 	if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
 	{
@@ -2830,7 +2830,7 @@ a:	pSrcPhrase = (CSourcePhrase*)pos->GetData();
 	nSequNumLast = nFirstSequNum + count - 1;
 	int nLast = nFirstSequNum + count - 1;
 b:	nLast += 1;
-	pos = pList->Item(nLast); 
+	pos = pList->Item(nLast);
 	pSrcPhrase = (CSourcePhrase*)pos->GetData();
 	pos = pos->GetNext();
 	if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bBeginRetranslation)
@@ -2838,7 +2838,7 @@ b:	nLast += 1;
 		nSequNumLast = nLast;
 		goto b;
 	}
-	
+
 	return TRUE;
 }
 
@@ -2863,13 +2863,13 @@ bool IsNullSrcPhraseInSelection(SPList* pList)
 bool IsRetranslationInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
-	SPList::Node* pos = pList->GetFirst(); 
+	SPList::Node* pos = pList->GetFirst();
 	if (pos == NULL)
 		return FALSE; // there isn't any selection
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext(); 
+		pos = pos->GetNext();
 		if (pSrcPhrase->m_bRetranslation)
 			return TRUE;
 	}
@@ -2879,18 +2879,18 @@ bool IsRetranslationInSelection(SPList* pList)
 // uuid support
 wxString GetUuid()
 {
-	// it is returned as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" 
+	// it is returned as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh"
 	// (32 hex digits plus 4 hyphens = total 36 chars followed by null char (37th))
-	wxString anUuid; 
+	wxString anUuid;
 	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
-	anUuid = pUuidGen->GetUUID(); 
+	anUuid = pUuidGen->GetUUID();
 	delete pUuidGen;
 	//wxLogDebug(_T("UUID =    %s"), anUuid);
 	return anUuid;
 }
 
 // support getting current date-time in format "YYYY:MM:DD hh:mm:ssZ", which is useful as a
-// potential sort key; that is: "year:month:day hours:minutes:seconds" Z suffix is 'Zulu 
+// potential sort key; that is: "year:month:day hours:minutes:seconds" Z suffix is 'Zulu
 // time zone', that is, UTC (GMT).
 // BEW created 10May10, modified 9July10 to make it be UTC time, and adding Z suffix
 wxString GetDateTimeNow()
@@ -3151,7 +3151,7 @@ bool PopulateTextCtrlByLines(wxTextCtrl* pText, wxString* pPath, int numLines)
 
 // returns TRUE if it succeeds, else FALSE, also returns false if the file has no data; of
 // if a number of other error conditions arises as reported by tellenc().
-// 
+//
 // pText is a multiline text control (best if it has horiz and vert scroll bars enabled),
 // pPath is a pointer to the absolute path to the file, numKilobytes is how many kB of the
 // start of the file are to be put into the control - for all of the file, use -1; if a
@@ -3260,19 +3260,19 @@ char* StrStrAI(char* super, char* sub)
 /// \param		pathName	-> path and name of the file to read into pstrBuffer
 /// \param      numKBOnly   -> default is 0 (used as a filter to cause only the legacy
 ///                            code to be used), otherwise, the number of kilobytes that
-///                            are wanted. (This can be safely greater than the file's 
+///                            are wanted. (This can be safely greater than the file's
 ///                            size.)
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), and helper.cpp's PopulateTextCtrlWithChunk().
-/// Opens and reads a standard format input file into our wxString buffer pstrBuffer which 
-/// is used by the caller to tokenize and build the in-memory data structures used by the 
+/// Opens and reads a standard format input file into our wxString buffer pstrBuffer which
+/// is used by the caller to tokenize and build the in-memory data structures used by the
 /// View to present the data to the user. Note: the pstrBuffer is null-terminated.
-/// 
+///
 /// BEW 19July10, moved here from CAdapt_ItDoc class, as it is to be used in more than just
 /// loading a new file, but also for peeking at a file to verify it is a loadable one
-/// 
+///
 /// BEW 19July10, added 4th param, numKBOnly, with default value 0. If the param has the
-/// value zero, the whole file is read in and the legacy code applies. 
+/// value zero, the whole file is read in and the legacy code applies.
 /// If it has a non-zero value (number of kilobytes), then extra code switches in as follows:
 /// (a) the returned string will be equal to or less than the number of kB requested (the
 /// end may be truncated a little to ensure that, say, valid UTF-8 character byte strings
@@ -3284,9 +3284,9 @@ char* StrStrAI(char* super, char* sub)
 /// guarantee of Unix line termination is what wxTextCtrl, for multiline style, wants.
 /// These manipulations are not done if the legacy code applies, that is, if numKBOnly is 0)
 /// (The new internal manipulations are done in such a way that the input encoding is
-/// unchanged by them.) 
+/// unchanged by them.)
 ///////////////////////////////////////////////////////////////////////////////
-enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, 
+enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 								wxString pathName, int numKBOnly)
 {
     // Bruce's Note on GetNewFileBaseFunct():
@@ -3298,7 +3298,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
     // likewise changed to the safe macros, then SHConv.h could be eliminated from the
     // app's code entirely. And, of course, whatever the export functionalities use has to
     // be checked and changed too...)
-    // 
+    //
     // whm revised 19Jun09 to simplify (via returning an enum value) and move error
     // messages and presentation of the standard file dialog back to the caller
     // OnNewDocument. The tellenc.cpp encoding detection algorithm was also incorporated to
@@ -3309,7 +3309,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
     // what the legacy MFC app did). The revision also eliminates some memory leaks that
     // would happen if the routine returned prematurely with an error.
 
-	// wxWidgets Notes: 
+	// wxWidgets Notes:
 	// 1. See MFC code for version 2.4.0 where Bruce needed to monkey
 	//    with the call to GetNewFile() function using GetNewFileBaseFunct()
 	//    and GetNewFileUsingPtr() in order to get the Chinese localized
@@ -3322,7 +3322,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	//    data structures used by the View to present the data to the user.
 	//    It also remembers where the input file came from by storing its
 	//    path in m_lastSourceFileFolder.
-	wxUint32 byteCount = 0;   
+	wxUint32 byteCount = 0;
 	bool bShorten = FALSE;
 	char CR = 0;
 	char LF = 0;
@@ -3349,7 +3349,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		BSLASH = '\\';
 		NIX = '\0';
 		byteCount = numKBOnly * 1024;
-		bShorten = TRUE; 
+		bShorten = TRUE;
 	}
 
 	// get a CFile and check length of file
@@ -3398,7 +3398,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
     // buffer and use tellenc only once before handling the results with _UNICODE
     // conditional compiles.
 
-#ifndef _UNICODE // ANSI version, no unicode support 
+#ifndef _UNICODE // ANSI version, no unicode support
 
 	// create the required buffer and then read in the file (no conversions needed)
 	// BEW changed 8Apr06; use malloc to remove the limitation of the finite stack size
@@ -3446,16 +3446,16 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				// and LF will be in sequence, and so we can search for that byte pair.
 				// For UTF-16, CR and LF will each be followed by a nullbyte, so we can't
 				// use c-string functions, and we'll need a scanning loop instead
-								
+
                 // make a second buffer for receiving copied data substrings, with Unix
                 // line ending \n only
 				pbyteBuff_COPY = (char*)malloc(nLength);
 				memset(pbyteBuff_COPY,0,nLength); // fill with nulls, at least 2 bytes at
-												  // the end will remain null 
-				// do the loop... 
+												  // the end will remain null
+				// do the loop...
 				if (bHasCRLF)
 				{
-					// assume ANSI - so find each CR followed immediately by an LF - for 
+					// assume ANSI - so find each CR followed immediately by an LF - for
 					// this we can use strstr() safely
 					aux = pBuf;
 					ptr = pBuf;
@@ -3479,7 +3479,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 						++pBegin_COPY;
 
 						// break out another line, if there is another which ends with the eol
-						// string 
+						// string
 						ptr = strstr(aux,eol);
 					}
 					// get the last substring, which may not have been terminated by CR+LF
@@ -3501,7 +3501,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				}
 
 				// now overwrite the old data in pbyteBuff
-				memset(pBuf,0,originalBuffLen); // fill with nulls, originalBuffLen will be 
+				memset(pBuf,0,originalBuffLen); // fill with nulls, originalBuffLen will be
 												// greater than the number of chars
 												// we want to copy back there
 				wxUint32 numberOfBytes = (wxUint32)(pBegin_COPY - pbyteBuff_COPY);
@@ -3575,13 +3575,13 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	{
 		gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
 	}
-	
+
 	*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
 						// buffer is destroyed
-	
+
 	free((void*)pBuf);
 
-#else	// Unicode version supports ASCII, ANSI (but may not be rendered right 
+#else	// Unicode version supports ASCII, ANSI (but may not be rendered right
     // when converted using CP_ACP), UTF-8, and UTF-16 input (code taken from Bob Eaton's
     // modifications to AsyncLoadRichEdit.cpp for Carla Studio) We use a temporary buffer
     // allocated on the stack for input, and the conversion macros (which allocated another
@@ -3663,7 +3663,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 					*(ptr + index) = NIX;
 				}
 				nLength += sizeof(wxChar); // put the final two null bytes back in
-			} // nLength now points at a null byte after a byte sequence of data 
+			} // nLength now points at a null byte after a byte sequence of data
 			  // which is valid in the given encoding, even if UTF-16 was input,
 			  // plus an extra couple of null bytes which will remain null in order
 			  // to terminate the wxString which we return the data to
@@ -3731,15 +3731,15 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				// and LF will be in sequence, and so we can search for that byte pair.
 				// For UTF-16, CR and LF will each be followed by a nullbyte, so we can't
 				// use c-string functions, and we'll need a scanning loop instead
-								
+
                 // make a second buffer for receiving copied data substrings, with Unix
                 // line ending \n only (remember, the data may be already UTF-16, which
                 // could be zero byte extended ASCII, and so we can't assume there won't be
                 // null bytes in it)
 				pbyteBuff_COPY = (char*)malloc(nLength);
 				memset(pbyteBuff_COPY,0,nLength); // fill with nulls, at least 2 bytes at
-												  // the end will remain null 
-				// do the loop... 
+												  // the end will remain null
+				// do the loop...
 				if (bHasCRLF)
 				{
 					// it's UTF16, so we've a more complex scanning loop to do - but it's
@@ -3770,7 +3770,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 								pBegin_COPY += lineLen; // point past what we just copied
 								// advance aux in the pbyteBuff buffer past the eol_utf16
 								// bytes and put ptr there too
-								aux = ptr + sizeof(eol_utf16); 
+								aux = ptr + sizeof(eol_utf16);
 								ptr = aux;
 
 								// add an LF char after the substring in the copy buffer,
@@ -3814,7 +3814,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 						pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
 						pBegin_COPY += lineLen; // point past what we just copied
 						// advance ptr in the pbyteBuff buffer
-						aux = ptr + sizeof(eol) -1; // point past the CR&LF 
+						aux = ptr + sizeof(eol) -1; // point past the CR&LF
 						ptr = aux;
 
 						// add an LF char after the substring
@@ -3836,7 +3836,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				} // end FALSE block for test: if (bHasCRLF)
 
 				// now overwrite the old data in pbyteBuff
-				memset(pbyteBuff,0,originalBuffLen); // fill with nulls, originalBuffLen will be 
+				memset(pbyteBuff,0,originalBuffLen); // fill with nulls, originalBuffLen will be
 													 // greater than the number of chars
 													 // we want to copy back there, by several
 				wxUint32 numberOfBytes = (wxUint32)(pBegin_COPY - pbyteBuff_COPY);
@@ -3864,7 +3864,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		} // end of TRUE block for test: if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
 	} // end of TRUE block for test: if (bShorten)
 
-	// now we have to find out what kind of encoding the data is in, and set the 
+	// now we have to find out what kind of encoding the data is in, and set the
 	// encoding and we convert to UTF-16 in the DoInputConversion() function
 	if (nNumRead <= 0)
 	{
@@ -3896,19 +3896,19 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				// the app is mucking up the source data conversion, so the user wants
 				// to force UTF8 encoding to be used
 				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-			}	
+			}
 			else
 			{
                 // The MFC version uses Microsoft's IMultiLanguage2 interface to detect
                 // whether the file buffer contains UTF-8, UTF-16 or some form of 8-bit
                 // encoding (using GetACP()), but Microsoft's stuff is not cross-platform,
                 // nor open source.
-                // 
+                //
                 // One possibility for encoding detection is to use IBM's International
                 // Components for Unicode (icu) under the LGPL. This is a very large, bulky
                 // library of tools and would considerably inflate the size of Adapt It's
                 // distribution.
-				
+
                 // The following source code is used by permission. It is taken and adapted
                 // from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei
                 // <wuyongwei@gmail.com>. See tellenc.cpp source file for Copyright,
@@ -3982,13 +3982,13 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		}
 	}
 
-	// do the converting and transfer the converted data to pstrBuffer (which then 
+	// do the converting and transfer the converted data to pstrBuffer (which then
 	// persists while doc lives)
 	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
 
 	// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
 	// the count)
-	nLength = pstrBuffer->Len() + 1; // # of UTF16 characters + null character 
+	nLength = pstrBuffer->Len() + 1; // # of UTF16 characters + null character
 											// (2 bytes)
 	// free the original read in (const) char data's chunk
 	free((void*)pbyteBuff);
