@@ -89,6 +89,7 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
 	EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
 	EVT_BUTTON(ID_BUTTON_PEEK, AdminMoveOrCopy::OnBnClickedPeek)
+	EVT_BUTTON(ID_BUTTON_FLIP, AdminMoveOrCopy::OnBnClickedFlip)
 	
 
 END_EVENT_TABLE()
@@ -2077,6 +2078,20 @@ _("You first need to select at least one item in the left list before clicking t
 	SetupSrcList(m_strSrcFolderPath);
 }
 
+// BEW added 16July10
+void AdminMoveOrCopy::OnBnClickedFlip(wxCommandEvent& WXUNUSED(event))
+{
+	wxString tempStr = m_strSrcFolderPath;
+	m_strSrcFolderPath = m_strDestFolderPath;
+	m_strDestFolderPath = tempStr;
+	SetupSrcList(m_strSrcFolderPath);
+	SetupDestList(m_strDestFolderPath);
+	EnableRenameButton(FALSE);
+	EnableDeleteButton(FALSE);
+	m_strDestFolderPath_OLD = m_strDestFolderPath;
+	m_strSrcFolderPath_OLD = m_strSrcFolderPath;
+}
+
 // BEW added 14July10
 void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 {
@@ -2087,8 +2102,8 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 		{
 			// nothing to Peek at, tell the user what to do
 			wxString str = _(
-"The Peek... button will show you up to the first 100 lines of a file selected in the right hand list.\nBut first, click on a file to select it, then click the Peek... button.");
-			wxMessageBox(str,_("Peek needs a selection"), wxICON_INFORMATION);
+"The Peek... button will show you up to the first 16 kB of whichever file you selected in the right hand list.\nBut first, click on a file to select it, then click the Peek... button.");
+			wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION);
 			return;
 		}
 		else
@@ -2104,6 +2119,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 										 // and also its friend
 			peeker.m_filePath = path; // transfer the path to the file to be peeked at
 			wxASSERT(!peeker.m_filePath.IsEmpty());
+			peeker.m_pEditCtrl->SetFocus();
 
 			if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
 			{

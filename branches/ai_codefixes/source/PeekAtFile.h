@@ -48,6 +48,12 @@ private:
 	wxTextCtrl*			m_pEditCtrl;
 	wxString			m_filePath;
 	AdminMoveOrCopy*	m_pAdminMoveOrCopy;
+	wxTextCtrl*			m_pMsgCtrl;
+	wxString			Line1Str;
+	wxString			Line2Str;
+
+	// font support (store colour while we use black)
+	wxColour			m_storeColor;
 	
 	// other class attributes
 

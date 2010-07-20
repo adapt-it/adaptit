@@ -27,8 +27,22 @@ class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPLis
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
 
+/// An enum for return error-state from GetNewFile()
+enum getNewFileState
+{
+	getNewFile_success,
+	getNewFile_error_at_open,
+	getNewFile_error_opening_binary,
+	getNewFile_error_no_data_read,
+	getNewFile_error_unicode_in_ansi,
+	getNewFile_error_ansi_CRLF_not_in_sequence
+};
+
+
 ////////////////////////////////////////////
 //  helper functions
+
+//char* StrStrAI(char* super, char* sub); 
 
 int TrimAndCountWordsInString(wxString& str);
 
@@ -186,6 +200,16 @@ wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
 
 //size_t GetFileSize_t(wxString& absPathToFile);
 bool IsLoadableFile(wxString& absPathToFile);
+/* unused, but perfect good
 bool PopulateTextCtrlByLines(wxTextCtrl* pText, wxString* pPath, int numLines = -1);
+*/
+bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKilobytes = -1);
+// GetNewFile was formerly in CAdapt_ItDoc class, and its return enum in Adapt_It.h
+// BEW 19July10, added 4th param, so as to be able to get just a certain number of kB of
+// the file for viewing (approximate kB, we truncate the end a bit more to ensure the
+// characters that remain are valid for the encoding); if the 4th param is zero, it gets
+// the whole file and does no truncating at the end
+enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, 
+								wxString pathName, int numKBOnly = 0);
 
 #endif	// helpers_h

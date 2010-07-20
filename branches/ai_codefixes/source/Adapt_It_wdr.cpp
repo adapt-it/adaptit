@@ -6832,39 +6832,51 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 6, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxSize(60,-1), 0 );
+    item31->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 6, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxSize(60,-1), 0 );
+    item31->Add( item33, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
-    wxButton *item34 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticLine *item34 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
+    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item35 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxSize(68,-1), 0 );
+    item31->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxSize(50,-1), 0 );
-    item31->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 8, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxSize(68,-1), 0 );
+    item31->Add( item36, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    wxButton *item37 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item37, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_FLIP, _("Flip"), wxDefaultPosition, wxSize(48,-1), 0 );
+    item31->Add( item37, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    wxButton *item38 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->SetDefault();
-    item31->Add( item38, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item38 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxSize(52,-1), 0 );
+    item31->Add( item38, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item39 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->Add( item39, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item40 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->SetDefault();
+    item31->Add( item40, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
 
@@ -7259,10 +7271,8 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_MSG, _("A maximum of 200 lines are shown. The text is read-only, any changes you type will not be accepted. Font, encoding and direction use the source text settings."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item1->Add( 20, 2, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_PEEKMSG, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
     item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -7279,7 +7289,7 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
