@@ -15,6 +15,7 @@
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
 		0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
+		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
@@ -136,6 +137,9 @@
 		0396BFCA11BEA67600100CC4 /* TargetUnit_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TargetUnit_Standoff.h; path = ../../source/TargetUnit_Standoff.h; sourceTree = SOURCE_ROOT; };
 		03D7A717112A2601004F6D39 /* Notes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Notes.h; path = ../../source/Notes.h; sourceTree = "<group>"; };
 		03D7A718112A2601004F6D39 /* Notes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Notes.cpp; path = ../../source/Notes.cpp; sourceTree = "<group>"; };
+		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
+		03F468AD11F759A300B3CAEC /* PeekAtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PeekAtFile.h; path = ../../source/PeekAtFile.h; sourceTree = SOURCE_ROOT; };
+		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
@@ -375,6 +379,9 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */,
+				03F468AD11F759A300B3CAEC /* PeekAtFile.h */,
+				03F468AE11F759A300B3CAEC /* tellenc.h */,
 				0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */,
 				0396BFC211BEA67600100CC4 /* CRefString_Standoff.h */,
 				0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */,
@@ -801,6 +808,7 @@
 				0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */,
 				0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */,
 				0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */,
+				03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
