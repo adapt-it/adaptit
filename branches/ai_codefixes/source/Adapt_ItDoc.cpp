@@ -143,11 +143,11 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
 /// this BOM.
-static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
+//static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
 
 /// The UTF-16 byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
 /// in UTF-16 encoding.
-static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
+//static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
 
 #endif
 
