@@ -3192,14 +3192,14 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 		wxString eolStr = _T("\n");
 		wxString str;
 		wxString* pStr = &str;
-		size_t nLength; // returns length of data plus 1 (for the null char)
+		wxUint32 nLength; // returns length of data plus 1 (for the null char)
 		// get the data into str, it will be UTF-16 in the Unicode app, ANSI in the
 		// Regular app, and since the number of kilobytes wanted is passed in, the
 		// GetNewFile() function will normalize the data to only use Unix \n (linefeed) as
 		// the line terminator - this can be counted on, and the data will be passed back
 		// in the first param. We'll ask for 16 kB of the file, or all of it if it is
 		// smaller than that.
-		enum getNewFileState retValue = GetNewFile(pStr, (wxUint32)nLength, path, 16);
+		enum getNewFileState retValue = GetNewFile(pStr, nLength, path, 16);
 		if (retValue == getNewFile_success)
 		{
 			pText->ChangeValue(str);
