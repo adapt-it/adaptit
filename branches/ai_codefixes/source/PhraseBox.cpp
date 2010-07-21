@@ -2010,6 +2010,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		while (node != NULL)
 		{
 			pRefStr = node->GetData();
+			node = node->GetNext();
 			wxASSERT(pRefStr);
 			if (!pRefStr->GetDeletedFlag())
 			{
