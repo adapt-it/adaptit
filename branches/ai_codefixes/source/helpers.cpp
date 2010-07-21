@@ -3643,7 +3643,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		{
 			offset = nLength;
 			pBegin = pbyteBuff;
-			pEnd = (char*)((wxUint32)pBegin + nLength);
+			pEnd = (char*)(pBegin + nLength);
 			wxUint32 counter = 0;
 			ptr = pEnd; // start, pointing after last byte read in
 			do {
