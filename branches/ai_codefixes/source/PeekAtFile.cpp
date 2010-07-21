@@ -120,8 +120,8 @@ void CPeekAtFileDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 		wxString msg;
 		msg = msg.Format(_T(
 "PopulateTextCtrlByLines() failed, so nothing is visible. wxTextFile failed to open the file with path: %s"),
-		m_filePath);
-		wxMessageBox(msg.c_str(),_T("Error"),wxICON_WARNING);
+		m_filePath.c_str());
+		wxMessageBox(msg,_T("Error"),wxICON_WARNING);
 	}
 	m_pEditCtrl->SetInsertionPointEnd();
 	m_pEditCtrl->SetEditable(FALSE);
