@@ -3199,7 +3199,7 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 		// the line terminator - this can be counted on, and the data will be passed back
 		// in the first param. We'll ask for 16 kB of the file, or all of it if it is
 		// smaller than that.
-		enum getNewFileState retValue = GetNewFile(pStr, nLength, path, 16);
+		enum getNewFileState retValue = GetNewFile(pStr, (wxUint32)nLength, path, 16);
 		if (retValue == getNewFile_success)
 		{
 			pText->ChangeValue(str);
@@ -3252,6 +3252,21 @@ char* StrStrAI(char* super, char* sub)
 	return (char*)NULL;
 }
 */
+
+// we do no checks, it's up to the caller to ensure that dest buffer has enough room for
+// byteCount bytes to be copied
+char* strncpy_utf16(char* dest, char* src, size_t byteCount)
+{
+	char* iter; // source text iterator
+	char* iter2; // destination iterator
+	char* pHaltLoc = src + byteCount;
+	for (iter = src, iter2 = dest; iter < pHaltLoc; iter++, iter2++)
+	{
+		*iter2 = *iter;
+	}
+	return dest;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		enum getNewFileState indicating success or error state when reading the
 ///             file.
@@ -3766,7 +3781,10 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 								// and ptr points to char just past the last in the substring
 								ptr = pPotential;
 								lineLen = (wxUint32)(ptr - aux);
-								pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
+								// next call, can't use strncpy as it halts at the first
+								// null byte (and in utf-16 built from anscii, there are
+								// heaps of them present)
+								pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
 								pBegin_COPY += lineLen; // point past what we just copied
 								// advance aux in the pbyteBuff buffer past the eol_utf16
 								// bytes and put ptr there too
@@ -3791,15 +3809,15 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 					lineLen = (wxUint32)(pEnd - aux);
 					if (lineLen > 0)
 					{
-						pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
-						aux = pBegin_COPY + lineLen; // this points at the next byte after
+						pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
+						pBegin_COPY += lineLen; // this points at the next byte after
 													 // the last byte that was copied
 					}
 				} // end TRUE block for test: if (bHasCRLF)
 				else
 				{
 					// do the loop, it's not UTF-16, so could be ANSI or UTF-8; - find each CR
-					// followed immediately by an LF - for this we can use strstr() safely
+					// followed immediately by LF - we can use strstr() & strncpy() safely
 					aux = pbyteBuff;
 					ptr = pbyteBuff;
 					char eol[3] = {CR,LF,NIX}; // must be a c-string for use in strstr()
@@ -3840,7 +3858,10 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 													 // greater than the number of chars
 													 // we want to copy back there, by several
 				wxUint32 numberOfBytes = (wxUint32)(pBegin_COPY - pbyteBuff_COPY);
-				pbyteBuff = strncpy(pbyteBuff, pbyteBuff_COPY, numberOfBytes);
+				// because the copy could be having to copy nullbyte extended ascii made
+				// into UTF-16, we can't use strncpy() here, but only our variant which
+				// can handle that kind of data
+				pbyteBuff = strncpy_utf16(pbyteBuff, pbyteBuff_COPY, numberOfBytes);
 				nNumRead = numberOfBytes;
 				nLength = numberOfBytes + sizeof(wxChar);
 

@@ -42,7 +42,12 @@ enum getNewFileState
 ////////////////////////////////////////////
 //  helper functions
 
-//char* StrStrAI(char* super, char* sub); 
+//char* StrStrAI(char* super, char* sub);
+//
+// next one useful for byte-copying a UTF-16 text which was formed from ascii text, and so
+// it has zero byte extended UTF-16 characters; strncpy() won't work as it halts at the
+// first null byte encountered, no matter what byteCount is requested for copying 
+char* strncpy_utf16(char* dest, char* src, size_t byteCount);
 
 int TrimAndCountWordsInString(wxString& str);
 
