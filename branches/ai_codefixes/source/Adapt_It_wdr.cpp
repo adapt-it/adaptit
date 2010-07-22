@@ -6840,53 +6840,59 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    item31->Add( 6, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxSize(60,-1), 0 );
-    item31->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    item31->Add( 6, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 6, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxSize(60,-1), 0 );
-    item31->Add( item33, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item34 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item34, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticLine *item34 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticLine *item35 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
+    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item35 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxSize(68,-1), 0 );
-    item31->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxSize(68,-1), 0 );
-    item31->Add( item36, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item37, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item37 = new wxButton( parent, ID_BUTTON_FLIP, _("Flip"), wxDefaultPosition, wxSize(48,-1), 0 );
-    item31->Add( item37, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    wxButton *item38 = new wxButton( parent, ID_BUTTON_FLIP, _("Flip"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item38, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item38 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxSize(52,-1), 0 );
-    item31->Add( item38, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    wxButton *item39 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item39, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item39 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item39, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    wxButton *item40 = new wxButton( parent, ID_BUTTON_SOURCE_DATA_FOLDER, _("Source Data Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item40, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item31->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( item32, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item40 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item40->SetDefault();
-    item31->Add( item40, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+    wxBoxSizer *item41 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item42 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item42->SetDefault();
+    item41->Add( item42, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+
+    item41->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item31->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
 
