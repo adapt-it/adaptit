@@ -948,6 +948,16 @@ bool CAdapt_ItDoc::OnNewDocument()
 				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
 				break;
 			}
+			case getNewFile_error_ansi_CRLF_not_in_sequence:
+			{
+                // this error cannot occur, because the code where it may be generated is
+                // never entered for a GetNewFile() call made in OnNewDocument, but the
+                // compiler needs a case for this enum value otherwise there is a warning
+                // generated
+				wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
+				_T(""),wxICON_ERROR);
+				break;
+			}
 			case getNewFile_error_no_data_read:
 			{
 				// we got no data, so this constitutes a read failure

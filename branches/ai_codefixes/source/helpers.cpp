@@ -3208,6 +3208,18 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 		}
 		else
 		{
+			if (retValue == getNewFile_error_ansi_CRLF_not_in_sequence)
+			{
+				// this error is pretty well absolutely certain never to occur, so we
+				// won't bother to localize it; just inform the user and abort the Peek
+				wxMessageBox(_T("Input data malformed, running Adapt It (Regular): CR (carriage return) and LF (linefeed) characters are present in the data, but are not paired as a sequence of two bytes. This should never happen!"),
+				_T("Incredible data format error!"),wxICON_ERROR);
+			}
+			else
+			{
+				// a beep will do for other errors
+				wxBell();
+			}
 			return FALSE;
 		}
 	}
