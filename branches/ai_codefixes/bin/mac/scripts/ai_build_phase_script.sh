@@ -87,6 +87,7 @@ licenseDir="${resourcesDir}/license"
 imagesDir="${resourcesDir}/images/Adapt It Quick Start"
 imagesDirSrc="${docsDir}/images/Adapt It Quick Start"
 
+cp "$docsDir/iso639-3codes.txt" "$resourcesDir"
 cp "$docsDir/Adapt It Reference.doc" "$resourcesDir"
 cp "$docsDir/Adapt It Tutorial.doc" "$resourcesDir"
 cp "$docsDir/Adapt It changes.txt" "$resourcesDir"
