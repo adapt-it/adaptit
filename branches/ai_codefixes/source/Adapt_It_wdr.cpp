@@ -1012,42 +1012,52 @@ wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->SetToolTip( _("Move to the used list") );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    item9->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item12 = new wxButton( parent, ID_BUTTON_REJECT_ALL_FILES, _("Move All Right >>"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item9->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item13 = new wxButton( parent, ID_BUTTON_ACCEPT_ALL_FILES, _("<< Move All Left"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item4->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(240,250), 0, strs13, wxLB_SINGLE|wxLB_HSCROLL );
-    item13->SetToolTip( _("Document files listed here will not be used") );
-    item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("None of these document files will be used"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item4->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
-
-    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxString *strs15 = (wxString*) NULL;
+    wxListBox *item15 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(240,250), 0, strs15, wxLB_SINGLE|wxLB_HSCROLL );
+    item15->SetToolTip( _("Document files listed here will not be used") );
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("None of these document files will be used"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetDefault();
-    item17->SetToolTip( _("Click OK to proceed") );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item4->Add( item14, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
-    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item19 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetDefault();
+    item19->SetToolTip( _("Click OK to proceed") );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item20 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 

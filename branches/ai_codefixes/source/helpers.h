@@ -217,4 +217,8 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, 
 								wxString pathName, int numKBOnly = 0);
 
+// BEW created 22July10, to support user-protection from folder navigation when creating a
+// new document for adaptation
+bool UseSourceDataFolderOnlyForInputFiles();
+
 #endif	// helpers_h

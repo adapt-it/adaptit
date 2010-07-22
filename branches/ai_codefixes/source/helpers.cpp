@@ -4031,6 +4031,96 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	return getNewFile_success;
 }
 
+// BEW created 22July10, this function tests for existence of a folder named "Source Data"
+// as a child folder of the current project folder, and if it exists, and provided it also
+// has at least one file within it which is loadable for adaptation document creation
+// purposes, the function will return TRUE; if the Source Data folder does not exist, it
+// returns FALSE, it also returns FALSE if it has no files in that folder, or if all the
+// files in that folder when tested with the IsLoadableFile() and they all return FALSE.
+// The UseSourceDataFolderOnlyForInputFiles() function is used at any point in the
+// application where the user has the possibility of creating a new adaptation document. If
+// the return value is TRUE, the standard folder and file navigation dialog is suppressed,
+// and instead only a monocline list of loadable files is shown to the user in a dialog
+// with a ListBox -- only a selected file from that list can be used to create a document.
+// The function can rely on the fact that a valid path to a Source Data folder will have
+// been set up when the project was entered, the path will be in the app member string,
+// m_sourceDataFolderPath.
+bool UseSourceDataFolderOnlyForInputFiles()
+{
+	wxASSERT(!gpApp->m_sourceDataFolderPath.IsEmpty());
+	bool bDirExists = ::wxDirExists(gpApp->m_sourceDataFolderPath);
+	if (!bDirExists)
+	{
+		return FALSE;
+	}
+	else
+	{
+		// enumerate the files in the Source Data directory
+		wxArrayString arrFilenames;
+		bool bOkay = gpApp->EnumerateDocFiles_ParametizedStore(arrFilenames,
+														gpApp->m_sourceDataFolderPath);
+		if (!bOkay)
+		{
+			// failure is unlikely, so a non-localizable message will suffice
+			wxMessageBox(_T("Enumerating the filenames in the Source Data folder failed. Folder navigation is still permitted for input."),
+			_T(""),wxICON_WARNING);
+			return FALSE;
+		}
+		else
+		{
+			// if there are no files in the folder, return FALSE
+			if (arrFilenames.IsEmpty())
+			{
+				return FALSE;
+			}
+
+			// check that at least one of the enumerated files is loadable; if some are
+			// not loadable, warn the user which ones
+			wxString unloadables; unloadables.Empty();
+			bool bSomeAreBad = FALSE;
+			wxString filename;
+			wxString aPath;
+			bool  bOneIsGood = FALSE;
+			size_t index;
+			size_t count = arrFilenames.GetCount();
+			for (index = 0; index < count; index++)
+			{
+				filename = arrFilenames.Item(index);
+				aPath = gpApp->m_sourceDataFolderPath + gpApp->PathSeparator + filename;
+				wxASSERT(::FileExists(aPath));
+				bool bIsGood = IsLoadableFile(aPath);
+				if (!bIsGood)
+				{
+					bSomeAreBad = TRUE;
+					unloadables += _T("  ") + filename;
+				}
+				else
+				{
+					bOneIsGood = TRUE;
+				}
+			} // end for loop, testing all files in the folder
+			if (bSomeAreBad && bOneIsGood)
+			{
+				// warn the user which ones are not loadable for doc creation purposes
+				wxString msg;
+				msg = msg.Format(_("Some of the Source Data folder's files are not suitable for creating an adaptation document.\nThey are: %s"),
+				unloadables.c_str());
+				wxMessageBox(msg,_T("Warning: do not use these files"),wxICON_WARNING);
+			}
+			else if (bSomeAreBad && !bOneIsGood)
+			{
+				// warn the user that none are loadable for doc creation purposes,
+				// and that navigation protect therefore can't be turned on
+				wxString msg;
+				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the Source Data folder's files are suitable for creating an adaptation document.\nThey are: %s"),
+				unloadables.c_str());
+				wxMessageBox(msg,_T("Warning: do not use these files"),wxICON_WARNING);
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
 
 
 

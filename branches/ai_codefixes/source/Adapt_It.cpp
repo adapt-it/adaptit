@@ -12410,6 +12410,22 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		pKB->GetForceAskList(&keys);
 	}
 
+	// BEW 22July10, CWhichFilesDlg is called from EnumerateDocFiles(), and if the user
+	// cancels from that dialog, we don't want the KB or GlossingKB lost (it might still
+	// be good), so save the relevant KB file first, and restore it below if the user has
+	// cancelled from the enum call for the Adaptations dialog's contents
+	wxString tempKBfilePath;
+	if (gbIsGlossing)
+	{
+		tempKBfilePath = m_curProjectPath + PathSeparator + _T("Save_GlossingKB");
+		bOK = ::wxCopyFile(m_curGlossingKBPath, tempKBfilePath);
+	}
+	else
+	{
+		tempKBfilePath = m_curProjectPath + PathSeparator + _T("Save_AdaptingKB");
+		bOK = ::wxCopyFile(m_curKBPath, tempKBfilePath);
+	}
+
 	// clear out the KB, actually erase it & create a new empty one & store it ready 
 	// for filling
 	ClearKB(pKB,pDoc); // checks clears whichever KB is passed in as first param, &
@@ -12463,14 +12479,64 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// document files is impossible, so then return to caller with a FALSE value
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 		{
-			// IDS_NO_DOCUMENTS_YET
 			wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 			_T(""), wxICON_EXCLAMATION);
+
+			// let the view respond again to updates
+			pView->canvas->Thaw();
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			if (::wxFileExists(tempKBfilePath))
+			{
+				bOK = ::wxRemoveFile(tempKBfilePath);
+				tempKBfilePath.Empty();
+			}
 			return;
 		}
 		// there is at least one document, so do the restore
 		DoKBRestore(pKB, nCount, nTotal, nCumulativeTotal);
+	}
+	else
+	{
+		// probably the user cancelled from the CWhichFilesDlg dialog, in which case we
+		// want to set up the old KB, as it might still be good; assume the restore will
+		// not have any errors
+		if (gbIsGlossing)
+		{
+			bOK = ::wxCopyFile(tempKBfilePath, m_curGlossingKBPath);
+			bOK = LoadGlossingKB();
+			if (bOK)
+			{
+				m_bGlossingKBReady = TRUE;
+			}
+		}
+		else
+		{
+			bOK = ::wxCopyFile(tempKBfilePath, m_curKBPath);
+			bOK = LoadKB();
+			if (bOK)
+			{
+				m_bKBReady = TRUE;
+			}
+		}
+		// remove the temporary copy of the KB file or Glossing KB file
+		bOK = ::wxRemoveFile(tempKBfilePath);
+		tempKBfilePath.Empty();
+
+		// let the view respond again to updates
+		pView->canvas->Thaw();
+
+		// clean up the list
+		m_acceptedFilesList.Clear();
+
+		// restore the former book mode parameters (even if book mode was not on on entry)
+		m_pCurrBookNamePair = pSave_BookNamePair;
+		m_nBookIndex = nSave_BookIndex;
+		m_bibleBooksFolderPath = save_bibleBooksFolderPath;
+
+		// restore the former current working directory to what it was on entry
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+		return;
 	}
 
 	if (gbHasBookFolders)
@@ -12493,6 +12559,15 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 "processing book folders, so the book folder document files do not contribute to the rebuild.");
 			s3 = s3.Format(_T("%s%s"),s1.c_str(),s2.c_str());
 			wxMessageBox(s3,_T(""), wxICON_EXCLAMATION);
+			// let the view respond again to updates
+			pView->canvas->Thaw();
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			m_acceptedFilesList.Clear();
+			if (::wxFileExists(tempKBfilePath))
+			{
+				bOK = ::wxRemoveFile(tempKBfilePath);
+				tempKBfilePath.Empty();
+			}
 			return;
 		}
 		else
@@ -12639,6 +12714,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		else
 			DoKBBackup();
 	}
+	if (::wxFileExists(tempKBfilePath))
+	{
+		bOK = ::wxRemoveFile(tempKBfilePath);
+		tempKBfilePath.Empty();
+	}
 
 	// inform user of success and some statistics
 	wxString stats;
@@ -12764,7 +12844,7 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 ///                             is to have its document files enumerated
 /// \remarks
 /// Called from: the App's AccessOtherAdaptionProjects().
-/// This is a similar function to EnumerateDocFiles, but with a few differencesas follows:
+/// This is a similar function to EnumerateDocFiles, but with a few differences as follows:
 /// 1.  EnumerateDocFiles() stores in CAdapt_ItApp::m_acceptedFilesList, and so is not a 
 ///     useful function if we wish to enumerate the documents in more than one folder (which
 ///     is the case when transforming adaptations to glosses); so we pass in the storage
