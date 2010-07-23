@@ -39,7 +39,7 @@ class AIPrintout;
 // comment out when the wxLogDebug() calls are no longer needed
 //#define Test_m_bNoAutoSave
 
-/////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
+//////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
 //	DWORD (unsigned long)			wxUint32
 //	COLORREF (unsigned long)		WXCOLORREF (unsigned long)
@@ -51,7 +51,7 @@ class AIPrintout;
 //	LPCTSTR							const wxChar*
 //	LPTSTR							wxChar*
 //	HBRUSH							wxUint32
-/////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
+//////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
