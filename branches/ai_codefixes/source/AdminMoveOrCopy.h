@@ -29,6 +29,11 @@ enum whichSide {
 	destinationSide
 };
 
+enum focusWhere {
+	sourceSideHasFocus,
+	destinationSideHasFocus
+};
+
 enum CopyAction {
 	copyAndReplace, // covers both copy which overwrites file of same name,
 					// and copy of a file with unique filename (default)
@@ -52,11 +57,14 @@ public:
 	CopyAction copyType;
 	CopyAction lastWay;
 
+private:
 	// wx version pointers for dialog controls
 	wxButton* pMoveButton;
 	wxButton* pCopyButton;
 	wxButton* pDeleteButton;
 	wxButton* pRenameButton;
+	wxButton* pPeekLTRButton;
+	wxButton* pPeekRTLButton;
 
 	wxBitmapButton* pUpSrcFolder;
 	wxBitmapButton* pUpDestFolder;
@@ -105,6 +113,7 @@ public:
 	//bool m_bSrcListDoubleclicked; // TRUE if mouse handler detects src list was just doubleclicked
 	//bool m_bDestListDoubleclicked; // TRUE if mouse handler detects destination list was just doubleclicked
 
+public:
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
 protected:
@@ -117,9 +126,11 @@ protected:
 	void OnBnClickedDelete(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedCopy(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedMove(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event));
+	//void OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedPeek(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedFlip(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedPeek_RTL(wxCommandEvent& WXUNUSED(event));
+	//void OnBnClickedFlip(wxCommandEvent& WXUNUSED(event)); // unneeded if the dialog is
+	//not directional
 
 	void EnableCopyButton(bool bEnableFlag);
 	void EnableMoveButton(bool bEnableFlag);
@@ -136,7 +147,10 @@ protected:
 
 	void OnSrcListDoubleclick(wxListEvent& event);
 	void OnDestListDoubleclick(wxListEvent& event);
+	void NoSelectionMessage();
 
+	void SetLeftSideHasFocus(wxListEvent& WXUNUSED(event));
+	void SetRightSideHasFocus(wxListEvent& WXUNUSED(event));
 
 private:
 	void MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
@@ -154,7 +168,10 @@ private:
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
 	void SetupSelectionArrays(enum whichSide side);
-	void DeselectSelectedFiles(enum whichSide side); // beware of wxWidgets bug in SetItemState()
+	void DeselectSelectedItems(enum whichSide side); // beware of wxWidgets bug in SetItemState()
+
+	void DoDeselectionAndDefocus(enum whichSide side);
+
 	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
 	void PutUpInvalidsMessage(wxString& strAllInvalids);
 
@@ -170,6 +187,7 @@ private:
 	//void OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event));
 
 	*/
+	enum focusWhere sideWithFocus;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

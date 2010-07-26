@@ -1397,7 +1397,7 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 		{
 			wxMessageBox(_(
 "No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."),
-			_("Error, empty path specification"), wxICON_ERROR);
+			_("Error, empty path specification"), wxICON_WARNING);
 		}
 		return FALSE;
 	}
@@ -2978,9 +2978,9 @@ size_t GetFileSize_t(wxString& absPathToFile)
 bool IsLoadableFile(wxString& absPathToFile)
 {
 	wxArrayString illegalExtensions;
-	wxString extn = _T("doc");
+	wxString extn = _T("doc"); // legacy Word
 	illegalExtensions.Add(extn);
-	extn = _T("docx");
+	extn = _T("docx"); // Word 7
 	illegalExtensions.Add(extn);
 	extn = _T("rtf");
 	illegalExtensions.Add(extn);
@@ -2990,15 +2990,33 @@ bool IsLoadableFile(wxString& absPathToFile)
 	illegalExtensions.Add(extn);
 	extn = _T("htm");
 	illegalExtensions.Add(extn);
-	extn = _T("aic");
+	extn = _T("xhtml");
 	illegalExtensions.Add(extn);
 	extn = _T("xml");
+	illegalExtensions.Add(extn);
+	extn = _T("aic");
 	illegalExtensions.Add(extn);
 	extn = _T("KB"); // the old legacy Adapt It's binary knowledge base file extension
 	illegalExtensions.Add(extn);
 	extn = _T("adt"); // the old legacy Adapt It's binary doc extension
 	illegalExtensions.Add(extn);
 	extn = _T("aip"); // Adapt It's packed document extension
+	illegalExtensions.Add(extn);
+	extn = _T("lift");
+	illegalExtensions.Add(extn);
+	extn = _T("oxes");
+	illegalExtensions.Add(extn);
+	extn = _T("osis");
+	illegalExtensions.Add(extn);
+	extn = _T("xls"); // Excel
+	illegalExtensions.Add(extn);
+	extn = _T("pub"); // Publisher
+	illegalExtensions.Add(extn);
+	extn = _T("ppt"); // Powerpoint
+	illegalExtensions.Add(extn);
+	extn = _T("pps"); // Powerpoint show
+	illegalExtensions.Add(extn);
+	extn = _T("mdb"); // MS Access
 	illegalExtensions.Add(extn);
 
 	wxArrayString legalExtensions;

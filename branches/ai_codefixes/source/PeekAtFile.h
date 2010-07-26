@@ -7,11 +7,13 @@
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CPeekAtFileDlg class. 
-/// The CPeekAtFileDlg class provides a simple dialog with a large multiline text control 
-/// for the user to be able to peek at as many as the first 200 lines of a selected file
-/// (if the selection is multiple, only the first file in the list is used) from the right
-/// hand pane of the Move Or Copy Folders Or Files dialog, accessible from the
-/// Administrator menu.
+/// The CPeekAtFileDlg class provides a simple dialog with a large multiline text
+/// control for the user to be able to peek at as many as the first 16 kB of a selected
+/// file (if the selection is multiple, only the first file in the list is used) from
+/// either pane of the Move Or Copy Folders Or Files dialog, accessible from the
+/// Administrator menu. This handler class shows the text Left to Right. We need two
+/// buttons because once the control is created with a directionality for the text, the
+/// directionality cannot be changed.
 /// \derivation		The CPeekAtFileDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 

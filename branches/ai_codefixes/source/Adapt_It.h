@@ -2430,6 +2430,8 @@ public:
 	void OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event);
 	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event));
+	void OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateOpenSourceDataFolder(wxUpdateUIEvent& event);
 
 protected:
 

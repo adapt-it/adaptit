@@ -51,6 +51,7 @@
 #include "FilenameConflictDlg.h"
 #include "AdminMoveOrCopy.h"
 #include "PeekAtFile.h"
+#include "PeekAtFile_RTL.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -82,15 +83,19 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
 	EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDoubleclick)
 	EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDoubleclick)
+	EVT_LIST_ITEM_FOCUSED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::SetLeftSideHasFocus)
+	EVT_LIST_ITEM_FOCUSED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::SetRightSideHasFocus)
+	//EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::SetLeftSideHasFocus)
+	//EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::SetRightSideHasFocus)
 
 	EVT_BUTTON(ID_BUTTON_DELETE, AdminMoveOrCopy::OnBnClickedDelete)
 	EVT_BUTTON(ID_BUTTON_RENAME, AdminMoveOrCopy::OnBnClickedRename)
 	EVT_BUTTON(ID_BUTTON_COPY, AdminMoveOrCopy::OnBnClickedCopy)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
-	EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
+	//EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
 	EVT_BUTTON(ID_BUTTON_PEEK, AdminMoveOrCopy::OnBnClickedPeek)
-	EVT_BUTTON(ID_BUTTON_FLIP, AdminMoveOrCopy::OnBnClickedFlip)
-	
+	EVT_BUTTON(ID_BUTTON_PEEK_RTL, AdminMoveOrCopy::OnBnClickedPeek_RTL)
+	//EVT_BUTTON(ID_BUTTON_FLIP, AdminMoveOrCopy::OnBnClickedFlip)
 
 END_EVENT_TABLE()
 
@@ -146,8 +151,6 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 ///
 ///////////////////////////////////////////////////////////////////////////////////
 
-
-
 // InitDialog is method of wxWindow
 void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
@@ -176,6 +179,16 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxASSERT(pLocateSrcFolderButton != NULL);
 	pLocateDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_DESTINATION_FOLDER);
 	wxASSERT(pLocateDestFolderButton != NULL);
+
+	pPeekLTRButton = (wxButton*)FindWindowById(ID_BUTTON_PEEK);;
+	wxASSERT(pPeekLTRButton != NULL);
+	pPeekRTLButton = (wxButton*)FindWindowById(ID_BUTTON_PEEK_RTL);;
+	wxASSERT(pPeekRTLButton != NULL);
+
+	// hid the Peek (RTL)... button if we are building the ANSI application
+#if !defined _UNICODE
+	pPeekRTLButton->Show(FALSE);
+#endif
 
 	//pSrcList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
 	//pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
@@ -239,7 +252,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// so I made my own column-width adjusting code using OnSize()
 
 	// obtain the folder and file bitmap images which are to go at the start of folder
-	// names or file names, respectively, in each list; also an 'empty pot' icon for when
+	// names or file names, respectively, in each list; also an 'empty faucet' icon for when
 	// the message "The folder is empty" is displayed, otherwise it defaults to showing
 	// the first icon of the image list, which is a folder icon (- that would be confusing)
 	wxBitmap folderIcon = AIMainFrameIcons(10);
@@ -260,8 +273,9 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	emptyFolderMessage = _("The folder is empty (or maybe undefined)");
 
 	// initialize for the "Locate...folder" buttons; we default the source side to the
-	// work directory, and display its contents; we default the destination side to an
-	// empty path
+	// work directory, and display its contents; we default the destination side to the
+	// current project's Source Data folder if there is one, if not, then to the current
+	// project folder if there is one, if not the use an empty path
 	if (gpApp->m_bUseCustomWorkFolderPath  && !gpApp->m_customWorkFolderPath.IsEmpty())
 	{
 		m_strSrcFolderPath = gpApp->m_customWorkFolderPath;
@@ -274,6 +288,17 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	SetupSelectionArrays(sourceSide);
 
 	m_strDestFolderPath = _T(""); // start with no path defined
+	if (!gpApp->m_curProjectPath.IsEmpty() && ::wxDirExists(gpApp->m_curProjectPath))
+	{
+		// set project folder as default folder for right pane, because it exists
+		m_strDestFolderPath = gpApp->m_curProjectPath;
+		// go the next step if possible
+		if (!gpApp->m_sourceDataFolderPath.IsEmpty() && ::wxDirExists(gpApp->m_sourceDataFolderPath))
+		{
+			// set Source Data folder as default folder for right pane, because it exists
+			m_strDestFolderPath = gpApp->m_sourceDataFolderPath;
+		}
+	}
 	SetupDestList(m_strDestFolderPath);
 	SetupSelectionArrays(destinationSide);
 
@@ -314,7 +339,7 @@ void AdminMoveOrCopy::EnableRenameButton(bool bEnableFlag)
 }
 
 // redo using a wxListView class -- this is simpler
-void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
+void AdminMoveOrCopy::DeselectSelectedItems(enum whichSide side)
 {
 	long index = 0;
 	long limit;
@@ -338,7 +363,7 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 			// *** BEWARE *** this call uses SetItemState() and it causes
 			// m_nCount of wxArrayString to get set to 1 spuriously, for
 			// the strSrcSelectedFilesArray after the latter is Empty()ied,
-			// so make the .Empty() call be done after DeselectSelectedFiles()
+			// so make the .Empty() call be done after DeselectSelectedItems()
 			pSrcList->Select(index,FALSE); // FALSE turns selection off
 		} while (TRUE);
 	}
@@ -557,7 +582,7 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 	else
 	{
         // no files or folders, put a "The folder is empty" message into the list with an
-        // empty jug icon, because without an explicit icon, the icon in the list with
+        // empty faucet icon, because without an explicit icon, the icon in the list with
         // index = 0 gets shown, and that is the folder icon - which would be confusing, as
         // it would suggest a folder was found with the name "The folder is empty".
 		rv = pDestList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
@@ -831,6 +856,15 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 	return newFilename;
 }
 
+void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
+{
+    // we repopulate the srcSelectedFoldersArray and the srcSelectedFilesArray each time
+    // with the set of selected items 
+	//wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
+	event.Skip();
+	SetupSelectionArrays(sourceSide); // update srcSelectedFoldersArray and
+									 // srcSelectedFilesArray with current selections
+}
 
 void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 {
@@ -845,6 +879,19 @@ void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 {
 	event.Skip();
+
+	// get the clicked item's index
+	long itemToDeselect = event.GetIndex();
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	long focusMask = 0;
+	focusMask |= wxLIST_STATE_FOCUSED;
+	// deselect it (ignore returned boolean)
+	// and if it's also focused, remove the focus
+	pSrcList->SetItemState((long)itemToDeselect,(long)0,stateMask);
+	pSrcList->SetItemState((long)itemToDeselect,(long)0,focusMask);
+
+	// re-establish the arrays for any which remain selected
 	SetupSelectionArrays(sourceSide); // update srcSelectedFilesArray 
 									 // with current selections 
 }
@@ -852,18 +899,106 @@ void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 {
 	event.Skip();
+
+	// get the clicked item's index
+	long itemToDeselect = event.GetIndex();
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	long focusMask = 0;
+	focusMask |= wxLIST_STATE_FOCUSED;
+	// deselect it (ignore returned boolean)
+	// and if it's also focused, remove the focus
+	pDestList->SetItemState((long)itemToDeselect,(long)0,stateMask);
+	pDestList->SetItemState((long)itemToDeselect,(long)0,focusMask);
+
+	// re-establish the arrays for any which remain selected
 	SetupSelectionArrays(destinationSide); // update destSelectedFilesArray 
 										  // with current selections 
 }
 
-void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
+void AdminMoveOrCopy::SetLeftSideHasFocus(wxListEvent& WXUNUSED(event))
 {
-    // we repopulate the srcSelectedFoldersArray and the srcSelectedFilesArray each time
-    // with the set of selected items 
-	//wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
-	event.Skip();
-	SetupSelectionArrays(sourceSide); // update srcSelectedFoldersArray and
-									 // srcSelectedFilesArray with current selections
+	sideWithFocus = sourceSideHasFocus;
+	DoDeselectionAndDefocus(destinationSide);
+}
+
+void AdminMoveOrCopy::SetRightSideHasFocus(wxListEvent& WXUNUSED(event))
+{
+	sideWithFocus = destinationSideHasFocus;
+	DoDeselectionAndDefocus(sourceSide);
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      side    ->  enum with value either sourceSide, or destinationSide 
+///  \remarks Depopulates srcSelectionArray, or destSelectionArray to empty strings, and
+///  most importantly, removes from the wxListCtrl all memory of its selections, and the
+///  memory of which item, if any, had the focus. The clobbering of focus and selections is
+///  needed because if the user clicks on the other pane, the visible selections in the
+///  first pane are lost, but the control retains the memory of them and also which item
+///  had the focus, and then code which relies on the focus changing when the other list is
+///  clicked would not work if the user were to click on a formerly focused item, leading
+///  to defeat of the code to find out which side we are dealing with. So whenever a
+///  selection or deselection is made on one side, we always clobber everything on the
+///  other side. (This function does more than DeselectSelectedItems() - the latter only
+///  deals with selections.)
+///  BEW 26July10, added, to support bidirectional moves and copying, and peeks, etc, on
+///  either side
+//////////////////////////////////////////////////////////////////////////////////
+void AdminMoveOrCopy::DoDeselectionAndDefocus(enum whichSide side)
+{
+	size_t index = 0;
+	size_t limit = 0;
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	long focusMask = 0;
+	focusMask |= wxLIST_STATE_FOCUSED;
+	long bothMask = stateMask | focusMask; // check for both selection and focus
+	int isSelected = 0;
+	if (side == sourceSide)
+	{
+		srcSelectedFilesArray.Empty();
+		srcSelectedFoldersArray.Empty();
+		limit = pSrcList->GetItemCount();
+		if ((srcFilesCount == 0 && srcFoldersCount == 0) || 
+			pSrcList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		for (index = 0; index < limit; index++)
+		{
+			isSelected = pSrcList->GetItemState(index,bothMask);
+			if (isSelected)
+			{
+				// this one is selected, deselect it (ignore returned boolean)
+				// and if it's also focused, remove the focus
+				pSrcList->SetItemState((long)index,(long)0,stateMask);
+				pSrcList->SetItemState((long)index,(long)0,focusMask);
+			}
+		}
+	}
+	else
+	{
+		destSelectedFilesArray.Empty(); // clear, we'll refill in the loop
+		destSelectedFoldersArray.Empty(); // ditto
+		limit = pDestList->GetItemCount();
+		if ((destFilesCount == 0 && destFoldersCount == 0) || 
+			pDestList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		for (index = 0; index < limit; index++)
+		{
+			isSelected = pDestList->GetItemState(index,bothMask);
+			if (isSelected)
+			{
+				// this one is selected, deselect it (ignore returned boolean)
+				// and if it's also focused, remove the focus
+				pDestList->SetItemState((long)index,(long)0,stateMask);
+				pDestList->SetItemState((long)index,(long)0,focusMask);
+			}
+		}
+	}
 }
 
 void AdminMoveOrCopy::OnSrcListDoubleclick(wxListEvent& event)
@@ -1942,15 +2077,15 @@ _("You first need to select at least one item in the left list before clicking t
 		return;
 	}
 
-	// Note: a bug in SetItemState() which DeselectSelectedFiles() call uses causes the
+	// Note: a bug in SetItemState() which DeselectSelectedItems() call uses causes the
 	// m_nCount member of wxArrayString for srcSelectedFilesArray() to be overwritten to
 	// have value 1, do after emptying here, a further empty is required further below
 	srcSelectedFilesArray.Clear(); // the member wxArrayString variable, for top level
-	DeselectSelectedFiles(sourceSide); // loops through wxListCtrl clearing selection
+	DeselectSelectedItems(sourceSide); // loops through wxListCtrl clearing selection
 									   // for each item which has it set
 
 	// clear the source side's array of filename selections (put it here because the
-	// SetItemState() call implicit in DeselectSelectedFiles() causes the emptied
+	// SetItemState() call implicit in DeselectSelectedItems() causes the emptied
 	// srcSelectedFilesArray to become non-empty (its m_nCount becomes 1, even though the
 	// AdminMoveOrCopy class and its members is on main thread and the wxListCtrl, or
 	// wxListView class, is on a different work thread). I can just do a unilateral call
@@ -2058,15 +2193,15 @@ _("You first need to select at least one item in the left list before clicking t
 		return;
 	}
 
-	// Note: a bug in SetItemState() which DeselectSelectedFiles() call uses causes the
+	// Note: a bug in SetItemState() which DeselectSelectedItems() call uses causes the
 	// m_nCount member of wxArrayString for srcSelectedFilesArray() to be overwritten to
 	// have value 1, do after emptying here, a further empty is required further below
 	srcSelectedFilesArray.Clear(); // the member wxArrayString variable, for top level
-	DeselectSelectedFiles(sourceSide); // loops through wxListCtrl clearing selection
+	DeselectSelectedItems(sourceSide); // loops through wxListCtrl clearing selection
 									   // for each item which has it set
 
 	// clear the source side's array of filename selections (put it here because the
-	// SetItemState() call implicit in DeselectSelectedFiles() causes the emptied
+	// SetItemState() call implicit in DeselectSelectedItems() causes the emptied
 	// srcSelectedFilesArray to become non-empty (its m_nCount becomes 1, even though the
 	// AdminMoveOrCopy class and its members is on main thread and the wxListCtrl, or
 	// wxListView class, is on a different work thread). I can just do a unilateral call
@@ -2079,6 +2214,9 @@ _("You first need to select at least one item in the left list before clicking t
 }
 
 // BEW added 16July10
+// BEW removed 23July10, because Bill felt that either-direction moves and copies is
+// better, making this button unneeded
+/*
 void AdminMoveOrCopy::OnBnClickedFlip(wxCommandEvent& WXUNUSED(event))
 {
 	wxString tempStr = m_strSrcFolderPath;
@@ -2091,48 +2229,183 @@ void AdminMoveOrCopy::OnBnClickedFlip(wxCommandEvent& WXUNUSED(event))
 	m_strDestFolderPath_OLD = m_strDestFolderPath;
 	m_strSrcFolderPath_OLD = m_strSrcFolderPath;
 }
+*/
+
+void AdminMoveOrCopy::NoSelectionMessage()
+{
+	// nothing to Peek at, tell the user what to do
+	wxString str = _(
+"The Peek... button will show you up to the first 16 kB of whichever file you selected in either list.\nBut first, click on a file to select it, then click the Peek... button.");
+	wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION);
+}
 
 // BEW added 14July10
+// BEW 23July10, changed to allow Peek to work with either pane
 void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 {
-	if (destFilesCount > 0)
+	// determine where the focus is, and peek at the first selected file
+	if (destFilesCount == 0 && srcFilesCount == 0)
 	{
-		int count = destSelectedFilesArray.GetCount();
-		if (count == 0)
+		//nothing to peek at, so return
+		wxBell();
+		return;
+	}
+	switch (sideWithFocus)
+	{ 
+	case sourceSideHasFocus:
 		{
-			// nothing to Peek at, tell the user what to do
-			wxString str = _(
-"The Peek... button will show you up to the first 16 kB of whichever file you selected in the right hand list.\nBut first, click on a file to select it, then click the Peek... button.");
-			wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION);
-			return;
-		}
-		else
-		{
-			// we've at least one file we can Peek at -- get the first in the array
-			wxString filename = destSelectedFilesArray.Item(0);
-			wxASSERT(!filename.IsEmpty());
-			// make the path
-			wxString path = m_strDestFolderPath + gpApp->PathSeparator + filename;
-
-			// set up the dialog
-			CPeekAtFileDlg peeker(this); // AdminMoveOrCopy is the parent dialog for it
-										 // and also its friend
-			peeker.m_filePath = path; // transfer the path to the file to be peeked at
-			wxASSERT(!peeker.m_filePath.IsEmpty());
-			peeker.m_pEditCtrl->SetFocus();
-
-			if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
+			if (srcFilesCount > 0 && (pSrcList->GetFocusedItem() >= -1))
 			{
+				int count = srcSelectedFilesArray.GetCount();
+				if (count == 0)
+				{
+					NoSelectionMessage();
+					return;
+				}
+				else
+				{
+					// we've at least one file we can Peek at -- get the first in the array
+					wxString filename = srcSelectedFilesArray.Item(0);
+					wxASSERT(!filename.IsEmpty());
+					// make the path
+					wxString path = m_strSrcFolderPath + gpApp->PathSeparator + filename;
+
+					// set up the dialog
+					CPeekAtFileDlg peeker(this); // AdminMoveOrCopy is the parent dialog for it
+												 // and also its friend
+					peeker.m_filePath = path; // transfer the path to the file to be peeked at
+					wxASSERT(!peeker.m_filePath.IsEmpty());
+					peeker.m_pEditCtrl->SetFocus();
+
+					if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
+					{
+					}
+					return;
+				}
 			}
 		}
-	}
-	else
-	{
-		wxBell();
+		break;
+	case destinationSideHasFocus:
+		{
+			if (destFilesCount > 0 && (pDestList->GetFocusedItem() >= -1))
+			{
+				int count = destSelectedFilesArray.GetCount();
+				if (count == 0)
+				{
+					// nothing to Peek at, tell the user what to do
+					NoSelectionMessage();
+					return;
+				}
+				else
+				{
+					// we've at least one file we can Peek at -- get the first in the array
+					wxString filename = destSelectedFilesArray.Item(0);
+					wxASSERT(!filename.IsEmpty());
+					// make the path
+					wxString path = m_strDestFolderPath + gpApp->PathSeparator + filename;
+
+					// set up the dialog
+					CPeekAtFileDlg peeker(this); // AdminMoveOrCopy is the parent dialog for it
+												 // and also its friend
+					peeker.m_filePath = path; // transfer the path to the file to be peeked at
+					wxASSERT(!peeker.m_filePath.IsEmpty());
+					peeker.m_pEditCtrl->SetFocus();
+
+					if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
+					{
+					}
+				}
+			}
+		}
+		break;
 	}
 }
 
+// BEW added 14July10
+// BEW 23July10, changed to allow Peek to work with either pane
+void AdminMoveOrCopy::OnBnClickedPeek_RTL(wxCommandEvent& WXUNUSED(event))
+{
+	// determine where the focus is, and peek at the first selected file
+	if (destFilesCount == 0 && srcFilesCount == 0)
+	{
+		//nothing to peek at, so return
+		wxBell();
+		return;
+	}
+	switch (sideWithFocus)
+	{ 
+	case sourceSideHasFocus:
+		{
+			if (srcFilesCount > 0 && (pSrcList->GetFocusedItem() >= -1))
+			{
+				int count = srcSelectedFilesArray.GetCount();
+				if (count == 0)
+				{
+					NoSelectionMessage();
+					return;
+				}
+				else
+				{
+					// we've at least one file we can Peek at -- get the first in the array
+					wxString filename = srcSelectedFilesArray.Item(0);
+					wxASSERT(!filename.IsEmpty());
+					// make the path
+					wxString path = m_strSrcFolderPath + gpApp->PathSeparator + filename;
+
+					// set up the dialog
+					CPeekAtFileDlg_RTL peeker(this); // AdminMoveOrCopy is the parent dialog for it
+												 // and also its friend
+					peeker.m_filePath = path; // transfer the path to the file to be peeked at
+					wxASSERT(!peeker.m_filePath.IsEmpty());
+					peeker.m_pEditCtrl->SetFocus();
+
+					if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
+					{
+					}
+					return;
+				}
+			}
+		}
+		break;
+	case destinationSideHasFocus:
+		{
+			if (destFilesCount > 0 && (pDestList->GetFocusedItem() >= -1))
+			{
+				int count = destSelectedFilesArray.GetCount();
+				if (count == 0)
+				{
+					// nothing to Peek at, tell the user what to do
+					NoSelectionMessage();
+					return;
+				}
+				else
+				{
+					// we've at least one file we can Peek at -- get the first in the array
+					wxString filename = destSelectedFilesArray.Item(0);
+					wxASSERT(!filename.IsEmpty());
+					// make the path
+					wxString path = m_strDestFolderPath + gpApp->PathSeparator + filename;
+
+					// set up the dialog
+					CPeekAtFileDlg peeker(this); // AdminMoveOrCopy is the parent dialog for it
+												 // and also its friend
+					peeker.m_filePath = path; // transfer the path to the file to be peeked at
+					wxASSERT(!peeker.m_filePath.IsEmpty());
+					peeker.m_pEditCtrl->SetFocus();
+
+					if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
+					{
+					}
+				}
+			}
+		}
+		break;
+	}
+}
+
+
 // BEW added 13July10
+/*
 void AdminMoveOrCopy::OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event))
 {
 	if (gpApp->m_sourceDataFolderPath.IsEmpty())
@@ -2143,11 +2416,10 @@ void AdminMoveOrCopy::OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event
 			_T("Error"), wxICON_WARNING);
 		return;
 	}
-	//CMainFrame* pFrame = gpApp->GetMainFrame();
 
     // first, we must check if the "Source Data" folder actually exists yet - it can be
-    // created only by this handler's first invocation, or by the Administrator menu
-	// command "Populate Source Data Folder" on its first invocation. (No provision is
+	// created only by this handler's invocation, provided the user responds with a Yes
+	// click when shown the active project it will be created in. (No provision is
 	// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
     // input dialog functionality. Someone or the administrator can do that in a file
     // browser, by renaming, moving or deleting the Source Data folder.
@@ -2155,8 +2427,21 @@ void AdminMoveOrCopy::OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event
 	if (!::wxDirExists(gpApp->m_sourceDataFolderPath) && 
 		!::wxDirExists(gpApp->m_sourceDataFolderPath))
 	{
-		// there is no such file or folder, so create the folder
-		bDirExists = ::wxMkdir(gpApp->m_sourceDataFolderPath,0777);
+		// there is no such file or folder, so create the folder, provided the user wants
+		// it in the current project
+		wxString msg;
+		msg = msg.Format(_(
+"The current project is: %s\nDo you want the Source Data folder to be created for this project?"),
+		gpApp->m_curProjectName.c_str());
+        if( wxMessageBox(msg,_("Verify project for Source Data folder creation"), wxYES_NO) == wxYES )
+		{
+			bDirExists = ::wxMkdir(gpApp->m_sourceDataFolderPath,0777);
+		}
+		else
+		{
+			// user saw it was the wrong project and declined to go ahead
+			return;
+		}
 	}
 	wxASSERT(bDirExists);
 
@@ -2171,4 +2456,5 @@ void AdminMoveOrCopy::OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event
 	EnableRenameButton(FALSE);
 	EnableDeleteButton(FALSE);
 }
+*/
 

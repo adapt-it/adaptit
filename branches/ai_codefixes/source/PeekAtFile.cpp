@@ -62,6 +62,7 @@ CPeekAtFileDlg::CPeekAtFileDlg(wxWindow* parent) // dialog constructor
 	
 	m_pEditCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_LINES100);
 	wxASSERT(m_pEditCtrl != NULL);
+
 	// set ptr to the parent dialog (we are its friend)
 	m_pAdminMoveOrCopy = (AdminMoveOrCopy*)parent;
 
@@ -102,17 +103,28 @@ void CPeekAtFileDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	// set the font to be used in the edit control to our changed m_pSourceFont
 	m_pEditCtrl->SetFont(*gpApp->m_pSourceFont);
 
-	//#ifdef _RTL_FLAGS
-	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditCtrl, NULL,
-	//							NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
-	//#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditCtrl, NULL, 
-	//							NULL, NULL, gpApp->m_pDlgSourceFont);
-	//#endif
+	// this is the handler for the Peek (LRT)... button, so it's always left-to-right,
+	// whether the ansi app or Unicode one
+	m_pEditCtrl->SetLayoutDirection(wxLayout_LeftToRight);
+
+	/*
+#ifdef _RTL_FLAGS
+	if (gpApp->m_bSrcRTL)
+	{
+		m_pEditCtrl->SetLayoutDirection(wxLayout_RightToLeft);
+	}
+	else
+	{
+		m_pEditCtrl->SetLayoutDirection(wxLayout_LeftToRight);
+	}
+#else
+	// the ANSI application should only show LTR text
+	m_pEditCtrl->SetLayoutDirection(wxLayout_LeftToRight);
+#endif
+	*/
 
 	// get the first 200 lines or so (16 kb actually), or all of them if the file is shorter,
 	// into the text ctrl
-	//bool bPopulatedOK = PopulateTextCtrlByLines(m_pEditCtrl, &m_filePath, 200);
 	bool bPopulatedOK = PopulateTextCtrlWithChunk(m_pEditCtrl, &m_filePath, 16);  // 16 kB
 	if (!bPopulatedOK)
 	{
