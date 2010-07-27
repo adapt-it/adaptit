@@ -647,10 +647,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\PeekAtFile_RTL.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\PhraseBox.cpp"
 				>
 			</File>

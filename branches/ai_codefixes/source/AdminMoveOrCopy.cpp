@@ -51,7 +51,6 @@
 #include "FilenameConflictDlg.h"
 #include "AdminMoveOrCopy.h"
 #include "PeekAtFile.h"
-#include "PeekAtFile_RTL.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
