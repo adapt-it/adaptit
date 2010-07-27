@@ -94,7 +94,6 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
 	//EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
 	EVT_BUTTON(ID_BUTTON_PEEK, AdminMoveOrCopy::OnBnClickedPeek)
-	EVT_BUTTON(ID_BUTTON_PEEK_RTL, AdminMoveOrCopy::OnBnClickedPeek_RTL)
 	//EVT_BUTTON(ID_BUTTON_FLIP, AdminMoveOrCopy::OnBnClickedFlip)
 
 END_EVENT_TABLE()
@@ -182,13 +181,6 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	pPeekLTRButton = (wxButton*)FindWindowById(ID_BUTTON_PEEK);;
 	wxASSERT(pPeekLTRButton != NULL);
-	pPeekRTLButton = (wxButton*)FindWindowById(ID_BUTTON_PEEK_RTL);;
-	wxASSERT(pPeekRTLButton != NULL);
-
-	// hide the Peek (RTL)... button if we are building the ANSI application
-#if !defined _UNICODE
-	pPeekRTLButton->Show(FALSE);
-#endif
 
 	//pSrcList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
 	//pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
@@ -2323,6 +2315,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 
 // BEW added 14July10
 // BEW 23July10, changed to allow Peek to work with either pane
+/*
 void AdminMoveOrCopy::OnBnClickedPeek_RTL(wxCommandEvent& WXUNUSED(event))
 {
 	// determine where the focus is, and peek at the first selected file
@@ -2402,7 +2395,7 @@ void AdminMoveOrCopy::OnBnClickedPeek_RTL(wxCommandEvent& WXUNUSED(event))
 		break;
 	}
 }
-
+*/
 
 // BEW added 13July10
 /*

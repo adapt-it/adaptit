@@ -6848,65 +6848,48 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item33 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
     item33->SetToolTip( _("Move selected files and / or folders to the folder open in the other pane") );
     item32->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item32->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item34 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
     item34->SetToolTip( _("Copy files and / or folders to the folder open in the other pane") );
     item32->Add( item34, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item32->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticLine *item35 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
-    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes, with text Left to Right") );
+    item32->Add( item35, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item32->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item36 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
     item36->SetToolTip( _("Rename the first folder or file shown selected in one of the panes") );
     item32->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item32->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item37 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->SetToolTip( _("Delete the files and / or folders shown selected in one of the panes") );
     item32->Add( item37, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item32->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetDefault();
+    item38->SetToolTip( _("Close the dialog when you have finished with it") );
+    item32->Add( item38, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
     item32->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item38 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek (LTR)..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes, with text Left to Right") );
-    item32->Add( item38, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
-
-    item32->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item39 = new wxButton( parent, ID_BUTTON_PEEK_RTL, _("Peek (RTL)..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item39->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes, with text Right to Left") );
-    item32->Add( item39, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item32->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item31->Add( item32, 0, wxALIGN_CENTER, 5 );
-
-    wxBoxSizer *item40 = new wxBoxSizer( wxHORIZONTAL );
-
-    item40->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item41 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item41->SetDefault();
-    item41->SetToolTip( _("Close the dialog when you have finished with it") );
-    item40->Add( item41, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
-
-    item40->Add( 17, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item31->Add( item40, 1, wxFIXED_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
 
@@ -7295,6 +7278,7 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *m_pHorizBox_for_textctrl;
 wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7304,20 +7288,31 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_PEEKMSG, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE );
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
-    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+    m_pHorizBox_for_textctrl = item3;
+
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
+    item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     item1->Add( 20, 2, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item5 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->SetDefault();
-    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item6 = new wxButton( parent, ID_BUTTON_TOGGLE_TEXT_DIRECTION, _("Display the text Right-To-Left"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Reverse the text layout direction") );
+    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item5->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item7 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetDefault();
+    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

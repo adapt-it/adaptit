@@ -4737,18 +4737,26 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 		pCancelButton->SetLabel(btnOKStr);
 
 		// reverse the button tooltips
+		// BEW 27July10, changed the code to get the tooltip strings before doing the
+		// switch of the tooltips
 		wxString ttOKStr;
 		wxString ttCancelStr;
 		wxToolTip* pOkToolTip = pOKButton->GetToolTip();
+		wxToolTip* pCancelToolTip = pCancelButton->GetToolTip();
 		if (pOkToolTip != NULL)
 		{
 			ttOKStr = pOkToolTip->GetTip();
-			pCancelButton->SetToolTip(ttOKStr);
 		}
-		wxToolTip* pCancelToolTip = pCancelButton->GetToolTip();
 		if (pCancelToolTip != NULL)
 		{
 			ttCancelStr = pCancelToolTip->GetTip();
+		}
+		if (!ttOKStr.IsEmpty())
+		{
+			pCancelButton->SetToolTip(ttOKStr);
+		}
+		if (!ttCancelStr.IsEmpty())
+		{
 			pOKButton->SetToolTip(ttCancelStr);
 		}
 		pCancelButton->SetDefault();

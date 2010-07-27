@@ -64,7 +64,6 @@ private:
 	wxButton* pDeleteButton;
 	wxButton* pRenameButton;
 	wxButton* pPeekLTRButton;
-	wxButton* pPeekRTLButton;
 
 	wxBitmapButton* pUpSrcFolder;
 	wxBitmapButton* pUpDestFolder;
@@ -128,7 +127,6 @@ protected:
 	void OnBnClickedMove(wxCommandEvent& WXUNUSED(event));
 	//void OnBnClickedSourceDataFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedPeek(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedPeek_RTL(wxCommandEvent& WXUNUSED(event));
 	//void OnBnClickedFlip(wxCommandEvent& WXUNUSED(event)); // unneeded if the dialog is
 	//not directional
 
