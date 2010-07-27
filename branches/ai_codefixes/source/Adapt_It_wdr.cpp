@@ -6782,7 +6782,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the folder:") );
     wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxHORIZONTAL );
 
-    wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxSize(-1,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
     item14->Add( item16, 1, wxGROW|wxALL, 5 );
 
     item13->Add( item14, 1, wxGROW, 0 );
@@ -6833,7 +6833,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the folder:") );
     wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxHORIZONTAL );
 
-    wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxSize(-1,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
     item28->Add( item30, 1, wxGROW|wxALL, 5 );
 
     item27->Add( item28, 1, wxGROW, 0 );
