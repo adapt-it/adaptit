@@ -185,7 +185,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pPeekRTLButton = (wxButton*)FindWindowById(ID_BUTTON_PEEK_RTL);;
 	wxASSERT(pPeekRTLButton != NULL);
 
-	// hid the Peek (RTL)... button if we are building the ANSI application
+	// hide the Peek (RTL)... button if we are building the ANSI application
 #if !defined _UNICODE
 	pPeekRTLButton->Show(FALSE);
 #endif
