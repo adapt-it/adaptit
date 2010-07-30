@@ -3010,6 +3010,8 @@ bool IsLoadableFile(wxString& absPathToFile)
 	illegalExtensions.Add(extn);
 	extn = _T("xls"); // Excel
 	illegalExtensions.Add(extn);
+	extn = _T("xsl"); // for xhtml formatting
+	illegalExtensions.Add(extn);
 	extn = _T("pub"); // Publisher
 	illegalExtensions.Add(extn);
 	extn = _T("ppt"); // Powerpoint
@@ -3034,6 +3036,10 @@ bool IsLoadableFile(wxString& absPathToFile)
 	wxString extension = fn.GetExt(); // gets extension without preceding .
 	fullName = fullName.Lower();
 	extension = extension.Lower();
+
+	// exclude any files commencing with a period
+	if (fullName.GetChar(0) == _T('.'))
+		return FALSE;
 
 	// check the known legals first
 	int index;
@@ -4048,6 +4054,23 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	file.Close();
 	return getNewFile_success;
 }
+
+bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders)
+{
+	wxASSERT(!pFolders->IsEmpty());
+	size_t count = pFolders->GetCount();
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		wxString filename = pFolders->Item(index);
+		if (filename == gpApp->m_sourceDataFolderName)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 
 // BEW created 22July10, this function tests for existence of a folder named "Source Data"
 // as a child folder of the current project folder, and if it exists, and provided it also

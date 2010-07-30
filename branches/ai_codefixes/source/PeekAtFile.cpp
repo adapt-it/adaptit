@@ -105,7 +105,7 @@ void CPeekAtFileDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	m_pMsgCtrl->AppendText(Line1Str);
 	m_pMsgCtrl->AppendText(eol);
 	m_pMsgCtrl->AppendText(Line2Str);
-	m_pMsgCtrl->SetInsertionPointEnd();
+	m_pMsgCtrl->SetInsertionPoint(0);
 	m_pMsgCtrl->SetEditable(FALSE);
 
     // Set source font colour to black temporarily. Don't use
@@ -166,7 +166,7 @@ void CPeekAtFileDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 		m_filePath.c_str());
 		wxMessageBox(msg,_T("Error"),wxICON_WARNING);
 	}
-	m_pEditCtrl->SetInsertionPointEnd();
+	m_pEditCtrl->SetInsertionPoint(0);
 	m_pEditCtrl->SetEditable(FALSE);
 }
 
@@ -237,7 +237,7 @@ enum TxtDir CPeekAtFileDlg::ReverseTextDirectionality(enum TxtDir currentDir)
 	// now re-do the initialization stuff from InitDialog()
 	m_pEditCtrl->SetFont(*gpApp->m_pSourceFont);
 	m_pEditCtrl->ChangeValue(m_viewedText);
-	m_pEditCtrl->SetInsertionPointEnd();
+	m_pEditCtrl->SetInsertionPoint(0);
 	m_pEditCtrl->SetEditable(FALSE);
 
 	// now add the control to the sizer & get the dialog's layout refreshed...

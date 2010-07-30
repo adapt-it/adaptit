@@ -6863,7 +6863,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     item32->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item35 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes, with text Left to Right") );
+    item35->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes (text direction can be changed)") );
     item32->Add( item35, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
     item32->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );

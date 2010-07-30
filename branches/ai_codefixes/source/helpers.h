@@ -220,5 +220,6 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 // BEW created 22July10, to support user-protection from folder navigation when creating a
 // new document for adaptation
 bool UseSourceDataFolderOnlyForInputFiles();
+bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders);
 
 #endif	// helpers_h

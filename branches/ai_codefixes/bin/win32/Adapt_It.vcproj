@@ -1040,10 +1040,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\PeekAtFile_RTL.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\PhraseBox.h"
 				>
 			</File>
