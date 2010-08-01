@@ -6751,7 +6751,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item7 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item7 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the &folder"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetToolTip( _("Navigate to a different folder you wish to open in the left pane") );
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );
 
@@ -6766,20 +6766,20 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to the opened folder:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxHSCROLL );
-    item11->Add( item12, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL );
+    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item5->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the folder:") );
+    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the fo&lder:") );
     wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxHORIZONTAL );
 
     wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxSize(-1,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
@@ -6802,7 +6802,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the f&older"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->SetToolTip( _("Navigate to a different folder you wish to open in the right pane") );
     item20->Add( item21, 0, wxALIGN_CENTER, 5 );
 
@@ -6817,20 +6817,20 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to the opened folder:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item23->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item19->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_PATH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxHSCROLL );
-    item25->Add( item26, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_PATH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL );
+    item25->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item19->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the folder:") );
+    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the folde&r:") );
     wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxHORIZONTAL );
 
     wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxSize(-1,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
@@ -6850,25 +6850,25 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     item32->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item33 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_MOVE, _("&Move"), wxDefaultPosition, wxDefaultSize, 0 );
     item33->SetToolTip( _("Move selected files and / or folders to the folder open in the other pane") );
     item32->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
     item32->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item34 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item34 = new wxButton( parent, ID_BUTTON_COPY, _("&Copy"), wxDefaultPosition, wxDefaultSize, 0 );
     item34->SetToolTip( _("Copy files and / or folders to the folder open in the other pane") );
     item32->Add( item34, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
     item32->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item35 = new wxButton( parent, ID_BUTTON_PEEK, _("Peek..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes (text direction can be changed)") );
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_PEEK, _("&Peek..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes, with text Left to Right") );
     item32->Add( item35, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
     item32->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_RENAME, _("R&ename"), wxDefaultPosition, wxDefaultSize, 0 );
     item36->SetToolTip( _("Rename the first folder or file shown selected in one of the panes") );
     item32->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
@@ -6880,7 +6880,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     item32->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item38 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("Clo&se"), wxDefaultPosition, wxDefaultSize, 0 );
     item38->SetDefault();
     item38->SetToolTip( _("Close the dialog when you have finished with it") );
     item32->Add( item38, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
