@@ -6740,7 +6740,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG1, _("Warning: innappropriate use of this dialog may cause loss of data. Moving or copying a folder moves or copies all its contents. The direction of the move or copy may be from the left to the right pane, or from the right to the left pane - starting from the pane with the selections.  Double-clicking a folder in the list opens that folder. To reopen the parent folder click the green 'Up Arrow' button. Beware: deletions are unrecoverable. "), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG1, _("Warning: inappropriate use of this dialog may cause loss of data. Moving or copying a folder moves or copies all its contents. The direction of the move or copy may be from the left to the right pane, or from the right to the left pane - starting from the pane with the selections.  Double-clicking a folder in the list opens that folder. To reopen the parent folder click the green 'Up Arrow' button. Beware: deletions are unrecoverable. "), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxNO_BORDER | wxGROW );
     item2->Add( item3, 1, wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
