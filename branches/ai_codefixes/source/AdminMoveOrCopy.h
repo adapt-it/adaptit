@@ -9,7 +9,7 @@
 /// \description	This is the header file for the AdminMoveOrCopy class.
 /// The AdminMoveOrCopy class provides a dialog interface for the user (typically an
 /// administrator) to be able to move or copy files or folders or both from one pane
-/// displaing a folder's contents into another displaying a different folder's contents;
+/// displaying a folder's contents into another displaying a different folder's contents;
 /// also to delete files or folders, and also, one at a time, to rename a file or folder.
 /// Its dialog provides a 2-list view, one list for left side, another for right.
 /// \derivation		The AdminMoveOrCopy class is derived from AIModalDialog.
@@ -31,6 +31,7 @@ enum whichSide {
 };
 
 enum focusWhere {
+	neitherSideHasFocus,
 	leftSideHasFocus,
 	rightSideHasFocus
 };
@@ -77,8 +78,6 @@ private:
 	wxImageList* pIconImages;
 	wxListItem* pTheColumnForLeftList; // has to be on heap
 	wxListItem* pTheColumnForRightList; // has to be on heap
-	//wxListCtrl* pLeftList; // using wxListView is easier
-	//wxListCtrl* pRightList;
 	wxListView* pLeftList; // a subclass of wxListCtrl
 	wxListView* pRightList; // ditto
 	wxString emptyFolderMessage;
@@ -104,6 +103,10 @@ private:
 	size_t leftFilesCount;
 	size_t rightFoldersCount;
 	size_t rightFilesCount;
+
+	wxColour pastelgreen;
+	wxColour nocolor;
+
 
 public:
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
@@ -134,12 +137,16 @@ protected:
 	void OnRightListSelectItem(wxListEvent& event);
 	void OnRightListDeselectItem(wxListEvent& event);
 
+	//void OnLeftListKeyDown(wxListEvent& event);
+	//void OnRightListKeyDown(wxListEvent& event);
+
 	void OnLeftListDoubleclick(wxListEvent& event);
 	void OnRightListDoubleclick(wxListEvent& event);
 	void NoSelectionMessage();
 
-	void SetLeftSideHasFocus(wxListEvent& WXUNUSED(event));
-	void SetRightSideHasFocus(wxListEvent& WXUNUSED(event));
+	void SetLeftSideHasFocus();
+	void SetRightSideHasFocus();
+	void SetNeitherSideHasFocus();
 
 private:
 	void MoveOrCopyFilesAndFolders(wxString leftFolderPath, wxString rightFolderPath,

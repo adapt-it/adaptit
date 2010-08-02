@@ -86,18 +86,15 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnRightListDeselectItem)
 	EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnLeftListDoubleclick)
 	EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnRightListDoubleclick)
-	EVT_LIST_ITEM_FOCUSED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::SetLeftSideHasFocus)
-	EVT_LIST_ITEM_FOCUSED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::SetRightSideHasFocus)
-	//EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::SetLeftSideHasFocus)
-	//EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::SetRightSideHasFocus)
 
 	EVT_BUTTON(ID_BUTTON_DELETE, AdminMoveOrCopy::OnBnClickedDelete)
 	EVT_BUTTON(ID_BUTTON_RENAME, AdminMoveOrCopy::OnBnClickedRename)
 	EVT_BUTTON(ID_BUTTON_COPY, AdminMoveOrCopy::OnBnClickedCopy)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
-	//EVT_BUTTON(ID_BUTTON_SOURCE_DATA_FOLDER, AdminMoveOrCopy::OnBnClickedSourceDataFolder)
 	EVT_BUTTON(ID_BUTTON_PEEK, AdminMoveOrCopy::OnBnClickedPeek)
-	//EVT_BUTTON(ID_BUTTON_FLIP, AdminMoveOrCopy::OnBnClickedFlip)
+
+	//EVT_LIST_KEY_DOWN(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnLeftListKeyDown)
+	//EVT_LIST_KEY_DOWN(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnRightListKeyDown)
 
 END_EVENT_TABLE()
 
@@ -170,6 +167,12 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	m_bUserCancelled = FALSE;
 	m_bDoTheSameWay = FALSE;
+
+	sideWithFocus = neitherSideHasFocus;
+
+	// set colours
+	pastelgreen = wxColour(210,255,210);
+	nocolor = wxColour(255,255,255);
 
 	// set up pointers to interface objects
 	pLeftFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PATH);
@@ -604,6 +607,7 @@ void AdminMoveOrCopy::OnBnClickedLocateLeftFolder(wxCommandEvent& WXUNUSED(event
 	}
 	SetupLeftList(m_strLeftFolderPath);
 	EnableButtons();
+	SetNeitherSideHasFocus();
 }
 
 void AdminMoveOrCopy::OnBnClickedLocateRightFolder(wxCommandEvent& WXUNUSED(event))
@@ -630,6 +634,7 @@ void AdminMoveOrCopy::OnBnClickedLocateRightFolder(wxCommandEvent& WXUNUSED(even
 	}
 	SetupRightList(m_strRightFolderPath);
 	EnableButtons();
+	SetNeitherSideHasFocus();
 }
 
 void AdminMoveOrCopy::OnBnClickedLeftParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -672,6 +677,7 @@ void AdminMoveOrCopy::OnBnClickedLeftParentFolder(wxCommandEvent& WXUNUSED(event
 	}
 	delete pFN;
 	EnableButtons();
+	SetNeitherSideHasFocus();
 }
 
 void AdminMoveOrCopy::OnBnClickedRightParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -713,6 +719,8 @@ void AdminMoveOrCopy::OnBnClickedRightParentFolder(wxCommandEvent& WXUNUSED(even
 		}
 	}
 	delete pFN;
+	EnableButtons();
+	SetNeitherSideHasFocus();
 }
 
 void AdminMoveOrCopy::OnSize(wxSizeEvent& event)
@@ -847,6 +855,7 @@ void AdminMoveOrCopy::OnLeftListSelectItem(wxListEvent& event)
 	event.Skip();
 	SetupSelectionArrays(leftSide); // update leftSelectedFoldersArray and
 									 // leftSelectedFilesArray with current selections
+	SetLeftSideHasFocus();
 }
 
 void AdminMoveOrCopy::OnRightListSelectItem(wxListEvent& event)
@@ -857,6 +866,7 @@ void AdminMoveOrCopy::OnRightListSelectItem(wxListEvent& event)
 	event.Skip();
 	SetupSelectionArrays(rightSide); // update rightSelectedFoldersArray and
 								     // rightSelectedFilesArray with current selections
+	SetRightSideHasFocus();
 }
 
 void AdminMoveOrCopy::OnLeftListDeselectItem(wxListEvent& event)
@@ -899,18 +909,51 @@ void AdminMoveOrCopy::OnRightListDeselectItem(wxListEvent& event)
 									 // with current selections 
 }
 
-void AdminMoveOrCopy::SetLeftSideHasFocus(wxListEvent& WXUNUSED(event))
+void AdminMoveOrCopy::SetLeftSideHasFocus()
 {
-	sideWithFocus = leftSideHasFocus;
 	DoDeselectionAndDefocus(rightSide);
+	sideWithFocus = leftSideHasFocus;
+	pRightList->SetBackgroundColour(nocolor);
+	pRightList->Refresh();
+	pLeftList->SetBackgroundColour(pastelgreen);
+	pLeftList->Refresh();
 }
 
-void AdminMoveOrCopy::SetRightSideHasFocus(wxListEvent& WXUNUSED(event))
+void AdminMoveOrCopy::SetRightSideHasFocus()
 {
-	sideWithFocus = rightSideHasFocus;
 	DoDeselectionAndDefocus(leftSide);
+	sideWithFocus = rightSideHasFocus;
+	pLeftList->SetBackgroundColour(nocolor);
+	pLeftList->Refresh();
+	pRightList->SetBackgroundColour(pastelgreen);
+	pRightList->Refresh();
 }
 
+void AdminMoveOrCopy::SetNeitherSideHasFocus()
+{
+	DoDeselectionAndDefocus(rightSide);
+	DoDeselectionAndDefocus(leftSide);
+	sideWithFocus = neitherSideHasFocus;
+	pLeftList->SetBackgroundColour(nocolor);
+	pRightList->SetBackgroundColour(nocolor);
+	pRightList->Refresh();
+	pLeftList->Refresh();
+}
+/*
+void AdminMoveOrCopy::OnLeftListKeyDown(wxListEvent& event)
+{
+	int keyCode = event.GetKeyCode();
+
+	event.Skip();
+}
+
+void AdminMoveOrCopy::OnRightListKeyDown(wxListEvent& event)
+{
+	int keyCode = event.GetKeyCode();
+
+	event.Skip();
+}
+*/
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      side    ->  enum with value either leftSide, or rightSide 
@@ -1001,6 +1044,7 @@ void AdminMoveOrCopy::OnLeftListDoubleclick(wxListEvent& event)
 		SetupLeftList(m_strLeftFolderPath);
 		//event.Skip();
 		EnableButtons();
+		SetNeitherSideHasFocus();
 	}
 }
 
@@ -1023,6 +1067,7 @@ void AdminMoveOrCopy::OnRightListDoubleclick(wxListEvent& event)
 		m_strRightFolderPath += gpApp->PathSeparator + event.GetText();
 		SetupRightList(m_strRightFolderPath);
 		EnableButtons();
+		SetNeitherSideHasFocus();
 	}
 }
 
@@ -1348,8 +1393,8 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 				// Close button was pressed, so get the user's choices
 				m_bDoTheSameWay = dlg.bSameWayValue;
 				lastWay = copyType; // update lastWay enum value
-				// The value of the copyType enum has been set at the Close button call in the
-				// FilenameConflictDlg
+                // The value of the copyType enum has been set at the Close button call in
+                // the FilenameConflictDlg
 				//m_bDoTheSameWay = m_bDoTheSameWay; // for checking value in debugger
 				switch (copyType)
 				{
@@ -1386,13 +1431,13 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 		bool bAlreadyExists = ::wxFileExists(theRightPath);
 		if (bAlreadyExists)
 		{
-			// This block should never be entered; we've already determined there is no
-			// name conflict and so the destination folder should not have a file of the
-			// same name. Because of the possibility of losing valuable data, what we do
-			// here is to alert the user to the file which is in danger of being lost due
-			// to the copy, then refraining from the copy automatically, keep the app
-			// running but return FALSE so that if a Move... was requested, then the
-			// caller will not go ahead with deletion of the other folder's file
+            // This block should never be entered; we've already determined there is no
+            // name conflict and so the destination folder should not have a file of the
+            // same name. Because of the possibility of losing valuable data, what we do
+            // here is to alert the user to the file which is in danger of being lost due
+            // to the copy, then refraining from the copy automatically, keep the app
+            // running but return FALSE so that if a Move... was requested, then the caller
+            // will not go ahead with deletion of the other folder's file
 			wxString msg;
 			msg = msg.Format(_("The right folder's file with the name %s would be overwritten if this move or copy were to go ahead. To avoid this unexpected possibility for data loss, the move or copy will now be cancelled. Do something appropriate with the right folder's file, and then try again."),
 				filename.c_str());
@@ -1484,6 +1529,15 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 				pPaneSelectedFiles = &rightSelectedFilesArray;
 			} // end of case for right side having focus
 			break;
+		case neitherSideHasFocus:
+		default:
+			{
+				wxBell();
+				delete pSelectedFilesArray; // don't leak
+				delete pSelectedFoldersArray; // don't leak
+				SetNeitherSideHasFocus();
+				return;
+			}
 	} // end of switch
 
 	if (pPaneSelectedFolders != NULL)
@@ -1499,6 +1553,7 @@ _("You first need to select at least one item in either list before clicking the
 		pSelectedFoldersArray->Clear(); // this one is on heap
 		delete pSelectedFilesArray; // don't leak it
 		delete pSelectedFoldersArray; // don't leak it
+		SetNeitherSideHasFocus();
 		return;
 	}
 	for (index = 0; index < foldersLimit; index++)
@@ -1524,8 +1579,11 @@ _("You first need to select at least one item in either list before clicking the
 	// update the pane's list
 	if (sideWithFocus == leftSideHasFocus)
 		SetupLeftList(pathToPane);
-	else
+	else if (sideWithFocus == rightSideHasFocus)
 		SetupRightList(pathToPane);
+	
+	// now defocus both lists
+	SetNeitherSideHasFocus();
 }
 
 // BEW 28July10, changed the code to reflect the possibility of deleting from either pane,
@@ -1675,12 +1733,45 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		wxString msg = _("Type the new folder name");
 		wxString caption = _("Type Name For Folder (spaces permitted)");
 		wxString newName = ::wxGetTextFromUser(msg,caption,oldName,this); // use selection as default name
+		if (newName.IsEmpty())
+		{
+			// the user cancelled, so return silently
+			// update the pane's list
+			if (sideWithFocus == leftSideHasFocus)
+			{
+				SetupLeftList(pathToPane);
+			}
+			else
+			{
+				SetupRightList(pathToPane);
+			}
+			SetNeitherSideHasFocus();
+			return; 
+		}
 
 		// Change to new name? -- use ::wxRenameFile(), but not on open
 		// or working directory, and the overwrite parameter must be set TRUE
 		bOK = ::wxSetWorkingDirectory(m_strRightFolderPath); // make parent directory be the working one
 		wxString theNewPath = pathToPane + gpApp->PathSeparator + newName;
 		bOK = ::wxRenameFile(theFolderPath,theNewPath,TRUE);
+		// if the rename failed, return -- the rename failure will be visible as the folder
+		// will just not be renamed
+		if (!bOK)
+		{
+			wxBell();
+			// update the pane's list
+			if (sideWithFocus == leftSideHasFocus)
+			{
+				SetupLeftList(pathToPane);
+			}
+			else
+			{
+				SetupRightList(pathToPane);
+			}
+			SetNeitherSideHasFocus();
+			return;
+		}
+
 		// update the pane's list
 		if (sideWithFocus == leftSideHasFocus)
 		{
@@ -1716,12 +1807,45 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		wxString msg = _("Type the new file name");
 		wxString caption = _("Type Name For File (spaces permitted)");
 		wxString newName = ::wxGetTextFromUser(msg,caption,oldName,this); // use selection as default name
+		if (newName.IsEmpty())
+		{
+			// the user cancelled, so return silently
+			// update the pane's list
+			if (sideWithFocus == leftSideHasFocus)
+			{
+				SetupLeftList(pathToPane);
+			}
+			else
+			{
+				SetupRightList(pathToPane);
+			}
+			SetNeitherSideHasFocus();
+			return; 
+		}
 
 		// Change to new name? -- use ::wxRenameFile(), but not on open
 		// or working directory, and the overwrite parameter must be set TRUE
 		bOK = ::wxSetWorkingDirectory(pathToPane); // make parent directory be the working one
 		wxString theNewPath = pathToPane + gpApp->PathSeparator + newName;
 		bOK = ::wxRenameFile(theFilePath,theNewPath,TRUE);
+		// if the rename failed, return -- the rename failure will be visible as the folder
+		// will just not be renamed
+		if (!bOK)
+		{
+			wxBell();
+			// update the pane's list
+			if (sideWithFocus == leftSideHasFocus)
+			{
+				SetupLeftList(pathToPane);
+			}
+			else
+			{
+				SetupRightList(pathToPane);
+			}
+			SetNeitherSideHasFocus();
+			return;
+		}
+
 		// update the pane's list
 		if (sideWithFocus == leftSideHasFocus)
 		{
@@ -1757,6 +1881,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 	{
 		::wxBell();
 	}
+	SetNeitherSideHasFocus();
 }
 
 void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
@@ -1878,7 +2003,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 						PutUpInvalidsMessage(strAllInvalids);
 					}
 					// force parent dialog to close, and if Move was being attempted, abandon that
-					// to without removing anything more at the left side
+					// to without removing anything more at the source pane's side
 					return;
 				}
 			}
@@ -2127,6 +2252,7 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
 		_("Cannot copy"), wxICON_WARNING);
+		SetNeitherSideHasFocus();
 		return;
 	}
 	if (pathToDestinationPane.IsEmpty())
@@ -2134,12 +2260,14 @@ _("No source folder is defined. (The source folder is where your selections are 
 		wxMessageBox(
 _("No destination folder is defined. (The destination folder is where your selections will be copied to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
 		_("Cannot copy"), wxICON_WARNING);
+		SetNeitherSideHasFocus();
 		return;
 	}
 	if(CheckForIdenticalPaths(m_strLeftFolderPath, m_strRightFolderPath))
 	{
 		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning
 		// message
+		SetNeitherSideHasFocus();
 		return;
 	}
 
@@ -2159,6 +2287,7 @@ _("Before you click the Copy button, you need to select at least one item from t
 		pSrcSelectedFilesArray->Clear(); // this one is on heap
 		delete pSrcSelectedFilesArray;   // don't leak it
 		delete pSrcSelectedFoldersArray; // don't leak it
+		SetNeitherSideHasFocus();
 		return;
 	}
 	for (index = 0; index < foldersLimit; index++)
@@ -2216,6 +2345,10 @@ _("Before you click the Copy button, you need to select at least one item from t
 		// force parent dialog to close, and if Move was being attempted, abandon that
 		// too without removing anything more at the source side
 		EndModal(wxID_OK);
+		// get the lists to agree with the state of affairs at cancel time
+		SetupLeftList(m_strLeftFolderPath);
+		SetupRightList(m_strRightFolderPath);
+		SetNeitherSideHasFocus();
 		return;
 	}
 
@@ -2245,6 +2378,7 @@ _("Before you click the Copy button, you need to select at least one item from t
 	// update the destination pane to reflect its copied contents, & the source pane too 
 	SetupRightList(m_strRightFolderPath);
 	SetupLeftList(m_strLeftFolderPath);
+	SetNeitherSideHasFocus();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2290,6 +2424,7 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
 		_("Cannot move"), wxICON_WARNING);
+		SetNeitherSideHasFocus();
 		return;
 	}
 	if (pathToDestinationPane.IsEmpty())
@@ -2297,12 +2432,14 @@ _("No source folder is defined. (The source folder is where your selections are 
 		wxMessageBox(
 _("No destination folder is defined. (The destination folder is where your selections will be moved to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
 		_("Cannot move"), wxICON_WARNING);
+		SetNeitherSideHasFocus();
 		return;
 	}
 	if(CheckForIdenticalPaths(m_strLeftFolderPath, m_strRightFolderPath))
 	{
 		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning
 		// message
+		SetNeitherSideHasFocus();
 		return;
 	}
 
@@ -2334,6 +2471,7 @@ _("Trying to move the 'Source Data' folder is not permitted.\nThe Move operation
 			}
 			SetupRightList(m_strRightFolderPath);
 			SetupLeftList(m_strLeftFolderPath);
+			SetNeitherSideHasFocus();
 			return;
 		}
 	}
@@ -2354,6 +2492,7 @@ _("Before you click the Move button, you need to select at least one item from t
 		pSrcSelectedFilesArray->Clear(); // this one is on heap
 		delete pSrcSelectedFilesArray;   // don't leak it
 		delete pSrcSelectedFoldersArray; // don't leak it
+		SetNeitherSideHasFocus();
 		return;
 	}
 	for (index = 0; index < foldersLimit; index++)
@@ -2412,8 +2551,12 @@ _("Before you click the Move button, you need to select at least one item from t
 	if (m_bUserCancelled)
 	{
 		// force parent dialog to close, and if Move was being attempted, abandon that
-		// to without removing anything more at the left side
+		// too without removing anything more at the source side
 		EndModal(wxID_OK);
+		// get the lists to agree with the state of affairs at cancel time
+		SetupLeftList(m_strLeftFolderPath);
+		SetupRightList(m_strRightFolderPath);
+		SetNeitherSideHasFocus();
 		return;
 	}
 
@@ -2443,6 +2586,7 @@ _("Before you click the Move button, you need to select at least one item from t
 	// update the destination pane to reflect its moved contents, & the source pane too 
 	SetupRightList(m_strRightFolderPath);
 	SetupLeftList(m_strLeftFolderPath);
+	SetNeitherSideHasFocus();
 }
 
 void AdminMoveOrCopy::NoSelectionMessage()
@@ -2474,6 +2618,8 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 				if (count == 0)
 				{
 					NoSelectionMessage();
+					SetupLeftList(m_strLeftFolderPath);
+					SetNeitherSideHasFocus();
 					return;
 				}
 				else
@@ -2494,6 +2640,10 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 					if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
 					{
 					}
+					SetupLeftList(m_strLeftFolderPath);
+	
+					// now defocus both lists
+					SetNeitherSideHasFocus();
 					return;
 				}
 			}
@@ -2508,6 +2658,8 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 				{
 					// nothing to Peek at, tell the user what to do
 					NoSelectionMessage();
+					SetupRightList(m_strRightFolderPath);
+					SetNeitherSideHasFocus();
 					return;
 				}
 				else
@@ -2528,10 +2680,30 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 					if (peeker.ShowModal() == wxID_OK) // don't need the test, but no harm in it
 					{
 					}
+					SetupRightList(m_strRightFolderPath);
+	
+					// now defocus both lists
+					SetNeitherSideHasFocus();
+					return;
 				}
 			}
 		}
 		break;
+	case neitherSideHasFocus:
+	default:
+		{
+			wxBell();
+		}
+		break;
 	}
+
+	// update the pane's list
+	if (sideWithFocus == leftSideHasFocus)
+		SetupLeftList(m_strLeftFolderPath);
+	else if (sideWithFocus == rightSideHasFocus)
+		SetupRightList(m_strRightFolderPath);
+	
+	// now defocus both lists
+	SetNeitherSideHasFocus();
 }
 
