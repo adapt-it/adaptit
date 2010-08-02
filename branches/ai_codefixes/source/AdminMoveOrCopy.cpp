@@ -585,7 +585,6 @@ void AdminMoveOrCopy::SetupRightList(wxString& folderPath)
 
 void AdminMoveOrCopy::OnBnClickedLocateLeftFolder(wxCommandEvent& WXUNUSED(event))
 {
-	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxString msg = _("Locate the left side folder");
 	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
 		// second param suppresses a Create button being shown, 3rd makes chose directory 
@@ -599,7 +598,7 @@ void AdminMoveOrCopy::OnBnClickedLocateLeftFolder(wxCommandEvent& WXUNUSED(event
 	// returned string is empty, otherwise it is the absolute path to whatever directory
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strLeftFolderPath_OLD = m_strLeftFolderPath; // save current path in case user cancels
-	m_strLeftFolderPath = wxDirSelector(msg,m_strLeftFolderPath,style,pos,(wxWindow*)pFrame);
+	m_strLeftFolderPath = wxDirSelector(msg,m_strLeftFolderPath,style,pos,(wxWindow*)this);
 	if (m_strLeftFolderPath.IsEmpty())
 	{
 		// restore the old path
@@ -612,7 +611,6 @@ void AdminMoveOrCopy::OnBnClickedLocateLeftFolder(wxCommandEvent& WXUNUSED(event
 
 void AdminMoveOrCopy::OnBnClickedLocateRightFolder(wxCommandEvent& WXUNUSED(event))
 {
-	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxString msg = _("Locate the right side folder");
 	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
 		// second param suppresses a Create button being shown, 3rd makes chose directory 
@@ -626,7 +624,7 @@ void AdminMoveOrCopy::OnBnClickedLocateRightFolder(wxCommandEvent& WXUNUSED(even
 	// returned string is empty, otherwise it is the absolute path to whatever directory
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strRightFolderPath_OLD = m_strRightFolderPath; // save current path in case user cancels
-	m_strRightFolderPath = wxDirSelector(msg,m_strRightFolderPath,style,pos,(wxWindow*)pFrame);
+	m_strRightFolderPath = wxDirSelector(msg,m_strRightFolderPath,style,pos,(wxWindow*)this);
 	if (m_strRightFolderPath.IsEmpty())
 	{
 		// restore the old path
@@ -954,6 +952,9 @@ void AdminMoveOrCopy::OnRightListKeyDown(wxListEvent& event)
 	event.Skip();
 }
 */
+
+
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      side    ->  enum with value either leftSide, or rightSide 
