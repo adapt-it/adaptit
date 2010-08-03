@@ -314,6 +314,15 @@ void AdminMoveOrCopy::EnableMoveButton(bool bEnableFlag)
 		pMoveButton->Enable(FALSE);
 }
 
+void AdminMoveOrCopy::EnablePeekButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pPeekButton->Enable(TRUE);
+	else
+		pPeekButton->Enable(FALSE);
+}
+
+
 void AdminMoveOrCopy::EnableDeleteButton(bool bEnableFlag)
 {
 	if (bEnableFlag)
@@ -674,8 +683,8 @@ void AdminMoveOrCopy::OnBnClickedLeftParentFolder(wxCommandEvent& WXUNUSED(event
 		}
 	}
 	delete pFN;
-	EnableButtons();
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 
 void AdminMoveOrCopy::OnBnClickedRightParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -717,8 +726,8 @@ void AdminMoveOrCopy::OnBnClickedRightParentFolder(wxCommandEvent& WXUNUSED(even
 		}
 	}
 	delete pFN;
-	EnableButtons();
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 
 void AdminMoveOrCopy::OnSize(wxSizeEvent& event)
@@ -1044,8 +1053,8 @@ void AdminMoveOrCopy::OnLeftListDoubleclick(wxListEvent& event)
 		m_strLeftFolderPath += gpApp->PathSeparator + event.GetText();
 		SetupLeftList(m_strLeftFolderPath);
 		//event.Skip();
-		EnableButtons();
 		SetNeitherSideHasFocus();
+		EnableButtons();
 	}
 }
 
@@ -1067,8 +1076,8 @@ void AdminMoveOrCopy::OnRightListDoubleclick(wxListEvent& event)
 		// extend the path using this foldername, and then display the contents
 		m_strRightFolderPath += gpApp->PathSeparator + event.GetText();
 		SetupRightList(m_strRightFolderPath);
-		EnableButtons();
 		SetNeitherSideHasFocus();
+		EnableButtons();
 	}
 }
 
@@ -1219,12 +1228,14 @@ void AdminMoveOrCopy::EnableButtons()
 		EnableMoveButton(TRUE);
 		EnableCopyButton(TRUE);
 		EnableDeleteButton(TRUE);
+		EnablePeekButton(TRUE);
 	}
 	else
 	{
 		EnableMoveButton(FALSE);
 		EnableCopyButton(FALSE);
 		EnableDeleteButton(FALSE);
+		EnablePeekButton(FALSE);
 	}
 }
 
@@ -1533,10 +1544,12 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 		case neitherSideHasFocus:
 		default:
 			{
+				wxASSERT(FALSE);
 				wxBell();
 				delete pSelectedFilesArray; // don't leak
 				delete pSelectedFoldersArray; // don't leak
 				SetNeitherSideHasFocus();
+				EnableButtons();
 				return;
 			}
 	} // end of switch
@@ -1555,6 +1568,7 @@ _("You first need to select at least one item in either list before clicking the
 		delete pSelectedFilesArray; // don't leak it
 		delete pSelectedFoldersArray; // don't leak it
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	for (index = 0; index < foldersLimit; index++)
@@ -1583,8 +1597,9 @@ _("You first need to select at least one item in either list before clicking the
 	else if (sideWithFocus == rightSideHasFocus)
 		SetupRightList(pathToPane);
 	
-	// now defocus both lists
+	// now defocus both lists & get the buttons disabled
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 
 // BEW 28July10, changed the code to reflect the possibility of deleting from either pane,
@@ -1722,6 +1737,15 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 				pPaneSelectedFiles = &rightSelectedFilesArray;
 			} // end of case for right side having focus
 			break;
+		case neitherSideHasFocus:
+		default:
+			{	
+				wxASSERT(FALSE);
+				wxBell();
+				SetNeitherSideHasFocus();
+				EnableButtons();
+				return;
+			}
 	} // end of switch
 
 	if (pPaneSelectedFolders->GetCount() == 1)
@@ -1747,6 +1771,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 				SetupRightList(pathToPane);
 			}
 			SetNeitherSideHasFocus();
+			EnableButtons();
 			return; 
 		}
 
@@ -1770,6 +1795,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 				SetupRightList(pathToPane);
 			}
 			SetNeitherSideHasFocus();
+			EnableButtons();
 			return;
 		}
 
@@ -1821,6 +1847,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 				SetupRightList(pathToPane);
 			}
 			SetNeitherSideHasFocus();
+			EnableButtons();
 			return; 
 		}
 
@@ -1844,6 +1871,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 				SetupRightList(pathToPane);
 			}
 			SetNeitherSideHasFocus();
+			EnableButtons();
 			return;
 		}
 
@@ -1883,6 +1911,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 	}
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 
 void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
@@ -2245,6 +2274,15 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 				pPaneSelectedFiles = &rightSelectedFilesArray;
 			} // end of case for right side having focus
 			break;
+		case neitherSideHasFocus:
+		default:
+			{
+				wxASSERT(FALSE);
+				wxBell();
+				SetNeitherSideHasFocus();
+				EnableButtons();
+				return;
+			}
 	} // end of switch
 
 	// do nothing if the source folder is not yet defined, or the destination folder
@@ -2254,6 +2292,7 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
 		_("Cannot copy"), wxICON_WARNING);
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	if (pathToDestinationPane.IsEmpty())
@@ -2262,6 +2301,7 @@ _("No source folder is defined. (The source folder is where your selections are 
 _("No destination folder is defined. (The destination folder is where your selections will be copied to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
 		_("Cannot copy"), wxICON_WARNING);
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	if(CheckForIdenticalPaths(m_strLeftFolderPath, m_strRightFolderPath))
@@ -2269,6 +2309,7 @@ _("No destination folder is defined. (The destination folder is where your selec
 		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning
 		// message
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 
@@ -2289,6 +2330,7 @@ _("Before you click the Copy button, you need to select at least one item from t
 		delete pSrcSelectedFilesArray;   // don't leak it
 		delete pSrcSelectedFoldersArray; // don't leak it
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	for (index = 0; index < foldersLimit; index++)
@@ -2350,6 +2392,7 @@ _("Before you click the Copy button, you need to select at least one item from t
 		SetupLeftList(m_strLeftFolderPath);
 		SetupRightList(m_strRightFolderPath);
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 
@@ -2380,6 +2423,7 @@ _("Before you click the Copy button, you need to select at least one item from t
 	SetupRightList(m_strRightFolderPath);
 	SetupLeftList(m_strLeftFolderPath);
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2417,6 +2461,15 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 				pPaneSelectedFiles = &rightSelectedFilesArray;
 			} // end of case for right side having focus
 			break;
+		case neitherSideHasFocus:
+		default:
+			{
+				wxASSERT(FALSE);
+				wxBell();
+				SetNeitherSideHasFocus();
+				EnableButtons();
+				return;
+			}
 	} // end of switch
 
 	// do nothing if the source folder is not yet defined, or the destination folder
@@ -2426,6 +2479,7 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
 		_("Cannot move"), wxICON_WARNING);
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	if (pathToDestinationPane.IsEmpty())
@@ -2434,6 +2488,7 @@ _("No source folder is defined. (The source folder is where your selections are 
 _("No destination folder is defined. (The destination folder is where your selections will be moved to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
 		_("Cannot move"), wxICON_WARNING);
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	if(CheckForIdenticalPaths(m_strLeftFolderPath, m_strRightFolderPath))
@@ -2441,6 +2496,7 @@ _("No destination folder is defined. (The destination folder is where your selec
 		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning
 		// message
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 
@@ -2473,6 +2529,7 @@ _("Trying to move the 'Source Data' folder is not permitted.\nThe Move operation
 			SetupRightList(m_strRightFolderPath);
 			SetupLeftList(m_strLeftFolderPath);
 			SetNeitherSideHasFocus();
+			EnableButtons();
 			return;
 		}
 	}
@@ -2494,6 +2551,7 @@ _("Before you click the Move button, you need to select at least one item from t
 		delete pSrcSelectedFilesArray;   // don't leak it
 		delete pSrcSelectedFoldersArray; // don't leak it
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 	for (index = 0; index < foldersLimit; index++)
@@ -2558,6 +2616,7 @@ _("Before you click the Move button, you need to select at least one item from t
 		SetupLeftList(m_strLeftFolderPath);
 		SetupRightList(m_strRightFolderPath);
 		SetNeitherSideHasFocus();
+		EnableButtons();
 		return;
 	}
 
@@ -2588,6 +2647,7 @@ _("Before you click the Move button, you need to select at least one item from t
 	SetupRightList(m_strRightFolderPath);
 	SetupLeftList(m_strLeftFolderPath);
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 
 void AdminMoveOrCopy::NoSelectionMessage()
@@ -2607,6 +2667,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 	{
 		//nothing to peek at, so return
 		wxBell();
+		EnableButtons();
 		return;
 	}
 	switch (sideWithFocus)
@@ -2621,6 +2682,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 					NoSelectionMessage();
 					SetupLeftList(m_strLeftFolderPath);
 					SetNeitherSideHasFocus();
+					EnableButtons();
 					return;
 				}
 				else
@@ -2645,6 +2707,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 	
 					// now defocus both lists
 					SetNeitherSideHasFocus();
+					EnableButtons();
 					return;
 				}
 			}
@@ -2661,6 +2724,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 					NoSelectionMessage();
 					SetupRightList(m_strRightFolderPath);
 					SetNeitherSideHasFocus();
+					EnableButtons();
 					return;
 				}
 				else
@@ -2685,6 +2749,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 	
 					// now defocus both lists
 					SetNeitherSideHasFocus();
+					EnableButtons();
 					return;
 				}
 			}
@@ -2693,6 +2758,7 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 	case neitherSideHasFocus:
 	default:
 		{
+			wxASSERT(FALSE);
 			wxBell();
 		}
 		break;
@@ -2706,5 +2772,6 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 	
 	// now defocus both lists
 	SetNeitherSideHasFocus();
+	EnableButtons();
 }
 

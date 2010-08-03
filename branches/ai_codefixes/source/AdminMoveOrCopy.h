@@ -127,6 +127,7 @@ protected:
 	void EnableMoveButton(bool bEnableFlag);
 	void EnableDeleteButton(bool bEnableFlag);
 	void EnableRenameButton(bool bEnableFlag);
+	void EnablePeekButton(bool bEnableFlag);
 	void EnableButtons();
 
 	void OnOK(wxCommandEvent& event);
