@@ -3522,7 +3522,7 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 #ifdef __WXGTK__
 	// On Linux appName is "adaptit"
 	// Set a suitable default path for the xml files on Ubuntu Linux.
-	pathToXMLFolders = _T("/usr/share/locale"); // the path separator is added by the caller
+	pathToXMLFolders = _T("/usr/share/adaptit"); // the path separator is added by the caller
 #endif //__WXGTK__
 
 #ifdef __WXMSW__
