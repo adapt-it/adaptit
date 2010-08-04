@@ -5706,7 +5706,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item16->SetToolTip( _("The path where Adapt It looks for localization folders containing .mo files. Use the \"Browse...\" button at right to designate a different path") );
     item15->Add( item16, 1, wxGROW|wxALL, 5 );
 
