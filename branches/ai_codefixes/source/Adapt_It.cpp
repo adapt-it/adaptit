@@ -3515,6 +3515,7 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default path for the xml files on the Mac.
+	pathToXMLFolders += m_appInstallPathOnly + PathSeparator;
 	pathToXMLFolders += appName + _T(".app/Contents/Resources"); // the path separator is added by the caller
 #endif
 
