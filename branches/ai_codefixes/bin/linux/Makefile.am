@@ -14,19 +14,20 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/FilenameConflictDlg.h ../../source/FilterPage.h \
 	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h ../../source/GoToDlg.h \
 	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBEditSearch.h \
-	../../source/KBPage.h ../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
+	../../source/KBPage.h ../../source/KB_Standoff.h \
+	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
 	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
 	../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h ../../source/NoteDlg.h \
 	../../source/Notes.h ../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h \
-	../../source/PhraseBox.h ../../source/Pile.h ../../source/Placeholder.h \
+	../../source/PeekAtFile.h ../../source/PhraseBox.h ../../source/Pile.h ../../source/Placeholder.h \
 	../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
 	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
 	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h \
-	../../source/Retranslation.h ../../source/RetranslationDlg.h \
+	../../source/RefStringMetadata.h ../../source/Retranslation.h ../../source/RetranslationDlg.h \
 	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
 	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
-	../../source/tellenc.h \
+	../../source/TargetUnit_Standoff.h ../../source/tellenc.h \
 	../../source/TransformToGlossesDlg.h ../../source/USFMPage.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
 	../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h ../../source/WaitDlg.h \
@@ -78,18 +79,21 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FilterPage.cpp ../../source/FindReplace.cpp \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp \
 	../../source/GoToDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
-	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
+	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp  ../../source/KB_Standoff.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NoteDlg.cpp ../../source/Notes.cpp \
-	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp ../../source/PhraseBox.cpp \
+	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp \
+	../../source/PeekAtFile.cpp ../../source/PhraseBox.cpp \
 	../../source/Pile.cpp ../../source/Placeholder.cpp ../../source/PlaceInternalMarkers.cpp \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
-	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp ../../source/RetranslationDlg.cpp \
+	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
+	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
+	../../source/TargetUnit_Standoff.cpp \
 	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp ../../source/USFMPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
