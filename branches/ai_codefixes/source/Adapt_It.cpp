@@ -3515,8 +3515,8 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default path for the xml files on the Mac.
-	pathToXMLFolders += m_appInstallPathOnly + PathSeparator;
-	pathToXMLFolders += appName + _T(".app/Contents/Resources"); // the path separator is added by the caller
+	pathToXMLFolders += m_appInstallPathOnly;
+	pathToXMLFolders += _T("/../Resources"); // the path separator is added by the caller
 #endif
 
 #ifdef __WXGTK__
@@ -5827,6 +5827,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_setupFolder = FindAppPath(argv[0], wxGetCwd(), _T(""));
 	m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
+	wxLogDebug(_T("The m_appInstallPathOnly = %s"),m_appInstallPathOnly.c_str());
 	// On Windows the m_appInstallPathOnly will be something like (if installed to
 	// default location):
 	// "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode\"
@@ -5842,6 +5843,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ??? 
 	//             TODO: check this location
 	m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
+	wxLogDebug(_T("The m_xmlInstallPath = %s"),m_xmlInstallPath.c_str());
 
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
@@ -5852,6 +5854,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this 
 				// is where Poedit puts its localization files.
 	m_localizationInstallPath = GetDefaultPathForLocalizationSubDirectories();
+	wxLogDebug(_T("The m_localizationInstallPath = %s"),m_localizationInstallPath.c_str());
 
 	// The m_helpInstallPath stores the path where the help files are installed on 
 	// the given platform.
@@ -5862,6 +5865,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ??? 
 	//             TODO: check this location
 	m_helpInstallPath = GetDefaultPathForHelpFiles();
+	wxLogDebug(_T("The m_helpInstallPath = %s"),m_helpInstallPath.c_str());
 	// Note: The m_htbHelpFileName is also determined in  
 	// GetDefaultPathForHelpFiles() call above
 
