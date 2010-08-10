@@ -6437,17 +6437,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//	"!!!!!!!!!!!!!###"};
 
 	// whm 10Aug10 replaced old 16x16 AI frame icon with new icons (blue theme) below:
-	// To evaluate three different frame icon choices:
-	//    Define only one of the three choices below to select it for use as 16x16 frame icon.
-	//    Comment out the other two choices.
+	// To evaluate four different frame icon choices:
+	//    Define only one of the four choices below to select it for use as 16x16 frame icon.
+	//    Comment out the other three choices.
 	//#define IconBlueShadesOn16x16WhiteRectangularBackground
 	#define IconBlueShadesOn16x16WhiteDiskBackground
 	//#define IconBlueShadesOn16x16AllTransparentBackground
 	//#define IconWhiteBlueOn16x16BlueDiskBackground
 
-	// To evaluate three different taskbar icon choices:
-	//    Define only one of the three choices to select it for use as 32x32 taskbar icon.
-	//    Comment out the other two choices.
+	// To evaluate four different taskbar icon choices:
+	//    Define only one of the four choices to select it for use as 32x32 taskbar icon.
+	//    Comment out the other three choices.
 	//#define IconBlueShadesOn32x32WhiteRectangularBackground
 	#define IconBlueShadesOn32x32WhiteDiskBackground
 	//#define IconBlueShadesOn32x32AllTransparentBackground
