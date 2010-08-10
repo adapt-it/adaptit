@@ -6438,7 +6438,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm 9Aug10 replaced old AI frame icon with new icon (blue theme)
 	/* XPM */
-	static char * AI_16_xpm[] = {
+	static const char * AI_16_xpm[] = {
 	"16 16 50 1",
 	" 	c None",
 	".	c #75C9EB",
@@ -6559,7 +6559,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //    "gggggggggggggggggggggggggggggggg"
     //    };
 /* XPM */
-static char * xpm_data32x32[] = {
+static const char * xpm_data32x32[] = {
 "32 32 176 2",
 "  	c #FFFFFF",
 ". 	c #DFF2FB",
