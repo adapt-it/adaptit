@@ -2519,6 +2519,7 @@ public:
 	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath, 
 				bool bSuppressDialog = FALSE);
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10
+	bool	EnumerateLoadableSourceTextFiles(wxSortedArrayString& array, wxString& folderPath); // BEw added 6Aug10
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);

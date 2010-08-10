@@ -627,6 +627,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\NavProtectNewDoc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\NoteDlg.cpp"
 				>
 			</File>
@@ -1017,6 +1021,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\MyListBox.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\NavProtectNewDoc.h"
 				>
 			</File>
 			<File

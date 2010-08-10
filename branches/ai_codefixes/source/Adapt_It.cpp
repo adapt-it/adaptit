@@ -26461,6 +26461,65 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 	event.Enable(TRUE); 
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if one or more loadable files was added to the passed in array, FALSE
+///             if there was an error or if there were no loadable files in the folder
+/// \param      array         ->    ref to a string array to store the names of the files 
+///                                 judged to be loadable for creating valid adaptation docs
+/// \param      folderPath    ->    the absolute path to the folder whose files are to be
+///                                 enumerated and tested for loadability
+/// \remarks
+/// Uses the function, bool IsLoadableFile() (see helpers.cpp), to test each file for
+/// loadability. Those that are are added to the array (it's a sorted array) - and only
+/// these should be shown to the user for document creation purposes. We have to do this
+/// enumeration immediately prior to creation of a new document, because it may happen
+/// that someone (e.g. an administrator) might have changed the contents of the Source Data
+/// folder's monocline list of loadable files since the last call of this function -
+/// either to add more loadable files, or even some not loadable. 
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxSortedArrayString& array, wxString& folderPath)
+{
+	wxArrayString arrFilenames;
+	array.Clear();
+	// get them all, then loop to exclude the non-loadable ones
+	bool bOkay = EnumerateDocFiles_ParametizedStore(arrFilenames, folderPath);
+	if (!bOkay)
+	{
+		// error of some kind, not likely to occur, so an English message will suffice
+		wxMessageBox(_T("EnumerateLoadableSourceTextFiles() failed, and so returned FALSE"),
+			_T(""),wxICON_WARNING);
+		return FALSE;
+	}
+	size_t index;
+	wxString filename = _T("");
+	size_t limit = arrFilenames.GetCount();
+	if (limit == 0)
+	{
+		wxMessageBox(_("There were no files in the 'Source Text' folder"), _("No files for document creation"),
+			wxICON_WARNING);
+		return FALSE;
+	}
+	for (index = 0; index < limit; index++)
+	{
+		filename = arrFilenames.Item(index);
+		wxString aPath = folderPath + PathSeparator + filename;
+		wxASSERT(::wxFileExists(aPath));
+		if (IsLoadableFile(aPath))
+		{
+			// store this loadable file's name in the passed in array, in its proper
+			// sorted location (ignore returned index as it's irrelevant since insertion
+			// is done, not appending)
+			array.Add(filename);
+		}
+	}
+	limit = array.GetCount();
+	if (limit == 0)
+	{
+		wxMessageBox(_("In the 'Source Text' folder there were no loadable files suitable for creating an adaptation document."), _("No loadable source text files"),
+			wxICON_WARNING);
+		return FALSE;
+	}
+	return TRUE;
+}
 
 

@@ -4055,6 +4055,12 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	return getNewFile_success;
 }
 
+// BEW created July2010. Used only in OnBnClickedMove() handler from AdminMoveOrCopy.cpp.
+// Tests if the folder(s) selected by the user include the "Source Data" folder -- the
+// latter contains only a monocline list of loadable (for document creation purposes)
+// files - typically USFM marked up plain text data. If TRUE is returned, the
+// OnBnClickedMove() handler exits without doing any moving, with a warning to the user to
+// explain why.
 bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders)
 {
 	wxASSERT(!pFolders->IsEmpty());
@@ -4153,7 +4159,7 @@ bool UseSourceDataFolderOnlyForInputFiles()
 				// warn the user that none are loadable for doc creation purposes,
 				// and that navigation protect therefore can't be turned on
 				wxString msg;
-				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the Source Data folder's files are suitable for creating an adaptation document.\nThey are: %s"),
+				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the Source Data folder's files are suitable for creating an adaptation document.\nThe unsuitable ones are: %s"),
 				unloadables.c_str());
 				wxMessageBox(msg,_T("Warning: do not use these files"),wxICON_WARNING);
 				return FALSE;
@@ -4163,5 +4169,65 @@ bool UseSourceDataFolderOnlyForInputFiles()
 	return TRUE;
 }
 
+// BEW created 9Aug10, this function takes a first param which is an input array of names,
+// and a second param which is an input array of unwanted names (which possibly, but not
+// obligatorily so) partly or wholely overlaps those in the first array, and removes from
+// the inventory of names in the first param any which are also in the second param's
+// inventory. It also removes any names in the array of originals which are empty strings;
+// but any empty strings in the unwanteds array are not removed from the unwanteds array.
+// 
+// The function has general application. However it was specifically created for the
+// situation where the originals (the first param's array) are filenames from the Source
+// Data folder, and the unwanteds (the second param's array) are document filenames from the
+// Adaptations folder of the current project, or, if book mode is currently on, from the
+// current book folder. The intention behind such removals is to prevent the user from
+// re-creating a document from a loadable source text file when/if he forgets he already
+// has created one with that particular name -- because doing so would cause that
+// document's adaptations to be lost. (The GUI will tell the user that he can have the
+// loadable source text file displayed if he first uses File / Save As... to rename the
+// document file.)
+void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwanteds)
+{
+	if (unwanteds.GetCount() == 0)
+	{
+		return; // nothing exists to test for a name clash
+	}
+	size_t outerIndex;
+	size_t innerIndex;
+	// do the test only if there is at least one name to check
+	if (originals.GetCount() > 0)
+	{
+		for (outerIndex = 0; outerIndex < originals.GetCount(); outerIndex++)
+		{
+			wxString anOriginalName = originals.Item(outerIndex);
+			if (anOriginalName.IsEmpty())
+			{
+				// remove any empty strings in the originals array
+				originals.RemoveAt(outerIndex,1);
+			}
+			else
+			{
+				// use an inner loop to test for a name clash with the name stored in
+				// anOriginalName 
+				for (innerIndex = 0; innerIndex < unwanteds.GetCount(); innerIndex++)
+				{
+					wxString anUnwantedName = unwanteds.Item(innerIndex);
+					if (!anUnwantedName.IsEmpty())
+					{
+						if (anOriginalName == anUnwantedName)
+						{
+							// we have a name clash, so remove it
+							originals.RemoveAt(outerIndex,1);
+						}
+					}
+				}
+			}
+			if (originals.IsEmpty())
+			{
+				return;
+			}
+		}
+	}
+}
 
 

@@ -221,5 +221,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 // new document for adaptation
 bool UseSourceDataFolderOnlyForInputFiles();
 bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders);
+// BEW created 9Aug10, for support of user-protection from folder navigation
+void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwanted);
 
 #endif	// helpers_h
