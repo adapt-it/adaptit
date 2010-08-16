@@ -39,6 +39,8 @@ class AIPrintout;
 // comment out when the wxLogDebug() calls are no longer needed
 //#define Test_m_bNoAutoSave
 
+class NavProtectNewDoc; // for user navigation protection feature
+
 /////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
 //	DWORD (unsigned long)			wxUint32
@@ -977,6 +979,14 @@ enum VertEditBarType
 	Vert_Edit_RemovalsBar,
 	Vert_Edit_Bar,				// IDD_VERT_EDIT_BAR
 	Vert_Edit_ComposeBar
+};
+
+// enum for user navigation protection support, or more specifically, to allow control of
+// whether or not a call of EnumerateLoadableSourceTextFiles() is to do filtering or not
+// of loadable versus unloadable files for doc creation
+enum LoadabilityFilter {
+	doNotFilterOutUnloadableFiles,
+	filterOutUnloadableFiles
 };
 
 typedef struct
@@ -2037,6 +2047,7 @@ public:
 										// points to; the path is defined where the latter
 										// gets defined (but the folder is not created until
 										// the administrator requests it)
+	wxArrayString m_sortedLoadableFiles; // for use by the NavProtectNewDoc class's dialog
 
     /// m_appInstallPathOnly stores the path (only the path, not path and name) where the
     /// executable application file is installed on the given platform.
@@ -2519,7 +2530,8 @@ public:
 	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath, 
 				bool bSuppressDialog = FALSE);
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10
-	bool	EnumerateLoadableSourceTextFiles(wxSortedArrayString& array, wxString& folderPath); // BEw added 6Aug10
+	bool	EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
+												enum LoadabilityFilter filtered); // BEW added 6Aug10
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);
@@ -2587,6 +2599,9 @@ public:
 	void	SubstituteKBBackup(bool bDoOnGlossingKB = FALSE);
 	void	Terminate();
 	void	UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView));
+	bool	UseSourceDataFolderOnlyForInputFiles(); // BEW created 22July10, to support 
+				// user-protection from folder navigation when creating a new document 
+				// for adaptation
 	void	WriteFontConfiguration(const fontInfo fi, wxTextFile* pf);
 	void	WriteBasicSettingsConfiguration(wxTextFile* pf);
 	void	WriteProjectSettingsConfiguration(wxTextFile* pf);
@@ -2723,7 +2738,11 @@ public:
 	// members for support of KB search functionality added Jan-Feb 2010 by BEW
 	wxArrayString m_arrSearches; // set of search strings for dialog's multiline wxTextCtrl
 	wxArrayString m_arrOldSearches; // old search strings accumulated while in this project, this
-					// array (and the one above)should be cleared when the project is exitted				
+					// array (and the one above)should be cleared when the project is exitted
+	// member for support of user-navigation-protection feature; the dialog is created in
+	// OnInit() whether or not this feature is being used, but only shown when
+	// appropriate; it is destroyed in OnExit()
+	NavProtectNewDoc* m_pNavProtectDlg;			
 };
 
 DECLARE_APP(CAdapt_ItApp);

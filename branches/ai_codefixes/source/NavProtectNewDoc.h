@@ -41,19 +41,32 @@ public:
 
 private:
 	// wx version pointers for dialog controls
-	wxButton* m_pCreateNewDocButton;
+	wxButton* m_pInputFileButton;
 	wxButton* m_pCancelButton;
-	wxTextCtrl* m_pFileTitleTextCtrl;
+	wxTextCtrl* m_pTopMessageStaticCtrl;
+	wxTextCtrl* m_pInstructionsStaticCtrl;
+	wxListBox* m_pMonoclineListOfFiles;
 
 public:
+	wxString GetUserFileName();
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnCreateNewDocButton(wxCommandEvent& event);
+	void OnInputFileButton(wxCommandEvent& event);
 	void OnCancelButton(wxCommandEvent& event);
 	void OnBnClickedCancel(wxCommandEvent& event);
-
+	void OnItemSelected(wxCommandEvent& WXUNUSED(event));
 private:
+	// This class relies on the contents of the app member string, m_sourceDataFolderPath,
+	// in order to get the path to the monocline list of files in the "Source Data"
+	// folder. This will be an empty string if that folder has not been defined. Even if
+	// defined, the user navigation protection mechanism will not work if there is not at
+	// least one file within the Source Data folder for which IsLoadableFile() returns
+	// TRUE.
+	CAdapt_ItApp* m_pApp;
+	wxString m_userFilename; // is an empty string, if Cancel pressed, otherwise, it stores
+							 // whatever filename the user selected or double-clicked
+
 
 	DECLARE_EVENT_TABLE()
 };

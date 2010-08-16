@@ -7341,61 +7341,48 @@ wxSizer *NewDocFromSourceDataFolderFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxVSCROLL );
-    item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxTOP|wxBOTTOM, 5 );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_INSTRUCTIONS, wxT(""), wxDefaultPosition, wxSize(240,-1), wxTE_MULTILINE|wxVSCROLL );
+    item6->Add( item7, 1, wxGROW, 0 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+    item6->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxString strs8[] = 
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+
+    wxString strs9[] = 
     {
-        _("ListItem")
+        wxT("")
     };
-    wxListBox *item8 = new wxListBox( parent, ID_LISTBOX_LOADABLES_FILENAMES, wxDefaultPosition, wxSize(300,240), 1, strs8, wxLB_SINGLE );
-    item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
+    wxListBox *item9 = new wxListBox( parent, ID_LISTBOX_LOADABLES_FILENAMES, wxDefaultPosition, wxSize(300,330), 1, strs9, wxLB_SINGLE );
+    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Filename for document:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item10->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( 2, 10, 0, wxALIGN_CENTER|wxTOP|wxBOTTOM, 5 );
+    wxButton *item11 = new wxButton( parent, wxID_OK, _("&Input file"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetDefault();
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_DOC_NAME, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item9->Add( item11, 1, wxALIGN_CENTER_HORIZONTAL|wxTOP|wxBOTTOM, 5 );
+    item10->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+    item10->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item12->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxButton *item13 = new wxButton( parent, wxID_OK, _("Create the &new document"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetDefault();
-    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item12->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item14 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item12->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item7->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-    item4->Add( item7, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    item4->Add( item8, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_BOTTOM_MSG, _("This dialog shows only loadable source text files stored in the 'Source Data' folder within your project."), wxDefaultPosition, wxSize(-1,20), wxTE_MULTILINE|wxVSCROLL );
-    item15->Add( item16, 1, wxALIGN_CENTER_HORIZONTAL, 5 );
-
-    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

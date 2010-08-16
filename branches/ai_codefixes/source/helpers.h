@@ -38,6 +38,12 @@ enum getNewFileState
 	getNewFile_error_ansi_CRLF_not_in_sequence
 };
 
+// ExtensionAction is used in the function RemoveNameDuplicatesFromArray()
+enum ExtensionAction
+{
+	excludeExtensionsFromComparison,
+	includeExtensionsInComparison
+};
 
 ////////////////////////////////////////////
 //  helper functions
@@ -217,11 +223,9 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, 
 								wxString pathName, int numKBOnly = 0);
 
-// BEW created 22July10, to support user-protection from folder navigation when creating a
-// new document for adaptation
-bool UseSourceDataFolderOnlyForInputFiles();
 bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders);
 // BEW created 9Aug10, for support of user-protection from folder navigation
-void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwanted);
+void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwanted,
+								   bool bSorted, enum ExtensionAction extAction);
 
 #endif	// helpers_h

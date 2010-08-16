@@ -90,6 +90,7 @@
 #include "ReadOnlyProtection.h"
 #include "ConsistencyCheckDlg.h"
 #include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
+#include "NavProtectNewDoc.h"
 
 // forward declarations for functions called in tellenc.cpp
 // GDLC Temporary work around for PPC STL library bug
@@ -518,10 +519,15 @@ bool CAdapt_ItDoc::OnNewDocument()
 		wxASSERT(pApp->m_pBuffer != NULL);
 		pApp->m_nInputFileLength = 0;
 		wxString filter = _T("*.*");
-		wxString fileTitle = _T(""); // stores name (minus extension) of user's chosen source file
+		wxString fileTitle = _T(""); // stores name (including extension) of user's 
+				// chosen source file; however, when taken into the COutFilenameDlg
+				// dialog below, the latter's InitDialog() call strips off any
+				// filename extension before showing what's left to the user
+		wxString pathName; // stores the path (including filename & extension) to the 
+						   // chosen input source text file to be used for doc create
 
-		// The following wxFileDialog part was originally in GetNewFile(), but moved here 19Jun09 to
-		// consolidate file error message processing.
+        // The following wxFileDialog part was originally in GetNewFile(), but moved here
+        // 19Jun09 to consolidate file error message processing.
 		wxString defaultDir;
 		if (gpApp->m_lastSourceFileFolder.IsEmpty())
 		{
@@ -532,198 +538,275 @@ bool CAdapt_ItDoc::OnNewDocument()
 			defaultDir = gpApp->m_lastSourceFileFolder;
 		}
 
-		wxFileDialog fileDlg(
-			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-			_("Input Text File For Adaptation"),
-			defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
-			_T(""),		// default filename
-			filter,
-		wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-					// GDLC wxOPEN deprecated in 2.8
-		fileDlg.Centre();
-		// open as modal dialog
-		int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
-		if (returnValue == wxID_CANCEL)
+		// BEW addition, 15Aut10, test for user navigation protection feature turned on,
+		// and if so, show the monocline list of files in the Source Data folder only,
+		// otherwise, show the standard File Open dialog, wxFileDialog, supplied by
+		// wxWidgets which allows the user to navigate the hierarchical file/folder system
+		bool bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();
+		if (bUseSourceDataFolderOnly)
 		{
-			// user cancelled, so cancel the New... command
-			// IDS_USER_CANCELLED
-			wxMessageBox(_(
-"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
-			_T(""), wxICON_INFORMATION);
+            // This block encapsulates user file/folder navigation protection, by showing
+            // to the user only all, or a subset of, the files in the monocline list of
+            // files in the folder named "Source Data" within the current project's folder.
+            // All the user can do is either Cancel, or select a single file to be loaded
+            // as a new adaptation document, no navigation functionality is provided here
+			gpApp->m_sortedLoadableFiles.Clear(); // we always recompute the array every
+			// time the user tries to create a new document, because the administrator
+			// may have added new source text files to the 'Source Data' folder since the
+			// time of the last document creation attempt
+			gpApp->EnumerateLoadableSourceTextFiles(gpApp->m_sortedLoadableFiles,
+								gpApp->m_sourceDataFolderPath, filterOutUnloadableFiles);
 
-			// check if there was a document current, and if so, reinitialize everything
-			if (pView != 0)
+			// now remove any array entries which have their filename title part
+			// clashing with a document filename's title part (and book mode may be
+			// currently on, so if it is we get the list of doc filenames from the
+			// currently active bible book folder)
+			wxString docsPath;
+			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 			{
-				pApp->m_pTargetBox->SetValue(_T(""));
-				delete pApp->m_pBuffer;
-				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-				pView->Invalidate();
-				// BEW added next line 16Nov09 for following reason:
-                // the flag is set TRUE in OnFileNew(), before handing control over to
-                // wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
-                // called -- this is okay if the user chooses a file to use for creating a
-                // new document, but if he cancels out of the file dialog, the cancel
-                // block's code (which is right here) didn't clear bUserSelectedFileNew to
-                // FALSE, which lead to an error, so we here do this fix
-				pApp->bUserSelectedFileNew = FALSE;	
-				GetLayout()->PlaceBox();
+				docsPath = gpApp->m_bibleBooksFolderPath; // path to a book folder within 
+														  // the "Adaptations" folder
 			}
-			return FALSE;
-		}
-		else // must be wxID_OK 
-		{
-			wxString pathName;
-			pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
-			fileTitle = fileDlg.GetFilename(); // just the file name
-
-			wxFileName fn(pathName);
-			wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
-
-            // get the file, and it's length (which includes null termination byte/s) whm
-            // modified 18Jun09 GetNewFile() now returns an enum getNewFileState (see
-            // Adapt_It.h) which more specifically reports the success or error state
-            // encountered in getting the file for input. It now uses a switch() structure.
-			switch(GetNewFile(pApp->m_pBuffer,pApp->m_nInputFileLength,pathName))
+			else
 			{
-			case getNewFile_success:
+				docsPath = gpApp->m_curAdaptionsPath; // path to the "Adaptations" 
+													  // folder of the project
+			}
+			wxArrayString arrDocFilenames;
+			gpApp->EnumerateDocFiles_ParametizedStore(arrDocFilenames,docsPath);
+			// the following call removes any items from the first param's array which
+			// have a duplicate file title for a filename in the second param's array;
+			// the TRUE parameter is bSorted, we want the final list which the user sees
+			// to be in alphabetical order (for Windows, a caseless compare is done, for
+			// other operating systems, a case-sensitive compare is done - see the
+			// sortCompareFunc() in helpers.cpp)
+			RemoveNameDuplicatesFromArray(gpApp->m_sortedLoadableFiles, arrDocFilenames,
+												TRUE, excludeExtensionsFromComparison);
+			wxString strSelectedFilename;
+			strSelectedFilename.Empty();
+			if (gpApp->m_pNavProtectDlg->ShowModal() == wxID_CANCEL)
 			{
-				wxString tempSelectedFullPath = fileDlg.GetPath();
+				// the user has hit the Cancel button
+				wxASSERT(strSelectedFilename.IsEmpty());
+				wxMessageBox(_(
+"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+				_T(""), wxICON_INFORMATION);
 
-				// wxFileDialog.GetPath() returns the full path with directory and filename. We
-				// only want the path part, so we also call ::wxPathOnly() on the full path to
-				// get only the directory part.
-				gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
-		
-                // Check if it has an \id line. If it does, get the 3-letter book code. If
-                // a valid code is present, check that it is a match for the currently
-                // active book folder. If it isn't tell the user and abort the <New
-                // Document> operation, leaving control in the Document page of the wizard
-                // for a new attempt with a different source text file, or a change of book
-                // folder to be done and the same file reattempted after that. If it is a
-                // matching book code, continue with setting up the new document.
-				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+				// check if there was a document current, and if so, reinitialize everything
+				if (pView != 0)
 				{
-					// do the test only if Book Mode is turned on
-					wxString strIDMarker = _T("\\id");
-					int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
-					if ( pos != -1)
+					pApp->m_pTargetBox->SetValue(_T(""));
+					delete pApp->m_pBuffer;
+					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pView->Invalidate();
+					// BEW added next line 16Nov09 for following reason:
+					// the flag is set TRUE in OnFileNew(), before handing control over to
+					// wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
+					// called -- this is okay if the user chooses a file to use for creating a
+					// new document, but if he cancels out of the file dialog, the cancel
+					// block's code (which is right here) didn't clear bUserSelectedFileNew to
+					// FALSE, which lead to an error, so we here do this fix
+					pApp->bUserSelectedFileNew = FALSE;	
+					GetLayout()->PlaceBox();
+				}
+				return FALSE;
+			}
+			else
+			{
+				// the user has hit the "Input file" button
+				strSelectedFilename = gpApp->m_pNavProtectDlg->GetUserFileName();
+				wxASSERT(!strSelectedFilename.IsEmpty());
+
+				// create the path to the selected file (m_sourceDataFolderPath is always
+				// defined when the app enters a project, as a folder "Source Data" which
+				// is a direct child of the folder m_curProjectPath)
+				pathName = gpApp->m_sourceDataFolderPath + gpApp->PathSeparator + strSelectedFilename;
+				wxASSERT(::wxFileExists(pathName));
+
+				// set fileTitle to the selected file's name (including extension, as the
+				// latter will be removed later below)
+				fileTitle = strSelectedFilename;
+			}
+		} // end of TRUE block for test: if (bUseSourceDataFolderOnly)
+		else
+		{
+            // This block uses the legacy wxFileDialog call, which allows the user to
+            // navigate the folder hierarchy to find loadable source text files anywhere
+            // within any volume accessible to the system, there is no user navigation
+            // protection in force if control enters this block
+			wxFileDialog fileDlg(
+				(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+				_("Input Text File For Adaptation"),
+				defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
+				_T(""),		// default filename
+				filter,
+			wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+						// GDLC wxOPEN deprecated in 2.8
+			fileDlg.Centre();
+			// open as modal dialog
+			int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
+			if (returnValue == wxID_CANCEL)
+			{
+                // user cancelled, so cancel the New... command, or <New Document> choice,
+                // as the case may be -- either user choice will have caused
+                // OnNewDocument() to be called
+				wxMessageBox(_(
+"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+				_T(""), wxICON_INFORMATION);
+
+				// check if there was a document current, and if so, reinitialize everything
+				if (pView != 0)
+				{
+					pApp->m_pTargetBox->SetValue(_T(""));
+					delete pApp->m_pBuffer;
+					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pView->Invalidate();
+					// BEW added next line 16Nov09 for following reason:
+					// the flag is set TRUE in OnFileNew(), before handing control over to
+					// wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
+					// called -- this is okay if the user chooses a file to use for creating a
+					// new document, but if he cancels out of the file dialog, the cancel
+					// block's code (which is right here) didn't clear bUserSelectedFileNew to
+					// FALSE, which lead to an error, so we here do this fix
+					pApp->bUserSelectedFileNew = FALSE;	
+					GetLayout()->PlaceBox();
+				}
+				return FALSE;
+			}
+			else // must be wxID_OK 
+			{
+				pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
+				fileTitle = fileDlg.GetFilename(); // just the file name (including any extension)
+			} // end of else wxID_OK
+			  // & fileDlg goes out of scope here
+		} // end of else block for test: if (bUseSourceDataFolderOnly)
+
+        // If control gets to here, (and it cannot do so if the user hit the Cancel
+        // button), we've pathName and fileTitle wxString variables set ready for creating
+        // the new document and getting an output document name from the user (the latter
+        // calls COutFilenameDlg class, and it includes built-in invalid character
+        // protection, and protection from a name conflict)
+		wxFileName fn(pathName);
+		wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
+
+        // get the file, and it's length (which includes null termination byte/s) whm
+        // modified 18Jun09 GetNewFile() now returns an enum getNewFileState (see
+        // Adapt_It.h) which more specifically reports the success or error state
+        // encountered in getting the file for input. It now uses a switch() structure.
+		switch(GetNewFile(pApp->m_pBuffer,pApp->m_nInputFileLength,pathName))
+		{
+		case getNewFile_success:
+		{
+			//wxString tempSelectedFullPath = fileDlg.GetPath(); BEW changed 15Aug10 to
+			// remove the second call to fileDlg.GetPath() here, as pathName has the path
+			wxString tempSelectedFullPath = pathName;
+
+			// wxFileDialog.GetPath() returns the full path with directory and filename. We
+			// only want the path part, so we also call ::wxPathOnly() on the full path to
+			// get only the directory part.
+			gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
+	
+            // Check if it has an \id line. If it does, get the 3-letter book code. If
+            // a valid code is present, check that it is a match for the currently
+            // active book folder. If it isn't tell the user and abort the <New
+            // Document> operation, leaving control in the Document page of the wizard
+            // for a new attempt with a different source text file, or a change of book
+            // folder to be done and the same file reattempted after that. If it is a
+            // matching book code, continue with setting up the new document.
+			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+			{
+				// do the test only if Book Mode is turned on
+				wxString strIDMarker = _T("\\id");
+				int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
+				if ( pos != -1)
+				{
+					// the marker is in the file, so we need to go ahead with the check, but first
+					// work out what the current book folder is and then what its associated code is
+					wxString aBookCode = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->bookCode;
+					wxString seeNameStr = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->seeName;
+					gbMismatchedBookCode = FALSE;
+
+					// get the code by advancing over the white space after the \id marker, and then taking
+					// the next 3 characters as the code
+					const wxChar* pStr = gpApp->m_pBuffer->GetData();
+					wxChar* ptr = (wxChar*)pStr;
+					ptr += pos;
+					ptr += 4; // advance beyond \id and whatever white space character is next
+					while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
 					{
-						// the marker is in the file, so we need to go ahead with the check, but first
-						// work out what the current book folder is and then what its associated code is
-						wxString aBookCode = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->bookCode;
-						wxString seeNameStr = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->seeName;
-						gbMismatchedBookCode = FALSE;
+						// advance over any additional space, newline, carriage return or tab
+						ptr++;
+					}
+					wxString theCode(ptr,3);	// make a 3-letter code, but it may be rubbish as we can't be
+												// sure there is actually a valid one there
 
-						// get the code by advancing over the white space after the \id marker, and then taking
-						// the next 3 characters as the code
-						const wxChar* pStr = gpApp->m_pBuffer->GetData();
-						wxChar* ptr = (wxChar*)pStr;
-						ptr += pos;
-						ptr += 4; // advance beyond \id and whatever white space character is next
-						while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
+					// test to see if the string contains a valid 3-letter code
+					bool bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, theCode);
+					if (bMatchedBookCode)
+					{
+						// it matches one of the 67 codes known to Adapt It, so we need to check if it
+						// is the correct code for the active folder; if it's not, tell the user and
+						// go back to the Documents page of the wizard; if it is, just let processing 
+						// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
+						if (theCode != aBookCode)
 						{
-							// advance over any additional space, newline, carriage return or tab
-							ptr++;
-						}
-						wxString theCode(ptr,3);	// make a 3-letter code, but it may be rubbish as we can't be
-													// sure there is actually a valid one there
-
-						// test to see if the string contains a valid 3-letter code
-						bool bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, theCode);
-						if (bMatchedBookCode)
-						{
-							// it matches one of the 67 codes known to Adapt It, so we need to check if it
-							// is the correct code for the active folder; if it's not, tell the user and
-							// go back to the Documents page of the wizard; if it is, just let processing 
-							// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
-							if (theCode != aBookCode)
-							{
-								// the codes are different, so the document does not belong in the active folder
-								wxString aTitle;
-								// IDS_INVALID_DATA_BOX_TITLE
-								aTitle = _("Invalid Data For Current Book Folder");
-								wxString msg1;
-								// IDS_WRONG_THREELETTER_CODE_A
-								msg1 = msg1.Format(_(
+							// the codes are different, so the document does not belong in the active folder
+							wxString aTitle;
+							// IDS_INVALID_DATA_BOX_TITLE
+							aTitle = _("Invalid Data For Current Book Folder");
+							wxString msg1;
+							// IDS_WRONG_THREELETTER_CODE_A
+							msg1 = msg1.Format(_(
 "The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"),
-												theCode.c_str(),seeNameStr.c_str());
-								wxString msg2;
-								//IDS_WRONG_THREELETTER_CODE_B
-								msg2 = _(
+								theCode.c_str(),seeNameStr.c_str());
+							wxString msg2;
+							//IDS_WRONG_THREELETTER_CODE_B
+							msg2 = _(
 "\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code.");
-								msg1 += msg2; // concatenate the messages
-								wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
-								gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
+							msg1 += msg2; // concatenate the messages
+							wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
+							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
 
-								return FALSE; // returns to OnWizardFinish() in DocPage.cpp
-							}
-						}
-						else
-						{
-							// not a known code, so we'll assume we accessed random text after the \id marker,
-							// and so we just let processing proceed & the user can live with whatever happens
-							;
+							return FALSE; // returns to OnWizardFinish() in DocPage.cpp
 						}
 					}
 					else
 					{
-						// if the \id marker is not in the source text file, then it is up to the user
-						// to keep the wrong data from being stored in the current book folder, so all
-						// we can do for that situation is to let processing proceed
+						// not a known code, so we'll assume we accessed random text after the \id marker,
+						// and so we just let processing proceed & the user can live with whatever happens
 						;
 					}
 				}
-
-				// get a suitable output filename for use with the auto-save feature
-				wxString strUserTyped;
-				COutputFilenameDlg dlg(GetDocumentWindow());
-				dlg.Centre();
-				dlg.m_strFilename = fileTitle;
-				if (dlg.ShowModal() == wxID_OK)
-				{
-					// get the filename
-					strUserTyped = dlg.m_strFilename;
-					
-					// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
-					// with bad characters in it.
-					// abort the operation if user gave no explicit or bad output filename
-					if (strUserTyped.IsEmpty())
-					{
-						// warn user to specify a non-null document name with valid chars
-						// IDS_EMPTY_OUTPUT_FILENAME
-						if (strUserTyped.IsEmpty())
-							wxMessageBox(_(
-"Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."),
-										_T(""),wxICON_INFORMATION);
-
-
-						// reinitialize everything
-						pApp->m_pTargetBox->ChangeValue(_T(""));
-						delete pApp->m_pBuffer;
-						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-						pApp->m_curOutputFilename = _T("");
-						pApp->m_curOutputPath = _T("");
-						pApp->m_curOutputBackupFilename = _T("");
-						pView->Invalidate(); // our own
-						GetLayout()->PlaceBox();
-						return FALSE;
-					}
-
-					// remove any extension user may have typed -- we'll keep control ourselves
-					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
-												// returned as the last parameter in the signature
-
-					// for XML output
-					pApp->m_curOutputFilename = strUserTyped + _T(".xml");
-					pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
-				}
 				else
 				{
-					// user cancelled, so cancel the New... command too
-					// IDS_NO_OUTPUT_FILENAME
-					wxMessageBox(_(
-"Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."),
-								_T(""), wxICON_INFORMATION);
+					// if the \id marker is not in the source text file, then it is up to the user
+					// to keep the wrong data from being stored in the current book folder, so all
+					// we can do for that situation is to let processing proceed
+					;
+				}
+			}
+
+			// get a suitable output filename for use with the auto-save feature
+			wxString strUserTyped;
+			COutputFilenameDlg dlg(GetDocumentWindow());
+			dlg.Centre();
+			dlg.m_strFilename = fileTitle;
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				// get the filename
+				strUserTyped = dlg.m_strFilename;
+				
+				// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
+				// with bad characters in it.
+				// abort the operation if user gave no explicit or bad output filename
+				if (strUserTyped.IsEmpty())
+				{
+					// warn user to specify a non-null document name with valid chars
+					// IDS_EMPTY_OUTPUT_FILENAME
+					if (strUserTyped.IsEmpty())
+						wxMessageBox(_(
+"Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."),
+							_T(""),wxICON_INFORMATION);
 
 					// reinitialize everything
 					pApp->m_pTargetBox->ChangeValue(_T(""));
@@ -732,259 +815,286 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputFilename = _T("");
 					pApp->m_curOutputPath = _T("");
 					pApp->m_curOutputBackupFilename = _T("");
-					pView->Invalidate();
+					pView->Invalidate(); // our own
 					GetLayout()->PlaceBox();
 					return FALSE;
 				}
 
-				// BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
-				// the window title
-				// Set the document's path to reflect user input; the destination folder will
-				// depend on whether book mode is ON or OFF; likewise for backups if turned on
-				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-				{
-					pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
-						+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-													 // config files
-				}
-				else
-				{
-					pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
-						+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-													 // config files
-				}
+				// remove any extension user may have typed -- we'll keep control ourselves
+				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
+											// returned as the last parameter in the signature
 
-				SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
-				Modify(FALSE);
+				// for XML output
+				pApp->m_curOutputFilename = strUserTyped + _T(".xml");
+				pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+			}
+			else
+			{
+				// user cancelled, so cancel the New... command too
+				// IDS_NO_OUTPUT_FILENAME
+				wxMessageBox(_(
+"Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."),
+					_T(""), wxICON_INFORMATION);
 
-				// remove any optional hyphens in the source text for use by Ventura Publisher
-				// (skips over any <-> sequences, and gives new m_pBuffer contents & new 
-				// m_nInputFileLength value)
-				RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
+				// reinitialize everything
+				pApp->m_pTargetBox->ChangeValue(_T(""));
+				delete pApp->m_pBuffer;
+				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+				pApp->m_curOutputFilename = _T("");
+				pApp->m_curOutputPath = _T("");
+				pApp->m_curOutputBackupFilename = _T("");
+				pView->Invalidate();
+				GetLayout()->PlaceBox();
+				return FALSE;
+			}
 
-                // whm wx version: moved the following OverwriteUSFMFixedSpaces and
-                // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
-                // if user requires, change USFM fixed spaces (marked by the !$
-                // two-character sequence) to a pair of spaces - this does not change the
-                // length of the data in the buffer
-				if (gpApp->m_bChangeFixedSpaceToRegularSpace)
-					OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
+			// BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
+			// the window title
+			// Set the document's path to reflect user input; the destination folder will
+			// depend on whether book mode is ON or OFF; likewise for backups if turned on
+			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+			{
+				pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
+					+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
+												 // config files
+			}
+			else
+			{
+				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
+					+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
+												 // config files
+			}
 
-                // Change USFM discretionary line breaks // to a pair of spaces. We do this
-                // unconditionally because these types of breaks are not likely to be
-                // located in the same place if allowed to pass through to the target text,
-                // and are usually placed in the translation in the final typesetting
-                // stage. This does not change the length of the data in the buffer.
-				OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
+			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
+			Modify(FALSE);
+
+			// remove any optional hyphens in the source text for use by Ventura Publisher
+			// (skips over any <-> sequences, and gives new m_pBuffer contents & new 
+			// m_nInputFileLength value)
+			RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
+
+            // whm wx version: moved the following OverwriteUSFMFixedSpaces and
+            // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
+            // if user requires, change USFM fixed spaces (marked by the !$
+            // two-character sequence) to a pair of spaces - this does not change the
+            // length of the data in the buffer
+			if (gpApp->m_bChangeFixedSpaceToRegularSpace)
+				OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
+
+            // Change USFM discretionary line breaks // to a pair of spaces. We do this
+            // unconditionally because these types of breaks are not likely to be
+            // located in the same place if allowed to pass through to the target text,
+            // and are usually placed in the translation in the final typesetting
+            // stage. This does not change the length of the data in the buffer.
+			OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
 
 	#ifndef __WXMSW__
 	#ifndef _UNICODE
-				// whm added 12Apr2007
-				OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
+			// whm added 12Apr2007
+			OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
 	#endif
 	#endif
-				// parse the input file
-				int nHowMany;
-				nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
-										(int)pApp->m_nInputFileLength);
+			// parse the input file
+			int nHowMany;
+			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
+									(int)pApp->m_nInputFileLength);
 
-                // Get any unknown markers stored in the m_markers member of the Doc's
-                // source phrases whm ammended 29May06: Bruce desired that the filter
-                // status of unk markers be preserved for new documents created within the
-                // same project within the same session, so I've changed the last parameter
-                // of GetUnknownMarkersFromDoc from setAllUnfiltered to
-                // useCurrentUnkMkrFilterStatus.
-				GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, 
-										&gpApp->m_filterFlagsUnkMkrs, 
-										gpApp->m_currentUnknownMarkersStr, 
-										useCurrentUnkMkrFilterStatus);
+            // Get any unknown markers stored in the m_markers member of the Doc's
+            // source phrases whm ammended 29May06: Bruce desired that the filter
+            // status of unk markers be preserved for new documents created within the
+            // same project within the same session, so I've changed the last parameter
+            // of GetUnknownMarkersFromDoc from setAllUnfiltered to
+            // useCurrentUnkMkrFilterStatus.
+			GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, 
+									&gpApp->m_filterFlagsUnkMkrs, 
+									gpApp->m_currentUnknownMarkersStr, 
+									useCurrentUnkMkrFilterStatus);
 
 	#ifdef _Trace_UnknownMarkers
-				TRACE0("In OnNewDocument AFTER GetUnknownMarkersFromDoc (setAllUnfiltered) call:\n");
-				TRACE1(" Doc's unk mrs from arrays  = %s\n", GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
-				TRACE1(" m_currentUnknownMarkersStr = %s\n", m_currentUnknownMarkersStr);
+			TRACE0("In OnNewDocument AFTER GetUnknownMarkersFromDoc (setAllUnfiltered) call:\n");
+			TRACE1(" Doc's unk mrs from arrays  = %s\n", GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
+			TRACE1(" m_currentUnknownMarkersStr = %s\n", m_currentUnknownMarkersStr);
 	#endif
 
-				// calculate the layout in the view
-				int srcCount;
-				srcCount = pApp->m_pSourcePhrases->GetCount(); // unused
-				if (pApp->m_pSourcePhrases->IsEmpty())
-				{
-					// IDS_NO_SOURCE_DATA
-					wxMessageBox(_(
+			// calculate the layout in the view
+			int srcCount;
+			srcCount = pApp->m_pSourcePhrases->GetCount(); // unused
+			if (pApp->m_pSourcePhrases->IsEmpty())
+			{
+				// IDS_NO_SOURCE_DATA
+				wxMessageBox(_(
 "Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."),
-								_T(""), wxICON_EXCLAMATION);
+					_T(""), wxICON_EXCLAMATION);
 
-					// restore everything
-					pApp->m_pTargetBox->ChangeValue(_T(""));
-					delete pApp->m_pBuffer;
-					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-					pView->Invalidate();
-					GetLayout()->PlaceBox();
-					return FALSE;
-				}
+				// restore everything
+				pApp->m_pTargetBox->ChangeValue(_T(""));
+				delete pApp->m_pBuffer;
+				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+				pView->Invalidate();
+				GetLayout()->PlaceBox();
+				return FALSE;
+			}
 
-				// try this for the refactored layout design....
-				CLayout* pLayout = GetLayout();
-				pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
-							// UpdateTextHeights() and calls other relevant setters
+			// try this for the refactored layout design....
+			CLayout* pLayout = GetLayout();
+			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+						// UpdateTextHeights() and calls other relevant setters
 #ifdef _NEW_LAYOUT
-				bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
-				bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #endif
-				if (!bIsOK)
+			if (!bIsOK)
+			{
+				// unlikely to fail, so just have something for the developer here
+				wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"),
+				_T(""), wxICON_STOP);
+				wxASSERT(FALSE);
+				wxExit();
+			}
+
+			// mark document as modified
+			Modify(TRUE);
+
+			// show the initial phraseBox - place it at the first empty target slot
+			pApp->m_pActivePile = GetPile(0);
+
+			pApp->m_nActiveSequNum = 0;
+			bool bTestForKBEntry = FALSE;
+			CKB* pKB;
+			if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
+							  // but I will code for safety, since it can be handled okay
+			{
+				bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry;
+				pKB = pApp->m_pGlossingKB;
+			}
+			else
+			{
+				bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry;
+				pKB = pApp->m_pKB;
+			}
+			if (bTestForKBEntry)
+			{
+				// it's not an empty slot, so search for the first empty one & do it there; but if
+				// there are no empty ones, then revert to the first pile
+				CPile* pPile = pApp->m_pActivePile;
+				pPile = pView->GetNextEmptyPile(pPile);
+				if (pPile == NULL)
 				{
-					// unlikely to fail, so just have something for the developer here
-					wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"),
-					_T(""), wxICON_STOP);
-					wxASSERT(FALSE);
-					wxExit();
-				}
-
-				// mark document as modified
-				Modify(TRUE);
-
-				// show the initial phraseBox - place it at the first empty target slot
-				pApp->m_pActivePile = GetPile(0);
-
-				pApp->m_nActiveSequNum = 0;
-				bool bTestForKBEntry = FALSE;
-				CKB* pKB;
-				if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
-								  // but I will code for safety, since it can be handled okay
-				{
-					bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry;
-					pKB = pApp->m_pGlossingKB;
+					// there was none, so we must place the box at the first pile
+					pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+					pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+					pView->Invalidate();
+					pApp->m_nActiveSequNum = 0;
+					gnOldSequNum = -1; // no previous location exists yet
+					// get rid of the stored rebuilt source text, leave a space there instead
+					if (pApp->m_pBuffer)
+						*pApp->m_pBuffer = _T(' ');
+					return TRUE;
 				}
 				else
 				{
-					bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry;
-					pKB = pApp->m_pKB;
+					pApp->m_pActivePile = pPile;
+					pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 				}
-				if (bTestForKBEntry)
-				{
-					// it's not an empty slot, so search for the first empty one & do it there; but if
-					// there are no empty ones, then revert to the first pile
-					CPile* pPile = pApp->m_pActivePile;
-					pPile = pView->GetNextEmptyPile(pPile);
-					if (pPile == NULL)
-					{
-						// there was none, so we must place the box at the first pile
-						pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-						pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
-						pView->Invalidate();
-						pApp->m_nActiveSequNum = 0;
-						gnOldSequNum = -1; // no previous location exists yet
-						// get rid of the stored rebuilt source text, leave a space there instead
-						if (pApp->m_pBuffer)
-							*pApp->m_pBuffer = _T(' ');
-						return TRUE;
-					}
-					else
-					{
-						pApp->m_pActivePile = pPile;
-						pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
-					}
-				}
-
-				// BEW added 10Jun09, support phrase box matching of the text colour chosen
-				if (gbIsGlossing && gbGlossingUsesNavFont)
-				{
-					pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
-				}
-				else
-				{
-					pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
-				}
-
-				// set initial location of the targetBox
-				pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
-				translation = pApp->m_targetPhrase;
-				pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-				pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
-
-				// save old sequ number in case required for toolbar's Back button - in this case 
-				// there is no earlier location, so set it to -1
-				gnOldSequNum = -1;
-
-				// set the initial global position variable
-				break;
-			}// end of case getNewFile_success
-			case getNewFile_error_at_open:
-			{
-				wxString strMessage;
-				strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
-				wxMessageBox(strMessage,_T(""), wxICON_ERROR);
-				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
-				break;
 			}
-			case getNewFile_error_opening_binary:
+
+			// BEW added 10Jun09, support phrase box matching of the text colour chosen
+			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
-                // A binary file - probably not a valid input file such as a MS Word doc.
-                // Notify user that Adapt It cannot read binary input files, and abort the
-                // loading of the file.
-				wxString strMessage = _(
-				"The file you selected for input appears to be a binary file.");
-				if (fnExtensionOnly.MakeUpper() == _T("DOC"))
-				{
-					strMessage += _T("\n");
-					strMessage += _(
-					"Adapt It cannot use Microsoft Word Document (doc) files as input files.");
-				}
-				else if (fnExtensionOnly.MakeUpper() == _T("ODT"))
-				{
-					strMessage += _T("\n");
-					strMessage += _(
-					"Adapt It cannot use OpenOffice's Open Document Text (odt) files as input files.");
-				}
-				strMessage += _T("\n");
-				strMessage += _("Adapt It input files must be plain text files.");
-				wxString strMessage2;
-				strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-				strMessage2 += _T("\n");
-				strMessage2 += strMessage;
-				wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
-				break;
+				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
 			}
-			case getNewFile_error_ansi_CRLF_not_in_sequence:
+			else
 			{
-                // this error cannot occur, because the code where it may be generated is
-                // never entered for a GetNewFile() call made in OnNewDocument, but the
-                // compiler needs a case for this enum value otherwise there is a warning
-                // generated
-				wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
-				_T(""),wxICON_ERROR);
-				break;
+				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 			}
-			case getNewFile_error_no_data_read:
+
+			// set initial location of the targetBox
+			pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
+			translation = pApp->m_targetPhrase;
+			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+			pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
+
+			// save old sequ number in case required for toolbar's Back button - in this case 
+			// there is no earlier location, so set it to -1
+			gnOldSequNum = -1;
+
+			// set the initial global position variable
+			break;
+		}// end of case getNewFile_success
+		case getNewFile_error_at_open:
+		{
+			wxString strMessage;
+			strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
+			wxMessageBox(strMessage,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			break;
+		}
+		case getNewFile_error_opening_binary:
+		{
+            // A binary file - probably not a valid input file such as a MS Word doc.
+            // Notify user that Adapt It cannot read binary input files, and abort the
+            // loading of the file.
+			wxString strMessage = _(
+			"The file you selected for input appears to be a binary file.");
+			if (fnExtensionOnly.MakeUpper() == _T("DOC"))
 			{
-				// we got no data, so this constitutes a read failure
-				wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
-				break;
-			}
-			case getNewFile_error_unicode_in_ansi:
-			{
-				// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
-				// user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
-				// file.
-				wxString strMessage = _("The file you selected for input is a Unicode file.");
-				strMessage += _T("\n");
-				strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
 				strMessage += _T("\n");
 				strMessage += _(
-				"You should install and use the Unicode version of Adapt It to process Unicode text files.");
-				wxString strMessage2;
-				strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-				strMessage2 += _T("\n");
-				strMessage2 += strMessage;
-				wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
-				break;
+				"Adapt It cannot use Microsoft Word Document (doc) files as input files.");
 			}
-			}// end of switch()
-		} // end of else wxID_OK
+			else if (fnExtensionOnly.MakeUpper() == _T("ODT"))
+			{
+				strMessage += _T("\n");
+				strMessage += _(
+				"Adapt It cannot use OpenOffice's Open Document Text (odt) files as input files.");
+			}
+			strMessage += _T("\n");
+			strMessage += _("Adapt It input files must be plain text files.");
+			wxString strMessage2;
+			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+			strMessage2 += _T("\n");
+			strMessage2 += strMessage;
+			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			break;
+		}
+		case getNewFile_error_ansi_CRLF_not_in_sequence:
+		{
+            // this error cannot occur, because the code where it may be generated is
+            // never entered for a GetNewFile() call made in OnNewDocument, but the
+            // compiler needs a case for this enum value otherwise there is a warning
+            // generated
+			wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
+			_T(""),wxICON_ERROR);
+			break;
+		}
+		case getNewFile_error_no_data_read:
+		{
+			// we got no data, so this constitutes a read failure
+			wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+			break;
+		}
+		case getNewFile_error_unicode_in_ansi:
+		{
+			// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
+			// user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
+			// file.
+			wxString strMessage = _("The file you selected for input is a Unicode file.");
+			strMessage += _T("\n");
+			strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
+			strMessage += _T("\n");
+			strMessage += _(
+			"You should install and use the Unicode version of Adapt It to process Unicode text files.");
+			wxString strMessage2;
+			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+			strMessage2 += _T("\n");
+			strMessage2 += strMessage;
+			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			break;
+		}
+		}// end of switch()
 	}// end of if (bKBReady)
 	
 	// get rid of the stored rebuilt source text, leave a space there instead (the value of
@@ -1038,32 +1148,31 @@ bool CAdapt_ItDoc::OnNewDocument()
     // something we want to do each time a doc is created (or opened) - if the local user
     // already has ownership for writing, no change is done and he retains it; but if he
     // had read only access, and the other person has relinquished the project, then the
-    // local user will now get ownership. 
-    // BEW modified 18Nov09: there is an OnFileNew() call made in OnInit() at application
-    // initialization time, and control goes to wxWidgets CreateDocument() which internally
-    // calls its OnNewDocument() function which then calls Adapt_ItDoc::OnNewDocument().
-    // If, in OnInit() we here, therefore, allow SetReadOnlyProtection() to be called,
-    // we'll end up setting read-only access off when the application is the only instance
-    // running and accessing the last used project folder (and OnInit() then has to be
-    // given code to RemoveReadOnlyProtection() immediately after the OnFileNew() call,
-    // because the latter is bogus, it is just to get the wxWidgets doc/view framework set
-    // up, and the "real" access of a project folder comes later, after OnInit() ends and
-    // OnIdle() runs and so the start working wizard runs, etc. All this is fine until we
-    // do the following: the user starts Adapt It and opens a certain project; then the
-    // user starts a second instance of Adapt It and opens the same project -- when this
-    // second process runs, and while still within the OnInit() function, it detects that
-    // the read-only protection file is currently open - and it is unable to remove it
-    // because this is not the original process (although a 'bogus' one) that obtained
-    // ownership of the project - and our code then aborts the second running Adapt It
-    // instance giving a message that it is going to abort. This is unsatisfactory because
-    // we want anyone, whether the same user or another, to be able to open a second
-    // instance of Adapt It in read-only mode to look at what is being done, safely, in the
-    // first running instance. Removing another process's open file is forbidden, so the
-    // only recourse is to prevent the 'bogus' OnFileNew() call within OnInit() from
-    // creating a read-only protection file here in OnNewDocument() if the call of the
-    // latter is caused from within OnInit(). We can do this by having an app boolean
-    // which is TRUE during OnInit() and FALSE thereafter. We'll call it:
-    // m_bControlIsWithinOnInit
+    // local user will now get ownership. BEW modified 18Nov09: there is an OnFileNew()
+    // call made in OnInit() at application initialization time, and control goes to
+    // wxWidgets CreateDocument() which internally calls its OnNewDocument() function which
+    // then calls Adapt_ItDoc::OnNewDocument(). If, therefore, we here allow
+    // SetReadOnlyProtection() to be called while control is within OnInit(), we'll end up
+    // setting read-only access off when the application is the only instance running and
+    // accessing the last used project folder (and OnInit() then has to be given code to
+    // RemoveReadOnlyProtection() immediately after the OnFileNew() call, because the
+    // latter is bogus, it is just to get the wxWidgets doc/view framework set up, and the
+    // "real" access of a project folder comes later, after OnInit() ends and OnIdle() runs
+    // and so the start working wizard runs, etc. All that is fine until the user does the
+    // following: the user starts Adapt It and opens a certain project; then the user
+    // starts a second instance of Adapt It and opens the same project -- when this second
+    // process runs, and while still within the OnInit() function, it detects that the
+    // read-only protection file is currently open - and it is unable to remove it because
+    // this is not the original process (although a 'bogus' one) that obtained ownership of
+    // the project - and our code then aborts the second running Adapt It instance giving a
+    // message that it is going to abort. This is unsatisfactory because we want anyone,
+    // whether the same user or another, to be able to open a second instance of Adapt It
+    // in read-only mode to look at what is being done, safely, in the first running
+    // instance. Removing another process's open file is forbidden, so the only recourse is
+    // to prevent the 'bogus' OnFileNew() call within OnInit() from creating a read-only
+    // protection file here in OnNewDocument() if the call of the latter is caused from
+    // within OnInit(). We can do this by having an app boolean which is TRUE during
+    // OnInit() and FALSE thereafter. We'll call it:   m_bControlIsWithinOnInit
 	if (!pApp->m_bControlIsWithinOnInit)
 	{
 		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);

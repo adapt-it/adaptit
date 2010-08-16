@@ -65,13 +65,14 @@ extern CAdapt_ItApp* gpApp;
 BEGIN_EVENT_TABLE(NavProtectNewDoc, AIModalDialog)
 
 	EVT_INIT_DIALOG(NavProtectNewDoc::InitDialog)
-	EVT_BUTTON(wxID_OK, NavProtectNewDoc::OnCreateNewDocButton)	
+	EVT_BUTTON(wxID_OK, NavProtectNewDoc::OnInputFileButton)	
 	EVT_BUTTON(wxID_CANCEL, NavProtectNewDoc::OnBnClickedCancel)
+	EVT_LISTBOX(ID_LISTBOX_LOADABLES_FILENAMES, NavProtectNewDoc::OnItemSelected)
 
 END_EVENT_TABLE()
 
 NavProtectNewDoc::NavProtectNewDoc(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Create a new document"),
+	: AIModalDialog(parent, -1, _("Input Text File For Adaptation"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     // This dialog function below is generated in wxDesigner, and defines the controls and
@@ -82,6 +83,8 @@ NavProtectNewDoc::NavProtectNewDoc(wxWindow* parent) // dialog constructor
 	NewDocFromSourceDataFolderFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(m_pApp != NULL);
 
 }
 
@@ -98,19 +101,80 @@ NavProtectNewDoc::~NavProtectNewDoc() // destructor
 // InitDialog is method of wxWindow
 void NavProtectNewDoc::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp;
-	pApp = (CAdapt_ItApp*)&wxGetApp();
-	wxASSERT(pApp != NULL);
+	m_pInputFileButton = (wxButton*)FindWindowById(wxID_OK);
+	m_pCancelButton = (wxButton*)FindWindowById(wxID_CANCEL);
+	m_pMonoclineListOfFiles = (wxListBox*)FindWindowById(ID_LISTBOX_LOADABLES_FILENAMES);
+	m_pTopMessageStaticCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TOP_MSG); // multiline, read-only
+	m_pInstructionsStaticCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INSTRUCTIONS); // multiline, read-only
+
+	wxString topmsg = _(
+"Please note: because this project owns a 'Source Data' folder, Adapt It is limited to creating new documents from the files stored in that folder only.\nAny loadable file with a filename the same as an existing document filename is not shown in the list.\n(If you first use File / Save As... to rename the document, then the file from which it was created will appear again in the list - allowing you to create a second document from that source text file. But normally you should never need to do so.)");
+	m_pTopMessageStaticCtrl->ChangeValue(topmsg);
+	wxString leftmsg = _(
+"Instructions\n\n1. To create a new adaptation document, do either 2. or 3.\n2. Click on a listed filename to select it, then click the 'Input file' button.\n3. Double-click one of the listed files.\n\nIs the list empty? If so then either (a) or (b) is true:\n(a) There are no source text files in the 'Source Data' folder.\n(b) An adaptation document has already been created for each of the source text files in that folder.\nIn either case, please inform your administrator that no more documents can be created.");
+	m_pInstructionsStaticCtrl->ChangeValue(leftmsg);
+
+	// make the message text controls read-only
+	m_pTopMessageStaticCtrl->SetEditable(FALSE);
+	m_pInstructionsStaticCtrl->SetEditable(FALSE);
+
+	m_pMonoclineListOfFiles->Clear();
+	if (!m_pApp->m_sortedLoadableFiles.IsEmpty())
+	{
+		// copy the filenames into the listbox
+		size_t limit = m_pApp->m_sortedLoadableFiles.GetCount();
+		if (limit > 0)
+		{
+			size_t index;
+			for (index = 0; index < limit; index++)
+			{
+				wxString filename = m_pApp->m_sortedLoadableFiles.Item(index);
+				wxASSERT(!filename.IsEmpty());
+				m_pMonoclineListOfFiles->Append(filename);
+			}
+		}
+	}
 }
 
-void NavProtectNewDoc::OnCreateNewDocButton(wxCommandEvent& event) 
+void NavProtectNewDoc::OnInputFileButton(wxCommandEvent& event) 
 {
+	// test that the user has a selection, and get the selected filename into the private
+	// m_userFilename member. The caller of this class can then access the value using the
+	// public getter, GetUserFilename()
+	
+
+// ** TODO **
+
+
 	event.Skip();
 }
 
 void NavProtectNewDoc::OnBnClickedCancel(wxCommandEvent& event) 
 {
+	m_userFilename = _T(""); // set it to an empty string
 	event.Skip();
 }
+
+void NavProtectNewDoc::OnItemSelected(wxCommandEvent& WXUNUSED(event))
+{
+	wxASSERT(m_pMonoclineListOfFiles);
+	int selIndex = m_pMonoclineListOfFiles->GetSelection();
+	wxASSERT(selIndex != wxNOT_FOUND && selIndex < (int)m_pMonoclineListOfFiles->GetCount());
+	if (selIndex >= 0 && selIndex < (int)m_pMonoclineListOfFiles->GetCount())
+	{
+		m_userFilename = m_pMonoclineListOfFiles->GetString(selIndex);
+	}
+	else
+	{
+		m_userFilename.Empty();
+	}
+}
+
+// access function
+wxString NavProtectNewDoc::GetUserFileName()
+{
+	return m_userFilename;
+}
+
 
 

@@ -159,6 +159,7 @@
 #include "Retranslation.h"
 #include "Placeholder.h"
 //#include "Uuid_AI.h" // for testing, then comment out
+#include "NavProtectNewDoc.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -6440,16 +6441,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// To evaluate four different frame icon choices:
 	//    Define only one of the four choices below to select it for use as 16x16 frame icon.
 	//    Comment out the other three choices.
-	#define IconBlueShadesOn16x16WhiteRectangularBackground
-	//#define IconBlueShadesOn16x16WhiteDiskBackground
+	//#define IconBlueShadesOn16x16WhiteRectangularBackground
+	#define IconBlueShadesOn16x16WhiteDiskBackground
 	//#define IconBlueShadesOn16x16AllTransparentBackground
 	//#define IconWhiteBlueOn16x16BlueDiskBackground
 
 	// To evaluate four different taskbar icon choices:
 	//    Define only one of the four choices to select it for use as 32x32 taskbar icon.
 	//    Comment out the other three choices.
-	#define IconBlueShadesOn32x32WhiteRectangularBackground
-	//#define IconBlueShadesOn32x32WhiteDiskBackground
+	//#define IconBlueShadesOn32x32WhiteRectangularBackground
+	#define IconBlueShadesOn32x32WhiteDiskBackground
 	//#define IconBlueShadesOn32x32AllTransparentBackground
 	//#define IconWhiteBlueOn32x32BlueDiskBackground
 
@@ -9065,10 +9066,22 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
     // whatever is the current value of m_docVersionCurrent. So set the current value:
 	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
 
-	wxLogDebug(_T("7892 at end of app OnInit(), m_bCancelAndSelectButtonPressed = %d"),
-		m_pTargetBox->GetCancelAndSelectFlag());
+    // BEW 16Aut10, Note: we create the only and only instance of m_pNavProtectDlg here at
+    // app initialization, but the dialog class's InitDialog() function, which sets
+    // pointers to controls etc, is not called until ShowModal() is called - and that only
+    // happens if the user tries to create a new document when user navigation protection
+    // is activated by there being a "Source Data" folder in existence in the project and
+    // it contains at least one loadable source text file.
+	wxWindow* docWindow = GetDocument()->GetDocumentWindow(); 
+	m_pNavProtectDlg = new NavProtectNewDoc(docWindow); // wxWidgets framework will 
+					// destroy m_pNavProtectDlg on app exit, don't need to do so 
+					// explicitly in OnExit(), as this is a great feature in wxWidgets
+					// for all heap resources owned by a top level window
+	m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
 
-    return TRUE;
+	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
+	//	m_pTargetBox->GetCancelAndSelectFlag());
+	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -14041,6 +14054,271 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 	return TRUE; // return TRUE even if the list is empty
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if one or more loadable files was added to the passed in array, FALSE
+///             if there was an error or if there were no loadable files in the folder
+/// \param      array         ->    ref to a sorted string array to store the names of the files 
+///                                 judged to be loadable for creating valid adaptation docs
+/// \param      folderPath    ->    the absolute path to the folder whose files are to be
+///                                 enumerated and tested for loadability
+/// \remarks
+/// Uses the function, bool IsLoadableFile() (see helpers.cpp), to test each file for
+/// loadability. Those that are are added to the array (it's a sorted array) - and only
+/// these should be shown to the user for document creation purposes. We have to do this
+/// enumeration immediately prior to creation of a new document, because it may happen
+/// that someone (e.g. an administrator) might have changed the contents of the Source Data
+/// folder's monocline list of loadable files since the last call of this function -
+/// either to add more loadable files, or even some not loadable.
+/// BEW 15Aug10, removed call of EnumerateDocFiles_ParametizedStore() because the latter
+/// internally calls EnumerateDocFiles() and that only enumerates *.xml files which are not
+/// *.BAK.xml files, which is of no help when we want to enumerate what typically are plain
+/// text files. The enumeration is unsorted in the returned array; we do any required
+/// sorting at the point in the application where we call a different function,
+/// RemoveNameDuplicatesFromArray(), defined in helpers.cpp, which has a bool bSorted
+/// parameter for which we can supply a TRUE value to get the final array of strings
+/// sorted (and currently the latter function is called only in OnNewDocument()).
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
+													enum LoadabilityFilter filtered)
+{
+	wxArrayString arrFilenames; // the unfiltered enumeration stores filenames here, 
+								// but the passed in array parameter will only store those
+								// that get through the filter (i.e. IsLoadableFile())
+	array.Clear();
+
+	// first, save the caller's current working directory
+	wxString saveWorkDir = ::wxGetCwd();
+
+	// reset the current working directory to the path passed in
+	wxASSERT(!folderPath.IsEmpty());
+	bool bOK = ::wxSetWorkingDirectory(folderPath);
+	if (!bOK)
+	{
+		// something's real wrong!
+		wxMessageBox(_T(
+"Failed to set the current directory to the passed in folder, in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+		_T(""), wxICON_WARNING);
+		return FALSE;
+	}
+
+	// get them all, then loop to exclude the non-loadable ones
+	wxString filename = _T("");
+	wxDir finder;
+	// wxDirmust call .Open() before enumerating files!
+	bool bItsOK = (finder.Open(folderPath)); 									
+	if (!bItsOK)
+	{
+		// a significant error, so we'll make the icon be the error one, but let the app
+		// continue - but with no user protection from folder navigation
+		wxMessageBox(_T(
+			"Error: The wxDir::Open() call failed in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+		_T(""), wxICON_ERROR);
+		return FALSE;
+	}
+	else
+	{
+		// Must call wxDir::Open() before calling GetFirst() - see above
+		wxString str = _T("");
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
+		while (bWorking)
+		{
+			if (str.IsEmpty())
+				continue;
+			wxFileName fn(str);
+			wxString aFilename = fn.GetFullName();
+			arrFilenames.Add(str); // add filename to the list
+			bWorking = finder.GetNext(&str);
+		}
+	}
+	size_t index;
+	size_t limit = arrFilenames.GetCount();
+	if (limit == 0)
+	{
+		// restore the working directory (we don't expect failure, so a
+		// non-localizable message will do)
+		bOK = ::wxSetWorkingDirectory(saveWorkDir);
+		if (!bOK)
+		{
+			// something's real wrong!
+			wxMessageBox(_T(
+			"Failed to re-set the work directory in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+			_T(""), wxICON_WARNING);
+			return FALSE;
+		}
+        // we can't enumerate files that don't exist, so just return TRUE for an empty
+        // folder situation and let the caller test and tell the user about the problem if
+        // the telling is warranted;
+		return TRUE;
+	}
+
+	// now apply the IsLoadableFile() filter to the set of filenames we've collected, and
+	// accept only those that pass the test
+	filename = _T("");
+	if (filtered == filterOutUnloadableFiles)
+	{
+		for (index = 0; index < limit; index++)
+		{
+			filename = arrFilenames.Item(index);
+			wxString aPath = folderPath + PathSeparator + filename;
+			wxASSERT(::wxFileExists(aPath));
+			if (IsLoadableFile(aPath))
+			{
+				// store this loadable file's name in the passed in array, in its proper
+				// sorted location (ignore returned index as it's irrelevant since insertion
+				// is done, not appending)
+				array.Add(filename);
+			}
+		}
+	}
+	else
+	{
+		// filtering is not wanted, so just copy the lot across to the array list
+		for (index = 0; index < limit; index++)
+		{
+			filename = arrFilenames.Item(index);
+			array.Add(filename); // adding preserves their sorted order too
+		}
+	}
+
+	// restore the working directory (we don't expect failure, so a non-localizable
+	// message will do)
+	bOK = ::wxSetWorkingDirectory(saveWorkDir);
+	if (!bOK)
+	{
+		// something's real wrong! This is too big an error for the app to continue
+		wxMessageBox(_T(
+		"Failed to re-set the work directory in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+
+    // there may be no loadable files (i.e. not no files, but rather, no 'loadable' files
+    // -- meaning that IsLoadableFile() has excluded all contenders if filtering was
+    // wanted) but we'll not test here because the caller can do any such test if it is
+    // required, we just return TRUE
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the "Source Data" folder exists and it has at least one loadable
+///             source text file within it; FALSE if there are no loadable files in it, or
+///             no files at all, or if one of several possible error conditions happens
+/// \remarks
+/// This function tests for existence of a folder named "Source Data" as a child folder of
+/// the current project folder, and if it exists, and provided it also has at least one
+/// file within it which is loadable for adaptation document creation purposes, the
+/// function will return TRUE; if the Source Data folder does not exist, it returns FALSE,
+/// it also returns FALSE if it has no files in that folder, or if all the files in that
+/// folder, when tested with the IsLoadableFile() function, return FALSE. The function can
+/// rely on the fact that a valid path to a Source Data folder will have been set up when
+/// the project was entered, the path will be in the app member string,
+/// m_sourceDataFolderPath. Error conditions do not halt the app, but instead allow
+/// processing to continue in the legacy way, with no user navigation protection (that is,
+/// the wxFileDialog is used in the OPEN state, rather than the SAVE state).
+/// 
+/// The UseSourceDataFolderOnlyForInputFiles() function is used at any point in the
+/// application where the user has the possibility of creating a new adaptation document.
+/// (Currently, there is only one such place - the OnNewDocument() call, and the latter
+/// function is called in either or the two following cases: (1) a File / New... choice, or
+/// (2) in the DocPage pane of the wizard, for a user choice of <New Document>.) If the
+/// return value is TRUE, the standard folder and file navigation dialog is suppressed, and
+/// instead only a monocline list of loadable files is shown to the user in a dialog with a
+/// ListBox -- only a selected file from that list can be used to create a document - but
+/// not all files in that folder might be listed because any with a file title the same as
+/// an existing document's filename title will not be shown to the user (since presumably
+/// the source text file of the same name was used to create that document).
+/// BEW created 22July10
+//////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
+{
+	wxASSERT(!m_sourceDataFolderPath.IsEmpty());
+	bool bDirExists = ::wxDirExists(m_sourceDataFolderPath);
+	if (!bDirExists)
+	{
+		return FALSE;
+	}
+	else
+	{
+        // enumerate the files in the Source Data directory, don't do any filtering there,
+        // as we want to do it further below since we've special messages below for the
+		// user if we find unloadable files in the Source Data folder; for the current
+		// function it is not necessary to have the enumeration sorted
+		wxArrayString arrFilenames;
+		bool bOkay = EnumerateLoadableSourceTextFiles(arrFilenames,m_sourceDataFolderPath,
+														doNotFilterOutUnloadableFiles);
+		if (!bOkay)
+		{
+			// a warning will already have been given about the specific error, so pass
+			// the FALSE value back to the caller; an empty folder is not regarded as an
+			// error and so we check for that below 
+			return FALSE;
+		}
+		else
+		{
+			// if there are no files in the folder, return FALSE
+			if (arrFilenames.IsEmpty())
+			{
+				wxMessageBox(_(
+"There are no files in the 'Source Data' folder.\nTherefore the user is not protected from folder navigation."),
+				_("No source text files for document creation"),
+				wxICON_WARNING);
+				return FALSE;
+			}
+
+			// check that at least one of the enumerated files is loadable; if some are
+			// not loadable, warn the user which ones -- here's where we do the filtering
+			wxString unloadables; unloadables.Empty();
+			bool bSomeAreBad = FALSE;
+			wxString filename;
+			wxString aPath;
+			bool  bOneIsGood = FALSE;
+			size_t index;
+			size_t count = arrFilenames.GetCount();
+			for (index = 0; index < count; index++)
+			{
+				filename = arrFilenames.Item(index);
+				aPath = m_sourceDataFolderPath + PathSeparator + filename;
+				wxASSERT(::FileExists(aPath));
+				bool bIsGood = IsLoadableFile(aPath);
+				if (!bIsGood)
+				{
+					bSomeAreBad = TRUE;
+					if (unloadables.IsEmpty())
+						unloadables = filename;
+					else
+						// make it a comma-delimited list, because some filenames contain
+						// spaces and won't necessarily have an extension to indicate
+						// where one filename ends and the next begins
+						unloadables += _T(",  ") + filename;
+				}
+				else
+				{
+					bOneIsGood = TRUE;
+				}
+			} // end for loop, testing all files in the folder
+			if (bSomeAreBad && bOneIsGood)
+			{
+				// warn the user which ones are not loadable for doc creation purposes
+				wxString msg;
+				msg = msg.Format(_("Some of the 'Source Data' folder's files are not suitable for creating an adaptation document.\nThey are: %s"),
+				unloadables.c_str());
+				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
+			}
+			else if (bSomeAreBad && !bOneIsGood)
+			{
+				// warn the user that none are loadable for doc creation purposes,
+				// and that navigation protect therefore can't be turned on
+				wxString msg;
+				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the 'Source Data' folder's files are suitable for creating an adaptation document.\nThe unsuitable ones are: %s"),
+				unloadables.c_str());
+				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -27431,12 +27709,14 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 
 void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pApp->m_bReadOnlyAccess)
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//if (pApp->m_bReadOnlyAccess)
+	if (m_bReadOnlyAccess)
 	{
 		return;
 	}
-	AdminMoveOrCopy dlg(pApp->GetMainFrame());
+	//AdminMoveOrCopy dlg(pApp->GetMainFrame());
+	AdminMoveOrCopy dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		;
@@ -27458,65 +27738,5 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 	event.Enable(TRUE); 
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if one or more loadable files was added to the passed in array, FALSE
-///             if there was an error or if there were no loadable files in the folder
-/// \param      array         ->    ref to a string array to store the names of the files 
-///                                 judged to be loadable for creating valid adaptation docs
-/// \param      folderPath    ->    the absolute path to the folder whose files are to be
-///                                 enumerated and tested for loadability
-/// \remarks
-/// Uses the function, bool IsLoadableFile() (see helpers.cpp), to test each file for
-/// loadability. Those that are are added to the array (it's a sorted array) - and only
-/// these should be shown to the user for document creation purposes. We have to do this
-/// enumeration immediately prior to creation of a new document, because it may happen
-/// that someone (e.g. an administrator) might have changed the contents of the Source Data
-/// folder's monocline list of loadable files since the last call of this function -
-/// either to add more loadable files, or even some not loadable. 
-////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxSortedArrayString& array, wxString& folderPath)
-{
-	wxArrayString arrFilenames;
-	array.Clear();
-	// get them all, then loop to exclude the non-loadable ones
-	bool bOkay = EnumerateDocFiles_ParametizedStore(arrFilenames, folderPath);
-	if (!bOkay)
-	{
-		// error of some kind, not likely to occur, so an English message will suffice
-		wxMessageBox(_T("EnumerateLoadableSourceTextFiles() failed, and so returned FALSE"),
-			_T(""),wxICON_WARNING);
-		return FALSE;
-	}
-	size_t index;
-	wxString filename = _T("");
-	size_t limit = arrFilenames.GetCount();
-	if (limit == 0)
-	{
-		wxMessageBox(_("There were no files in the 'Source Text' folder"), _("No files for document creation"),
-			wxICON_WARNING);
-		return FALSE;
-	}
-	for (index = 0; index < limit; index++)
-	{
-		filename = arrFilenames.Item(index);
-		wxString aPath = folderPath + PathSeparator + filename;
-		wxASSERT(::wxFileExists(aPath));
-		if (IsLoadableFile(aPath))
-		{
-			// store this loadable file's name in the passed in array, in its proper
-			// sorted location (ignore returned index as it's irrelevant since insertion
-			// is done, not appending)
-			array.Add(filename);
-		}
-	}
-	limit = array.GetCount();
-	if (limit == 0)
-	{
-		wxMessageBox(_("In the 'Source Text' folder there were no loadable files suitable for creating an adaptation document."), _("No loadable source text files"),
-			wxICON_WARNING);
-		return FALSE;
-	}
-	return TRUE;
-}
 
 
