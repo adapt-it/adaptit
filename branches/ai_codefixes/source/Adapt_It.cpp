@@ -11730,12 +11730,32 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 	else
 	{
 		CAdapt_ItDoc* pDoc = GetDocument();
-		wxASSERT(pDoc != NULL);
-		wxDocTemplate* pTemplate = pDoc->GetDocumentTemplate();
-		wxASSERT(pTemplate != NULL);
+		// BEW changed 16Aug10, because the previous line can return NULL for pDoc in the
+		// following circumstance. Have bible book folder mode turned on, and a doc
+		// visible in the main window. Then close the document (this clobbers the document
+		// pointer). Then use the Advanced menu to turn off book folder mode. This causes
+		// the wizard to be entered at docPage, and the latter's OnSetActive() is called,
+		// which in turn calls GetPossibleAdaptionDocuments() for the path
+		// m_curAdaptionsPath, and then the above GetDocument() call returns NULL. So
+		// having a wxASSERT here for a non-Null pDoc pointer is no help. We cannot in
+		// this circumstance use pDoc to access the document template, so for the present
+		// I'll do a kludge - test for pDoc NULL and if so, set strExt to ".xml" manually.
+		// Hmmm... try as I might, I've not been able to recreate pDoc being NULL, even
+		// though I've done what I previously did and other variations on it too - so I
+		// can't check the kludge works, though I suspect it will.
 		wxString strExt;
-		strExt = pTemplate->GetFileFilter(); // GetFileFilter returns "*.xml" 
-											 // in wx version
+		if (pDoc == NULL)
+		{
+			strExt = _T(".xml");
+		}
+		else
+		{
+			//wxASSERT(pDoc != NULL);
+			wxDocTemplate* pTemplate = pDoc->GetDocumentTemplate();
+			wxASSERT(pTemplate != NULL);
+			strExt = pTemplate->GetFileFilter(); // GetFileFilter returns "*.xml" 
+												 // in wx version
+		}
 		// Must call wxDir::Open() before calling GetFirst() - see above
 		wxString str = _T("");
 		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
