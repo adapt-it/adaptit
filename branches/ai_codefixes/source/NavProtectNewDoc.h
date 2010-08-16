@@ -56,6 +56,7 @@ protected:
 	void OnCancelButton(wxCommandEvent& event);
 	void OnBnClickedCancel(wxCommandEvent& event);
 	void OnItemSelected(wxCommandEvent& WXUNUSED(event));
+	void OnDoubleClick(wxCommandEvent& WXUNUSED(event));
 private:
 	// This class relies on the contents of the app member string, m_sourceDataFolderPath,
 	// in order to get the path to the monocline list of files in the "Source Data"

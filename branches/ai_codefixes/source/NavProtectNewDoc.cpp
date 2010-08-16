@@ -68,6 +68,7 @@ BEGIN_EVENT_TABLE(NavProtectNewDoc, AIModalDialog)
 	EVT_BUTTON(wxID_OK, NavProtectNewDoc::OnInputFileButton)	
 	EVT_BUTTON(wxID_CANCEL, NavProtectNewDoc::OnBnClickedCancel)
 	EVT_LISTBOX(ID_LISTBOX_LOADABLES_FILENAMES, NavProtectNewDoc::OnItemSelected)
+	EVT_LISTBOX_DCLICK(ID_LISTBOX_LOADABLES_FILENAMES, NavProtectNewDoc::OnDoubleClick)
 
 END_EVENT_TABLE()
 
@@ -141,12 +142,18 @@ void NavProtectNewDoc::OnInputFileButton(wxCommandEvent& event)
 	// test that the user has a selection, and get the selected filename into the private
 	// m_userFilename member. The caller of this class can then access the value using the
 	// public getter, GetUserFilename()
-	
-
-// ** TODO **
-
-
-	event.Skip();
+	wxASSERT(m_pMonoclineListOfFiles);
+	int selIndex = m_pMonoclineListOfFiles->GetSelection();
+	if (selIndex >= 0 && selIndex < (int)m_pMonoclineListOfFiles->GetCount())
+	{
+		// end the dialog
+		event.Skip();
+	}
+	else
+	{
+		// stay in the dialog, and just beep
+		wxBell();
+	}
 }
 
 void NavProtectNewDoc::OnBnClickedCancel(wxCommandEvent& event) 
@@ -168,6 +175,23 @@ void NavProtectNewDoc::OnItemSelected(wxCommandEvent& WXUNUSED(event))
 	{
 		m_userFilename.Empty();
 	}
+}
+
+void NavProtectNewDoc::OnDoubleClick(wxCommandEvent& WXUNUSED(event))
+{
+	wxASSERT(m_pMonoclineListOfFiles);
+	int selIndex = m_pMonoclineListOfFiles->GetSelection();
+	wxASSERT(selIndex != wxNOT_FOUND && selIndex < (int)m_pMonoclineListOfFiles->GetCount());
+	if (selIndex >= 0 && selIndex < (int)m_pMonoclineListOfFiles->GetCount())
+	{
+		m_userFilename = m_pMonoclineListOfFiles->GetString(selIndex);
+	}
+	else
+	{
+		m_userFilename.Empty();
+	}
+	TransferDataToWindow();
+    EndModal(wxID_OK);
 }
 
 // access function
