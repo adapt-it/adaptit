@@ -2791,6 +2791,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* p
     // KB for that key -- so we must prevent this happening by testing for m_bNotInKB set
     // TRUE in the CSourcePhrase instance there and if so, inhibiting the save
     bool bInhibitSave = FALSE;
+	wxASSERT(pApp->m_pActivePile != NULL); // whm added 18Aug10
 	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 	if (pApp->m_pTargetBox != NULL)
 	{

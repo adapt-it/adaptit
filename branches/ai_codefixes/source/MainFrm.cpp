@@ -45,6 +45,7 @@
 #include <wx/filename.h>
 #include <wx/tooltip.h>
 #include <wx/config.h> // for wxConfig
+#include <wx/wizard.h>
 
 #ifdef __WXMSW__
 #include <wx/msw/registry.h> // for wxRegKey - used in SantaFeFocus sync scrolling mechanism
@@ -79,7 +80,11 @@
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
+#include "StartWorkingWizard.h"
 // includes above
+
+/// This global is defined in Adapt_It.cpp
+extern CStartWorkingWizard* pStartWorkingWizard;
 
 extern bool gbRTL_Layout; // temporary for debugging only
 
@@ -3202,7 +3207,13 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	{
 		pApp->m_bAutoInsert = FALSE;
 	}
-	if (pDoc != NULL && pApp != NULL && !pApp->m_bNoAutoSave && pApp->m_pKB != NULL)
+	//if (pDoc != NULL && pApp != NULL && !pApp->m_bNoAutoSave && pApp->m_pKB != NULL)
+	// whm added tests for BEW 18Aug10 to prevent calling DoAutoSaveDoc() whenever the
+	// StartWorking wizard is active (non-NULL) and whenever there is not a real
+	// document open.
+	if (pDoc != NULL && pApp != NULL && !pApp->m_bNoAutoSave && pApp->m_pKB != NULL
+		&& pStartWorkingWizard == NULL
+		&& (gpApp->m_pSourcePhrases != NULL && !gpApp->m_pSourcePhrases->IsEmpty()))
 	{
 		wxDateTime time = wxDateTime::Now();
 		wxTimeSpan span = time - pApp->m_timeSettings.m_tLastDocSave;
