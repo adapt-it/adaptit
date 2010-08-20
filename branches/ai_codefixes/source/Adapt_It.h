@@ -2444,6 +2444,10 @@ public:
 	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event));
 	void OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateOpenSourceDataFolder(wxUpdateUIEvent& event);
+	void OnOpenExportDataFolder(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateOpenExportDataFolder(wxUpdateUIEvent& event);
+	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
 
 protected:
 
