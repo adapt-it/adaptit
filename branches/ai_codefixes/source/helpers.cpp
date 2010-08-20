@@ -4168,30 +4168,34 @@ void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwa
 	}
 
 	// now do any required removals, in reverse order so that index values stay synced to
-	// the respective stored wxString instances to be removed
-	int limit = (int)originals.GetCount();
-	int index;
-	int nextItem = (int)arrRemoveIndices.GetCount() - 1;
-	int nextRemovalIndex = arrRemoveIndices.Item(nextItem);
-	for (index = limit - 1; index >= 0; index--)
+	// the respective stored wxString instances to be removed; if there are none to be
+	// removed though, then skip this block
+	if (arrRemoveIndices.GetCount() != 0)
 	{
-		if (index == nextRemovalIndex)
+		int limit = (int)originals.GetCount();
+		int index;
+		int nextItem = (int)arrRemoveIndices.GetCount() - 1;
+		int nextRemovalIndex = arrRemoveIndices.Item(nextItem);
+		for (index = limit - 1; index >= 0; index--)
 		{
-			originals.RemoveAt(index,1);
-			if (originals.IsEmpty())
+			if (index == nextRemovalIndex)
 			{
-				return;
-			}
+				originals.RemoveAt(index,1);
+				if (originals.IsEmpty())
+				{
+					return;
+				}
 
-			// prepare for the next one for removal
-			if (nextItem > 0)
-			{
-				nextItem--;
-				nextRemovalIndex = arrRemoveIndices.Item(nextItem);
-			}
-			else
-			{
-				nextRemovalIndex = wxNOT_FOUND; // -1
+				// prepare for the next one for removal
+				if (nextItem > 0)
+				{
+					nextItem--;
+					nextRemovalIndex = arrRemoveIndices.Item(nextItem);
+				}
+				else
+				{
+					nextRemovalIndex = wxNOT_FOUND; // -1
+				}
 			}
 		}
 	}

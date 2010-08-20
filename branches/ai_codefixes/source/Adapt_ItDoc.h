@@ -167,7 +167,8 @@ public:
 										   // defined in CLayout for that)
 	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
 	bool			DoFileSave_Protected(bool bShowWaitDlg);
-	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type = normal_save, wxString* pRenamedFilename = NULL);
+	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* pRenamedFilename,
+								bool& bUserCancelled); // BEW added bUserCancelled 20Aaug10
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoTransformedDocFileSave(wxString path);

@@ -2412,7 +2412,7 @@ public:
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
-	void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
+	//void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 	
 	void OnFilePageSetup(wxCommandEvent& WXUNUSED(event));
