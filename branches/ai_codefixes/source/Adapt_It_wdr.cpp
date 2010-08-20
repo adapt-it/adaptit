@@ -7334,55 +7334,48 @@ wxSizer *NewDocFromSourceDataFolderFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_TOP_MSG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxVSCROLL );
-    item2->Add( item3, 1, wxALIGN_CENTER_HORIZONTAL|wxRIGHT, 5 );
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_INSTRUCTIONS, wxT(""), wxDefaultPosition, wxSize(240,200), wxTE_MULTILINE|wxVSCROLL );
+    item4->Add( item5, 1, wxGROW, 0 );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 5 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_INSTRUCTIONS, wxT(""), wxDefaultPosition, wxSize(240,-1), wxTE_MULTILINE|wxVSCROLL );
-    item6->Add( item7, 1, wxGROW, 0 );
-
-    item6->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 5 );
-
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
-
-    wxString strs9[] = 
+    wxString strs7[] = 
     {
         wxT("")
     };
-    wxListBox *item9 = new wxListBox( parent, ID_LISTBOX_LOADABLES_FILENAMES, wxDefaultPosition, wxSize(300,330), 1, strs9, wxLB_SINGLE );
-    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
+    wxListBox *item7 = new wxListBox( parent, ID_LISTBOX_LOADABLES_FILENAMES, wxDefaultPosition, wxSize(300,240), 1, strs7, wxLB_SINGLE );
+    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    item10->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item11 = new wxButton( parent, wxID_OK, _("&Input file"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetDefault();
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("&Input file"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item10->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item10->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item8->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item4->Add( item8, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

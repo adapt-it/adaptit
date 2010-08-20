@@ -105,20 +105,9 @@ void NavProtectNewDoc::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pInputFileButton = (wxButton*)FindWindowById(wxID_OK);
 	m_pCancelButton = (wxButton*)FindWindowById(wxID_CANCEL);
 	m_pMonoclineListOfFiles = (wxListBox*)FindWindowById(ID_LISTBOX_LOADABLES_FILENAMES);
-	m_pTopMessageStaticCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TOP_MSG); // multiline, read-only
 	m_pInstructionsStaticCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INSTRUCTIONS); // multiline, read-only
-
-	wxString topmsg = _(
-"Please note: because this project owns a 'Source Data' folder, Adapt It is limited to creating new documents from the files stored in that folder only.\nAny loadable file with a filename the same as an existing document filename is not shown in the list.\n(If you first use File / Save As... to rename the document, then the file from which it was created will appear again in the list - allowing you to create a second document from that source text file. But normally you should never need to do so.)");
-	m_pTopMessageStaticCtrl->ChangeValue(topmsg);
-	wxString leftmsg = _(
-"Instructions\n\n1. To create a new adaptation document, do either 2. or 3.\n2. Click on a listed filename to select it, then click the 'Input file' button.\n3. Double-click one of the listed files.\n\nIs the list empty? If so then either (a) or (b) is true:\n(a) There are no source text files in the 'Source Data' folder.\n(b) An adaptation document has already been created for each of the source text files in that folder.\nIn either case, please inform your administrator that no more documents can be created.");
-	m_pInstructionsStaticCtrl->ChangeValue(leftmsg);
-
-	// make the message text controls read-only
-	m_pTopMessageStaticCtrl->SetEditable(FALSE);
-	m_pInstructionsStaticCtrl->SetEditable(FALSE);
-
+	wxString leftmsg;
+	
 	m_pMonoclineListOfFiles->Clear();
 	if (!m_pApp->m_sortedLoadableFiles.IsEmpty())
 	{
@@ -133,8 +122,26 @@ void NavProtectNewDoc::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 				wxASSERT(!filename.IsEmpty());
 				m_pMonoclineListOfFiles->Append(filename);
 			}
+			leftmsg = _(
+"To create a new adaptation document:\n\nClick on a listed filename to select it, then click the 'Input file' button.\n\nOr, double-click one of the listed filenames.");
+			m_pInstructionsStaticCtrl->ChangeValue(leftmsg);
 		}
 	}
+	else
+	{
+		// no source text files are available (typically because they've all been used
+		// to create documents, and so have bled the list to the point of it being
+		// empty, so give an alternative message in this circumstance
+		leftmsg = _(
+"All of the formerly listed filenames have been used to create adaptation documents, so the list is now empty. You have not made an error.\n\nPlease inform your administrator that no more documents can be created.");
+			m_pInstructionsStaticCtrl->ChangeValue(leftmsg);
+
+			// hide the "Input file" button, since there is nothing in the list to select,
+			// leave just the Cancel button showing
+			m_pInputFileButton->Hide();
+	}
+	// make the message text control read-only
+	m_pInstructionsStaticCtrl->SetEditable(FALSE);
 }
 
 void NavProtectNewDoc::OnInputFileButton(wxCommandEvent& event) 

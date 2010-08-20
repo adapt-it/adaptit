@@ -43,7 +43,6 @@ private:
 	// wx version pointers for dialog controls
 	wxButton* m_pInputFileButton;
 	wxButton* m_pCancelButton;
-	wxTextCtrl* m_pTopMessageStaticCtrl;
 	wxTextCtrl* m_pInstructionsStaticCtrl;
 	wxListBox* m_pMonoclineListOfFiles;
 

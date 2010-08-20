@@ -71,13 +71,14 @@ class NavProtectNewDoc; // for user navigation protection feature
 // text editor such as Notepad. If Visual Studio 2008 is open during the editing of 
 // Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
 // Adapt_It.rc file after sensing that it was changed by the external program. 
-// 
-#define VERSION_MAJOR_PART 5
-#define VERSION_MINOR_PART 3
+//
+// next version will be 6.0.0, no date fixed yet, so temporarily use 20th Sept 2010 
+#define VERSION_MAJOR_PART 6
+#define VERSION_MINOR_PART 0
 #define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 14
-#define VERSION_DATE_MONTH 05
+#define VERSION_DATE_DAY 20
+#define VERSION_DATE_MONTH 9
 #define VERSION_DATE_YEAR 2010
 
 #define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
