@@ -7425,7 +7425,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxString strs10[] = 
     {
-        _("None (keep the full default set of menus and settings visible)"), 
+        _("None (keep all menus and settings visible)"), 
         _("Novice (you choose which menu items will be visible for Novice user)"), 
         _("Custom 1 (you choose which menu items will be visible for Custom 1 user)"), 
         _("Custom 2 (you choose which menu items will be visible for Custom 2 user)")
