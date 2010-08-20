@@ -7389,6 +7389,115 @@ wxSizer *NewDocFromSourceDataFolderFunc( wxWindow *parent, bool call_fit, bool s
     return item0;
 }
 
+wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_SELECT_A_TAB, _("1. Select a Tab according to the menu profile you want to edit"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxNotebook *item6 = new wxNotebook( parent, ID_MENU_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+#if !wxCHECK_VERSION(2,5,2)
+    wxNotebookSizer *item5 = new wxNotebookSizer( item6 );
+#else
+    wxWindow *item5 = item6;
+#endif
+
+    wxPanel *item7 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item7, FALSE );
+    item6->AddPage( item7, _("Novice") );
+
+    wxPanel *item8 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item8, FALSE );
+    item6->AddPage( item8, _("Custom 1") );
+
+    wxPanel *item9 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item9, FALSE );
+    item6->AddPage( item9, _("Custom 2") );
+
+    item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxString strs10[] = 
+    {
+        _("None (keep the full default set of menus and settings visible)"), 
+        _("Novice (you choose which menu items will be visible for Novice user)"), 
+        _("Custom 1 (you choose which menu items will be visible for Custom 1 user)"), 
+        _("Custom 2 (you choose which menu items will be visible for Custom 2 user)")
+    };
+    wxRadioBox *item10 = new wxRadioBox( parent, ID_RADIOBOX, _("2. Select the menu profile (below) that you want the interface to use:"), wxDefaultPosition, wxDefaultSize, 4, strs10, 1, wxRA_SPECIFY_COLS );
+    item3->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item12 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetDefault();
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item11->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item3->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item3, 1, wxGROW|wxALL, 5 );
+
+    item1->Add( item2, 1, wxGROW|wxALL, 0 );
+
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Note:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Items with a check will be visible in the interface"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Items without a check will not be visible"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+
+    wxListCtrl *item6 = new wxListCtrl( parent, ID_LISTCTRL, wxDefaultPosition, wxSize(160,250), wxLC_LIST|wxSUNKEN_BORDER );
+    item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
