@@ -160,6 +160,7 @@
 #include "Placeholder.h"
 //#include "Uuid_AI.h" // for testing, then comment out
 #include "NavProtectNewDoc.h"
+#include "AdminEditMenuProfile.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -25373,7 +25374,12 @@ void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_T("The OnEditUserMenuSettingsProfiles function has not yet been written."),_T(""),wxICON_INFORMATION);
+	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
+	if (editMenuDlg.ShowModal() == wxID_OK)
+	{
+		;
+	}
+	//wxMessageBox(_T("The OnEditUserMenuSettingsProfiles function has not yet been written."),_T(""),wxICON_INFORMATION);
 	/*
 	if (m_bShowAdministratorMenu)
 	{

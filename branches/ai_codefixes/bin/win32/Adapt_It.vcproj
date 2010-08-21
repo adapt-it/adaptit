@@ -447,6 +447,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AdminEditMenuProfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AdminMoveOrCopy.cpp"
 				>
 			</File>
@@ -833,6 +837,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\AdaptitConstants.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\AdminEditMenuProfile.h"
 				>
 			</File>
 			<File
