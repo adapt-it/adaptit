@@ -23780,11 +23780,17 @@ wxString CAdapt_ItApp::FindAppPath(const wxString& argv0, const wxString& cwd,
 /// Called from: the Doc's SetDocumentWindowTitle(), and 
 /// CMoveDialog::OnBnClickedButtonRenameDoc().
 /// Removes any .xml extension occurring at the end of anyName and returns the result.
+/// BEw changed 23Aug10, because we'll want to use this to remove extensions like ".txt"
+/// too, not just ".xml", and we'll want it to handle extensions which may be more than 3
+/// characters or less than three, so following Bill's comment, I've recoded it to use
+/// wxFileName
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 {
-	// whm Note: this could be done more efficiently using wxFileName, but I'll
-	// follow the MFC coding here
+	// whm Note: this could be done more efficiently using wxFileName
+	wxFileName fn(anyName);
+	wxString name = fn.GetName();
+	/* legacy code
 	wxString name = anyName;
 	wxString extn;
 	name = MakeReverse(name);
@@ -23808,6 +23814,7 @@ wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 		}
 	}
 	name = MakeReverse(name);
+	*/
 	return name;
 }
 

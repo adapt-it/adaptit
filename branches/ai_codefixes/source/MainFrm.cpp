@@ -1712,11 +1712,11 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	// Create the version number from the defines in Adapt_It.h:
 	wxString strVersionNumber;
 	strVersionNumber.Empty();
-	strVersionNumber << VERSION_MAJOR_PART; // 4
+	strVersionNumber << VERSION_MAJOR_PART; 
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_MINOR_PART; // 0
+	strVersionNumber << VERSION_MINOR_PART;
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_BUILD_PART; // 3
+	strVersionNumber << VERSION_BUILD_PART;
 	if (PRE_RELEASE != 0)
 	{
 		wxStaticText* pStaticWXVerLabel = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_LABEL);

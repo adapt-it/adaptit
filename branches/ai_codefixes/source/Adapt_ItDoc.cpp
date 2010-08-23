@@ -562,6 +562,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// un-comment out the next line to have navigation protection for loading source
 		// text files turned on when debugging, whether or not administrator menu is
 		// visible; and comment out the line above
+		bool bUserNavProtectionInForce = FALSE; // use this for allowing or suppressing
+		// the COutputFilenameDlg further below, depending on whether the legacy
+		// File New dialog is used, or the NavProtectNewDoc's dialog, respectively
 		
 		if (bUseSourceDataFolderOnly)
 #else
@@ -573,10 +576,12 @@ bool CAdapt_ItDoc::OnNewDocument()
             // files in the folder named "Source Data" within the current project's folder.
             // All the user can do is either Cancel, or select a single file to be loaded
             // as a new adaptation document, no navigation functionality is provided here
+            bUserNavProtectionInForce = TRUE;
+
 			gpApp->m_sortedLoadableFiles.Clear(); // we always recompute the array every
-			// time the user tries to create a new document, because the administrator
-			// may have added new source text files to the 'Source Data' folder since the
-			// time of the last document creation attempt
+                // time the user tries to create a new document, because the administrator
+                // may have added new source text files to the 'Source Data' folder since
+                // the time of the last document creation attempt
 			gpApp->EnumerateLoadableSourceTextFiles(gpApp->m_sortedLoadableFiles,
 								gpApp->m_sourceDataFolderPath, filterOutUnloadableFiles);
 
@@ -829,26 +834,79 @@ bool CAdapt_ItDoc::OnNewDocument()
 			}
 
 			// get a suitable output filename for use with the auto-save feature
+			// BEW 23Aug10, changed so that if user navigation protection is in force,
+			// this dialog is not put up, and so the user will have no chance to change
+			// the filename title to anything different that the filename title of the
+			// input source text file used to create the dialog. This inability to change
+			// the filename makes the filename list's bleeding behaviour work reliably as
+			// the user successively creates documents - until when all docs have been
+			// created that can be created from the files in the Source Data folder, the
+			// list will be empty
 			wxString strUserTyped;
-			COutputFilenameDlg dlg(GetDocumentWindow());
-			dlg.Centre();
-			dlg.m_strFilename = fileTitle;
-			if (dlg.ShowModal() == wxID_OK)
+			if (bUserNavProtectionInForce)
 			{
-				// get the filename
-				strUserTyped = dlg.m_strFilename;
-				
-				// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
-				// with bad characters in it.
-				// abort the operation if user gave no explicit or bad output filename
-				if (strUserTyped.IsEmpty())
+				// don't let the user have any chance to alter the filename
+				strUserTyped = fileTitle; // while the RHS suggests it's a fileTitle, it's
+                        // actually still got the filename extension on it (if there was
+                        // one there originally); it doesn't get removed until
+                        // SetDocumentWindowTitle() is called below
+				// remove any extension user may have typed -- we'll keep control ourselves
+				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
+											// returned as the last parameter in the signature
+				// for XML output
+				pApp->m_curOutputFilename = strUserTyped + _T(".xml");
+				pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+			}
+			else
+			{
+				// legacy behaviour, the file title can be user-edited or typed to be
+				// anything he wants
+				COutputFilenameDlg dlg(GetDocumentWindow());
+				dlg.Centre();
+				dlg.m_strFilename = fileTitle;
+				if (dlg.ShowModal() == wxID_OK)
 				{
-					// warn user to specify a non-null document name with valid chars
-					// IDS_EMPTY_OUTPUT_FILENAME
+					// get the filename
+					strUserTyped = dlg.m_strFilename;
+					
+                    // The COutputFilenameDlg::OnOK() handler checks for duplicate file
+                    // name or a file name with bad characters in it.
+					// abort the operation if user gave no explicit or bad output filename
 					if (strUserTyped.IsEmpty())
-						wxMessageBox(_(
+					{
+						// warn user to specify a non-null document name with valid chars
+						if (strUserTyped.IsEmpty())
+							wxMessageBox(_(
 "Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."),
 							_T(""),wxICON_INFORMATION);
+
+						// reinitialize everything
+						pApp->m_pTargetBox->ChangeValue(_T(""));
+						delete pApp->m_pBuffer;
+						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+						pApp->m_curOutputFilename = _T("");
+						pApp->m_curOutputPath = _T("");
+						pApp->m_curOutputBackupFilename = _T("");
+						pView->Invalidate(); // our own
+						GetLayout()->PlaceBox();
+						return FALSE;
+					}
+
+					// remove any extension user may have typed -- we'll keep control
+					// ourselves
+					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name 
+										// is returned as the last parameter in the signature
+
+					// for XML output
+					pApp->m_curOutputFilename = strUserTyped + _T(".xml");
+					pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+				} // end of true block for test: if (dlg.ShowModal() == wxID_OK)
+				else
+				{
+					// user cancelled, so cancel the New... command too
+					wxMessageBox(_(
+"Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."),
+						_T(""), wxICON_INFORMATION);
 
 					// reinitialize everything
 					pApp->m_pTargetBox->ChangeValue(_T(""));
@@ -857,62 +915,35 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputFilename = _T("");
 					pApp->m_curOutputPath = _T("");
 					pApp->m_curOutputBackupFilename = _T("");
-					pView->Invalidate(); // our own
+					pView->Invalidate();
 					GetLayout()->PlaceBox();
 					return FALSE;
-				}
+				} // end of else block for test: if (dlg.ShowModal() == wxID_OK)
+			} // end of else block for test: if (bUserNavProtectionInForce)
 
-				// remove any extension user may have typed -- we'll keep control ourselves
-				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
-											// returned as the last parameter in the signature
-
-				// for XML output
-				pApp->m_curOutputFilename = strUserTyped + _T(".xml");
-				pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
-			}
-			else
-			{
-				// user cancelled, so cancel the New... command too
-				// IDS_NO_OUTPUT_FILENAME
-				wxMessageBox(_(
-"Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."),
-					_T(""), wxICON_INFORMATION);
-
-				// reinitialize everything
-				pApp->m_pTargetBox->ChangeValue(_T(""));
-				delete pApp->m_pBuffer;
-				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-				pApp->m_curOutputFilename = _T("");
-				pApp->m_curOutputPath = _T("");
-				pApp->m_curOutputBackupFilename = _T("");
-				pView->Invalidate();
-				GetLayout()->PlaceBox();
-				return FALSE;
-			}
-
-			// BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
-			// the window title
+            // BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
+            // the window title
 			// Set the document's path to reflect user input; the destination folder will
 			// depend on whether book mode is ON or OFF; likewise for backups if turned on
 			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 			{
 				pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
-					+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-												 // config files
+						+ pApp->m_curOutputFilename; // to send to the app when saving
+													 // m_lastDocPath to config files
 			}
 			else
 			{
 				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
-					+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-												 // config files
+						+ pApp->m_curOutputFilename; // to send to the app when saving
+													 // m_lastDocPath to config files
 			}
 
 			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
 			Modify(FALSE);
 
-			// remove any optional hyphens in the source text for use by Ventura Publisher
-			// (skips over any <-> sequences, and gives new m_pBuffer contents & new 
-			// m_nInputFileLength value)
+            // remove any optional hyphens in the source text for use by Ventura Publisher
+            // (skips over any <-> sequences, and gives new m_pBuffer contents & new
+            // m_nInputFileLength value)
 			RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
 
             // whm wx version: moved the following OverwriteUSFMFixedSpaces and
