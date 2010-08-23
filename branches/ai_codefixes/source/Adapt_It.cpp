@@ -9071,17 +9071,7 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
     // whatever is the current value of m_docVersionCurrent. So set the current value:
 	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
 
-    // BEW 16Aut10, Note: we create the only and only instance of m_pNavProtectDlg here at
-    // app initialization, but the dialog class's InitDialog() function, which sets
-    // pointers to controls etc, is not called until ShowModal() is called - and that only
-    // happens if the user tries to create a new document when user navigation protection
-    // is activated by there being a "Source Data" folder in existence in the project and
-    // it contains at least one loadable source text file.
-	wxWindow* docWindow = GetDocument()->GetDocumentWindow(); 
-	m_pNavProtectDlg = new NavProtectNewDoc(docWindow); // wxWidgets framework will 
-					// destroy m_pNavProtectDlg on app exit, don't need to do so 
-					// explicitly in OnExit(), as this is a great feature in wxWidgets
-					// for all heap resources owned by a top level window
+	m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
 	m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
 
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),

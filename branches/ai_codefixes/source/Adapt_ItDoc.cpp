@@ -538,12 +538,35 @@ bool CAdapt_ItDoc::OnNewDocument()
 			defaultDir = gpApp->m_lastSourceFileFolder;
 		}
 
-		// BEW addition, 15Aut10, test for user navigation protection feature turned on,
+		// BEW addition, 15Aug10, test for user navigation protection feature turned on,
 		// and if so, show the monocline list of files in the Source Data folder only,
 		// otherwise, show the standard File Open dialog, wxFileDialog, supplied by
 		// wxWidgets which allows the user to navigate the hierarchical file/folder system
+		// BEW 22Aug10, included m_bShowAdministratorMenu in the test, so that we don't
+		// make the administrator have the Source Data folder restriction and
+		// navigation-protection feature be force on him when the Administrator menu is
+		// visible. I've also put a conditional compile here so that when the developer is
+		// debugging, he can choose which behaviour he wants for testing purposes
 		bool bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();
+#if defined __WXDEBUG__
+		// un-comment out the next line to have navigation protection for loading source
+		// text files turned on when debugging only provided the administrator menu is not
+		// showing - this is the way it is in the distributed application, that is, even
+		// if user navigation protection is on, making the administrator menu visible will
+		// override the 'on' setting so that the legacy File Open dialog is used; and
+		// making the administrator menu invisible again automatically restores user
+		// navigation protection to being 'on'
+		
+		//if (bUseSourceDataFolderOnly && !m_bShowAdministratorMenu)
+
+		// un-comment out the next line to have navigation protection for loading source
+		// text files turned on when debugging, whether or not administrator menu is
+		// visible; and comment out the line above
+		
 		if (bUseSourceDataFolderOnly)
+#else
+		if (bUseSourceDataFolderOnly && !m_bShowAdministratorMenu)
+#endif
 		{
             // This block encapsulates user file/folder navigation protection, by showing
             // to the user only all, or a subset of, the files in the monocline list of
@@ -560,7 +583,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// now remove any array entries which have their filename title part
 			// clashing with a document filename's title part (and book mode may be
 			// currently on, so if it is we get the list of doc filenames from the
-			// currently active bible book folder)
+			// currently active bible book folder); to do this, first calculate the path
+			// to the storage folder for the documents, and enumerate their filenames to a
+			// wxArrayString local array, then call RemoveNameDuplicatesFromArray() to
+			// compare the file titles and remove the duplicates
 			wxString docsPath;
 			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 			{
@@ -584,6 +610,16 @@ bool CAdapt_ItDoc::OnNewDocument()
 												TRUE, excludeExtensionsFromComparison);
 			wxString strSelectedFilename;
 			strSelectedFilename.Empty();
+
+			// BEW 16Aug10, Note: we create the only and only instance of m_pNavProtectDlg here
+			// rather than in the app's OnInit() function, because we want the dialog
+			// handler's InitDialog() function called each time the dialog is to be shown using
+			// ShowModal() so that the two buttons will be initialized correctly
+			wxWindow* docWindow = GetDocumentWindow(); 
+			gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow); 
+            
+			// display the dialog, it's list of filenames is monocline & no navigation
+			// capability is provided
 			if (gpApp->m_pNavProtectDlg->ShowModal() == wxID_CANCEL)
 			{
 				// the user has hit the Cancel button
@@ -595,6 +631,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// check if there was a document current, and if so, reinitialize everything
 				if (pView != 0)
 				{
+					delete gpApp->m_pNavProtectDlg;
+					gpApp->m_pNavProtectDlg = NULL;
 					pApp->m_pTargetBox->SetValue(_T(""));
 					delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -616,6 +654,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// the user has hit the "Input file" button
 				strSelectedFilename = gpApp->m_pNavProtectDlg->GetUserFileName();
 				wxASSERT(!strSelectedFilename.IsEmpty());
+
+				// the dialog handler can now be deleted and its point set to NULL
+				delete gpApp->m_pNavProtectDlg;
+				gpApp->m_pNavProtectDlg = NULL;
 
 				// create the path to the selected file (m_sourceDataFolderPath is always
 				// defined when the app enters a project, as a folder "Source Data" which

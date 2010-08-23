@@ -1531,7 +1531,28 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		{
 			// there is an existing .KB file, so we need to create a CKB instance in
 			// memory, open the .KB file on disk, and fill the memory instance's members
-			wxASSERT(pApp->m_pKB == NULL);
+			
+			// BEW 23Aug10, replaced the wxASSERT() here because it is possible to get to
+			// here with a non-NULL m_pKB and m_pGlossingKB, in which case the asserts
+			// trip, and if omitted we'd leak the KB and GlossingKB memory when they are
+			// created here anew on the heap. So, we test for non-null pointers, and if
+			// true, then we make sure the in-memory ones are deleted before continuing.
+			// The sequence of operations which exposed this bug were:
+			// 1. User navigation protection was on (5 loadable files in Source Data, four
+			// of which had had docs made from them (though that was irrelevant) and one
+			// was there for listed. When the NavProtectNewDoc() handler's dialog shows, I
+			// clicked Cancel. 2. File / New..., double-clicked the loadable source text
+			// filename. 3. When "Type a name..." dialog shows, I Cancelled. 4. File /
+			// New... again and got the crash here when the wxASSERT() was tripped. (Very
+			// possibly the same error would happen with the legacy Open File... dialog,
+			// if the same sequence of Cancel, New, double-click, Cancel, New was done.
+			// But I didn't test, as the fix here would take care of that as well.)
+			//wxASSERT(pApp->m_pKB == NULL);
+			if (pApp->m_pKB != NULL)
+			{
+				pApp->GetDocument()->EraseKB(pApp->m_pKB);
+			}
+
 			pApp->m_pKB = new CKB(FALSE);
 			wxASSERT(pApp->m_pKB != NULL);
 			bool bOK = pApp->LoadKB();
@@ -1540,7 +1561,13 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 				pApp->m_bKBReady = TRUE;
 
 				// now do it for the glossing KB
-				wxASSERT(pApp->m_pGlossingKB == NULL);
+				// BEW 23Aug10 removed wxASSER() - see reason in comment above of same date
+				//wxASSERT(pApp->m_pGlossingKB == NULL);
+				if (pApp->m_pGlossingKB != NULL)
+				{
+					pApp->GetDocument()->EraseKB(pApp->m_pGlossingKB);
+				}
+
 				pApp->m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(pApp->m_pGlossingKB != NULL);
 				bOK = pApp->LoadGlossingKB();
