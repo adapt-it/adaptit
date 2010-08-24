@@ -1504,153 +1504,175 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// see docview sample view.cpp for code on how to set up the edit menu
 	// Undo and Redo items using doc->GetCommandProcessor() here
 
-	if (pApp->bUserSelectedFileNew)
+	if (pApp->m_bControlIsWithinOnInit)
 	{
-		// Note: Because of doc/view framework differences between MFC and WX,
-		// a user File | New selection in WX calls CreateDocument, which
-		// after calling OnSaveModified, calls OnCloseDocument which in
-		// turn calls EraseKB on the adapting and glossing KBs. Hence, we
-		// need to reinitialize our KBs here, since immediately after this
-		// OnCreate() method finishes, OnNewDocument() will be called and
-		// the KB structures need to be reinitialized before OnNewDocument
-		// can succeed. 
+		return TRUE; // exit because in OnInit() no project etc is as yet defined
+	}
+	// Note: Because of doc/view framework differences between MFC and WX,
+	// a user File | New selection in WX calls CreateDocument, which
+	// after calling OnSaveModified, calls OnCloseDocument which in
+	// turn calls EraseKB on the adapting and glossing KBs. Hence, we
+	// need to reinitialize our KBs here, since immediately after this
+	// OnCreate() method finishes, OnNewDocument() will be called and
+	// the KB structures need to be reinitialized before OnNewDocument
+	// can succeed. 
 
-        // we have the desired directory structures. Now we need to get a KB 
-        // initialized and stored in the languages-specific folder. Ditto for the glossing
-        // KB (version 2)
-         
-		// BEW changed 1Aug09, because the code was using the old binary filenames *.KB
-		// etc, and so creating a new adaptation document using the File / New command was
-		// not finding the KB on disk, creating a new empty one and saving it, thereby
-		// clobbering the disk's good KB file. So I removed the wrong code and instead
-		// called SetupKBPaths() which, for the wx version, sets up the correct normal and
-		// alternate path names, file names, and backup paths and filenames.
-		pApp->SetupKBPathsEtc();
+    // we have the desired directory structures. Now we need to get a KB 
+    // initialized and stored in the languages-specific folder. Ditto for the glossing
+    // KB (version 2)
+     
+	// BEW changed 1Aug09, because the code was using the old binary filenames *.KB
+	// etc, and so creating a new adaptation document using the File / New command was
+	// not finding the KB on disk, creating a new empty one and saving it, thereby
+	// clobbering the disk's good KB file. So I removed the wrong code and instead
+	// called SetupKBPaths() which, for the wx version, sets up the correct normal and
+	// alternate path names, file names, and backup paths and filenames.
+	pApp->SetupKBPathsEtc();
 
-		if (::wxFileExists(pApp->m_curKBPath)) //if (cFile.GetStatus(m_curKBPath,status))
+	if (::wxFileExists(pApp->m_curKBPath)) //if (cFile.GetStatus(m_curKBPath,status))
+	{
+		// there is an existing .KB file, so we need to create a CKB instance in
+		// memory, open the .KB file on disk, and fill the memory instance's members
+		
+		// BEW 23Aug10, replaced the wxASSERT() here because it is possible to get to
+		// here with a non-NULL m_pKB and m_pGlossingKB, in which case the asserts
+		// trip, and if omitted we'd leak the KB and GlossingKB memory when they are
+		// created here anew on the heap. So, we test for non-null pointers, and if
+		// true, then we make sure the in-memory ones are deleted before continuing.
+		// The sequence of operations which exposed this bug were:
+        // 1. User navigation protection was on (5 loadable files in Source Data, four
+        // of which had had docs made from them (though that was irrelevant) and one
+        // was there for listed. When the NavProtectNewDoc() handler's dialog shows, I
+        // clicked Cancel.
+		// 2. File / New..., double-clicked the loadable source text filename. 
+		// 3. When "Type a name..." dialog shows, I Cancelled. 
+        // 4. File / New... again and got the crash here when the wxASSERT() was
+        // tripped. (Very possibly the same error would happen with the legacy Open
+        // File... dialog, if the same sequence of Cancel, New, double-click, Cancel,
+        // New was done. But I didn't test, as the fix here would take care of that as
+        // well.)
+		// 
+		// BEW 24Aug10, the above turns out to be a problem in the wxWidgets black box
+		// if the Cancel option is taken within OnNewDocument() - whether nav
+		// protection is on or not; our event handlers don't get called. No idea why,
+		// but the EraseKB() here will prevent the crash. It's not a full solution
+		// though, because the toolbar icon buttons for New and particularly for Open
+		// will then still not work right, nor will File / New... or File / Open...;
+		// so I need to try fix the Cancel problem at its source.
+		// Later on 24Aug10 - the problem was caused by returning FALSE from a
+		// OnNewDocument() - this clobbers things (I don't know what) which the
+		// doc/view support relies on; the solution was to return TRUE from
+		// OnNewDocument() whether cancelling or not. That fixed everything, and the
+		// New and Open icon buttons on the toolbar now work right in all circumstances.
+		//wxASSERT(pApp->m_pKB == NULL);
+		if (pApp->m_pKB != NULL)
 		{
-			// there is an existing .KB file, so we need to create a CKB instance in
-			// memory, open the .KB file on disk, and fill the memory instance's members
-			
-			// BEW 23Aug10, replaced the wxASSERT() here because it is possible to get to
-			// here with a non-NULL m_pKB and m_pGlossingKB, in which case the asserts
-			// trip, and if omitted we'd leak the KB and GlossingKB memory when they are
-			// created here anew on the heap. So, we test for non-null pointers, and if
-			// true, then we make sure the in-memory ones are deleted before continuing.
-			// The sequence of operations which exposed this bug were:
-			// 1. User navigation protection was on (5 loadable files in Source Data, four
-			// of which had had docs made from them (though that was irrelevant) and one
-			// was there for listed. When the NavProtectNewDoc() handler's dialog shows, I
-			// clicked Cancel. 2. File / New..., double-clicked the loadable source text
-			// filename. 3. When "Type a name..." dialog shows, I Cancelled. 4. File /
-			// New... again and got the crash here when the wxASSERT() was tripped. (Very
-			// possibly the same error would happen with the legacy Open File... dialog,
-			// if the same sequence of Cancel, New, double-click, Cancel, New was done.
-			// But I didn't test, as the fix here would take care of that as well.)
-			//wxASSERT(pApp->m_pKB == NULL);
-			if (pApp->m_pKB != NULL)
+			// protect from a crash -- strictly speaking this block should never now
+			// be entered due to the 24Aug10 fix discussed above, but it can be left
+			// here as a safety measure
+			pApp->GetDocument()->EraseKB(pApp->m_pKB);
+		}
+
+		pApp->m_pKB = new CKB(FALSE);
+		wxASSERT(pApp->m_pKB != NULL);
+		bool bOK = pApp->LoadKB();
+		if (bOK)
+		{
+			pApp->m_bKBReady = TRUE;
+
+			// now do it for the glossing KB
+			// BEW 23Aug10 removed wxASSERT() - see reason in comment above of same date
+			//wxASSERT(pApp->m_pGlossingKB == NULL);
+			if (pApp->m_pGlossingKB != NULL  || pApp->m_bGlossingKBReady)
 			{
-				pApp->GetDocument()->EraseKB(pApp->m_pKB);
+				// protect from a crash -- strictly speaking this block should never now
+				// be entered due to the 24Aug10 fix discussed above, but it can be left
+				// here as a safety measure
+				pApp->GetDocument()->EraseKB(pApp->m_pGlossingKB);
 			}
 
-			pApp->m_pKB = new CKB(FALSE);
-			wxASSERT(pApp->m_pKB != NULL);
-			bool bOK = pApp->LoadKB();
+			pApp->m_pGlossingKB = new CKB(TRUE);
+			wxASSERT(pApp->m_pGlossingKB != NULL);
+			bOK = pApp->LoadGlossingKB();
 			if (bOK)
 			{
-				pApp->m_bKBReady = TRUE;
-
-				// now do it for the glossing KB
-				// BEW 23Aug10 removed wxASSER() - see reason in comment above of same date
-				//wxASSERT(pApp->m_pGlossingKB == NULL);
-				if (pApp->m_pGlossingKB != NULL)
-				{
-					pApp->GetDocument()->EraseKB(pApp->m_pGlossingKB);
-				}
-
-				pApp->m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(pApp->m_pGlossingKB != NULL);
-				bOK = pApp->LoadGlossingKB();
-				if (bOK)
-				{
-					pApp->m_bGlossingKBReady = TRUE;
-				}
-				else
-				{
-					// IDS_LOAD_GLOSSINGKB_FAILURE
-					wxMessageBox(_(
-"Error: loading the glossing knowledge base failed. The application will now close."),_T(""),
-					wxICON_ERROR);
-					wxASSERT(FALSE);
-					wxExit();
-				}
+				pApp->m_bGlossingKBReady = TRUE;
 			}
 			else
 			{
-				// IDS_LOAD_KB_FAILURE
+				// IDS_LOAD_GLOSSINGKB_FAILURE
 				wxMessageBox(_(
-			"Error: loading a knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR);
+"Error: loading the glossing knowledge base failed. The application will now close."),_T(""),
+				wxICON_ERROR);
 				wxASSERT(FALSE);
 				wxExit();
 			}
 		}
 		else
 		{
-            // the KB file does not exist, so make sure there is an initialized CKB
-            // instance on the application ready to receive data, and save it to disk. for
-            // version 2, do the same for the glossing KB
-			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB(FALSE);
-			wxASSERT(pApp->m_pKB != NULL);
+			// IDS_LOAD_KB_FAILURE
+			wxMessageBox(_(
+		"Error: loading a knowledge base failed. The application will now close."),
+			_T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			wxExit();
+		}
+	}
+	else
+	{
+        // the KB file does not exist, so make sure there is an initialized CKB
+        // instance on the application ready to receive data, and save it to disk. for
+        // version 2, do the same for the glossing KB
+		wxASSERT(pApp->m_pKB == NULL);
+		pApp->m_pKB = new CKB(FALSE);
+		wxASSERT(pApp->m_pKB != NULL);
 
-			// store the language names in it
-			pApp->m_pKB->m_sourceLanguageName = pApp->m_sourceName;
-			pApp->m_pKB->m_targetLanguageName = pApp->m_targetName;
+		// store the language names in it
+		pApp->m_pKB->m_sourceLanguageName = pApp->m_sourceName;
+		pApp->m_pKB->m_targetLanguageName = pApp->m_targetName;
 
-			bool bOK = pApp->StoreKB(FALSE); // first time, so we can't make a backup
+		bool bOK = pApp->StoreKB(FALSE); // first time, so we can't make a backup
+		if (bOK)
+		{
+			pApp->m_bKBReady = TRUE;
+
+			// now do the same for the glossing KB
+			wxASSERT(pApp->m_pGlossingKB == NULL);
+			pApp->m_pGlossingKB = new CKB(TRUE);
+			wxASSERT(pApp->m_pGlossingKB != NULL);
+
+			bOK = pApp->StoreGlossingKB(FALSE); // first time, so we can't make a backup
 			if (bOK)
 			{
-				pApp->m_bKBReady = TRUE;
-
-				// now do the same for the glossing KB
-				wxASSERT(pApp->m_pGlossingKB == NULL);
-				pApp->m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(pApp->m_pGlossingKB != NULL);
-
-				bOK = pApp->StoreGlossingKB(FALSE); // first time, so we can't make a backup
-				if (bOK)
-				{
-					pApp->m_bGlossingKBReady = TRUE;
-				}
-				else
-				{
-					// IDS_STORE_GLOSSINGKB_FAILURE
-					wxMessageBox(_(
-"Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
-					_T(""), wxICON_ERROR); // something went wrong
-					wxASSERT(FALSE);
-					wxExit();
-				}
+				pApp->m_bGlossingKBReady = TRUE;
 			}
 			else
 			{
-				// IDS_STORE_KB_FAILURE
+				// IDS_STORE_GLOSSINGKB_FAILURE
 				wxMessageBox(_(
-"Error: saving the knowledge base failed. The application will now close."),
+"Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
 				_T(""), wxICON_ERROR); // something went wrong
 				wxASSERT(FALSE);
 				wxExit();
 			}
+		}
+		else
+		{
+			// IDS_STORE_KB_FAILURE
+			wxMessageBox(_(
+"Error: saving the knowledge base failed. The application will now close."),
+			_T(""), wxICON_ERROR); // something went wrong
+			wxASSERT(FALSE);
+			wxExit();
+		}
 
-			// BEW added 13Nov09: give the local user ownership for writing, or deny it if
-			// somehow someone else has gotten ownership of the project folder already
-			if (!pApp->m_curProjectPath.IsEmpty())
-			{
-				// Attempt to set it only if not already set...
-				//if (!pApp->m_bReadOnlyAccess)
-				pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
-			}
+		// BEW added 13Nov09: give the local user ownership for writing, or deny it if
+		// somehow someone else has gotten ownership of the project folder already
+		if (!pApp->m_curProjectPath.IsEmpty())
+		{
+			// Attempt to set it only if not already set...
+			//if (!pApp->m_bReadOnlyAccess)
+			pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 		}
 	}
     return TRUE;

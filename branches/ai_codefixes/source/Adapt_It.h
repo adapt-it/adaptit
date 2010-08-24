@@ -1797,7 +1797,7 @@ public:
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
 	
-	bool bUserSelectedFileNew;
+	//bool bUserSelectedFileNew; // BEW removed 24Aug10
 
 	// Single instance checker added as a new feature to wxWidgets version
 	wxSingleInstanceChecker* m_pChecker; // used for preventing more than one 

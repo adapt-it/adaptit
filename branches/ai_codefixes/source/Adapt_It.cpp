@@ -5704,12 +5704,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// *** Variable initializations below moved here from the App's constructor ***
 	
-    // bUserSelectedFileNew below is used in wxWidgets version to reinit KB structures in
-    // view->OnCreate(). This is to allow for the fact that with only 1 doc allowed in WX,
-    // it first deletes the current doc and view and recreates new ones before calling
-    // OnNewDocument(). The MFC version does not do this, but reuses its old doc and view
-    // pointers under the CSingleDocTemplate() that MFC Adapt It uses.
-	bUserSelectedFileNew = FALSE;	
+    // BEW 24Aug10, changed comment. Reinit of KB structures is done in view->OnCreate().
+    // This is because with only 1 doc allowed in WX, it first deletes the current doc and
+    // view and recreates new ones before calling OnNewDocument(). The MFC version did not
+    // do this, but reused its old doc and view pointers under the CSingleDocTemplate()
+    // that MFC Adapt It uses. OnInit() calls OnNewDocument() to get the doc/view
+    // structures set up; and hence because of the destruction of the view that is
+    // entailed, view->OnCreate() will be called when control is here within OnInit(). This
+    // would result in a crash, when OnCreate() tried to load KBs prematurely. We prevent
+    // this by using the app member boolean, m_bControlIsWithinOnInit which is TRUE only
+    // while control is here within OnInit(), testing for a TRUE value in OnCreate() and if
+    // we find that it is so, we exit from OnCreate() prematurely. (Formerly we used a
+    // different boolean, but I have eliminated it from the app today.)
 
 	m_pDocManager = (wxDocManager*)NULL;// was originally in App constructor's preamble
 	m_pMainFrame = (CMainFrame*)NULL;// was originally in App constructor's preamble

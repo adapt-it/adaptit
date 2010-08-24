@@ -188,7 +188,6 @@ class CMainFrame : public wxDocParentFrame
 	//void OnShowContextHelp(wxCommandEvent& event);
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
-	
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar
 	void OnUpdateCheckKBSave(wxUpdateUIEvent& event);

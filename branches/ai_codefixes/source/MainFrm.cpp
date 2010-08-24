@@ -276,10 +276,11 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(IDC_CHECK_SINGLE_STEP, CMainFrame::OnUpdateCheckSingleStep)
 	EVT_ACTIVATE(CMainFrame::OnActivate) // to set focus to targetbox when visible
 	//EVT_HELP(wxID_HELP,CMainFrame::OnHelp)
-	EVT_MENU(wxID_HELP,CMainFrame::OnAdvancedHtmlHelp)
-	EVT_MENU(ID_ONLINE_HELP,CMainFrame::OnOnlineHelp)
-	EVT_MENU(ID_USER_FORUM,CMainFrame::OnUserForum)
-	EVT_MENU(ID_HELP_USE_TOOLTIPS,CMainFrame::OnUseToolTips)
+	EVT_MENU(wxID_HELP, CMainFrame::OnAdvancedHtmlHelp)
+	EVT_MENU(ID_ONLINE_HELP, CMainFrame::OnOnlineHelp)
+	EVT_MENU(ID_USER_FORUM, CMainFrame::OnUserForum)
+	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
+
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
 	// disables tooltips
 	//EVT_MENU(ID_HELP_SET_TOOLTIP_DELAY,CMainFrame::OnSetToolTipDelayTime)
@@ -6040,4 +6041,5 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
         // flicker we need to make use of clipping region soon. BEW)
 	pLayout->PlaceBox();
 }
+
 

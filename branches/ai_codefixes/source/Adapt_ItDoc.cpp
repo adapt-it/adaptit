@@ -642,17 +642,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 					delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 					pView->Invalidate();
-					// BEW added next line 16Nov09 for following reason:
-					// the flag is set TRUE in OnFileNew(), before handing control over to
-					// wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
-					// called -- this is okay if the user chooses a file to use for creating a
-					// new document, but if he cancels out of the file dialog, the cancel
-					// block's code (which is right here) didn't clear bUserSelectedFileNew to
-					// FALSE, which lead to an error, so we here do this fix
-					pApp->bUserSelectedFileNew = FALSE;	
 					GetLayout()->PlaceBox();
 				}
-				return FALSE;
+                //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+                //doc/view black box on which we rely, leading to our event handlers
+                //failing to be called, so return TRUE instead
+				return TRUE;
 			}
 			else
 			{
@@ -708,17 +703,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 					delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 					pView->Invalidate();
-					// BEW added next line 16Nov09 for following reason:
-					// the flag is set TRUE in OnFileNew(), before handing control over to
-					// wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
-					// called -- this is okay if the user chooses a file to use for creating a
-					// new document, but if he cancels out of the file dialog, the cancel
-					// block's code (which is right here) didn't clear bUserSelectedFileNew to
-					// FALSE, which lead to an error, so we here do this fix
-					pApp->bUserSelectedFileNew = FALSE;	
 					GetLayout()->PlaceBox();
 				}
-				return FALSE;
+                //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+                //doc/view black box on which we rely, leading to our event handlers
+                //failing to be called, so return TRUE instead
+				return TRUE;
 			}
 			else // must be wxID_OK 
 			{
@@ -814,7 +804,17 @@ bool CAdapt_ItDoc::OnNewDocument()
 							wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
 							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
 
-							return FALSE; // returns to OnWizardFinish() in DocPage.cpp
+							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if 
+										// that claim always is true, then no harm will be done;
+										// but if it returns FALSE to the wxWidgets doc/view
+										// framework, it partially clobbers the latter -- this can be
+										// tested by returning FALSE here and then clicking the Open
+										// icon button on the toolbar -- if that bypasses our event
+										// handlers and just directly opens the "Select a file"
+										// wxWidgets dialog, then the app is unstable and New and Open
+										// whether on the File menu or as toolbar buttons will not
+										// work right. In that case, we would need to return TRUE
+										// here, not FALSE. For now, I'll let the FALSE value remain.)
 						}
 					}
 					else
@@ -889,7 +889,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 						pApp->m_curOutputBackupFilename = _T("");
 						pView->Invalidate(); // our own
 						GetLayout()->PlaceBox();
-						return FALSE;
+						//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+						//doc/view black box on which we rely, leading to our event handlers
+						//failing to be called, so return TRUE instead
+						return TRUE;
 					}
 
 					// remove any extension user may have typed -- we'll keep control
@@ -917,7 +920,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputBackupFilename = _T("");
 					pView->Invalidate();
 					GetLayout()->PlaceBox();
-					return FALSE;
+					//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+					//doc/view black box on which we rely, leading to our event handlers
+					//failing to be called, so return TRUE instead
+					return TRUE;
 				} // end of else block for test: if (dlg.ShowModal() == wxID_OK)
 			} // end of else block for test: if (bUserNavProtectionInForce)
 
@@ -12258,17 +12264,17 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 /// \param		event	-> a wxCommandEvent associated with the wxID_NEW identifier
 /// \remarks
 /// Called from: the doc/view framework when File | New menu item is selected. In the wx
-/// version this override sets the bUserSelectedFileNew flag to TRUE and then simply calls
-/// the App's OnFileNew() method.
+/// version this override just calls the App's OnFileNew() method.
+/// BEW 24Aug10, removed the bool bUserSelectedFileNew member from the application, now
+/// the view's OnCreate() call just checks for m_pKB == NULL and m_pGlossingKB == NULL as
+/// an indicator that the view was clobbered, and it then recreates the in-memory KBs
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 {
 	// called when File | New menu item selected specifically by user
-	// Note: The App's OnInit() skips this and calls pApp->OnFileNew
-	// directly, so we can initialize our flag here.
+	// Note: The App's OnInit() skips this and calls pApp->OnFileNew directly
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	pApp->bUserSelectedFileNew = TRUE; // causes the view->OnCreate() to reinit the KBs
 	pApp->OnFileNew(event);
 }
 
