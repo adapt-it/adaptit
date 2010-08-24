@@ -7399,7 +7399,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_SELECT_A_TAB, _("1. Select a Tab according to the menu profile you want to edit"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_SELECT_A_TAB, _("1. Select a Tab according to the user workflow profile you want to edit"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxNotebook *item6 = new wxNotebook( parent, ID_MENU_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
@@ -7430,7 +7430,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
         _("Custom 1 (you choose which menu items will be visible for Custom 1 user)"), 
         _("Custom 2 (you choose which menu items will be visible for Custom 2 user)")
     };
-    wxRadioBox *item10 = new wxRadioBox( parent, ID_RADIOBOX, _("2. Select the menu profile (below) that you want the interface to use:"), wxDefaultPosition, wxDefaultSize, 4, strs10, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item10 = new wxRadioBox( parent, ID_RADIOBOX, _("2. Select the user workflow profile (below) that you want the interface to use:"), wxDefaultPosition, wxDefaultSize, 4, strs10, 1, wxRA_SPECIFY_COLS );
     item3->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
@@ -7640,7 +7640,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_SOURCE_DATA_FOLDER, _("Open &Source Data Folder..."), _("Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.") );
     item9->Append( ID_EXPORT_DATA_FOLDER, _("Open &Export Data Folder..."), _("Opens the project's Export Data folder (creating it first if necessary). Protects the user from folder navigation of exports.") );
     item9->AppendSeparator();
-    item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("Menu Settings P&rofile Editor..."), _("Choose which menu items the user can access") );
+    item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;

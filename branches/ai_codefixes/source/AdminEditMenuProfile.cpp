@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(CAdminEditMenuProfile, AIModalDialog)
 END_EVENT_TABLE()
 
 CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Menu Settings Profile Editor"),
+	: AIModalDialog(parent, -1, _("User Workflow Profiles"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
