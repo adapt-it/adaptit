@@ -447,7 +447,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 				wxMessageBox(_T(
 				"OnNewDocument() failed, when setting current directory to C drive"),
 				_T(""), wxICON_ERROR);
-				return FALSE;
+				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
+							 // you want the doc/view framework to keep working right
 			}
 		}
 	}
@@ -1011,7 +1012,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pView->Invalidate();
 				GetLayout()->PlaceBox();
-				return FALSE;
+				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
+							 // you want the doc/view framework to keep working right
 			}
 
 			// try this for the refactored layout design....
