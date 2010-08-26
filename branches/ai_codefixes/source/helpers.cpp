@@ -2921,6 +2921,11 @@ wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d %H-%M-%S")).c_str();
 		}
 		break;
+	case oxesDateOnly:
+		{
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d")).c_str(); // chop off time spec
+		}
+		break;
 	default:
 	case adaptItDT:
 		{

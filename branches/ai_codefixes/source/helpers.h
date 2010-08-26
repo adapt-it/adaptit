@@ -49,7 +49,8 @@ enum AppPreferedDateTime
 {
 	adaptItDT,
 	paratextDT,
-	oxesDT
+	oxesDT,
+	oxesDateOnly
 };
 
 ////////////////////////////////////////////
