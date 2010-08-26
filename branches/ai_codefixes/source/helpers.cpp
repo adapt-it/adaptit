@@ -4210,4 +4210,39 @@ void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwa
 	}
 }
 
+// BEW 26Aug10, added ChangeParatextPrivatesToCustomMarkers( in order to support the USFM
+// 2.3 new feature, where a \z prefix is supplied to 3rd party developers for custom
+// markers which Paratext will ignore. This function will change:
+// \zbt     to      \bt
+// \zfree   to      \free
+// \zfree*  to      \free*
+// \znote   to      \note
+// \znote*  to      \note*
+// and the location where it will be called is after the return from the dialog in the
+// document member function OnNewDocument(). These replacements are done before the (U)SFM
+// parser gets to see the filed in source text data, and so the parser can be left to
+// respond to \bt, \free and \note as was the case earlier. 
+// Note: we retain the use of \bt, \free, and \note internally. The \z-forms only appear
+// in our SFM exports; and not in LIFT, OXES, or RTF exports, as in all of these markers
+// are replaced by other formatting protocols. This function undoes what
+// ChangeCustomMarkersToParatextPrivates(wxString& buffer) did; the latter is defined in
+// the ExportFunctions.cpp class.
+void ChangeParatextPrivatesToCustomMarkers(wxString& buffer)
+{
+	// converting the start markers, also converts all their matching endmarkers too
+	wxString oldFree = _T("\\zfree");
+	wxString newFree = _T("\\free");
+	wxString oldNote = _T("\\znote");
+	wxString newNote = _T("\\note");
+	wxString oldBt = _T("\\zbt "); // include space, any of SAG's \bt-derived markers we
+								  // will not convert; and our \bt has no endmarker so
+								  // this is safe to do
+	wxString newBt = _T("\\bt "); // need the space here too, since we are replacing
+
+	// the conversions are done with the 3rd param, replaceAll, left at default TRUE
+	int count = buffer.Replace(oldFree,newFree);
+	count = buffer.Replace(oldNote,newNote);
+	count = buffer.Replace(oldBt,newBt);
+}
+
 

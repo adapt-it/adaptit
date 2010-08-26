@@ -447,6 +447,11 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			DoExportTextToRTF(sourceTextExport, exportPath, name, source);
 			return;
 		}
+		else
+		{
+			ChangeCustomMarkersToParatextPrivates(source); // change our custom markers to 
+														   // \z... markers for Paratext
+		}
 		break;
 	case glossesTextExport:
 		nTextLength = RebuildGlossesText(glosses);
@@ -466,6 +471,11 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			DoExportTextToRTF(glossesTextExport, exportPath, name, glosses);
 			return;
 		}
+		else
+		{
+			ChangeCustomMarkersToParatextPrivates(glosses); // change our custom markers to 
+														   // \z... markers for Paratext
+		}
 		break;
 	case freeTransTextExport:
 		nTextLength = RebuildFreeTransText(freeTrans);
@@ -484,6 +494,11 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		{
 			DoExportTextToRTF(freeTransTextExport, exportPath, name, freeTrans);
 			return;
+		}
+		else
+		{
+			ChangeCustomMarkersToParatextPrivates(freeTrans); // change our custom markers 
+														   // to \z... markers for Paratext
 		}
 		break;
 	default:
@@ -505,6 +520,11 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			DoExportTextToRTF(targetTextExport, exportPath, name, target);	// When targetTextExport function processes
 																	// Target, otherwise Source
 			return;
+		}
+		else
+		{
+			ChangeCustomMarkersToParatextPrivates(target); // change our custom markers to 
+														   // \z... markers for Paratext
 		}
 		break;
 	}
@@ -14531,6 +14551,37 @@ int RebuildTargetText(wxString& target)
 	// update length
 	return textLen = target.Length();
 }// end of RebuildTargetText
+
+// BEW 26Aug10, added ChangeCustomMarkersToParatextPrivates() in order to support the USFM
+// 2.3 new feature, where a \z prefix is supplied to 3rd party developers for custom
+// markers which Paratext will ignore. This function will change:
+// \bt     to      \zbt
+// \free   to      \zfree
+// \free*  to      \zfree*
+// \note   to      \znote
+// \note*  to      \znote*
+// but it will be called late, so that these changes are NOT made in the wxString buffer
+// that is passed on to the RTF-construction functions. 
+// Note: we retain the use of \bt, \free, and \note internally; so importing must convert
+// these \z- based alternatives back to our legacy ones
+void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
+{
+	// converting the start markers, also converts all their matching endmarkers too
+	wxString oldFree = _T("\\free");
+	wxString newFree = _T("\\zfree");
+	wxString oldNote = _T("\\note");
+	wxString newNote = _T("\\znote");
+	wxString oldBt = _T("\\bt "); // include space, any of SAG's \bt-derived markers we
+								  // will not convert; and our \bt has no endmarker so
+								  // this is safe to do
+	wxString newBt = _T("\\zbt "); // need the space here too, since we are replacing
+
+	// the conversions are done with the 3rd param, replaceAll, left at default TRUE
+	int count = buffer.Replace(oldFree,newFree);
+	count = buffer.Replace(oldNote,newNote);
+	count = buffer.Replace(oldBt,newBt);
+}
+
 
 // ApplyOutputFilterToText takes an input string textStr, scans through its string buffer
 // and builds a new wxString minus the markers and associated text whose flags are set to

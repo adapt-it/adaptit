@@ -227,5 +227,6 @@ bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders);
 // BEW created 9Aug10, for support of user-protection from folder navigation
 void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwanted,
 								   bool bSorted, enum ExtensionAction extAction);
+void ChangeParatextPrivatesToCustomMarkers(wxString& buffer);
 
 #endif	// helpers_h

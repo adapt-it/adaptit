@@ -95,6 +95,9 @@ bool		IsFreeTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsNoteInDoc(CSourcePhrase* pSrcPhrase);
 
+// BEW 26Aug10, added for Paratext \z feature support
+void		ChangeCustomMarkersToParatextPrivates(wxString& buffer);
+
 bool		DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, 
 											   wxChar* pPosAfterMkr, wxString& spacelessPuncts);
 int			GetWordCount(wxString& str, wxArrayString* pStrList);

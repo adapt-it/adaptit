@@ -948,12 +948,20 @@ bool CAdapt_ItDoc::OnNewDocument()
 			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
 			Modify(FALSE);
 
-            // remove any optional hyphens in the source text for use by Ventura Publisher
+            // BEW added 26Aug10. In case we are loading a marked up file we earlier
+            // exported, our custom markers in the exported output would have been changed
+            // to \z-prefixed forms, \zfree, \zfree*, \znote, etc. Here we must convert
+            // back to our internal marker forms, which lack the 'z'. (The z was to support
+            // Paratext import of data containing 3rd party markers unknown to
+            // Paratext/USFM.)
+			ChangeParatextPrivatesToCustomMarkers(*pApp->m_pBuffer);
+			
+           // remove any optional hyphens in the source text for use by Ventura Publisher
             // (skips over any <-> sequences, and gives new m_pBuffer contents & new
             // m_nInputFileLength value)
 			RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
 
-            // whm wx version: moved the following OverwriteUSFMFixedSpaces and
+			// whm wx version: moved the following OverwriteUSFMFixedSpaces and
             // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
             // if user requires, change USFM fixed spaces (marked by the !$
             // two-character sequence) to a pair of spaces - this does not change the
