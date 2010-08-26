@@ -2893,14 +2893,41 @@ wxString GetUuid()
 // potential sort key; that is: "year:month:day hours:minutes:seconds" Z suffix is 'Zulu
 // time zone', that is, UTC (GMT).
 // BEW created 10May10, modified 9July10 to make it be UTC time, and adding Z suffix
-wxString GetDateTimeNow()
+// BEW note, 26Aug10: Paratext normalizes to UTC, by converting to Zulu time, and it's
+// formatted datetime has no space between date and time, and a capital Z following
+// without a space delimiter. OXES, however, uses local time, and has a space separating
+// date and time, and uses "-" hyphen as the field delimiter, not colon. So I need to do
+// some work on this to support these different formats.
+wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 {
 	wxDateTime theDateTime = wxDateTime::Now();
-	// we want it as UTC datetime
-	theDateTime = theDateTime.ToUTC(); // param noDST is default false, so it does daylight
-									   // savings time adjustment too
+	// Adapt It and Paratext want it as UTC datetime, but not OXES
+	if (dt == adaptItDT || dt == paratextDT)
+	{
+		// param noDST is default false, so it does daylight savings time adjustment too
+		theDateTime = theDateTime.ToUTC(); 
+	}									   
 	wxString dateTimeStr;
-	dateTimeStr = theDateTime.Format(_T("%Y:%m:%d %H:%M:%SZ")).c_str();
+	// each app or standard wants something a bit different
+	switch (dt)
+	{
+	case paratextDT:
+		{
+			dateTimeStr = theDateTime.Format(_T("%Y:%m:%d%H:%M:%SZ")).c_str();
+		}
+		break;
+	case oxesDT:
+		{
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d %H-%M-%S")).c_str();
+		}
+		break;
+	default:
+	case adaptItDT:
+		{
+			dateTimeStr = theDateTime.Format(_T("%Y:%m:%d %H:%M:%SZ")).c_str();
+		}
+		break;
+	}
 	return dateTimeStr;
 }
 

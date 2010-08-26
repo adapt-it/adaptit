@@ -45,6 +45,13 @@ enum ExtensionAction
 	includeExtensionsInComparison
 };
 
+enum AppPreferedDateTime
+{
+	adaptItDT,
+	paratextDT,
+	oxesDT
+};
+
 ////////////////////////////////////////////
 //  helper functions
 
@@ -198,7 +205,7 @@ bool	 IsRetranslationInSelection(SPList* pList);
 wxString GetUuid();
 
 // for date-time stamping in KB or elsewhere
-wxString GetDateTimeNow();
+wxString GetDateTimeNow(enum AppPreferedDateTime dt = adaptItDT);
 
 // for KB metadata, to create a string indicating who supplied the adaptation (or gloss)
 // For LAN-based collaboration, we will try set the string: "userID:machineID" such as
