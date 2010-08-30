@@ -2918,7 +2918,8 @@ wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 		break;
 	case oxesDT:
 		{
-			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d %H-%M-%S")).c_str();
+			// strange, but they use hyphen for date, but colon for time
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d %H:%M:%S")).c_str();
 		}
 		break;
 	case oxesDateOnly:
@@ -4244,12 +4245,15 @@ void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwa
 
 // BEW 26Aug10, added ChangeParatextPrivatesToCustomMarkers( in order to support the USFM
 // 2.3 new feature, where a \z prefix is supplied to 3rd party developers for custom
-// markers which Paratext will ignore. This function will change:
-// \zbt     to      \bt
-// \zfree   to      \free
-// \zfree*  to      \free*
-// \znote   to      \note
-// \znote*  to      \note*
+// markers which Paratext will ignore.
+// BEW 30Aug10, OXES documentation lists the expected annotation custom SF marker to be
+// \zAnnotation and so I've change to that (no longer \zNote)
+//  This function will change:
+// \zbt            to      \bt
+// \zfree          to      \free
+// \zfree*         to      \free*
+// \zAnnotation    to      \note
+// \zAnnotation*   to      \note*
 // and the location where it will be called is after the return from the dialog in the
 // document member function OnNewDocument(). These replacements are done before the (U)SFM
 // parser gets to see the filed in source text data, and so the parser can be left to
@@ -4264,7 +4268,7 @@ void ChangeParatextPrivatesToCustomMarkers(wxString& buffer)
 	// converting the start markers, also converts all their matching endmarkers too
 	wxString oldFree = _T("\\zfree");
 	wxString newFree = _T("\\free");
-	wxString oldNote = _T("\\znote");
+	wxString oldNote = _T("\\zAnnotation");
 	wxString newNote = _T("\\note");
 	wxString oldBt = _T("\\zbt "); // include space, any of SAG's \bt-derived markers we
 								  // will not convert; and our \bt has no endmarker so

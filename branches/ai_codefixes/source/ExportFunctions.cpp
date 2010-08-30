@@ -14554,12 +14554,15 @@ int RebuildTargetText(wxString& target)
 
 // BEW 26Aug10, added ChangeCustomMarkersToParatextPrivates() in order to support the USFM
 // 2.3 new feature, where a \z prefix is supplied to 3rd party developers for custom
-// markers which Paratext will ignore. This function will change:
+// markers which Paratext will ignore. 
+// BEW 30Aug10, the Oxes documentation says that the appropriate USFM would be
+// \zAnnotation, and so I'll change from \zNote to \zAnnotation, to comply with this
+// This function will change:
 // \bt     to      \zbt
 // \free   to      \zfree
 // \free*  to      \zfree*
-// \note   to      \znote
-// \note*  to      \znote*
+// \note   to      \zAnnotation
+// \note*  to      \zAnnotation*
 // but it will be called late, so that these changes are NOT made in the wxString buffer
 // that is passed on to the RTF-construction functions. 
 // Note: we retain the use of \bt, \free, and \note internally; so importing must convert
@@ -14570,7 +14573,7 @@ void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
 	wxString oldFree = _T("\\free");
 	wxString newFree = _T("\\zfree");
 	wxString oldNote = _T("\\note");
-	wxString newNote = _T("\\znote");
+	wxString newNote = _T("\\zAnnotation");
 	wxString oldBt = _T("\\bt "); // include space, any of SAG's \bt-derived markers we
 								  // will not convert; and our \bt has no endmarker so
 								  // this is safe to do
