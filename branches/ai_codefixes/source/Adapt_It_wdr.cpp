@@ -7483,7 +7483,13 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxListCtrl *item6 = new wxListCtrl( parent, ID_LISTCTRL, wxDefaultPosition, wxSize(160,250), wxLC_LIST|wxSUNKEN_BORDER );
+    wxString strs6[] = 
+    {
+        _("Menu Item 1 - This is a very long menu item to see just what happens to the scroll bars when this item cannot be seen entirely within the listbox's assigned width."), 
+        _("Menu Item 2"), 
+        _("Menu Item 3")
+    };
+    wxCheckListBox *item6 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,250), 3, strs6, wxLB_SINGLE|wxLB_ALWAYS_SB|wxLB_HSCROLL );
     item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

@@ -707,7 +707,7 @@ const int ID_MENU_EDITOR_NOTEBOOK = 533;
 const int ID_RADIOBOX = 534;
 wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
-const int ID_LISTCTRL = 535;
+const int ID_CHECKLISTBOX_MENU_ITEMS = 535;
 wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
 // Declare menubar functions
