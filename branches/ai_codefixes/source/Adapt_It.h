@@ -2220,6 +2220,9 @@ public:
 	// used in the ParseWord() function in the document class
 	bool		m_bChangeFixedSpaceToRegularSpace;
 
+	// whm added 30Aug10 for AI_UserProfiles.xml file processing
+	bool		m_bUsingAdminDefinedUserProfile;
+
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
 	// to the word or phrase in the phrase box

@@ -5301,6 +5301,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
 	m_bUsingDefaultUsfmStyles = FALSE;
+
+	// whm added 30Aug10 for AI_UserProfiles.xml file processing
+	m_bUsingAdminDefinedUserProfile = FALSE;
+
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
 											   // into phrases for adapting
 	m_pUsfmStylesMap = new MapSfmToUSFMAnalysisStruct;
@@ -8367,6 +8371,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the work folder, i.e., the "Adapt It Work" folder for it to be used in producing the
     // Unix-like default strings.
 	wxString AIstyleFileWorkFolderPath;
+	wxString AIuserProfilesWorkFolderPath;
 	if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
 	{
 		#ifdef Output_Default_Style_Strings
@@ -8374,6 +8379,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#else
 		AIstyleFileWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
+		AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 	}
 	else
 	{
@@ -8382,22 +8388,34 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#else
 		AIstyleFileWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
+		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 	}
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
+	
+	// Does AI_UserProfiles.xml exist in the work folder
+	bool bUserProfilesFileExists = wxFileExists(AIuserProfilesWorkFolderPath);
 
     // Note: The path to the m_setupFolder may differ from the default installation
     // location if user installed Adapt It to a non-default user defined folder, The call
     // to FindAppPath() above determines the path to the currently running executable,
     // which is safer than hard coding the path to a predetermined setup location.
 	wxString filecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
+	wxString userProfileFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
 
 	bool bSetupStyleFileExists = wxFileExists(filecopyPath);
+	bool bSetupProfileFileExists = wxFileExists(userProfileFilecopyPath);
 
-	// If the file does not exist in the work folder, look for it in the setup folder 
-	// and, if there, then copy it to the work folder before opening it from the latter 
-	// location.
+	// Now, check that the AI_USFM.xml file exists in the work folder (make a copy there
+	// if necessary from the installation resources.
+	// Note: The check for the AI_UserProfiles.xml file is similar to the handling of the
+	// AI_USFM.xml file immediately below, but is handled farther below after the handling
+	// of the AI_USFM.xml file.
+
+	// If the AI_USFM.xml file does not exist in the work folder, look for it in the 
+	// setup folder and, if there, then copy it to the work folder before opening it 
+	// from the latter location.
 	if (!bWorkStyleFileExists)
 	{
 		// There is no AI_USFM.xml file in the work folder, so get one from
@@ -8539,6 +8557,116 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("AI_USFM.xml not found in work folder - using internal styles via SetupDefaultStylesMap."));
 		SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
 	}
+
+	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
+	// copy there if necessary from the installation resources.
+
+	// If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the 
+	// setup folder and, if there, then copy it to the work folder before opening it 
+	// from the latter location.
+	if (!bUserProfilesFileExists)
+	{
+		// There is no AI_UserProfiles.xml file in the work folder, so get one from
+		// the setup folder if one is there, and copy it to the work folder preserving
+		// the date it had in the setup folder.
+		if (bSetupProfileFileExists)
+		{
+			// copy the file to the work folder
+			bool copyOK;
+			copyOK = wxCopyFile(filecopyPath, AIuserProfilesWorkFolderPath, TRUE); // TRUE = overwrite
+			if (copyOK)
+			{
+				bUserProfilesFileExists = TRUE;
+				//wxLogDebug(_T("Copying existing AI_UserProfiles.xml from m_xmlInstallPath to user's work folder."));
+			}
+			else
+			{
+				bUserProfilesFileExists = FALSE;
+				wxLogDebug(_T("Could NOT copy existing AI_UserProfiles.xml from m_xmlInstallPath to user's work folder."));
+			}
+		}
+	}
+	else
+	{
+		bool bSetupFolderHasNewerVersion = FALSE;
+		if (bSetupProfileFileExists)
+		{
+            // The AI_UserProfiles.xml file exists, but there may have been a more recent
+            // installation just done in which the file in the setup folder exists as a
+            // later version with changed content, so we have to check for a later version
+            // and if so we copy it to replace the old version in the work folder - if we
+            // don't do this, tweaks done to the file in incremental version updates won't
+            // get implemented unless the user manually moves the file to the work folder
+            // and we don't want to expect users to have to remember to do such a thing.
+			wxFileName fnInWorkFolderPath(AIuserProfilesWorkFolderPath);
+			wxFileName fnInSetupFolderPath(userProfileFilecopyPath);
+			wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
+			wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
+			fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
+			fnInSetupFolderPath.GetTimes(&dtSetupFolderFileAccessTime,&dtSetupFolderFileModTime,&dtSetupFolderFileCreateTime);
+			// Check if we have a newer version in the setup folder
+			bSetupFolderHasNewerVersion = dtSetupFolderFileModTime > dtWorkFolderFileModTime;
+		}
+		// If setup folder has a newer version, we will first delete what is in the work 
+		// folder, then copy the file from the setup folder to replace it. If setup folder 
+		// version is not newer then do nothing.
+		if (bSetupFolderHasNewerVersion)
+		{
+			if (!wxRemoveFile(AIuserProfilesWorkFolderPath))
+			{
+				wxMessageBox(_("Could not remove the AI_UserProfiles.xml file from the work folder."),
+					_T(""), wxICON_INFORMATION);
+			}
+			if (bSetupProfileFileExists)
+			{
+				// copy the file to the work folder
+				bool copyOK;
+				copyOK = wxCopyFile(userProfileFilecopyPath, AIuserProfilesWorkFolderPath, TRUE); // TRUE = overwrite
+				if (copyOK)
+				{
+					bUserProfilesFileExists = TRUE;
+					//wxLogDebug(_T("Copying newer version of AI_UserProfiles.xml to user's work folder."));
+				}
+				else
+				{
+					bUserProfilesFileExists = FALSE;
+					wxLogDebug(_T("Could not copy newer version of AI_UserProfiles.xml to user's work folder."));
+				}
+			}
+		}
+	}
+
+	if (bUserProfilesFileExists)
+	{
+		// parse the xml file, and set up the data structures
+		bool bReadOK = ReadPROFILES_XML(AIuserProfilesWorkFolderPath);
+		if (!bReadOK)
+		{
+            // a bad parse, or failure to read the file in off the disk correctly, means we
+            // will inform the user of the situation and use the default user profile which
+            // makes all menu items/settings visible.
+			wxMessageBox(_(
+"Warning: using the default user profile until a AI_UserProfiles.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_UserProfiles.xml file if you have previously told Adapt It to use a Novice or Custom profile."),
+			_T(""), wxICON_INFORMATION);
+			m_bUsingAdminDefinedUserProfile = FALSE;
+
+			// TODO: Insure that config file settings get adjusted to UserProfile 0
+			// 
+            // To use any non-default user profile, the user needs to fix the AI_UserProfiles.xml 
+            // file so it parses correctly, or if it did not get read in, so that it gets read in.
+            // However, it is unlikely that it did not get read in; most likely there was a
+            // parse error - and the user should have seen an error message to that effect
+            // originating from the ReadPROFILES_XML call above. If there was not such, then
+            // it must have been a bad file read.
+		}
+	}
+	else
+	{
+        // no "AI_UserProfiles.xml" file in the work folder, so use default user profile (none);
+		wxLogDebug(_T("AI_UserProfiles.xml not found in work folder - using Adapt It's default user profile."));
+		m_bUsingAdminDefinedUserProfile = FALSE;
+	}
+
 
     // Initialise the help system. We do it here because our m_setupFolder was determined
     // above and we now know the path to the setup folder where any help file is installed.

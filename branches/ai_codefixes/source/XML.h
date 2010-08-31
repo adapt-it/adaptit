@@ -238,6 +238,13 @@ bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXU
 bool AtSFMEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& WXUNUSED(pStack));
 
+// Functions used as callbacks for AI_UserProfiles.xml
+bool AtPROFILETag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtPROFILEEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
+bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack));
+bool AtPROFILEEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtPROFILEPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& WXUNUSED(pStack));
+
 // Functions used as callbacks for XML-marked-up Adapt It documents
 bool AtDocTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtDocEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
@@ -267,6 +274,9 @@ bool ReadBooks_XML(wxString& path);
 
 // read and parse function for AI_USFM.xml
 bool ReadSFM_XML(wxString& path);
+
+// read and parse function for AI_UserProfiles.xml
+bool ReadPROFILES_XML(wxString& path);
 
 // read and parse function for Adapt It xml documents
 bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc);

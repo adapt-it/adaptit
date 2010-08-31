@@ -1917,6 +1917,49 @@ bool AtBooksEndTag(CBString& tag,CStack*& WXUNUSED(pStack))
 	return TRUE;
 }
 
+// whm 30Aug10 TODO: Create new AtPROFILE... callbacks for parsing AI_UserProfiles.xml
+// tailored after the AtSFM... callbacks below
+bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
+{
+	tag = tag; // avoid warning - remove after implementation
+
+	// create a new struct to accept the profile values
+	// TODO
+	return TRUE;
+}
+
+bool AtPROFILEEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
+{
+	return TRUE;
+}
+
+bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
+{
+	tag = tag;  // avoid warning - remove after implementation
+	attrValue = attrValue;  // avoid warning - remove after implementation
+	attrName = attrName;  // avoid warning - remove after implementation
+
+	// TODO: most of the parsing will go here because we mainly use attributes for
+	// the user profile data
+	return TRUE;
+}
+
+bool AtPROFILEPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack))
+{
+	// we don't use PCDATA in AI_UserProfiles.xml
+	return TRUE;
+}
+
+bool AtPROFILEEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
+{
+	tag = tag;  // avoid warning - remove after implementation
+
+	// AI_UserProfiles.xml uses end tag xml format
+	// TODO:
+
+	return TRUE;
+}
+
 /***************************************************************************
 * Callbacks - for parsing the AI_USFM.xml data. whm added 19Jan05
 ****************************************************************************/
@@ -5340,6 +5383,27 @@ bool ReadSFM_XML(wxString& path)
 {
 	bool bXMLok = ParseXML(path,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
 							AtSFMEndTag,AtSFMPCDATA);
+	return bXMLok;
+}
+
+/*****************************************************************
+*
+* ReadPROFILES_XML
+*
+* Returns: TRUE if no error, else FALSE
+*
+* Parameters:
+* -> path  -- (wxString) absolute path to the AI_UserProfiles.xml file on the storage medium
+*
+* Calls ParseXML to parse the AI_UserProfiles.xml file containing User Profile
+* definitions and attributes
+*
+*******************************************************************/
+
+bool ReadPROFILES_XML(wxString& path)
+{
+	bool bXMLok = ParseXML(path,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
+							AtPROFILEEndTag,AtPROFILEPCDATA);
 	return bXMLok;
 }
 
