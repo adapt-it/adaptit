@@ -56,6 +56,9 @@
 #include "Adapt_It.h"
 #include "AdminEditMenuProfile.h"
 
+/// This global is defined in Adapt_ItView.cpp.
+extern CAdapt_ItApp* gpApp;
+
 // event handler table
 BEGIN_EVENT_TABLE(CAdminEditMenuProfile, AIModalDialog)
 	EVT_INIT_DIALOG(CAdminEditMenuProfile::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -83,6 +86,12 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	MenuEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(m_pApp != NULL);
+	
+	bool bOK;
+	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+
 	// use wxValidator for simple dialog data transfer
 	// sample text control initialization below:
 	//wxTextCtrl* pEdit;

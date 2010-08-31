@@ -46,8 +46,7 @@ protected:
 
 private:
 	// class attributes
-	// wxString m_stringVariable;
-	// bool m_bVariable;
+	CAdapt_ItApp* m_pApp;
 	
 	// other class attributes
 
