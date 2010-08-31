@@ -172,7 +172,7 @@ bool CEditPreferencesDlg::Create( wxWindow* parent, wxWindowID id, const wxStrin
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
     wxPropertySheetDialog::Create( parent, id, caption, pos, size, style );
 
-    CreateButtons(wxOK|wxCANCEL|wxHELP);
+    CreateButtons(wxOK|wxCANCEL); //|wxHELP);
     CreateControls();
     LayoutDialog();
     Centre();
