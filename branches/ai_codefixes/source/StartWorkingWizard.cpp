@@ -185,20 +185,28 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	neededSize = pWizardPageSizer->GetMinSize(); // GetMinSize is supposed to return the wizard's minimal client size
 	// Check the display size to see if we need to make size adjustments in
 	// the Wizard.
-	wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
-	wxSize wizardSize = this->GetSize();
-	wxSize wizardClientSize = this->GetClientSize();
-	int wizFrameHeight = abs(wizardSize.GetY() - wizardClientSize.GetY());
-	//int wizFrameWidth = abs(wizardSize.GetX() - wizardClientSize.GetX());
-    if (neededSize.GetHeight() + wizFrameHeight > displaySize.GetHeight())
-    {
-		// We fit the prefs to the neededSize but it will be too big to fit in the display
-		// window, so we will have to limit the size of the prefs dialog and possibly make the 
-		// taller pages such as the pPunctCorrespPageWiz a scrolling pane.
-		wxSize maxSz;
-		maxSz.SetHeight(displaySize.GetHeight() - 50);
-		this->SetMaxSize(maxSz);
-    }
+	// whm 31Aug10 added test below to validate results from wxDisplay after finding some problems with
+	// an invalid index on a Linux machine that had dual monitors.
+	int indexOfDisplay,numDisplays;
+	numDisplays = wxDisplay::GetCount();
+	indexOfDisplay = wxDisplay::GetFromWindow(this);
+	if (numDisplays >= 1 && numDisplays <= 4 && indexOfDisplay != wxNOT_FOUND && indexOfDisplay >= 0 && indexOfDisplay <=3)
+	{
+		wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
+		wxSize wizardSize = this->GetSize();
+		wxSize wizardClientSize = this->GetClientSize();
+		int wizFrameHeight = abs(wizardSize.GetY() - wizardClientSize.GetY());
+		//int wizFrameWidth = abs(wizardSize.GetX() - wizardClientSize.GetX());
+		if (neededSize.GetHeight() + wizFrameHeight > displaySize.GetHeight())
+		{
+			// We fit the prefs to the neededSize but it will be too big to fit in the display
+			// window, so we will have to limit the size of the prefs dialog and possibly make the 
+			// taller pages such as the pPunctCorrespPageWiz a scrolling pane.
+			wxSize maxSz;
+			maxSz.SetHeight(displaySize.GetHeight() - 50);
+			this->SetMaxSize(maxSz);
+		}
+	}
 
 	pWizardPageSizer->Layout();
 
