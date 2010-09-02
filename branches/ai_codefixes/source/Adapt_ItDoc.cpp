@@ -549,7 +549,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// visible. I've also put a conditional compile here so that when the developer is
 		// debugging, he can choose which behaviour he wants for testing purposes
 		bool bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();
-#if defined __WXDEBUG__
+		bool bUserNavProtectionInForce = FALSE;
+#ifdef __WXDEBUG__
 		// un-comment out the next line to have navigation protection for loading source
 		// text files turned on when debugging only provided the administrator menu is not
 		// showing - this is the way it is in the distributed application, that is, even
@@ -558,18 +559,18 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// making the administrator menu invisible again automatically restores user
 		// navigation protection to being 'on'
 		
-		//if (bUseSourceDataFolderOnly && !m_bShowAdministratorMenu)
+		//if (bUseSourceDataFolderOnly && !gpApp->m_bShowAdministratorMenu)
 
 		// un-comment out the next line to have navigation protection for loading source
 		// text files turned on when debugging, whether or not administrator menu is
 		// visible; and comment out the line above
-		bool bUserNavProtectionInForce = FALSE; // use this for allowing or suppressing
+		bUserNavProtectionInForce = FALSE; // use this for allowing or suppressing
 		// the COutputFilenameDlg further below, depending on whether the legacy
 		// File New dialog is used, or the NavProtectNewDoc's dialog, respectively
 		
 		if (bUseSourceDataFolderOnly)
 #else
-		if (bUseSourceDataFolderOnly && !m_bShowAdministratorMenu)
+		if (bUseSourceDataFolderOnly && !gpApp->m_bShowAdministratorMenu)
 #endif
 		{
             // This block encapsulates user file/folder navigation protection, by showing
