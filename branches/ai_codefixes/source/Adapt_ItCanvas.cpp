@@ -202,7 +202,10 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// adding another buffered layer. Using it here did not affect wxMac's problem
 	// of failure to paint properly after scrolling.
 
-#if wxUSE_GRAPHICS_CONTEXT
+	// whm modified conditional test below to include && !__WXGTK__ after finding that
+	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
+	// link errors for "undefined reference wxGCDC::...
+#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__
      wxGCDC gdc( paintDC ) ;
     wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
 #else
