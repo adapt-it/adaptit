@@ -195,6 +195,8 @@
 		<Unit filename="../../source/Adapt_It_wdr.cpp" />
 		<Unit filename="../../source/Adapt_It_wdr.h" />
 		<Unit filename="../../source/AdaptitConstants.h" />
+		<Unit filename="../../source/AdminEditMenuProfile.cpp" />
+		<Unit filename="../../source/AdminEditMenuProfile.h" />
 		<Unit filename="../../source/AdminMoveOrCopy.cpp" />
 		<Unit filename="../../source/AdminMoveOrCopy.h" />
 		<Unit filename="../../source/AutoSavingPage.cpp" />
@@ -284,6 +286,8 @@
 		<Unit filename="../../source/Mover.h" />
 		<Unit filename="../../source/MyListBox.cpp" />
 		<Unit filename="../../source/MyListBox.h" />
+		<Unit filename="../../source/NavProtectNewDoc.cpp" />
+		<Unit filename="../../source/NavProtectNewDoc.h" />
 		<Unit filename="../../source/NewClassHeaderTemplate.txt" />
 		<Unit filename="../../source/NewClassImplementationTemplate.txt" />
 		<Unit filename="../../source/NewDialogHeaderTemplate.txt" />
