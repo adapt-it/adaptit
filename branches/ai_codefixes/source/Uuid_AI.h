@@ -3,11 +3,14 @@
 /// \file			Uuid_AI.h
 /// \author			Bruce Waters
 /// \date_created	5 May 2010
-/// \date_revised	
+/// \date_revised	2 September 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is a header file for UUID generation within Adapt It. It uses
-///                 open source third party tools provided by the Boost software library
+/// \description	This is a header file for UUID generation within Adapt It. 
+///                 The Windows and Mac ports use open source third party tools 
+///                 provided by the Boost software library. The Linux port uses
+///                 UUID code packaged with all Ubuntu distros supported by
+///                 Adapt It.
 ///                 
 ///   Boost Software License - Version 1.0 - August 17th, 2003
 ///   
@@ -43,7 +46,9 @@
     #pragma interface "Uuid_AI.h"
 #endif
 
+#ifndef __WXGTK__
 #include <boost/uuid/uuid_generators.hpp>
+#endif
 
 class Uuid_AI : public wxObject
 {
@@ -53,7 +58,9 @@ public:
 	// accessor
 	wxString GetUUID();
 private:
+#ifndef __WXGTK__
 	boost::uuids::uuid u;
+#endif
 
 	DECLARE_DYNAMIC_CLASS(Uuid_AI) 
 
