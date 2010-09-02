@@ -3134,9 +3134,16 @@ bool IsLoadableFile(wxString& absPathToFile)
 	// now find out what the file's data is
 	CBString resultStr;
 	resultStr.Empty();
+#if defined(__WXMAC__) && defined(__POWERPC__ )
+	// whm added conditional compile test to prevent link error on Mac PPC 
+	// build (part of universal binary releases on Mac)
+	// leave resultStr empty on PPC builds (it won't tell if resulsStr indicates a binary file)
+#else
 	resultStr = tellenc2(saved_ptr, len); // xml files are returned as "binary" too
 										  // so hopefull html files without an extension
 										  // will likewise be "binary" & so be rejected
+#endif
+
 	f.Close();
 	// check it's not xml
 	bool bIsXML = FALSE;
