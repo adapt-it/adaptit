@@ -129,6 +129,9 @@ extern bool gbSyncMsgReceived_DocScanInProgress;
 extern USFMAnalysis* gpUsfmAnalysis;
 
 /// This global is defined in Adapt_It.cpp.
+//extern UserProfileItem* gpUserProfileItem;
+
+/// This global is defined in Adapt_It.cpp.
 extern bool gbHackedDataCharWarningGiven;
 
 Item gStoreItem; // temporary storage for popped items
@@ -142,6 +145,12 @@ Item gStoreItem; // temporary storage for popped items
 #define BUFFSIZE 40960
 #define safelimit 15360
 #define TwentyKB 20480
+
+static UserProfiles* gpUserProfiles = NULL;
+static UserProfileItem* gpUserProfileItem = NULL;
+static AI_MenuStructure* gpAI_MenuStructure = NULL;
+static AI_MainMenuItem* gpMainMenuItem = NULL;
+static AI_SubMenuItem* gpSubMenuItem = NULL;
 
 // define our needed tags, entities and attribute names
 
@@ -180,11 +189,37 @@ static int divIndex = -1;
 static int divCount = 0;
 static int totalCount = 0;
 
+// this group of tags are for the AI_UserProfiles.xml file
+const char userprofilessupport[] = "UserProfilesSupport";
+const char menu[] = "MENU";
+const char profile[] = "PROFILE";
+const char main_menu[] = "MAIN_MENU";
+const char sub_menu[] = "SUB_MENU";
+
+// this group are for the attribute names for AI_UserProfiles.xml
+const char profilesVersion[] = "profilesVersion";
+const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
+												// i.e., definedProfile1, definedProfile2, etc.
+const char itemID[] = "itemID";
+const char itemType[] = "itemType";
+const char itemText[] = "itemText";
+const char itemDescription[] = "description";
+const char itemAdminCanChange[] = "adminCanChange";
+const char itemUserProfile[] = "userProfile";
+const char itemVisibility[] = "itemVisibility";
+const char factory[] = "factory";
+
+const char mainMenuLabel[] = "mainMenuLabel";
+const char subMenuID[] = "subMenuID";
+const char subMenuLabel[] = "subMenuLabel";
+const char subMenuHelp[] = "subMenuHelp";
+const char subMenuKind[] = "subMenuKind";
+
 // this group of tags are for the AI_USFM.xml file
 const char usfmsupport[] = "USFMsupport";
 const char sfm[] = "SFM";
 
-// this group are for the attribute names
+// this group are for the attribute names for AI_USFM.xml
 const char markerStr[] = "marker";
 const char endmarkerStr[] = "endMarker";
 const char descriptionStr[] = "description";
@@ -1917,14 +1952,79 @@ bool AtBooksEndTag(CBString& tag,CStack*& WXUNUSED(pStack))
 	return TRUE;
 }
 
-// whm 30Aug10 TODO: Create new AtPROFILE... callbacks for parsing AI_UserProfiles.xml
-// tailored after the AtSFM... callbacks below
+// whm 30Aug10 added AtPROFILE... callbacks for parsing AI_UserProfiles.xml
 bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
-	tag = tag; // avoid warning - remove after implementation
+	if (tag == userprofilessupport)
+	{
+		// create a new UserProfiles struct to store the AI_UserProfiles.xml
+		// data, including the version, defined profile names and the
+		// ProfileItemList.
+		gpUserProfiles = new UserProfiles;
+		gpUserProfiles->profileVersion = _T("");
+		gpUserProfiles->definedProfileNames.Clear();
+		gpUserProfiles->profileItemList.Clear();
+		gpApp->m_pUserProfiles = gpUserProfiles; // make the App's pointer also point at it
 
-	// create a new struct to accept the profile values
-	// TODO
+		// create a new AI_MenuStructure struct to store the menu structure data
+		// contained in the AI_UserProfiles.xml file. The gpAI_MenuStructure mainly
+		// holds the aiMainMenuItems which is an instance of the MainMenuItemList.
+		gpAI_MenuStructure = new AI_MenuStructure;
+		gpAI_MenuStructure->aiMainMenuItems.Clear();gpApp->m_pAI_MenuStructure;
+		gpApp->m_pAI_MenuStructure = gpAI_MenuStructure; // make the App's pointer also point at it
+	}
+	else if (tag == menu)
+	{
+		// create a new UserProfileItem struct to accept the values from the 
+		// <MENU> tag's attributes.
+		// whm Note: The object pointed at by gpUserProfileItem will not ordinarily
+		// need to be deleted by calling delete on the gpUserProfileItem "scratch" 
+		// pointer, because each such object created here will be handed off to 
+		// another data structure which will eventually be responsible for 
+		// object deletion of the objects it owns in OnExit(). It need only be
+		// deleted directly if it cannot be handed off to an appropriate data
+		// structure (see the AtPROFILEEndTag function below).
+		gpUserProfileItem = new UserProfileItem;
+		gpUserProfileItem->itemID = _T("");
+		gpUserProfileItem->itemType = _T("");
+		gpUserProfileItem->itemText = _T("");
+		gpUserProfileItem->description = _T("");
+		gpUserProfileItem->adminCanChange = _T("");
+		gpUserProfileItem->usedProfileNames.Clear();
+	}
+	else if (tag == sub_menu)
+	{
+		// create a new AI_SubMenuItem struct to accpet the values from the
+		// <SUB_MENU> tag's attributes.
+		// whm Note: The object pointed at by gpSubMenuItem will not ordinarily
+		// need to be deleted by calling delete on the gpSubMenuItem "scratch" 
+		// pointer, because each such object created here will be handed off to 
+		// another data structure which will eventually be responsible for 
+		// object deletion of the objects it owns in OnExit(). It need only be
+		// deleted directly if it cannot be handed off to an appropriate data
+		// structure (see the AtPROFILEEndTag function below).
+		gpSubMenuItem = new AI_SubMenuItem;
+		gpSubMenuItem->subMenuID = _T("");
+		gpSubMenuItem->subMenuLabel = _T("");
+		gpSubMenuItem->subMenuHelp = _T("");
+		gpSubMenuItem->subMenuHelp = _T("");
+	}
+	else if (tag == main_menu)
+	{
+		// create a new AI_MainMenuItem struct to accpet the values from the
+		// <MAIN_MENU> tag's attributes.
+		// whm Note: The object pointed at by gpMainMenuItem will not ordinarily
+		// need to be deleted by calling delete on the gpMainMenuItem "scratch" 
+		// pointer, because each such object created here will be handed off to 
+		// another data structure which will eventually be responsible for 
+		// object deletion of the objects it owns in OnExit(). It need only be
+		// deleted directly if it cannot be handed off to an appropriate data
+		// structure (see the AtPROFILEEndTag function below).
+		gpMainMenuItem = new AI_MainMenuItem;
+		gpMainMenuItem->mainMenuLabel = _T("");
+		gpMainMenuItem->aiSubMenuItems.Clear();
+	}
+
 	return TRUE;
 }
 
@@ -1935,12 +2035,165 @@ bool AtPROFILEEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 
 bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
 {
-	tag = tag;  // avoid warning - remove after implementation
-	attrValue = attrValue;  // avoid warning - remove after implementation
-	attrName = attrName;  // avoid warning - remove after implementation
 
-	// TODO: most of the parsing will go here because we mainly use attributes for
+	// Most of the parsing is done here because we mainly use attributes for
 	// the user profile data
+	wxASSERT(gpUserProfiles != NULL);
+	ReplaceEntities(attrValue); // replace entities on all attrValues to be safe
+#ifdef _UNICODE
+	wxString valueStr;
+	gpApp->Convert8to16(attrValue,valueStr);
+	const wxChar* pValueW = valueStr; //const wxChar* pValueW = (LPCTSTR)valueStr;
+#endif
+	char* pValue = (char*)attrValue; // always do this one, whether unicode or not
+	pValue = pValue; // avoid warnings in Unicode builds
+	if (tag == userprofilessupport && gpUserProfiles != NULL)
+	{
+		if (attrName == profilesVersion)
+		{
+#ifdef _UNICODE
+			gpUserProfiles->profileVersion = pValueW;
+#else
+			gpUserProfiles->profileVersion = pValue;
+#endif
+		}
+		else if (attrName.Find(definedProfile) == 0)
+		{
+			// In profilesVersion 1.0 there are three defined profile attributes defined in 
+			// the <UserProfilesSupport> tag, definedProfile1, definedProfile2 and 
+			// definedProfile3. The .Find in the test above will return 0 for all 
+			// definedProfileN attributes where N is 1,2,3,...
+#ifdef _UNICODE
+			gpUserProfiles->definedProfileNames.Add(pValueW);
+#else
+			gpUserProfiles->definedProfileNames.Add(pValue);
+#endif
+		}
+
+	}
+	else if (tag == menu)
+	{
+		if (attrName == itemID)
+		{
+#ifdef _UNICODE
+			gpUserProfileItem->itemID = pValueW;
+#else
+			gpUserProfileItem->itemID = pValue;
+#endif
+		}
+		else if (attrName == itemType)
+		{
+#ifdef _UNICODE
+			gpUserProfileItem->itemType = pValueW;
+#else
+			gpUserProfileItem->itemType = pValue;
+#endif
+		}
+		else if (attrName == itemText)
+		{
+#ifdef _UNICODE
+			gpUserProfileItem->itemText = pValueW;
+#else
+			gpUserProfileItem->itemText = pValue;
+#endif
+		}
+		else if (attrName == itemDescription)
+		{
+#ifdef _UNICODE
+			gpUserProfileItem->description = pValueW;
+#else
+			gpUserProfileItem->description = pValue;
+#endif
+		}
+		else if (attrName == itemAdminCanChange)
+		{
+#ifdef _UNICODE
+			gpUserProfileItem->adminCanChange = pValueW;
+#else
+			gpUserProfileItem->adminCanChange = pValue;
+#endif
+		}
+	}
+	else if (tag == profile)
+	{
+		if (attrName == itemUserProfile)
+		{
+			// add the profile name to the usedProfileNames array
+#ifdef _UNICODE
+			gpUserProfileItem->usedProfileNames.Add(pValueW);
+#else
+			gpUserProfileItem->usedProfileNames.Add(pValue);
+#endif
+		}
+		else if (attrName == itemVisibility)
+		{
+			// add the profile name to the usedVisibilityValues array
+#ifdef _UNICODE
+			gpUserProfileItem->usedVisibilityValues.Add(pValueW);
+#else
+			gpUserProfileItem->usedVisibilityValues.Add(pValue);
+#endif
+		}
+		else if (attrName == factory)
+		{
+			// add the profile name to the usedFactoryValues array
+#ifdef _UNICODE
+			gpUserProfileItem->usedFactoryValues.Add(pValueW);
+#else
+			gpUserProfileItem->usedFactoryValues.Add(pValue);
+#endif
+		}
+	}
+	else if (tag == main_menu)
+	{
+		if (attrName == mainMenuLabel)
+		{
+			// add the main menu label to the usedProfileNames array
+#ifdef _UNICODE
+			gpMainMenuItem->mainMenuLabel = pValueW;
+#else
+			gpMainMenuItem->mainMenuLabel = pValue;
+#endif
+		}
+	}
+	else if (tag == sub_menu)
+	{
+		if (attrName == subMenuID)
+		{
+#ifdef _UNICODE
+			gpSubMenuItem->subMenuID = pValueW;
+#else
+			gpSubMenuItem->subMenuID = pValue;
+#endif
+		}
+		else if (attrName == subMenuLabel)
+		{
+			// add the main menu label to the usedProfileNames array
+#ifdef _UNICODE
+			gpSubMenuItem->subMenuLabel = pValueW;
+#else
+			gpSubMenuItem->subMenuLabel = pValue;
+#endif
+		}
+		else if (attrName == subMenuHelp)
+		{
+			// add the main menu label to the usedProfileNames array
+#ifdef _UNICODE
+			gpSubMenuItem->subMenuHelp = pValueW;
+#else
+			gpSubMenuItem->subMenuHelp = pValue;
+#endif
+		}
+		else if (attrName == subMenuKind)
+		{
+			// add the main menu label to the usedProfileNames array
+#ifdef _UNICODE
+			gpSubMenuItem->subMenuKind = pValueW;
+#else
+			gpSubMenuItem->subMenuKind = pValue;
+#endif
+		}
+	}
 	return TRUE;
 }
 
@@ -1952,10 +2205,43 @@ bool AtPROFILEPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*&
 
 bool AtPROFILEEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
-	tag = tag;  // avoid warning - remove after implementation
-
-	// AI_UserProfiles.xml uses end tag xml format
-	// TODO:
+	if (tag == menu)
+	{
+		// we're at the end of a <MENU ...> tag
+		// so we need to do any necessary cleanup
+		if (gpUserProfileItem->adminCanChange != _T("1"))
+		{
+			// the user profile item is not one that an administrator can change, so
+			// we don't add it to the m_pUserProfiles.profileItemList, but instead
+			// we must delete it from the heap.
+			delete gpUserProfileItem;
+		}
+		else
+		{
+			// add the gpUserProfileItem object pointer to the profileItemList
+			// Note: The App's m_pUserProfiles will destroy these objects in OnExit().
+			gpApp->m_pUserProfiles->profileItemList.Append(gpUserProfileItem);
+		}
+		gpUserProfileItem = (UserProfileItem*)NULL; // ready for the next use
+	}
+	else if (tag == sub_menu)
+	{
+		wxASSERT(gpSubMenuItem != NULL);
+		wxASSERT(gpMainMenuItem != NULL);
+		gpMainMenuItem->aiSubMenuItems.Append(gpSubMenuItem);
+		gpSubMenuItem = (AI_SubMenuItem*)NULL; // ready for the next use
+	}
+	else if (tag == main_menu)
+	{
+		wxASSERT(gpAI_MenuStructure != NULL);
+		wxASSERT(gpMainMenuItem != NULL);
+		gpAI_MenuStructure->aiMainMenuItems.Append(gpMainMenuItem);
+		gpMainMenuItem = (AI_MainMenuItem*)NULL; // ready for the next use
+	}
+	else if (tag == profile)
+	{
+		;
+	}
 
 	return TRUE;
 }
@@ -1968,6 +2254,13 @@ bool AtSFMTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	if (tag == sfm)
 	{
 		// create a new struct to accept the values from the sfm's attributes
+		// whm Note: The object pointed at by gpUsfmAnalysis will not ordinarily
+		// need to be deleted by calling delete on the gpUsfmAnalysis "scratch" 
+		// pointer, because each such object created here will be handed off to 
+		// another data structure which will eventually be responsible for 
+		// object deletion of the objects it owns in OnExit(). It need only be
+		// deleted directly if it cannot be handed off to an appropriate data
+		// structure (see the AtSFMEndTag function below).
 		gpUsfmAnalysis = new USFMAnalysis;
 		gpUsfmAnalysis->marker = _T("");
 		gpUsfmAnalysis->endMarker = _T("");

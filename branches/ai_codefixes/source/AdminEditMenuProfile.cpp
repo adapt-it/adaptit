@@ -92,6 +92,13 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 
+	pNotebook = (wxNotebook*)FindWindowById(ID_MENU_EDITOR_NOTEBOOK);
+	wxASSERT(pNotebook != NULL);
+	pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX);
+	wxASSERT(pRadioBox != NULL);
+	pCheckListBox = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_MENU_ITEMS);
+	wxASSERT(pCheckListBox != NULL);
+
 	// use wxValidator for simple dialog data transfer
 	// sample text control initialization below:
 	//wxTextCtrl* pEdit;
@@ -117,6 +124,28 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
+	tempWorkflowProfile = gpApp->m_nWorkflowProfile;
+	
+	// Reread the AI_UserProfiles.xml file (this also loads the App's 
+	// m_pUserProfiles data structure with latest values stored on disk).
+	// Note: the AI_UserProfiles.xml file was read when the app first 
+	// ran from OnInit() and the app's menus configured for those values.
+	// We need to reread the AI_UserProfiles.xml each time the InitDialog()
+	// is called because we change the interface dynamically and need to 
+	// reload the data from the xml file in case the administrator previously
+	// changed the profile during the current session (which automatically
+	// saved any changes to AI_UserProfiles.xml).
+	// TODO: Borrow code from App's OnInit().
+	
+	// Select whatever tab the administrator has set if any, first tab if none.
+	int pageCount = pNotebook->GetPageCount();
+	if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount() -1)
+	{
+		tempWorkflowProfile = 0;
+		// TODO: warn user
+	}
+	pNotebook->ChangeSelection(tempWorkflowProfile); // ChangeSelection does not generate page changing events
+	
 }
 
 // event handling functions

@@ -228,6 +228,18 @@ WX_DEFINE_LIST(CCellList);
 /// complete the definition of a new safe pointer list class called KPlusCList.
 WX_DEFINE_LIST(KPlusCList);
 
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called ProfileItemList.
+WX_DEFINE_LIST(ProfileItemList);
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called SubMenuItemList.
+WX_DEFINE_LIST(SubMenuItemList);
+
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called MainMenuItemList.
+WX_DEFINE_LIST(MainMenuItemList);
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and
 /// 0xBF in UTF-8 encoding.
@@ -1196,6 +1208,10 @@ BookNamePair* gpBookNamePair;
 /// m_pPngStylesMap, and m_pUsfmAndPngStylesMap (of type MapSfmToUSFMAnalysisStruct).
 USFMAnalysis* gpUsfmAnalysis; 
 
+/// A global scratch pointer. Instances of UserProfileItem are stored in the ProfileItemList
+/// and are used in setting up user workflow profiles
+//UserProfileItem* gpUserProfileItem; 
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pBookStructs  <- the array of void pointers to hold the pointers to book 
@@ -1525,6 +1541,14 @@ void SetupDefaultStylesMap()
 	for (int i = 0; i < gnDefaultSFMs; i++)
 	{
 		gpUsfmAnalysis = new USFMAnalysis;
+		// whm Note: The object pointed at by gpUsfmAnalysis will not ordinarily
+		// need to be deleted by calling delete on the gpUsfmAnalysis "scratch" 
+		// pointer, because each such object created here will be handed off to 
+		// another data structure which will eventually be responsible for 
+		// object deletion of the objects it owns in OnExit(). It need only be
+		// deleted directly if it cannot be handed off to an appropriate data
+		// structure (see below).
+		// 
 		// set the gpUsfmAnalysis struct attributes from the parsed defaultSFM 
 		// strings values
 		ParseAndFillStruct(gpUsfmAnalysis,defaultSFM[i]);
@@ -2816,6 +2840,13 @@ wxString szMarkerWrapsFlag = _T("MarkersWrapStripsFlag(Boolean)");
 /// configuration file. Adapt It stores this path in the App's m_bBackupDocument member
 /// variable.
 wxString szBackupDocument = _T("BackupDocumentFlag");
+
+// whm added 3Sep10 for user workflow profile support
+/// The label that identifies the following string encoded number as the application's
+/// "WorkflowProfile". This value is written in the "Settings" part of the basic
+/// and project configuration files. Adapt It stores this path in the App's 
+/// m_nWorkflowProfile member variable.
+wxString szWorkflowProfile = _T("WorkflowProfile");
 
 // window position and size
 
@@ -4262,6 +4293,58 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	m_pConfig->SetPath(oldPath);
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     true if configuration was successful, false if there was an error
+/// \param      -> currentProfile   the user profile the interface is currently using
+/// \param      -> newProfile       the user profile the interface is to be changed to
+/// \remarks
+/// Called from: the App's OnInit() and CAdminEditMenuProfile class dialog.
+/// Sets the visibility of menu items and other interface settings according to the 
+/// currently set user workflow profile. This function reads the UserProfile data stored
+/// in the App's m_pUserProfiles member, and sets the visibility of interface menus and
+/// settings based on the information stored there. It also reads the App's 
+/// m_pAI_MenuStructure member and uses it to insure the menu structure is restored to
+/// a uniform state when changing the user profile or reverting to the "None" default
+/// profile.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ConfigureInterfaceForUserProfile(int currentProfile, int newProfile)
+{
+	// if currentProfile and newProfile are the same, no change is required
+	if (currentProfile == newProfile)
+		return TRUE;
+	// use the menu and settings data in m_pUserProfiles to set visibility of interface
+	// elements
+	// 
+	// First, configure visibility of itemType == subMenu elements
+
+	// Next, configure visibility of itemType == modeBar elements
+	
+
+	// Next, configure visibility of itemType == preferencesTab elements
+	// Note: This function only sets boolean flags for the visibility of
+	// Preferences tabs. The tabs are hidden or shown based on these
+	// visibility flags at the time when the Preferences dialog is 
+	// instantiated.
+	
+
+	// Next, configure visibility of itemType == wizardListItem element
+	
+
+	// Next, configure visibility of itemType == toolBar element
+	// Note: These are currently not used
+	
+	// Finally, configure visibility of itemType == dialogControl elements
+	// AI_UserProfiles.xml currently does not include any dialogControl 
+	// elements.
+	// Note: This function only sets boolean flags for the visibility of
+	// the particular dialog element. The dialog control is hidden or shown 
+	// based on these visibility flags at the time when the dialog is 
+	// instantiated.
+	return TRUE;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
 ///             m_pConfig info
@@ -5024,6 +5107,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//}
 	// end test of GetReadOnlyProtectionFileInProjectFolder() function
 	
+	m_nWorkflowProfile = 0; // default value is for "Novice" unless changed by the
+							// value stored in the basic and/or config files.
 
  	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
 								  // translating, via a frm switch for a launch from the
@@ -8667,6 +8752,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_bUsingAdminDefinedUserProfile = FALSE;
 	}
 
+	// At this point the config files have been read and the AI_UserProfiles.xml file has been
+	// read and the m_pUserProfiles data structure has been updated
+	// TODO: Adjust menus and settings for the selected user workflow profile by calling
+	// ConfigureInterfaceForUserProfile(int ...,int...);
+
 
     // Initialise the help system. We do it here because our m_setupFolder was determined
     // above and we now know the path to the setup folder where any help file is installed.
@@ -9486,6 +9576,57 @@ int CAdapt_ItApp::OnExit(void)
 	}
 	// destroy the UsfmAndPng map itself
 	delete m_pUsfmAndPngStylesMap;
+
+	// destroy the allocated memory in m_pUserProfiles. This is a single 
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pUserProfiles also contains a list of pointers in its 
+	// profileItemList member that point to UserProfileItem instances on the 
+	// heap.
+	if (m_pUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = m_pUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = m_pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			pos = pos->GetNext();
+			delete pItem;
+		}
+		delete m_pUserProfiles;
+	}
+
+	if (m_pAI_MenuStructure != NULL)
+	{
+		MainMenuItemList::Node* mmpos;
+		int ct_mm;
+		int total_mm = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
+		{
+			mmpos = m_pAI_MenuStructure->aiMainMenuItems.Item(ct_mm);
+			AI_MainMenuItem* pmmItem;
+			pmmItem = mmpos->GetData();
+			wxASSERT(pmmItem != NULL);
+			mmpos = mmpos->GetNext();
+			
+			SubMenuItemList::Node* smpos;
+			int ct_sm;
+			int total_sm = pmmItem->aiSubMenuItems.GetCount();
+			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
+			{
+				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
+				AI_SubMenuItem* psmItem;
+				psmItem = smpos->GetData();
+				wxASSERT(psmItem != NULL);
+				smpos = smpos->GetNext();
+				delete psmItem;
+			}
+			delete pmmItem;
+		}
+		delete m_pAI_MenuStructure;
+	}
 	
 	// whm: before deleting our CConsistentChanger objects, we need to
 	// free up the memory used by the structures within CCCModule.
@@ -15145,6 +15286,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szBackupDocument << tab << number;
 	pf->AddLine(data);
 
+	// whm added 3Sep10 for user workflow profile support
+	data.Empty();
+	data << szWorkflowProfile << tab << number;
+	pf->AddLine(data);
+
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
 	// because it we do that, the user could get confused if next time his document
 	// doesn't show and punctuation and he didn't realize he shut down with this setting
@@ -16453,6 +16599,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bBackupDocument = FALSE;
 		}
+		else if (name == szWorkflowProfile)
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 10)
+				num = 0; // if out of reasonable range default to a profile of "None".
+			m_nWorkflowProfile = num;
+		}
 		else if (name == szHidePunctuation)
 		{
             // BEW removed 8Aug09, there is no good reason to store a "punctuation hidden"
@@ -17499,6 +17652,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szBackupDocument << tab << number;
 	pf->AddLine(data);
 
+	// whm added 3Sep10 for user workflow profile support
+	data.Empty();
+	data << szWorkflowProfile << tab << number;
+	pf->AddLine(data);
+
 	if (m_bRTL_Layout)
 		number = _T("1");
 	else
@@ -18117,6 +18275,13 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bBackupDocument = TRUE;
 			else
 				m_bBackupDocument = FALSE;
+		}
+		else if (name == szWorkflowProfile)
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 10)
+				num = 0; // if out of reasonable range default to a profile of "None".
+			m_nWorkflowProfile = num;
 		}
 		else if (name == szRTL_Layout)
 		{

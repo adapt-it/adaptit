@@ -38,6 +38,10 @@ class CAdminEditMenuProfile : public AIModalDialog
 public:
 	CAdminEditMenuProfile(wxWindow* parent); // constructor
 	virtual ~CAdminEditMenuProfile(void); // destructor
+	wxNotebook* pNotebook;
+	wxRadioBox* pRadioBox;
+	wxCheckListBox* pCheckListBox;
+	int tempWorkflowProfile;
 	// other methods
 
 protected:

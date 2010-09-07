@@ -901,6 +901,58 @@ struct USFMAnalysis
 	bool keepWithNext;	// addition for version 3
 };
 
+// whm added 31Aug10 for User Workflow Profiles support
+struct UserProfileItem
+{
+	wxString itemID;
+	wxString itemType;
+	wxString itemText;
+	wxString description;
+	wxString adminCanChange;
+	wxArrayString usedProfileNames;
+	wxArrayString usedVisibilityValues;
+	wxArrayString usedFactoryValues;
+};
+
+/// wxList declaration and partial implementation of the ProfileItemList class being
+/// a list of pointers to UserProfileItem objects
+WX_DECLARE_LIST(UserProfileItem, ProfileItemList); // see list definition macro in .cpp file
+
+struct UserProfiles
+{
+	wxString profileVersion;
+	wxArrayString definedProfileNames;
+	ProfileItemList profileItemList;
+};
+
+struct AI_SubMenuItem
+{
+	wxString subMenuID;
+	wxString subMenuLabel;
+	wxString subMenuHelp;
+	wxString subMenuKind;
+};
+
+/// wxList declaration and partial implementation of the SubMenuItemList class being
+/// a list of pointers to AI_SubMenuItem objects
+WX_DECLARE_LIST(AI_SubMenuItem, SubMenuItemList); // see list definition macro in .cpp file
+
+struct AI_MainMenuItem
+{
+	wxString mainMenuLabel;
+	SubMenuItemList aiSubMenuItems;
+};
+
+/// wxList declaration and partial implementation of the MainMenuItemList class being
+/// a list of pointers to AI_MainMenuItem objects
+WX_DECLARE_LIST(AI_MainMenuItem, MainMenuItemList); // see list definition macro in .cpp file
+
+
+struct AI_MenuStructure
+{
+	MainMenuItemList aiMainMenuItems;
+};
+
 /// wxHashMap declaration for the MapSfmToUSFMAnalysisStruct class - a mapped association
 /// of sfm marker keys (wxString) with pointers to USFMAnalysis objects.
 WX_DECLARE_HASH_MAP( wxString,		// the map key is the sfm marker (bare marker without backslash)
@@ -2222,6 +2274,22 @@ public:
 
 	// whm added 30Aug10 for AI_UserProfiles.xml file processing
 	bool		m_bUsingAdminDefinedUserProfile;
+	UserProfiles* m_pUserProfiles; // a struct on the heap that contains the profileVersion,
+									// an array of definedProfileNames, and list of pointers
+									// to the UserProfileItem objects on the heap
+	int			m_nWorkflowProfile; // zero-based index to the defined user workflow
+									// profiles and corresponds to the tab index of any
+									// selected workflow profile selected by an administrator
+									// in the User Workflow Profiles dialog.
+									// If the "None" profile is selected (the default), this
+									// value is 0 (zero). This value is also saved in the
+									// basic and project config files as "WorkflowProfile N"
+									// where N is the string value of the int.
+	AI_MenuStructure* m_pAI_MenuStructure; // a struct on the heap that conatins the default
+									// AI menu structure used to reconstruct the default menu
+									// structure when changing profiles or when the "None"
+									// user workflow profile is selected after having used a
+									// different user workflow profile.
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2485,6 +2553,7 @@ protected:
 
 public:
 
+	bool	ConfigureInterfaceForUserProfile(int currentProfile, int newProfile);
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
 	// Functions that let the user select/change Adapt It's interface language

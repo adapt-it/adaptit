@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<UserProfilesSupport>
+<UserProfilesSupport 
+	profileVersion="1.0"
+	definedProfile1="Novice"
+	definedProfile2="Custom 1"
+	definedProfile3="Custom 2"
+	>
+<!-- Note: The number of defined profiles above and their name/label
+values must agree with those used in the userProfile attributes within
+the <PROFILE> tags listed below.
+  -->
 <!--
 Filename:	AI_UserProfiles.xml
 Author: 	Bill Martin
@@ -65,15 +74,26 @@ Description of Marker Attributes for the PROFILE tag:
 The attributes below affect how certain menu items and settings within
 Adapt It are displayed (or hidden) from the user depending on which
 PROFILE is selected by an administrator.
-	user:
+	userProfile:
 		="Novice" the profile defined for the least skilled user. 
-		="Custom1" the profile defined for the Custom 1 user.
-		="Custom2" the profile defined for the Custom 2 user.
+		="Custom 1" the profile defined for the Custom 1 user.
+		="Custom 2" the profile defined for the Custom 2 user.
 	itemVisibility:
 		="1" (default value when absent) the menu item or setting will be 
 			visible in the interface for the given PROFILE. 
 		="0" the menu item or setting will not be visible in the interface
 			for the given PROFILE.
+	factory:
+		="1" factory setting is for the menu item or setting to be 
+			visible in the interface for the given PROFILE. 
+		="0" factory setting is for the menu item or setting to not be 
+			visible in the interface for the given PROFILE.
+		Note: The factory setting cannot be changed from within Adapt It.
+NOTE: Each <MENU> group can have as manu <PROFILE> tags as are defined in the
+attributes of the <UserProfilesSupport> tag near the beginning of this xml file.
+There can be fewer <PROFILE> tags but not more than are defined in 
+UserProfilesSupport. If a defined PROFILE is not listed under a <MENU> item, the
+menu item will not appear in the list of items displayed for that profile.
   -->
 <MENU itemID="ID_SAVE_AS"
 	itemType="subMenu"
@@ -81,16 +101,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of File menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 			>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 			>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 			>
 		</PROFILE>
 </MENU>
@@ -100,16 +123,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of File menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -119,16 +145,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of File menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -138,16 +167,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of File menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -157,16 +189,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of File menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -176,16 +211,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Edit menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -195,16 +233,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Edit menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -214,16 +255,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Edit menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -233,16 +277,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Edit menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -252,16 +299,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -271,16 +321,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -290,16 +343,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -309,16 +365,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -328,16 +387,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -347,16 +409,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -366,16 +431,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -385,16 +453,19 @@ PROFILE is selected by an administrator.
 	description="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -404,16 +475,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of View menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -423,16 +497,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of View menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -442,16 +519,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of View menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -461,16 +541,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of View menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -480,16 +563,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of View menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -499,16 +585,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of View menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -518,16 +607,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -537,16 +629,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -556,16 +651,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -575,16 +673,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -594,16 +695,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -613,16 +717,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -632,16 +739,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -651,16 +761,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -670,16 +783,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -689,16 +805,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -708,16 +827,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -727,16 +849,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Tools menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -746,16 +871,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -765,16 +893,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -784,16 +915,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -803,16 +937,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -822,16 +959,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -841,16 +981,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -860,16 +1003,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Export-Import"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -879,16 +1025,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -898,16 +1047,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -917,16 +1069,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -936,16 +1091,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -955,16 +1113,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -974,16 +1135,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -993,16 +1157,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1012,16 +1179,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1031,16 +1201,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1050,16 +1223,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1069,16 +1245,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1088,16 +1267,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1107,16 +1289,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1126,16 +1311,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1145,16 +1333,19 @@ PROFILE is selected by an administrator.
 	description="Submenu of Layout menu"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1164,16 +1355,19 @@ PROFILE is selected by an administrator.
 	description="Checkbox in Modebar"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1183,16 +1377,19 @@ PROFILE is selected by an administrator.
 	description="Checkbox in Modebar"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1202,16 +1399,19 @@ PROFILE is selected by an administrator.
 	description="Text box in mode bar"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1221,16 +1421,19 @@ PROFILE is selected by an administrator.
 	description="Checkbox in Modebar"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
@@ -1240,17 +1443,753 @@ PROFILE is selected by an administrator.
 	description="First List Item in Choose A Project page of Wizard"
 	adminCanChange="1"
 	>
-		<PROFILE user="Novice"
+		<PROFILE userProfile="Novice"
 			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
-		<PROFILE user="Custom1"
+		<PROFILE userProfile="Custom 1"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
-		<PROFILE user="Custom2"
+		<PROFILE userProfile="Custom 2"
 			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 </MENU>
+
+<!-- Note: The Menu Structure defined below defines the relative ordering and 
+placement of menu items in Adapt It's menu bar at the top of the main window
+frame. When "None" is selected as the User Workflow Profile, or when Adapt It 
+needs to make a menu that was previously hidden visible again, it uses the 
+menu structure defined here. IF YOU REALLY KNOW WHAT YOU ARE DOING you may 
+change the relative ordering of <SUB_MENU> items or move <SUB_MENU> items to 
+a different <MAIN_MENU>, but DO NOT CHANGE THE ORDERING OF THE TOP LEVEL 
+<MAIN_MENU> ITEMS. Also, DO NOT ADD OR REMOVE MENU ITEMS FROM THIS 
+<MENU_STRUCTURE> LIST, and DO NOT ATTEMPT TO CHANGE THE TEXT FOR THE 
+mainMenuLabel, subMenuID, subMenuLabel, and subMenuHelp attributes. The text 
+in attributes used here only mirrors the internal text that is actually used 
+within the program. It is the internal text that (not the text here) that gets 
+displayed in Adapt It's menus, and gets localized when a different interface 
+language is selected. Hence, textual changes here will be futile and it it not 
+possible to localize menu item labels and help text by changing the attribute 
+text below. The Administrator menu and its sub menu items do not appear in
+these lists because access to that menu is password protected.
+
+Description of Marker Attributes for the <MAIN_MENU> tag:
+	mainMenuLabel="&amp;File"
+Description of Marker Attributes for the <SUB_MENU> tag:
+	subMenuID:
+		="ID_..." the identifier used internally for the menu item. 
+			Standard wxWidgets menu identifiers are prefixed with 
+			"wx". Other identifies must agree with what is in the 
+			source code, and those used in the itemID attribute of 
+			the User Profile <MENU> tags.
+	subMenuLabel:
+		="&amp;New\tCtrl-N". This value is the label plus any CTRL hot 
+			key specification. The \t is a manditory tab character
+			that separates the label text from the hot key 
+			combination and causes the hot key to be displayed 
+			right justified in the menu. Many menu labels have an 
+			ampersand to indicate the ALT+KEY keyboard short cut. 
+			The ampersand must be positioned immediately before the 
+			text letter it marks, and the ampersand must always be 
+			in entity xml form in this file. The label should also
+			agree with the itemText attribute's value in the User 
+			Profile <MENU> tags.
+	subMenuHelp:
+		="Help text". The actual help text that appears in the status
+			bar when the menu item is highlighted. 
+	subMenuKind:
+		="wxITEM_NORMAL". Most menu items are wxITEM_NORMAL. When a
+			menu item is a Checkable (toggle) menu item, it's
+			subMenuKind is wxITEM_CHECK, and a menu separator's
+			subMenuKind is wxITEM_SEPARATOR.
+  -->
+<MENU_STRUCTURE>
+<MAIN_MENU 
+	mainMenuLabel="&amp;File"
+	>
+		<SUB_MENU
+			subMenuID="wxID_NEW"
+			subMenuLabel="&amp;New\tCtrl-N"
+			subMenuHelp="Create a new document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_OPEN"
+			subMenuLabel="&amp;Open...\tCtrl-O"
+			subMenuHelp="Open an existing document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_SAVE"
+			subMenuLabel="&amp;Save\tCtrl-S"
+			subMenuHelp="Save the active document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_SAVE_AS"
+			subMenuLabel="Save &amp;As...\tCtrl-S"
+			subMenuHelp="Save the document with different xml format, or different filename"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_CLOSE"
+			subMenuLabel="&amp;Close"
+			subMenuHelp="Close the active document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_PACK_DOC"
+			subMenuLabel="Pack Document..."
+			subMenuHelp="Pack document for transfer to another computer"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_UNPACK_DOC"
+			subMenuLabel="Unpack Document..."
+			subMenuHelp="Unpack a document that was packed on another computer"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_PRINT"
+			subMenuLabel="&amp;Print...\tCtrl-P"
+			subMenuHelp="Print the active document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_PREVIEW"
+			subMenuLabel="Print Pre&amp;view"
+			subMenuHelp="Show what printed pages will look like (without printing)"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_PAGE_SETUP"
+			subMenuLabel="P&amp;age Setup..."
+			subMenuHelp="Change the printing options"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_STARTUP_WIZARD"
+			subMenuLabel="Start &amp;Working...\tCtrl-W"
+			subMenuHelp="Show the sequence of dialog windows used for accessing a project and working on documents"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_CLOSEKB"
+			subMenuLabel="Close Pro&amp;ject\tCtrl-J"
+			subMenuHelp="Save the knowledge base and document, then close this project"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_CHANGEFOLDER"
+			subMenuLabel="Change Folder..."
+			subMenuHelp="Change to a different book folder for document storage (book mode must be ON)"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_SAVEKB"
+			subMenuLabel="Save &amp;Knowledge Base"
+			subMenuHelp="Update the knowledge base file for this project"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_BACKUP_KB"
+			subMenuLabel="&amp;Backup Knowledge Base"
+			subMenuHelp="Make a new knowledge base backup immediately"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_RESTORE_KB"
+			subMenuLabel="&amp;Restore Knowledge Base..."
+			subMenuHelp="Use all the saved documents to rebuild the knowledge base file"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_EXIT"
+			subMenuLabel="E&amp;xit"
+			subMenuHelp="Quit the application; prompts to save documents"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="&amp;Edit"
+	>
+		<SUB_MENU
+			subMenuID="wxID_UNDO"
+			subMenuLabel="&amp;Undo\tCtrl-Z"
+			subMenuHelp="Undo the last action"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_CUT"
+			subMenuLabel="Cu&amp;t\tCtrl-X"
+			subMenuHelp="Cut the selection and put it on the Clipboard"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_COPY"
+			subMenuLabel="&amp;Copy\tCtrl-C"
+			subMenuHelp="Copy the selection and put it on the Clipboard"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_PASTE"
+			subMenuLabel="&amp;Paste\tCtrl-V"
+			subMenuHelp="Insert Clipboard contents"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_GO_TO"
+			subMenuLabel="&amp;Go To...\tCtrl-G"
+			subMenuHelp="Go to a specific chapter and verse"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_SOURCE_TEXT"
+			subMenuLabel="Edit &amp;Source Text...\tCtrl-Q"
+			subMenuHelp="Edit the selected source text"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_CONSISTENCY_CHECK"
+			subMenuLabel="Consist&amp;ency Check..."
+			subMenuHelp="Check all translations with those in the knowledge base for consistency"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_MOVE_NOTE_FORWARD"
+			subMenuLabel="Move Note Forward\tCtrl-3"
+			subMenuHelp="Move the note forward in the document to the next word or phrase"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EDIT_MOVE_NOTE_BACKWARD"
+			subMenuLabel="Move Note Backward\tCtrl-2"
+			subMenuHelp="Move the note backward in the document to the previous word or phrase"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_PREFERENCES"
+			subMenuLabel="Pre&amp;ferences..."
+			subMenuHelp="Adapt It settings"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="&amp;View"
+	>
+		<SUB_MENU
+			subMenuID="ID_VIEW_TOOLBAR"
+			subMenuLabel="&amp;Toolbar"
+			subMenuHelp="Show or hide the toolbar"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_VIEW_STATUS_BAR"
+			subMenuLabel="&amp;Status Bar"
+			subMenuHelp="Show or hide the status bar"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_VIEW_COMPOSE_BAR"
+			subMenuLabel="&amp;Compose Bar"
+			subMenuHelp="Show or hide the bar for composing text"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_COPY_SOURCE"
+			subMenuLabel="Copy Sourc&amp;e"
+			subMenuHelp="Copy source text to phrase box as default translation"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_MARKER_WRAPS_STRIP"
+			subMenuLabel="&amp;Wrap At Standard Format Markers"
+			subMenuHelp="Start a new strip whenever a standard format marker is encountered"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_UNITS"
+			subMenuLabel="&amp;Units of Measurement..."
+			subMenuHelp="Units to be used when printing"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_CHANGE_INTERFACE_LANGUAGE"
+			subMenuLabel="Change Interface Language..."
+			subMenuHelp="Change the language of the program interface. You may need to restart Adapt It for the change to take effect"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="&amp;Tools"
+	>
+		<SUB_MENU
+			subMenuID="wxID_FIND"
+			subMenuLabel="&amp;Find...\tCtrl-F"
+			subMenuHelp="Find text in source or target or both, or special search"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_REPLACE"
+			subMenuLabel="Find and &amp;Replace...\tCtrl-H"
+			subMenuHelp="Replace in target text"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_DEFINE_CC"
+			subMenuLabel="&amp;Load Consistent Changes..."
+			subMenuHelp="Define and load one or more consistent changes tables"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_UNLOAD_CC_TABLES"
+			subMenuLabel="&amp;Unload Consistent Changes"
+			subMenuHelp="Unload any loaded consistent changes tables"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_USE_CC"
+			subMenuLabel="Use &amp;Consistent Changes"
+			subMenuHelp="Use the consistent changes when copying source text"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ACCEPT_CHANGES"
+			subMenuLabel="&amp;Accept Changes Without Stopping"
+			subMenuHelp="Accept the changed source text as the translation and continue on"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_DEFINE_SILCONVERTER"
+			subMenuLabel="&amp;SIL Converters..."
+			subMenuHelp="Load an SIL Converter"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_USE_SILCONVERTER"
+			subMenuLabel="Use S&amp;IL Converter"
+			subMenuHelp="Use a loaded SIL Converter"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_KB_EDITOR"
+			subMenuLabel="&amp;Knowledge Base Editor...\tCtrl-K"
+			subMenuHelp="Display dialog for editing the knowledge base"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_AUTO_CAPITALIZATION"
+			subMenuLabel="Use Automatic Capitalization"
+			subMenuHelp="Use automatic capitalization when copying source text"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_RETRANS_REPORT"
+			subMenuLabel="Re&amp;translation Report..."
+			subMenuHelp="Output a file listing all retranslations"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_SPLIT_DOC"
+			subMenuLabel="Split Document..."
+			subMenuHelp="Split the document into two or more documents"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_JOIN_DOCS"
+			subMenuLabel="Join Documents..."
+			subMenuHelp="Join two or more documents into a single document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_TOOLS_MOVE_DOC"
+			subMenuLabel="Move Document..."
+			subMenuHelp="Move documents between the Adaptations folder and a book folder location"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="E&amp;xport-Import"
+	>
+		<SUB_MENU
+			subMenuID="ID_FILE_EXPORT_SOURCE"
+			subMenuLabel="Export &amp;Source Text..."
+			subMenuHelp="Export the source language text as a *.txt file type"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_EXPORT"
+			subMenuLabel="&amp;Export Translation Text..."
+			subMenuHelp="Export the target language translation as a *.txt file type"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_EXPORT_TO_RTF"
+			subMenuLabel="Export Interlinear &amp;Text..."
+			subMenuHelp="Export the Source and Target languages in interlinear form as an *.rtf file type"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EXPORT_GLOSSES"
+			subMenuLabel="Export &amp;Glosses As Text..."
+			subMenuHelp="Export the glossing lines' contents as text"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EXPORT_FREE_TRANS"
+			subMenuLabel="Export Free Translation..."
+			subMenuHelp="Collect all the free translation sections' contents, adding standard format markers, and export"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_FILE_EXPORT_KB"
+			subMenuLabel="Export Knowledge &amp;Base..."
+			subMenuHelp="Export knowledge base in standard format or LIFT format"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_IMPORT_TO_KB"
+			subMenuLabel="&amp;Import to Knowledge Base..."
+			subMenuHelp="Extend knowledge base by importing dictionary records"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="&amp;Advanced"
+	>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_ENABLEGLOSSING"
+			subMenuLabel="See Glosses"
+			subMenuHelp="Make glossing line visible on screen"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_GLOSSING_USES_NAV_FONT"
+			subMenuLabel="Glossing Uses Navigation Text's Font"
+			subMenuHelp="Use the navigation text font for glossing text"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES"
+			subMenuLabel="Transform Adaptations Into Glosses..."
+			subMenuHelp="Transform adaptations from another project into the current project's glosses"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_DELAY"
+			subMenuLabel="Delay..."
+			subMenuHelp="Slow automatic insertions down to a speed suitable for reading along"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_BOOKMODE"
+			subMenuLabel="Storing Documents in Book Folders"
+			subMenuHelp="Turn on, or off, storage of documents to book folders"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_FREE_TRANSLATION_MODE"
+			subMenuLabel="Free Translation Mode"
+			subMenuHelp="Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_TARGET_TEXT_IS_DEFAULT"
+			subMenuLabel="Use Target Text As Default Free Translation"
+			subMenuHelp="Turn on, or off, composition of a default free translation from the existing target text"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT"
+			subMenuLabel="Use Gloss Text As Default Free Translation"
+			subMenuHelp="Turn on, or off, composition of a default free translation from the existing gloss text"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS"
+			subMenuLabel="Remove Filtered Free Translations"
+			subMenuHelp="Removes all the filtered free translations in the document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_COLLECT_BACKTRANSLATIONS"
+			subMenuLabel="Collect Back Translations..."
+			subMenuHelp="Collect adaptations, or glosses, and store them with a back translation marker as filtered material"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS"
+			subMenuLabel="Remove Filtered Back Translations"
+			subMenuHelp="Deletes all the filtered back translations in the document"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_USETRANSLITERATIONMODE"
+			subMenuLabel="Use Transliteration Mode"
+			subMenuHelp="Select this item to use SIL Converters in transliteration mode"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES"
+			subMenuLabel="Send Synchronized Scrolling Messages"
+			subMenuHelp="Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES"
+			subMenuLabel="Receive Synchronized Scrolling Messages"
+			subMenuHelp="Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="&amp;Layout"
+	>
+		<SUB_MENU
+			subMenuID="ID_ALIGNMENT"
+			subMenuLabel="Layout Window Right To Left\tCtrl-1"
+			subMenuHelp="Layout text in window from right to left"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+<MAIN_MENU 
+	mainMenuLabel="&amp;Help"
+	>
+		<SUB_MENU
+			subMenuID="wxID_HELP"
+			subMenuLabel="&amp;Help Topics\tShift-Ctrl-/"
+			subMenuHelp="List Help topics"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_ONLINE_HELP"
+			subMenuLabel="Online Help (Requires Internet Access)"
+			subMenuHelp="Get Adapt It Help from the Internet in your browser"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_USER_FORUM"
+			subMenuLabel="User Forum (Requires Internet Access)"
+			subMenuHelp=""
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_HELP_USE_TOOLTIPS"
+			subMenuLabel="Use Tooltips"
+			subMenuHelp="Select this item to turn on or turn off tooltip help messages"
+			subMenuKind="wxITEM_CHECK"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="menuSeparator"
+			subMenuKind="wxITEM_SEPARATOR"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="wxID_ABOUT"
+			subMenuLabel="&amp;About Adapt It..."
+			subMenuHelp="Display program information, version number and copyright"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+</MAIN_MENU>
+</MENU_STRUCTURE>
 </UserProfilesSupport>
