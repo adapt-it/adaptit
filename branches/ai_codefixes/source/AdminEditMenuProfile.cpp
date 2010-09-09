@@ -297,8 +297,8 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	pCheckListBox->Clear(); // remove any previous items
 	itemsAlwaysChecked.Clear(); 
 
-	int lbIndexOfInsertion;
 	// handle menu items first in list
+	int lbIndexOfInsertion;
 	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Menu Items:"));
 	pCheckListBox->Check(lbIndexOfInsertion);
 	itemsAlwaysChecked.Add(lbIndexOfInsertion);
@@ -361,6 +361,78 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			pCheckListBox->Delete(lbIndexOfInsertion);
 		}
 		prevMainMenuLabel = mainMenuLabel;
+	}
+
+	// Next, handle preferences tab pages in the listbox
+	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Preferences Tab Pages:"));
+	pCheckListBox->Check(lbIndexOfInsertion);
+	itemsAlwaysChecked.Add(lbIndexOfInsertion);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	ProfileItemList::Node* piNode;
+	UserProfileItem* pUserProfileItem;
+	int lbIndx;
+	int numItemsLoaded = 0;
+	int nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < nProfItemCount; ct++)
+	{
+		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = piNode->GetData();
+		if (pUserProfileItem->itemType == _T("preferencesTab"))
+		{
+			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+			numItemsLoaded++;
+			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
+				pCheckListBox->Check(lbIndx,true);
+			else
+				pCheckListBox->Check(lbIndx,false);
+		}
+	}
+
+	// Next, handle modebar items in the listbox
+	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Modebar Items:"));
+	pCheckListBox->Check(lbIndexOfInsertion);
+	itemsAlwaysChecked.Add(lbIndexOfInsertion);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	numItemsLoaded = 0;
+	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < nProfItemCount; ct++)
+	{
+		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = piNode->GetData();
+		if (pUserProfileItem->itemType == _T("modeBar"))
+		{
+			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+			numItemsLoaded++;
+			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
+				pCheckListBox->Check(lbIndx,true);
+			else
+				pCheckListBox->Check(lbIndx,false);
+		}
+	}
+	
+	// Next, handle wizardListItem items in the listbox
+	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Wizard List Item:"));
+	pCheckListBox->Check(lbIndexOfInsertion);
+	itemsAlwaysChecked.Add(lbIndexOfInsertion);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	numItemsLoaded = 0;
+	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < nProfItemCount; ct++)
+	{
+		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = piNode->GetData();
+		if (pUserProfileItem->itemType == _T("wizardListItem"))
+		{
+			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+			numItemsLoaded++;
+			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
+				pCheckListBox->Check(lbIndx,true);
+			else
+				pCheckListBox->Check(lbIndx,false);
+		}
 	}
 }
 
