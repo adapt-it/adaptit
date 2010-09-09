@@ -74,6 +74,7 @@ void		DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion); //
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
 							  wxString exportName, wxString& Buffer);
+void		DoExportAsOxes(int versionNum); // BEW created 2Sep10
 
 // below are supporting functions for the above main export functions:
 int			RebuildSourceText(wxString& srcText);
@@ -86,6 +87,7 @@ int			CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList,
 											   int nAnchorSequNum);
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
 				wxString& Tstr);
+wxString	RemoveCollectedBacktranslations(wxString& str);
 // the following 6 added, for doc version 5 support, to hide implementation details 
 // for the information storage in CSourcePhrase
 bool		AreMarkersOrFilteredInfoStoredHere(CSourcePhrase* pSrcPhrase, bool bIgnoreEndMarkers = TRUE);

@@ -1304,7 +1304,9 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 
 			// situation is still indeterminate (each string was in collectedStr), so
 			// iterate to check the m_adaption and m_gloss members of the next
-			// pSrcPhrase
+			// pSrcPhrase... first reinitialize the booleans
+			bAdaptionInCollectedStr = FALSE;
+			bGlossInCollectedStr = FALSE;
 			if (pos == NULL)
 			{
 				// there isn't a "next" pSrcPhrase to check, so a return is forced
@@ -1317,7 +1319,7 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 				pos = pos->GetNext();
 			}
 			offset = -1;
-		} while (counter <= 5);
+		} while (counter <= 30); // increased value from 5 to 30, 7Sep10 BEW
 		// still indeterminate, so default to returning TRUE
 		return TRUE;
 }
@@ -1691,6 +1693,8 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 /// in an export of, say, source text or other text lines - since for doc version 5
 /// filtered info is stored in several disparate members, rather than just in m_markers
 /// along with unfiltered info
+/// BEW 8Sep10, altered order of export of filtered stuff, it's now 1. filtered info, 2.
+/// collected back trans, 3. note, 4 free translation. (This fits better with OXES export)
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, bool bCountInTargetText)
 {
@@ -1724,6 +1728,13 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 	if (!filteredInfoStr.IsEmpty())
 	{
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+	}
+	// make filteredInfoStr information now come first
+	if (!filteredInfoStr.IsEmpty())
+	{
+		// this data has any markers and endmarkers already 'in place'
+		str.Trim();
+		str += aSpace + filteredInfoStr;
 	}
 	if (!collBackTransStr.IsEmpty())
 	{
@@ -1777,6 +1788,11 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 			str += freeEndMkr; // don't need space too
 		}
 	}
+	// notes being after free trans means that OXES parsing is easier, as all notes -
+	// including one at the free translation anchor point, then become 'embedded' in the
+	// sacred text - though the one at the anchor point is 'embedded' at the start of the
+	// sacred  text, it's not stretching things to far to consider it embedded like any
+	// others in that section of text
 	if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote)
 	{
 		str.Trim();
@@ -1793,12 +1809,7 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 			str += noteEndMkr; // don't need space too
 		}
 	}
-	if (!filteredInfoStr.IsEmpty())
-	{
-		// this data has any markers and endmarkers already 'in place'
-		str.Trim();
-		str += aSpace + filteredInfoStr;
-	}
+	// moved the block for export of filteredInfo from here to at start of the blocks above
 	str.Trim(FALSE); // finally, remove any LHS whitespace
 	// ensure it ends with a space
 	str.Trim();
@@ -1861,6 +1872,8 @@ void EmptyMarkersAndFilteredStrings(
 /// edit box of the placement dialog - which won't be called if there are no medial
 /// markers stored in the merged src phrase. The modified Tstr is what we return.
 /// BEW 1Apr10, written for support of doc version 5
+/// BEW 8Sep10, altered order of export of filtered stuff, it's now 1. filtered info, 2.
+/// collected back trans, 3. free translation, 4. note (This fits better with OXES export)
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 {
@@ -1916,6 +1929,90 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
     // for the first CSourcePhrase, we store any filtered info within the prefix
     // string, and any content in m_markers, if present, must be put at the start
     // of Tstr and Sstr; remove LHS whitespace when done
+    // BEW 8Sep10, changed the order to be: 1. filtered info, 2. collected bt
+	// 3. note 4. free trans, to help with OXES parsing - we want any free trans to
+	// immediately precede the text it belongs to, and OXES likes any annotations (ie. our
+	// notes) to be listed in sequence after the start of the verse but before the trGroup
+	// for the verse (and with a character count from start of verse text), and we don't
+	// want filtered info to be considered as "belonging" to the text which our free
+	// translation belongs to, for OXES purposes, as the location where we store filtered
+	// info is a matter only of convenience, so we need to make filtered info be first.
+	if (!filteredInfoStr.IsEmpty())
+	{
+		// this data has any markers and endmarkers already 'in place'
+		markersPrefix.Trim();
+		markersPrefix += aSpace + filteredInfoStr;
+	}
+	if (!collBackTransStr.IsEmpty())
+	{
+		// add the marker too
+		markersPrefix.Trim();
+		markersPrefix += backTransMkr;
+		markersPrefix += aSpace + collBackTransStr;
+	}
+	if (!freeTransStr.IsEmpty() || pMergedSrcPhrase->m_bStartFreeTrans)
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + freeMkr;
+
+        // BEW addition 06Oct05; a \free .... \free* section pertains to a
+        // certain number of consecutive sourcephrases starting at this one if
+        // m_markers contains the \free marker, but the knowledge of how many
+        // sourcephrases is marked in the latter instances by which ones have
+        // the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+        // just export the filtered free translation content we will lose all
+        // information about its extent in the document. So we have to compute
+        // how many target words are involved in the section, and store that
+        // count in the exported file -- and the obvious place to do it is
+        // after the \free marker and its following space. We will store it as
+        // follows: |@nnnn@|<space> so that we can search for the number and
+        // find it quickly and remove it if we later import the exported file
+		// into a project as source text.
+        // (Note: the following call has to do its word counting in the SPList,
+        // because only there is the filtered information, if any, still hidden
+        // and therefore unable to mess up the word count.)
+		int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+				pMergedSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+		// construct an easily findable unique string containing the number
+		wxString entry = _T("|@");
+		entry << nWordCount; // converts int to string automatically
+		entry << _T("@| ");
+		// append it after a delimiting space
+		markersPrefix += aSpace + entry;
+		if (freeTransStr.IsEmpty())
+		{
+			// we must support empty free translation sections
+			markersPrefix += aSpace + freeEndMkr;
+		}
+		else
+		{
+			// now the free translation string itself & endmarker
+			markersPrefix += aSpace + freeTransStr;
+			markersPrefix += freeEndMkr; // don't need space too
+		}
+	}
+	// notes being after free trans means that OXES parsing is easier, as all notes -
+	// including one at the free translation anchor point, then become 'embedded' in the
+	// sacred text - though the one at the anchor point is 'embedded' at the start of the
+	// sacred  text, it's not stretching things to far to consider it embedded like any
+	// others in that section of text
+	if (!noteStr.IsEmpty() || pMergedSrcPhrase->m_bHasNote)
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + noteMkr;
+		if (noteStr.IsEmpty())
+		{
+			// we don't yet support empty notes elsewhere in the app, but we'll do so here
+			markersPrefix += aSpace + noteEndMkr;
+		}
+		else
+		{
+			markersPrefix += aSpace + noteStr;
+			markersPrefix += noteEndMkr; // don't need space too
+		}
+	}
+
+	/* the code for the legacy order
 	if (!collBackTransStr.IsEmpty())
 	{
 		// add the marker too
@@ -1985,6 +2082,8 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 		markersPrefix.Trim();
 		markersPrefix += aSpace + filteredInfoStr;
 	}
+	*/
+
 	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
 	markersPrefix.Trim();
@@ -2078,7 +2177,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 			// for Sstr (no filtered info can be in the remaining CSourcePhrase instances)
 
             // m_markers material belongs in the list for later placement in Tstr, but the
-            // list is medial markers is already populated correctly before entry, however
+            // list in medial markers is already populated correctly before entry, however
             // for Sstr we must place m_markers content automatically because its position
             // is determinate and not subject to relocation in the placement dialog
 			if (!markersStr.IsEmpty())
@@ -2549,6 +2648,8 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 /// return to the caller as the modified Tstr. (Tstr may be passed in containing
 /// adaptation text, or gloss text.)
 /// BEW 1Apr10, written for support of doc version 5
+/// BEW 8Sep10, altered order of export of filtered stuff, it's now 1. filtered info, 2.
+/// collected back trans, 3. free translation 4. note (This fits better with OXES export)
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 {
@@ -2593,6 +2694,81 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
     // for the one and only CSourcePhrase, we store any filtered info within the prefix
     // string, and any content in m_markers, if present, must be put at the start
     // of Tstr; remove LHS whitespace when done
+	if (!filteredInfoStr.IsEmpty())
+	{
+		// this data has any markers and endmarkers already 'in place'
+		markersPrefix.Trim();
+		markersPrefix += aSpace + filteredInfoStr;
+	}
+	if (!collBackTransStr.IsEmpty())
+	{
+		// add the marker too
+		markersPrefix.Trim();
+		markersPrefix += backTransMkr;
+		markersPrefix += aSpace + collBackTransStr;
+	}
+	if (!freeTransStr.IsEmpty() || pSingleSrcPhrase->m_bStartFreeTrans)
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + freeMkr;
+
+        // BEW addition 06Oct05; a \free .... \free* section pertains to a
+        // certain number of consecutive sourcephrases starting at this one if
+        // m_markers contains the \free marker, but the knowledge of how many
+        // sourcephrases is marked in the latter instances by which ones have
+        // the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+        // just export the filtered free translation content we will lose all
+        // information about its extent in the document. So we have to compute
+        // how many target words are involved in the section, and store that
+        // count in the exported file -- and the obvious place to do it is
+        // after the \free marker and its following space. We will store it as
+        // follows: |@nnnn@|<space> so that we can search for the number and
+        // find it quickly and remove it if we later import the exported file
+		// into a project as source text.
+        // (Note: the following call has to do its word counting in the SPList,
+        // because only there is the filtered information, if any, still hidden
+        // and therefore unable to mess up the word count.)
+		int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+				pSingleSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+		// construct an easily findable unique string containing the number
+		wxString entry = _T("|@");
+		entry << nWordCount; // converts int to string automatically
+		entry << _T("@| ");
+		// append it after a delimiting space
+		markersPrefix += aSpace + entry;
+		if (freeTransStr.IsEmpty())
+		{
+			// we must support empty free translation sections
+			markersPrefix += aSpace + freeEndMkr;
+		}
+		else
+		{
+			// now the free translation string itself & endmarker
+			markersPrefix += aSpace + freeTransStr;
+			markersPrefix += freeEndMkr; // don't need space too
+		}
+	}
+	// notes being after free trans means that OXES parsing is easier, as all notes -
+	// including one at the free translation anchor point, then become 'embedded' in the
+	// sacred text - though the one at the anchor point is 'embedded' at the start of the
+	// sacred  text, it's not stretching things to far to consider it embedded like any
+	// others in that section of text
+	if (!noteStr.IsEmpty() || pSingleSrcPhrase->m_bHasNote)
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + noteMkr;
+		if (noteStr.IsEmpty())
+		{
+			// we don't yet support empty notes elsewhere in the app, but we'll do so here
+			markersPrefix += aSpace + noteEndMkr;
+		}
+		else
+		{
+			markersPrefix += aSpace + noteStr;
+			markersPrefix += noteEndMkr; // don't need space too
+		}
+	}
+	/* legacy order
 	if (!collBackTransStr.IsEmpty())
 	{
 		// add the marker too
@@ -2662,6 +2838,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 		markersPrefix.Trim();
 		markersPrefix += aSpace + filteredInfoStr;
 	}
+	*/
 	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
 	markersPrefix.Trim();

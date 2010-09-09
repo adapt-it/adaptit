@@ -1337,6 +1337,30 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
 			wxASSERT( copiedSize == originalSize);
 		}
 	}
+	// the call below to DoFileSave() requires that there be an active location - check,
+	// and and if the box is at the doc end and not visible, then put it at the end of
+	// the document before going on
+	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
+	{
+		int sequNumAtEnd = gpApp->GetMaxIndex();
+		gpApp->m_pActivePile = GetPile(sequNumAtEnd);
+		gpApp->m_nActiveSequNum = sequNumAtEnd;
+		wxString boxValue;
+		if (gbIsGlossing)
+		{
+			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		}
+		else
+		{
+			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+			translation = boxValue;
+		}
+		gpApp->m_targetPhrase = boxValue;
+		gpApp->m_pTargetBox->ChangeValue(boxValue);
+		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
+		gpApp->GetView()->Invalidate();
+	}
+
     // SaveType enum value (2nd param) for the following call is default: normal_save BEW
     // added type, renamed filename, and bUserCancelled params 20Aug10, because they are
     // needed for when this DoFileSave() function is called in OnFileSaveAs(), however
@@ -6946,7 +6970,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 /// the View's DetachedNonQuotePunctuationFollows(), FormatMarkerBufferForOutput(),
 /// FormatUnstructuredTextBufferForOutput(), DoExportInterlinearRTF(), DoExportSrcOrTgtRTF(),
 /// DoesTheRestMatch(), ProcessAndWriteDestinationText(), ApplyOutputFilterToText(),
-/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef().
+/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(), and from
+/// Usfm2Oxes ParseMarker_Content_Endmarker()
 /// Parses through a buffer's whitespace beginning at pChar.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
@@ -7005,7 +7030,8 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 	}
 	while (ptr != pEnd)
 	{
-		if (IsMarker(ptr,pBufStart))
+		//if (IsMarker(ptr,pBufStart)) BEW changed 7Sep10
+		if (IsMarker(ptr))
 		{
 			if (IsCorresEndMarker(wholeMkr,ptr,pEnd))
 			{
@@ -8189,7 +8215,8 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList,
 			pMkrList->Add(accumStr);
 			accumStr.Empty();
 		}
-		else if (IsMarker(ptr,pBufStart))
+		//else if (IsMarker(ptr,pBufStart))
+		else if (IsMarker(ptr))
 		{
 			// It's a non-filtered sfm. Non-filtered sfms can be followed by
 			// a corresponding markers or no end markers. We'll parse and 
@@ -8610,6 +8637,30 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
 /// \param		pChar		-> a pointer to a character in a buffer
+/// \remarks
+/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
+/// GetMarkerAndTextFromString(), TokenizeText(), DoMarkerHousekeeping(), the View's
+/// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(), 
+/// ApplyOutputFilterToText(), ParseMarkerAndAnyAssociatedText(), IsMarkerRTF(), and in
+/// Usfm2Oxes class
+/// Determines if pChar is pointing at a standard format marker in the given buffer.
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
+{
+	if (*pChar == gSFescapechar)
+	{
+			return TRUE;
+	}
+	else
+	{
+		// not pointing at a backslash, so it is not a marker
+		return FALSE;
+	}
+}
+/* old one
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
+/// \param		pChar		-> a pointer to a character in a buffer
 /// \param		pBufStart	<- a pointer to the start of the buffer
 /// \remarks
 /// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
@@ -8693,6 +8744,7 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar, wxChar* pBufStart)
 		return FALSE;
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also an end 
@@ -8803,9 +8855,9 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also a
 ///				corresponding end marker for the specified wholeMkr, FALSE otherwise.
-/// \param		wholeMkr	-> a wxString containing the 
+/// \param		wholeMkr	-> a wxString containing the marker (including backslash)
 /// \param		pChar		-> a pointer to a character in a buffer
-/// \param		pEnd		<- a pointer to the end of the buffer
+/// \param		pEnd		-> a pointer to the end of the buffer
 /// \remarks
 /// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
 /// GetMarkersAndTextFromString(), the View's ParseFootnote(), ParseEndnote(),
@@ -8840,7 +8892,8 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 
 	// not a PngOnly footnote situation so do regular USFM check 
 	// for like a marker ending with * 
-	for (int i = 0; i < (int)wholeMkr.Length(); i++)
+	int wholeMkrLen = wholeMkr.Length(); // only needs to be calculated once
+	for (int i = 0; i < wholeMkrLen; i++)
 	{
 		if (ptr < pEnd)
 		{
@@ -9733,7 +9786,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 
 		// are we pointing at a standard format marker?
-b:		if (IsMarker(ptr,pBufStart))
+//b:	if (IsMarker(ptr,pBufStart))
+b:		if (IsMarker(ptr))
 		{
 			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before 
 									// checking which marker it is
@@ -10888,8 +10942,10 @@ x:				while (ptr < pEndMkrBuff)
 					}
 
 					// are we pointing at a standard format marker?
-b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1 
-												 // contextual sfms
+//b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1 
+//												 // contextual sfms
+b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1 
+									   // contextual sfms
 					{
 						bHitMarker = TRUE;
 						// its a marker of some kind

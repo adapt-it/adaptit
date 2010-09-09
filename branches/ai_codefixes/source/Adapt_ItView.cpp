@@ -337,6 +337,12 @@ wxString embeddedWholeEndMkrs = _T("\\fr* \\fk* \\fq* \\fqa* \\ft* \\fdc* \\fv* 
 //   running header markers \h \h1 \h2 \h3 (these are removed early from buffer)
 //	 \note
 //   character formatting markers
+// BEW 6Sep10, added functions IsEmbeddedWholeMkr(), and IsAHaltingMarker(), for OXES
+// export, which make use of the embeddedWholeMrks, embeddedWholeEndMkrs, and, for the
+// IsAHaltingMarker() function, the commonHaltingMarkers list. In the latter case, we are
+// using it for OXES parsing of SFM or USFM data, and so we want to halt if we parse to a \h
+// or \h1 \h2 or \h3 or a \note, so these are included by forming a wxString in the
+// USFM2Oxes class at the beginning of processing
 wxString commonHaltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\imt \\imte \\is \\ip \\ipi \\ipq \\ipr \\iq \\im \\imi \\imq \\io \\iot \\iex \\ie \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr ");
 wxString btHaltingMarkers = commonHaltingMarkers;
 
@@ -919,6 +925,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItView::OnUpdateFileExportKb)
 	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
 	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
+	EVT_MENU(ID_EXPORT_OXES, CAdapt_ItView::OnExportOXES)
+	EVT_UPDATE_UI(ID_EXPORT_OXES, CAdapt_ItView::OnUpdateExportOXES)
 	// End of Export-Import Menu
 
 	// Advanced Menu
@@ -12678,6 +12686,18 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 	
 	SPList::Node* savePos = NULL; // POSITION savePos = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
+	// BEW added 7Sep10, because if the nStartingSequNum and nEndingSequNum are the same
+	// value (ie. only one CSourcePhrase in the editable span), then the while loop below
+	// ran to the end of the document, so we need to handle this case in a bleeding block
+	if (nStartingSequNum == nEndingSequNum)
+	{
+		pSrcPhrase = pos->GetData();
+		CSourcePhrase* pNewSP = new CSourcePhrase(*pSrcPhrase); // a shallow copy
+		pNewSP->DeepCopy(); // pNewSP is now a deep copy
+		pCopiedSublist->Append(pNewSP);
+		return TRUE;
+	}
+	// if control gets to here, the while loop is safe
 	while (pos != NULL)
 	{
 		savePos = pos;
@@ -20062,6 +20082,8 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 
 	int nIteratorSN = nStartingSN; // start from the commencement of the editable span
 	CSourcePhrase* pSrcPhrase = NULL;
+	bool bBtMarkerFoundAtEndOfEditableSpan = FALSE;
+	bool bEndOfEditableSpanIsAHaltLocation = FALSE;
 	SPList::Node* pos = pSrcPhrases->Item(nIteratorSN);
     // no error is expected, but we'll check and abort the edit with an English message if
     // a valid pos was not found, but do a save to retain user's work; the document
@@ -20116,6 +20138,12 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 			// the \bt deletion subspan starts here
 			nStartingBackTransSequNum = nIteratorSN;
 			bHasBackTranslations = TRUE;
+			// BEW added 7Sep10
+			if (nStartingSN == nEndingSN)
+			{
+				bBtMarkerFoundAtEndOfEditableSpan = TRUE;
+				bEndOfEditableSpanIsAHaltLocation = TRUE;
+			}
 		}
 	}
 	else
@@ -20135,6 +20163,10 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 			// the \bt deletion subspan starts here
 			nStartingBackTransSequNum = nIteratorSN;
 			bHasBackTranslations = TRUE;
+			if (nStartingSN == nEndingSN)
+			{
+				bBtMarkerFoundAtEndOfEditableSpan = TRUE;
+			}
 		}
 		else
 		{
@@ -20213,89 +20245,97 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
     // that finishes subalgorithm number 2, commence subalgorithm number 3 in which we scan
     // forward looking for halt locations and manually assigned \bt storage locations prior
     // to coming to the end of the editable span
-	bool bBtMarkerFoundAtEndOfEditableSpan = FALSE;
-	bool bEndOfEditableSpanIsAHaltLocation = FALSE;
-	while (pos != NULL)
+    
+	// BEW 7Sep10, added next test, otherwise the loop wrongly scans to doc end 
+	if (pos != NULL && (nStartingSN == nEndingSN))
 	{
-		// get the CSourcePhrase data for the current pos
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
-		nIteratorSN = pSrcPhrase->m_nSequNumber;
-		bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
-		if (bIsHaltLocation)
+		; // skip this while loop because we already have the information needed and 
+		  // the iterator location is already at the end of the editable span
+	}
+	else
+	{
+		while (pos != NULL)
 		{
-			// it's a halt location, so check out whether \bt is there, etc
-			if (bFound_bt_mkr)
+			// get the CSourcePhrase data for the current pos
+			pSrcPhrase = pos->GetData();
+			pos = pos->GetNext();
+			nIteratorSN = pSrcPhrase->m_nSequNumber;
+			bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
+			if (bIsHaltLocation)
 			{
-                // a \bt marker was found here, so either the bt deletion span starts here,
-                // or this is another collection storage point for back translations which
-                // happens to be located within the editable span of source text shown to
-                // the user
-				bHasBackTranslations = TRUE;
-				if (nIteratorSN == nEndingSN)
+				// it's a halt location, so check out whether \bt is there, etc
+				if (bFound_bt_mkr)
 				{
-					// this \bt marker was stored at the very end of the editable span,
-					// we need to know this when the loop is exitted
-					bBtMarkerFoundAtEndOfEditableSpan = TRUE;
-					bEndOfEditableSpanIsAHaltLocation = TRUE;
-				}
-				if (nStartingBackTransSequNum == -1)
-				{
-					// the bt deletion span has not been commenced yet, so start it here
-					nStartingBackTransSequNum = nIteratorSN;
-				}
+					// a \bt marker was found here, so either the bt deletion span starts here,
+					// or this is another collection storage point for back translations which
+					// happens to be located within the editable span of source text shown to
+					// the user
+					bHasBackTranslations = TRUE;
+					if (nIteratorSN == nEndingSN)
+					{
+						// this \bt marker was stored at the very end of the editable span,
+						// we need to know this when the loop is exitted
+						bBtMarkerFoundAtEndOfEditableSpan = TRUE;
+						bEndOfEditableSpanIsAHaltLocation = TRUE;
+					}
+					if (nStartingBackTransSequNum == -1)
+					{
+						// the bt deletion span has not been commenced yet, so start it here
+						nStartingBackTransSequNum = nIteratorSN;
+					}
 
-				// BEW added 26Oct08
-				if (!bCollectionLineTestCompleted)
-				{
-					bCollectedFromTargetText = IsCollectionDoneFromTargetTextLine(
-															pSrcPhrases,nIteratorSN);
-					bCollectionLineTestCompleted = TRUE; // use TRUE value to suppress 
-												// subsequent calls of above function
-				}
-			}
-			// if no \bt marker was found, we continue looping
-		}
-		else
-		{
-            // not a halt location, but there may be a \bt marker nevertheless because the
-            // user at some earlier time manually forced a collection to be stored here
-			bItsHereAnyway = pApp->m_pFreeTrans->ContainsBtMarker(pSrcPhrase);
-			if (bItsHereAnyway)
-			{
-                // a \bt marker was found here, so either the \bt deletion span starts
-                // here, or this is another collection storage point for back translations
-                // which happens to be located within the editable span of source text
-                // shown to the user
-				bHasBackTranslations = TRUE;
-				if (nIteratorSN == nEndingSN)
-				{
-					// this \bt marker was stored at the very end of the editable span,
-					// we need to know this when the loop is exitted
-					bBtMarkerFoundAtEndOfEditableSpan = TRUE;
-				}
-				if (nStartingBackTransSequNum == -1)
-				{
-					// the bt deletion span has not been commenced yet, so start it here
-					nStartingBackTransSequNum = nIteratorSN;
-				}
-
-				// BEW added 26Oct08
-				if (!bCollectionLineTestCompleted)
-				{
-					bCollectedFromTargetText = IsCollectionDoneFromTargetTextLine(
+					// BEW added 26Oct08
+					if (!bCollectionLineTestCompleted)
+					{
+						bCollectedFromTargetText = IsCollectionDoneFromTargetTextLine(
 																pSrcPhrases,nIteratorSN);
-					bCollectionLineTestCompleted = TRUE; // use TRUE value to suppress 
-												// subsequent calls of above function
+						bCollectionLineTestCompleted = TRUE; // use TRUE value to suppress 
+													// subsequent calls of above function
+					}
+				}
+				// if no \bt marker was found, we continue looping
+			}
+			else
+			{
+				// not a halt location, but there may be a \bt marker nevertheless because the
+				// user at some earlier time manually forced a collection to be stored here
+				bItsHereAnyway = pApp->m_pFreeTrans->ContainsBtMarker(pSrcPhrase);
+				if (bItsHereAnyway)
+				{
+					// a \bt marker was found here, so either the \bt deletion span starts
+					// here, or this is another collection storage point for back translations
+					// which happens to be located within the editable span of source text
+					// shown to the user
+					bHasBackTranslations = TRUE;
+					if (nIteratorSN == nEndingSN)
+					{
+						// this \bt marker was stored at the very end of the editable span,
+						// we need to know this when the loop is exitted
+						bBtMarkerFoundAtEndOfEditableSpan = TRUE;
+					}
+					if (nStartingBackTransSequNum == -1)
+					{
+						// the bt deletion span has not been commenced yet, so start it here
+						nStartingBackTransSequNum = nIteratorSN;
+					}
+
+					// BEW added 26Oct08
+					if (!bCollectionLineTestCompleted)
+					{
+						bCollectedFromTargetText = IsCollectionDoneFromTargetTextLine(
+																	pSrcPhrases,nIteratorSN);
+						bCollectionLineTestCompleted = TRUE; // use TRUE value to suppress 
+													// subsequent calls of above function
+					}
 				}
 			}
-		}
-		// if we are at the end of the editable span then exit this loop
-		if (nIteratorSN == nEndingSN)
-		{
-			break;
-		}
-	} // end of while loop with test pos != NULL
+			// if we are at the end of the editable span then exit this loop
+			if (nIteratorSN == nEndingSN)
+			{
+				break;
+			}
+		} // end of while loop with test pos != NULL
+	} // location is at the end of the editable span once control is past here
 
     // We are now about to start subalgorithm 4; the loop will have been exitted either
     // because pos is NULL (we've reached the end of the document), or because we've landed
@@ -25027,6 +25067,42 @@ void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 	DoExportSfmText(targetTextExport,bForceUTF8Conversion); // BEW changed 6Aug09
 }
 
+// OnExportOXES() is based on the view function, DoExportSfmText()
+void CAdapt_ItView::OnExportOXES(wxCommandEvent& WXUNUSED(event))
+{
+	int versionNum = 1;
+
+
+	// *** TODO ****
+	//A box to ask user for either v1 or v2 export - once the choice is available 
+	
+    // gbIsUnstructuredData is (currently) a global boolean -- it is set TRUE or FALSE when
+    // the adaptation document was created from the parsed in source text file; if it is
+    // TRUE here, then such data is not a candidate for an OXES export - the latter expects
+    // SFM or USFM markup
+	DoExportAsOxes(versionNum); // BEW created 2Sep10
+}
+
+// same conditions asa for OnUpdateFileExport() (the latter is for exporting the
+// translation text)
+void CAdapt_ItView::OnUpdateExportOXES(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		if (gbIsGlossing)
+			event.Enable(FALSE); // don't allow target text export when glossing
+		else
+			event.Enable(TRUE); // not glossing, so allow target text export
+	}
+	else
+		event.Enable(FALSE); // nothing to export since doc is empty
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

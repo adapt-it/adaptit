@@ -191,6 +191,9 @@ class CPlaceholder;
 // forward reference for read-only support
 class ReadOnlyProtection;
 
+// forward reference for Oxes export support
+class Usfm2Oxes;
+
 // The following constants were originally declared in the global space of XML.h. G++ 3.x
 // could find them but the g++ 4.x linker can't find them even though XML.h is included
 // above, so I've moved them here to the App's header.
@@ -2462,6 +2465,8 @@ public:
 
 	public:
 
+	// Oxes export support
+	Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap	
 
 	AIPrintout* pAIPrintout;
 

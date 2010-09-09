@@ -211,7 +211,8 @@ public:
 	bool			IsClosingQuote(wxChar* pChar);
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
-	bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
+	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
+	bool			IsMarker(wxChar* pChar);
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));

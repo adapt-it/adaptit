@@ -45,6 +45,7 @@
 #include "PlaceInternalMarkers.h"
 #include "PlaceRetranslationInternalMarkers.h"
 #include "WaitDlg.h"
+#include "Usfm2Oxes.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -145,6 +146,234 @@ WX_DEFINE_LIST(BackTransList); // a list to store Back trans text phrases compos
 // declared is MapBareMkrToRTFTags, declared in the View's header file.
 MapBareMkrToRTFTags rtfTagsMap;
 MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as needed
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return                         nothing
+/// \param  versionNum          ->  must be 1 or 2, only 1 is supported at present
+/// \remarks
+/// Decomposes the standard format markup in memory produced from a target text export
+/// (but not saved to disk) to chunk it according to the expected chunking of an oxes xml
+/// file, and then for each chunk in sequence builds the relevant xml productions
+/// according to OXES version 1 standard, and returns the xml in a wxString to the caller
+/// for output to a file which the caller will have defined by showing the user a File
+/// Save dialog etc.
+/// This function is based on the view class's DoExportSfmText(), heavily edited
+void DoExportAsOxes(int versionNum)
+{
+	// first determine whether or not the data is unstructured plain text - OXES cannot
+	// handle data not structured as scripture text (in our case, that means, "as SFM or
+	// USFM")
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	CAdapt_ItView* pView = gpApp->GetView();
+	bool bIsUnstructuredData = FALSE;
+	SPList* pList = gpApp->m_pSourcePhrases;
+	wxASSERT(pList);
+	bIsUnstructuredData = pView->IsUnstructuredData(pList);
+	wxString msg;
+	if (bIsUnstructuredData)
+	{
+		msg = msg.Format(_(
+"Export in OXES xml format is supported only for data originally marked up in standard format (meaning, using backslash markers).\nThe current document lacks backslash markers."));
+		wxMessageBox(msg,_("Unstructured Data"),wxICON_WARNING);
+		return;
+	}
+	if (versionNum > 1) 
+	{
+		msg = msg.Format(_(
+"Only version 1 is currently supported for the Open XML for Editing Scripture standard.\n The value supplied was %d"),versionNum);
+		wxMessageBox(msg,_("Invalid OXES version number"),wxICON_WARNING);
+		return;
+	}
+	// check for a valid 3-letter bookCode, must be present and valid for an OXES export
+	wxString bookCode = gpApp->GetBookIDFromDoc(); // from the first CSourcePhrase instance
+	if (bookCode.IsEmpty() || bookCode == _T("OTX"))
+	{
+		// not a valid bookCode, or none is defined, or it is the one for "Other Texts"
+		// and in all these cases, an OXES export is not possible
+		if (bookCode.IsEmpty())
+			bookCode = _T("empty");
+		msg = msg.Format(_(
+"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn OXES export is not possible in this circumstance.\nThe value obtained was %s"),bookCode);
+		wxMessageBox(msg,_("Invalid Book Code"),wxICON_WARNING);
+		return;
+	}
+
+	// It's SFM or USFM structured data, and the version number wanted is OXES 1, so
+	// continue processing
+	
+	Usfm2Oxes* pToOxes = gpApp->m_pUsfm2Oxes;
+	// set the class to build according to the version number wanted
+	pToOxes->SetOXESVersionNumber(versionNum);
+
+	wxString filter;
+	wxString DefaultExt;
+	wxString exportFilename;
+	bool bOK = TRUE;
+	int len = 0;
+
+	// make the working directory the "<Project Name>" one, unless there is a path in
+	// app's m_lastExportPath member 
+	
+	// get a default file name - copy the current one for the adaptation document itself
+	exportFilename = gpApp->m_curOutputFilename;
+	len = exportFilename.Length();
+	
+	// set the working directory
+	if (gpApp->m_lastExportPath.IsEmpty())
+	{
+		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+	}
+	else
+	{
+		bOK = ::wxSetWorkingDirectory(gpApp->m_lastExportPath);
+		if(!bOK)
+			::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+	}
+	// prepare to get a file save dialog...
+	
+	// make a suitable default output filename for the export function
+	exportFilename.Remove(len-3,3); // remove the xml extension
+	exportFilename += _T("oxes"); // make it an *.oxes file type
+	// get a file Save As dialog for OXES Output
+	DefaultExt = _T("oxes");
+	filter = _("Exported OXES Documents (*.oxes)|*.oxes||"); 
+
+    // set the default folder to be shown in the dialog, for OXES make it
+    // m_lastExportPath which is the same as for target text
+	wxString defaultDir;
+	if (gpApp->m_lastExportPath.IsEmpty())
+	{
+		defaultDir = gpApp->m_curProjectPath;
+	}
+	else
+	{
+		defaultDir = gpApp->m_lastExportPath;
+	}
+	// MainFrame is parent window for file dialog
+	wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
+		_("Filename and Folder For OXES Export"),
+		defaultDir,	// empty string causes it to use the current working directory (set above)
+		exportFilename,	// default filename
+		filter,
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+
+	if (fileDlg.ShowModal() != wxID_OK)
+	{
+		return; // user cancelled file dialog so return to what user was doing previously
+	}
+
+	wxLogNull logNo; // avoid spurious messages from the system
+
+    // get the user's desired path, & update m_lastExportPath
+	wxString exportPath = fileDlg.GetPath();
+	wxFileName fn(exportPath);
+	wxString name = fn.GetFullName();
+	wxString ext = fn.GetExt();
+	int nameLen = name.Length();
+	int pathLen = exportPath.Length();
+	wxASSERT(nameLen > 0 && pathLen > 0);
+
+	gpApp->m_lastExportPath = exportPath.Left(pathLen - nameLen - 1);
+
+	// get the wxString which is the target text data -- as an export
+	wxString target;	// a buffer built from pSrcPhrase->m_targetStr strings
+	target.Empty();
+	int nTextLength;
+	// do the reconstruction from CSourcePhrase instances in the document...
+
+    // RebuildTargetText removes filter brackets from the source or target, exposing
+    // previously filtered material as it was before input tokenization, and also exposes
+    // new information added and filtered in the document, such as backtranslations, notes,
+    // and free translations. 
+	// Rebuild the AdaptItSFM text (if there are collected backtranslations in the
+	// document, they will be included - so we have to get rid of them later)
+	nTextLength = RebuildTargetText(target);
+
+	// Remove any collected back translations (these have no endmarker,  by the way, so
+	// they are stored before \v of verses)
+	target = RemoveCollectedBacktranslations(target);
+
+	// format for text oriented output
+	FormatMarkerBufferForOutput(target);
+	
+	target = pDoc->RemoveMultipleSpaces(target);
+
+	// Decompose (by chunking the (U)SFM text) and then build the OXES version 1 xml
+	target = pToOxes->DoOxesExport(target);
+
+	// save the resulting xml file in the location specified above in the File Save dialog
+	wxFile f;
+	if( !f.Open( exportPath, wxFile::write))
+	{
+		#ifdef __WXDEBUG__
+		wxLogDebug(_T("Unable to open export target text file for OXES export\n"));
+		#endif
+		wxString msg;
+		// don't localize this, it's unlikely to ever be seen
+		msg = msg.Format(_T("Unable to open the file for exporting the target text as OXES with path:\n%s"),exportPath.c_str());
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+		return;
+	}
+	// output the final form of the string
+	#ifndef _UNICODE // ANSI
+
+		f.Write(target);
+
+	#else // Unicode
+
+		wxFontEncoding saveTgtEncoding;
+		saveTgtEncoding = gpApp->m_tgtEncoding;
+		gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
+		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
+		gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
+
+	#endif // for _UNICODE
+	f.Close();
+}
+
+wxString RemoveCollectedBacktranslations(wxString& str)
+{
+	wxString out; out.Empty();
+	wxString btMkr = _T("\\bt "); // 4 characters to search for
+	wxChar bslash = _T('\\');
+	int offset = wxNOT_FOUND;
+	offset = str.Find(btMkr);
+	if (offset == wxNOT_FOUND)
+	{
+		return str; // there are not any \bt markers in the data
+	}
+	// continue, there is at least one \bt marker in the data
+	wxString Left;
+	while (offset != wxNOT_FOUND)
+	{
+		Left = str.Left(offset);
+		str = str.Mid(offset);
+		// skip over the marker
+		str = str.Mid(4);
+		int offset2 = str.Find(bslash);
+		if (offset2 == wxNOT_FOUND)
+		{
+			// no alternative but to assume the rest is all a backtranslation that was
+			// collected and therefore we are done
+			out += Left;
+			return out;
+		}
+		else
+		{
+			// remove everything up to this marker, irrespective of whatever it is,
+			// because what precedes it is the collected backtranslation text
+			str = str.Mid(offset2);
+		}
+		out += Left;
+
+		// test for the next \bt marker
+		offset = str.Find(btMkr);
+	}
+	// handle the last bit of text
+	out += str;
+	return out;
+}
 
 // BEW modified 10Aug09, to support exporting of glosses  or free translations as well
 void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
@@ -10615,6 +10844,7 @@ int ParseMarkerRTF(wxChar* pChar, wxChar* pEndChar)
 // BEW 12Apr10 no changes needed for doc version 5
 bool IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart)
 {
+	pBuffStart = pBuffStart; // to avoid a compiler warning - later sometime, remove the 2nd parameter
 	// This is an RTF aware version of Bruce's IsMarker in the Doc.
 	// IsMarkerRTF is used in parsing text on its way to RTF output. RTF formatted text
 	// cannot have bare embedded curly brace characters because because they act as
@@ -10637,7 +10867,8 @@ bool IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart)
 	// the remainder of this function is identical to the Doc's IsMarker() function.
 	// BEW changed 10Apr06, because the doc version was made much longer and so it
 	// is better to here just call that rather than repeat its contents below
-	return pDoc->IsMarker(pChar,pBuffStart);
+	//return pDoc->IsMarker(pChar,pBuffStart);
+	return pDoc->IsMarker(pChar);
 	/* legacy IsMarker() code, pre 3.0.9
 	if (gbSfmOnlyAfterNewlines)
 	{
@@ -10705,7 +10936,7 @@ int ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart,
 
 	if (bNeedsEndMarker)
 	{
-		// wholeMarker needs and end marker so parse until we either find the end
+		// wholeMarker needs an end marker so parse until we either find the end
 		// marker or until the end of the buffer
 		// Note: when bNeedsEndMarker the InclCharFormatMkrs flag has no effect since
 		// the parsing goes until an end marker is reached or the end of the buffer
@@ -10768,7 +10999,8 @@ int ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart,
 			// normal use of IsMarker()
 			if (!InclCharFormatMkrs)
 			{
-				while (ptr < pEnd && !pDoc->IsMarker(ptr,pBuffStart))
+				//while (ptr < pEnd && !pDoc->IsMarker(ptr,pBuffStart))
+				while (ptr < pEnd && !pDoc->IsMarker(ptr))
 				{
 					ptr++;
 					txtLen++;
@@ -10780,7 +11012,8 @@ int ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart,
 				// and end markers (charFormatMkrs and charFormatEndMkrs)
 				while (ptr < pEnd)
 				{
-					if (pDoc->IsMarker(ptr,pBuffStart) && !IsCharacterFormatMarker(ptr))
+					//if (pDoc->IsMarker(ptr,pBuffStart) && !IsCharacterFormatMarker(ptr))
+					if (pDoc->IsMarker(ptr) && !IsCharacterFormatMarker(ptr))
 					{
 						break;
 					}
@@ -10794,7 +11027,6 @@ int ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart,
 		}
 		return txtLen;
 	}
-	//return txtLen; // unreachable
 }
 
 wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
@@ -11121,10 +11353,18 @@ bool WriteOutputStringConvertingAngleBrackets(wxFile& f, wxFontEncoding Encoding
 	return TRUE;
 }
 
+// the charFormatMkrs and charFormatEndMkrs wxStrings are defined as globals in the
+// Adapt_ItView.cpp file, and populated with their markers there at their definitions
+// BEW comment 6Sep10, Usfm2Oxes adds extra special markers from the USFM 2.3 standard, in
+// two private wxString members, the one for markers prepends charFormatMkrs, and the one
+// for endmarkers prepends charFormatEndMkrs; and it has a private function,
+// IsSpecialTextStyleMkr() for testing the larger lists
 bool IsCharacterFormatMarker(wxChar* pChar)
 {
 	// Returns TRUE if the marker at pChar is a character formatting marker or
-	// a character formatting end marker.
+	// a character formatting end marker; these are the markers:
+	// \qac \qs \qt \nd \tl \dc \bk \pn \wj \k \no \bd \it \bdit \em \sc and the matching
+	// list of endmarkers
 	wxChar* ptr = pChar;
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxASSERT(pDoc);
@@ -14401,7 +14641,8 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 		// at an SF marker, we determine if it is one we wish to remove, or not, and in
 		// the former case we jump it and and continue searching, but if not for removal
 		// then we copy it across & continue searching
-		if (pDoc->IsMarker(pOld, pBufStart))
+		//if (pDoc->IsMarker(pOld, pBufStart))
+		if (pDoc->IsMarker(pOld))
 		{
 			// we are pointing at a marker; get the marker into the wholeMkr
 			wholeMkr = pDoc->GetWholeMarker(pOld);
@@ -14658,7 +14899,8 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		}
 		else
 		{
-			bIsAMarker = pDoc->IsMarker(pOld,pBufStart);
+			//bIsAMarker = pDoc->IsMarker(pOld,pBufStart);
+			bIsAMarker = pDoc->IsMarker(pOld);
 		}
 
 		if (bIsAMarker)
@@ -14897,7 +15139,8 @@ void FormatMarkerBufferForOutput(wxString& text)
 	while (*pOld != (wxChar)0 && pOld < pEnd)
 	{
 		// scan the whole text for standard format markers
-		if (pDoc->IsMarker(pOld, pBufStart))
+		//if (pDoc->IsMarker(pOld, pBufStart))
+		if (pDoc->IsMarker(pOld))
 		{
 			// we are pointing at a marker; get the marker into the wholeMkr
 			wholeMkr = pDoc->GetWholeMarker(pOld);
@@ -15167,7 +15410,8 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 				}
 				else // not RTF output
                 {
-					if (pDoc->IsMarker(pOld,pBuffStart)) // use the non-RTF function
+					//if (pDoc->IsMarker(pOld,pBuffStart)) // use the non-RTF function
+					if (pDoc->IsMarker(pOld)) // use the non-RTF function
 					{
 						itemLen = ParseMarkerRTF(pOld,pEnd);
 						wxString wholeMkr(pOld,itemLen);
@@ -15809,10 +16053,11 @@ bool DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, wxChar* pPos
 	return bTuckLeft;
 }
 
-// BEW added 06Oct05 for support of free translation propagation across an export of the target text
-// and subsequent import into a new project; the function uses the CString Tokenize() function to count
-// the words in str and return the count; if pStrList is NULL, just the word count is returned, but if
-// a CStringList pointer is passed in, then it is populated with the individual words
+// BEW added 06Oct05 for support of free translation propagation across an export of the
+// target text and subsequent import into a new project; the function uses the
+// wxStringTokenizer class and its GetNextToken() function to count the words in str and
+// return the count; if pStrList is NULL, just the word count is returned, but if a
+// wxArrayString pointer is passed in, then it is populated with the individual words 
 // BEW 31Mar10, no changes needed for support of doc version 5
 int GetWordCount(wxString& str, wxArrayString* pStrList)
 {

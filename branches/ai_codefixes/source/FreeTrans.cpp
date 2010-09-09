@@ -4072,13 +4072,13 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 {
 	CCollectBacktranslations dlg(m_pFrame);
 	dlg.Centre();
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		// user clicked the OK button
 		DoCollectBacktranslations(dlg.m_bUseAdaptations);
 
 		// mark the doc as dirty, so that Save command becomes enabled
-		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 		pDoc->Modify(TRUE);
 	}
 	else
@@ -4088,6 +4088,10 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 	}
 	m_pView->Invalidate(); // get the view updated (so new icons (green wedges) get drawn)
 	m_pLayout->PlaceBox();
+	// for an unknown reason, despite calaling Invalidate() above, view's OnDraw() does
+	// not get called, so force it with a main frame OnSize() call
+	wxSizeEvent dummy;
+	m_pApp->GetMainFrame()->OnSize(dummy);
 }
 
 
@@ -4167,6 +4171,10 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
+	// for an unknown reason, despite calaling Invalidate() above, view's OnDraw() does
+	// not get called, so force it with a main frame OnSize() call
+	wxSizeEvent dummy;
+	m_pApp->GetMainFrame()->OnSize(dummy);
 }
 
 /////////////////////////////////////////////////////////////////////////////////

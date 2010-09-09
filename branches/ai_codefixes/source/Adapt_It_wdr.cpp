@@ -6999,7 +6999,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename confllicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename conflicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item25->Add( 70, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
@@ -7597,6 +7597,7 @@ wxMenuBar *AIMenuBarFunc()
     item5->Append( ID_FILE_EXPORT_TO_RTF, _("Export Interlinear &Text..."), _("Export the Source and Target languages in interlinear form as an *.rtf file type") );
     item5->Append( ID_EXPORT_GLOSSES, _("Export &Glosses As Text..."), _("Export the glossing lines' contents as text") );
     item5->Append( ID_EXPORT_FREE_TRANS, _("Export Free Translation..."), _("Collect all the free translation sections' contents, adding standard format markers, and export") );
+    item5->Append( ID_EXPORT_OXES, _("Export &Open XML for Editing Scripture (OXES)"), _("Export the translation text according to the OXES version 1 standard") );
     item5->AppendSeparator();
     item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in standard format or LIFT format") );
     item5->Append( ID_IMPORT_TO_KB, _("&Import to Knowledge Base..."), _("Extend knowledge base by importing dictionary records") );

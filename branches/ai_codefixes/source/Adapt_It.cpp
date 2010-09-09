@@ -161,6 +161,7 @@
 //#include "Uuid_AI.h" // for testing, then comment out
 #include "NavProtectNewDoc.h"
 #include "AdminEditMenuProfile.h"
+#include "Usfm2Oxes.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -5060,6 +5061,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_pUsfm2Oxes = NULL; // BEW added 2Sep10
 	m_bForceFullConsistencyCheck = FALSE; // set true if user has respellings in the KB and
 			// after the KB save to disk and the message comes up asking if he wants a full
 			// consistency check done, and he responds by clicking Yes button
@@ -9302,6 +9304,10 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 	m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
 	m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
 
+	// add oxes support here, the creator will call an initializing function to have oxes
+	// export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
+	m_pUsfm2Oxes = new Usfm2Oxes(this);
+
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
 	//	m_pTargetBox->GetCancelAndSelectFlag());
 	return TRUE;
@@ -9377,6 +9383,9 @@ int CAdapt_ItApp::OnExit(void)
 	// 2. CNotes
 	// 3. 
 	//wxEvtHandler* pHdlr = NULL;
+
+	// delete the object for support of oxes
+	delete m_pUsfm2Oxes;
 
 	// delete the CNotes object
 	delete m_pNotes;

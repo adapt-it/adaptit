@@ -767,6 +767,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Usfm2Oxes.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\USFMPage.cpp"
 				>
 			</File>
@@ -1165,6 +1169,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\UnpackWarningDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Usfm2Oxes.h"
 				>
 			</File>
 			<File
