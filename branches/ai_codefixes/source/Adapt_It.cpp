@@ -5215,6 +5215,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUseCustomWorkFolderPath = FALSE;
 	m_bLockedCustomWorkFolderPath = FALSE;
 
+	m_userProfileFileWorkFolderPath = _T(""); // whm added 7Sep10
+
 	// The following use the _T() macro as they shouldn't be translated/localized
 	m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"),m_strNR.c_str());
 	// whm Note: In the MFC version the "Adaptations" folder is localizable, so we
@@ -8475,6 +8477,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#endif
 		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 	}
+
+	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
@@ -15288,7 +15292,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
 	// whm added 3Sep10 for user workflow profile support
 	data.Empty();
-	data << szWorkflowProfile << tab << number;
+	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
@@ -17654,7 +17658,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
 	// whm added 3Sep10 for user workflow profile support
 	data.Empty();
-	data << szWorkflowProfile << tab << number;
+	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
 	if (m_bRTL_Layout)

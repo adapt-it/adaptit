@@ -7469,30 +7469,35 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Note:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Items with a check will be visible in the interface"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Items without a check will not be visible"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Top level menus and category labels cannot be unchecked"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
     item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    wxString strs6[] = 
+    wxString strs7[] = 
     {
         _("Menu Item 1 - This is a very long menu item to see just what happens to the scroll bars when this item cannot be seen entirely within the listbox's assigned width."), 
         _("Menu Item 2"), 
         _("Menu Item 3")
     };
-    wxCheckListBox *item6 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,250), 3, strs6, wxLB_SINGLE|wxLB_ALWAYS_SB|wxLB_HSCROLL );
-    item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckListBox *item7 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,250), 3, strs7, wxLB_SINGLE|wxLB_ALWAYS_SB|wxLB_HSCROLL );
+    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

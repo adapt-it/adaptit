@@ -55,24 +55,18 @@
 //#include <wx/valtext.h> // for wxTextValidator
 #include "Adapt_It.h"
 #include "AdminEditMenuProfile.h"
+#include "XML.h"
 
 /// This global is defined in Adapt_ItView.cpp.
-extern CAdapt_ItApp* gpApp;
+extern CAdapt_ItApp* m_pApp;
 
 // event handler table
 BEGIN_EVENT_TABLE(CAdminEditMenuProfile, AIModalDialog)
 	EVT_INIT_DIALOG(CAdminEditMenuProfile::InitDialog)// not strictly necessary for dialogs based on wxDialog
-	// Samples:
-	//EVT_BUTTON(wxID_OK, CAdminEditMenuProfile::OnOK)
-	//EVT_MENU(ID_SOME_MENU_ITEM, CAdminEditMenuProfile::OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CAdminEditMenuProfile::OnUpdateDoSomething)
-	//EVT_BUTTON(ID_SOME_BUTTON, CAdminEditMenuProfile::OnDoSomething)
-	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CAdminEditMenuProfile::OnDoSomething)
-	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CAdminEditMenuProfile::DoSomething)
-	//EVT_LISTBOX(ID_SOME_LISTBOX, CAdminEditMenuProfile::DoSomething)
-	//EVT_COMBOBOX(ID_SOME_COMBOBOX, CAdminEditMenuProfile::DoSomething)
-	//EVT_TEXT(IDC_SOME_EDIT_CTRL, CAdminEditMenuProfile::OnEnChangeEditSomething)
-	// ... other menu, button or control events
+	EVT_BUTTON(wxID_OK, CAdminEditMenuProfile::OnOK)
+	EVT_NOTEBOOK_PAGE_CHANGED(ID_MENU_EDITOR_NOTEBOOK, CAdminEditMenuProfile::OnNotebookTabChanged)
+	EVT_RADIOBOX(ID_RADIOBOX, CAdminEditMenuProfile::OnRadioBoxSelection)
+	EVT_CHECKLISTBOX(ID_CHECKLISTBOX_MENU_ITEMS,OnCheckListBoxToggle)
 END_EVENT_TABLE()
 
 CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constructor
@@ -83,9 +77,13 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
+	bCreatingDlg = TRUE;
+
 	MenuEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bCreatingDlg = FALSE;
+
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 	
@@ -99,19 +97,6 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	pCheckListBox = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_MENU_ITEMS);
 	wxASSERT(pCheckListBox != NULL);
 
-	// use wxValidator for simple dialog data transfer
-	// sample text control initialization below:
-	//wxTextCtrl* pEdit;
-	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
-	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
-	//pEdit->SetBackgroundColour(sysColorBtnFace);
-
-	// sample radio button control initialization below:
-	//wxRadioButton* pRadioB;
-	//pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_BUTTON);
-	//pRadioB->SetValue(TRUE);
-	//pRadioB->SetValidator(wxGenericValidator(&m_bVariable));
-
 	// other attribute initializations
 }
 
@@ -124,7 +109,7 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
-	tempWorkflowProfile = gpApp->m_nWorkflowProfile;
+	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
 	
 	// Reread the AI_UserProfiles.xml file (this also loads the App's 
 	// m_pUserProfiles data structure with latest values stored on disk).
@@ -135,34 +120,286 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// reload the data from the xml file in case the administrator previously
 	// changed the profile during the current session (which automatically
 	// saved any changes to AI_UserProfiles.xml).
-	// TODO: Borrow code from App's OnInit().
-	
-	// Select whatever tab the administrator has set if any, first tab if none.
-	int pageCount = pNotebook->GetPageCount();
-	if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount() -1)
+	// First, deallocate any memory that was allocated at startup or last invocation
+	// of this dialog
+	if (m_pApp->m_pAI_MenuStructure != NULL)
 	{
-		tempWorkflowProfile = 0;
-		// TODO: warn user
+		MainMenuItemList::Node* mmpos;
+		int ct_mm;
+		int total_mm = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
+		{
+			mmpos = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct_mm);
+			AI_MainMenuItem* pmmItem;
+			pmmItem = mmpos->GetData();
+			wxASSERT(pmmItem != NULL);
+			mmpos = mmpos->GetNext();
+			
+			SubMenuItemList::Node* smpos;
+			int ct_sm;
+			int total_sm = pmmItem->aiSubMenuItems.GetCount();
+			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
+			{
+				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
+				AI_SubMenuItem* psmItem;
+				psmItem = smpos->GetData();
+				wxASSERT(psmItem != NULL);
+				smpos = smpos->GetNext();
+				delete psmItem;
+			}
+			delete pmmItem;
+		}
+		delete m_pApp->m_pAI_MenuStructure;
 	}
-	pNotebook->ChangeSelection(tempWorkflowProfile); // ChangeSelection does not generate page changing events
+
+	// destroy the allocated memory in m_pUserProfiles. This is a single 
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pUserProfiles also contains a list of pointers in its 
+	// profileItemList member that point to UserProfileItem instances on the 
+	// heap.
+	if (m_pApp->m_pUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = m_pApp->m_pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			pos = pos->GetNext();
+			delete pItem;
+		}
+		delete m_pApp->m_pUserProfiles;
+	}
+
+	// now re-read the AI_UserProfiles.xml file, which repopulates the m_pAI_MenuStructure
+	// with the latest current data.
+	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
+	if (!bReadOK)
+	{
+		// TODO: Warning that AI_UserProfiles.xml could not be read
+	}
+
+	// Select whatever tab the administrator has set if any, first tab if none.
+	if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount())
+	{
+		// the config file's value for the saved user workflow profile (from 
+		// m_pApp->m_nWorkflowProfile) was invalid, so set the temporary value
+		// to zero, i.e., the "None" profile.
+		tempWorkflowProfile = 0;
+		// TODO: warn user about this??
+	}
+	int tabIndex;
+	if (tempWorkflowProfile > 0)
+		tabIndex = tempWorkflowProfile - 1;
+	else
+		tabIndex = 0;
+	pNotebook->ChangeSelection(tabIndex); // ChangeSelection does not generate page changing events
 	
+		
+	PopulateListBox(tabIndex);
+
+	// set the wxRadioBox to its initial state from the tempWorkflowProfile copied from the config file's value
+	pRadioBox->SetSelection(tempWorkflowProfile); // this does not cause a wxEVT_COMMAND_RADIOBOX_SELECTED event
 }
 
 // event handling functions
 
-//CAdminEditMenuProfile::OnDoSomething(wxCommandEvent& event)
-//{
-//	// handle the event
+void CAdminEditMenuProfile::OnNotebookTabChanged(wxNotebookEvent& event)
+{
+	// This OnNotebookTabChanged is triggered during dialog creation because
+	// AddPage() is called. We don't want to establish pointers to the controls
+	// nor call PopulateListBox() until after the dialog creation is complete.
+	if (!bCreatingDlg)
+	{
+		// Note: Each tab page's wxPanel has a wxCheckListBox instance with 
+		// ID_CHECKLISTBOX_MENU_ITEMS as its identifier, so there are duplicate 
+		// identifiers within the dialog on the heap (one for each tab panel). 
+		// So we must get a handle to the newly selected page from the wxNotebookEvent 
+		// passed in, and call FindWindow on it (which only finds a child of the 
+		// window we are interested in).
+		// The wx docs indicate that wxNotebookEvent::GetSelection() should return 
+		// the newly selected page for the event triggered in the 
+		// EVT_NOTEBOOK_PAGE_CHANGED macro (which we use here). We avoid using
+		// wxNotebook::GetSelection() because the docs indicate that it gets either 
+		// the previously or the newly selected page on some platforms, making it 
+		// unreliable for our cross-platform needs.
+		int eGetSel = event.GetSelection(); // 
+		PopulateListBox(eGetSel);
+	}
+}
 	
-//}
+void CAdminEditMenuProfile::OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event))
+{
+	tempWorkflowProfile = pRadioBox->GetSelection();
+	// if user selects a workflow profile radio button that is on a different tab 
+	// page than is currently displaying, change to that tab page.
+	if (tempWorkflowProfile == 0)
+		pNotebook->SetSelection(0);
+	else
+	{
+		// when tempWorkflowProfile > 0
+		pNotebook->SetSelection(tempWorkflowProfile - 1);
+	}
+}
 
-//CAdminEditMenuProfile::OnUpdateDoSomething(wxUpdateUIEvent& event)
-//{
-//	if (SomeCondition == TRUE)
-//		event.Enable(TRUE);
-//	else
-//		event.Enable(FALSE);	
-//}
+void CAdminEditMenuProfile::OnCheckListBoxToggle(wxCommandEvent& event)
+{
+	// First don't allow the menu category labels in the list be
+	// unchecked
+	int ct;
+	int indexOfClickedItem;
+	indexOfClickedItem = event.GetInt();
+	for (ct = 0; ct < (int)itemsAlwaysChecked.GetCount(); ct++)
+	{
+		if (indexOfClickedItem == itemsAlwaysChecked.Item(ct))
+		{
+			pCheckListBox->Check(indexOfClickedItem,true);
+		}
+	}
+
+	// TODO: process any user changes to check boxes
+}
+
+void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
+{
+	// Note: Each time a wxNotebook tab changes, a different wxPanel appears that
+	// contains different actual controls (with different pointers to their
+	// instances on the heap) for the wxNotebook and wxRadioBox. Therefore, the 
+	// pointers to these controls need to be reestablished each time a Notebook 
+	// tab is changed (which brings a different panel and controls into view). 
+	
+	// The pNotebook and pRadioBox pointers shouldn't actually change, but 
+	// it won't hurt to get them again here
+	pNotebook = (wxNotebook*)FindWindowById(ID_MENU_EDITOR_NOTEBOOK);
+	wxASSERT(pNotebook != NULL);
+	pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX);
+	wxASSERT(pRadioBox != NULL);
+	
+	// Note: Each tab page's wxPanel has a wxCheckListBox instance with 
+	// ID_CHECKLISTBOX_MENU_ITEMS as its identifier, so there are duplicate 
+	// identifiers within the dialog on the heap (one for each tab panel). 
+	// So we must get a handle to the newly selected page from the wxNotebookEvent 
+	// passed in, and call FindWindow on it (which only finds a child of the 
+	// window we are interested in).
+	// The wx docs indicate that wxNotebookEvent::GetSelection() should return 
+	// the newly selected page for the event triggered in the 
+	// EVT_NOTEBOOK_PAGE_CHANGED macro (which we use here). We avoid using
+	// wxNotebook::GetSelection() because the docs indicate that it gets either 
+	// the previously or the newly selected page on some platforms, making it 
+	// unreliable for our cross-platform needs.
+	//int eGetSel = event.GetSelection(); // 
+	pCheckListBox = (wxCheckListBox*)pNotebook->GetPage(newTabIndex)->FindWindow(ID_CHECKLISTBOX_MENU_ITEMS);
+	wxASSERT(pCheckListBox != NULL);
+
+	// populate the pCheckListBox with data from m_pAI_MenuStructure
+	pCheckListBox->Clear(); // remove any previous items
+	itemsAlwaysChecked.Clear(); 
+
+	int lbIndexOfInsertion;
+	// handle menu items first in list
+	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Menu Items:"));
+	pCheckListBox->Check(lbIndexOfInsertion);
+	itemsAlwaysChecked.Add(lbIndexOfInsertion);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	
+	// to load the listbox with menu items, we scan through our m_pAI_MenuStructure
+	// object, and examine the mainMenuLabel sections corresponding to the top level
+	// menus ("File" "Edit" "View" "Tools" etc). We look for a match between the 
+	// m_pUserProfile's <MENU>'s itemID field and the m_pAI_MenuStructure's 
+	// <SUB_MENU>'s subMenuID field. Where the ID's match we list the <MENU>'s string
+	// values in the listbox.
+	wxString mainMenuLabel = _T("");
+	wxString prevMainMenuLabel = _T("");
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		mainMenuLabel = pMainMenuItem->mainMenuLabel;
+
+		if (mainMenuLabel != prevMainMenuLabel)
+		{
+			// this is a new main menu label, add it to the listbox
+			lbIndexOfInsertion = pCheckListBox->Append(_T("   \"") + mainMenuLabel + _T("\" Menu"));
+			pCheckListBox->Check(lbIndexOfInsertion);
+			itemsAlwaysChecked.Add(lbIndexOfInsertion);
+			pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+			pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+		}
+
+		// now scan through the App's m_pUserProfiles->profileItemList and load profile items
+		// that match this main menu label
+		ProfileItemList::Node* piNode;
+		UserProfileItem* pUserProfileItem;
+		int ct_pi;
+		int numItemsLoaded = 0;
+		int lbIndx;
+		int nProfileItems = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+		for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
+		{
+			piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct_pi);
+			pUserProfileItem = piNode->GetData();
+			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mainMenuLabel))
+			{
+				lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+				numItemsLoaded++;
+				if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
+					pCheckListBox->Check(lbIndx,true);
+				else
+					pCheckListBox->Check(lbIndx,false);
+			}
+		}
+		if (numItemsLoaded == 0)
+		{
+			// no items were loaded for this main menu so remove the mainMenuLabel, i.e., for the "&Help" menu
+			pCheckListBox->Delete(lbIndexOfInsertion);
+		}
+		prevMainMenuLabel = mainMenuLabel;
+	}
+}
+
+bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel)
+{
+	// We scan the lists of aiMainMenuItems and aiSubMenuItems until we locate the 
+	// corresponding subMenuID, and determine if the aiMainMenuItems' mainMenuLabel 
+	// matches our input parameter. If a match is found break out and return TRUE, 
+	// otherwise return FALSE.
+	wxString profileItemID;
+	profileItemID = pUserProfileItem->itemID;
+	
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (pSubMenuItem->subMenuID == profileItemID && menuLabel == mainMenuLabel)
+			{
+				return TRUE;
+			}
+		}
+	}
+	// if we get here we did not find a match
+	return FALSE;
+}
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
@@ -170,16 +407,12 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 // if the dialog is modeless.
 void CAdminEditMenuProfile::OnOK(wxCommandEvent& event) 
 {
-	// sample code
-	//wxListBox* pListBox;
-	//pListBox = (wxListBox*)FindWindowById(IDC_LISTBOX_ADAPTIONS);
-	//int nSel;
-	//nSel = pListBox->GetSelection();
-	//if (nSel == LB_ERR) // LB_ERR is #define -1
-	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
-	//}
-	//m_projectName = pListBox->GetString(nSel);
+	// update the App member for config file updating on next save
+	if (tempWorkflowProfile != m_pApp->m_nWorkflowProfile)
+	{
+		m_pApp->m_nWorkflowProfile = tempWorkflowProfile;
+		// make the doc dirty so it will prompt for saving
+	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }

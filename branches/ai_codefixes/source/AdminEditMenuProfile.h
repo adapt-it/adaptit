@@ -42,15 +42,22 @@ public:
 	wxRadioBox* pRadioBox;
 	wxCheckListBox* pCheckListBox;
 	int tempWorkflowProfile;
+	wxArrayInt itemsAlwaysChecked;
 	// other methods
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnNotebookTabChanged(wxNotebookEvent& event);
+	void OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event));
+	void OnCheckListBoxToggle(wxCommandEvent& event);
+	void PopulateListBox(int newTabIndex);
+	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel);
 
 private:
 	// class attributes
 	CAdapt_ItApp* m_pApp;
+	bool bCreatingDlg;
 	
 	// other class attributes
 

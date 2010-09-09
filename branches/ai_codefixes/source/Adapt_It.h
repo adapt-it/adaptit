@@ -2065,6 +2065,8 @@ public:
 									// folder location
 	bool		m_bLockedCustomWorkFolderPath; // TRUE if a custom work folder location has
 									// been made persistent, else FALSE
+	
+	wxString	m_userProfileFileWorkFolderPath; // whm added 7Sep10
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
