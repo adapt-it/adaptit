@@ -51,8 +51,11 @@ protected:
 	void OnNotebookTabChanged(wxNotebookEvent& event);
 	void OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event));
 	void OnCheckListBoxToggle(wxCommandEvent& event);
+	void OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event));
 	void PopulateListBox(int newTabIndex);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel);
+	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
+	wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr);
 
 private:
 	// class attributes

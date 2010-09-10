@@ -54,6 +54,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
 #include "Adapt_It.h"
+#include "MainFrm.h"
 #include "AdminEditMenuProfile.h"
 #include "XML.h"
 
@@ -66,7 +67,8 @@ BEGIN_EVENT_TABLE(CAdminEditMenuProfile, AIModalDialog)
 	EVT_BUTTON(wxID_OK, CAdminEditMenuProfile::OnOK)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_MENU_EDITOR_NOTEBOOK, CAdminEditMenuProfile::OnNotebookTabChanged)
 	EVT_RADIOBOX(ID_RADIOBOX, CAdminEditMenuProfile::OnRadioBoxSelection)
-	EVT_CHECKLISTBOX(ID_CHECKLISTBOX_MENU_ITEMS,OnCheckListBoxToggle)
+	EVT_CHECKLISTBOX(ID_CHECKLISTBOX_MENU_ITEMS,CAdminEditMenuProfile::OnCheckListBoxToggle)
+	EVT_LISTBOX_DCLICK(ID_CHECKLISTBOX_MENU_ITEMS,CAdminEditMenuProfile::OnCheckListBoxDblClick)
 END_EVENT_TABLE()
 
 CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constructor
@@ -262,6 +264,19 @@ void CAdminEditMenuProfile::OnCheckListBoxToggle(wxCommandEvent& event)
 	// TODO: process any user changes to check boxes
 }
 
+void CAdminEditMenuProfile::OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event))
+{
+	// TODO: Fix/Eliminate the problem of the listbox (that is scrolled down) 
+	// scrolling back to make a selected item visible when when a check box is 
+	// double clicked. This behavior doesn't happen in other wxCheckListBoxes 
+	// that exist in AI, so there should be some discoverable reason why it 
+	// happens in this one.
+	// Note: The scroll-back action seems to occur before entry to this DblClick
+	// handler.
+	;
+}
+
+
 void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 {
 	// Note: Each time a wxNotebook tab changes, a different wxPanel appears that
@@ -436,6 +451,9 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	}
 }
 
+// Determines if the menu item represented by the input pUserProfileItem belongs
+// as a subMenu within the input top level mainMenuLabel of the AI menu structure
+// according to the current information stored in the m_pAI_MenuStructure object.
 bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel)
 {
 	// We scan the lists of aiMainMenuItems and aiSubMenuItems until we locate the 
@@ -471,6 +489,62 @@ bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* 
 	}
 	// if we get here we did not find a match
 	return FALSE;
+}
+
+// Determines if the sub menu with itemText is currently a menu item within
+// Adapt It's current menu bar
+bool CAdminEditMenuProfile::SubMenuIsInCurrentAIMenuBar(wxString itemText)
+{
+	wxMenuBar* pMenuBar;
+	pMenuBar = m_pApp->GetMainFrame()->m_pMenuBar;
+	wxString mainMenuText;
+	int menuCount = pMenuBar->GetMenuCount();
+	int menuIndex;
+	int ct;
+	for (ct = 0; ct < menuCount; ct++)
+	{
+		mainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
+		menuIndex = pMenuBar->FindMenuItem(mainMenuText,itemText);
+		if (!wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+// Gets the label of the top level AI menu where the submenu having IDStr is located
+// according to the current information stored in the m_pAI_MenuStructure object.
+wxString CAdminEditMenuProfile::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
+{
+	wxString nullStr = _T("");
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				return menuLabel;
+			}
+		}
+	}
+	return nullStr;
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
