@@ -6998,10 +6998,14 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
 /// Upon entry pChar must point to a filtering marker determined by a prior call to 
 /// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging to the 
 /// parent marker.
+/// BEW 9Sep10 removed need for papram pBufStart, since only IsMarker() used to use it as
+/// its second param and with docVersion 5 changes that become unnecessary, so for now
+/// I've resorted to the identity assignment hack to avoid the compiler warning
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 									wxChar *pBufStart, wxChar *pEnd)
 {
+	pBufStart = pBufStart; // a hack to avoid compiler warning
 	// whm added 10Feb2005 in support of USFM and SFM Filtering support
 	// BEW ammended 10Jun05 to have better parse termination criteria
 	// Used in TokenizeText(). For a similar named function used
@@ -8169,10 +8173,10 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 /// Scans str and collects all standard format markers and their associated text into 
 /// pMkrList, one marker and associated content text per array item (and final endmarker
 /// if there is one).
+/// whm added str param 18Feb05
 /// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, 
-											   wxString str) // whm added 18Feb05
+void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str) 
 {
 	// Populates a wxArrayString containing sfms and their associated
 	// text parsed from the input str. pMkrList will contain one list item for
@@ -8185,7 +8189,7 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList,
 	wxChar* pEnd = (wxChar*)pBuf + nLen; // cast necessary because pBuf is const
 	wxASSERT(*pEnd == _T('\0')); // whm added 18Jun06
 	wxChar* ptr = (wxChar*)pBuf;
-	wxChar* pBufStart = (wxChar*)pBuf; // cast necessary because pBuf is const
+	//wxChar* pBufStart = (wxChar*)pBuf; // BEW 9Sep10, IsMarker() call no longer needs this
 	wxString accumStr = _T("");
 	// caller needs to call Clear() to start with empty list
 	while (ptr < pEnd)
