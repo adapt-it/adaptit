@@ -1976,7 +1976,7 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// contained in the AI_UserProfiles.xml file. The gpAI_MenuStructure mainly
 		// holds the aiMainMenuItems which is an instance of the MainMenuItemList.
 		gpAI_MenuStructure = new AI_MenuStructure;
-		gpAI_MenuStructure->aiMainMenuItems.Clear();gpApp->m_pAI_MenuStructure;
+		gpAI_MenuStructure->aiMainMenuItems.Clear();
 		gpApp->m_pAI_MenuStructure = gpAI_MenuStructure; // make the App's pointer also point at it
 	}
 	else if (tag == menu)
