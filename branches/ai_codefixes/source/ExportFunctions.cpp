@@ -193,7 +193,7 @@ void DoExportAsOxes(int versionNum)
 		if (bookCode.IsEmpty())
 			bookCode = _T("empty");
 		msg = msg.Format(_(
-"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn OXES export is not possible in this circumstance.\nThe value obtained was %s"),bookCode);
+"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn OXES export is not possible in this circumstance.\nThe value obtained was %s"),bookCode.c_str());
 		wxMessageBox(msg,_("Invalid Book Code"),wxICON_WARNING);
 		return;
 	}
