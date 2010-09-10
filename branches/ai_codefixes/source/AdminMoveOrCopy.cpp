@@ -171,9 +171,9 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	sideWithFocus = neitherSideHasFocus;
 
 	// set colours
-	// whm added 3Aug10 make the green a darker green to show up on the Mac
 #ifdef __WXMAC__
-	pastelgreen = wxColour(170,255,170);
+	// whm 10Sep10 made the pastelgreen to be the same as nocolor on the Mac (i.e., white)
+	pastelgreen = wxColour(255,255,255); // wxColour(170,255,170);
 #else
 	pastelgreen = wxColour(210,255,210);
 #endif
