@@ -317,8 +317,9 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Menu Items:"));
 	pCheckListBox->Check(lbIndexOfInsertion);
 	itemsAlwaysChecked.Add(lbIndexOfInsertion);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	// TODO: Determine why g++ reports GetItem is not a member of wxCheckListBox
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	
 	// to load the listbox with menu items, we scan through our m_pAI_MenuStructure
 	// object, and examine the mainMenuLabel sections corresponding to the top level
@@ -344,8 +345,9 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			lbIndexOfInsertion = pCheckListBox->Append(_T("   \"") + mainMenuLabel + _T("\" Menu"));
 			pCheckListBox->Check(lbIndexOfInsertion);
 			itemsAlwaysChecked.Add(lbIndexOfInsertion);
-			pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
-			pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+			// TODO: Determine why g++ reports GetItem is not a member of wxCheckListBox
+			//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+			//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 		}
 
 		// now scan through the App's m_pUserProfiles->profileItemList and load profile items
@@ -382,8 +384,9 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Preferences Tab Pages:"));
 	pCheckListBox->Check(lbIndexOfInsertion);
 	itemsAlwaysChecked.Add(lbIndexOfInsertion);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	// TODO: Determine why g++ reports GetItem is not a member of wxCheckListBox
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	ProfileItemList::Node* piNode;
 	UserProfileItem* pUserProfileItem;
 	int lbIndx;
@@ -408,8 +411,9 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Modebar Items:"));
 	pCheckListBox->Check(lbIndexOfInsertion);
 	itemsAlwaysChecked.Add(lbIndexOfInsertion);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	// TODO: Determine why g++ reports GetItem is not a member of wxCheckListBox
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	numItemsLoaded = 0;
 	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < nProfItemCount; ct++)
@@ -431,8 +435,9 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Wizard List Item:"));
 	pCheckListBox->Check(lbIndexOfInsertion);
 	itemsAlwaysChecked.Add(lbIndexOfInsertion);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
-	pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
+	// TODO: Determine why g++ reports GetItem is not a member of wxCheckListBox
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
+	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	numItemsLoaded = 0;
 	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < nProfItemCount; ct++)
