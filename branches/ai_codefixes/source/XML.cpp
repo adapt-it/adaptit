@@ -942,6 +942,8 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 	wxString testStr;
 	testStr = ::wxGetCwd();
 
+	wxLogNull logNo; // eliminated spurious messages from the system (we already have error message)
+
 	bool bOpenOK = file.Open(path,wxFile::read);
 	if (bOpenOK)
 	{
