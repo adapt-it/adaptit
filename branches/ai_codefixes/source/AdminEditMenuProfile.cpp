@@ -113,15 +113,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
 	
-	// Reread the AI_UserProfiles.xml file (this also loads the App's 
-	// m_pUserProfiles data structure with latest values stored on disk).
-	// Note: the AI_UserProfiles.xml file was read when the app first 
-	// ran from OnInit() and the app's menus configured for those values.
-	// We need to reread the AI_UserProfiles.xml each time the InitDialog()
-	// is called because we change the interface dynamically and need to 
-	// reload the data from the xml file in case the administrator previously
-	// changed the profile during the current session (which automatically
-	// saved any changes to AI_UserProfiles.xml).
 	// First, deallocate any memory that was allocated at startup or last invocation
 	// of this dialog
 	if (m_pApp->m_pAI_MenuStructure != NULL)
@@ -175,14 +166,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		delete m_pApp->m_pUserProfiles;
 	}
 
-	// now re-read the AI_UserProfiles.xml file, which repopulates the m_pAI_MenuStructure
-	// with the latest current data.
-	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
-	if (!bReadOK)
-	{
-		// TODO: Warning that AI_UserProfiles.xml could not be read
-	}
-
 	// Select whatever tab the administrator has set if any, first tab if none.
 	if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount())
 	{
@@ -199,11 +182,31 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		tabIndex = 0;
 	pNotebook->ChangeSelection(tabIndex); // ChangeSelection does not generate page changing events
 	
-		
-	PopulateListBox(tabIndex);
-
 	// set the wxRadioBox to its initial state from the tempWorkflowProfile copied from the config file's value
 	pRadioBox->SetSelection(tempWorkflowProfile); // this does not cause a wxEVT_COMMAND_RADIOBOX_SELECTED event
+		
+	// Reread the AI_UserProfiles.xml file (this also loads the App's 
+	// m_pUserProfiles data structure with latest values stored on disk).
+	// Note: the AI_UserProfiles.xml file was read when the app first 
+	// ran from OnInit() and the app's menus configured for those values.
+	// We need to reread the AI_UserProfiles.xml each time the InitDialog()
+	// is called because we change the interface dynamically and need to 
+	// reload the data from the xml file in case the administrator previously
+	// changed the profile during the current session (which automatically
+	// saved any changes to AI_UserProfiles.xml).
+	// Note: Reading the AI_UserProfiles.xml file, also repopulates the 
+	// m_pAI_MenuStructure with the latest current data.
+	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
+	if (!bReadOK)
+	{
+		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read
+		// We'll proceed with populating the dialog's list (below) which will
+		// simply put one item in the list saying, "[No AI_UserProfiles.xml data is available]"
+		// TODO: Have some default settings that can be used (like the USFM Unix strings?)
+	}
+
+	PopulateListBox(tabIndex);
+
 }
 
 // event handling functions
@@ -311,6 +314,27 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	// populate the pCheckListBox with data from m_pAI_MenuStructure
 	pCheckListBox->Clear(); // remove any previous items
 	itemsAlwaysChecked.Clear(); 
+
+	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
+	wxASSERT(m_pApp->m_pUserProfiles != NULL);
+	if (m_pApp->m_pAI_MenuStructure == NULL || m_pApp->m_pUserProfiles == NULL)
+	{
+		pCheckListBox->Append(_("[Warning: No User Workflow Profile data is available for display -"));
+		pCheckListBox->Append(_("you cannot use this dialog to change user workflow profiles until"));
+		pCheckListBox->Append(_("a valid AI_UserProfiles.xml file is installed in your work folder]"));
+		pCheckListBox->Enable(FALSE); // disable the checklistbox
+		int count;
+		count = pRadioBox->GetCount();
+		int ct;
+		for (ct = 0; ct < count; ct++)
+		{
+			pRadioBox->Enable(ct,FALSE); // disable the radio box and radio buttons
+		}
+		pOKButton = (wxButton*)FindWindowById(wxID_OK);
+		wxASSERT(pOKButton != NULL);
+		pOKButton->Enable(FALSE); // don't allow changes to be made via the OK button - only option is Cancel
+		return;
+	}
 
 	// handle menu items first in list
 	int lbIndexOfInsertion;
@@ -465,8 +489,17 @@ bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* 
 	// corresponding subMenuID, and determine if the aiMainMenuItems' mainMenuLabel 
 	// matches our input parameter. If a match is found break out and return TRUE, 
 	// otherwise return FALSE.
+	
+	// do a reality check
+	wxASSERT(pUserProfileItem != NULL);
+	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
+	if (pUserProfileItem == NULL || m_pApp->m_pAI_MenuStructure == NULL)
+	{
+		return FALSE;
+	}
 	wxString profileItemID;
 	profileItemID = pUserProfileItem->itemID;
+
 	
 	wxString menuLabel;
 	MainMenuItemList::Node* mmNode;
@@ -525,6 +558,12 @@ bool CAdminEditMenuProfile::SubMenuIsInCurrentAIMenuBar(wxString itemText)
 wxString CAdminEditMenuProfile::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
 {
 	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
+	if (m_pApp->m_pAI_MenuStructure == NULL)
+	{
+		return nullStr;
+	}
 	wxString menuLabel;
 	MainMenuItemList::Node* mmNode;
 	AI_MainMenuItem* pMainMenuItem;

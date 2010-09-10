@@ -5062,6 +5062,10 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_pUsfm2Oxes = NULL; // BEW added 2Sep10
+
+	m_pAI_MenuStructure = (AI_MenuStructure*)NULL; // whm added 8Sep10
+	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
+
 	m_bForceFullConsistencyCheck = FALSE; // set true if user has respellings in the KB and
 			// after the KB save to disk and the message comes up asking if he wants a full
 			// consistency check done, and he responds by clicking Yes button

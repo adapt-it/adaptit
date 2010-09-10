@@ -41,6 +41,7 @@ public:
 	wxNotebook* pNotebook;
 	wxRadioBox* pRadioBox;
 	wxCheckListBox* pCheckListBox;
+	wxButton* pOKButton;
 	int tempWorkflowProfile;
 	wxArrayInt itemsAlwaysChecked;
 	// other methods

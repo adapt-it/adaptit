@@ -999,7 +999,11 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		// that is returned by CFileException's e.m_cause member. Since we don't
 		// have the same exception processing facility in wxWidgets, we'll just
 		// report the errno number
-		errStr << _("\nIf you wish you can try opening some other document and continue working.");
+		// whm 10Sep10 commented out the added error message below because while it may be 
+		// appropriate if we're reading Adapt It doc's xml, it is not appropriate for the 
+		// several other xml file types that parseXML is called on including AI_USFM.xml, 
+		// books.xml and AI_UserProfiles.xml.
+		//errStr << _("\nIf you wish you can try opening some other document and continue working.");
 		wxMessageBox(errStr, _T(""), wxICON_STOP);
 		return FALSE;
 	}
