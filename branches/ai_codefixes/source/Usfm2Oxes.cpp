@@ -17,7 +17,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "FreeTrans.h"
+    #pragma implementation "Usfm2Oxes.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
