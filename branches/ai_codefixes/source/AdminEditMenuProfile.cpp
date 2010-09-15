@@ -203,6 +203,8 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// We'll proceed with populating the dialog's list (below) which will
 		// simply put one item in the list saying, "[No AI_UserProfiles.xml data is available]"
 		// TODO: Have some default settings that can be used (like the USFM Unix strings?)
+		m_pApp->SetupDefaultUserProfiles();
+		m_pApp->SetupDefaultMenuStructure();
 	}
 
 	PopulateListBox(tabIndex);
@@ -388,7 +390,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			pUserProfileItem = piNode->GetData();
 			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mainMenuLabel))
 			{
-				lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+				lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
 				numItemsLoaded++;
 				if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 					pCheckListBox->Check(lbIndx,true);
@@ -422,7 +424,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("preferencesTab"))
 		{
-			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
 			numItemsLoaded++;
 			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 				pCheckListBox->Check(lbIndx,true);
@@ -446,7 +448,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("modeBar"))
 		{
-			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
 			numItemsLoaded++;
 			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 				pCheckListBox->Check(lbIndx,true);
@@ -470,7 +472,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("wizardListItem"))
 		{
-			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->description + _T("]"));
+			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
 			numItemsLoaded++;
 			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 				pCheckListBox->Check(lbIndx,true);

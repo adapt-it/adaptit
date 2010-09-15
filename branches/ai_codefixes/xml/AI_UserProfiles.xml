@@ -53,7 +53,7 @@ PROFILE is selected by an administrator.
 			(in English). This itemText will appear in the 
 			list of menu items and settings in each user workflow
 			profile within the User Workflow Profiles dialog.
-	description:
+	itemDescr:
 		="Description of the menu or setting" a brief description
 			of the menu or setting defined by itemID and itemText.
 			This description is optional, but is available for
@@ -98,7 +98,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_SAVE_AS"
 	itemType="subMenu"
 	itemText="Save As..."
-	description="Submenu of File menu"
+	itemDescr="Submenu of File menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -120,7 +120,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_PACK_DOC"
 	itemType="subMenu"
 	itemText="Pack Document..."
-	description="Submenu of File menu"
+	itemDescr="Submenu of File menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -142,7 +142,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_UNPACK_DOC"
 	itemType="subMenu"
 	itemText="Unpack Document..."
-	description="Submenu of File menu"
+	itemDescr="Submenu of File menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -164,7 +164,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_CHANGEFOLDER"
 	itemType="subMenu"
 	itemText="Change Folder..."
-	description="Submenu of File menu"
+	itemDescr="Submenu of File menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -186,7 +186,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_BACKUP_KB"
 	itemType="subMenu"
 	itemText="Backup Knowledge Base"
-	description="Submenu of File menu"
+	itemDescr="Submenu of File menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -208,7 +208,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_EDIT_SOURCE_TEXT"
 	itemType="subMenu"
 	itemText="Edit Source Text..."
-	description="Submenu of Edit menu"
+	itemDescr="Submenu of Edit menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -230,7 +230,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_EDIT_CONSISTENCY_CHECK"
 	itemType="subMenu"
 	itemText="Consistency Check..."
-	description="Submenu of Edit menu"
+	itemDescr="Submenu of Edit menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -252,7 +252,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_EDIT_MOVE_NOTE_FORWARD"
 	itemType="subMenu"
 	itemText="Move Note Forward"
-	description="Submenu of Edit menu"
+	itemDescr="Submenu of Edit menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -274,7 +274,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_EDIT_MOVE_NOTE_BACKWARD"
 	itemType="subMenu"
 	itemText="Move Note Backward"
-	description="Submenu of Edit menu"
+	itemDescr="Submenu of Edit menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -296,7 +296,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Fonts"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -318,7 +318,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Backups and Misc"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -340,7 +340,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Auto-Saving"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -362,7 +362,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Punctuation"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -384,7 +384,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Case"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -406,7 +406,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Units"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -428,7 +428,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="USFM"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -450,7 +450,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
 	itemText="Filtering"
-	description="Tab in Preferences dialog"
+	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -472,7 +472,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_VIEW_TOOLBAR"
 	itemType="subMenu"
 	itemText="Toolbar"
-	description="Submenu of View menu"
+	itemDescr="Submenu of View menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -494,7 +494,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_VIEW_STATUS_BAR"
 	itemType="subMenu"
 	itemText="Status Bar"
-	description="Submenu of View menu"
+	itemDescr="Submenu of View menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -516,7 +516,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_COPY_SOURCE"
 	itemType="subMenu"
 	itemText="Copy Source"
-	description="Submenu of View menu"
+	itemDescr="Submenu of View menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -538,7 +538,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_MARKER_WRAPS_STRIP"
 	itemType="subMenu"
 	itemText="Wrap At Standard Format Markers"
-	description="Submenu of View menu"
+	itemDescr="Submenu of View menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -560,7 +560,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_UNITS"
 	itemType="subMenu"
 	itemText="Units of Measurement..."
-	description="Submenu of View menu"
+	itemDescr="Submenu of View menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -582,7 +582,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_CHANGE_INTERFACE_LANGUAGE"
 	itemType="subMenu"
 	itemText="Change Interface Language..."
-	description="Submenu of View menu"
+	itemDescr="Submenu of View menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -604,7 +604,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="wxID_REPLACE"
 	itemType="subMenu"
 	itemText="Find and Replace..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -626,7 +626,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_DEFINE_CC"
 	itemType="subMenu"
 	itemText="Load Consistent Changes..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -648,7 +648,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_UNLOAD_CC_TABLES"
 	itemType="subMenu"
 	itemText="Unload Consistent Changes"
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -670,7 +670,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_USE_CC"
 	itemType="subMenu"
 	itemText="Use Consistent Changes"
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -692,7 +692,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ACCEPT_CHANGES"
 	itemType="subMenu"
 	itemText="Accept Changes Without Stopping"
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -714,7 +714,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_DEFINE_SILCONVERTER"
 	itemType="subMenu"
 	itemText="SIL Converters..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -736,7 +736,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_USE_SILCONVERTER"
 	itemType="subMenu"
 	itemText="Use SIL Converter"
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -758,7 +758,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_KB_EDITOR"
 	itemType="subMenu"
 	itemText="Knowledge Base Editor..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -780,7 +780,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_AUTO_CAPITALIZATION"
 	itemType="subMenu"
 	itemText="Use Automatic Capitalization"
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -802,7 +802,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_SPLIT_DOC"
 	itemType="subMenu"
 	itemText="Split Document..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -824,7 +824,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_JOIN_DOCS"
 	itemType="subMenu"
 	itemText="Join Documents..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -846,7 +846,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_TOOLS_MOVE_DOC"
 	itemType="subMenu"
 	itemText="Move Document..."
-	description="Submenu of Tools menu"
+	itemDescr="Submenu of Tools menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -868,7 +868,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_EXPORT_SOURCE"
 	itemType="subMenu"
 	itemText="Export Source Text..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -890,7 +890,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_EXPORT"
 	itemType="subMenu"
 	itemText="Export Translation Text..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -912,7 +912,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_EXPORT_TO_RTF"
 	itemType="subMenu"
 	itemText="Export Interlinear Text..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -934,7 +934,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_EXPORT_GLOSSES"
 	itemType="subMenu"
 	itemText="Export Glosses As Text..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -956,7 +956,29 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_EXPORT_FREE_TRANS"
 	itemType="subMenu"
 	itemText="Export Free Translation..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom 1"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom 2"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_EXPORT_OXES"
+	itemType="subMenu"
+	itemText="Export &Open XML for Editing Scripture (OXES)..."
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -978,7 +1000,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_FILE_EXPORT_KB"
 	itemType="subMenu"
 	itemText="Export Knowledge Base..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1000,7 +1022,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_IMPORT_TO_KB"
 	itemType="subMenu"
 	itemText="Import to Knowledge Base..."
-	description="Submenu of Export-Import"
+	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1022,7 +1044,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_ENABLEGLOSSING"
 	itemType="subMenu"
 	itemText="See Glosses"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1044,7 +1066,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_GLOSSING_USES_NAV_FONT"
 	itemType="subMenu"
 	itemText="Glossing Uses Navigation Text's Font"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1066,7 +1088,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES"
 	itemType="subMenu"
 	itemText="Transform Adaptations Into Glosses..."
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1088,7 +1110,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_DELAY"
 	itemType="subMenu"
 	itemText="Delay..."
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1110,7 +1132,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_BOOKMODE"
 	itemType="subMenu"
 	itemText="Storing Documents in Book Folders"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1132,7 +1154,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_FREE_TRANSLATION_MODE"
 	itemType="subMenu"
 	itemText="Free Translation Mode"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1154,7 +1176,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_TARGET_TEXT_IS_DEFAULT"
 	itemType="subMenu"
 	itemText="Use Target Text As Default Text's Font"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1176,7 +1198,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT"
 	itemType="subMenu"
 	itemText="Use Gloss Text As Default Free Translation"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1198,7 +1220,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS"
 	itemType="subMenu"
 	itemText="Remove Filtered Free Translations"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1220,7 +1242,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_COLLECT_BACKTRANSLATIONS"
 	itemType="subMenu"
 	itemText="Collect Back Translations"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1242,7 +1264,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS"
 	itemType="subMenu"
 	itemText="Remove Filtered Back Translations"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1264,7 +1286,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_USETRANSLITERATIONMODE"
 	itemType="subMenu"
 	itemText="Use Transliteration Mode"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1286,7 +1308,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES"
 	itemType="subMenu"
 	itemText="Send Synchronized Scrolling Messages"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1308,7 +1330,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES"
 	itemType="subMenu"
 	itemText="Receive Synchronized Scrolling Messages"
-	description="Submenu of Advanced menu"
+	itemDescr="Submenu of Advanced menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1330,7 +1352,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_ALIGNMENT"
 	itemType="subMenu"
 	itemText="Layout Window Right To Left"
-	description="Submenu of Layout menu"
+	itemDescr="Submenu of Layout menu"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1352,7 +1374,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="IDC_CHECK_SINGLE_STEP"
 	itemType="modeBar"
 	itemText="Automatic"
-	description="Checkbox in Modebar"
+	itemDescr="Checkbox in Modebar"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1374,7 +1396,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="IDC_CHECK_FORCE_ASK"
 	itemType="modeBar"
 	itemText="Force Choice For This Item"
-	description="Checkbox in Modebar"
+	itemDescr="Checkbox in Modebar"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1396,7 +1418,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="IDC_EDIT_DELAY"
 	itemType="modeBar"
 	itemText="Delay"
-	description="Text box in mode bar"
+	itemDescr="Text box in mode bar"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1418,7 +1440,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="IDC_CHECK_ISGLOSSING"
 	itemType="modeBar"
 	itemText="Glossing"
-	description="Checkbox in Modebar"
+	itemDescr="Checkbox in Modebar"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1440,7 +1462,7 @@ menu item will not appear in the list of items displayed for that profile.
 <MENU itemID="ID_NONE"
 	itemType="wizardListItem"
 	itemText="&lt;New Project&gt;"
-	description="First List Item in Choose A Project page of Wizard"
+	itemDescr="First List Item in Choose A Project page of Wizard"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1976,6 +1998,13 @@ Description of Marker Attributes for the <SUB_MENU> tag:
 			subMenuID="ID_EXPORT_FREE_TRANS"
 			subMenuLabel="Export Free Translation..."
 			subMenuHelp="Collect all the free translation sections' contents, adding standard format markers, and export"
+			subMenuKind="wxITEM_NORMAL"
+		>
+		</SUB_MENU>
+		<SUB_MENU
+			subMenuID="ID_EXPORT_OXES"
+			subMenuLabel="Export &Open XML for Editing Scripture (OXES)..."
+			subMenuHelp="Export the translation text according to the OXES version 1 standard"
 			subMenuKind="wxITEM_NORMAL"
 		>
 		</SUB_MENU>

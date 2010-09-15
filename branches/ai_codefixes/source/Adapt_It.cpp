@@ -78,6 +78,7 @@
 #include <wx/filepicker.h> // for wxDirPickerCtrl
 #include <wx/log.h> // for wxLogStream
 #include <wx/timer.h> // for wxTimer
+#include <wx/tokenzr.h>
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -1183,6 +1184,786 @@ _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::3:2
 const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1.3 the
 			// gnDefaultSFMs value is 283, but it will change as UBS adds markers to USFM
 
+// whm added 10Sep10 
+/// An array of wxStrings which, when parsed by ParseUserProfileStrings(), is used as 
+/// default list of User Workflow Profile dialog item definitions. There definitions are
+/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
+/// file.
+const wxString defaultProfileItems[] = 
+{
+	// Note: In the strings below, the itemText field should not use the accelerator substrings, i.e.,
+	// \tCtrl-A nor use any xml "entities", i.e., the &amp; for '&' to mark the letter used for
+	// ALT+key shortcuts, or &lt; or &gt; for '<' and '>' within the itemText strings.
+	// 
+	// TODO: write a function that would compare these menu strings (in the itemID and itemText fields) 
+	// with those that are used in the defaultMenuStructure strings (see below) To keep them in sync, 
+	// notify the programmer in debug mode using wxLogDebug() calls and wxASSERT(FALSE) statements for 
+	// any discrepancies discovered. 
+	_T("UserProfilesSupport:profileVersion=\"1.0\":definedProfile1=\"Novice\":definedProfile2=\"Custom 1\":definedProfile3=\"Custom 2\":"),
+	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_PACK_DOC\":itemType=\"subMenu\":itemText=\"Pack Document...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_UNPACK_DOC\":itemType=\"subMenu\":itemText=\"Unpack Document...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_CHANGEFOLDER\":itemType=\"subMenu\":itemText=\"Change Folder...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_BACKUP_KB\":itemType=\"subMenu\":itemText=\"Backup Knowledge Base\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Fonts\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Backups and Misc\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Auto-Saving\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Punctuation\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Case\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Units\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_VIEW_TOOLBAR\":itemType=\"subMenu\":itemText=\"Toolbar\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"Status Bar\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Source\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"Wrap At Standard Format Markers\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_UNITS\":itemType=\"subMenu\":itemText=\"Units of Measurement...\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_CHANGE_INTERFACE_LANGUAGE\":itemType=\"subMenu\":itemText=\"Change Interface Language...\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"wxID_REPLACE\":itemType=\"subMenu\":itemText=\"Find and Replace...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_CC\":itemType=\"subMenu\":itemText=\"Load Consistent Changes...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_UNLOAD_CC_TABLES\":itemType=\"subMenu\":itemText=\"Unload Consistent Changes\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_USE_CC\":itemType=\"subMenu\":itemText=\"Use Consistent Changes\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ACCEPT_CHANGES\":itemType=\"subMenu\":itemText=\"Accept Changes Without Stopping\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"SIL Converters...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_USE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"Use SIL Converter\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_KB_EDITOR\":itemType=\"subMenu\":itemText=\"Knowledge Base Editor...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_AUTO_CAPITALIZATION\":itemType=\"subMenu\":itemText=\"Use Automatic Capitalization\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_SPLIT_DOC\":itemType=\"subMenu\":itemText=\"Split Document...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_JOIN_DOCS\":itemType=\"subMenu\":itemText=\"Join Documents...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_MOVE_DOC\":itemType=\"subMenu\":itemText=\"Move Document...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export Source Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT\":itemType=\"subMenu\":itemText=\"Export Translation Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_TO_RTF\":itemType=\"subMenu\":itemText=\"Export Interlinear Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EXPORT_GLOSSES\":itemType=\"subMenu\":itemText=\"Export Glosses As Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EXPORT_FREE_TRANS\":itemType=\"subMenu\":itemText=\"Export Free Translation...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge Base...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_IMPORT_TO_KB\":itemType=\"subMenu\":itemText=\"Import to Knowledge Base...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_ENABLEGLOSSING\":itemType=\"subMenu\":itemText=\"See Glosses\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":itemType=\"subMenu\":itemText=\"Glossing Uses Navigation Text's Font\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":itemType=\"subMenu\":itemText=\"Transform Adaptations Into Glosses...\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_DELAY\":itemType=\"subMenu\":itemText=\"Delay...\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_BOOKMODE\":itemType=\"subMenu\":itemText=\"Storing Documents in Book Folders\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":itemType=\"subMenu\":itemText=\"Free Translation Mode\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Target Text As Default Text's Font\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Gloss Text As Default Free Translation\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Free Translations\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Collect Back Translations\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Back Translations\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":itemType=\"subMenu\":itemText=\"Use Transliteration Mode\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Send Synchronized Scrolling Messages\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Receive Synchronized Scrolling Messages\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ALIGNMENT\":itemType=\"subMenu\":itemText=\"Layout Window Right To Left\":itemDescr=\"Submenu of Layout menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_CHECK_SINGLE_STEP\":itemType=\"modeBar\":itemText=\"Automatic\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_CHECK_FORCE_ASK\":itemType=\"modeBar\":itemText=\"Force Choice For This Item\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_EDIT_DELAY\":itemType=\"modeBar\":itemText=\"Delay\":itemDescr=\"Text box in mode bar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_CHECK_ISGLOSSING\":itemType=\"modeBar\":itemText=\"Glossing\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"wizardListItem\":itemText=\"<New Project>\":itemDescr=\"First List Item in Choose A Project page of Wizard\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("/UserProfilesSupport:")
+};
+
+// whm added 10Sep10 
+/// An array of wxStrings which, when parsed by ParseMenuStructureStrings(), is used as 
+/// default list of User Workflow Profile dialog item definitions. There definitions are
+/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
+/// file. Note: This menu structure is complete - it also includes the "Administrator" 
+/// menu items which are not included in the AI_UserProfiles.xml file.
+const wxString defaultMenuStructure[] = 
+{
+	// Note: In the strings below, the attribute fields should be identical to what the normal default
+	// strings are that are used within the AIMenuBarFunc() produced by wxDesigner. Hence, the subMenuID
+	// field should contain the exact menu item identifiers; the subMenuLabel should contain the exact
+	// menu label strings - including any accelerators (i.e., "\tCtrl-A") and ampersands preceding the 
+	// short cut ALT+key letters; the subMenuHelp should be the same as what is in wxDesigner; and the
+	// subMenuKind should accurately indicate whether the menu item is wxITEM_NORMAL, wxITEM_CHECK
+	// or wxITEM_SEPARATOR.
+	// 
+	// TODO: write a function that would compare these menu strings with those that are used in the
+	// default creation of the menu bar with AIMenuBarFunc(), and also with what is read in the
+	// AI_UserProfiles.xml file. To keep them in sync, notify the programmer in debug mode using 
+	// wxLogDebug() calls and wxASSERT(FALSE) statements for any discrepancies discovered. 
+	_T("MENU_STRUCTURE:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&File\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_OPEN\":subMenuLabel=\"&Open...\tCtrl-O\":subMenuHelp=\"Open an existing document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_SAVE\":subMenuLabel=\"&Save\tCtrl-S\":subMenuHelp=\"Save the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_SAVE_AS\":subMenuLabel=\"Save &As...\tCtrl-A\":subMenuHelp=\"Save the document with different xml format, or different filename\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_CLOSE\":subMenuLabel=\"&Close\":subMenuHelp=\"Close the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_PACK_DOC\":subMenuLabel=\"Pack Document...\":subMenuHelp=\"Pack document for transfer to another computer\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_UNPACK_DOC\":subMenuLabel=\"Unpack Document...\":subMenuHelp=\"Unpack a document that was packed on another computer\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PRINT\":subMenuLabel=\"&Print...\tCtrl-P\":subMenuHelp=\"Print the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PREVIEW\":subMenuLabel=\"Print Pre&view\":subMenuHelp=\"Show what printed pages will look like (without printing)\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PAGE_SETUP\":subMenuLabel=\"P&age Setup...\":subMenuHelp=\"Change the printing options\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_STARTUP_WIZARD\":subMenuLabel=\"Start &Working...\tCtrl-W\":subMenuHelp=\"Show the sequence of dialog windows used for accessing a project and working on documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_CLOSEKB\":subMenuLabel=\"Close Pro&ject\tCtrl-J\":subMenuHelp=\"Save the knowledge base and document, then close this project\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_CHANGEFOLDER\":subMenuLabel=\"Change Folder...\":subMenuHelp=\"Change to a different book folder for document storage (book mode must be ON)\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_SAVEKB\":subMenuLabel=\"Save &Knowledge Base\":subMenuHelp=\"Update the knowledge base file for this project\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_BACKUP_KB\":subMenuLabel=\"&Backup Knowledge Base\":subMenuHelp=\"Make a new knowledge base backup immediately\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_RESTORE_KB\":subMenuLabel=\"&Restore Knowledge Base...\":subMenuHelp=\"Use all the saved documents to rebuild the knowledge base file\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_EXIT\":subMenuLabel=\"E&xit\":subMenuHelp=\"Quit the application; prompts to save documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&Edit\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_UNDO\":subMenuLabel=\"&Undo\tCtrl-Z\":subMenuHelp=\"Undo the last action\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_CUT\":subMenuLabel=\"Cu&t\tCtrl-X\":subMenuHelp=\"Cut the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_COPY\":subMenuLabel=\"&Copy\tCtrl-C\":subMenuHelp=\"Copy the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_PASTE\":subMenuLabel=\"&Paste\tCtrl-V\":subMenuHelp=\"Insert Clipboard contents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_GO_TO\":subMenuLabel=\"&Go To...\tCtrl-G\":subMenuHelp=\"Go to a specific chapter and verse\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_SOURCE_TEXT\":subMenuLabel=\"Edit &Source Text...\tCtrl-Q\":subMenuHelp=\"Edit the selected source text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_CONSISTENCY_CHECK\":subMenuLabel=\"Consist&ency Check...\":subMenuHelp=\"Check all translations with those in the knowledge base for consistency\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_FORWARD\":subMenuLabel=\"Move Note Forward\tCtrl-3\":subMenuHelp=\"Move the note forward in the document to the next word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":subMenuLabel=\"Move Note Backward\tCtrl-2\":subMenuHelp=\"Move the note backward in the document to the previous word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PREFERENCES\":subMenuLabel=\"Pre&ferences...\":subMenuHelp=\"Adapt It settings\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&View\":"),
+	_T("SUB_MENU:subMenuID=\"ID_VIEW_TOOLBAR\":subMenuLabel=\"&Toolbar\":subMenuHelp=\"Show or hide the toolbar\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_VIEW_STATUS_BAR\":subMenuLabel=\"&Status Bar\":subMenuHelp=\"Show or hide the status bar\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_VIEW_COMPOSE_BAR\":subMenuLabel=\"&Compose Bar\":subMenuHelp=\"Show or hide the bar for composing text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_COPY_SOURCE\":subMenuLabel=\"Copy Sourc&e\":subMenuHelp=\"Copy source text to phrase box as default translation\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_MARKER_WRAPS_STRIP\":subMenuLabel=\"&Wrap At Standard Format Markers\":subMenuHelp=\"Start a new strip whenever a standard format marker is encountered\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_UNITS\":subMenuLabel=\"&Units of Measurement...\":subMenuHelp=\"Units to be used when printing\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_CHANGE_INTERFACE_LANGUAGE\":subMenuLabel=\"Change Interface Language...\":subMenuHelp=\"Change the language of the program interface. You may need to restart Adapt It for the change to take effect\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&Tools\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_FIND\":subMenuLabel=\"&Find...\tCtrl-F\":subMenuHelp=\"Find text in source or target or both, or special search\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_REPLACE\":subMenuLabel=\"Find and &Replace...\tCtrl-H\":subMenuHelp=\"Replace in target text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_DEFINE_CC\":subMenuLabel=\"&Load Consistent Changes...\":subMenuHelp=\"Define and load one or more consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_UNLOAD_CC_TABLES\":subMenuLabel=\"&Unload Consistent Changes\":subMenuHelp=\"Unload any loaded consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_USE_CC\":subMenuLabel=\"Use &Consistent Change\":subMenuHelp=\"Use the consistent changes when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ACCEPT_CHANGES\":subMenuLabel=\"&Accept Changes Without Stopping\":subMenuHelp=\"Accept the changed source text as the translation and continue on\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_DEFINE_SILCONVERTER\":subMenuLabel=\"&SIL Converters...\":subMenuHelp=\"Load an SIL Converter\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_USE_SILCONVERTER\":subMenuLabel=\"Use S&IL Converter\":subMenuHelp=\"Use a loaded SIL Converter\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_KB_EDITOR\":subMenuLabel=\"&Knowledge Base Editor...\tCtrl-K\":subMenuHelp=\"Display dialog for editing the knowledge base\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_AUTO_CAPITALIZATION\":subMenuLabel=\"Use Automatic Capitalization\":subMenuHelp=\"Use automatic capitalization when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_RETRANS_REPORT\":subMenuLabel=\"Re&translation Report...\":subMenuHelp=\"Output a file listing all retranslations\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_SPLIT_DOC\":subMenuLabel=\"Split Document...\":subMenuHelp=\"Split the document into two or more documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_JOIN_DOCS\":subMenuLabel=\"Join Documents...\":subMenuHelp=\"Join two or more documents into a single document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_MOVE_DOC\":subMenuLabel=\"Move Document...\":subMenuHelp=\"Move documents between the Adaptations folder and a book folder location\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"E&xport-Import\":"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_SOURCE\":subMenuLabel=\"Export &Source Text...\":subMenuHelp=\"Export the source language text as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT\":subMenuLabel=\"&Export Translation Text...\":subMenuHelp=\"Export the target language translation as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_TO_RTF\":subMenuLabel=\"Export Interlinear &Text...\":subMenuHelp=\"Export the Source and Target languages in interlinear form as an *.rtf file type\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_GLOSSES\":subMenuLabel=\"Export &Glosses As Text...\":subMenuHelp=\"Export the glossing lines' contents as text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_KB\":subMenuLabel=\"Export Knowledge &Base...\":subMenuHelp=\"Export knowledge base in standard format or LIFT format\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_IMPORT_TO_KB\":subMenuLabel=\"&Import to Knowledge Base...\":subMenuHelp=\"Extend knowledge base by importing dictionary records\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&Advanced\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_ENABLEGLOSSING\":subMenuLabel=\"See Glosses\":subMenuHelp=\"Make glossing line visible on screen\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":subMenuLabel=\"Glossing Uses Navigation Text's Font\":subMenuHelp=\"Use the navigation text font for glossing text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":subMenuLabel=\"Transform Adaptations Into Glosses...\":subMenuHelp=\"Transform adaptations from another project into the current project's glosses\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_DELAY\":subMenuLabel=\"Delay...\":subMenuHelp=\"Slow automatic insertions down to a speed suitable for reading along\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_BOOKMODE\":subMenuLabel=\"Storing Documents in Book Folders\":subMenuHelp=\"Turn on, or off, storage of documents to book folders\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":subMenuLabel=\"Free Translation Mode\":subMenuHelp=\"Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Target Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing target text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Gloss Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing gloss text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":subMenuLabel=\"Remove Filtered Free Translations\":subMenuHelp=\"Removes all the filtered free translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":subMenuLabel=\"Collect Back Translations...\":subMenuHelp=\"Collect adaptations, or glosses, and store them with a back translation marker as filtered material\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":subMenuLabel=\"Remove Filtered Back Translations\":subMenuHelp=\"Deletes all the filtered back translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":subMenuLabel=\"Use Transliteration Mode\":subMenuHelp=\"Select this item to use SIL Converters in transliteration mode\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Send Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause applications such as Paratext and TW to automatically scroll to the same location\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Receive Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&Layout\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ALIGNMENT\":subMenuLabel=\"Layout Window Right To Left\tCtrl-1\":subMenuHelp=\"Layout text in window from right to left\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"&Help\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_HELP\":subMenuLabel=\"&Help Topics\tShift-Ctrl-/\":subMenuHelp=\"List Help topics\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ONLINE_HELP\":subMenuLabel=\"Online Help (Requires Internet Access)\":subMenuHelp=\"Get Adapt It Help from the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_USER_FORUM\":subMenuLabel=\"User Forum (Requires Internet Access)\":subMenuHelp=\"\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_HELP_USE_TOOLTIPS\":subMenuLabel=\"Use Tooltips\":subMenuHelp=\"\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_ABOUT\":subMenuLabel=\"&About Adapt It...\":subMenuHelp=\"Display program information, version number and copyright\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuLabel=\"Ad&ministrator\":"),
+	_T("SUB_MENU:subMenuID=\"ID_CUSTOM_WORK_FOLDER_LOCATION\":subMenuLabel=\"&Custom Work Folder Location...\":subMenuHelp=\"Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_LOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Lock Custom Location\":subMenuHelp=\"Make the custom work folder location permanent until explicitly changed\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_UNLOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Unlock Custom Location\":subMenuHelp=\"Make the custom work folder location persist only until the end of the session\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_LOCAL_WORK_FOLDER_MENU\":subMenuLabel=\"&Restore Default Work Folder Location\":subMenuHelp=\"Point at the local machine's default work folder\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_SET_PASSWORD_MENU\":subMenuLabel=\"Set &Password...\":subMenuHelp=\"Set a password, it will be stored in the clear in the basic configuration file\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_MOVE_OR_COPY_FOLDERS_OR_FILES\":subMenuLabel=\"&Move Or Copy Folders Or Files...\tShift-Ctrl-M\":subMenuHelp=\"Dialog for moving folders or files, or copying them, into a destination folder\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_SOURCE_DATA_FOLDER\":subMenuLabel=\"Open &Source Data Folder...\":subMenuHelp=\"Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_DATA_FOLDER\":subMenuLabel=\"Open &Export Data Folder...\":subMenuHelp=\"Opens the project's Export Data folder (creating it first if necessary). Protects the user from folder navigation of exports.\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_USER_MENU_SETTINGS_PROFILE\":subMenuLabel=\"User &Workflow Profiles...\":subMenuHelp=\"Choose which menu items the user can access\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("/MENU_STRUCTURE:")
+};
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to a BookNamePair struct whose members have been assigned
 /// \param      pPair      <- the struce whose members are assigned values
@@ -1605,6 +2386,292 @@ void SetupDefaultStylesMap()
 			gpApp->m_pMappedObjectPointers->Add(gpUsfmAnalysis);
 		}
 		gpUsfmAnalysis = NULL;
+	}
+}
+
+// whm added 11Sep10
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
+/// called if the app cannot find the AI_UserProfiles.xml file and it must use 
+/// SetupDefaultUserProfiles() to establish its internal representation of any user
+/// selected User Workflow Profile. When AI_UserProfiles.xml is available (the usual case) 
+/// the m_pUserProfiles is populated by the AtPROFILEEndTag() function in XML.cpp, 
+/// rather than by this SetupDefaultUserProfiles() function.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetupDefaultUserProfiles()
+{
+	wxString field = _T("");
+	int nDefaultUserProfileItems;
+	UserProfileItem* pUserProfileItem = NULL;
+	nDefaultUserProfileItems = sizeof(defaultProfileItems)/sizeof(wxString);
+	int i;
+	for (i = 0; i < nDefaultUserProfileItems; i++)
+	{
+		// scan and parse each defaultProfileItems line
+		field.Empty();
+		int ct, totct;
+		wxString lineStr;
+		lineStr = defaultProfileItems[i];
+		totct = defaultProfileItems[i].Length();
+		for (ct = 0; ct < totct; ct++)
+		{
+			// defaultProfileItems[i] represents a whole string line of concatenated tags, attributes and values
+			
+			if (lineStr.GetChar(ct) != _T(':'))
+			{
+				field += lineStr.GetChar(ct);
+			}
+			else
+			{
+				// we're at the end of a field and field contains the string token
+				// up to, but not including the : delimiter.
+				// If the field doesn't have an '=' in it, it should be an all-caps
+				// tag name; if it has an '=' in it, the field should contain an 
+				// attribute name followed by the '=' with the attribute's value 
+				// within quote marks, i.e., attributeName="value".
+				// Parse the field into its parts
+				if (field.Find(_T("=")) == wxNOT_FOUND)
+				{
+					// No '=' in the field so field itself should be a tag name
+					// Test for most common ones first - profile and menu.
+					if (field == wxString::FromAscii(profile))
+					{
+						;
+					}
+					else if (field == wxString::FromAscii(end_profile))
+					{
+						;
+					}
+					else if (field == wxString::FromAscii(menu))
+					{
+						pUserProfileItem = new UserProfileItem;
+						pUserProfileItem->itemID = _T("");
+						pUserProfileItem->itemType = _T("");
+						pUserProfileItem->itemText = _T("");
+						pUserProfileItem->itemDescr = _T("");
+						pUserProfileItem->adminCanChange = _T("");
+						pUserProfileItem->usedProfileNames.Clear();
+					}
+					else if (field == wxString::FromAscii(end_menu))
+					{
+						m_pUserProfiles->profileItemList.Append(pUserProfileItem);
+					}
+					else if (field == wxString::FromAscii(userprofilessupport))
+					{
+						m_pUserProfiles = new UserProfiles;
+						m_pUserProfiles->profileVersion = _T("");
+						m_pUserProfiles->definedProfileNames.Clear();
+						m_pUserProfiles->profileItemList.Clear();
+					}
+					else if (field == wxString::FromAscii(end_userprofilessupport))
+					{
+						;
+					}
+				}
+				else
+				{
+					// field has an '=' char in it so it should be an attribute/value
+					// representation
+					wxString attrStr;
+					wxString valueStr;
+					attrStr = field.Mid(0,field.Find(_T("=")));
+					attrStr.Trim(FALSE);
+					attrStr.Trim(TRUE);
+					valueStr = field.Mid(field.Find(_T("=")));
+					valueStr.Replace(_T("="),_T(""));
+					valueStr.Replace(_T("\""),_T(""));
+					valueStr.Trim(FALSE);
+					valueStr.Trim(TRUE);
+					if (attrStr == wxString::FromAscii(profilesVersion))
+					{
+						wxASSERT(m_pUserProfiles != NULL);
+						m_pUserProfiles->profileVersion = valueStr;
+					}
+					else if (attrStr.Find(wxString::FromAscii(definedProfile)) == 0)
+					{
+						wxASSERT(m_pUserProfiles != NULL);
+						m_pUserProfiles->definedProfileNames.Add(valueStr);
+					}
+					else if (attrStr == wxString::FromAscii(itemID))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemID = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemType))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemType = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemText))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemText = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemDescr))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemDescr = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemAdminCanChange))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->adminCanChange = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemUserProfile))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->usedProfileNames.Add(valueStr);
+					}
+					else if (attrStr == wxString::FromAscii(itemVisibility))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->usedVisibilityValues.Add(valueStr);
+					}
+					else if (attrStr == wxString::FromAscii(factory))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->usedFactoryValues.Add(valueStr);
+					}
+				}
+
+				field.Empty(); // ready for next field
+			}
+		}
+		// We're at the end of a parsed line
+	}
+
+}
+
+// whm added 11Sep10
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
+/// called if the app cannot find the AI_UserProfiles.xml file and it must use 
+/// SetupDefaultMenuStructure() to establish its internal representation of the default
+/// menu structure. When AI_UserProfiles.xml is available (the usual case) the 
+/// m_pAI_MenuStructure is populated by the AtPROFILEEndTag() function in XML.cpp, 
+/// rather than by this SetupDefaultMenuStructure() function.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetupDefaultMenuStructure()
+{
+	wxString field = _T("");
+	int nDefaultMenuStructureItems;
+	AI_MainMenuItem* pMainMenuItem = NULL;
+	AI_SubMenuItem* pSubMenuItem = NULL;
+	nDefaultMenuStructureItems = sizeof(defaultMenuStructure)/sizeof(wxString);
+	int i;
+	for (i = 0; i < nDefaultMenuStructureItems; i++)
+	{
+		// scan and parse each defaultProfileItems line
+		field.Empty();
+		int ct;
+		for (ct = 0; ct < (int)defaultMenuStructure[i].Length(); ct++)
+		{
+			// defaultMenuStructure[i] represents a whole string line of concatenated tags, attributes and values
+			wxString lineStr;
+			lineStr = defaultMenuStructure[i];
+			if (lineStr.GetChar(ct) != _T(':'))
+			{
+				field += lineStr.GetChar(ct);
+			}
+			else
+			{
+				// we're at the end of a field and field contains the string token
+				// up to, but not including the : delimiter.
+				// If the field doesn't have an '=' in it, it should be an all-caps
+				// tag name; if it has an '=' in it, the field should contain an 
+				// attribute name followed by the '=' with the attribute's value 
+				// within quote marks, i.e., attributeName="value".
+				// Parse the field into its parts
+				if (field.Find(_T("=")) == wxNOT_FOUND)
+				{
+					// No '=' in the field so field itself should be a tag name
+					if (field == wxString::FromAscii(sub_menu))
+					{
+						pSubMenuItem = new AI_SubMenuItem;
+						pSubMenuItem->subMenuID = _T("");
+						pSubMenuItem->subMenuLabel = _T("");
+						pSubMenuItem->subMenuHelp = _T("");
+						pSubMenuItem->subMenuKind = _T("");
+					}
+					else if (field == wxString::FromAscii(end_sub_menu))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						wxASSERT(pMainMenuItem != NULL);
+						pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
+						pSubMenuItem = (AI_SubMenuItem*)NULL; // ready for the next use
+					}
+					else if (field == wxString::FromAscii(main_menu))
+					{
+						pMainMenuItem = new AI_MainMenuItem;
+						pMainMenuItem->mainMenuLabel = _T("");
+						pMainMenuItem->aiSubMenuItems.Clear();
+					}
+					else if (field == wxString::FromAscii(end_main_menu))
+					{
+						wxASSERT(m_pAI_MenuStructure != NULL);
+						wxASSERT(pMainMenuItem != NULL);
+						m_pAI_MenuStructure->aiMainMenuItems.Append(pMainMenuItem);
+						pMainMenuItem = (AI_MainMenuItem*)NULL; // ready for the next use
+					}
+					else if (field == wxString::FromAscii(menuStructure))
+					{
+						m_pAI_MenuStructure = new AI_MenuStructure;
+						m_pAI_MenuStructure->aiMainMenuItems.Clear();
+					}
+					else if (field == wxString::FromAscii(end_menuStructure))
+					{
+						;
+					}
+				}
+				else
+				{
+					// field has an '=' char in it so it should be an attribute/value
+					// representation
+					wxString attrStr;
+					wxString valueStr;
+					attrStr = field.Mid(0,field.Find(_T("=")));
+					attrStr.Trim(FALSE);
+					attrStr.Trim(TRUE);
+					valueStr = field.Mid(field.Find(_T("=")));
+					valueStr.Replace(_T("="),_T(""));
+					valueStr.Replace(_T("\""),_T(""));
+					valueStr.Trim(FALSE);
+					valueStr.Trim(TRUE);
+					if (attrStr == wxString::FromAscii(subMenuID))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuID = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(subMenuLabel))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuLabel = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(subMenuHelp))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuHelp = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(subMenuKind))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuKind = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(mainMenuLabel))
+					{
+						wxASSERT(pMainMenuItem != NULL);
+						pMainMenuItem->mainMenuLabel = valueStr;
+					}
+				}
+
+				field.Empty(); // ready for next field
+			}
+		}
+		// We're at the end of a parsed line
 	}
 }
 

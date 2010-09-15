@@ -7519,7 +7519,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( wxID_NEW, _("&New\tCtrl-N"), _("Create a new document") );
     item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
     item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );
-    item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-S"), _("Save the document with different xml format, or different filename") );
+    item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-A"), _("Save the document with different xml format, or different filename") );
     item1->Append( wxID_CLOSE, _("&Close"), _("Close the active document") );
     item1->Append( ID_FILE_PACK_DOC, _("Pack Document..."), _("Pack document for transfer to another computer") );
     item1->Append( ID_FILE_UNPACK_DOC, _("Unpack Document..."), _("Unpack a document that was packed on another computer") );

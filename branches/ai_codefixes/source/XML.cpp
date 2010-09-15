@@ -61,6 +61,7 @@
 #include "RefStringMetadata.h"
 #include "MainFrm.h"
 #include "WaitDlg.h"
+//#include "XML_UserProfiles.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -189,31 +190,38 @@ static int divIndex = -1;
 static int divCount = 0;
 static int totalCount = 0;
 
-// this group of tags are for the AI_UserProfiles.xml file
-const char userprofilessupport[] = "UserProfilesSupport";
-const char menu[] = "MENU";
-const char profile[] = "PROFILE";
-const char main_menu[] = "MAIN_MENU";
-const char sub_menu[] = "SUB_MENU";
-
-// this group are for the attribute names for AI_UserProfiles.xml
-const char profilesVersion[] = "profilesVersion";
-const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
-												// i.e., definedProfile1, definedProfile2, etc.
-const char itemID[] = "itemID";
-const char itemType[] = "itemType";
-const char itemText[] = "itemText";
-const char itemDescription[] = "description";
-const char itemAdminCanChange[] = "adminCanChange";
-const char itemUserProfile[] = "userProfile";
-const char itemVisibility[] = "itemVisibility";
-const char factory[] = "factory";
-
-const char mainMenuLabel[] = "mainMenuLabel";
-const char subMenuID[] = "subMenuID";
-const char subMenuLabel[] = "subMenuLabel";
-const char subMenuHelp[] = "subMenuHelp";
-const char subMenuKind[] = "subMenuKind";
+//// this group of tags are for the AI_UserProfiles.xml file
+//const char userprofilessupport[] = "UserProfilesSupport";
+//const char menu[] = "MENU";
+//const char profile[] = "PROFILE";
+//const char menuStructure[] = "MENU_STRUCTURE";
+//const char main_menu[] = "MAIN_MENU";
+//const char sub_menu[] = "SUB_MENU";
+//const char end_userprofilessupport[] = "/UserProfilesSupport";
+//const char end_menu[] = "/MENU";
+//const char end_profile[] = "/PROFILE";
+//const char end_menuStructure[] = "/MENU_STRUCTURE";
+//const char end_main_menu[] = "/MAIN_MENU";
+//const char end_sub_menu[] = "/SUB_MENU";
+//
+//// this group are for the attribute names for AI_UserProfiles.xml
+//const char profilesVersion[] = "profilesVersion";
+//const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
+//												// i.e., definedProfile1, definedProfile2, etc.
+//const char itemID[] = "itemID";
+//const char itemType[] = "itemType";
+//const char itemText[] = "itemText";
+//const char itemDescr[] = "itemDescr";
+//const char itemAdminCanChange[] = "adminCanChange";
+//const char itemUserProfile[] = "userProfile";
+//const char itemVisibility[] = "itemVisibility";
+//const char factory[] = "factory";
+//
+//const char mainMenuLabel[] = "mainMenuLabel";
+//const char subMenuID[] = "subMenuID";
+//const char subMenuLabel[] = "subMenuLabel";
+//const char subMenuHelp[] = "subMenuHelp";
+//const char subMenuKind[] = "subMenuKind";
 
 // this group of tags are for the AI_USFM.xml file
 const char usfmsupport[] = "USFMsupport";
@@ -1971,7 +1979,9 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpUserProfiles->definedProfileNames.Clear();
 		gpUserProfiles->profileItemList.Clear();
 		gpApp->m_pUserProfiles = gpUserProfiles; // make the App's pointer also point at it
-
+	}
+	else if (tag == menuStructure)
+	{
 		// create a new AI_MenuStructure struct to store the menu structure data
 		// contained in the AI_UserProfiles.xml file. The gpAI_MenuStructure mainly
 		// holds the aiMainMenuItems which is an instance of the MainMenuItemList.
@@ -1994,7 +2004,7 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpUserProfileItem->itemID = _T("");
 		gpUserProfileItem->itemType = _T("");
 		gpUserProfileItem->itemText = _T("");
-		gpUserProfileItem->description = _T("");
+		gpUserProfileItem->itemDescr = _T("");
 		gpUserProfileItem->adminCanChange = _T("");
 		gpUserProfileItem->usedProfileNames.Clear();
 	}
@@ -2013,7 +2023,7 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpSubMenuItem->subMenuID = _T("");
 		gpSubMenuItem->subMenuLabel = _T("");
 		gpSubMenuItem->subMenuHelp = _T("");
-		gpSubMenuItem->subMenuHelp = _T("");
+		gpSubMenuItem->subMenuKind = _T("");
 	}
 	else if (tag == main_menu)
 	{
@@ -2103,12 +2113,12 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			gpUserProfileItem->itemText = pValue;
 #endif
 		}
-		else if (attrName == itemDescription)
+		else if (attrName == itemDescr)
 		{
 #ifdef _UNICODE
-			gpUserProfileItem->description = pValueW;
+			gpUserProfileItem->itemDescr = pValueW;
 #else
-			gpUserProfileItem->description = pValue;
+			gpUserProfileItem->itemDescr = pValue;
 #endif
 		}
 		else if (attrName == itemAdminCanChange)

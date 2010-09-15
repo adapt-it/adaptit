@@ -362,6 +362,40 @@ const char xml_reversal[] = "reversal";
 const char xml_illustration[] = "illustration";
 */
 
+// this group of tags are for the AI_UserProfiles.xml file
+const char userprofilessupport[] = "UserProfilesSupport";
+const char menu[] = "MENU";
+const char profile[] = "PROFILE";
+const char menuStructure[] = "MENU_STRUCTURE";
+const char main_menu[] = "MAIN_MENU";
+const char sub_menu[] = "SUB_MENU";
+const char end_userprofilessupport[] = "/UserProfilesSupport";
+const char end_menu[] = "/MENU";
+const char end_profile[] = "/PROFILE";
+const char end_menuStructure[] = "/MENU_STRUCTURE";
+const char end_main_menu[] = "/MAIN_MENU";
+const char end_sub_menu[] = "/SUB_MENU";
+
+// this group are for the attribute names for AI_UserProfiles.xml
+const char profilesVersion[] = "profilesVersion";
+const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
+												// i.e., definedProfile1, definedProfile2, etc.
+const char itemID[] = "itemID";
+const char itemType[] = "itemType";
+const char itemText[] = "itemText";
+const char itemDescr[] = "itemDescr";
+const char itemAdminCanChange[] = "adminCanChange";
+const char itemUserProfile[] = "userProfile";
+const char itemVisibility[] = "itemVisibility";
+const char factory[] = "factory";
+
+const char mainMenuLabel[] = "mainMenuLabel";
+const char subMenuID[] = "subMenuID";
+const char subMenuLabel[] = "subMenuLabel";
+const char subMenuHelp[] = "subMenuHelp";
+const char subMenuKind[] = "subMenuKind";
+
+
 /// struct for saving top and bottom logical coord offsets for printing pages, stored in
 /// m_pagesList Instances of PageOffsets are populated in the PaginateDoc() function in the
 /// View.
@@ -910,7 +944,7 @@ struct UserProfileItem
 	wxString itemID;
 	wxString itemType;
 	wxString itemText;
-	wxString description;
+	wxString itemDescr;
 	wxString adminCanChange;
 	wxArrayString usedProfileNames;
 	wxArrayString usedVisibilityValues;
@@ -2664,6 +2698,9 @@ public:
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
 	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
+
+	void	SetupDefaultUserProfiles();
+	void	SetupDefaultMenuStructure();
 
     // rde: version 3.4.1 and up, determining the correct 'encoding=' string to put in an
     // XML file takes some extra thought...
