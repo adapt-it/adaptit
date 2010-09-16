@@ -996,6 +996,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		// nice cosy message and then the Start Working... wizard will open to help him out
 		if (gbTryingMRUOpen)
 		{
+			delete[] pBuff; // whm added 15Sep10 to prevent memory leak when returning prematurely
 			return FALSE; // return with no message here
 		}
 		// otherwise, we have a more serious problem and the user will need to get a cause
@@ -1013,6 +1014,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		// books.xml and AI_UserProfiles.xml.
 		//errStr << _("\nIf you wish you can try opening some other document and continue working.");
 		wxMessageBox(errStr, _T(""), wxICON_STOP);
+		delete[] pBuff; // whm added 15Sep10 to prevent memory leak when xml file is not found
 		return FALSE;
 	}
 
@@ -1048,6 +1050,7 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		cause << errno;
 		errStr << cause;
 		wxMessageBox(errStr, _T(""), wxICON_STOP);
+		delete[] pBuff; // whm added 15Sep10 to prevent memory leak when returning prematurely
 		return FALSE;
 	}
 	
