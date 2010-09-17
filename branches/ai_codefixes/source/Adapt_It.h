@@ -377,7 +377,7 @@ const char end_main_menu[] = "/MAIN_MENU";
 const char end_sub_menu[] = "/SUB_MENU";
 
 // this group are for the attribute names for AI_UserProfiles.xml
-const char profilesVersion[] = "profilesVersion";
+const char profileVersion[] = "profileVersion";
 const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
 												// i.e., definedProfile1, definedProfile2, etc.
 const char itemID[] = "itemID";

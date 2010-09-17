@@ -104,7 +104,55 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 
 CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 {
-	
+	//AI_MenuStructure* tempMenuStructure;
+	//UserProfiles* tempUserProfiles;
+
+	// deallocate the memory used by our temporary objects
+	if (tempUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = tempUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = tempUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			pos = pos->GetNext();
+			delete pItem;
+		}
+		delete tempUserProfiles;
+	}
+
+	if (tempMenuStructure != NULL)
+	{
+		MainMenuItemList::Node* mmpos;
+		int ct_mm;
+		int total_mm = tempMenuStructure->aiMainMenuItems.GetCount();
+		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
+		{
+			mmpos = tempMenuStructure->aiMainMenuItems.Item(ct_mm);
+			AI_MainMenuItem* pmmItem;
+			pmmItem = mmpos->GetData();
+			wxASSERT(pmmItem != NULL);
+			mmpos = mmpos->GetNext();
+			
+			SubMenuItemList::Node* smpos;
+			int ct_sm;
+			int total_sm = pmmItem->aiSubMenuItems.GetCount();
+			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
+			{
+				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
+				AI_SubMenuItem* psmItem;
+				psmItem = smpos->GetData();
+				wxASSERT(psmItem != NULL);
+				smpos = smpos->GetNext();
+				delete psmItem;
+			}
+			delete pmmItem;
+		}
+		delete tempMenuStructure;
+	}
 }
 
 void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -200,15 +248,22 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	if (!bReadOK)
 	{
 		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read
-		// We'll proceed with populating the dialog's list (below) which will
-		// simply put one item in the list saying, "[No AI_UserProfiles.xml data is available]"
-		// TODO: Have some default settings that can be used (like the USFM Unix strings?)
+		// We'll populate the list boxes with default settings parsed from our
+		// default unix-like strings
 		m_pApp->SetupDefaultUserProfiles();
 		m_pApp->SetupDefaultMenuStructure();
 	}
+	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
 
+	// create a temporary MenuStructure object for use in AdminEditMenuProfile.
+	tempMenuStructure = new AI_MenuStructure;
+	// create a temporary UserProfiles object for use in AdminEditMenuProfile.
+	tempUserProfiles = new UserProfiles;
+	// Make a copy of the App's objects
+	CopyMenuStructure(m_pApp->m_pAI_MenuStructure, tempMenuStructure);
+	CopyUserProfiles(m_pApp->m_pUserProfiles, tempUserProfiles);
+	// Finally populate the list box
 	PopulateListBox(tabIndex);
-
 }
 
 // event handling functions
@@ -478,6 +533,105 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 				pCheckListBox->Check(lbIndx,true);
 			else
 				pCheckListBox->Check(lbIndx,false);
+		}
+	}
+}
+
+// Copies the menu structure of a pFromMenuStructure instance to a pToMenuStructure instance, copying
+// all of the internal attributes and lists.
+// Note: Assumes that pFromMenuStructure and pToMenuStructure were created on the heap before this
+// function was called.
+void CAdminEditMenuProfile::CopyMenuStructure(AI_MenuStructure* pFromMenuStructure, AI_MenuStructure* pToMenuStructure)
+{
+	wxASSERT(pFromMenuStructure != NULL);
+	wxASSERT(pToMenuStructure != NULL);
+	int ct;
+	int totct;
+	totct = pFromMenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		AI_MainMenuItem* pFromMainMenuItem;
+		AI_MainMenuItem* pToMainMenuItem;
+		MainMenuItemList::Node* node;
+		node = pFromMenuStructure->aiMainMenuItems.Item(ct);
+		pFromMainMenuItem = node->GetData();
+		int i;
+		int ict;
+		ict = pFromMainMenuItem->aiSubMenuItems.GetCount();
+		for (i = 0; i < ict; i++)
+		{
+			AI_SubMenuItem* pFromSubMenuItem;
+			AI_SubMenuItem* pToSubMenuItem;
+			SubMenuItemList::Node* subNode;
+			subNode = pFromMainMenuItem->aiSubMenuItems.Item(i);
+			pFromSubMenuItem = subNode->GetData();
+			pToSubMenuItem = new AI_SubMenuItem;
+			wxASSERT(pToSubMenuItem != NULL);
+			pToSubMenuItem->subMenuHelp = pFromSubMenuItem->subMenuHelp;
+			pToSubMenuItem->subMenuID = pFromSubMenuItem->subMenuID;
+			pToSubMenuItem->subMenuKind = pFromSubMenuItem->subMenuKind;
+			pToSubMenuItem->subMenuLabel = pFromSubMenuItem->subMenuLabel;
+			pToMainMenuItem = new AI_MainMenuItem;
+			wxASSERT(pToMainMenuItem != NULL);
+			pToMainMenuItem->mainMenuLabel = pFromMainMenuItem->mainMenuLabel;
+			pToMainMenuItem->aiSubMenuItems.Append(pFromSubMenuItem);
+		}
+		pToMenuStructure->aiMainMenuItems.Append(pFromMainMenuItem);
+	}
+}
+
+// Copies the UserProfiles of a pFromUserProfiles instance to a pToUserProfiles instance, copying
+// all of the internal attributes and lists.
+// Note: Assumes that pFromUserProfiles and pToUserProfiles were created on the heap before this
+// function was called.
+void CAdminEditMenuProfile::CopyUserProfiles(UserProfiles* pFromUserProfiles, UserProfiles* pToUserProfiles)
+{
+	wxASSERT(pFromUserProfiles != NULL);
+	wxASSERT(pToUserProfiles != NULL);
+	if (pFromUserProfiles != NULL)
+	{
+		pToUserProfiles->profileVersion = pFromUserProfiles->profileVersion;
+		
+		int count;
+		int totPNames = pFromUserProfiles->definedProfileNames.GetCount();
+		for (count = 0; count < totPNames; count++)
+		{
+			pToUserProfiles->definedProfileNames.Add(pFromUserProfiles->definedProfileNames.Item(count));
+		}
+		
+		ProfileItemList::Node* pos;
+		int item_count = pFromUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = pFromUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pFromItem;
+			UserProfileItem* pToItem;
+			pFromItem = pos->GetData();
+			pToItem = new UserProfileItem;
+			wxASSERT(pToItem != NULL);
+			pToItem->adminCanChange = pFromItem->adminCanChange;
+			pToItem->itemDescr = pFromItem->itemDescr;
+			pToItem->itemID = pFromItem->itemID;
+			pToItem->itemText = pFromItem->itemText;
+			pToItem->itemType = pFromItem->itemType;
+			int ct;
+			int totCt;
+			totCt = pFromItem->usedFactoryValues.GetCount();
+			for (ct = 0; ct < totCt; ct++)
+			{
+				pToItem->usedFactoryValues.Add(pFromItem->usedFactoryValues.Item(ct));
+			}
+			totCt = pFromItem->usedProfileNames.GetCount();
+			for (ct = 0; ct < totCt; ct++)
+			{
+				pToItem->usedProfileNames.Add(pFromItem->usedProfileNames.Item(ct));
+			}
+			totCt = pFromItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < totCt; ct++)
+			{
+				pToItem->usedVisibilityValues.Add(pFromItem->usedVisibilityValues.Item(ct));
+			}
+			pToUserProfiles->profileItemList.Append(pToItem);
 		}
 	}
 }

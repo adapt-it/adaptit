@@ -205,7 +205,7 @@ static int totalCount = 0;
 //const char end_sub_menu[] = "/SUB_MENU";
 //
 //// this group are for the attribute names for AI_UserProfiles.xml
-//const char profilesVersion[] = "profilesVersion";
+//const char profileVersion[] = "profileVersion";
 //const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
 //												// i.e., definedProfile1, definedProfile2, etc.
 //const char itemID[] = "itemID";
@@ -2068,7 +2068,7 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 	pValue = pValue; // avoid warnings in Unicode builds
 	if (tag == userprofilessupport && gpUserProfiles != NULL)
 	{
-		if (attrName == profilesVersion)
+		if (attrName == profileVersion)
 		{
 #ifdef _UNICODE
 			gpUserProfiles->profileVersion = pValueW;
@@ -2078,7 +2078,7 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 		}
 		else if (attrName.Find(definedProfile) == 0)
 		{
-			// In profilesVersion 1.0 there are three defined profile attributes defined in 
+			// In profileVersion 1.0 there are three defined profile attributes defined in 
 			// the <UserProfilesSupport> tag, definedProfile1, definedProfile2 and 
 			// definedProfile3. The .Find in the test above will return 0 for all 
 			// definedProfileN attributes where N is 1,2,3,...

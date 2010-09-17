@@ -43,6 +43,8 @@ public:
 	wxCheckListBox* pCheckListBox;
 	wxButton* pOKButton;
 	int tempWorkflowProfile;
+	AI_MenuStructure* tempMenuStructure;
+	UserProfiles* tempUserProfiles;
 	wxArrayInt itemsAlwaysChecked;
 	// other methods
 
@@ -54,6 +56,8 @@ protected:
 	void OnCheckListBoxToggle(wxCommandEvent& event);
 	void OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event));
 	void PopulateListBox(int newTabIndex);
+	void CopyMenuStructure(AI_MenuStructure* pFromMenuStructure, AI_MenuStructure* pToMenuStructure);
+	void CopyUserProfiles(UserProfiles* pFromUserProfiles, UserProfiles* pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
 	wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr);

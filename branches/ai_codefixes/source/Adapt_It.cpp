@@ -2484,7 +2484,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 					valueStr.Replace(_T("\""),_T(""));
 					valueStr.Trim(FALSE);
 					valueStr.Trim(TRUE);
-					if (attrStr == wxString::FromAscii(profilesVersion))
+					if (attrStr == wxString::FromAscii(profileVersion))
 					{
 						wxASSERT(m_pUserProfiles != NULL);
 						m_pUserProfiles->profileVersion = valueStr;
@@ -10676,7 +10676,6 @@ int CAdapt_ItApp::OnExit(void)
 			pos = m_pUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
-			pos = pos->GetNext();
 			delete pItem;
 		}
 		delete m_pUserProfiles;
@@ -10693,7 +10692,6 @@ int CAdapt_ItApp::OnExit(void)
 			AI_MainMenuItem* pmmItem;
 			pmmItem = mmpos->GetData();
 			wxASSERT(pmmItem != NULL);
-			mmpos = mmpos->GetNext();
 			
 			SubMenuItemList::Node* smpos;
 			int ct_sm;
@@ -10704,7 +10702,6 @@ int CAdapt_ItApp::OnExit(void)
 				AI_SubMenuItem* psmItem;
 				psmItem = smpos->GetData();
 				wxASSERT(psmItem != NULL);
-				smpos = smpos->GetNext();
 				delete psmItem;
 			}
 			delete pmmItem;
