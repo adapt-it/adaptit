@@ -9813,14 +9813,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			_T(""), wxICON_INFORMATION);
 			m_bUsingAdminDefinedUserProfile = FALSE;
 
-			// TODO: Insure that config file settings get adjusted to UserProfile 0
-			// 
-            // To use any non-default user profile, the user needs to fix the AI_UserProfiles.xml 
-            // file so it parses correctly, or if it did not get read in, so that it gets read in.
-            // However, it is unlikely that it did not get read in; most likely there was a
-            // parse error - and the user should have seen an error message to that effect
-            // originating from the ReadPROFILES_XML call above. If there was not such, then
-            // it must have been a bad file read.
+			// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
+			// We'll populate the list boxes with default settings parsed from our
+			// default unix-like strings.
+			SetupDefaultUserProfiles();
+			SetupDefaultMenuStructure();
 		}
 	}
 	else
