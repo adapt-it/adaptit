@@ -9825,6 +9825,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // no "AI_UserProfiles.xml" file in the work folder, so use default user profile (none);
 		wxLogDebug(_T("AI_UserProfiles.xml not found in work folder - using Adapt It's default user profile."));
 		m_bUsingAdminDefinedUserProfile = FALSE;
+		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
+		// We'll populate the list boxes with default settings parsed from our
+		// default unix-like strings.
+		SetupDefaultUserProfiles();
+		SetupDefaultMenuStructure();
 	}
 
 	// At this point the config files have been read and the AI_UserProfiles.xml file has been
