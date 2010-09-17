@@ -1874,6 +1874,10 @@ void EmptyMarkersAndFilteredStrings(
 /// BEW 1Apr10, written for support of doc version 5
 /// BEW 8Sep10, altered order of export of filtered stuff, it's now 1. filtered info, 2.
 /// collected back trans, 3. free translation, 4. note (This fits better with OXES export)
+/// BEW 17Sep10, added a character count, wrapped by @# and #@ at start of note text, so
+/// that notes on a merger will carry with them a count of the characters in the adaptation
+/// phrase - this is done only for the special case of an sfm export for use in building
+/// oxes xml; also, we'll pass the actual phrase on to oxes in the format @#nnn:phrase#@
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 {
@@ -1902,7 +1906,9 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 	wxString noteMkr(_T("\\note"));
 	wxString noteEndMkr = noteMkr + _T("*");
 	wxString backTransMkr(_T("\\bt"));
-	markersPrefix.Empty(); // clear it out
+	markersPrefix.Empty(); // clear it out -- this is where we accumulate a series of
+		// mkr+content+/-endmkr substrings, to form a prefix for inserting before the
+		// visible content stored on this merged CSourcePhrase
 	Sstr.Empty(); // clear it out
 
 	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
@@ -1998,6 +2004,24 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 	// others in that section of text
 	if (!noteStr.IsEmpty() || pMergedSrcPhrase->m_bHasNote)
 	{
+		if (gpApp->m_bOxesExportInProgress)
+		{
+            // 'numberOfChars' is not the number of characters in the note itself, but
+            // rather the number of characters in the words of the adaptation phrase in the
+            // m_targetStr member of this merged CSourcePhrase (oxes needs this info)
+			int numberOfChars = pMergedSrcPhrase->m_targetStr.Len(); // no space at end
+			wxString numStr;
+			numStr = numStr.Format(_T("%d"),numberOfChars);
+			numStr = _T("@#") + numStr;
+			numStr += _T(':'); // divider
+			numStr += pMergedSrcPhrase->m_targetStr;
+			numStr += _T("#@");
+			noteStr = numStr + noteStr;
+			// the oxes parser must detect this @#nnn#@ substring and remove it, convert
+			// it to int, and use it to count the phrase's length to which the note applies
+			// so that the endOffset in the relevant NoteDetails struct can be set
+			// correctly, and put the phrase after the colon into its 
+		}
 		markersPrefix.Trim();
 		markersPrefix += aSpace + noteMkr;
 		if (noteStr.IsEmpty())
@@ -2650,6 +2674,11 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 /// BEW 1Apr10, written for support of doc version 5
 /// BEW 8Sep10, altered order of export of filtered stuff, it's now 1. filtered info, 2.
 /// collected back trans, 3. free translation 4. note (This fits better with OXES export)
+/// BEW 17Sep10, added a character count, wrapped by @# and #@ at start of note text, so
+/// that notes on a CSourcePhrase will carry with them a count of the characters in the
+/// adaptation word - this is done only for the special case of an sfm export for use in
+/// building oxes xml; also, we'll pass the actual word on to oxes in the format
+/// @#nnn:word#@
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 {
@@ -2755,6 +2784,24 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 	// others in that section of text
 	if (!noteStr.IsEmpty() || pSingleSrcPhrase->m_bHasNote)
 	{
+		if (gpApp->m_bOxesExportInProgress)
+		{
+            // 'numberOfChars' is not the number of characters in the note itself, but
+            // rather the number of characters in the words of the adaptation phrase in the
+            // m_targetStr member of this merged CSourcePhrase (oxes needs this info)
+			int numberOfChars = pSingleSrcPhrase->m_targetStr.Len(); // no space at end
+			wxString numStr;
+			numStr = numStr.Format(_T("%d"),numberOfChars);
+			numStr = _T("@#") + numStr;
+			numStr += _T(':'); // divider
+			numStr += pSingleSrcPhrase->m_targetStr;
+			numStr += _T("#@");
+			noteStr = numStr + noteStr;
+			// the oxes parser must detect this @#nnn#@ substring and remove it, convert
+			// it to int, and use it to count the phrase's length to which the note applies
+			// so that the endOffset in the relevant NoteDetails struct can be set
+			// correctly, and put the word after the colon into its wordsInSpan member
+		}
 		markersPrefix.Trim();
 		markersPrefix += aSpace + noteMkr;
 		if (noteStr.IsEmpty())
@@ -3072,13 +3119,15 @@ wxString GetUuid()
 // BEW created 10May10, modified 9July10 to make it be UTC time, and adding Z suffix
 // BEW note, 26Aug10: Paratext normalizes to UTC, by converting to Zulu time, and it's
 // formatted datetime has no space between date and time, and a capital Z following
-// without a space delimiter. OXES, however, uses local time, and has a space separating
-// date and time, and uses "-" hyphen as the field delimiter, not colon. So I need to do
-// some work on this to support these different formats.
+// without a space delimiter. OXES, however, uses as much as the creating application
+// wants to send - so we will send date and time, but not fractions of a second, and the
+// standard for the date format separator is hyphen, and colon for the time delimiter, and
+// there should be a single T between date and time if both are present.
 wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 {
 	wxDateTime theDateTime = wxDateTime::Now();
-	// Adapt It and Paratext want it as UTC datetime, but not OXES
+	// Adapt It and Paratext want it as UTC datetime, but OXES accepts as much as we want
+	// to give, but UTC with offset +HH:SS or -HH:SS if we want to include the latter.
 	if (dt == adaptItDT || dt == paratextDT)
 	{
 		// param noDST is default false, so it does daylight savings time adjustment too
@@ -3090,24 +3139,25 @@ wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 	{
 	case paratextDT:
 		{
-			dateTimeStr = theDateTime.Format(_T("%Y:%m:%d%H:%M:%SZ")).c_str();
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%dT%H:%M:%SZ")).c_str();
 		}
 		break;
 	case oxesDT:
 		{
-			// strange, but they use hyphen for date, but colon for time
-			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d %H:%M:%S")).c_str();
+			// I'm giving OXES local time, but this can be changed if the TE team want
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%dT%H:%M:%S")).c_str();
 		}
 		break;
 	case oxesDateOnly:
 		{
+			// I'm giving OXES local timezone's date, but this can be changed if the TE team want
 			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d")).c_str(); // chop off time spec
 		}
 		break;
 	default:
 	case adaptItDT:
 		{
-			dateTimeStr = theDateTime.Format(_T("%Y:%m:%d %H:%M:%SZ")).c_str();
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%dT%H:%M:%SZ")).c_str();
 		}
 		break;
 	}

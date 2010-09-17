@@ -204,6 +204,7 @@ void DoExportAsOxes(int versionNum)
 	Usfm2Oxes* pToOxes = gpApp->m_pUsfm2Oxes;
 	// set the class to build according to the version number wanted
 	pToOxes->SetOXESVersionNumber(versionNum);
+	pToOxes->SetBookID(bookCode);
 
 	wxString filter;
 	wxString DefaultExt;
@@ -263,7 +264,10 @@ void DoExportAsOxes(int versionNum)
 		return; // user cancelled file dialog so return to what user was doing previously
 	}
 
-	wxLogNull logNo; // avoid spurious messages from the system
+	//wxLogNull logNo; // avoid spurious messages from the system
+	
+	// we are committed to the task...
+	gpApp->m_bOxesExportInProgress = TRUE;
 
     // get the user's desired path, & update m_lastExportPath
 	wxString exportPath = fileDlg.GetPath();
@@ -290,7 +294,7 @@ void DoExportAsOxes(int versionNum)
 	// document, they will be included - so we have to get rid of them later)
 	nTextLength = RebuildTargetText(target);
 
-	// Remove any collected back translations (these have no endmarker,  by the way, so
+	// Remove any collected back translations (these have no endmarker, by the way, so
 	// they are stored before \v of verses)
 	target = RemoveCollectedBacktranslations(target);
 
@@ -313,6 +317,7 @@ void DoExportAsOxes(int versionNum)
 		// don't localize this, it's unlikely to ever be seen
 		msg = msg.Format(_T("Unable to open the file for exporting the target text as OXES with path:\n%s"),exportPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+		gpApp->m_bOxesExportInProgress = FALSE;
 		return;
 	}
 	// output the final form of the string
@@ -330,6 +335,7 @@ void DoExportAsOxes(int versionNum)
 
 	#endif // for _UNICODE
 	f.Close();
+	gpApp->m_bOxesExportInProgress = FALSE;
 }
 
 wxString RemoveCollectedBacktranslations(wxString& str)
@@ -15679,6 +15685,27 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				{
 					markersPrefix.Trim();
 					markersPrefix += aSpace + noteMkr;
+
+					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
+					// word for the note stored here
+					if (gpApp->m_bOxesExportInProgress)
+					{
+						// 'numberOfChars' is not the number of characters in the note itself, but
+						// rather the number of characters in the words of the adaptation phrase in the
+						// m_targetStr member of this merged CSourcePhrase (oxes needs this info)
+						int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
+						wxString numStr;
+						numStr = numStr.Format(_T("%d"),numberOfChars);
+						numStr = _T("@#") + numStr;
+						numStr += _T(':'); // divider
+						numStr += pSrcPhrase->m_targetStr;
+						numStr += _T("#@");
+						noteStr = numStr + noteStr;
+						// the oxes parser must detect this @#nnn#@ substring and remove it, convert
+						// it to int, and use it to count the phrase's length to which the note applies
+						// so that the endOffset in the relevant NoteDetails struct can be set
+						// correctly, and put the word after the colon into its wordsInSpan member
+					}
 					markersPrefix += aSpace + noteStr;
 					markersPrefix += noteEndMkr; // don't need space too
 				}
@@ -15807,6 +15834,27 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				{
 					unfilteredStr.Trim();
 					unfilteredStr += aSpace + noteMkr;
+
+					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
+					// word for the note stored here
+					if (gpApp->m_bOxesExportInProgress)
+					{
+						// 'numberOfChars' is not the number of characters in the note itself, but
+						// rather the number of characters in the words of the adaptation phrase in the
+						// m_targetStr member of this merged CSourcePhrase (oxes needs this info)
+						int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
+						wxString numStr;
+						numStr = numStr.Format(_T("%d"),numberOfChars);
+						numStr = _T("@#") + numStr;
+						numStr += _T(':'); // divider
+						numStr += pSrcPhrase->m_targetStr;
+						numStr += _T("#@");
+						noteStr = numStr + noteStr;
+						// the oxes parser must detect this @#nnn#@ substring and remove it, convert
+						// it to int, and use it to count the phrase's length to which the note applies
+						// so that the endOffset in the relevant NoteDetails struct can be set
+						// correctly, and put the word after the colon into its wordsInSpan member
+					}
 					unfilteredStr += aSpace + noteStr;
 					unfilteredStr += noteEndMkr; // don't need space too
 				}
@@ -15945,7 +15993,6 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 			// need to add an initial space if there is not one there already
 			Tstr = _T(" ") + Tstr;
 		}
-
 	}
 
 	// now add the prefix string material not shown in the Place... dialog, 

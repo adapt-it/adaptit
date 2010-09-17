@@ -539,6 +539,10 @@ void CFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gCurrentFilterMarkers
 				tempFilterMarkersAfterEditDoc = gpApp->gCurrentFilterMarkers;
 			}
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(6); // location 6
+#endif
+
 		}
 		else
 		{
@@ -563,6 +567,10 @@ void CFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gCurrentFilterMarkers
 				tempFilterMarkersAfterEditDoc = gpApp->gCurrentFilterMarkers;
 			}
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(7); // location 7
+#endif
+
 		}
 	}
 
@@ -699,6 +707,10 @@ void CFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gProjectFilterMarkersForConfig
 				tempFilterMarkersAfterEditProj = gpApp->gProjectFilterMarkersForConfig;
 			}
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(8); // location 8
+#endif
+
 		}
 		else
 		{
@@ -723,6 +735,10 @@ void CFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gProjectFilterMarkersForConfig
 				tempFilterMarkersAfterEditProj = gpApp->gProjectFilterMarkersForConfig;
 			}
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(9); // location 9
+#endif
+
 		}
 	}
 

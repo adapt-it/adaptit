@@ -6129,6 +6129,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_pUsfm2Oxes = NULL; // BEW added 2Sep10
+	m_bOxesExportInProgress = FALSE;
 
 	m_pAI_MenuStructure = (AI_MenuStructure*)NULL; // whm added 8Sep10
 	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
@@ -9906,6 +9907,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Retain the initial USFM filter marker string as "Factory default"
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
+#if defined __WXDEBUG__
+	ShowFilterMarkers(1); // location 1
+#endif
 	gFactorySfmSet = UsfmOnly;
 
 	// using PushEventHandler() here appears to be too early (there is no 'previous' event
@@ -22773,6 +22777,9 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	PngInLineMarkersStr.Empty();
 	UsfmAndPngInLineMarkersStr.Empty();
 
+#if defined __WXDEBUG__
+	ShowFilterMarkers(2); // location 2
+#endif
 	UsfmFilterMarkersStr.Empty();
 	PngFilterMarkersStr.Empty();
 	UsfmAndPngFilterMarkersStr.Empty();
@@ -22783,6 +22790,10 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	USFMAnalysis* pSfm;
 	wxString key;
 	MapSfmToUSFMAnalysisStruct::iterator iter;
+
+#if defined __WXDEBUG__
+	ShowFilterMarkers(3); // location 3
+#endif
 
 	for (iter = m_pUsfmStylesMap->begin(); iter != m_pUsfmStylesMap->end(); ++iter)
 	{
@@ -22814,6 +22825,11 @@ void CAdapt_ItApp::SetupMarkerStrings()
 			UsfmFilterMarkersStr += _T(' ');
 		}
 	}
+
+#if defined __WXDEBUG__
+	ShowFilterMarkers(4); // location 4
+#endif
+
 	for (iter = m_pPngStylesMap->begin(); iter != m_pPngStylesMap->end(); ++iter)
 	{
 		// Retrieve each USFMAnalysis struct from the map
@@ -22883,6 +22899,9 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	case UsfmAndPng: gCurrentFilterMarkers = UsfmAndPngFilterMarkersStr; break;
 	default: gCurrentFilterMarkers = UsfmFilterMarkersStr;
 	}
+#if defined __WXDEBUG__
+	ShowFilterMarkers(5); // location 5
+#endif
 
 #ifdef _Trace_UnknownMarkers
 	wxString filteredUnkMkrsAddedTogCurrentFilterMarkers;
@@ -29300,5 +29319,42 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 	event.Enable(TRUE); 
 }
 
+#if defined __WXDEBUG__
+void CAdapt_ItApp::ShowFilterMarkers(int refNum)
+{
+	wxString s = UsfmFilterMarkersStr;
+	wxArrayString arr;
+	wxStringTokenizer tokens(s);
+	while (tokens.HasMoreTokens())
+	{
+		wxString mkr = tokens.GetNextToken();
+		mkr += _T(" ");
+		arr.Add(mkr);
+	}
+	int total = arr.GetCount();
+	int remainder = total;
+	int curCount = 0;
+	int lastLineHas = 0;
+	s.Empty();
+	// chop it into lines with 10 markers each
+	while (remainder > 0)
+	{
+		wxString mkr = arr.Item(curCount);
+		s += mkr;
+		curCount++;
+		lastLineHas++;
+		remainder--;
+		if (lastLineHas == 10)
+		{
+			s += _T("\n"); // start a new line
+			lastLineHas = 0;
+		}
+	}
 
+	wxString msg;
+	msg = msg.Format(_T("***FILTERED MARKERS:    location: %d\n%s\nEND FILTERED MARKERS***"),
+		refNum, s.c_str());
+	wxLogDebug(msg);
+}
+#endif
 

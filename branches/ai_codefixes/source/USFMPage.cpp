@@ -368,6 +368,10 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 			&pFilterPageInPrefs->filterPgCommon.m_filterFlagsDoc,
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(10); // location 10
+#endif
+
 #ifdef _Trace_UnknownMarkers
 		TRACE0("In USFM Page User clicked UsfmOnly - Now calling Filter Page's AddUnknownMarkersToDocArrays:\n");
 #endif
@@ -378,8 +382,11 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
 				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
 				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
+ 
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(17); // location 17
+#endif
 
-		// 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
 		// test for "before edit/after edit" changes, we need to initialize them again. The 
@@ -403,6 +410,11 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		// whm added 20Sep06 because filterPage's InitDialog is not called when filtering tab is
 		// selected in prefs
 		pFilterPageInPrefs->filterPgCommon.LoadDocSFMListBox(LoadInitialDefaults);
+
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(18); // location 18
+#endif
+
 	}
 	else
 	{
@@ -427,12 +439,20 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 			&pFilterPageWiz->filterPgCommon.m_filterFlagsDoc,
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(11); // location 11
+#endif
+
 		// From the wizard no doc is loaded so there are no unknown markers to add to the Doc's 
 		// filter arrays, so we don't call pFilterPageWiz->AddUnknownMarkersToDocArrays() here.
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
 				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
 				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
+
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(19); // location 19
+#endif
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -454,6 +474,11 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		// Since we are starting a new baseline for filter changes, make the "after" edit = the "before" edit
 		// established above.
 		pFilterPageWiz->filterPgCommon.tempFilterMarkersAfterEditDoc = pFilterPageWiz->filterPgCommon.tempFilterMarkersBeforeEditDoc;
+
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(20); // location 20
+#endif
+
 	}
 
 	UpdateButtons();
@@ -767,9 +792,17 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 			&pFilterPageInPrefs->filterPgCommon.m_filterFlagsProj,
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(12); // location 12
+#endif
+
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
 				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
 				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
+
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(13); // location 13
+#endif
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -814,9 +847,17 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 			&pFilterPageWiz->filterPgCommon.m_filterFlagsProj,
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(14); // location 14
+#endif
+
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
 				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
 				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
+
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(15); // location 15
+#endif
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -843,6 +884,10 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 		DoBnClickedRadioUseUbsSetOnlyDoc(event); // this will set up the Doc's arrays in Filter Page.
 	}
 	UpdateButtons();
+
+#if defined __WXDEBUG__
+	gpApp->ShowFilterMarkers(16); // location 16
+#endif
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();

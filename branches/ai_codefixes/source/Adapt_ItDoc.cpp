@@ -5252,6 +5252,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bDidSomeUnfiltering = FALSE;
 
+#if defined __WXDEBUG__
+			//if (curSequNum >= 170)
+			//{
+			//	int startStepping = 1; // I'm interested in sn == 171, where \r is filtered
+			//	startStepping = startStepping; // and I want to find out why it doesn't unfilter
+			//	... the problem is earlier, the list of filtered markers in the doc is
+			//	getting 41 of the 57 filtered markers chopped off its list, including \r
+			//}
+#endif
 			SPList::Node* prevPos = oldPos;
 			pLastSrcPhrase = prevPos->GetData(); // abandon; this one is the pSrcPhrase one
 			prevPos = prevPos->GetPrevious();
@@ -7274,12 +7283,14 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 /// Called from: the Doc's GetMarkersAndTextFromString().
 /// Returns the whole marker by parsing through an existing marker until either whitespace is
 /// encountered or another backslash is encountered.
+/// BEW fixed 10Sep10, the last test used forward slash, and should be backslash
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd) // whm added 18Feb05
 {
 	int len = 0;
 	wxChar* ptr = pChar;
-	while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('/'))
+	//while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('/'))
+	while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('\\'))
 	{
 		ptr++;
 		len++;
@@ -8067,10 +8078,18 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 /// DoExportInterlinearRTF(), ParseFootnote(), ParseEndnote(), ParseCrossRef(), 
 /// ProcessAndWriteDestinationText(), ApplyOutputFilterToText(), IsCharacterFormatMarker(),
 /// DetermineRTFDestinationMarkerFlagsFromBuffer().
-/// Returns the whole standard format marker including the initial backslash and any ending asterisk.
+/// Returns the whole standard format marker including the initial backslash and any ending
+/// asterisk. 
+/// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
+/// at a backslash - so test and return the empty string. (Better this way for OXES support)
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 {
+	if (*pChar != gSFescapechar)
+	{
+		wxString s; s.Empty();
+		return s;
+	}
 	// whm added 10Feb2005 in support of USFM and SFM Filtering support
 	// returns the whole marker including backslash and any ending *
 	wxChar* ptr = pChar;
@@ -8088,9 +8107,16 @@ wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 /// Returns the whole standard format marker including the initial backslash and any ending
 /// asterisk. Internally uses ParseMarker() just like the version of GetWholeMarker() that
 /// uses a pointer to a buffer.
+/// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
+/// at a backslash - so test and return the empty string. (Better this way for OXES support)
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxString str)
 {
+	if (str[0] != gSFescapechar)
+	{
+		wxString s; s.Empty();
+		return s;
+	}
 	// BEW added 2Jun2006 for situations where a marker is at the start of a CString
 	// returns the whole marker including backslash and any ending *
 	int len = str.Length();

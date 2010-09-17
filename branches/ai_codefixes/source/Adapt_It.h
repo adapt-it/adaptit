@@ -2593,7 +2593,10 @@ protected:
 #endif
 
 public:
-
+#if defined __WXDEBUG__
+	// a debugging helper to send contents of UsfmFilterMarkersStr to debug window
+	void	ShowFilterMarkers(int refNum); // refNum is any number I want to pass in, it is shown too
+#endif
 	bool	ConfigureInterfaceForUserProfile(int currentProfile, int newProfile);
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
@@ -2863,7 +2866,13 @@ public:
 	// member for support of user-navigation-protection feature; the dialog is created in
 	// OnInit() whether or not this feature is being used, but only shown when
 	// appropriate; it is destroyed in OnExit()
-	NavProtectNewDoc* m_pNavProtectDlg;			
+	NavProtectNewDoc* m_pNavProtectDlg;	
+
+    // BEWS added 17Sept10: set TRUE when an oxes export is in progress - and since it
+    // starts with a special case of a standard USFM target text export with \bt info not
+    // included, the TRUE value should be on when that export commences. Turn it off when
+    // the exported oxes file is saved to disk.
+	bool m_bOxesExportInProgress;
 };
 
 DECLARE_APP(CAdapt_ItApp);
