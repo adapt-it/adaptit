@@ -419,6 +419,8 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		mmNode = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
 		pMainMenuItem = mmNode->GetData();
 		mainMenuLabel = pMainMenuItem->mainMenuLabel;
+		// remove any & in the mainMenuLabel
+		mainMenuLabel.Replace(_T("&"),_T(""));
 
 		if (mainMenuLabel != prevMainMenuLabel)
 		{
@@ -667,6 +669,7 @@ bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* 
 		mmNode = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
 		pMainMenuItem = mmNode->GetData();
 		menuLabel = pMainMenuItem->mainMenuLabel;
+		menuLabel.Replace(_T("&"),_T("")); // remove any & chars for comparison
 		SubMenuItemList::Node* smNode;
 		AI_SubMenuItem* pSubMenuItem;
 		int ct_sm;
