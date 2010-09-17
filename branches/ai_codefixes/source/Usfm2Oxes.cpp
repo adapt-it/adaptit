@@ -30,7 +30,6 @@
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
-#include <wx/tokenzr.h>
 #endif
 
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
@@ -42,6 +41,7 @@
 #endif
 
 #include <wx/arrimpl.cpp>
+#include <wx/tokenzr.h>
 
 #include "AdaptitConstants.h"
 #include "Adapt_It.h"
@@ -1603,8 +1603,8 @@ void Usfm2Oxes::DisplayAIGroupStructContents(TitleInfo* pTitleInfo) // for check
 			{
 				wxLogDebug(_T("\n*** TitleInfo ***     aiGroup with index = %d   bHasInlineMarker %s"), index, _T("FALSE"));
 			}
-			wxLogDebug(_T("    Usfm bare Mkr  =      %s"),pGrp->usfmBareMarker);
-			wxLogDebug(_T("    freeTransStr   =      %s"),pGrp->freeTransStr);
+			wxLogDebug(_T("    Usfm bare Mkr  =      %s"),pGrp->usfmBareMarker.c_str());
+			wxLogDebug(_T("    freeTransStr   =      %s"),pGrp->freeTransStr.c_str());
 			int count2 = pGrp->arrNoteDetails.GetCount();
 			if (count2 > 0)
 			{
@@ -1613,9 +1613,9 @@ void Usfm2Oxes::DisplayAIGroupStructContents(TitleInfo* pTitleInfo) // for check
 				{
 					NoteDetails* pDetails = pGrp->arrNoteDetails.Item(index2);
 					wxLogDebug(_T("    * NoteDetails *     NoteDetail with index2 = %d"), index2);
-					wxLogDebug(_T("        noteText = %s"),pDetails->noteText);
+					wxLogDebug(_T("        noteText = %s"),pDetails->noteText.c_str());
 					wxLogDebug(_T("        beginOffset %d , endOffset %d , wordsInSpan = %s , Usfm bare Mkr = %s"),
-						pDetails->beginOffset, pDetails->endOffset, pDetails->wordsInSpan, pDetails->usfmMarker);
+						pDetails->beginOffset, pDetails->endOffset, pDetails->wordsInSpan.c_str(), pDetails->usfmMarker.c_str());
 				}
 			}
 			int count3 = pGrp->arrMarkers.GetCount();
@@ -1628,7 +1628,7 @@ void Usfm2Oxes::DisplayAIGroupStructContents(TitleInfo* pTitleInfo) // for check
 				{
 					markers += pGrp->arrMarkers.Item(index3) + aSpace;
 				}
-				wxLogDebug(_T("    arrMarkers         %s"),markers);
+				wxLogDebug(_T("    arrMarkers         %s"),markers.c_str());
 			}
 			else
 			{
@@ -1636,17 +1636,17 @@ void Usfm2Oxes::DisplayAIGroupStructContents(TitleInfo* pTitleInfo) // for check
 			}
 			if (!pGrp->chapterNumber.IsEmpty())
 			{
-				wxLogDebug(_T("    chapterNum         %s"),pGrp->chapterNumber);
+				wxLogDebug(_T("    chapterNum         %s"),pGrp->chapterNumber.c_str());
 			}
 			if (!pGrp->verseNumber.IsEmpty())
 			{
-				wxLogDebug(_T("    verseNum           %s"),pGrp->verseNumber);
+				wxLogDebug(_T("    verseNum           %s"),pGrp->verseNumber.c_str());
 			}
 			if (!pGrp->verseNumberBridgeStr.IsEmpty())
 			{
-				wxLogDebug(_T("    verseNumBridgeStr  %s"),pGrp->verseNumberBridgeStr);
+				wxLogDebug(_T("    verseNumBridgeStr  %s"),pGrp->verseNumberBridgeStr.c_str());
 			}
-			wxLogDebug(_T("    textStr      =       %s"),pGrp->textStr);
+			wxLogDebug(_T("    textStr      =       %s"),pGrp->textStr.c_str());
 		}
 	}
 }
@@ -1673,8 +1673,8 @@ void Usfm2Oxes::DisplayAIGroupStructContentsIntro(IntroductionInfo* pIntroInfo) 
 			{
 				wxLogDebug(_T("\n*** IntroductionInfo ***     aiGroup with index = %d   bHasInlineMarker %s"), index, _T("FALSE"));
 			}
-			wxLogDebug(_T("    Usfm bare Mkr  =      %s"),pGrp->usfmBareMarker);
-			wxLogDebug(_T("    freeTransStr   =      %s"),pGrp->freeTransStr);
+			wxLogDebug(_T("    Usfm bare Mkr  =      %s"),pGrp->usfmBareMarker.c_str());
+			wxLogDebug(_T("    freeTransStr   =      %s"),pGrp->freeTransStr.c_str());
 			int count2 = pGrp->arrNoteDetails.GetCount();
 			if (count2 > 0)
 			{
@@ -1683,9 +1683,9 @@ void Usfm2Oxes::DisplayAIGroupStructContentsIntro(IntroductionInfo* pIntroInfo) 
 				{
 					NoteDetails* pDetails = pGrp->arrNoteDetails.Item(index2);
 					wxLogDebug(_T("    * NoteDetails *     NoteDetail with index2 = %d"), index2);
-					wxLogDebug(_T("        noteText = %s"),pDetails->noteText);
+					wxLogDebug(_T("        noteText = %s"),pDetails->noteText.c_str());
 					wxLogDebug(_T("        beginOffset %d , endOffset %d , wordsInSpan = %s , Usfm bare Mkr = %s"),
-						pDetails->beginOffset, pDetails->endOffset, pDetails->wordsInSpan, pDetails->usfmMarker);
+						pDetails->beginOffset, pDetails->endOffset, pDetails->wordsInSpan.c_str(), pDetails->usfmMarker.c_str());
 				}
 			}
 			int count3 = pGrp->arrMarkers.GetCount();
@@ -1698,7 +1698,7 @@ void Usfm2Oxes::DisplayAIGroupStructContentsIntro(IntroductionInfo* pIntroInfo) 
 				{
 					markers += pGrp->arrMarkers.Item(index3) + aSpace;
 				}
-				wxLogDebug(_T("    arrMarkers         %s"),markers);
+				wxLogDebug(_T("    arrMarkers         %s"),markers.c_str());
 			}
 			else
 			{
@@ -1706,17 +1706,17 @@ void Usfm2Oxes::DisplayAIGroupStructContentsIntro(IntroductionInfo* pIntroInfo) 
 			}
 			if (!pGrp->chapterNumber.IsEmpty())
 			{
-				wxLogDebug(_T("    chapterNum         %s"),pGrp->chapterNumber);
+				wxLogDebug(_T("    chapterNum         %s"),pGrp->chapterNumber.c_str());
 			}
 			if (!pGrp->verseNumber.IsEmpty())
 			{
-				wxLogDebug(_T("    verseNum           %s"),pGrp->verseNumber);
+				wxLogDebug(_T("    verseNum           %s"),pGrp->verseNumber.c_str());
 			}
 			if (!pGrp->verseNumberBridgeStr.IsEmpty())
 			{
-				wxLogDebug(_T("    verseNumBridgeStr  %s"),pGrp->verseNumberBridgeStr);
+				wxLogDebug(_T("    verseNumBridgeStr  %s"),pGrp->verseNumberBridgeStr.c_str());
 			}
-			wxLogDebug(_T("    textStr      =       %s"),pGrp->textStr);
+			wxLogDebug(_T("    textStr      =       %s"),pGrp->textStr.c_str());
 		}
 	}
 }
