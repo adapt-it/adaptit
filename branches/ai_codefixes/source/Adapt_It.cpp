@@ -9736,7 +9736,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{
 			// copy the file to the work folder
 			bool copyOK;
-			copyOK = wxCopyFile(filecopyPath, AIuserProfilesWorkFolderPath, TRUE); // TRUE = overwrite
+			copyOK = wxCopyFile(userProfileFilecopyPath, AIuserProfilesWorkFolderPath, TRUE); // TRUE = overwrite
 			if (copyOK)
 			{
 				bUserProfilesFileExists = TRUE;

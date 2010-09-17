@@ -977,7 +977,7 @@ menu item will not appear in the list of items displayed for that profile.
 </MENU>
 <MENU itemID="ID_EXPORT_OXES"
 	itemType="subMenu"
-	itemText="Export &Open XML for Editing Scripture (OXES)..."
+	itemText="Export Open XML for Editing Scripture (OXES)..."
 	itemDescr="Submenu of Export-Import"
 	adminCanChange="1"
 	>
