@@ -16,6 +16,7 @@
 		0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
+		7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7D527D45124308E30077F9FE /* AI_UserProfiles.xml */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
@@ -26,7 +27,6 @@
 		7DC038D50F462A570047FCAF /* books.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D30F462A570047FCAF /* books.xml */; };
 		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
 		7DD19D1D1239E0BA004A65DD /* Usfm2Oxes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DD19D1B1239E0BA004A65DD /* Usfm2Oxes.cpp */; };
-		7DD19D1E1239E0BA004A65DD /* Usfm2Oxes.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7DD19D1C1239E0BA004A65DD /* Usfm2Oxes.h */; };
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
@@ -131,19 +131,6 @@
 		C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BF0F3FA4AA007579B8 /* System.framework */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		C80E02D012224AB300ECCA6A /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "21.6\t4.9\n21.6\t4.9\n21.6\t4.9\n21.6\t4.9\ndocs/iso639-3codes.txt";
-			dstSubfolderSpec = 7;
-			files = (
-				7DD19D1E1239E0BA004A65DD /* Usfm2Oxes.h in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
@@ -168,6 +155,7 @@
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
+		7D527D45124308E30077F9FE /* AI_UserProfiles.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_UserProfiles.xml; path = ../../xml/AI_UserProfiles.xml; sourceTree = SOURCE_ROOT; };
 		7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Layout.cpp; path = ../../source/Layout.cpp; sourceTree = SOURCE_ROOT; };
 		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
 		7D820F871110B941005EDDC9 /* KBEditSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBEditSearch.cpp; path = ../../source/KBEditSearch.cpp; sourceTree = SOURCE_ROOT; };
@@ -624,6 +612,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				7D527D45124308E30077F9FE /* AI_UserProfiles.xml */,
 				C853F9991222543700334B95 /* iso639-3codes.txt */,
 				C80E02BF1222483C00ECCA6A /* AIWX2.xpm */,
 				C80E02C01222483C00ECCA6A /* AIWX2.bmp */,
@@ -696,7 +685,6 @@
 				8D0C4E8F0486CD37000505A6 /* Sources */,
 				8D0C4E910486CD37000505A6 /* Frameworks */,
 				7DC0397F0F4660190047FCAF /* ShellScript */,
-				C80E02D012224AB300ECCA6A /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -745,6 +733,7 @@
 				C80E02C91222483C00ECCA6A /* ai_32.ico in Resources */,
 				C80E02CA1222483C00ECCA6A /* ai_16.ico in Resources */,
 				C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */,
+				7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
