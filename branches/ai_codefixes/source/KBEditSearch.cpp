@@ -400,7 +400,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 			do {
 				testStr.Empty(); // make ready for a new value
 				key = iter->first; // the source text (or gloss if bIsGlossing is TRUE) 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 				//int offset = wxNOT_FOUND;
 				//if ( (offset = key.Find(_T("downcase"))) != wxNOT_FOUND)
 				//{

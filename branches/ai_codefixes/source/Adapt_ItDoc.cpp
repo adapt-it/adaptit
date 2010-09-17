@@ -5252,7 +5252,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bDidSomeUnfiltering = FALSE;
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 			//if (curSequNum >= 170)
 			//{
 			//	int startStepping = 1; // I'm interested in sn == 171, where \r is filtered

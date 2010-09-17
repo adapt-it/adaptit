@@ -2593,7 +2593,7 @@ protected:
 #endif
 
 public:
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	// a debugging helper to send contents of UsfmFilterMarkersStr to debug window
 	void	ShowFilterMarkers(int refNum); // refNum is any number I want to pass in, it is shown too
 #endif

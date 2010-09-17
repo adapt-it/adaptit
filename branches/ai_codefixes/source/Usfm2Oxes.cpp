@@ -1327,7 +1327,7 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 	// when control gets to here, we've consumed the chunk copy stored in m_pTitleInfo
 
 	// check we got the structs filled out correctly
-#if defined __WXDEBUG__	
+#ifdef __WXDEBUG__	
 	DisplayAIGroupStructContents(m_pTitleInfo);
 #endif
 }
@@ -1559,7 +1559,7 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 	// when control gets to here, we've consumed the chunk copy stored in m_pIntroInfo
 
 	// check we got the structs filled out correctly
-#if defined __WXDEBUG__	
+#ifdef __WXDEBUG__	
 	DisplayAIGroupStructContentsIntro(m_pIntroInfo);
 #endif
 }

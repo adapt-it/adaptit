@@ -9907,7 +9907,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Retain the initial USFM filter marker string as "Factory default"
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	ShowFilterMarkers(1); // location 1
 #endif
 	gFactorySfmSet = UsfmOnly;
@@ -22777,7 +22777,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	PngInLineMarkersStr.Empty();
 	UsfmAndPngInLineMarkersStr.Empty();
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	ShowFilterMarkers(2); // location 2
 #endif
 	UsfmFilterMarkersStr.Empty();
@@ -22791,7 +22791,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	wxString key;
 	MapSfmToUSFMAnalysisStruct::iterator iter;
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	ShowFilterMarkers(3); // location 3
 #endif
 
@@ -22826,7 +22826,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 		}
 	}
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	ShowFilterMarkers(4); // location 4
 #endif
 
@@ -22899,7 +22899,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	case UsfmAndPng: gCurrentFilterMarkers = UsfmAndPngFilterMarkersStr; break;
 	default: gCurrentFilterMarkers = UsfmFilterMarkersStr;
 	}
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	ShowFilterMarkers(5); // location 5
 #endif
 
@@ -29319,7 +29319,7 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 	event.Enable(TRUE); 
 }
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 {
 	wxString s = UsfmFilterMarkersStr;

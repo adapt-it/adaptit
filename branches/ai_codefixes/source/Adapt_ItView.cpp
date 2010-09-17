@@ -14305,8 +14305,8 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 		{
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
 			{
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 				//wxLogDebug(_T("Found free translation: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif
@@ -14321,8 +14321,8 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
 				// found location where a note is stored
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 				//wxLogDebug(_T("Found note: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif
@@ -14336,8 +14336,8 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 		{
 			if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 			{
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 				//wxLogDebug(_T("Found back trans: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif
@@ -14359,8 +14359,8 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 													 // \btv \bth and so forth
 					if (nFound >= 0)
 					{
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 						//wxLogDebug(_T("Found bt-derived marker in m_filteredInfo: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif
@@ -14395,8 +14395,8 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 					bool bSame = IsSameMarker(len,nFound,sfm,filteredInfo);
 					if (bSame)
 					{
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 						//wxLogDebug(_T("Found chosen filterable marker in m_filteredInfo: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif
@@ -14427,8 +14427,8 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 			}
 			else
 			{
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 				//wxLogDebug(_T("Found the chosen marker in m_markers: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif
@@ -14456,8 +14456,8 @@ b:			if (pSrcPhrase->m_nSrcWords > 1)
 							bool bSame = IsSameMarker(len,nFound,sfm,markers);
 							if (bSame)
 							{
-#if defined __WXDEBUG__
-#if defined FINDNXT
+#ifdef __WXDEBUG__
+#ifdef FINDNXT
 								//wxLogDebug(_T("Found the marker among medial markers: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
 #endif

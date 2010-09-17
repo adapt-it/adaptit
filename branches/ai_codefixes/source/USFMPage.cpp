@@ -368,7 +368,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 			&pFilterPageInPrefs->filterPgCommon.m_filterFlagsDoc,
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(10); // location 10
 #endif
 
@@ -383,7 +383,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
 				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
  
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(17); // location 17
 #endif
 
@@ -411,7 +411,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		// selected in prefs
 		pFilterPageInPrefs->filterPgCommon.LoadDocSFMListBox(LoadInitialDefaults);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(18); // location 18
 #endif
 
@@ -439,7 +439,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 			&pFilterPageWiz->filterPgCommon.m_filterFlagsDoc,
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(11); // location 11
 #endif
 
@@ -450,7 +450,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
 				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(19); // location 19
 #endif
 
@@ -475,7 +475,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		// established above.
 		pFilterPageWiz->filterPgCommon.tempFilterMarkersAfterEditDoc = pFilterPageWiz->filterPgCommon.tempFilterMarkersBeforeEditDoc;
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(20); // location 20
 #endif
 
@@ -792,7 +792,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 			&pFilterPageInPrefs->filterPgCommon.m_filterFlagsProj,
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(12); // location 12
 #endif
 
@@ -800,7 +800,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
 				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(13); // location 13
 #endif
 
@@ -847,7 +847,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 			&pFilterPageWiz->filterPgCommon.m_filterFlagsProj,
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(14); // location 14
 #endif
 
@@ -855,7 +855,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
 				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(15); // location 15
 #endif
 
@@ -885,7 +885,7 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 	}
 	UpdateButtons();
 
-#if defined __WXDEBUG__
+#ifdef __WXDEBUG__
 	gpApp->ShowFilterMarkers(16); // location 16
 #endif
 
