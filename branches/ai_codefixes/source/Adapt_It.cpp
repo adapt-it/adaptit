@@ -9801,6 +9801,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	if (bUserProfilesFileExists)
 	{
+		wxLogDebug(_T("The AIuserProfilesWorkFolderPath = %s"),AIuserProfilesWorkFolderPath.c_str());
 		// parse the xml file, and set up the data structures
 		bool bReadOK = ReadPROFILES_XML(AIuserProfilesWorkFolderPath);
 		if (!bReadOK)
