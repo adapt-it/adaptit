@@ -58,7 +58,7 @@ protected:
 	void PopulateListBox(int newTabIndex);
 	void CopyMenuStructure(AI_MenuStructure* pFromMenuStructure, AI_MenuStructure* pToMenuStructure);
 	void CopyUserProfiles(UserProfiles* pFromUserProfiles, UserProfiles* pToUserProfiles);
-	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel);
+	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
 	wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr);
 

@@ -1520,6 +1520,14 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export Open XML for Editing Scripture (OXES)...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge Base...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
@@ -1866,6 +1874,8 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"ID_EXPORT_GLOSSES\":subMenuLabel=\"Export &Glosses As Text...\":subMenuHelp=\"Export the glossing lines' contents as text\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_OXES\":subMenuLabel=\"Export &Open XML for Editing Scripture (OXES)...\":subMenuHelp=\"Export the translation text according to the OXES version 1 standard\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -10685,6 +10695,7 @@ int CAdapt_ItApp::OnExit(void)
 			pItem = pos->GetData();
 			delete pItem;
 		}
+		m_pUserProfiles->profileItemList.Clear();
 		delete m_pUserProfiles;
 	}
 
@@ -10711,8 +10722,10 @@ int CAdapt_ItApp::OnExit(void)
 				wxASSERT(psmItem != NULL);
 				delete psmItem;
 			}
+			pmmItem->aiSubMenuItems.Clear();
 			delete pmmItem;
 		}
+		m_pAI_MenuStructure->aiMainMenuItems.Clear();
 		delete m_pAI_MenuStructure;
 	}
 	

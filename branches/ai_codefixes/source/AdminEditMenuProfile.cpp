@@ -104,9 +104,6 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 
 CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 {
-	//AI_MenuStructure* tempMenuStructure;
-	//UserProfiles* tempUserProfiles;
-
 	// deallocate the memory used by our temporary objects
 	if (tempUserProfiles != NULL)
 	{
@@ -118,7 +115,6 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 			pos = tempUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
-			pos = pos->GetNext();
 			delete pItem;
 		}
 		delete tempUserProfiles;
@@ -135,7 +131,6 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 			AI_MainMenuItem* pmmItem;
 			pmmItem = mmpos->GetData();
 			wxASSERT(pmmItem != NULL);
-			mmpos = mmpos->GetNext();
 			
 			SubMenuItemList::Node* smpos;
 			int ct_sm;
@@ -146,7 +141,6 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 				AI_SubMenuItem* psmItem;
 				psmItem = smpos->GetData();
 				wxASSERT(psmItem != NULL);
-				smpos = smpos->GetNext();
 				delete psmItem;
 			}
 			delete pmmItem;
@@ -161,38 +155,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
 	
-	// First, deallocate any memory that was allocated at startup or last invocation
-	// of this dialog
-	if (m_pApp->m_pAI_MenuStructure != NULL)
-	{
-		MainMenuItemList::Node* mmpos;
-		int ct_mm;
-		int total_mm = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
-		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
-		{
-			mmpos = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct_mm);
-			AI_MainMenuItem* pmmItem;
-			pmmItem = mmpos->GetData();
-			wxASSERT(pmmItem != NULL);
-			mmpos = mmpos->GetNext();
-			
-			SubMenuItemList::Node* smpos;
-			int ct_sm;
-			int total_sm = pmmItem->aiSubMenuItems.GetCount();
-			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
-			{
-				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
-				AI_SubMenuItem* psmItem;
-				psmItem = smpos->GetData();
-				wxASSERT(psmItem != NULL);
-				smpos = smpos->GetNext();
-				delete psmItem;
-			}
-			delete pmmItem;
-		}
-		delete m_pApp->m_pAI_MenuStructure;
-	}
-
 	// destroy the allocated memory in m_pUserProfiles. This is a single 
 	// instance of the UserProfiles struct that was allocated on the heap. Note
 	// that m_pUserProfiles also contains a list of pointers in its 
@@ -208,10 +170,47 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 			pos = m_pApp->m_pUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
-			pos = pos->GetNext();
 			delete pItem;
+			pItem = (UserProfileItem*)NULL;
 		}
+		m_pApp->m_pUserProfiles->profileItemList.Clear();
 		delete m_pApp->m_pUserProfiles;
+		m_pApp->m_pUserProfiles = (UserProfiles*)NULL;
+	}
+
+	// First, deallocate any memory that was allocated at startup or last invocation
+	// of this dialog
+	if (m_pApp->m_pAI_MenuStructure != NULL)
+	{
+		MainMenuItemList::Node* mmpos;
+		int ct_mm;
+		int total_mm = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
+		{
+			mmpos = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct_mm);
+			AI_MainMenuItem* pmmItem;
+			pmmItem = mmpos->GetData();
+			wxASSERT(pmmItem != NULL);
+			
+			SubMenuItemList::Node* smpos;
+			int ct_sm;
+			int total_sm = pmmItem->aiSubMenuItems.GetCount();
+			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
+			{
+				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
+				AI_SubMenuItem* psmItem;
+				psmItem = smpos->GetData();
+				wxASSERT(psmItem != NULL);
+				delete psmItem;
+				psmItem = (AI_SubMenuItem*)NULL;
+			}
+			pmmItem->aiSubMenuItems.Clear();
+			delete pmmItem;
+			pmmItem = (AI_MainMenuItem*)NULL;
+		}
+		m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Clear();
+		delete m_pApp->m_pAI_MenuStructure;
+		m_pApp->m_pAI_MenuStructure = (AI_MenuStructure*)NULL;
 	}
 
 	// Select whatever tab the administrator has set if any, first tab if none.
@@ -420,12 +419,14 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pMainMenuItem = mmNode->GetData();
 		mainMenuLabel = pMainMenuItem->mainMenuLabel;
 		// remove any & in the mainMenuLabel
-		mainMenuLabel.Replace(_T("&"),_T(""));
+		wxString mmLabel;
+		mmLabel = mainMenuLabel;
+		mmLabel.Replace(_T("&"),_T(""));
 
-		if (mainMenuLabel != prevMainMenuLabel)
+		if (mmLabel != prevMainMenuLabel)
 		{
 			// this is a new main menu label, add it to the listbox
-			lbIndexOfInsertion = pCheckListBox->Append(_T("   \"") + mainMenuLabel + _T("\" Menu"));
+			lbIndexOfInsertion = pCheckListBox->Append(_T("   \"") + mmLabel + _T("\" Menu"));
 			pCheckListBox->Check(lbIndexOfInsertion);
 			itemsAlwaysChecked.Add(lbIndexOfInsertion);
 			// TODO: Determine why g++ reports GetItem is not a member of wxCheckListBox
@@ -445,7 +446,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		{
 			piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct_pi);
 			pUserProfileItem = piNode->GetData();
-			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mainMenuLabel))
+			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mmLabel))
 			{
 				lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
 				numItemsLoaded++;
@@ -460,7 +461,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			// no items were loaded for this main menu so remove the mainMenuLabel, i.e., for the "&Help" menu
 			pCheckListBox->Delete(lbIndexOfInsertion);
 		}
-		prevMainMenuLabel = mainMenuLabel;
+		prevMainMenuLabel = mmLabel;
 	}
 
 	// Next, handle preferences tab pages in the listbox
@@ -641,7 +642,7 @@ void CAdminEditMenuProfile::CopyUserProfiles(UserProfiles* pFromUserProfiles, Us
 // Determines if the menu item represented by the input pUserProfileItem belongs
 // as a subMenu within the input top level mainMenuLabel of the AI menu structure
 // according to the current information stored in the m_pAI_MenuStructure object.
-bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mainMenuLabel)
+bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel)
 {
 	// We scan the lists of aiMainMenuItems and aiSubMenuItems until we locate the 
 	// corresponding subMenuID, and determine if the aiMainMenuItems' mainMenuLabel 
@@ -678,7 +679,7 @@ bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* 
 		{
 			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
 			pSubMenuItem = smNode->GetData();
-			if (pSubMenuItem->subMenuID == profileItemID && menuLabel == mainMenuLabel)
+			if (pSubMenuItem->subMenuID == profileItemID && menuLabel == mmLabel)
 			{
 				return TRUE;
 			}

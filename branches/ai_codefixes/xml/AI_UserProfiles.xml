@@ -2003,7 +2003,7 @@ Description of Marker Attributes for the <SUB_MENU> tag:
 		</SUB_MENU>
 		<SUB_MENU
 			subMenuID="ID_EXPORT_OXES"
-			subMenuLabel="Export &Open XML for Editing Scripture (OXES)..."
+			subMenuLabel="Export &amp;Open XML for Editing Scripture (OXES)..."
 			subMenuHelp="Export the translation text according to the OXES version 1 standard"
 			subMenuKind="wxITEM_NORMAL"
 		>
