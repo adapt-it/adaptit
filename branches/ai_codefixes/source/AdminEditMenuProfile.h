@@ -56,8 +56,8 @@ protected:
 	void OnCheckListBoxToggle(wxCommandEvent& event);
 	void OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event));
 	void PopulateListBox(int newTabIndex);
-	void CopyMenuStructure(AI_MenuStructure* pFromMenuStructure, AI_MenuStructure* pToMenuStructure);
-	void CopyUserProfiles(UserProfiles* pFromUserProfiles, UserProfiles* pToUserProfiles);
+	void CopyMenuStructure(const AI_MenuStructure* pFromMenuStructure, AI_MenuStructure*& pToMenuStructure);
+	void CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
 	wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr);

@@ -10693,10 +10693,14 @@ int CAdapt_ItApp::OnExit(void)
 			pos = m_pUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
+			//wxLogDebug(_T("Deleting UserProfileItem %s"),pItem->itemText.c_str());
 			delete pItem;
+			pItem = (UserProfileItem*)NULL;
 		}
 		m_pUserProfiles->profileItemList.Clear();
+		//wxLogDebug(_T("Deleting m_pUserProfiles - end"));
 		delete m_pUserProfiles;
+		m_pUserProfiles = (UserProfiles*)NULL;
 	}
 
 	if (m_pAI_MenuStructure != NULL)
@@ -10720,13 +10724,19 @@ int CAdapt_ItApp::OnExit(void)
 				AI_SubMenuItem* psmItem;
 				psmItem = smpos->GetData();
 				wxASSERT(psmItem != NULL);
+				//wxLogDebug(_T("Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
 				delete psmItem;
+				psmItem = (AI_SubMenuItem*)NULL;
 			}
 			pmmItem->aiSubMenuItems.Clear();
+			//wxLogDebug(_T("Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
 			delete pmmItem;
+			pmmItem = (AI_MainMenuItem*)NULL;
 		}
 		m_pAI_MenuStructure->aiMainMenuItems.Clear();
+		//wxLogDebug(_T("Deleting m_pAI_MenuStructure - end"));
 		delete m_pAI_MenuStructure;
+		m_pAI_MenuStructure = (AI_MenuStructure*)NULL;
 	}
 	
 	// whm: before deleting our CConsistentChanger objects, we need to

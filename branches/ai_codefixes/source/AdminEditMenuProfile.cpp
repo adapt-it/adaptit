@@ -99,6 +99,9 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	pCheckListBox = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_MENU_ITEMS);
 	wxASSERT(pCheckListBox != NULL);
 
+	tempUserProfiles = (UserProfiles*)NULL;
+	tempMenuStructure = (AI_MenuStructure*)NULL;
+
 	// other attribute initializations
 }
 
@@ -115,9 +118,14 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 			pos = tempUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
+			//wxLogDebug(_T("Destructor temp Deleting UserProfileItem %s"),pItem->itemText.c_str());
 			delete pItem;
+			pItem = (UserProfileItem*)NULL;
 		}
+		tempUserProfiles->profileItemList.Clear();
+		//wxLogDebug(_T("Destructor temp InitDialog Deleting m_pUserProfiles - end"));
 		delete tempUserProfiles;
+		tempUserProfiles = (UserProfiles*)NULL;
 	}
 
 	if (tempMenuStructure != NULL)
@@ -141,11 +149,19 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 				AI_SubMenuItem* psmItem;
 				psmItem = smpos->GetData();
 				wxASSERT(psmItem != NULL);
+				//wxLogDebug(_T("Destructor temp InitDialog Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
 				delete psmItem;
+				psmItem = (AI_SubMenuItem*)NULL;
 			}
+			pmmItem->aiSubMenuItems.Clear();
+			//wxLogDebug(_T("Destructor temp InitDialog Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
 			delete pmmItem;
+			pmmItem = (AI_MainMenuItem*)NULL;
 		}
+		tempMenuStructure->aiMainMenuItems.Clear();
+		//wxLogDebug(_T("Destructor temp InitDialog Deleting m_pAI_MenuStructure - end"));
 		delete tempMenuStructure;
+		tempMenuStructure = (AI_MenuStructure*)NULL;
 	}
 }
 
@@ -170,10 +186,12 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 			pos = m_pApp->m_pUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
+			//wxLogDebug(_T("InitDialog Deleting UserProfileItem %s"),pItem->itemText.c_str());
 			delete pItem;
 			pItem = (UserProfileItem*)NULL;
 		}
 		m_pApp->m_pUserProfiles->profileItemList.Clear();
+		//wxLogDebug(_T("InitDialog Deleting m_pUserProfiles - end"));
 		delete m_pApp->m_pUserProfiles;
 		m_pApp->m_pUserProfiles = (UserProfiles*)NULL;
 	}
@@ -201,14 +219,17 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 				AI_SubMenuItem* psmItem;
 				psmItem = smpos->GetData();
 				wxASSERT(psmItem != NULL);
+				//wxLogDebug(_T("InitDialog Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
 				delete psmItem;
 				psmItem = (AI_SubMenuItem*)NULL;
 			}
 			pmmItem->aiSubMenuItems.Clear();
+			//wxLogDebug(_T("InitDialog Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
 			delete pmmItem;
 			pmmItem = (AI_MainMenuItem*)NULL;
 		}
 		m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Clear();
+		//wxLogDebug(_T("InitDialog Deleting m_pAI_MenuStructure - end"));
 		delete m_pApp->m_pAI_MenuStructure;
 		m_pApp->m_pAI_MenuStructure = (AI_MenuStructure*)NULL;
 	}
@@ -254,13 +275,13 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	}
 	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
 
-	// create a temporary MenuStructure object for use in AdminEditMenuProfile.
-	tempMenuStructure = new AI_MenuStructure;
 	// create a temporary UserProfiles object for use in AdminEditMenuProfile.
 	tempUserProfiles = new UserProfiles;
+	// create a temporary MenuStructure object for use in AdminEditMenuProfile.
+	tempMenuStructure = new AI_MenuStructure;
 	// Make a copy of the App's objects
-	CopyMenuStructure(m_pApp->m_pAI_MenuStructure, tempMenuStructure);
 	CopyUserProfiles(m_pApp->m_pUserProfiles, tempUserProfiles);
+	CopyMenuStructure(m_pApp->m_pAI_MenuStructure, tempMenuStructure);
 	// Finally populate the list box
 	PopulateListBox(tabIndex);
 }
@@ -544,7 +565,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 // all of the internal attributes and lists.
 // Note: Assumes that pFromMenuStructure and pToMenuStructure were created on the heap before this
 // function was called.
-void CAdminEditMenuProfile::CopyMenuStructure(AI_MenuStructure* pFromMenuStructure, AI_MenuStructure* pToMenuStructure)
+void CAdminEditMenuProfile::CopyMenuStructure(const AI_MenuStructure* pFromMenuStructure, AI_MenuStructure*& pToMenuStructure)
 {
 	wxASSERT(pFromMenuStructure != NULL);
 	wxASSERT(pToMenuStructure != NULL);
@@ -554,10 +575,12 @@ void CAdminEditMenuProfile::CopyMenuStructure(AI_MenuStructure* pFromMenuStructu
 	for (ct = 0; ct < totct; ct++)
 	{
 		AI_MainMenuItem* pFromMainMenuItem;
-		AI_MainMenuItem* pToMainMenuItem;
 		MainMenuItemList::Node* node;
 		node = pFromMenuStructure->aiMainMenuItems.Item(ct);
 		pFromMainMenuItem = node->GetData();
+		AI_MainMenuItem* pToMainMenuItem;
+		pToMainMenuItem = new AI_MainMenuItem;
+		wxASSERT(pToMainMenuItem != NULL);
 		int i;
 		int ict;
 		ict = pFromMainMenuItem->aiSubMenuItems.GetCount();
@@ -574,12 +597,10 @@ void CAdminEditMenuProfile::CopyMenuStructure(AI_MenuStructure* pFromMenuStructu
 			pToSubMenuItem->subMenuID = pFromSubMenuItem->subMenuID;
 			pToSubMenuItem->subMenuKind = pFromSubMenuItem->subMenuKind;
 			pToSubMenuItem->subMenuLabel = pFromSubMenuItem->subMenuLabel;
-			pToMainMenuItem = new AI_MainMenuItem;
-			wxASSERT(pToMainMenuItem != NULL);
 			pToMainMenuItem->mainMenuLabel = pFromMainMenuItem->mainMenuLabel;
-			pToMainMenuItem->aiSubMenuItems.Append(pFromSubMenuItem);
+			pToMainMenuItem->aiSubMenuItems.Append(pToSubMenuItem);
 		}
-		pToMenuStructure->aiMainMenuItems.Append(pFromMainMenuItem);
+		pToMenuStructure->aiMainMenuItems.Append(pToMainMenuItem);
 	}
 }
 
@@ -587,7 +608,7 @@ void CAdminEditMenuProfile::CopyMenuStructure(AI_MenuStructure* pFromMenuStructu
 // all of the internal attributes and lists.
 // Note: Assumes that pFromUserProfiles and pToUserProfiles were created on the heap before this
 // function was called.
-void CAdminEditMenuProfile::CopyUserProfiles(UserProfiles* pFromUserProfiles, UserProfiles* pToUserProfiles)
+void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles)
 {
 	wxASSERT(pFromUserProfiles != NULL);
 	wxASSERT(pToUserProfiles != NULL);
