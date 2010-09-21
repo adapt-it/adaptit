@@ -46,6 +46,7 @@ public:
 	AI_MenuStructure* tempMenuStructure;
 	UserProfiles* tempUserProfiles;
 	wxArrayInt itemsAlwaysChecked;
+	bool bChangesMadeToProfiles;
 	// other methods
 
 protected:
@@ -60,12 +61,14 @@ protected:
 	void CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
+	bool UserProfilesHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles);
 	wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr);
 
 private:
 	// class attributes
 	CAdapt_ItApp* m_pApp;
 	bool bCreatingDlg;
+	wxString compareLBStr;
 	
 	// other class attributes
 

@@ -169,7 +169,9 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
+	bChangesMadeToProfiles = FALSE;
 	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
+	compareLBStr = _T("      %s   [%s]");
 	
 	// destroy the allocated memory in m_pUserProfiles. This is a single 
 	// instance of the UserProfiles struct that was allocated on the heap. Note
@@ -341,7 +343,46 @@ void CAdminEditMenuProfile::OnCheckListBoxToggle(wxCommandEvent& event)
 		}
 	}
 
-	// TODO: process any user changes to check boxes
+	wxString lbItemStr;
+	lbItemStr = pCheckListBox->GetString(indexOfClickedItem);
+
+	// Process any user changes to check boxes and store changes
+	// in the tempUserProfiles struct on the heap; any changes are
+	// only saved if user clicks on OK button invoking the OnOK()
+	// handler.
+	if (tempUserProfiles != NULL)
+	{
+		ProfileItemList::Node* posTemp;
+		int count;
+		int item_count = tempUserProfiles->profileItemList.GetCount();
+		wxString tempStr;
+		for(count = 0; count < item_count; count++)
+		{
+			posTemp = tempUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pProfileItem;
+			pProfileItem = posTemp->GetData();
+			tempStr = compareLBStr.Format(compareLBStr,pProfileItem->itemText.c_str(),pProfileItem->itemDescr.c_str());
+			if (tempStr == lbItemStr)
+			{
+				// We are at the pProfileItem matching the list box profile item representation
+				// We calculate the index of the usedVisibilityValues array according to the pNotebook
+				// tab that is currently selected, i.e., "Novice" is 0, "Custom 1" is 1, "Custom 2" is 2.
+				int nIndex;
+				bool bItemChecked;
+				nIndex = pNotebook->GetSelection();
+				// nIndex is also the index into the usedVisibilityValues array
+				bItemChecked = pCheckListBox->IsChecked(indexOfClickedItem);
+				if (bItemChecked)
+				{
+					pProfileItem->usedVisibilityValues[nIndex] = _T("1");
+				}
+				else
+				{
+					pProfileItem->usedVisibilityValues[nIndex] = _T("0");
+				}
+			}
+		}
+	}
 }
 
 void CAdminEditMenuProfile::OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event))
@@ -430,6 +471,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	// values in the listbox.
 	wxString mainMenuLabel = _T("");
 	wxString prevMainMenuLabel = _T("");
+	wxString tempStr;
 	MainMenuItemList::Node* mmNode;
 	AI_MainMenuItem* pMainMenuItem;
 	int ct;
@@ -469,7 +511,8 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			pUserProfileItem = piNode->GetData();
 			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mmLabel))
 			{
-				lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
+				tempStr = compareLBStr.Format(compareLBStr,pUserProfileItem->itemText.c_str(),pUserProfileItem->itemDescr.c_str());
+				lbIndx = pCheckListBox->Append(tempStr);
 				numItemsLoaded++;
 				if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 					pCheckListBox->Check(lbIndx,true);
@@ -503,7 +546,8 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("preferencesTab"))
 		{
-			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
+			tempStr = compareLBStr.Format(compareLBStr,pUserProfileItem->itemText.c_str(),pUserProfileItem->itemDescr.c_str());
+			lbIndx = pCheckListBox->Append(tempStr);
 			numItemsLoaded++;
 			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 				pCheckListBox->Check(lbIndx,true);
@@ -527,7 +571,8 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("modeBar"))
 		{
-			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
+			tempStr = compareLBStr.Format(compareLBStr,pUserProfileItem->itemText.c_str(),pUserProfileItem->itemDescr.c_str());
+			lbIndx = pCheckListBox->Append(tempStr);
 			numItemsLoaded++;
 			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 				pCheckListBox->Check(lbIndx,true);
@@ -551,7 +596,8 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("wizardListItem"))
 		{
-			lbIndx = pCheckListBox->Append(_T("      ") + pUserProfileItem->itemText + _T("   [") + pUserProfileItem->itemDescr + _T("]"));
+			tempStr = compareLBStr.Format(compareLBStr,pUserProfileItem->itemText.c_str(),pUserProfileItem->itemDescr.c_str());
+			lbIndx = pCheckListBox->Append(tempStr);
 			numItemsLoaded++;
 			if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
 				pCheckListBox->Check(lbIndx,true);
@@ -772,6 +818,45 @@ wxString CAdminEditMenuProfile::GetTopLevelMenuLabelForThisSubMenuID(wxString ID
 	return nullStr;
 }
 
+bool CAdminEditMenuProfile::UserProfilesHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles)
+{
+	bool bChanged = FALSE;
+	wxASSERT(tempUserProfiles != NULL);
+	wxASSERT(appUserProfiles != NULL);
+	wxASSERT(tempUserProfiles->definedProfileNames.GetCount() == appUserProfiles->definedProfileNames.GetCount());
+	wxASSERT(tempUserProfiles->profileItemList.GetCount() == appUserProfiles->profileItemList.GetCount());
+	wxASSERT(tempUserProfiles->profileVersion == appUserProfiles->profileVersion);
+
+	if (tempUserProfiles != NULL && appUserProfiles != NULL)
+	{
+		ProfileItemList::Node* posTemp;
+		ProfileItemList::Node* posApp;
+		int count;
+		int item_count = appUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			posTemp = tempUserProfiles->profileItemList.Item(count);
+			posApp = appUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pTempItem;
+			UserProfileItem* pAppItem;
+			pTempItem = posTemp->GetData();
+			pAppItem = posApp->GetData();
+			int ct;
+			int totCt;
+			totCt = pTempItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < totCt; ct++)
+			{
+				if (pTempItem->usedVisibilityValues.Item(ct) != pAppItem->usedVisibilityValues.Item(ct))
+				{
+					bChanged = TRUE;
+					return TRUE;
+				}
+			}
+		}
+	}
+	return bChanged;
+}
+
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -783,7 +868,16 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 	{
 		m_pApp->m_nWorkflowProfile = tempWorkflowProfile;
 		// make the doc dirty so it will prompt for saving
+		bChangesMadeToProfiles = TRUE;
 	}
+	// Copy any changes made in the user workflow profiles to the App's
+	// member.
+	if (UserProfilesHaveChanged(tempUserProfiles, m_pApp->m_pUserProfiles))
+	{
+		bChangesMadeToProfiles = TRUE;
+	}
+	CopyUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
+	CopyMenuStructure(tempMenuStructure, m_pApp->m_pAI_MenuStructure);
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }

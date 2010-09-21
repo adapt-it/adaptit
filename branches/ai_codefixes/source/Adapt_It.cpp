@@ -26799,62 +26799,16 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
 	if (editMenuDlg.ShowModal() == wxID_OK)
 	{
-		;
-	}
-	//wxMessageBox(_T("The OnEditUserMenuSettingsProfiles function has not yet been written."),_T(""),wxICON_INFORMATION);
-	/*
-	if (m_bShowAdministratorMenu)
-	{
-		if (m_sourceDataFolderPath.IsEmpty())
+		if (editMenuDlg.bChangesMadeToProfiles)
 		{
-			// don't expect this to be empty, an English message will do
-			wxBell();
-			wxMessageBox(_T("m_sourceDataFolderPath is still empty, button will be ignored"),
-				_T("Error"), wxICON_WARNING);
-			return;
-		}
-
-		// first, we must check if the "Source Data" folder actually exists yet - it can be
-		// created only by this handler's invocation, provided the user responds with a Yes
-		// click when shown the active project it will be created in. (No provision is
-		// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
-		// input dialog functionality. Someone or the administrator can do that in a file
-		// browser, by renaming, moving or deleting the Source Data folder.
-		bool bDirExists = TRUE;
-		if (!::wxDirExists(m_sourceDataFolderPath) && !::wxFileExists(m_sourceDataFolderPath))
-		{
-			// there is no such file or folder, so create the folder, provided the user wants
-			// it in the current project
-			wxString msg;
-			msg = msg.Format(_(
-"The current project is: %s\nDo you want the Source Data folder to be created for this project?"),
-			gpApp->m_curProjectName.c_str());
-			if( wxMessageBox(msg,_("Verify project for Source Data folder creation"), wxYES_NO) == wxYES )
-			{
-				// make the  Source Data  folder
-				bDirExists = ::wxMkdir(m_sourceDataFolderPath,0777);
-			}
-			else
-			{
-				// user saw it was the wrong project and declined to go ahead
-				return;
-			}
-		}
-		wxASSERT(bDirExists);
-
-		if (!m_bAdminMenuRemoved)
-		{
-			wxCommandEvent dummyEvent;
-			OnMoveOrCopyFoldersOrFiles(dummyEvent);
+			// Make changes to the interface here based on the user's workflow
+			// profile selection/changes.
+			// TODO: 
+			// Also, save the changes to the AI_UserProfiles.xml file
+			// TODO:
+			;
 		}
 	}
-	else
-	{
-		// the update handler should prevent this function being enabled if the
-		// Administrator menu is not visible, but just in case, beep
-		wxBell();
-	}
-	*/
 }
 
 
