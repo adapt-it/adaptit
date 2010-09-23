@@ -5397,65 +5397,23 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile(int currentProfile, int newP
 	// 
 	// First, configure visibility of itemType == subMenu elements
 	
-	// testing below !!!
-	// This testing scan of our menu bar indicates that each line of
-	// file history also comes up as numbered/indexed string when 
-	// pMenuItem->GetLabel() is called on all indexed items.
-	
-	//CMainFrame* pMainFrame = GetMainFrame();
-	//wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
-	//int mCt;
-	//int nMenuItems = pMenuBar->GetMenuCount();
-	//for (mCt = 0; mCt < nMenuItems; mCt++)
-	//{
-	//	wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
-	//	wxASSERT(pMainMenu != NULL);
-	//	wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
-	//	int smCt;
-	//	int nSubMenuItems = pMenuItemList.GetCount();
-	//	for (smCt = 0; smCt < nSubMenuItems; smCt++)
-	//	{
-	//		wxMenuItemList::Node* pNode;
-	//		wxMenuItem* pMenuItem;
-	//		pNode = pMenuItemList.Item(smCt);
-	//		pMenuItem = pNode->GetData();
-	//		wxItemKind itemKind = pMenuItem->GetKind();
-	//		switch (itemKind)
-	//		{
-	//		case wxITEM_SEPARATOR:
-	//			wxLogDebug(_T("-----Menu separator -----"));
-	//			break;
-	//		case wxITEM_NORMAL:
-	//			wxLogDebug(_T("%s Menu: %s"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
-	//			break;
-	//		case wxITEM_CHECK:
-	//			wxLogDebug(_T("%s Menu: %s: wxITEM_CHECK"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
-	//			break;
-	//		default:
-	//			wxLogDebug(_T("%s Menu: %s: wxITEM_RADIO"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
-	//		}
-	//	}
-	//}
-
 	// whm 21Sep10 notes:
-	// While calling delete on pMenuBar works, it leads to some memory leaks due to
-	// the wxDocManager::FileHistoryLoad() call that is done to load the file history
-	// from our m_pConfig. My efforts in the commented out code block below were
-	// unsuccessful in eliminating those memory leaks. Therefore, rather than deleting 
-	// our existing menu, I think it will be necessary to take the existing menu bar 
-	// and "make" it into the desired menu bar for the newProfile.
+	// I tried calling delete on pMenuBar and reconstructing it from scratch as a way to
+	// implement interface menu configuration. But deleting the menu bar leads to some 
+	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load 
+	// the file history from our m_pConfig. My efforts in the commented out code block 
+	// below were unsuccessful in eliminating those memory leaks. Therefore, rather than 
+	// deleting our existing menu bar, I decided it would be better to take the existing 
+	// menu bar and "make" it into the desired menu bar for the newProfile. That may
+	// involve adding menu items to it or subtracting menu items from it, as well as
+	// tidying up any menu separators that need to be added or removed for the resulting
+	// menu bar.
 	//m_pDocManager->FileHistoryRemoveMenu(pFileMenu);
 	//pMainFrame->SetMenuBar(NULL); // detaches the existing menubar from the main frame
 	//delete pMenuBar;
 	//wxMenuBar* pNewMenuBar;
-	//pNewMenuBar = AIMenuBarFunc();
+	//pNewMenuBar = AIMenuBarFunc(); // recreate the original menu bar
 	//pMainFrame->SetMenuBar(pNewMenuBar);
-
-	//bool bTest,bTest2;
-	//wxItemKind iKind = wxITEM_NORMAL;
-	//bTest = MenuItemExistsInAIMenuBar(_T("&Edit"),_T("Edit &Source Text...\tCtrl-Q"),iKind);
-	//bTest2 = MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,_T("ID_EDIT_SOURCE_TEXT"));
-	// testing above !!!
 		
 	// Our approach will be to scan through m_pAI_MenuStructure and compare each element 
 	// (SUB_MENU item) with the corresponding information in m_pUserProfiles. If the 
@@ -5894,7 +5852,8 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuIte
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
 {
-	
+	pMainMenuItem = pMainMenuItem; // avoid warnings
+	pSubMenuItem = pSubMenuItem; // avoid warnings
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -13256,13 +13215,18 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 	{
 		// Collect the markers to store as new filter marker defaults for the Project
 		// in case user made a change.
-		int posn = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Find(_T("  "));
-		filterMkr = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Mid(0,posn);
-		filterMkr.Trim(TRUE); // trim right end
+		// whm modified 23Sep10 to do more robust parsing of marker
+		//int posn = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Find(_T("  "));
+		//filterMkr = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Mid(0,posn);
+		filterMkr = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index];
 		filterMkr.Trim(FALSE); // trim left end
+		int spPos = filterMkr.Find(_T(' '));
+		wxASSERT(spPos != -1);
+		filterMkr = filterMkr.Mid(0,spPos);
+		filterMkr.Trim(TRUE); // trim right end
 		if (pfilterPageCommon->m_filterFlagsProj[index] == TRUE)
 		{
-		filterMkrStr += filterMkr + _T(' ');
+			filterMkrStr += filterMkr + _T(' ');
 		}
 		// check for changes
 		if (pfilterPageCommon->m_filterFlagsProj[index] != 
