@@ -864,12 +864,20 @@ wxString CFilterPageCommon::GetFilterMkrStrFromFilterArrays(wxArrayString* pSfmM
 		if (pFilterFlags->Item(ct) == TRUE)
 		{
 			// the marker is a filter marker, so parse it out and accumulate it in tempStr
+			// whm modification 23Sep10. The pSfmMarkerAndDescr item has an initial space,
+			// followed by the marker (never has embedded spaces), followed by one or more
+			// spaces (to make descriptions part have a fairly even alignment to the right
+			// of the markers), followed by the actual description. Here we parse out the
+			// marker to get the filter marker string part. It seems that in some cases 
+			// there is only a single space between the marker and the following description
+			// so we'll deal with parsing a little differently: first, trim initial whitespace
+			// from the string, then look for a single, instead of a double space.
 			wholeMkr = pSfmMarkerAndDescr->Item(ct);
-			int spPos = wholeMkr.Find(_T("  "));
+			wholeMkr.Trim(FALSE);
+			int spPos = wholeMkr.Find(_T(' '));
 			wxASSERT(spPos != -1);
 			wholeMkr = wholeMkr.Mid(0,spPos);
 			wholeMkr.Trim(TRUE); // trim right end
-			wholeMkr.Trim(FALSE); // trim left end
 			// ensure marker ends with a space
 			wholeMkr += _T(' ');
 			tempStr += wholeMkr; // add marker to string
