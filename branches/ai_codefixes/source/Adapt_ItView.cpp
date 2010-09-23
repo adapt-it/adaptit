@@ -5203,7 +5203,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 			int menuCount = pMenuBar->GetMenuCount();
 			//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
 			//wxASSERT(pAdminMenu != NULL);
-			pApp->m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
+			pApp->m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
 			pApp->m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
 			pApp->m_bAdminMenuRemoved = TRUE;
 		}
@@ -10419,6 +10419,7 @@ void CAdapt_ItView::OnCheckForceAsk(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnCopySource(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -10428,19 +10429,25 @@ void CAdapt_ItView::OnCopySource(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pViewCopySource = pMenuBar->FindItem(ID_COPY_SOURCE);
-	wxASSERT(pViewCopySource != NULL);
+	//wxASSERT(pViewCopySource != NULL);
 
 	// toggle the setting
 	if (pApp->m_bCopySource)
 	{
 		// toggle the checkmark to OFF
-		pViewCopySource->Check(FALSE);
+		if (pViewCopySource != NULL)
+		{
+			pViewCopySource->Check(FALSE);
+		}
 		pApp->m_bCopySource = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pViewCopySource->Check(TRUE);
+		if (pViewCopySource != NULL)
+		{
+			pViewCopySource->Check(TRUE);
+		}
 		pApp->m_bCopySource = TRUE;
 	}
 
@@ -10526,6 +10533,7 @@ void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 /// variable on the App. The "Use Consistent Changes" menu selection basically works as a
 /// switch to turn on or off any change tables the were previously loaded using the "Load
 /// Consistent Changes..." menu item.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 {
@@ -10536,26 +10544,35 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuUseCC = pMenuBar->FindItem(ID_USE_CC);
-	wxASSERT(pToolsMenuUseCC != NULL);
+	//wxASSERT(pToolsMenuUseCC != NULL);
 	wxMenuItem * pToolsMenuUseSilConverter = pMenuBar->FindItem(ID_USE_SILCONVERTER);
-	wxASSERT(pToolsMenuUseSilConverter != NULL);
+	//wxASSERT(pToolsMenuUseSilConverter != NULL);
 
 	// toggle the setting
 	if (pApp->m_bUseConsistentChanges)
 	{
 		// toggle the checkmark to OFF
-		pToolsMenuUseCC->Check(FALSE);
+		if (pToolsMenuUseCC != NULL)
+		{
+			pToolsMenuUseCC->Check(FALSE);
+		}
 		pApp->m_bUseConsistentChanges = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pToolsMenuUseCC->Check(TRUE);
+		if (pToolsMenuUseCC != NULL)
+		{
+			pToolsMenuUseCC->Check(TRUE);
+		}
 		pApp->m_bUseConsistentChanges = TRUE;
 
         // reset the SILConverter 'use' menu in case it was set 
         // (i.e. these two are mutually exclusive)
-		pToolsMenuUseSilConverter->Check(FALSE);
+		if (pToolsMenuUseSilConverter != NULL)
+		{
+			pToolsMenuUseSilConverter->Check(FALSE);
+		}
 		pApp->m_bUseSilConverter = FALSE;
 	}
 
@@ -10581,7 +10598,10 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 		pApp->m_bAcceptDefaults = FALSE;
 
 		// and update the menu command to be unchecked
-		pToolsMenuUseCC->Check(FALSE);
+		if (pToolsMenuUseCC != NULL)
+		{
+			pToolsMenuUseCC->Check(FALSE);
+		}
 	}
 
 	// restore focus to the targetBox, if it is visible
@@ -10590,6 +10610,7 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -10599,30 +10620,39 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuUseSilConverter;
 	pToolsMenuUseSilConverter = pMenuBar->FindItem(ID_USE_SILCONVERTER);
-	wxASSERT(pToolsMenuUseSilConverter != NULL);
+	//wxASSERT(pToolsMenuUseSilConverter != NULL);
 	wxMenuItem * pToolsMenuUseCC;
 	pToolsMenuUseCC = pMenuBar->FindItem(ID_USE_CC);
-	wxASSERT(pToolsMenuUseCC != NULL);
+	//wxASSERT(pToolsMenuUseCC != NULL);
 	wxMenuItem* pToolsMenuAcceptChanges;
 	pToolsMenuAcceptChanges = pMenuBar->FindItem(ID_ACCEPT_CHANGES);
-	wxASSERT(pToolsMenuAcceptChanges != NULL);
+	//wxASSERT(pToolsMenuAcceptChanges != NULL);
 
 	// toggle the setting
 	if (pApp->m_bUseSilConverter)
 	{
 		// toggle the checkmark to OFF
-		pToolsMenuUseSilConverter->Check(FALSE);
+		if (pToolsMenuUseSilConverter != NULL)
+		{
+			pToolsMenuUseSilConverter->Check(FALSE);
+		}
 		pApp->m_bUseSilConverter = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pToolsMenuUseSilConverter->Check(TRUE);
+		if (pToolsMenuUseSilConverter != NULL)
+		{
+			pToolsMenuUseSilConverter->Check(TRUE);
+		}
 		pApp->m_bUseSilConverter = TRUE;
 
         // reset the Consistent Changes 'use' menu in case it was set 
         // (i.e. these two are mutually exclusive)
-		pToolsMenuUseCC->Check(FALSE);
+		if (pToolsMenuUseCC != NULL)
+		{
+			pToolsMenuUseCC->Check(FALSE);
+		}
 		pApp->m_bUseConsistentChanges = FALSE;
 	}
 
@@ -10648,7 +10678,10 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 		pApp->m_bAcceptDefaults = FALSE;
 
 		// and update the menu command to be unchecked
-		pToolsMenuAcceptChanges->Check(FALSE);
+		if (pToolsMenuAcceptChanges != NULL)
+		{
+			pToolsMenuAcceptChanges->Check(FALSE);
+		}
 	}
 
 	// restore focus to the targetBox, if it is visible
@@ -10688,6 +10721,7 @@ void CAdapt_ItView::OnUpdateAcceptChanges(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -10698,13 +10732,16 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsAcceptChanges = pMenuBar->FindItem(ID_ACCEPT_CHANGES);
-	wxASSERT(pToolsAcceptChanges != NULL);
+	//wxASSERT(pToolsAcceptChanges != NULL);
 
 	// toggle the setting
 	if (pApp->m_bAcceptDefaults)
 	{
 		// toggle the checkmark to OFF
-		pToolsAcceptChanges->Check(FALSE);
+		if (pToolsAcceptChanges != NULL)
+		{
+			pToolsAcceptChanges->Check(FALSE);
+		}
 		pApp->m_bAcceptDefaults = FALSE;
 		
 		// restore the highlighting setting
@@ -10713,7 +10750,10 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// toggle the checkmark to ON
-		pToolsAcceptChanges->Check(TRUE);
+		if (pToolsAcceptChanges != NULL)
+		{
+			pToolsAcceptChanges->Check(TRUE);
+		}
 		pApp->m_bAcceptDefaults = TRUE;
 		
 		// save the highlighting setting so it can be restored when the toggle
@@ -16818,6 +16858,7 @@ void CAdapt_ItView::OnUpdateAlignment(wxUpdateUIEvent& event)
 	event.Enable(TRUE); // always enabled
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -16835,7 +16876,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
-	wxASSERT(pLayoutMenuAlignment != NULL);
+	//wxASSERT(pLayoutMenuAlignment != NULL);
 
 	// toggle the setting & update the display accordingly
 	wxString menuItem;
@@ -16847,11 +16888,14 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_RTL_LAYOUT
+		if (pLayoutMenuAlignment != NULL)
+		{
 #ifdef __WXMAC__
-		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
 #else
-		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
 #endif
+		}
 	}
 	else
 	{
@@ -16861,11 +16905,14 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_LTR_LAYOUT
+		if (pLayoutMenuAlignment != NULL)
+		{
 #ifdef __WXMAC__
-		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
 #else
-		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
 #endif
+		}
 	}
 	Invalidate();
 	GetLayout()->Redraw(); // yep, works nicely
@@ -16877,13 +16924,14 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 // are off then we silently ensure the layout is switched to LTR, and if both are on, then
 // we silently ensure the layout will appear as RTL. The user can subsequently override the
 // auto setting with the Layout menu if he chooses.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CMainFrame *pFrame = pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
-	wxASSERT(pLayoutMenuAlignment != NULL);
+	//wxASSERT(pLayoutMenuAlignment != NULL);
 
 	// adjust the menu item to fit with the flag values
 	wxString menuItem;
@@ -16899,7 +16947,10 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 #else
 		menuItem = _("Layout Window Left To Right\tCtrl-1"); //menuItem.Format(IDS_LTR_LAYOUT);
 #endif
-		pLayoutMenuAlignment->SetText(menuItem);
+		if (pLayoutMenuAlignment != NULL)
+		{
+			pLayoutMenuAlignment->SetText(menuItem);
+		}
 	}
 	else
 	{
@@ -16915,7 +16966,10 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 #else
 			menuItem = _("Layout Window Right To Left\tCtrl-1"); //IDS_RTL_LAYOUT
 #endif
-			pLayoutMenuAlignment->SetText(menuItem);
+			if (pLayoutMenuAlignment != NULL)
+			{
+				pLayoutMenuAlignment->SetText(menuItem);
+			}
 		}
 		else
 		{
@@ -18187,6 +18241,7 @@ void CAdapt_ItView::OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event)
 	}
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -18196,21 +18251,27 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pViewMarkerWrapsStrip = pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP);
-	wxASSERT(pViewMarkerWrapsStrip != NULL);
+	//wxASSERT(pViewMarkerWrapsStrip != NULL);
 
 	// toggle the setting & update the display accordingly
 	if (pApp->m_bMarkerWrapsStrip)
 	{
 		// toggle the checkmark to OFF & recalc the layout with wrap caused by 
 		// markers turned off
-		pViewMarkerWrapsStrip->Check(FALSE);
+		if (pViewMarkerWrapsStrip != NULL)
+		{
+			pViewMarkerWrapsStrip->Check(FALSE);
+		}
 		pApp->m_bMarkerWrapsStrip = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON, and recalc the layout with wrap caused by 
 		// markers turned on
-		pViewMarkerWrapsStrip->Check(TRUE);
+		if (pViewMarkerWrapsStrip != NULL)
+		{
+			pViewMarkerWrapsStrip->Check(TRUE);
+		}
 		pApp->m_bMarkerWrapsStrip = TRUE;
 	}
 
@@ -25204,6 +25265,7 @@ void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 // BEW added 19Sep08 in support of mode changing within the vertical edit process
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::ToggleSeeGlossesMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -25214,15 +25276,15 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 		wxASSERT(pFrame != NULL);
 		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
 		wxASSERT(pMenuBar != NULL);
-		wxMenuItem * pAdvancedFreeTranslation;
-		pAdvancedFreeTranslation = pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
-		wxASSERT(pAdvancedFreeTranslation != NULL);
+		//wxMenuItem * pAdvancedFreeTranslation;
+		//pAdvancedFreeTranslation = pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
+		//wxASSERT(pAdvancedFreeTranslation != NULL);
 
 		// get the checkbox pointer from the "Glossing" checkbox on the controlBar
 		wxASSERT(pFrame->m_pControlBar != NULL);
 		wxCheckBox* pCheckboxIsGlossing = 
 			(wxCheckBox*)pFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-		wxASSERT(pCheckboxIsGlossing != NULL);
+		//wxASSERT(pCheckboxIsGlossing != NULL);
 
         // toggle the setting: note; whether going to or from glossing we will not change
         // the current values of gbGlossingUsesNavFont because the user might go back and
@@ -25234,24 +25296,36 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 		if (gbEnableGlossing)
 		{
 			// toggle the checkmark to OFF
-			pAdvancedSeeGlosses->Check(FALSE);
+			if (pAdvancedSeeGlosses != NULL)
+			{
+				pAdvancedSeeGlosses->Check(FALSE);
+			}
 			gbEnableGlossing = FALSE;
 			gbIsGlossing = FALSE; // must be off whenever the other flag is off
 
 			// hide the mode bar checkbox when glossing is not allowed to be visible
 			// and when not visible it obligatorily must be adapting
-			pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
-			pCheckboxIsGlossing->Hide();
+			if (pCheckboxIsGlossing != NULL)
+			{
+				pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
+				pCheckboxIsGlossing->Hide();
+			}
 		}
 		else
 		{
 			// toggle the checkmark to ON
-			pAdvancedSeeGlosses->Check(TRUE);
+			if (pAdvancedSeeGlosses != NULL)
+			{
+				pAdvancedSeeGlosses->Check(TRUE);
+			}
 			gbEnableGlossing = TRUE;
 
             // show the mode bar checkbox when glossing is allowed to be visible
             // - user can then choose either to do glossing, or to do adapting
-			pCheckboxIsGlossing->Show(TRUE);
+			if (pCheckboxIsGlossing != NULL)
+			{
+				pCheckboxIsGlossing->Show(TRUE);
+			}
 		}
 	}
 	// BEW added 10Jun09, support phrase box matching of the text colour chosen
@@ -25266,6 +25340,7 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 	}
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -25331,7 +25406,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING);
-	wxASSERT(pAdvancedMenu != NULL);
+	//wxASSERT(pAdvancedMenu != NULL);
 
 	// get the checkbox pointer
 	wxPanel* pControlBar;
@@ -25339,7 +25414,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pControlBar != NULL);
 	wxCheckBox* pCheckboxIsGlossing = 
 				(wxCheckBox*)pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-	wxASSERT(pCheckboxIsGlossing != NULL);
+	//wxASSERT(pCheckboxIsGlossing != NULL);
 
     // toggle the setting: note; whether going to or from glossing we will not change the
     // current values of gbGlossingUsesNavFont because the user might go back and forwards
@@ -25350,24 +25425,36 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	if (gbEnableGlossing)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenu->Check(FALSE);
+		if (pAdvancedMenu != NULL)
+		{
+			pAdvancedMenu->Check(FALSE);
+		}
 		gbEnableGlossing = FALSE;
 		gbIsGlossing = FALSE; // must be off whenever the other flag is off
 
 		// hide the mode bar checkbox when glossing is not allowed to be visible
 		// and when not visible it obligatorily must be adapting
-		pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
-		pCheckboxIsGlossing->Show(FALSE);
+		if (pCheckboxIsGlossing != NULL)
+		{
+			pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
+			pCheckboxIsGlossing->Show(FALSE);
+		}
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenu->Check(TRUE);
+		if (pAdvancedMenu != NULL)
+		{
+			pAdvancedMenu->Check(TRUE);
+		}
 		gbEnableGlossing = TRUE;
 
 		// show the mode bar checkbox when glossing is allowed to be visible - user can
 		// then choose either to do glossing, or to do adapting
-		pCheckboxIsGlossing->Show(TRUE);
+		if (pCheckboxIsGlossing != NULL)
+		{
+			pCheckboxIsGlossing->Show(TRUE);
+		}
 	}
 
 	// redraw the layout etc.
@@ -25626,6 +25713,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	GetLayout()->PlaceBox();
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -25636,20 +25724,26 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedGlossingUsesNavFont = 
 						pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT);
-	wxASSERT(pAdvancedGlossingUsesNavFont != NULL);
+	//wxASSERT(pAdvancedGlossingUsesNavFont != NULL);
 
 	// toggle the setting & update the display accordingly
 	if (gbGlossingUsesNavFont)
 	{
 		// toggle the checkmark to OFF & recalc the layout with glossing using target font
-		pAdvancedGlossingUsesNavFont->Check(FALSE);
+		if (pAdvancedGlossingUsesNavFont != NULL)
+		{
+			pAdvancedGlossingUsesNavFont->Check(FALSE);
+		}
 		gbGlossingUsesNavFont = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON, and recalc the layout with glossing using the
 		// navText font
-		pAdvancedGlossingUsesNavFont->Check(TRUE);
+		if (pAdvancedGlossingUsesNavFont != NULL)
+		{
+			pAdvancedGlossingUsesNavFont->Check(TRUE);
+		}
 		gbGlossingUsesNavFont = TRUE;
 	}
 
@@ -26215,6 +26309,7 @@ void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 #endif
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -26249,10 +26344,13 @@ void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 			wxASSERT(pMenuBar != NULL);
 			wxMenuItem * pToolsMenuUseSilConverter = 
 									pMenuBar->FindItem(ID_USE_SILCONVERTER);
-			wxASSERT(pToolsMenuUseSilConverter != NULL);
+			//wxASSERT(pToolsMenuUseSilConverter != NULL);
 
 		    // toggle the checkmark to OFF
-		    pToolsMenuUseSilConverter->Check(FALSE);
+		    if (pToolsMenuUseSilConverter != NULL)
+			{
+				pToolsMenuUseSilConverter->Check(FALSE);
+			}
 		    pApp->m_bUseSilConverter = FALSE;
             return;
         }
@@ -26338,6 +26436,7 @@ wxString CAdapt_ItView::DoSilConvert(const wxString& str)
 #endif // end of if USE_SIL_CONVERTERS
 }
 
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event))
 {
 	// toggle the mode on or off
@@ -26350,18 +26449,24 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(ev
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuUseUseTransLMode = 
 						pMenuBar->FindItem(ID_ADVANCED_USETRANSLITERATIONMODE);
-	wxASSERT(pToolsMenuUseUseTransLMode != NULL);
+	//wxASSERT(pToolsMenuUseUseTransLMode != NULL);
 
 	if (pApp->m_bTransliterationMode)
 	{
 		// toggle the checkmark to OFF
-		pToolsMenuUseUseTransLMode->Check(FALSE);
+		if (pToolsMenuUseUseTransLMode != NULL)
+		{
+			pToolsMenuUseUseTransLMode->Check(FALSE);
+		}
 		pApp->m_bTransliterationMode  = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pToolsMenuUseUseTransLMode->Check(TRUE);
+		if (pToolsMenuUseUseTransLMode != NULL)
+		{
+			pToolsMenuUseUseTransLMode->Check(TRUE);
+		}
 		pApp->m_bTransliterationMode = TRUE;
 	}
 

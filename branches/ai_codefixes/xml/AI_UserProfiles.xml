@@ -762,8 +762,8 @@ menu item will not appear in the list of items displayed for that profile.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom 1"
@@ -1312,8 +1312,8 @@ menu item will not appear in the list of items displayed for that profile.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom 1"
@@ -1334,8 +1334,8 @@ menu item will not appear in the list of items displayed for that profile.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom 1"

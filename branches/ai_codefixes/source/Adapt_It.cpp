@@ -5375,6 +5375,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     true if configuration was successful, false if there was an error
 /// \param      -> currentProfile   the user profile the interface is currently using
+///                                 or -1 for the default "None" user profile
 /// \param      -> newProfile       the user profile the interface is to be changed to
 /// \remarks
 /// Called from: the App's OnInit() and CAdminEditMenuProfile class dialog.
@@ -5395,6 +5396,120 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile(int currentProfile, int newP
 	// elements
 	// 
 	// First, configure visibility of itemType == subMenu elements
+	
+	// testing below !!!
+	// This testing scan of our menu bar indicates that each line of
+	// file history also comes up as numbered/indexed string when 
+	// pMenuItem->GetLabel() is called on all indexed items.
+	
+	//CMainFrame* pMainFrame = GetMainFrame();
+	//wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	//int mCt;
+	//int nMenuItems = pMenuBar->GetMenuCount();
+	//for (mCt = 0; mCt < nMenuItems; mCt++)
+	//{
+	//	wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
+	//	wxASSERT(pMainMenu != NULL);
+	//	wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
+	//	int smCt;
+	//	int nSubMenuItems = pMenuItemList.GetCount();
+	//	for (smCt = 0; smCt < nSubMenuItems; smCt++)
+	//	{
+	//		wxMenuItemList::Node* pNode;
+	//		wxMenuItem* pMenuItem;
+	//		pNode = pMenuItemList.Item(smCt);
+	//		pMenuItem = pNode->GetData();
+	//		wxItemKind itemKind = pMenuItem->GetKind();
+	//		switch (itemKind)
+	//		{
+	//		case wxITEM_SEPARATOR:
+	//			wxLogDebug(_T("-----Menu separator -----"));
+	//			break;
+	//		case wxITEM_NORMAL:
+	//			wxLogDebug(_T("%s Menu: %s"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
+	//			break;
+	//		case wxITEM_CHECK:
+	//			wxLogDebug(_T("%s Menu: %s: wxITEM_CHECK"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
+	//			break;
+	//		default:
+	//			wxLogDebug(_T("%s Menu: %s: wxITEM_RADIO"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
+	//		}
+	//	}
+	//}
+
+	// whm 21Sep10 notes:
+	// While calling delete on pMenuBar works, it leads to some memory leaks due to
+	// the wxDocManager::FileHistoryLoad() call that is done to load the file history
+	// from our m_pConfig. My efforts in the commented out code block below were
+	// unsuccessful in eliminating those memory leaks. Therefore, rather than deleting 
+	// our existing menu, I think it will be necessary to take the existing menu bar 
+	// and "make" it into the desired menu bar for the newProfile.
+	//m_pDocManager->FileHistoryRemoveMenu(pFileMenu);
+	//pMainFrame->SetMenuBar(NULL); // detaches the existing menubar from the main frame
+	//delete pMenuBar;
+	//wxMenuBar* pNewMenuBar;
+	//pNewMenuBar = AIMenuBarFunc();
+	//pMainFrame->SetMenuBar(pNewMenuBar);
+
+	//bool bTest,bTest2;
+	//wxItemKind iKind = wxITEM_NORMAL;
+	//bTest = MenuItemExistsInAIMenuBar(_T("&Edit"),_T("Edit &Source Text...\tCtrl-Q"),iKind);
+	//bTest2 = MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,_T("ID_EDIT_SOURCE_TEXT"));
+	// testing above !!!
+		
+	// Our approach will be to scan through m_pAI_MenuStructure and compare each element 
+	// (SUB_MENU item) with the corresponding information in m_pUserProfiles. If the 
+	// SUB_MENU item in m_pAI_MenuStructure is marked as itemVisibility="0" in 
+	// m_pUserProfiles we check if that item is currently in pMenuBar and remove it if
+	// it is. If the SUB_MENU item in m_pAI_MenuStructure is marked as itemVisibility="1" 
+	// in m_pUserProfiles we check if that item is currently in pMenuBar, and insert it
+	// if it is not already there. The m_pAI_MenuStructure has the complete menu structure
+	// including menuSeparator items, so we should be able to rebuild our existing pMenuBar
+	// as needed. The MakeMenuAndPlatformAdjustments() function below will make
+	// some other adjustments to menu items after the new profile has been applied.
+	//wxString profileItemID;
+	//profileItemID = pUserProfileItem->itemID;
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		menuLabel.Replace(_T("&"),_T("")); // remove any & chars for comparison
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,pSubMenuItem->subMenuID))
+			{
+				// The pSubMenuItem should be visible. If not add it to the current menu bar
+				if (!MenuItemExistsInAIMenuBar(pMainMenuItem->mainMenuLabel,pSubMenuItem->subMenuLabel,pSubMenuItem->subMenuKind))
+				{
+					// The menu item does not exist in AI's menu bar, so add it to the AI menu bar
+					AddSubMenuItemToAIMenuBar(pMainMenuItem,pSubMenuItem);
+				}
+			}
+			else
+			{
+				// The pSubMenuItem should not be visible/present. If it is remove it from the current menu bar
+				if (MenuItemExistsInAIMenuBar(pMainMenuItem->mainMenuLabel,pSubMenuItem->subMenuLabel,pSubMenuItem->subMenuKind))
+				{
+					// The menu item exists in the AI menu bar, so we need to remove it from the AI menu bar.
+					RemoveSubMenuItemFromAIMenuBar(pMainMenuItem,pSubMenuItem);
+				}
+			}
+		}
+	}
+
+	MakeMenuAndPlatformAdjustments();
 
 	// Next, configure visibility of itemType == modeBar elements
 	
@@ -5422,6 +5537,543 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile(int currentProfile, int newP
 	return TRUE;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() and ConfigureInterfaceForUserProfile().
+/// Associates the File History (MRU) with the File menu.
+/// Also adjusts some menu hot key assignments for the different platforms.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::MakeMenuAndPlatformAdjustments()
+{
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	// Get the File Menu, tell the doc manager that we want the File History on the
+	// File Menu, and Load the File History (MRU) to it
+	wxMenu* pFileMenu = pMenuBar->GetMenu(fileMenu);
+	wxASSERT(pFileMenu != NULL);
+	//m_pDocManager->FileHistoryUseMenu(pFileMenu);
+	//// This must come after Main Menu is created and FileHistoryUseMenu call
+	//m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
+	//											// list from *m_pConfig
+
+	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
+    // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
+    // are made to coordinate with these menu hot key adjustments.
+#if defined (__WXMAC__) || defined (__WXGTK__)
+    // whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep
+    // them from conflicting with the customary Mac access keys and accelerator keys. The
+    // accelerator keys are created during the creation of the CMainFrame above, so we can
+    // make adjustments here.
+
+	// File | Start Working...
+    // On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active
+    // Window, so we've defined the accelerator key on Mac for "Start Working..." as
+    // Command-Shift-O, and on Linux as Ctrl-Shift-O, to avoid the conflict.
+	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
+				// & Linux have the default Ctrl-W
+#endif
+	
+#ifdef __WXMAC__
+	// File | Close Project
+    // On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used
+    // it on Windows/Linux for Close Project, but the comperable hot key to close the
+    // active window for Mac is Command-W.
+	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close 
+	// (wxID_CLOSE) menu item.
+	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
+			// and Linux have the default Ctrl-J
+    
+	// File | Exit
+	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
+	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
+	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
+    wxMenuItem* pFileExitItem;
+	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
+	wxASSERT(pFileExitItem != NULL);
+	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+	
+	wxMenu* pEditMenu = pMenuBar->GetMenu(editMenu);
+	wxASSERT(pEditMenu != NULL);
+	
+	// Edit | Edit Source Text
+    // On Mac, the hot key command to quit the application is Command-Q and we have set a
+    // Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
+    // Ctrl-Shift-E for it here.
+    pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
+	
+	// Edit | Move Note Backward
+    // On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
+    // accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
+    // use Ctrl-Shift-2 for it here.
+    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
+	
+	// Edit | Move Note Forward
+    // On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
+    // accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
+    // use Ctrl-Shift-3 for it here.
+    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
+	
+	wxMenu* pToolsMenu = pMenuBar->GetMenu(toolsMenu);
+	wxASSERT(pToolsMenu != NULL);
+	
+	// Tools | Find and Replace
+	// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
+	// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
+	// menu to use Ctrl-Shift-F for it here.
+	pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
+
+	wxMenu* pLayoutMenu = pMenuBar->GetMenu(layoutMenu);
+	wxASSERT(pLayoutMenu != NULL);
+	
+	// Layout | Layout Window Right To Left
+	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
+	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
+	// menu to use Ctrl-Shift-1 for it here.
+	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
+	wxASSERT(pHelpTopicsMenu != NULL);
+	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
+
+#else
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP);
+	wxASSERT(pHelpTopicsMenu != NULL);
+	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
+
+#endif
+
+	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
+	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
+	// resource. With wxDesigner handling resources, it's easier to start with the item 
+	// in the menu and programmatically delete it, rather than create it from scratch.
+	// So, for ANSI version, we'll just remove them from the MenuBar.
+#ifndef _UNICODE
+	// ANSI only
+	//AddForceUTF8Command(); // File... Export Target Text As UTF-8... menu command
+	// Rather than calling a AddForceUTF8Command() function we'll just use the
+	// pFileMenu pointer defined above and remove the menu item, deleting it to 
+	// avoid memory leaks.
+	// whm Bruce later made the following change to the MFC version:
+	// BEW removed 8Dec06 because we'll force UTF8 conversion for the standard command from now on
+	// leave this function in the app, commented out, it is a useful template for how to add
+	// a menu command dynamically
+	wxASSERT(pFileMenu != NULL);
+	wxMenuItem* pRemMenuItem;
+	//pRemMenuItem = pFileMenu->Remove(ID_FORCEUTF8);
+	//wxASSERT(pRemMenuItem != NULL);
+	//delete pRemMenuItem; // to avoid memory leaks
+	//pRemMenuItem = (wxMenuItem*)NULL;
+
+	// In the wx version we started with the Layout menu loaded with 
+	// other menu resources. Here we'll remove it for the ANSI version.
+	wxMenu* pLayoutMenu = pMenuBar->GetMenu(layoutMenu);
+	wxASSERT(pLayoutMenu != NULL);
+	// first delete the "Layout Window Right To Left\tCTRL+1" menu item
+	pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
+	wxASSERT(pRemMenuItem != NULL);
+	delete pRemMenuItem; // to avoid memory leaks
+	pRemMenuItem = (wxMenuItem*)NULL;
+	// then delete the top level "Layout" menu
+	wxMenu* pRemMenu;
+	pRemMenu = pMenuBar->Remove(layoutMenu);
+	wxASSERT(pRemMenu != NULL);
+	delete pRemMenu; // to avoid memory leaks
+	pRemMenu = (wxMenu*)NULL;
+#else
+	// Unicode version
+	// Initialize the Layout menu to LTR
+	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
+	if(pLayoutMenuAlignment != NULL)
+	{
+	// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
+    // note: default display is LTR so menu item should read what clicking it should make
+    // the layout become after clicking. The menu text may be changed to appropriate value
+    // upon reading reading a project config file (the change is made in ???).
+#ifdef __WXMAC__
+		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+#else
+		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+#endif
+	}
+
+#endif 
+
+    // These toggle menu items should be initially set as follows (TRUE=checked;
+    // FALSE=unchecked):
+    // whm verified 2Sep06 that at least some are needed to be pre-set as follows in order
+    // for the calls to menu handlers to operate successfully in the View's
+    // OnInitialUpdate() function where the initial state of toggled toolbar buttons is
+    // set.
+    if (pMenuBar->FindItem(ID_VIEW_TOOLBAR) != NULL)
+		pMenuBar->Check(ID_VIEW_TOOLBAR, TRUE);
+    if (pMenuBar->FindItem(ID_VIEW_STATUS_BAR) != NULL)
+		pMenuBar->Check(ID_VIEW_STATUS_BAR, TRUE);
+    if (pMenuBar->FindItem(ID_VIEW_COMPOSE_BAR) != NULL)
+		pMenuBar->Check(ID_VIEW_COMPOSE_BAR, FALSE);
+    if (pMenuBar->FindItem(ID_COPY_SOURCE) != NULL)
+		pMenuBar->Check(ID_COPY_SOURCE, TRUE);
+    if (pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP) != NULL)
+		pMenuBar->Check(ID_MARKER_WRAPS_STRIP, TRUE);
+    if (pMenuBar->FindItem(ID_USE_CC) != NULL)
+		pMenuBar->Check(ID_USE_CC, FALSE);
+	if (pMenuBar->FindItem(ID_ACCEPT_CHANGES) != NULL)
+		pMenuBar->Check(ID_ACCEPT_CHANGES, FALSE);
+	if (pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING) != NULL)
+		pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
+	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
+		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+
+    // insure that the Use Tooltips menu item in the Help menu is checked or unchecked
+    // according to the current value of m_bUseToolTips (retrieved from registry/hidden
+    // settings via wxConfig object earlier in OnInit)
+	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
+		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
+}
+
+bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind)
+{
+	if (itemKind == _T("wxITEM_SEPARATOR"))
+	{
+		// do not confirm existence of menuSeparator items
+		return FALSE;
+	}
+	bool bItemExists = FALSE;
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	int mCt;
+	int nMenuItems = pMenuBar->GetMenuCount();
+	for (mCt = 0; mCt < nMenuItems; mCt++)
+	{
+		wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
+		wxString mmLabel = pMenuBar->GetMenuLabel(mCt);
+		if (mmLabel != mainMenuLabel)
+		{
+			// we're not in the right top level menu
+			continue;
+		}
+		wxASSERT(pMainMenu != NULL);
+		wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
+		int smCt;
+		int nSubMenuItems = pMenuItemList.GetCount();
+		for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		{
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			pNode = pMenuItemList.Item(smCt);
+			pMenuItem = pNode->GetData();
+			wxString smKindStr;
+			wxItemKind smKind = pMenuItem->GetKind();
+			switch (smKind)
+			{
+			case wxITEM_NORMAL:
+				smKindStr = _T("wxITEM_NORMAL");
+				break;
+			case wxITEM_SEPARATOR:
+				smKindStr = _T("wxITEM_SEPARATOR");
+				break;
+			case wxITEM_CHECK:
+				smKindStr = _T("wxITEM_CHECK");
+				break;
+			case wxITEM_RADIO: // fall through
+			default:
+				wxASSERT(FALSE); // we don't use wxITEM_RADIO, so this would be a programming error
+				smKindStr = _T("wxITEM_RADIO");
+			}
+			// for testing
+			//switch (smKind)
+			//{
+			//case wxITEM_SEPARATOR:
+			//	wxLogDebug(_T("-----Menu separator -----"));
+			//	break;
+			//case wxITEM_NORMAL:
+			//	wxLogDebug(_T("%s Menu: %s"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
+			//	break;
+			//case wxITEM_CHECK:
+			//	wxLogDebug(_T("%s Menu: %s: wxITEM_CHECK"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
+			//	break;
+			//case wxITEM_RADIO: // fall through
+			//default:
+			//	wxLogDebug(_T("%s Menu: %s: wxITEM_RADIO"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
+			//}
+			// Note: Using GetItemLabel() is supposed to preserve any & and Ctrl-key accelerator characters.
+			// Testing shows that it only partially does so - the \t character that separates the label from
+			// the Ctrl-key part gets lost. To achieve more reliable comparisons, it is best that we
+			// compare menu labels after removing both the & and any \tCtrl-key or Ctrl-key characters
+			// from menu labels. 
+			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
+			wxString subMenuLabelPlain = subMenuLabel;
+			subMenuLabelPlain.Replace(_T("&"),_T(""));
+			int nTest;
+			nTest = subMenuLabelPlain.Find(_T("\\t"));
+			if (subMenuLabelPlain.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
+			{
+				// there is a tab char in the menu label, so remove from that point to remainder of string
+				subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("\\t")));
+			}
+			else
+			{
+				// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
+				if (subMenuLabelPlain.Find(_T("Ctrl-")) != wxNOT_FOUND)
+				{
+					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Ctrl-")));
+				}
+				else if (subMenuLabelPlain.Find(_T("Shift-")) != wxNOT_FOUND)
+				{
+					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Shift-")));
+				}
+			}
+			if (smLabel == subMenuLabelPlain && smKindStr == itemKind)
+			{
+				bItemExists = TRUE;
+				return bItemExists;
+			}
+		}
+	}
+
+
+	return bItemExists;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if menuItemID is supposed to be visible in this nProfile, FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+/// \param      -> menuItemID wxString representation of the menu item's ID
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Determines whether the menu item represented in menuItemID it supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the menuItemID in
+/// the m_pUserProfiles data struct stored on the heap.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID)
+{
+	// we assume that a menu item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	int ct;
+	int totct;
+	totct = m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (menuItemID == _T("menuSeparator"))
+		{
+			// We return FALSE for menuSeparators since they have no visibility data.
+			return FALSE;
+		}
+		wxString itemID;
+		itemID = pUserProfileItem->itemID;
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemID == menuItemID && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    nothing
+/// \param      -> pMainMenuItem   pointer to the main menu item's struct on the heap
+/// \param      -> pSubMenuItem    pointer to the sub menu item's struct on the heap
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Adds the sub menu item (whose data representation is in pSubMenuItem) to AI's current
+/// menu bar. Before calling this function a call to MenuItemIsVisibleInThisProfile() should
+/// return TRUE and a call to MenuItemExistsInAIMenuBar() should return FALSE. This function
+/// uses the AI_MenuStructure data on the heap to determine the position within the AI menu bar
+/// where the sub menu item should be inserted, along with any preceding menu separator.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    nothing
+/// \param      -> pMainMenuItem   pointer to the main menu item's struct on the heap
+/// \param      -> pSubMenuItem    pointer to the sub menu item's struct on the heap
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Removes the sub menu item (whose data representation is in pSubMenuItem) from AI's current
+/// menu bar. Before calling this function a call to MenuItemIsVisibleInThisProfile() should
+/// return FALSE and a call to MenuItemExistsInAIMenuBar() should return TRUE. This function
+/// checks the resulting AI menu bar after the deletion of the sub menu item, and removes any 
+/// left over menu separators that would appear as a double separator or a separator left at 
+/// the bottom of the top level menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
+{
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	int mCt;
+	int nMenuItems = pMenuBar->GetMenuCount();
+	for (mCt = 0; mCt < nMenuItems; mCt++)
+	{
+		wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
+		wxString mmLabel = pMenuBar->GetMenuLabel(mCt);
+		if (mmLabel != pMainMenuItem->mainMenuLabel)
+		{
+			// we're not in the right top level menu
+			continue;
+		}
+		wxASSERT(pMainMenu != NULL);
+		wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
+		int smCt;
+		int nSubMenuItems = pMenuItemList.GetCount();
+		bool bDeletionMade = FALSE;
+		for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		{
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			pNode = pMenuItemList.Item(smCt);
+			pMenuItem = pNode->GetData();
+			wxString smKindStr;
+			wxItemKind smKind = pMenuItem->GetKind();
+			switch (smKind)
+			{
+			case wxITEM_NORMAL:
+				smKindStr = _T("wxITEM_NORMAL");
+				break;
+			case wxITEM_SEPARATOR:
+				smKindStr = _T("wxITEM_SEPARATOR");
+				break;
+			case wxITEM_CHECK:
+				smKindStr = _T("wxITEM_CHECK");
+				break;
+			case wxITEM_RADIO: // fall through
+			default:
+				wxASSERT(FALSE); // we don't use wxITEM_RADIO, so this would be a programming error
+				smKindStr = _T("wxITEM_RADIO");
+			}
+			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
+			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
+			subMenuLabelPlain.Replace(_T("&"),_T(""));
+			int nTest;
+			nTest = subMenuLabelPlain.Find(_T("\\t"));
+			if (subMenuLabelPlain.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
+			{
+				// there is a tab char in the menu label, so remove from that point to remainder of string
+				subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("\\t")));
+			}
+			else
+			{
+				// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
+				if (subMenuLabelPlain.Find(_T("Ctrl-")) != wxNOT_FOUND)
+				{
+					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Ctrl-")));
+				}
+				else if (subMenuLabelPlain.Find(_T("Shift-")) != wxNOT_FOUND)
+				{
+					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Shift-")));
+				}
+			}
+			if (smLabel == subMenuLabelPlain && smKindStr == pSubMenuItem->subMenuKind)
+			{
+				// we have found the correct sub menu item to be removed
+				wxMenuItem* pRemMenuItem;
+				pRemMenuItem = pMainMenu->Remove(pMenuItem);
+				wxASSERT(pRemMenuItem != NULL);
+				delete pRemMenuItem; // to avoid memory leaks
+				pRemMenuItem = (wxMenuItem*)NULL;
+				bDeletionMade = TRUE;
+			}
+		} // end of for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		if (bDeletionMade)
+		{
+			// Check for extraneous left-over menu separators in this top level menu
+			// and delete if found.
+			// Start at the bottom of the menu and remove all menu separators there.
+			bool bLastItemWasSeparator = FALSE;
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+			pNode = pMenuItemList.GetLast();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+				{
+					break;
+				}
+				else
+				{
+					// This menu separator is either the last item on the menu
+					// or it is the first of two adjacent separators in the menu.
+					// In either case we delete the current menu separator.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenu->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				pNode = pMenuItemList.GetLast();
+			}
+			// remove any separators at the top of the top level menu
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+			nSubMenuItems = pMenuItemList.GetCount();
+			pNode = pMenuItemList.GetFirst();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+				{
+					break;
+				}
+				else
+				{
+					// This menu separator is at the top of the menu
+					// so remove it.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenu->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				pNode = pMenuItemList.GetFirst();
+			}
+			
+			// change any remaining multiple sequences of menu separators to a single separator
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
+			nSubMenuItems = pMenuItemList.GetCount();
+			for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
+			{
+				pNode = pMenuItemList.Item(smCt);
+				pMenuItem = pNode->GetData();
+				wxString smKindStr;
+				wxItemKind smKind = pMenuItem->GetKind();
+				if (smKind == wxITEM_SEPARATOR)
+				{
+					if (smCt == nSubMenuItems - 1 || bLastItemWasSeparator)
+					{
+						// This menu separator is either the last item on the menu
+						// or it is the first of two adjacent separators in the menu.
+						// In either case we delete the current menu separator.
+						wxMenuItem* pRemMenuItem;
+						pRemMenuItem = pMainMenu->Remove(pMenuItem);
+						wxASSERT(pRemMenuItem != NULL);
+						delete pRemMenuItem; // to avoid memory leaks
+						pRemMenuItem = (wxMenuItem*)NULL;
+					}
+					bLastItemWasSeparator = TRUE;
+				}
+				else
+				{
+					bLastItemWasSeparator = FALSE;
+				}
+			}
+			
+		}
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
@@ -7560,6 +8212,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxFileSystem::AddHandler(new wxArchiveFSHandler); // docs say to use this one
 
 
+	// whm note: The new CMainFrame call below creates AI's top level Main Frame window. 
+	// It also calls m_pMenuBar = AIMenuBarFunc() to create the menuBar and calls 
+	// SetMenuBar(m_pMenuBar) to associate the menuBar with the Main Frame. All the
+	// other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
+	// also created within the CMainFrame's constructor.
+
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*) NULL, -1, m_FrameAndDocProgramTitle,
                                 wxPoint(0, 0), wxSize(735, 500),
                                 wxDEFAULT_FRAME_STYLE 
@@ -8825,6 +9483,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
+	MakeMenuAndPlatformAdjustments();
+
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
 	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
@@ -8833,6 +9493,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
+
+	/*
+	// whm put the following into the MakeMenuAndPlatformAdjustments() function
+	// above.
 
 	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
     // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
@@ -8919,6 +9583,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
 
 #endif
+	*/
 
     // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
@@ -9277,6 +9942,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Creation of targetbox moved to the View's OnCreate() method
 
+	/*
+	// whm moved the following to the MakeMenuAndPlatformAdjustments() 
+	// function.
     // These toggle menu items should be initially set as follows (TRUE=checked;
     // FALSE=unchecked):
     // whm verified 2Sep06 that at least some are needed to be pre-set as follows in order
@@ -9292,6 +9960,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_ACCEPT_CHANGES, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+	*/
 
 	// The following code for setting the composebar font and RTL was moved here 
 	// to the App from the CMainFraim constructor where it was in the MFC version
@@ -9350,6 +10019,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // when in OnButtonMerge()
 	gbDoingInitialSetup = TRUE;
 
+	/*
+	// whm moved the following into the MakeMenuAndPlatformAdjustments()
+	// function.
 	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
 	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
 	// resource. With wxDesigner handling resources, it's easier to start with the item 
@@ -9412,7 +10084,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
 	wxASSERT(pUseToolTips != NULL);
 	pUseToolTips->Check(m_bUseToolTips);
-
+*/
 	// change the unnamedN title to "Untitled - Adapt It"
 	wxString viewTitle = _("Untitled - Adapt It");
 	GetDocument()->SetTitle(viewTitle);
@@ -9733,6 +10405,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
 	// copy there if necessary from the installation resources.
+	// TODO: Should the loading of AI_UserProfiles.xml go before the creation of the 
+	// menu bar???
+	message = _("Loading AI_UserProfiles.xml ...");
+	wxASSERT(pStatusBar != NULL);
+	pStatusBar->SetStatusText(message,0); // use first field 0
 
 	// If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the 
 	// setup folder and, if there, then copy it to the work folder before opening it 
@@ -9845,8 +10522,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// At this point the config files have been read and the AI_UserProfiles.xml file has been
 	// read and the m_pUserProfiles data structure has been updated
-	// TODO: Adjust menus and settings for the selected user workflow profile by calling
-	// ConfigureInterfaceForUserProfile(int ...,int...);
+	// Adjust menus and settings for the selected user workflow profile by calling
+	// ConfigureInterfaceForUserProfile(). However, if the m_nWorkflowProfile is 0 "None" 
+	// we simply bypass calling ConfigureInterfaceForUserProfile() and the application
+	// uses its default interface of menus, etc.
+	if (m_nWorkflowProfile != 0)
+	{
+		ConfigureInterfaceForUserProfile(-1,m_nWorkflowProfile);
+	}
 
 
     // Initialise the help system. We do it here because our m_setupFolder was determined
@@ -10299,7 +10982,7 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 							//removed already, so this index may not be correct presently
 		//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
 		//wxASSERT(pAdminMenu != NULL);
-		m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
+		m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
 		m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
 		m_bAdminMenuRemoved = TRUE;
 		pMenuBar->Refresh();
@@ -14806,6 +15489,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 /// To turn on the consistent changes functionality again, the user must again select the
 /// "Load Consistent Changes..." menu item, load the .cct changes files, and then select
 /// the "Use Consistent Changes" toggle item in the Tools menu.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event)) 
 {
@@ -14837,11 +15521,15 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsUseCC = pMenuBar->FindItem(ID_USE_CC);
-	wxASSERT(pToolsUseCC != NULL);
-	pToolsUseCC->Check(FALSE);
+	if(pToolsUseCC != NULL)
+	{
+		pToolsUseCC->Check(FALSE);
+	}
 	wxMenuItem * pToolsAcceptChanges = pMenuBar->FindItem(ID_ACCEPT_CHANGES);
-	wxASSERT(pToolsAcceptChanges != NULL);
-	pToolsAcceptChanges->Check(FALSE);
+	if(pToolsAcceptChanges != NULL)
+	{
+		pToolsAcceptChanges->Check(FALSE);
+	}
 
 	// ensure the "Accept changes without stopping" flag is FALSE
 	m_bAcceptDefaults = FALSE;
@@ -22348,6 +23036,7 @@ void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 /// Toggles the Automatic Capitalization feature of Adapt It on or off depending on the
 /// initial value of the gbAutoCaps global flag. Warns the user if the project's settings
 /// are not set up to utilize this feature.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 {
@@ -22361,13 +23050,16 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuAutoCap = pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION);
-	wxASSERT(pToolsMenuAutoCap != NULL);
+	//wxASSERT(pToolsMenuAutoCap != NULL);
 
 	// toggle the setting & update the display accordingly
 	if (gbAutoCaps)
 	{
 		// toggle the checkmark to OFF & recalc the layout with strip-wrap off
-		pToolsMenuAutoCap->Check(FALSE);
+		if (pToolsMenuAutoCap != NULL)
+		{
+			pToolsMenuAutoCap->Check(FALSE);
+		}
 		gbAutoCaps = FALSE;
 	}
 	else
@@ -22461,7 +23153,10 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 			}
 		}
 		// toggle the checkmark to ON, and recalc the layout with strip-wrap on
-		pToolsMenuAutoCap->Check(TRUE);
+		if (pToolsMenuAutoCap != NULL)
+		{
+			pToolsMenuAutoCap->Check(TRUE);
+		}
 		gbAutoCaps = TRUE;
 		gbSuppressAutoCapsAsk = FALSE;
 	}
@@ -22556,6 +23251,7 @@ void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 /// divisions as specified in books.xml. This handler then invokes the Start Working Wizard
 /// which allows the user to select the division and specific folder to use for opening
 /// and/or creating new documents.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event) 
 {
@@ -22565,7 +23261,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-	wxASSERT(pAdvancedMenu != NULL);
+	//wxASSERT(pAdvancedMenu != NULL);
 
 	// force closure of an open document, before the mode is changed - since the
 	// document has to go to its current folder, and after the mode change that will
@@ -22588,7 +23284,10 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	if (m_bBookMode)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenu->Check(FALSE);
+		if (pAdvancedMenu != NULL)
+		{
+			pAdvancedMenu->Check(FALSE);
+		}
 		m_bBookMode = FALSE;
 		m_nLastBookIndex = m_nBookIndex; // store last used index, in case 
 										 // the user restarts book mode
@@ -22599,7 +23298,10 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenu->Check(TRUE);
+		if (pAdvancedMenu != NULL)
+		{
+			pAdvancedMenu->Check(TRUE);
+		}
 
 		// restore the settings, set the name pair structure, and redefine 
 		// the book folder's path
@@ -22664,6 +23366,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 /// ticked if On and unticked if Off.
 /// BEW added 13Nov09, don't allow local user with read-only access to a remote project
 /// folder to make document or folder changes of this kind on the remote machine
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event) 
 {
@@ -22683,7 +23386,8 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-	wxASSERT(pAdvancedMenu != NULL);
+	if (pAdvancedMenu == NULL)//wxASSERT(pAdvancedMenu != NULL);
+		return;
 
 	if (m_bBookMode && !m_bDisableBookMode)
 	{

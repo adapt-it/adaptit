@@ -15488,6 +15488,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdate
 /// \remarks
 /// Called from: the Advanced menu's "Receive Synchronized Scrolling Messages" selection.
 /// is open. Toggles the menu item's check mark on and off.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event))
 {
@@ -15497,19 +15498,25 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuReceiveSSMsgs = 
 				pMenuBar->FindItem(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES);
-	wxASSERT(pAdvancedMenuReceiveSSMsgs != NULL);
+	//wxASSERT(pAdvancedMenuReceiveSSMsgs != NULL);
 
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Receive)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuReceiveSSMsgs->Check(FALSE);
+		if (pAdvancedMenuReceiveSSMsgs != NULL)
+		{
+			pAdvancedMenuReceiveSSMsgs->Check(FALSE);
+		}
 		gbIgnoreScriptureReference_Receive = TRUE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuReceiveSSMsgs->Check(TRUE);
+		if (pAdvancedMenuReceiveSSMsgs != NULL)
+		{
+			pAdvancedMenuReceiveSSMsgs->Check(TRUE);
+		}
 		gbIgnoreScriptureReference_Receive = FALSE;
 	}
 }
@@ -15539,6 +15546,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIE
 /// \remarks
 /// Called from: the Advanced menu's "Send Synchronized Scrolling Messages" selection.
 /// is open. Toggles the menu item's check mark on and off.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event))
 {
@@ -15548,19 +15556,25 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& W
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuSendSSMsgs = 
 				pMenuBar->FindItem(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES);
-	wxASSERT(pAdvancedMenuSendSSMsgs != NULL);
+	//wxASSERT(pAdvancedMenuSendSSMsgs != NULL);
 
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Send)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuSendSSMsgs->Check(FALSE);
+		if (pAdvancedMenuSendSSMsgs != NULL)
+		{
+			pAdvancedMenuSendSSMsgs->Check(FALSE);
+		}
 		gbIgnoreScriptureReference_Send = TRUE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuSendSSMsgs->Check(TRUE);
+		if (pAdvancedMenuSendSSMsgs != NULL)
+		{
+			pAdvancedMenuSendSSMsgs->Check(TRUE);
+		}
 		gbIgnoreScriptureReference_Send = FALSE;
 	}
 }

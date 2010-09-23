@@ -1308,13 +1308,14 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 }
 
 // BEW 9July10, no changes needed for support of kbVersion 2
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuFTMode = 
 						pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
-	wxASSERT(pAdvancedMenuFTMode != NULL);
+	//wxASSERT(pAdvancedMenuFTMode != NULL);
 	gbSuppressSetup = FALSE; // setdefault value
 
     // determine if the document is unstructured or not -- we'll need this set or cleared
@@ -1328,7 +1329,10 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	if (m_pApp->m_bFreeTranslationMode)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuFTMode->Check(FALSE);
+		if (pAdvancedMenuFTMode != NULL)
+		{
+			pAdvancedMenuFTMode->Check(FALSE);
+		}
 		m_pApp->m_bFreeTranslationMode = FALSE;
 
         // free translation mode is being turned off, so "fix" the current free translation
@@ -1339,7 +1343,10 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuFTMode->Check(TRUE);
+		if (pAdvancedMenuFTMode != NULL)
+		{
+			pAdvancedMenuFTMode->Check(TRUE);
+		}
 		m_pApp->m_bFreeTranslationMode = TRUE;
 	}
 	if (m_pApp->m_bFreeTranslationMode)
@@ -2357,6 +2364,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CFreeTrans::ToggleFreeTranslationMode()
 {
 	if (gbVerticalEditInProgress)
@@ -2365,7 +2373,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 		wxASSERT(pMenuBar != NULL);
 		wxMenuItem * pAdvancedFreeTranslation = 
 							pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
-		wxASSERT(pAdvancedFreeTranslation != NULL);
+		//wxASSERT(pAdvancedFreeTranslation != NULL);
 		gbSuppressSetup = FALSE; // setdefault value
 
         // determine if the document is unstructured or not -- we'll need this set or
@@ -2380,13 +2388,19 @@ void CFreeTrans::ToggleFreeTranslationMode()
 		if (m_pApp->m_bFreeTranslationMode)
 		{
 			// toggle the checkmark to OFF
-			pAdvancedFreeTranslation->Check(FALSE);
+			if (pAdvancedFreeTranslation != NULL)
+			{
+				pAdvancedFreeTranslation->Check(FALSE);
+			}
 			m_pApp->m_bFreeTranslationMode = FALSE;
 		}
 		else
 		{
 			// toggle the checkmark to ON
-			pAdvancedFreeTranslation->Check(TRUE);
+			if (pAdvancedFreeTranslation != NULL)
+			{
+				pAdvancedFreeTranslation->Check(TRUE);
+			}
 			m_pApp->m_bFreeTranslationMode = TRUE;
 		}
 		if (m_pApp->m_bFreeTranslationMode)
@@ -3462,6 +3476,7 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
@@ -3470,24 +3485,33 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 							pMenuBar->FindItem(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT);
 	wxMenuItem* pAdvancedMenuGTextDft = 
 							pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT);
-	wxASSERT(pAdvancedMenuTTextDft != NULL);
-	wxASSERT(pAdvancedMenuGTextDft != NULL);
+	//wxASSERT(pAdvancedMenuTTextDft != NULL);
+	//wxASSERT(pAdvancedMenuGTextDft != NULL);
 
 	// toggle the setting
 	if (m_pApp->m_bTargetIsDefaultFreeTrans)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuTTextDft->Check(FALSE);
+		if (pAdvancedMenuTTextDft != NULL)
+		{
+			pAdvancedMenuTTextDft->Check(FALSE);
+		}
 		m_pApp->m_bTargetIsDefaultFreeTrans = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuTTextDft->Check(TRUE);
+		if (pAdvancedMenuTTextDft != NULL)
+		{
+			pAdvancedMenuTTextDft->Check(TRUE);
+		}
 		m_pApp->m_bTargetIsDefaultFreeTrans = TRUE;
 
 		// and ensure the glossing text command is off, and its flag cleared
-		pAdvancedMenuGTextDft->Check(FALSE);
+		if (pAdvancedMenuGTextDft != NULL)
+		{
+			pAdvancedMenuGTextDft->Check(FALSE);
+		}
 		m_pApp->m_bGlossIsDefaultFreeTrans = FALSE;
 	}
 
@@ -3540,6 +3564,7 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
@@ -3548,24 +3573,33 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 							pMenuBar->FindItem(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT);
 	wxMenuItem* pAdvancedMenuGTextDft = 
 							pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT);
-	wxASSERT(pAdvancedMenuTTextDft != NULL);
-	wxASSERT(pAdvancedMenuGTextDft != NULL);
+	//wxASSERT(pAdvancedMenuTTextDft != NULL);
+	//wxASSERT(pAdvancedMenuGTextDft != NULL);
 
 	// toggle the setting
 	if (m_pApp->m_bGlossIsDefaultFreeTrans)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuGTextDft->Check(FALSE);
+		if (pAdvancedMenuGTextDft != NULL)
+		{
+			pAdvancedMenuGTextDft->Check(FALSE);
+		}
 		m_pApp->m_bGlossIsDefaultFreeTrans = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuGTextDft->Check(TRUE);
+		if (pAdvancedMenuGTextDft != NULL)
+		{
+			pAdvancedMenuGTextDft->Check(TRUE);
+		}
 		m_pApp->m_bGlossIsDefaultFreeTrans = TRUE;
 
 		// ensure the target text command is toggled off (if it was on), and its flag
-		pAdvancedMenuTTextDft->Check(FALSE);
+		if (pAdvancedMenuTTextDft != NULL)
+		{
+			pAdvancedMenuTTextDft->Check(FALSE);
+		}
 		m_pApp->m_bTargetIsDefaultFreeTrans = FALSE;
 
 	}

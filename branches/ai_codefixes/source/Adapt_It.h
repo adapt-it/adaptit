@@ -2597,7 +2597,15 @@ public:
 	// a debugging helper to send contents of UsfmFilterMarkersStr to debug window
 	void	ShowFilterMarkers(int refNum); // refNum is any number I want to pass in, it is shown too
 #endif
+
+	// whm added 21Sep10
 	bool	ConfigureInterfaceForUserProfile(int currentProfile, int newProfile);
+	void	MakeMenuAndPlatformAdjustments();
+	bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);
+	bool	MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID);
+	void	AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem);
+	void	RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem);
+
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
 	// Functions that let the user select/change Adapt It's interface language

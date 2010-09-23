@@ -1030,16 +1030,22 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 		wxASSERT(pMenuBar != NULL);
 		wxMenuItem * pAdvBookMode = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-		wxASSERT(pAdvBookMode != NULL);
+		//wxASSERT(pAdvBookMode != NULL);
 		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		{
 			// mark it checked
-			pAdvBookMode->Check(TRUE);
+			if (pAdvBookMode != NULL)
+			{
+				pAdvBookMode->Check(TRUE);
+			}
 		}
 		else
 		{
 			// mark it unchecked
-			pAdvBookMode->Check(FALSE);
+			if (pAdvBookMode != NULL)
+			{
+				pAdvBookMode->Check(FALSE);
+			}
 		}
 
 		// BEW added 02Nov05
