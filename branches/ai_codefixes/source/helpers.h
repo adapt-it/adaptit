@@ -180,7 +180,7 @@ void EmptyMarkersAndFilteredStrings(
 								  wxString& freeTransStr,
 								  wxString& noteStr,
 								  wxString& collBackTransStr,
-								  wxString& filteredInfoStr);
+								  wxString& filteredInfoStr); 
 bool IsWhiteSpace(const wxChar *pChar);
 int ParseWhiteSpace(const wxChar *pChar); // returns a length (num chars of whitespace)
 int ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)

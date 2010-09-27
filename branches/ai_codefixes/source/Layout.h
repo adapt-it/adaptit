@@ -354,16 +354,15 @@ public:
 
 	//////// public utility functions ////////
 	 
-	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
-	// the layout
-	void		UpdateStripIndices(int nStartFrom = 0); // get the pile pointer for 
-														// a given sequNumber passed in
-	CPile*		GetPile(int index); // get the strip index from a passed in sequNumber 
-									// for a pile in m_pileList
-	int			GetStripIndex(int nSequNum); // get the strip pointer from a passed in 
-											 // sequNumber for a pile in m_pileList,
-	                                         // or by the index into its storage array
-	CStrip*		GetStrip(int nSequNum);
+	void		UpdateStripIndices(int nStartFrom = 0); // updateg the m_nStrip index
+									// values after insertion, or removal, of CStrip
+									// instance(s) from the layout
+	CPile*		GetPile(int index);  // get the pile ptr for a given sequNumber passed in
+	int			GetStripIndex(int nSequNum); // get the strip index from a passed
+											 // in sequNumber for a pile in m_pileList
+	CStrip*		GetStrip(int nSequNum); // get the strip pointer from a passed in 
+										// sequNumber for a pile in m_pileList,
+	                                    // or by the index into its storage array
 	CStrip*		GetStripByIndex(int index); // get the number of visible strips plus an 
 											// extra one if a non-integral number of
 											// strips fit the window

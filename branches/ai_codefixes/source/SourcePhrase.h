@@ -177,9 +177,8 @@ public:
 
     // BEW added 9Feb10, extra wxString members for refactoring support for free
     // translations, notes, collected back translations, endMarkers, and filtered
-    // information -- we put these in a conditional compile directive for now, as Graeme
-    // needs the older system for testing his work, and Bruce needs the new system for his
-    // own
+	// information; these are private as should have been the case for the above too, but
+	// that is a change we can defer to much later on
 private:
 	wxString		m_endMarkers;
 	wxString		m_freeTrans;

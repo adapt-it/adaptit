@@ -1309,7 +1309,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 // Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),
 // OnSaveModified() and OnFilePackDoc(), the Doc's OnEditConsistencyCheck() and
 // DoConsistencyCheck(), and SplitDialog's SplitAtPhraseBoxLocation_Interactive() and
-// DoSplitIntoChapters().
+// DoSplitIntoChapters(). Created 29Apr10.
 bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
 {
 	wxString pathToSaveFolder;
@@ -5119,7 +5119,7 @@ b:		pSrcPhrase->m_gloss = gloss;
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
 /// \return		FALSE if the rebuild fails internally at one or more locations so that the 
 ///				user must later inspect the doc visually and do something corrective at such 
 ///				locations; TRUE if the rebuild was successful everywhere.
@@ -5130,7 +5130,13 @@ b:		pSrcPhrase->m_gloss = gloss;
 /// Called from: the Doc's RetokenizeText().
 /// Rebuilds the document after a filtering change is indicated. The new document reflects
 /// the new filtering changes.
-///////////////////////////////////////////////////////////////////////////////
+/// BEW 20Sep10, old code expected filtered info to only be in m_markers, so for
+/// docVersion 5 the code for unfiltering needs to use m_filteredInfo instead; similarly
+/// for the code for filtering (that is, store in m_filteredInfo, not m_markers)
+/// BEW 22Sep10, finished updated for support of docVersion 5 (significant changes
+/// required, and I expanded the comments considerably to make the logic easier to follow,
+/// but I didn't remove the goto statements)
+//////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 													SPList*& pList, wxString& fixesStr)
 {
@@ -5237,6 +5243,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	wxString preStr;
 	wxString remainderStr;
 	SPList* pSublist = new SPList;
+	// BEW 20Sep10, for docVersion 5, the former tests of m_markers become tests of
+	// m_filteredInfo, and restorage  to preStr uses content only from that
 
 	// do the unfiltering pass through m_pSourcePhrases
 	int curSequNum = -1;
@@ -5248,19 +5256,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		{
 			SPList::Node* oldPos = pos;
 			pSrcPhrase = (CSourcePhrase*)pos->GetData(); // just gets the pSrcPhrase
+
+#ifdef __WXDEBUG__
+			//wxString theWord;
+			//wxLogDebug(_T("* Unfiltering *: At sequNum = %d  m_srcPhrase =  %s"),pSrcPhrase->m_nSequNumber,pSrcPhrase->m_srcPhrase);
+#endif
+
 			pos = pos->GetNext(); // moves the pointer/iterator to the next node
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bDidSomeUnfiltering = FALSE;
-
-#ifdef __WXDEBUG__
-			//if (curSequNum >= 170)
-			//{
-			//	int startStepping = 1; // I'm interested in sn == 171, where \r is filtered
-			//	startStepping = startStepping; // and I want to find out why it doesn't unfilter
-			//	... the problem is earlier, the list of filtered markers in the doc is
-			//	getting 41 of the 57 filtered markers chopped off its list, including \r
-			//}
-#endif
 			SPList::Node* prevPos = oldPos;
 			pLastSrcPhrase = prevPos->GetData(); // abandon; this one is the pSrcPhrase one
 			prevPos = prevPos->GetPrevious();
@@ -5288,20 +5292,23 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 
 			// acts on ONE instance of pSrcPhrase only each time it loops, but in so doing
 			// it may add many by removing FILTERED status for a series of sourcephrase instances
-			if (!pSrcPhrase->m_markers.IsEmpty()) // do nothing when m_markers is empty
+			// (all such will be in m_filteredInfo, notes, free trans, and collected back
+			// trans are not unfilterable)
+			if (!pSrcPhrase->GetFilteredInfo().IsEmpty()) // do nothing when m_filteredInfo is empty
 			{
 				// m_markers often has an initial space, which is a nuisance, so check and remove
-				// it if present
+				// it if present (this can remain here, the change, if done, is benign)
 				if (pSrcPhrase->m_markers[0] == _T(' '))
 					pSrcPhrase->m_markers = pSrcPhrase->m_markers.Mid(1);
 
-				// loop across any filtered substrings in m_markers, until no more are found
-				while ((offset = FindFromPos(pSrcPhrase->m_markers,filterMkr,offset)) != -1)
+				// loop across any filtered substrings in m_filteredInfo, until no more are found
+				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1)
 				{
 					// get the next one, its prestring and remainderstring too; on return start
 					// will contain the offset to \~FILTER and end will contain the offset to the
 					// character immediately following the space following the matching \~FILTER*
-					mkr = GetNextFilteredMarker(pSrcPhrase->m_markers,offset,start,end);
+					wxString theFilteredInfo = pSrcPhrase->GetFilteredInfo();
+					mkr = GetNextFilteredMarker(theFilteredInfo,offset,start,end);
 					if (mkr.IsEmpty())
 					{
 						// there was an error here... post a reference to its location
@@ -5320,13 +5327,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					// get initial material into preStr, if any
 					if (offset > 0)
 					{
-						// get the marker information which is not filtered material - this stuff
-						// will be transfered to the m_markers member of the first CSourcePhrase
-						// instance in the first unfiltered string we extract -- and we may append
-						// to it in blocks below; but if we dont find a marker to unfilter, the
-						// stuff put into preStr will be abandoned because m_markers on the sourcephrase
-						// will not have been altered
-						preStr += pSrcPhrase->m_markers.Mid(offsetNextSection,offset - offsetNextSection);
+                        // get the marker information which is not to-be-unfiltered
+                        // filtered material - this stuff will be transfered to the
+                        // m_filteredInfo member of the first CSourcePhrase instance in the
+                        // first unfiltered string we extract -- and we may append to it in
+                        // blocks below; but if we dont find a marker to unfilter, the
+                        // stuff put into preStr will be abandoned because m_filteredInfo
+                        // on the sourcephrase will not have been altered
+						//preStr += pSrcPhrase->m_markers.Mid(offsetNextSection,offset - offsetNextSection);
+						preStr += pSrcPhrase->GetFilteredInfo().Mid(offsetNextSection,offset - offsetNextSection);
 						offsetNextSection = offset; // update, since this section has been (potentially) moved
 					}
 
@@ -5353,10 +5362,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					if (strMarkersToBeUnfiltered.Find(mkrPlusSpace) == -1)
 					{
                         // it's not one we need to unfilter, so append it, its content, and
-                        // the bracking \~FILTER and \~FILTER* markers, as is, to preStr
+                        // the bracketing \~FILTER and \~FILTER* markers, as is, to preStr
 						wxASSERT(offset == start);
 						wxASSERT(end > start);
-						wxString appendStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						//wxString appendStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						wxString appendStr = pSrcPhrase->GetFilteredInfo().Mid(offset, end - start);
 						preStr += appendStr;
 						offsetNextSection = end; // update, this section is deemed moved
 					}
@@ -5365,14 +5375,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                         // we have found a marker with content needing to be unfiltered, so
                         // do so (note: the unfiltering operation will consume some of the
                         // early material, or perhaps all the material, in
-                        // pSrcPhase->m_markers; so we will shorten the latter before we
+                        // pSrcPhase->m_filteredInfo; so we will shorten the latter before we
                         // iterate after having done the unfilter for this marker
 						bDidSomeUnfiltering = TRUE; // used for updating navText on original pSrcPhrase when done
 						bWeUnfilteredSomething = TRUE; // used for reseting initial conditions in inner loop
 						pSublist->Clear(); //pSublist->RemoveAll(); // clear list in preparation for Tokenizing
 						wxASSERT(offset == start);
 						wxASSERT(end > start);
-						wxString extractedStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						//wxString extractedStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						wxString extractedStr = pSrcPhrase->GetFilteredInfo().Mid(offset, end - start);
 
 #ifdef _Trace_RebuildDoc
 						TRACE2("UNFILTERING: gCurrentSfmSet %d STRING: %s\n", gpApp->gCurrentSfmSet, extractedStr);
@@ -5381,8 +5392,9 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						extractedStr = RemoveAnyFilterBracketsFromString(extractedStr); // we'll tokenize this
                         // note, extractedStr will lack a trailing space if there is a
                         // contentless filtered marker in the passed in string, so we need
-                        // to test & if needed adjust m_markers below
-						remainderStr = pSrcPhrase->m_markers.Mid(end); // remainder, from end of \~FILTER*
+                        // to test & if needed adjust m_filteredInfo below
+						//remainderStr = pSrcPhrase->m_markers.Mid(end); // remainder, from end of \~FILTER*
+						remainderStr = pSrcPhrase->GetFilteredInfo().Mid(end); // remainder, from end of \~FILTER*
 						if (remainderStr[0] == _T(' '))
 							remainderStr = remainderStr.Mid(1); // remove an initial space if there is one
 						offsetNextSection = end; // update, this section is to be 
@@ -5392,10 +5404,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						int count = pView->TokenizeTextString(pSublist,extractedStr,pSrcPhrase->m_nSequNumber);
 						bool bIsContentlessMarker = FALSE;
 						
-						USFMAnalysis* pSfm = NULL;	// whm moved here from below to insure it is initialized before
-													// call to AnalyseMarker
+						USFMAnalysis* pSfm = NULL;	// whm moved here from below to insure it is
+													// initialized before call to AnalyseMarker
 
-                        // if the unfiltered section ended with an endmarker, then the
+						// 20Sep10 -- this comment needs qualifying -- see below it...
+						// if the unfiltered section ended with an endmarker, then the
                         // TokenizeText() parsing algorithm will create a final
                         // CSourcePhrase instance with m_key empty, but the endmarker
                         // stored in its m_markers member. This last sourcephrase is
@@ -5412,6 +5425,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                         // the unknown marker; so we have to take this special case into
                         // consideration too - we don't want to end up inserting this
                         // spurious sourcephrase into the doc's list.
+                        // 
+                        // BEW 20Sep10 note on the above comment; docVersion 5 tokenization
+                        // stores an endmarker now on the CSourcePhrase which ends the
+                        // content, not on the next in line, so the check is no longer
+                        // needed; but the comment about the empty unknown marker remains
+                        // valid
 						bGotEndmarker = FALSE; // if it remains false, the endmarker was 
 											   // omitted in the source
 						bool bHaventAClueWhatItIs = FALSE; // if it's really something
@@ -5430,9 +5449,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									// m_markers should end with a space, so check and add one if necessary
 									// transfer of an endmarker is required, or it may not be an endmarker
 									// but a contentless marker - use a bool to track which it is
+									// BEW 20Sep10, it won't ever now be an endmarker, but
+									// it could be an unknown marker (see comments above)
 									wxString endmarkersStr = pTailSrcPhrase->m_markers;
 									curPos = endmarkersStr.Find(_T('*'));
-									if (curPos == -1)
+									if (curPos == wxNOT_FOUND)
 									{
 										// it's not an endmarker, but a contentless (probably unknown) marker
 										bIsContentlessMarker = TRUE;
@@ -5467,7 +5488,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                                     // placed .Mid on endmarkerStr since wxString:Find
                                     // doesn't have a start position parameter.
 									curPos = FindFromPos(endmarkersStr,_T('*'),curPos + 1);
-									if (curPos == -1)
+									if (curPos == wxNOT_FOUND)
 									{
                                         // we did not find an asterisk, so ignore the rest
                                         // (we are not likely to ever enter this block)
@@ -5510,10 +5531,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									pSublist->Erase(lastOne);
 
 									// delete the memory block to prevent a leak, update the count
-									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete the partner pile
+									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete a 
+																	// non-existent partner pile
 									count--;
 								} // end of block for detecting the parsing of an endmarker
-							}
+							} // end of TRUE block for test: if (pTailSrcPhrase)
 						}
 
 						// make the marker accessible, minus its backslash
@@ -5530,7 +5552,7 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
 						}
 						else
 						{
-							if (curPos != -1)
+							if (curPos != wxNOT_FOUND)
 							{
                                 // there is an asterisk, but it may be in the text rather
                                 // than an endmarker, so check it is part of a genuine
@@ -5642,13 +5664,37 @@ h:						bool bIsInitial = TRUE;
                                     //  result we must set up remainderStr to have preStr
                                     //  plus this marker and space plus remainderStr's
                                     //  previous content, in that order
+                                    //  
+									//  BEW 20Sep10; preStr and remainderStr for
+									//  docVersion 5 are now associated with
+									//  m_filteredInfo; but the unknown marker - being at
+									//  the tail of a set of CSourcePhrases comprising a
+									//  single one with no m_key content, does have
+									//  to go into the pSrcPhrase's (NOT pSP's)
+									//  m_markers member - preceding what is already
+									//  there, and we must deal with preStr and
+									//  remainderStr here because we break out of the loop
+									//  at the end of this block
+									pSrcPhrase->m_markers = pSP->m_markers + pSrcPhrase->m_markers;
+									// handle the filtered info that remains, if any
+									wxString aString;
+									if (!preStr.IsEmpty())
+										aString = preStr;
+									if (!remainderStr.IsEmpty())
+										aString += remainderStr;
+									if (!aString.IsEmpty())
+										pSrcPhrase->SetFilteredInfo(aString);
+									else
+										pSrcPhrase->SetFilteredInfo(_T(""));
+									/* legacy code
 									wxString s = preStr;
 									s += pSP->m_markers;
 									s += remainderStr;
 									remainderStr = s;
+									*/
 									nWhich = 0;
 									DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory; 
-														// don't delete the partner pile
+												// & don't delete a non-existent partner pile
 									pSublist->Clear();
 									break;
 								}
@@ -5714,14 +5760,27 @@ h:						bool bIsInitial = TRUE;
 										pSP->m_bFootnote = TRUE;
 								}
 
+								// BEW 20Sep10, the comment below applied to the legacy
+								// version, not to docVersion 5, the docVersion 5 comment
+								// follows it...
                                 // add any m_markers material to be copied from the parent
                                 // (this stuff, if any, is in preStr, and it must be added
                                 // BEFORE the current m_markers material in order to
                                 // preserve correct source text ordering of previously
                                 // filtered stuff)
+                                // For docVersion 5:
+                                // Put any m_filteredInfo material to be copied from the
+                                // parent (this stuff, if any, is in preStr, and it must be
+                                // put here in order to preserve correct source text
+                                // ordering of previously filtered stuff); remainderStr's
+                                // material, if any, must go instead into the CSourcePhrase
+                                // following the unfiltered material, that is, into the
+                                // pSrcPhrase's m_filteredInfo member - we do that below,
+                                // outside this loop after it completes
 								if (!preStr.IsEmpty())
 								{
-									pSP->m_markers = preStr + pSP->m_markers;
+									//pSP->m_markers = preStr + pSP->m_markers;
+									pSP->SetFilteredInfo(preStr);
 								}
 
                                 // completely redo the navigation text, so it accurately
@@ -5736,7 +5795,7 @@ h:						bool bIsInitial = TRUE;
 
 								pSPprevious = pSP; // set pSPprevious for the next iteration, for propagation
 								bIsInitial = FALSE;
-							}
+							} // end of TRUE block for test: if (bIsInitial)
 
 							// when not the 0th iteration, we need to propagate the flags, 
 							// texttype, etc
@@ -5775,7 +5834,7 @@ h:						bool bIsInitial = TRUE;
 							}
 						} // end of while loop for pSublist elements
 
-                       // now insert the completed CSourcePhrase instances into the
+                        // now insert the completed CSourcePhrase instances into the
                         // m_pSourcePhrases list preceding the oldPos POSITION
 						pos2 = pSublist->GetFirst();
 						while (pos2 != NULL)
@@ -5787,13 +5846,16 @@ h:						bool bIsInitial = TRUE;
 							pList->Insert(oldPos,pSP); // m_pSourcePhrases will manage these now
 						}
 
-                        // remove the moved and unfiltered part from pSrcPhrase->m_markers,
+                        // remove the moved and unfiltered part from pSrcPhrase->m_filteredInfo,
                         // so that the next iteration starts with the as-yet-unhandled text
                         // material in that member (this stuff was stored in the local
                         // wxString remainderStr above) - but if there was an unfiltered
                         // endmarker, we'll later also have to put that preceding this
                         // stuff as well
-						pSrcPhrase->m_markers = remainderStr; // this could be empty, and usually would be
+						// BEW 20Sep10, unfiltered endmarkers are handled already in the
+						// tokenizing, so we won't later need to handle them
+						//pSrcPhrase->m_markers = remainderStr; // this could be empty, and usually would be
+						pSrcPhrase->SetFilteredInfo(remainderStr); // this could be empty, and usually would be
 						if (bIsContentlessMarker)
 						{
 							pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
@@ -5826,13 +5888,19 @@ h:						bool bIsInitial = TRUE;
                         // of m_markers, if we found one - (both bGotEndmarker and
                         // bHasEndMarker must both be TRUE if we actually did find a valid
                         // endmarker)
-						if (bGotEndmarker && bHasEndMarker)
-						{
+						//if (bGotEndmarker && bHasEndMarker)
+						//{
                             // BEW changed 26May06 to handle endmarker sequences reliably
                             // as well as single endmarkers as before...
 							// copy to here the one or more endmarkers that we stored earlier
-							pSrcPhrase->m_markers = endingMkrsStr + pSrcPhrase->m_markers;
-						}
+							// 
+							// BEW 20Sep10, docVersion 5 doesn't store endmarkers in
+							// m_markers any more, but in the end of the appropriate
+							// CSourcePhrase sublist in the final member's m_endMarkers
+							// member, and so should already be there - so endingMkrsStr
+							// should be empty
+							//pSrcPhrase->m_markers = endingMkrsStr + pSrcPhrase->m_markers;
+						//}
 
 						// do the setup for next iteration of the loop
 						preStr.Empty();
@@ -5848,7 +5916,7 @@ h:						bool bIsInitial = TRUE;
 						// iteration of inner loop
 						offset = offsetNextSection;
 					}
-				}
+				} // end of while loop
 			}
 
 			if (bDidSomeUnfiltering)
@@ -5860,9 +5928,9 @@ h:						bool bIsInitial = TRUE;
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 			}
 
-			// update progress bar every 20 iterations
+			// update progress bar every 200 iterations
 			++nOldCount;
-			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
 				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 				progDlg.Update(nOldCount,msgDisplayed);
@@ -5937,8 +6005,11 @@ h:						bool bIsInitial = TRUE;
 		wxString tempStr;
 		preStr.Empty(); // store in here m_markers content (from first pSrcPhrase) 
                         // which precedes a marker for filtering out
-		remainderStr.Empty(); // store here the filtering marker and anything which 
-                              // follows it (from first pSrcPhrase)
+		remainderStr.Empty(); // store here anything in m_markers which follows
+                              // the to-be-filtered marker (from first pSrcPhrase)
+		wxString strFilteredStuffToCarryForward; // put already filtered stuff which
+				// is stored on the first CSourcePhrase of a to-be-filtered section
+				// in here, and at the end of the inner loop, deal with it
 		while (pos != NULL)
 		{
             // acts on ONE instance of pSrcPhrase only each time it loops, but in so doing
@@ -5948,6 +6019,20 @@ h:						bool bIsInitial = TRUE;
             // the sourcephrase immediately after the section just filtered out
 			SPList::Node* oldPos = pos;
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+
+#ifdef __WXDEBUG__
+			//wxString theWord;
+			//wxLogDebug(_T("Filtering: At sequNum = %d  m_srcPhrase =  %s"),
+			//pSrcPhrase->m_nSequNumber,pSrcPhrase->m_srcPhrase);
+#endif
+#ifdef __WXDEBUG__
+			//if (pSrcPhrase->m_nSequNumber == 168)
+			//{
+			//	int breakPtHere = 1;
+			//	// filter out 168 to 173
+			//}
+#endif
+
 			pos = pos->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bool bGotEndmarker = FALSE; // need this to be set TRUE when we get one,
@@ -5959,14 +6044,17 @@ h:						bool bIsInitial = TRUE;
 			wxString embeddedMkr;
 			wxString embeddedEndMkr;
 
+			// BEW 21Sep10, docVersion 5 changes some of the requirements below, as noted...
             // loop until we find a sourcephrase which is a candidate for filtering - such
             // a one will satisfy all of the following requirements:
 			// 1. m_markers is not empty
 			// 2. m_markers has at least one marker in it (look for gSFescapechar)
-			// 3. the candidate marker, if there are more than one in m_markers, must not 
-            //       be enclosed by \~FILTER and \~FILTER* markers (the stuff between these
-            //       is filtered already)
-			// 4. the candidate marker will NEVER be an endmarker
+			// 3. the candidate marker, will be in m_markers currently, (because in
+			//       docVersion 5 anything filtered which is potentially unfilterable is 
+			//       stored in the m_filteredInfo member, bracketed there by \~FILTER and
+			//       \~FILTER* markers)
+			// 4. the candidate marker will NEVER be an endmarker (docVersion 5 stores
+			//      them now in the m_endMarkers member)
 			// 5. the marker's USFMAnalysis struct's filter member is currently set to TRUE
 			//		(note: markers like xk, xr, xt, xo, fk, fr, ft etc which are inline 
             //      between \x and its matching \x* or \f and its matching \f*, etc, are
@@ -5993,7 +6081,7 @@ h:						bool bIsInitial = TRUE;
 				// the following copied from bottom of loop to here in order to 
 				// remove the goto c; and label
 				++nOldCount;
-				if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 				{
 					msgDisplayed = progMsg.Format(progMsg,
 						gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
@@ -6012,10 +6100,11 @@ h:						bool bIsInitial = TRUE;
 			markersStr = pSrcPhrase->m_markers;
 			bool bIsUnknownMkr = FALSE;
 			int nStartingOffset = 0;
+			wxChar backslash[2] = {gSFescapechar,_T('\0')};
 g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 						markersStr,strMarkersToBeFiltered,wholeMkr,wholeShortMkr,endMkr,
 						bHasEndmarker,bIsUnknownMkr,nStartingOffset);
-			if (filterableMkrOffset == -1)
+			if (filterableMkrOffset == wxNOT_FOUND)
 			{
                 // either wholeMkr is not filterable, or its not in strMarkersToBeFiltered,
                 // or its an endmarker -- if so, just iterate to the next sourcephrase
@@ -6023,7 +6112,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				// the following copied from bottom of loop to here in order to remove the 
 				// goto c; and label
 				++nOldCount;
-				if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 				{
 					msgDisplayed = progMsg.Format(progMsg,
 						gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
@@ -6036,7 +6125,30 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // if we get there, it's a marker which is to be filtered out, and we know its
             // offset - so set up preStr and remainderStr so we can commence the filtering
             // properly...
-			//
+            
+            // Question: What if we filter a section containing within it filtered
+            // information? Answer: This is not possible, except if there is filtered
+            // information stored on the CSourcePhrase which has the wholeMkr in its
+            // m_markers member -- in that case and that case alone, the to-be-filtered
+            // section CAN contain filtered material which is to remain filtered -- if so,
+            // we must carry that already filtered information forward along with the
+            // to-be-filtered material eventually placed after it (to preserve the correct
+            // order of the information should all be unfiltered).
+            // SFM and USFM markup does not permit marker nesting, except for \f and \x,
+            // and we've a TextType and special code to handle such information as wholes,
+            // and so there will never be nesting of filtered information within the Adapt
+            // It document; but the CSourcePhrase instance with the filterable marker is
+            // the exception -- because if filtered markers all happened to stack at the
+            // one CSourcePhrase, then unfiltering and refiltering must restore that
+            // stacking in m_filteredInfo and do it in the correct order. So we have to
+            // check now for this special case, and any m_filteredInfo content there has to
+            // be carried forward.... the next line of code does it
+			strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo(); // could be empty
+			
+			// BEW 21Sep10 -- read the next two paragraphs carefully, because for
+			// docVersion 5 the protocols described in them need changing slightly - the
+			// variations will be explained after these two paragraphs...
+			// 
             // We have to be careful here, we can't assume that .Mid(filterableMkrOffset)
             // will deliver the correct remainderStr to be stored till later on, because a
             // filterable marker like \b could be followed by an unfiltered marker like \v,
@@ -6059,30 +6171,39 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // unknown and unfiltered marker when PngOnly is the SFM set, to \~FILTER \b
             // \~FILTER* when the user changes to the UsfmOnly set, or the UsfmAndPng set.
             // Similarly for other contentless markers.
+            // 
+			// Variations for docVersion 5: \~FILTER and \~FILTER* no longer will appear
+			// in the CSourcePhrase m_markers member; \b and similar markers can still
+			// appear there, and the protocols for this and other contentless filterable
+			// markers are unchanged. If we encounter such a marker, we do not bracket it
+			// with \~FILTER and \~FILTER* in the m_markers member, but rather move it to
+			// the end of the m_filteredInfo member and provide \~FILTER and \~FILTER*
+			// bracketing markers for it there instead.
 			int itsLen = wholeMkr.Length();			
 			int nOffsetToNextBit = filterableMkrOffset + itsLen;
 			if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
-				(nFound = FindFromPos(markersStr,gSFescapechar,nOffsetToNextBit)) != -1) 
+				(nFound = FindFromPos(markersStr,backslash,nOffsetToNextBit)) != wxNOT_FOUND) 
 			{
                 // there is a following SF marker which is not a \f or \x (the latter two
                 // can have a following marker within their scope, so whether that happens
                 // or not, they are not to be considered as contentless), so the current
                 // one cannot have any text content -- this follows from the fact that the
-                // text content of a marker cannot appear in m_markers unless it has been
-                // filtered out earlier (in which case it will be bracketed by filterMkr
-                // and filterMkrEnd), so if we find another marker then we know the
-                // previous one is contentless.
+				// text content of a marker cannot appear in m_markers (because in
+				// docVersion 5 filtered markers are now not stored in m_markers, but in
+				// m_filteredInfo), so if we find another marker using the FindFromPos()
+				// call then we know the one found at the ContainsMarkerToBeFiltered()
+				// call is a contentless marker.
+				// Also, docVersion 5's storage in the CSourcePhrase implies that if a
+				// marker which has content visible in the interlinear display is
+				// encountered in m_markers, then it will be the last marker in m_markers
+				// - this fact makes further assumptions below, safe to make
 
-				// extract the marker, including its following space
+				// extract the marker (marker only, no following space included)
 				wxString contentlessMkr = markersStr.Mid(filterableMkrOffset,
 											nOffsetToNextBit - filterableMkrOffset);
                 // wx version note: Since we require a read-only buffer we use GetData
                 // which just returns a const wxChar* to the data in the string.
 				const wxChar* ptr = contentlessMkr.GetData();
-                // BEW changed 05Oct05, because GetFilteredItemBracketed call with wholeMkr
-                // as the first parameter results in the SF marker in wholeMkr being
-                // overwritten by the temp string's contents internally; so I changed the
-                // function to not have the first parameter anymore
 				
 				// whm added two lines below because wxStringBuffer needs to insure buffer 
 				// ends with null char
@@ -6094,8 +6215,9 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				temp = GetFilteredItemBracketed(ptr,itsLen); // temp lacks a final space
 				temp += _T(' '); // add the required trailing space
 
-				// now replace the contentless marker with the bracketed contentless marker
-				//markersStr.Delete(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
+				// BEW 21Sep10, new code needed here for docVersion 5 - we have to remove
+				// the contentless marker from the m_markers string (and chuck it away), and put the
+				// bracketed version of it, stored in temp, into the end of m_filteredInfo
 				markersStr.Remove(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
 				// for an unknown reason it does not delete the space, so I have to test and
 				// if so, delete it
@@ -6106,33 +6228,62 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 					markersStr.Remove(filterableMkrOffset,1); // delete extra space 
 															  // if one is here
 				}
-				markersStr = InsertInString(markersStr,filterableMkrOffset,temp);
-
-				// now update the m_markers member to contain this marker 
+				// now update the m_filteredInfo member to contain this marker 
 				// appropriately filtered
+				wxString filteredStr = pSrcPhrase->GetFilteredInfo();
+				filteredStr += temp;
+				pSrcPhrase->SetFilteredInfo(filteredStr);
+				// update the m_markers member with the shorter markersStr contents
 				pSrcPhrase->m_markers = markersStr;
+				
+				// Legacy code is below...
+				// now replace the contentless marker with the bracketed contentless marker
+				//markersStr.Delete(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
+				//markersStr.Remove(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
+				//if (markersStr[filterableMkrOffset] == _T(' '))
+				//{
+				//	markersStr.Remove(filterableMkrOffset,1);
+				//}
+				//markersStr = InsertInString(markersStr,filterableMkrOffset,temp);
+				//pSrcPhrase->m_markers = markersStr;
 
                 // get the navigation text set up correctly (the contentless marker just
                 // now filtered out should then no longer appear in the nav text line)
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 
-				// advance beyond this just-filtered contentless marker's location 
-				// and try again
-				int tempLen = temp.Length();
-				nStartingOffset = nOffsetToNextBit - itsLen + tempLen - 1;
+                // advance beyond this just-filtered contentless marker's location and try
+                // again 
+                // BEW 21Sep10, for docVersion 5 the calculation is different (simpler)
+				nStartingOffset = nFound; // point at the next marker found at 
+										  // the above FindFromPos() call
+				//int tempLen = temp.Length();
+				//nStartingOffset = nOffsetToNextBit - itsLen + tempLen - 1;
 				goto g;
 			}
 			else
 			{
-				// there is no following SF marker, so the current one may be 
-				// assumed to have content
+                // there is no following SF marker, so the current one may be assumed to
+                // have content currently visible in the interlinear display
 				;
 			}
 			preStr = markersStr.Left(filterableMkrOffset); // this stuff we 
-														// accumulate later on
+						// accumulate for later on -- it will later go to the CSourcePhrase
+						// which follows the instances about to be filtered out; in
+						// docVersion 5 I can't think of anything that might be in preStr
+						// and so it is likely to always be empty, but just in case it
+						// isn't, we must preserve whatever is there & transfer it
 			remainderStr = markersStr.Mid(filterableMkrOffset); // this stuff is the 
-                                // beginning of the filtered text, ie. marker and whatever
-                                // follows
+                        // marker for the stuff we are about to filter, and there may 
+                        // be other following markers - such as \p or \v etc which need
+                        // to be accumulated and forwarded to the CSourcePhrase which
+                        // follows the instances about to be filtered out (in docVersion
+                        // 5, remainderStr won't ever have any filtered content data,
+                        // but only markers and possibly a verse or chapter number)
+						// We now must remove the marker we found, and retain anything
+						// which remains other than spaces
+			remainderStr = remainderStr.Mid(itsLen); // itsLen is the length of wholeMkr
+			remainderStr.Trim(FALSE); // trim off any initial spaces, or if only spaces 
+									  // remain, then this will empty remainderStr
 			bareMkr = wholeMkr.Mid(1); // remove the backslash, we already know 
 									   // it has no final *
 
@@ -6164,6 +6315,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // okay, we've found a marker to be filtered, we now have to look ahead to find
             // which sourcephrase instance is the last one in this filtering sequence - we
             // will assume the following:
+            // BEW 21Sep10: the following protocols are valid also for docVersion 5
 			// 1. unknown markers never have an associated endmarker - so their extent ends 
             //      when a subsequent marker is encounted with a TextType different than
             //      none
@@ -6185,11 +6337,17 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             //      identical to wholeShortMkr - in which case the section will end when
             //      the first marker is encountered for which that is not so
 
-			// we can commence to build filteredStr now
+			// we can commence to build filteredStr now (Note: because filtering stores a
+			// string, rather than a sequence of CSoucePhrase instances, any adaptations
+			// will be thrown away irrecoverably. We could change this in the future, but
+			// it would be a major core change and require a docVersion 6 and a
+			// significant redevelopment effort; but it would be a better model.)
 			filteredStr = filterMkr; // add the \~FILTER beginning marker
 			filteredStr += _T(' '); // add space
-			filteredStr += remainderStr; // add the marker etc (it may be followed by others,
-								// eg. \f could be followed by space and then \fr and space)
+
+			// add the marker and a following space (i.e. what we removed from
+			// remainderStr above)
+			filteredStr += wholeMkr + _T(' ');
 			if (pSrcPhrase->m_srcPhrase.IsEmpty())
 			{
 				// this should not ever be the case, but we'll code defensively so 
@@ -6202,7 +6360,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 																  // ends with a space
 			}
 			// NOTE: we'll deal with preStr when we set up pUnfilteredSrcPhrase's 
-			// m_markers member later on
+			// m_markers member later on; likewise for anything still in remainderStr
 
 			// we can now partly or fully determine where the active location is in 
 			// relation to this location
@@ -6231,9 +6389,13 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // enter an inner loop which accumulates the filtered marker's source text
             // contents (& replacing any m_markers content if non-empty) until the end of
             // the section for filtering is determined
+            // BEW 22Sep10:
+			// Question: What if we filter a section where there is a note, or free
+			// translation or a collected backtranslation? Answer: such information is
+			// irreversibly lost.
 			SPList::Node* pos2; // this is the 'next' location
 			CSourcePhrase* pSrcPhr;
-			CSourcePhrase* pSrcPhraseNext; // this could have in its m_markers the 
+			CSourcePhrase* pSrcPhraseNext; // this could have in its m_endMarkers the 
 										   // endmarker which ends the section
 			SPList::Node* savePos2 = NULL;
 			bool bHasEmbeddedMarker = FALSE;
@@ -6256,10 +6418,12 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                 // code to handle the embedding properly. We do it here by having a block
                 // which will test for such embedded markers and do the required handling
                 // before the code block for bHasEndmarker gets to look at the content of
-                // m_markers, and our code here has to do whatever adjustments to m_markers
-                // are required (such as removing a matching endmarker from the start of
-                // m_markers and resaving m_markers on pSrcPhrase without the endmarker) so
-                // that the code which follows this section only has to deal with decisions
+                // m_endMarkers, and our code here has to do whatever adjustments to m_markers
+				// are required (BEW 22Sep10, for docVersion 5 the code no longer needs to
+				// look ahead to a following CSourcePhrase's m_markers to get a matching
+				// endmarker, because in docVersion 5 we store the endmarker on the ending
+				// CSourcePhrase for the info type). So things are easier for docVersion 5.
+                // The code which follows this section only has to deal with decisions
                 // relating to the span being filtered and its marker (and potential
                 // endmarker). We assume any embedded markers occur without any other
                 // marker, and don't embed within another such pair (if that happens, it
@@ -6288,6 +6452,11 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 						embeddedMkr = strMkr;
 
 						// if its an endmarker, then this block is not interested in it
+						// BEW 22Sep10, for docVersion 5 m_markers NEVER stores endmarkers
+						// and so this test will always yield TRUE, and so the block for
+						// testing whether the marker is embedded and whether it needs an
+						// endmarker or not will always be entered, so no change is needed
+						// here
 						strMkr = MakeReverse(strMkr);
 						if (strMkr[0] != _T('*')) // exit block if it's an endmarker
 						{
@@ -6308,34 +6477,67 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                                     // by code at the end of the inner loop anyway, but we
                                     // do here need to set the bool values which enable the
                                     // embedded endmarker, once encountered, to be removed
-                                    // from the begining of the pSrcPhrase->m_markers which
-                                    // has it as its first marker
+                                    // from the begining of the pSrcPhrase->m_endMarkers
+                                    // which has it as its first marker
 									bHasEmbeddedMarker = TRUE;
 									bNeedEmbeddedEndMarker = TRUE;
 									bAddRemovedEmbeddedEndMarker = FALSE; // this gets set 
-														// in next block eventually 
+															// in next block eventually 
 								}
 							}
 						}
 					}
 				}
-                // unilaterally check for the matching embedded endmarker on the 'next'
+				// BEW 22Sep10, code changes needed here, because endmarkers are stored,
+				// in docVersion 5, in the m_endMarkers member of the logically related
+				// CSourcePhrase, rather than at the start of m_markers of the immediate
+				// next CSourcePhrase to the logically related one....
+                // Unilaterally check for the matching embedded endmarker on the 'next'
                 // sourcephrase whenever the above block exits with bHasEmbeddedMarker TRUE
                 // and bNeedEmbeddedEndMarker TRUE, remembering that 'next' might be well
-                // down the track after several more sourcephrases have been processed
+				// down the track after several more sourcephrases have been processed -
+				// because, of course, it has to be following the words of the information
+				// for which it is an endmarker.
+				// 
+                // More 22Sep10 comments... The pSrcPhraseNext pointer here will only
+                // rarely be the pointer for the CSourcePhrase instance above where the
+                // following booleans were set TRUE, but it will be so if the embedded
+                // information is just a single word - in that case the embedded marker,
+                // the word, and the following endmarker will all be stored on the one
+                // CSourcePhrase, in the m_markers, m_srcPhrase, and m_endMarkers members,
+                // respectively. So typically the following block is entered on a later
+                // iteration of the loop in which a different CSourcePhrase is being
+                // considered.
+                // 
+                // Note: the difference between docVersions 4 and 5 in relation to a pair
+                // of endmarkers (1st is embedded, 2nd is not) such as \ft* \f* which
+                // finishes off a footnote's translation and the footnote as a whole,
+                // respectively, is that in docVersion 4 they occur in the above sequence
+                // at the start of the 'next' CSourcePhrase's m_markers string (the one
+                // which the updated pos2 references, and which pSrcPhraseNext points at),
+                // but in docVersion 5 in the pSrcPhr->m_endMarkers member (this
+                // sourcephrase is the one which savePos2 references, that is, the one pos2
+                // pointed at BEFORE it was updated above), and so in the complex code
+                // which follows, all the changes that we need to make are changes caused
+                // by this storage change and the particular CSourcePhrase instance which
+                // is involved. It gets a bit tricky, but the logic is otherwise the same.
 				if (bHasEmbeddedMarker && bNeedEmbeddedEndMarker)
 				{
-					CSourcePhrase* pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
-					wxASSERT(pSrcPhraseNext);
-					if (!pSrcPhraseNext->m_markers.IsEmpty())
+					//CSourcePhrase* pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
+					//wxASSERT(pSrcPhraseNext);
+					//if (!pSrcPhraseNext->m_markers.IsEmpty())
+					if (!pSrcPhr->GetEndMarkers().IsEmpty())
 					{
 						embeddedEndMkr = embeddedMkr + _T("*"); // construct the matching 
-																// embedded endmarker
-						int curPos = pSrcPhraseNext->m_markers.Find(embeddedEndMkr);
+								// embedded endmarker (SFM 1998 PNG marker set doesn't
+								// have embedded markers at all, so it is safe to assume
+								// the endmarker ends in *)
+						//int curPos = pSrcPhraseNext->m_markers.Find(embeddedEndMkr);
+						int curPos = pSrcPhr->GetEndMarkers().Find(embeddedEndMkr);
 
                         // we are only interested in the endmarker being initial in
-                        // m_markers, that's the only way it can be doing the job of ending
-                        // off an embedded marker section
+                        // m_endMarkers, that's the only way it can be doing the job of
+                        // ending off an embedded marker section
 						if (curPos == 0) // when TRUE, it's the one we want at the 
 										 // start where we expect it
 						{
@@ -6346,35 +6548,34 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                             // to the being-accumulated filteredStr wxString text (it's to
                             // be done after the current pSrcPhr's m_srcPhrase member has
                             // been added to filteredStr - which is done further below);
-                            // and we have to remove the embeddedEndMkr from
-                            // pSrcPhraseNext's m_markers member now, (keeping it for later
-                            // on), so it won't be present when the inner loop's code has
-                            // to handle finishing off the current section being filtered
-                            // so that the whole lot can receive the final \~FILTER*
-                            // bracking marker
+                            // For docVersion 5 we therefore no longer have to remove the
+                            // embeddedEndMkr from pSrcPhraseNext's m_markers member now,
+                            // as it's not there in the first place, so the code after
+                            // setting the flag is no longer needed.
 							bAddRemovedEmbeddedEndMarker = TRUE; // cleared to FALSE again 
                                     // after the delayed addition to filteredStr has been
                                     // done (below)
-							int len = embeddedEndMkr.Length();
+							//int len = embeddedEndMkr.Length();
                             // remove it, and any space which may follow (and if that's the
                             // only marker present, that would clear m_markers as well)
-							pSrcPhraseNext->m_markers.Remove(0,len);
-							while (pSrcPhraseNext->m_markers[0] == _T(' '))
-								pSrcPhraseNext->m_markers = pSrcPhraseNext->m_markers.Mid(1);
+							//pSrcPhraseNext->m_markers.Remove(0,len);
+							//while (pSrcPhraseNext->m_markers[0] == _T(' '))
+							//	pSrcPhraseNext->m_markers = pSrcPhraseNext->m_markers.Mid(1);
 							// embeddedEndMkr preserves the marker itself for later on 
 							// when the addition happens
 						}
 					}
 				}
 
-                // check to determine if we require an endmarker, and look for it at the
-                // sourcephrase beyond the current one - this would be a NULL pointer if
-                // pos2 was advanced beyond the end of the m_pSourcePhrases list, which
-                // would be a valid criterion for terminating the section anyway;
-                // otherwise, we are interested to know if there is the matching endmarker
-                // at the start of pSrcPhraseNext's m_markers wxString member; otherwise we
-                // are interested in whether or not pSrcPhr's m_markers string contains
-                // another marker - if so, we are at the end
+                // BEW 22Sep10, changed code along the lines of the above notes... Check to
+                // determine if we require an endmarker (we are here talking about the
+                // matching endmarker for a non-embedded marker), and look for it (for
+                // docVersion 5's model) on pSrcPhr, the current one, in its m_endMarkers
+                // member. If pos2 is NULL we are at the doc end, so that finishes off the
+                // data anyway. Otherwise, we are interested to know if the matching
+                // endmarker is within or at the end of pSrcPhr's m_endMarkers wxString
+                // member; otherwise we are interested in whether or not pSrcPhr's
+                // m_markers string contains another marker - if so, we are at the end
 				if (pos2 == NULL)
 				{
 					// we are at the end of the doc, and at the end of the section for 
@@ -6387,34 +6588,40 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                     // the marker in wholeMkr should have a matching endmarker, but beware,
                     // some such markers can optionally have the matching endmarker
                     // omitted, so we can't rely on it being present - that means that the
-                    // failure to detect the endmarker on pSrcPhraseNext is not an
+                    // failure to detect the endmarker in pSrcPhr->m_endMarkers is not an
                     // indication that the loop should continue, but rather we have to
                     // allow the block at label d: below to be done in case the endmarker
                     // was omitted and we really are at the end of the section for
                     // filtering
-					pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
-					wxASSERT(pSrcPhraseNext);
-					int curPos = pSrcPhraseNext->m_markers.Find(endMkr);
-					if (curPos == -1)
+					//pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
+					//wxASSERT(pSrcPhraseNext);
+					//int curPos = pSrcPhraseNext->m_markers.Find(endMkr);
+					int curPos = pSrcPhr->GetEndMarkers().Find(endMkr);
+					if (curPos == wxNOT_FOUND)
 					{
-                        // pSrcPhraseNext does not contain the matching endmarker, so check
-                        // out the possibility that it was merely omitted
+                        // pSrcPhr->m_endMarkers does not contain the matching endmarker,
+                        // so check out the possibility that it was merely omitted
 						goto e;
 					}
 					else
 					{
-                        // pSrcPhraseNext does contain the matching endmarker, so we must
-                        // extract it and any preceding nested endmarker (such as \fq*
-                        // before \f*) from the m_markers string (updating the latter to
-                        // not have it any longer) and later add it to the end of
-                        // filteredStr after the m_srcPhrase member's contents of
-                        // pSrcPhrase (NOT pSrcPhraseNext) have been accumulated at label
-                        // d: below
+                        // BEW 22Sep10, a considerable code simplification can be made for
+                        // this block; all we need do is set the booleans and make sure we
+                        // have a copy of the endmarker which we've just determined exists
+                        // in the m_endMarkers member, and put it in endingMkrsStr for
+                        // later on at end of section d:, because no adjustment now needs
+                        // to be done for the 'next' sourcephrase's m_markers member as it
+                        // no longer stores endmarkers for a preceding data type at its
+                        // beginning. We'll add this endmarker to the end of filteredStr
+                        // after the m_srcPhrase member's contents of pSrcPhrase have been
+                        // accumulated at label d: below
 						bAtEnd = TRUE;
 						bGotEndmarker = TRUE; // used below to add the endmarker after 
                             // m_srcPhrase is added because if we do it here it would be
                             // too early in filteredStr
+                        endingMkrsStr = endMkr + _T(' ');
 
+						/* legacy docVersion 4 code
 						wxString nextMarkersStr = pSrcPhraseNext->m_markers;
 						wxASSERT(!nextMarkersStr.IsEmpty());
 
@@ -6447,25 +6654,27 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 							nextMarkersStr = nextMarkersStr.Mid(1);
 						}
 						pSrcPhraseNext->m_markers = nextMarkersStr; // update pSrcPhraseNext
+						*/
 					}
 				}
-				else // there is no endmarker on the 'next' sourcephrase, so check 
-					 // if the current one is the end
+				else // this marker type is not one which takes a matching endmarker, so 
+					 // there is no endmarker in it's m_endMarkers member, so use other
+					 // criteria to check if the current one is the end
 				{
                     // the marker in wholeMkr does not have a matching endmarker, so we are
                     // looking for a sourcephrase instance which has a stored marker
                     // different than in wholeMkr; and because there is no matching
                     // endmarker, the condition reduces to any sourcephrase instance whose
-                    // m_markers string is non-empty and contains the marker which is
-                    // inLine == FALSE, or if that is TRUE, then TextType is not equal to
-                    // none --- except when we get here from the block above which checks
-                    // for an endmarker in pSrcPhraseNext and did not find it, in which
-                    // case we may still be at the end, so we use the above criteria as
-                    // well, and if a shortened marker form exists we must allow for that
-                    // possibility here too (these we would need to skip over and so filter
-                    // them out plus their content - but code above ensures that the only
-                    // short markers which get to here are \f or \x, anything else would
-                    // give errors in in the logic below)
+                    // m_markers string is non-empty and contains any marker which is
+                    // inLine == FALSE, or if that is TRUE, then a TextType value which is
+                    // not equal to none --- except when we get here from the block above
+                    // which checks for an endmarker in pSrcPhr->m_endMarkers and did not
+                    // find it, in which case we may still be at the end -- so we use the
+                    // above criteria here as well; and if a shortened marker form exists
+                    // we must allow for that possibility here too (these we would need to
+                    // skip over and so filter them out plus their content - but code above
+                    // ensures that the only short markers which get to here are \f or \x,
+                    // anything else would give errors in the logic below)
 e:					if (pSrcPhr->m_markers.IsEmpty())
 					{
 						// this can't be the sourcephrase instance which is the end of the 
@@ -6473,7 +6682,7 @@ e:					if (pSrcPhr->m_markers.IsEmpty())
 						goto d; // accumulate this instance's source text 
 								// into the string being filtered
 					}
-					if (pSrcPhr->m_markers.Find(gSFescapechar) != -1)
+					if (pSrcPhr->m_markers.Find(gSFescapechar) != wxNOT_FOUND)
 					{
                         // its m_markers member has at least one marker in it, so we are
                         // potentially at the end (so we'll assume we are not at the end if
@@ -6496,7 +6705,7 @@ e:					if (pSrcPhr->m_markers.IsEmpty())
 						else
 						{
 							// the shortened marker form exists, so check for its presence
-							if (pSrcPhr->m_markers.Find(wholeShortMkr) == -1)
+							if (pSrcPhr->m_markers.Find(wholeShortMkr) == wxNOT_FOUND)
 							{
 								// the wholeShortMkr is absent, so we might be at the end 
 								// - so check it out
@@ -6531,8 +6740,8 @@ d:				if (!bAtEnd || bGotEndmarker)
 				{
                     // note, if we entered here because bGotEndmarker was TRUE, then bAtEnd
                     // will also be TRUE (and the endmarker will have been detected in the
-                    // pSrcPhraseNext's m_markers member, which means that the current
-                    // pSrcPh instance has m_srcPhrase text needing to be accumulated now,
+                    // pSrcPhr's m_endMarkers member); the current
+                    // pSrcPh instance has the m_srcPhrase text needing to be accumulated now,
                     // and code further on will extract the endmarker from pSrcPhraseNext
                     // and accumulate it too)
 					filteredStr += pSrcPhr->m_srcPhrase + _T(' '); // BEW 26May06 the space 
@@ -6597,12 +6806,20 @@ d:				if (!bAtEnd || bGotEndmarker)
 				{
 					if (bGotEndmarker)
 					{
-                        // BEW changed 25May06; accumulate the endmarker, or endmarker and
-                        // a preceding nested endmarker, and a following space (if there
-                        // was one, it will be already in endingMkrsStr), since we located
-                        // the endmarker earlier but set bGotEndmarker to TRUE so we could
-                        // accumulate the endmarker, or endmarker pair, here rather than
-                        // earlier when we found it on the 'next' sourcephrase
+                        // BEW changed 22Sep10; accumulate the endmarker and a following
+                        // space, it will be already in endingMkrsStr, since we located the
+                        // endmarker earlier & set bGotEndmarker to TRUE so we could
+                        // accumulate that non-embedded one here. If I've understood the
+                        // logic right, endMkrsStr will never store an embedded endmarker,
+                        // but only a single endmarker and its following space, and it will
+                        // be a non-embedded endmarker; so if there were both embedded and
+                        // non-embedded endmarkers stored on the ending CSourcePhrase
+                        // instance, they'll have gotten stored in different temporary
+                        // strings, and the embedded one will already have been appended
+                        // and it only remains to append the non-embedded final one here.
+                        // If testing reveals we've lost an endmarker, then probably I've
+                        // missed something in the logic relating to endmarker placement in
+                        // the code here and above & the above assumption is false.
 						filteredStr += endingMkrsStr;
 						endingMkrsStr.Empty(); // ready for potential next iteration
 					}
@@ -6646,7 +6863,10 @@ d:				if (!bAtEnd || bGotEndmarker)
 
 			// add the bracketing end filtermarker \~FILTER*, and a final space
 			filteredStr += filterMkrEnd;
-			filteredStr += _T(' ');
+			// BEW 22Sep10, for docVersion 5 we don't bother with a space between
+			// \~FILTER* and a potentially following \~FILTER, filterMkrEnd is determinate
+			// without needing a space delimiter
+			//filteredStr += _T(' ');
 
             // remove the pointers from the m_pSourcePhrases list (ie. those which were
             // filtered out), and delete their memory chunks; any adaptations on these are
@@ -6659,8 +6879,9 @@ d:				if (!bAtEnd || bGotEndmarker)
 				filterCount++;
 				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
 				pos2 = pos2->GetNext();
-				DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory, don't delete 
-												  // the partner pile
+				DeleteSingleSrcPhrase(pSP,TRUE); // don't leak memory, do also delete their
+							// partner piles, as the latter should exist for information
+							// unfiltered up to now and therefore was visible in the view
 				pList->DeleteNode(pos3);
 			}
 
@@ -6716,6 +6937,17 @@ d:				if (!bAtEnd || bGotEndmarker)
             // store the filtered content in its m_markers member, and add it to the tail
             // of the doc. A filtered section at the end of the document will manifest by
             // pos2 being NULL on exit of the above loop
+            // BEW 22Sep10, changes for docVersion 5:
+			// (1) preStr and remainderStr will need to be inserted at the start of the
+			// pUnfilteredSrcPhrase's m_markers member, if either or both are non-empty
+			// (they'll almost certainly be both empty)
+			// (2) filteredStr has to be appropriately stored, it no longer is embedded in
+			// pUnfilteredSrcPhrase's m_markers member, but at the START of its
+			// m_filteredInfo member (to preserve the order of source text information
+			// across filtering/unfiltering changes)
+			// (3) the new storage for already filtered stuff being carried forward, the
+			// string strFilteredStuffToCarryForward, has to be handled here too (it
+			// could, of course, be an empty string)
 			CSourcePhrase* pUnfilteredSrcPhrase = NULL;
 			if (posEnd == NULL)
 			{
@@ -6737,12 +6969,60 @@ d:				if (!bAtEnd || bGotEndmarker)
 			// in the correct order
 			tempStr = pUnfilteredSrcPhrase->m_markers; // hold this stuff temporarily, 
 							// as we must later add it to the end of everything else
-			if (tempStr[0] == _T(' ')) tempStr = tempStr.Mid(1); // lop off any initial
-															// space (it's superfluous)
+			// lop off any initial// space (it's superfluous)
+			//if (tempStr[0] == _T(' ')) tempStr = tempStr.Mid(1);
+			tempStr.Trim(FALSE); // this is easier than the above line
 			pUnfilteredSrcPhrase->m_markers = preStr; // any previously assumulated 
 													  // filtered info, or markers
-			pUnfilteredSrcPhrase->m_markers += filteredStr; // append the newly 
-															// filtered material
+			// BEW 22Sep10 added next 3 lines
+			pUnfilteredSrcPhrase->m_markers.Trim();
+			pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
+			pUnfilteredSrcPhrase->m_markers += remainderStr;
+			pUnfilteredSrcPhrase->m_markers.Trim(FALSE); // delete contents 
+												// if only spaces are present
+			if (!tempStr.IsEmpty())
+			{
+				pUnfilteredSrcPhrase->m_markers.Trim();
+				pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
+				// append whatever was originally on this srcPhrase::m_markers member
+				pUnfilteredSrcPhrase->m_markers += tempStr;
+			}
+
+            // insert any already filtered stuff we needed to carry forward before the newly
+			// filtered material (because if it was unfiltered, it would appear in the
+			// view before it, and so we must retain that order)
+			if (!strFilteredStuffToCarryForward.IsEmpty())
+			{
+				//(in the legacy code, this bit of work was done by remainderStr, because
+				//filtered info was all in m_markers; but for docVersion 5 that was
+				//inappropriate -- so I retained remainderStr only for contentless markers stuff
+				//which might come after the marker to be filtered out, and stored already
+				//filtered stuff in strFilteredStuffToCarryForward)
+				filteredStr = strFilteredStuffToCarryForward + filteredStr;
+			}
+			// we've carried the already filtered info forward, so make sure it goes no further
+			strFilteredStuffToCarryForward.Empty();
+
+            // insert the newly filtered material (and any carried forward filtered info
+            // which we appended above) to the start of m_filteredInfo on the CSourcePhrase
+            // which follows the filtered out section - that one might have filtered material
+            // already, so we have to check and take the appropriate branch (Note: if the
+            // stuff being filtered precedes stuff already filtered, then filtered
+            // information can stack up in a single CSourcePhrase's m_filteredInfo member
+            // -- but this is unlikely as it would require an instance of the filterable
+            // marker in successive subspans of CSourcePhrases in the document, and that
+            // would not constitute good USFM markup - but we can handle it if it does
+            // happen.)
+			wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
+			if (filteredStuff.IsEmpty())
+			{
+				pUnfilteredSrcPhrase->SetFilteredInfo(filteredStr);
+			}
+			else
+			{
+				filteredStuff = filteredStr + filteredStuff;
+				pUnfilteredSrcPhrase->SetFilteredInfo(filteredStuff);
+			}
 
 #ifdef _Trace_RebuildDoc
 			TRACE1("FILTERING: starting with old m_inform: %s\n", tempStr);
@@ -6750,8 +7030,7 @@ d:				if (!bAtEnd || bGotEndmarker)
 			TRACE2("FILTERING: gCurrentSfmSet %d STRING: %s\n", gpApp->gCurrentSfmSet, filteredStr);
 #endif
 
-			pUnfilteredSrcPhrase->m_markers += tempStr; // append whatever was originally 
-										// on this srcPhrase in its m_markers member
+			//pUnfilteredSrcPhrase->m_markers += tempStr; 
 			preStr.Empty();
 			remainderStr.Empty();
 
@@ -6768,10 +7047,10 @@ d:				if (!bAtEnd || bGotEndmarker)
 				pos = posEnd; // this could be the start of a consecutive section 
 							  // for filtering out
 			}
-			// update progress bar every 20 iterations
+			// update progress bar every 200 iterations (1000 is a bit too many)
 //c:			
 			++nOldCount;
-			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
 				msgDisplayed = progMsg.Format(progMsg,
 					gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
@@ -9035,22 +9314,27 @@ wxString& CAdapt_ItDoc::AppendFilteredItem(wxString& dest,wxString& src)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the wxString starting at ptr and composed of itemLen characters after enclosing
-///				the string between \~FILTER and \~FILTER* markers.
+/// \return		the wxString starting at ptr and composed of itemLen characters 
+///             after enclosing the string between \~FILTER and \~FILTER* markers.
 /// \param		ptr			-> a pointer to a character in a buffer
-/// \param		itemLen		-> the number of buffer characters to use in composing the bracketed string
+/// \param		itemLen		-> the number of buffer characters to use in composing the 
+///                            bracketed string
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(), TokenizeText().
 /// Constructs the string starting at ptr (whose length is itemLen in the buffer); then
-/// makes the string a "filtered" item by bracketing it between \~FILTER ... \~FILTER* markers.
+/// makes the string a "filtered" item by bracketing it between \~FILTER ... \~FILTER*
+/// markers. The passed in string may be just a marker (contentless, and having no
+/// following space), or a marker followed by a space and some text content (and possibly
+/// then a space and then possibly an endmarker as well)
+/// BEW 21Sep10, no change needed for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 {
-	// whm added 11Feb05; BEW changed 06Oct05 to simpify a little and remove the unneeded first argument
-	// (which was a CString&  -- because it was being called with wholeMkr supplied as that
-	// argument's string, which was clobbering the marker in the caller)
-	// bracket filtered info with unique markers \~FILTER and \~FILTER*
-	//wxString src;
+    // whm added 11Feb05; BEW changed 06Oct05 to simpify a little and remove the unneeded
+    // first argument (which was a CString& -- because it was being called with wholeMkr
+    // supplied as that argument's string, which was clobbering the marker in the caller)
+    // bracket filtered info with unique markers \~FILTER and \~FILTER*
+	// wxString src;
 	wxString temp(ptr,itemLen);
 	temp.Trim(TRUE); // trim right end
 	temp.Trim(FALSE); // trim left end
@@ -9058,7 +9342,6 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 	wxString temp2;
 	temp2 << filterMkr << _T(' ') << temp << _T(' ') << filterMkrEnd;
 	temp = temp2;
-
 	return temp;
 }
 
@@ -12507,6 +12790,7 @@ void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 ///    - or an embedded content marker within an \x (cross reference section) or \f (footnote) 
 ///         or \fe (endnote) section - these don't halt scanning, 
 ///    - or an inLine == FALSE marker - these halt scanning.
+///    BEW 22Sep10, no changes needed for support of docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 {
@@ -12705,6 +12989,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 /// Called from: the Doc's ReconstituteAfterFilteringChange().
 /// Determines if a source phrase's m_markers member contains a marker to be filtered, and if so, returns
 /// the offset into m_markers where the marker resides.
+/// BEW 21Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, 
 				wxString filterList, wxString& wholeMkr, wxString& wholeShortMkr, 
@@ -12729,15 +13014,18 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 								// (ie. strstr() or wcsstr()), null if unfound
 	pFound += offset; // get the scan start location (offset will be reused below, 
                       // so don't rely on it staying this present value)
-	wxString fltrMkr(filterMkr); // filterMkr is a literal string defined at start
+	//wxString fltrMkr(filterMkr); // filterMkr is a literal string defined at start
 								 // of the doc's .cpp file
-	int lenFilterMkr = fltrMkr.Length();
-	int lenFilterMkrEnd = lenFilterMkr + 1;
+	//int lenFilterMkr = fltrMkr.Length();
+	//int lenFilterMkrEnd = lenFilterMkr + 1;
 	wxChar backslash[2] = {gSFescapechar,_T('\0')};
 	int itemLen;
 
     // scan the buffer, looking for a filterable marker not bracketed by \~FILTER ...
     // \~FILTER* (because any between those is already filtered out)
+	// BEW 21Sep10, for docVersion 5 there NEVER will be \~FILTER or \~FILTER* markers in
+	// the CSourcePhrase's m_markers member, and so the test below for mkr == fltrMkr is
+	// not needed
 	while ((pFound = wxStrstr(pFound, backslash)) != NULL)
 	{	
 		// we have come to a backslash
@@ -12746,97 +13034,108 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 		wxString mkr(ptr,itemLen); // this is the whole marker, 
 								   // including its backslash
         // if we have found a bracketing \~FILTER beginning marker, we have located an
-        // already filtered section of material - this is of no interested, so we have to
+        // already filtered section of material - this is of no interest, so we have to
         // jump to the matching \~FILTER* string (there will always be one) and continue
         // our loop from whatever follows that
-		if (mkr == fltrMkr)
-		{
+		// BEW 21Sep10, for docVersion 5 \~FILTER and \~FILTER markers NEVER appear in
+		// m_markers, and so the following test is not needed and we can therefore comment
+		// it out
+		//if (mkr == fltrMkr)
+		//{
 			// we have found bracketed filtered material, so skip it
-			pFound++; // skip the intial backslash
-			pFound = wxStrstr(pFound, filterMkrEnd);
-			if (pFound == NULL)
-			{
-				return -1;
-			}
-			pFound += lenFilterMkrEnd; // point past the \~FILTER* marker
-			continue; // iterate
+		//	pFound++; // skip the intial backslash
+		//	pFound = wxStrstr(pFound, filterMkrEnd);
+		//	if (pFound == NULL)
+		//	{
+		//		return wxNOT_FOUND;
+		//	}
+		//	pFound += lenFilterMkrEnd; // point past the \~FILTER* marker
+		//	continue; // iterate
+		//}
+		//else
+		//{
+		
+        // it's either the endmarker for previous unfiltered material (which is to
+        // remain unfiltered), or it is potentially a marker which might be one for
+        // filtering out
+        // BEW 21Sep10, for docVersion 5 there still may be an occasional endmarker in
+        // the m_markers member - for an inLine formatting marker, for example, so we
+        // must test for these still and jump them
+		int nFound = mkr.Find(_T('*'));
+		if (nFound > 0)
+		{
+			// it is an endmarker, so we are not interested in it
+			pFound++;
+			continue;
 		}
 		else
 		{
-            // it's either the endmarker for previous unfiltered material (which is to
-            // remain unfiltered), or it is potentially a marker which might be one for
-            // filtering out
-			int nFound = mkr.Find(_T('*'));
-			if (nFound > 0)
+			// it could be a marker which is to be filtered, so check it out
+			wxString mkrPlusSpace = mkr + _T(' '); // prevent spurious matches,
+												   // eg. \h finding \hr
+			nFound = filterList.Find(mkrPlusSpace);
+			if (nFound == -1)
 			{
-				// it is an endmarker, so we are not interested in it
+				// it's not in the list of markers designated as to be filtered, 
+				// so keep iterating
 				pFound++;
 				continue;
 			}
 			else
 			{
-				// it could be a marker which is to be filtered, so check it out
-				wxString mkrPlusSpace = mkr + _T(' '); // prevent spurious matches,
-													   // eg. \h finding \hr
-				nFound = filterList.Find(mkrPlusSpace);
-				if (nFound == -1)
+				// this marker is to be filtered, so set up the parameters to 
+				// be returned etc
+				offset = pFound - pBuff;
+				wxASSERT(offset >= 0);
+				wholeMkr = mkr;
+				wholeShortMkr = wholeMkr.Left(2);
+
+				// get its SFM characteristics, whether it has an endmarker, 
+				// and whether it is unknown
+				SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set 
+									// temporarily, as sfmSet may be different
+				gpApp->gCurrentSfmSet = sfmSet; // install the set to be used 
+												// - as passed in
+				wxString bareMkr = wholeMkr.Mid(1); // lop off the backslash
+				USFMAnalysis* analysis = LookupSFM(bareMkr); // uses gCurrentSfmSet
+				if (analysis == NULL)
 				{
-					// it's not in the list of markers designated as to be filtered, 
-					// so keep iterating
-					pFound++;
-					continue;
+					// this must be an unknown marker designated for filtering by 
+					// the user in the GUI
+					bUnknownMarker = TRUE;
+					bHasEndmarker = FALSE; // unknown markers NEVER have endmarkers
+					endMkr.Empty();
+					gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+					return offset; // return its offset
 				}
 				else
 				{
-					// this marker is to be filtered, so set up the parameters to 
-					// be returned etc
-					offset = pFound - pBuff;
-					wxASSERT(offset >= 0);
-					wholeMkr = mkr;
-					wholeShortMkr = wholeMkr.Left(2);
-
-					// get its SFM characteristics, whether it has an endmarker, 
-					// and whether it is unknown
-					SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set 
-										// temporarily, as sfmSet may be different
-					gpApp->gCurrentSfmSet = sfmSet; // install the set to be used 
-													// - as passed in
-					wxString bareMkr = wholeMkr.Mid(1); // lop off the backslash
-					USFMAnalysis* analysis = LookupSFM(bareMkr); // uses gCurrentSfmSet
-					if (analysis == NULL)
+					// this is a known marker in the sfmSet marker set
+					endMkr = analysis->endMarker;
+					bHasEndmarker = !endMkr.IsEmpty();
+					if (bHasEndmarker)
 					{
-						// this must be an unknown marker designated for filtering by 
-						// the user in the GUI
-						bUnknownMarker = TRUE;
-						bHasEndmarker = FALSE; // unknown markers NEVER have endmarkers
-						endMkr.Empty();
-						gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
-						return offset; // return its offset
-					}
-					else
-					{
-						// this is a known marker in the sfmSet marker set
-						endMkr = analysis->endMarker;
-						bHasEndmarker = !endMkr.IsEmpty();
 						endMkr = gSFescapechar + endMkr; // add the initial backslash
-						gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
-						if (analysis->filter)
-							return offset; // it's filterable, so return its offset
-						else
-                            // it's either not filterable, or we've forgotten to update the
-                            // filter member of the USFMAnalysis structs prior to calling
-                            // this function
-							return -1;
 					}
+					gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+					if (analysis->filter)
+						return offset; // it's filterable, so return its offset
+					else
+                        // it's either not filterable, or we've forgotten to update the
+                        // filter member of the USFMAnalysis structs prior to calling
+                        // this function
+						return wxNOT_FOUND;
 				}
 			}
 		}
+
+		//}
 	}
 	// didn't find a filterable marker that was not already filtered
 	wholeShortMkr.Empty();
 	wholeMkr.Empty();
 	endMkr.Empty();
-	return -1;
+	return wxNOT_FOUND;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -13109,6 +13408,7 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 /// values correctly in the caller upon return, the returned CString should be checked to
 /// determine if it is empty or not.) The caller also can use the nEnd value to compute an
 /// updated offset value for iterating the function call to find the next filtered marker.
+/// BEw 20Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset, 
 											 int& nStart, int& nEnd)
@@ -13156,7 +13456,7 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 		int nStartFrom = nStart + len + len3; // offset to character after the marker 
 											  // in mkrStr (a space)
 		nFound = FindFromPos(markers,filterMkrEnd,nStartFrom);
-		if (nFound == -1)
+		if (nFound == wxNOT_FOUND)
 		{
 			// no matching \~FILTER* marker; this is an error condition, so bail out
 			nStart = nEnd = offset;
@@ -13166,10 +13466,19 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 		else
 		{
             // we found the matching filter marker which brackets the end, so get offset to
-            // first character beyond it and its following space & we are done
+            // first character beyond it (?? and its following space?? see below) & we are
+            // done...
+            // 
+			// BEW 20Sep10: in docVersion 5, not only do we store filtered stuff in
+			// m_filteredInfo, but we but filter markers up against each other, so we can get
+			// a sequence "\~FILTER*\~FILTER " and so we can't assume a space between these,
+			// and indeed, we no longer even try to put one there; so only count a space
+			// after \~FILTER* if there is indeed one there
 			wxString fEnd(filterMkrEnd);
-			len3 = fEnd.Length() + 1;
+			len3 = fEnd.Length();
 			nEnd = nFound + len3;
+			if (markers[nEnd] == _T(' '))
+				nEnd++; // count the following space too
 		}
 	}
 	return mkrStr;

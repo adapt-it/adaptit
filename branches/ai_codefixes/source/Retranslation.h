@@ -104,7 +104,9 @@ private:
 	CAdapt_ItView*	m_pView;
 	
 	// deglobalified globals
-	bool m_bIsRetranslationCurrent;
+	bool m_bIsRetranslationCurrent;		// set TRUE when retranslating or editing same, used to 
+										// suppress removing of KB entries during edit or creation
+										// of the retranslation; default FALSE at other times
 	bool m_bInsertingWithinFootnote;	// TRUE if inserting a null sourcephrase
 										// within a footnote; eg. if a retranslation is within a
 										// footnote and gets padded with null sourcephrases.
@@ -115,9 +117,9 @@ private:
 										// otherwise nested PlacePhraseBox call will result in a RemoveRefString
 										// spurious call before the phrasebox is rebuilt, which could remove a
 										// source to target translation association wrongly.	
-	bool m_bReplaceInRetranslation;
-
-	
+	bool m_bReplaceInRetranslation;		// default FALSE, set TRUE only if a Find & Replace match has been
+										// made and a replacement is being done within a
+										// retranslation, used only once, in OnButtonEditRetranslation()
 	
 	DECLARE_EVENT_TABLE()
 };

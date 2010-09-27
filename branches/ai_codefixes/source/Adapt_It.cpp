@@ -29970,6 +29970,8 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 #ifdef __WXDEBUG__
 void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 {
+	refNum = refNum; // avoid compiler warning
+	/* for displaying rapid-access markers in UsfmFilterMarkersStr
 	wxString s = UsfmFilterMarkersStr;
 	wxArrayString arr;
 	wxStringTokenizer tokens(s);
@@ -30003,6 +30005,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 	msg = msg.Format(_T("***FILTERED MARKERS:    location: %d\n%s\nEND FILTERED MARKERS***"),
 		refNum, s.c_str());
 	wxLogDebug(msg);
+	*/
 }
 #endif
 

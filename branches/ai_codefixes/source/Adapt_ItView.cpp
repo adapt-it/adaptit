@@ -12278,15 +12278,16 @@ void CAdapt_ItView::CloseProject()
 	OnFileCloseProject(dummyevent);
 }
 
-// targetStr will normally be the contents of the Phrase Box; it could have initial
-// punctuation, it may not have, and/or final punctuation, or even in the case of a merger
-// it may have medial punctuation, and it could have text starting with lower case and
-// needing to become upper. BEW added 20 Apr 2005 checking of the app's flag
-// m_bCopySourcePunctuation - which typically is TRUE, but for version 3 we wish to be able
-// to temporarily suppress punctuation copy if the user clicks the No Punctuation Copy
-// button on the command bar - so this flag was added to support this new functionality.
-// The flag is automatically reset TRUE once the phrase box moves to a different location
-// by any method.
+// targetStr will normally be the contents of the Phrase Box, but sometimes (such as when
+// restoring punctuation when a placeholder is removed), it could be the m_targetStr member
+// of a CSourcePhrase; it could have initial punctuation, it may not have, and/or final
+// punctuation, or even in the case of a merger it may have medial punctuation, and it
+// could have text starting with lower case and needing to become upper. BEW added 20 Apr
+// 2005 checking of the app's flag m_bCopySourcePunctuation - which typically is TRUE, but
+// for version 3 we wish to be able to temporarily suppress punctuation copy if the user
+// clicks the No Punctuation Copy button on the command bar - so this flag was added to
+// support this new functionality. The flag is automatically reset TRUE once the phrase box
+// moves to a different location by any method.
 // BEW 12Apr10, no changes needed for support of doc version 5
 void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {

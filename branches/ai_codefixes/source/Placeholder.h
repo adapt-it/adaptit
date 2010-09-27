@@ -59,6 +59,14 @@ class CPlaceholder : public wxEvtHandler
 							int&				nEndSequNum,
 							bool				bActiveLocAfterSelection,
 							int&				nSaveActiveSequNum);
+	private:
+
+		// a utility for setting or clearing the bFollowingMarkers boolean (although
+		// strictly speaking more than markers are involved, it's really about deciding if
+		// the starting location for something should be tranferred to a right-associated
+		// placeholder)
+		bool IsRightAssociationTransferPossible(CSourcePhrase* pSrcPhrase);
+
 	protected:
 		// event handlers
 		void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event));

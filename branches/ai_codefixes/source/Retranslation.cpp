@@ -128,6 +128,10 @@ CRetranslation::CRetranslation(CAdapt_ItApp* app)
 	m_pLayout = m_pApp->GetLayout();
 	m_pView = m_pApp->GetView();
 	m_bIsRetranslationCurrent = FALSE;
+	// BEW 23Sep10, additional initializations missed earlier on
+	m_bReplaceInRetranslation = FALSE;
+	m_bInsertingWithinFootnote = FALSE;
+	m_bSuppressRemovalOfRefString = FALSE;
 }
 
 CRetranslation::~CRetranslation()
