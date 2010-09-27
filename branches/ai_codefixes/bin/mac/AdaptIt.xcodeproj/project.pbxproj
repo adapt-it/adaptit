@@ -706,7 +706,7 @@
 			hasScannedForEncodings = 1;
 			mainGroup = 20286C29FDCF999611CA2CEA /* AdaptIt */;
 			projectDirPath = "";
-			projectRoot = "";
+			projectRoot = ../..;
 			targets = (
 				8D0C4E890486CD37000505A6 /* AdaptIt */,
 			);
