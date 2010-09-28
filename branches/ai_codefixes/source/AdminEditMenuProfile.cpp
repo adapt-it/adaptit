@@ -283,7 +283,7 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	int totProfileNames = m_pApp->m_pUserProfiles->definedProfileNames.GetCount();
 	if (totProfileNames != totPages)
 	{
-		// the number of pages in the wxDesigner notebook if different from the number
+		// the number of pages in the wxDesigner notebook is different from the number
 		// of profile names defined in the AI_UserProfiles.xml file. Make the notebook
 		// agree with the incoming data from AI_UserProfiles.xml.
 		if (totProfileNames > totPages)

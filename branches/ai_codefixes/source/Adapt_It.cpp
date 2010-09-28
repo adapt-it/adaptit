@@ -1199,11 +1199,10 @@ const wxString defaultProfileItems[] =
 	// with those that are used in the defaultMenuStructure strings (see below) To keep them in sync, 
 	// notify the programmer in debug mode using wxLogDebug() calls and wxASSERT(FALSE) statements for 
 	// any discrepancies discovered. 
-	_T("UserProfilesSupport:profileVersion=\"1.0\":")
-		_T("definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
-		_T("definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
-		_T("definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
-		_T("definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\""),
+	_T("UserProfilesSupport:profileVersion=\"1.0\":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
+	   _T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
+	   _T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
+	   _T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\""),
 	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
