@@ -39,10 +39,17 @@ public:
 	CAdminEditMenuProfile(wxWindow* parent); // constructor
 	virtual ~CAdminEditMenuProfile(void); // destructor
 	wxNotebook* pNotebook;
-	wxRadioBox* pRadioBox;
+	wxRadioButton* pRadioBtnNone;
+	wxRadioButton* pRadioBtnUseAProfile;
+	wxButton* pButtonResetToFactory;
+	wxTextCtrl* pEditProfileDescr;
+	wxStaticText* pStaticTextDescr;
+	wxComboBox* pComboBox;
 	wxCheckListBox* pCheckListBox;
 	wxButton* pOKButton;
-	int tempWorkflowProfile;
+	int tempWorkflowProfile; // 0 = "None", 1 = "Novice", 2 = "Experienced", 3 = "Skilled", 4 = "Custom"
+	int selectedComboProfileIndex; // 0 = "Novice", 1 = "Experienced", 2 = "Skilled", 3 = "Custom"
+	int notebookTabIndex; // 0 = "Novice", 1 = "Experienced", 2 = "Skilled", 3 = "Custom"
 	AI_MenuStructure* tempMenuStructure;
 	UserProfiles* tempUserProfiles;
 	wxArrayInt itemsAlwaysChecked;
@@ -52,17 +59,19 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event));
 	void OnNotebookTabChanged(wxNotebookEvent& event);
-	void OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event));
+	void OnComboBoxSelection(wxCommandEvent& WXUNUSED(event));
 	void OnCheckListBoxToggle(wxCommandEvent& event);
 	void OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event));
+	void OnRadioNone(wxCommandEvent& WXUNUSED(event));
+	void OnRadioUseProfile(wxCommandEvent& WXUNUSED(event));
 	void PopulateListBox(int newTabIndex);
 	void CopyMenuStructure(const AI_MenuStructure* pFromMenuStructure, AI_MenuStructure*& pToMenuStructure);
 	void CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
 	bool UserProfilesHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles);
-	wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr);
 
 private:
 	// class attributes

@@ -208,6 +208,8 @@ static int totalCount = 0;
 //const char profileVersion[] = "profileVersion";
 //const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
 //												// i.e., definedProfile1, definedProfile2, etc.
+//const char descriptionProfile[] = "descriptionProfile"; // the xml will actually have a number suffix
+//												// i.e., descriptionProfile1, descriptionProfile2, etc.
 //const char itemID[] = "itemID";
 //const char itemType[] = "itemType";
 //const char itemText[] = "itemText";
@@ -217,6 +219,7 @@ static int totalCount = 0;
 //const char itemVisibility[] = "itemVisibility";
 //const char factory[] = "factory";
 //
+//const char mainMenuID[] = "mainMenuID";
 //const char mainMenuLabel[] = "mainMenuLabel";
 //const char subMenuID[] = "subMenuID";
 //const char subMenuLabel[] = "subMenuLabel";
@@ -1980,6 +1983,7 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpUserProfiles = new UserProfiles;
 		gpUserProfiles->profileVersion = _T("");
 		gpUserProfiles->definedProfileNames.Clear();
+		gpUserProfiles->descriptionProfileTexts.Clear();
 		gpUserProfiles->profileItemList.Clear();
 		gpApp->m_pUserProfiles = gpUserProfiles; // make the App's pointer also point at it
 	}
@@ -2040,6 +2044,7 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// deleted directly if it cannot be handed off to an appropriate data
 		// structure (see the AtPROFILEEndTag function below).
 		gpMainMenuItem = new AI_MainMenuItem;
+		gpMainMenuItem->mainMenuID = _T("");
 		gpMainMenuItem->mainMenuLabel = _T("");
 		gpMainMenuItem->aiSubMenuItems.Clear();
 	}
@@ -2078,17 +2083,28 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 		}
 		else if (attrName.Find(definedProfile) == 0)
 		{
-			// In profileVersion 1.0 there are three defined profile attributes defined in 
-			// the <UserProfilesSupport> tag, definedProfile1, definedProfile2 and 
-			// definedProfile3. The .Find in the test above will return 0 for all 
-			// definedProfileN attributes where N is 1,2,3,...
+			// In profileVersion 1.0 there are several defined profile attributes defined in 
+			// the <UserProfilesSupport> tag, definedProfile1, definedProfile2, 
+			// definedProfile3 and definedProfile4. The .Find in the test above will return 0 
+			// for all definedProfileN attributes where N is 1,2,3,4...
 #ifdef _UNICODE
 			gpUserProfiles->definedProfileNames.Add(pValueW);
 #else
 			gpUserProfiles->definedProfileNames.Add(pValue);
 #endif
 		}
-
+		else if (attrName.Find(descriptionProfile) == 0)
+		{
+			// In profileVersion 1.0 there are several defined profile attributes defined in 
+			// the <UserProfilesSupport> tag, descriptionProfile1, descriptionProfile2, 
+			// descriptionProfile3 and descriptionProfile4. The .Find in the test above will 
+			// return 0 for all descriptionProfileN attributes where N is 1,2,3,4...
+#ifdef _UNICODE
+			gpUserProfiles->descriptionProfileTexts.Add(pValueW);
+#else
+			gpUserProfiles->descriptionProfileTexts.Add(pValue);
+#endif
+		}
 	}
 	else if (tag == menu)
 	{
@@ -2165,6 +2181,15 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 	}
 	else if (tag == main_menu)
 	{
+		if (attrName == mainMenuID)
+		{
+			// add the main menu ID to the usedProfileNames array
+#ifdef _UNICODE
+			gpMainMenuItem->mainMenuID = pValueW;
+#else
+			gpMainMenuItem->mainMenuID = pValue;
+#endif
+		}
 		if (attrName == mainMenuLabel)
 		{
 			// add the main menu label to the usedProfileNames array

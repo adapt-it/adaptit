@@ -1199,513 +1199,646 @@ const wxString defaultProfileItems[] =
 	// with those that are used in the defaultMenuStructure strings (see below) To keep them in sync, 
 	// notify the programmer in debug mode using wxLogDebug() calls and wxASSERT(FALSE) statements for 
 	// any discrepancies discovered. 
-	_T("UserProfilesSupport:profileVersion=\"1.0\":definedProfile1=\"Novice\":definedProfile2=\"Custom 1\":definedProfile3=\"Custom 2\":"),
-	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("UserProfilesSupport:profileVersion=\"1.0\":")
+		_T("definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
+		_T("definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
+		_T("definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
+		_T("definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\""),
+	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_PACK_DOC\":itemType=\"subMenu\":itemText=\"Pack Document...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_PACK_DOC\":itemType=\"subMenu\":itemText=\"Pack Document...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_UNPACK_DOC\":itemType=\"subMenu\":itemText=\"Unpack Document...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_UNPACK_DOC\":itemType=\"subMenu\":itemText=\"Unpack Document...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_CHANGEFOLDER\":itemType=\"subMenu\":itemText=\"Change Folder...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_CHANGEFOLDER\":itemType=\"subMenu\":itemText=\"Change Folder...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_BACKUP_KB\":itemType=\"subMenu\":itemText=\"Backup Knowledge Base\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_BACKUP_KB\":itemType=\"subMenu\":itemText=\"Backup Knowledge Base\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"Submenu of File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Fonts\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Backups and Misc\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Auto-Saving\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Punctuation\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Case\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Units\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_VIEW_TOOLBAR\":itemType=\"subMenu\":itemText=\"Toolbar\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"Status Bar\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_VIEW_TOOLBAR\":itemType=\"subMenu\":itemText=\"Toolbar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Source\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"Status Bar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"Wrap At Standard Format Markers\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_UNITS\":itemType=\"subMenu\":itemText=\"Units of Measurement...\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Source\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_CHANGE_INTERFACE_LANGUAGE\":itemType=\"subMenu\":itemText=\"Change Interface Language...\":itemDescr=\"Submenu of View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"Wrap At Standard Format Markers\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"wxID_REPLACE\":itemType=\"subMenu\":itemText=\"Find and Replace...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_UNITS\":itemType=\"subMenu\":itemText=\"Units of Measurement...\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_DEFINE_CC\":itemType=\"subMenu\":itemText=\"Load Consistent Changes...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_CHANGE_INTERFACE_LANGUAGE\":itemType=\"subMenu\":itemText=\"Change Interface Language...\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_UNLOAD_CC_TABLES\":itemType=\"subMenu\":itemText=\"Unload Consistent Changes\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"wxID_REPLACE\":itemType=\"subMenu\":itemText=\"Find and Replace...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_USE_CC\":itemType=\"subMenu\":itemText=\"Use Consistent Changes\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_CC\":itemType=\"subMenu\":itemText=\"Load Consistent Changes...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ACCEPT_CHANGES\":itemType=\"subMenu\":itemText=\"Accept Changes Without Stopping\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_UNLOAD_CC_TABLES\":itemType=\"subMenu\":itemText=\"Unload Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_DEFINE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"SIL Converters...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_USE_CC\":itemType=\"subMenu\":itemText=\"Use Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_USE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"Use SIL Converter\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ACCEPT_CHANGES\":itemType=\"subMenu\":itemText=\"Accept Changes Without Stopping\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_KB_EDITOR\":itemType=\"subMenu\":itemText=\"Knowledge Base Editor...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"SIL Converters...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_AUTO_CAPITALIZATION\":itemType=\"subMenu\":itemText=\"Use Automatic Capitalization\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_USE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"Use SIL Converter\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_SPLIT_DOC\":itemType=\"subMenu\":itemText=\"Split Document...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_KB_EDITOR\":itemType=\"subMenu\":itemText=\"Knowledge Base Editor...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_JOIN_DOCS\":itemType=\"subMenu\":itemText=\"Join Documents...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_AUTO_CAPITALIZATION\":itemType=\"subMenu\":itemText=\"Use Automatic Capitalization\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_MOVE_DOC\":itemType=\"subMenu\":itemText=\"Move Document...\":itemDescr=\"Submenu of Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_SPLIT_DOC\":itemType=\"subMenu\":itemText=\"Split Document...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export Source Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_JOIN_DOCS\":itemType=\"subMenu\":itemText=\"Join Documents...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT\":itemType=\"subMenu\":itemText=\"Export Translation Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_MOVE_DOC\":itemType=\"subMenu\":itemText=\"Move Document...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT_TO_RTF\":itemType=\"subMenu\":itemText=\"Export Interlinear Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export Source Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EXPORT_GLOSSES\":itemType=\"subMenu\":itemText=\"Export Glosses As Text...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT\":itemType=\"subMenu\":itemText=\"Export Translation Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EXPORT_FREE_TRANS\":itemType=\"subMenu\":itemText=\"Export Free Translation...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_TO_RTF\":itemType=\"subMenu\":itemText=\"Export Interlinear Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export Open XML for Editing Scripture (OXES)...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EXPORT_GLOSSES\":itemType=\"subMenu\":itemText=\"Export Glosses As Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge Base...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EXPORT_FREE_TRANS\":itemType=\"subMenu\":itemText=\"Export Free Translation...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_IMPORT_TO_KB\":itemType=\"subMenu\":itemText=\"Import to Knowledge Base...\":itemDescr=\"Submenu of Export-Import\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_ENABLEGLOSSING\":itemType=\"subMenu\":itemText=\"See Glosses\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":itemType=\"subMenu\":itemText=\"Glossing Uses Navigation Text's Font\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_IMPORT_TO_KB\":itemType=\"subMenu\":itemText=\"Import to Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":itemType=\"subMenu\":itemText=\"Transform Adaptations Into Glosses...\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_ENABLEGLOSSING\":itemType=\"subMenu\":itemText=\"See Glosses\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_DELAY\":itemType=\"subMenu\":itemText=\"Delay...\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":itemType=\"subMenu\":itemText=\"Glossing Uses Navigation Text's Font\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_BOOKMODE\":itemType=\"subMenu\":itemText=\"Storing Documents in Book Folders\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":itemType=\"subMenu\":itemText=\"Transform Adaptations Into Glosses...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":itemType=\"subMenu\":itemText=\"Free Translation Mode\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_DELAY\":itemType=\"subMenu\":itemText=\"Delay...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Target Text As Default Text's Font\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_BOOKMODE\":itemType=\"subMenu\":itemText=\"Storing Documents in Book Folders\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Gloss Text As Default Free Translation\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":itemType=\"subMenu\":itemText=\"Free Translation Mode\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Free Translations\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Target Text As Default Text's Font\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Collect Back Translations\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Gloss Text As Default Free Translation\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Back Translations\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Free Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":itemType=\"subMenu\":itemText=\"Use Transliteration Mode\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Collect Back Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Send Synchronized Scrolling Messages\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Back Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Receive Synchronized Scrolling Messages\":itemDescr=\"Submenu of Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":itemType=\"subMenu\":itemText=\"Use Transliteration Mode\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ALIGNMENT\":itemType=\"subMenu\":itemText=\"Layout Window Right To Left\":itemDescr=\"Submenu of Layout menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Send Synchronized Scrolling Messages\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Receive Synchronized Scrolling Messages\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ALIGNMENT\":itemType=\"subMenu\":itemText=\"Layout Window Right To Left\":itemDescr=\"Layout menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"IDC_CHECK_SINGLE_STEP\":itemType=\"modeBar\":itemText=\"Automatic\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"IDC_CHECK_FORCE_ASK\":itemType=\"modeBar\":itemText=\"Force Choice For This Item\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"IDC_EDIT_DELAY\":itemType=\"modeBar\":itemText=\"Delay\":itemDescr=\"Text box in mode bar\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"IDC_CHECK_ISGLOSSING\":itemType=\"modeBar\":itemText=\"Glossing\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_NONE\":itemType=\"wizardListItem\":itemText=\"<New Project>\":itemDescr=\"First List Item in Choose A Project page of Wizard\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 1\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom 2\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("/UserProfilesSupport:")
 };
+
+// Note: An array of top level menu names is available from the App's GetToopLevelMenuName()
+// function.
 
 // whm added 10Sep10 
 /// An array of wxStrings which, when parsed by ParseMenuStructureStrings(), is used as 
@@ -1728,7 +1861,7 @@ const wxString defaultMenuStructure[] =
 	// AI_UserProfiles.xml file. To keep them in sync, notify the programmer in debug mode using 
 	// wxLogDebug() calls and wxASSERT(FALSE) statements for any discrepancies discovered. 
 	_T("MENU_STRUCTURE:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&File\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_FILE_MENU\":mainMenuLabel=\"&File\":"),
 	_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"wxID_OPEN\":subMenuLabel=\"&Open...\tCtrl-O\":subMenuHelp=\"Open an existing document\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -1771,8 +1904,10 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"wxID_EXIT\":subMenuLabel=\"E&xit\":subMenuHelp=\"Quit the application; prompts to save documents\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&Edit\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_EDIT_MENU\":mainMenuLabel=\"&Edit\":"),
 	_T("SUB_MENU:subMenuID=\"wxID_UNDO\":subMenuLabel=\"&Undo\tCtrl-Z\":subMenuHelp=\"Undo the last action\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
@@ -1802,7 +1937,7 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"wxID_PREFERENCES\":subMenuLabel=\"Pre&ferences...\":subMenuHelp=\"Adapt It settings\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&View\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_VIEW_MENU\":mainMenuLabel=\"&View\":"),
 	_T("SUB_MENU:subMenuID=\"ID_VIEW_TOOLBAR\":subMenuLabel=\"&Toolbar\":subMenuHelp=\"Show or hide the toolbar\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_VIEW_STATUS_BAR\":subMenuLabel=\"&Status Bar\":subMenuHelp=\"Show or hide the status bar\":subMenuKind=\"wxITEM_CHECK\":"),
@@ -1822,7 +1957,7 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"ID_CHANGE_INTERFACE_LANGUAGE\":subMenuLabel=\"Change Interface Language...\":subMenuHelp=\"Change the language of the program interface. You may need to restart Adapt It for the change to take effect\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&Tools\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_TOOLS_MENU\":mainMenuLabel=\"&Tools\":"),
 	_T("SUB_MENU:subMenuID=\"wxID_FIND\":subMenuLabel=\"&Find...\tCtrl-F\":subMenuHelp=\"Find text in source or target or both, or special search\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"wxID_REPLACE\":subMenuLabel=\"Find and &Replace...\tCtrl-H\":subMenuHelp=\"Replace in target text\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -1864,7 +1999,7 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"ID_TOOLS_MOVE_DOC\":subMenuLabel=\"Move Document...\":subMenuHelp=\"Move documents between the Adaptations folder and a book folder location\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"E&xport-Import\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_EXPORT_IMPORT_MENU\":mainMenuLabel=\"E&xport-Import\":"),
 	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_SOURCE\":subMenuLabel=\"Export &Source Text...\":subMenuHelp=\"Export the source language text as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT\":subMenuLabel=\"&Export Translation Text...\":subMenuHelp=\"Export the target language translation as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -1884,7 +2019,7 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"ID_IMPORT_TO_KB\":subMenuLabel=\"&Import to Knowledge Base...\":subMenuHelp=\"Extend knowledge base by importing dictionary records\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&Advanced\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_ADVANCED_MENU\":mainMenuLabel=\"&Advanced\":"),
 	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_ENABLEGLOSSING\":subMenuLabel=\"See Glosses\":subMenuHelp=\"Make glossing line visible on screen\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":subMenuLabel=\"Glossing Uses Navigation Text's Font\":subMenuHelp=\"Use the navigation text font for glossing text\":subMenuKind=\"wxITEM_CHECK\":"),
@@ -1926,11 +2061,11 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Receive Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&Layout\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_LAYOUT_MENU\":mainMenuLabel=\"&Layout\":"),
 	_T("SUB_MENU:subMenuID=\"ID_ALIGNMENT\":subMenuLabel=\"Layout Window Right To Left\tCtrl-1\":subMenuHelp=\"Layout text in window from right to left\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"&Help\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_HELP_MENU\":mainMenuLabel=\"&Help\":"),
 	_T("SUB_MENU:subMenuID=\"wxID_HELP\":subMenuLabel=\"&Help Topics\tShift-Ctrl-/\":subMenuHelp=\"List Help topics\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ONLINE_HELP\":subMenuLabel=\"Online Help (Requires Internet Access)\":subMenuHelp=\"Get Adapt It Help from the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -1946,7 +2081,7 @@ const wxString defaultMenuStructure[] =
 	_T("SUB_MENU:subMenuID=\"wxID_ABOUT\":subMenuLabel=\"&About Adapt It...\":subMenuHelp=\"Display program information, version number and copyright\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
-	_T("MAIN_MENU:mainMenuLabel=\"Ad&ministrator\":"),
+	_T("MAIN_MENU:mainMenuID=\"ID_ADMINISTRATOR_MENU\":mainMenuLabel=\"Ad&ministrator\":"),
 	_T("SUB_MENU:subMenuID=\"ID_CUSTOM_WORK_FOLDER_LOCATION\":subMenuLabel=\"&Custom Work Folder Location...\":subMenuHelp=\"Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_LOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Lock Custom Location\":subMenuHelp=\"Make the custom work folder location permanent until explicitly changed\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -2473,6 +2608,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 						m_pUserProfiles = new UserProfiles;
 						m_pUserProfiles->profileVersion = _T("");
 						m_pUserProfiles->definedProfileNames.Clear();
+						m_pUserProfiles->descriptionProfileTexts.Clear();
 						m_pUserProfiles->profileItemList.Clear();
 					}
 					else if (field == wxString::FromAscii(end_userprofilessupport))
@@ -2503,6 +2639,11 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 					{
 						wxASSERT(m_pUserProfiles != NULL);
 						m_pUserProfiles->definedProfileNames.Add(valueStr);
+					}
+					else if (attrStr.Find(wxString::FromAscii(descriptionProfile)) == 0)
+					{
+						wxASSERT(m_pUserProfiles != NULL);
+						m_pUserProfiles->descriptionProfileTexts.Add(valueStr);
 					}
 					else if (attrStr == wxString::FromAscii(itemID))
 					{
@@ -2617,6 +2758,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure()
 					else if (field == wxString::FromAscii(main_menu))
 					{
 						pMainMenuItem = new AI_MainMenuItem;
+						pMainMenuItem->mainMenuID = _T("");
 						pMainMenuItem->mainMenuLabel = _T("");
 						pMainMenuItem->aiSubMenuItems.Clear();
 					}
@@ -2675,6 +2817,11 @@ void CAdapt_ItApp::SetupDefaultMenuStructure()
 					{
 						wxASSERT(pMainMenuItem != NULL);
 						pMainMenuItem->mainMenuLabel = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(mainMenuID))
+					{
+						wxASSERT(pMainMenuItem != NULL);
+						pMainMenuItem->mainMenuID = valueStr;
 					}
 				}
 
@@ -5374,9 +5521,6 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     true if configuration was successful, false if there was an error
-/// \param      -> currentProfile   the user profile the interface is currently using
-///                                 or -1 for the default "None" user profile
-/// \param      -> newProfile       the user profile the interface is to be changed to
 /// \remarks
 /// Called from: the App's OnInit() and CAdminEditMenuProfile class dialog.
 /// Sets the visibility of menu items and other interface settings according to the 
@@ -5387,87 +5531,288 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 /// a uniform state when changing the user profile or reverting to the "None" default
 /// profile.
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::ConfigureInterfaceForUserProfile(int currentProfile, int newProfile)
+bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 {
 	// if currentProfile and newProfile are the same, no change is required
-	if (currentProfile == newProfile)
-		return TRUE;
+	//if (currentProfile == newProfile)
+	//	return TRUE;
 	// use the menu and settings data in m_pUserProfiles to set visibility of interface
 	// elements
 	// 
 	// First, configure visibility of itemType == subMenu elements
 	
-	// whm 21Sep10 notes:
+	// whm 27Sep10 notes:
 	// I tried calling delete on pMenuBar and reconstructing it from scratch as a way to
 	// implement interface menu configuration. But deleting the menu bar leads to some 
 	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load 
-	// the file history from our m_pConfig. My efforts in the commented out code block 
-	// below were unsuccessful in eliminating those memory leaks. Therefore, rather than 
-	// deleting our existing menu bar, I decided it would be better to take the existing 
-	// menu bar and "make" it into the desired menu bar for the newProfile. That may
-	// involve adding menu items to it or subtracting menu items from it, as well as
-	// tidying up any menu separators that need to be added or removed for the resulting
-	// menu bar.
-	//m_pDocManager->FileHistoryRemoveMenu(pFileMenu);
-	//pMainFrame->SetMenuBar(NULL); // detaches the existing menubar from the main frame
-	//delete pMenuBar;
-	//wxMenuBar* pNewMenuBar;
-	//pNewMenuBar = AIMenuBarFunc(); // recreate the original menu bar
-	//pMainFrame->SetMenuBar(pNewMenuBar);
-		
-	// Our approach will be to scan through m_pAI_MenuStructure and compare each element 
-	// (SUB_MENU item) with the corresponding information in m_pUserProfiles. If the 
-	// SUB_MENU item in m_pAI_MenuStructure is marked as itemVisibility="0" in 
-	// m_pUserProfiles we check if that item is currently in pMenuBar and remove it if
-	// it is. If the SUB_MENU item in m_pAI_MenuStructure is marked as itemVisibility="1" 
-	// in m_pUserProfiles we check if that item is currently in pMenuBar, and insert it
-	// if it is not already there. The m_pAI_MenuStructure has the complete menu structure
-	// including menuSeparator items, so we should be able to rebuild our existing pMenuBar
-	// as needed. The MakeMenuAndPlatformAdjustments() function below will make
-	// some other adjustments to menu items after the new profile has been applied.
-	//wxString profileItemID;
-	//profileItemID = pUserProfileItem->itemID;
-	wxString menuLabel;
+	// the file history from our m_pConfig. 
+	// Later, I attempted to try adding menu items one-by-one to individual top level
+	// menus and tidying up any menu separators that need to be added or removed for 
+	// the resulting menu bar. That approach also proved problematic as I could not
+	// guarantee robustness of the result. Finally I decided on removing all menu items
+	// from a given top level menu, and constructing the menu anew using the 
+	// p_mAI_Menustructure's itemVisibility info as the guide. That approach gives a
+	// robust result that also allows for the insertion of menu separators at the right
+	// places to fit the profile.
+
+	// I don't know how to get the defined int value for an idenfifier from a string 
+	// representation such as "ID_SAVE_AS", so I'll just create a temporary default 
+	// menu bar from wxDesigners AIMenuBarFunc() so we can query it for menu id int 
+	// values we may need. We don't call SetMenuBar() on any frame so it won't be 
+	// visible. We delete it at the end of the menu bar handling part of this function.
+	wxMenuBar* pTempMenuBar;
+	pTempMenuBar = AIMenuBarFunc();
+	
+	// Go through the existing top level menus processing each one by removing existing
+	// items and adding those that need to be visible for the current profile.
+	wxString mainMenuLabel_DefaultStructure;
+	wxString mainMenuLabel_CurrentMenuBar;
 	MainMenuItemList::Node* mmNode;
-	AI_MainMenuItem* pMainMenuItem;
+	AI_MainMenuItem* pMainMenuItem_DefaultStructure;
+	wxMenu* pMainMenuItem_CurrentMenuBar;
+	wxMenuBar* pMenuBar_Current = GetMainFrame()->GetMenuBar();
+	wxASSERT(pMenuBar_Current != NULL);
+	pMenuBar_Current->Freeze(); // to avoid flicker while changing the menu
 	int ct;
 	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
+		bool bProcessingFileMenu = FALSE;
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
-		pMainMenuItem = mmNode->GetData();
-		menuLabel = pMainMenuItem->mainMenuLabel;
-		menuLabel.Replace(_T("&"),_T("")); // remove any & chars for comparison
-		SubMenuItemList::Node* smNode;
-		AI_SubMenuItem* pSubMenuItem;
-		int ct_sm;
-		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
-		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		pMainMenuItem_DefaultStructure = mmNode->GetData();
+		mainMenuLabel_DefaultStructure = pMainMenuItem_DefaultStructure->mainMenuLabel;
+		if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(fileMenu)) // fileMenu resolves to _("&File")
 		{
-			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
-			pSubMenuItem = smNode->GetData();
-			if (MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,pSubMenuItem->subMenuID))
+			bProcessingFileMenu = TRUE;
+		}
+		// skip processing of the Help and Administrator menus
+		if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(helpMenu) // helpMenu resolves to _("&Help")
+			|| mainMenuLabel_DefaultStructure == GetTopLevelMenuName(administratorMenu)) // administratorMenu resolves to _("Ad&ministrator")
+		{
+			continue;
+		}
+		mainMenuLabel_DefaultStructure = RemoveMenuLabelDecorations(mainMenuLabel_DefaultStructure); // remove any & chars for comparison
+		// get the current top level wxMenu* from the menu bar
+		int topLevelMenuBarIndex;
+		topLevelMenuBarIndex = pMenuBar_Current->FindMenu(mainMenuLabel_DefaultStructure);
+		if (topLevelMenuBarIndex != wxNOT_FOUND)
+		{
+			// We must establish a new index for the pMenuBar, which won't necessarily be the
+			// same as the ct index we use into the top level menus in the default m_pAIMenuStructure.
+			int mbCt;
+			int numFileHistoryItems = 0;
+			mbCt = pMenuBar_Current->FindMenu(mainMenuLabel_DefaultStructure);
+			pMainMenuItem_CurrentMenuBar = pMenuBar_Current->GetMenu(mbCt);
+			if (pMainMenuItem_CurrentMenuBar != NULL)
 			{
-				// The pSubMenuItem should be visible. If not add it to the current menu bar
-				if (!MenuItemExistsInAIMenuBar(pMainMenuItem->mainMenuLabel,pSubMenuItem->subMenuLabel,pSubMenuItem->subMenuKind))
+				// Remove all current menu items from the pMainMenuItem_CurrentMenuBar.
+				// Note: we do not remove any File History Items from the File menu - these
+				// can stay.
+				wxMenuItemList menuItemListForThisMainMenu;
+				menuItemListForThisMainMenu = pMainMenuItem_CurrentMenuBar->GetMenuItems();
+				int numItemsToRemove;
+				numItemsToRemove = menuItemListForThisMainMenu.GetCount(); // could be empty already
+				// Note: testing shows that a wxMenuItemList also enumerates menu separators as
+				// countable items in the list.
+				if (numItemsToRemove != 0)
 				{
-					// The menu item does not exist in AI's menu bar, so add it to the AI menu bar
-					AddSubMenuItemToAIMenuBar(pMainMenuItem,pSubMenuItem);
+					// remove existing items from this top level menu (pMainMenuItem_CurrentMenuBar)
+					int miCt;
+					wxMenuItem* mItem;
+					wxMenuItem* removedItem;
+					wxMenuItemList::Node* pNode;
+					for (miCt = 0; miCt < numItemsToRemove; miCt++)
+					{
+						pNode = menuItemListForThisMainMenu.Item(miCt);
+						mItem = pNode->GetData();
+						wxASSERT(mItem != NULL);
+						// Don't remove File History items which are menu items that start with a digit (1
+						// through 9) followed by a space, followed by the full path name. We assume we can
+						// skip all menu items that start with a digit and a space.
+						wxString tempStr = mItem->GetLabel();
+						tempStr = tempStr.Mid(0,2);
+						if ((tempStr.GetChar(0) == _T('1') || tempStr.GetChar(0) == _T('2') ||
+							tempStr.GetChar(0) == _T('3') || tempStr.GetChar(0) == _T('4') || tempStr.GetChar(0) == _T('5') ||
+							tempStr.GetChar(0) == _T('6') || tempStr.GetChar(0) == _T('7') || tempStr.GetChar(0) == _T('8') ||
+							tempStr.GetChar(0) == _T('9')) && tempStr.GetChar(1) == _T(' ') )
+						{
+							numFileHistoryItems++;
+							wxLogDebug(_T("Menu item skipped for deletion = %s"),mItem->GetLabel().c_str());
+							continue;
+						}
+						wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
+						removedItem = pMainMenuItem_CurrentMenuBar->Remove(mItem);
+						delete removedItem;
+						removedItem = (wxMenuItem*)NULL;
+					}
 				}
 			}
-			else
+
+			// Note: The File at this point is empty of normal menu items, but may have 
+			// from 1 to 9 file history items. We don't want to append menu items below
+			// the group of file history items, but rather we must insert the menu items at
+			// GetMenuItemCount() - numFileHistoryItems.
+			int insertAtIndex = 0;
+			// add menu items to this top level menu (pMainMenuItem_CurrentMenuBar)
+			wxArrayPtrVoid pArrayOfSubMenuItemsToAdd;
+			pArrayOfSubMenuItemsToAdd = GetMenuStructureItemsArrayForThisTopLevelMenu(pMainMenuItem_DefaultStructure);
+			int numPointers;
+			int ct_ptr;
+			AI_SubMenuItem* pSubMenuItem;
+			numPointers = (int)pArrayOfSubMenuItemsToAdd.GetCount();
+			for (ct_ptr = 0; ct_ptr < numPointers; ct_ptr++)
 			{
-				// The pSubMenuItem should not be visible/present. If it is remove it from the current menu bar
-				if (MenuItemExistsInAIMenuBar(pMainMenuItem->mainMenuLabel,pSubMenuItem->subMenuLabel,pSubMenuItem->subMenuKind))
+				pSubMenuItem = (AI_SubMenuItem*)pArrayOfSubMenuItemsToAdd.Item(ct_ptr);
+				wxASSERT(pSubMenuItem != NULL);
+
+				if (MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,pSubMenuItem->subMenuID))
 				{
-					// The menu item exists in the AI menu bar, so we need to remove it from the AI menu bar.
-					RemoveSubMenuItemFromAIMenuBar(pMainMenuItem,pSubMenuItem);
+					// In the line below the numFileHistoryItems will be zero for top level menus except for
+					// the File menu. We normally insert at the GetMenuItemCount() index, i.e., after the last
+					// item in the menu, but insert before any file history items.
+					insertAtIndex = pMainMenuItem_CurrentMenuBar->GetMenuItemCount() - numFileHistoryItems;
+					wxASSERT(insertAtIndex >= 0);
+					int menuItemId;
+					menuItemId = GetMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
+					
+					wxItemKind itemKind;
+					if (pSubMenuItem->subMenuKind == _T("wxITEM_NORMAL"))
+					{
+						itemKind = wxITEM_NORMAL;
+					}
+					else if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
+					{
+						itemKind = wxITEM_SEPARATOR;
+					}
+					else if (pSubMenuItem->subMenuKind == _T("wxITEM_CHECK"))
+					{
+						itemKind = wxITEM_CHECK;
+					}
+					else if (pSubMenuItem->subMenuKind == _T("wxITEM_RADIO"))
+					{
+						itemKind = wxITEM_RADIO;
+					}
+					else
+					{
+						itemKind = wxITEM_NORMAL;
+					}
+					// do the menu item insertion
+					// Note: menuItemId will be wxID_SEPARATOR (-2) and itemKind will be 
+					// wxITEM_SEPARATOR (-1) for menuSeparators.
+					// Note: apparently the \t chars in the xml and internal strings become \\t literals
+					// and need to be changed to \t to work in the menus.
+					wxString labelStr = pSubMenuItem->subMenuLabel;
+					labelStr.Replace(_T("\\t"),_T("\t"));
+					wxMenuItem* item = new wxMenuItem(pMainMenuItem_CurrentMenuBar,menuItemId,labelStr,pSubMenuItem->subMenuHelp,itemKind);
+					pMainMenuItem_CurrentMenuBar->Insert(insertAtIndex,item);
+				}
+			} // end of for (ct_ptr = 0; ct_ptr < numPointers; ct_ptr++)
+			
+			// Check for extraneous left-over menu separators in this top level menu
+			// and delete if found.
+			// Start at the bottom of the menu and remove all menu separators there.
+			bool bLastItemWasSeparator = FALSE;
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			wxMenuItemList pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
+			pNode = pMenuItemList.GetLast();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+				{
+					break;
+				}
+				else
+				{
+					// This menu separator is either the last item on the menu
+					// or it is the first of two adjacent separators in the menu.
+					// In either case we delete the current menu separator.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				pNode = pMenuItemList.GetLast();
+			}
+			// remove any separators at the top of the top level menu
+			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
+			int nSubMenuItems = pMenuItemList.GetCount();
+			pNode = pMenuItemList.GetFirst();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() == wxITEM_SEPARATOR)
+				{
+					// This menu separator is at the top of the menu
+					// so remove it.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				else
+				{
+					break;
+				}
+				pNode = pMenuItemList.GetFirst();
+			}
+			
+			// change any remaining multiple sequences of menu separators to a single separator
+			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items
+			nSubMenuItems = pMenuItemList.GetCount();
+			int smCt;
+			for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
+			{
+				pNode = pMenuItemList.Item(smCt);
+				pMenuItem = pNode->GetData();
+				wxString smKindStr;
+				wxItemKind smKind = pMenuItem->GetKind();
+				if (smKind == wxITEM_SEPARATOR)
+				{
+					if (smCt == nSubMenuItems - 1 || bLastItemWasSeparator)
+					{
+						// This menu separator is either the last item on the menu
+						// or it is the first of two adjacent separators in the menu.
+						// In either case we delete the current menu separator.
+						wxMenuItem* pRemMenuItem;
+						pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
+						wxASSERT(pRemMenuItem != NULL);
+						delete pRemMenuItem; // to avoid memory leaks
+						pRemMenuItem = (wxMenuItem*)NULL;
+					}
+					bLastItemWasSeparator = TRUE;
+				}
+				else
+				{
+					bLastItemWasSeparator = FALSE;
 				}
 			}
 		}
-	}
+		else
+		{
+			// The top level menu was not found in the menu bar. This can happen for
+			// the Administrator menu when it is not present, and in an ANSI build
+			// where the Layout menu is not present.
+			int i;
+			i = 0;
+			; // TODO: test!
+		}
+	} // end of for (ct = 0; ct < nMainMenuItems; ct++)
 
-	MakeMenuAndPlatformAdjustments();
+	pMenuBar_Current->Thaw(); // to avoid flicker while changing the menu
+	// remove the temporary invisible menu bar to avoid memory leaks
+	delete pTempMenuBar;
+
+	// Note: The MakeMenuInitializationsAndPlatformAdjustments() function is called in OnInit()
+	// after this ConfigureInterfaceForUserProfile() completes.
+
+	// If it proves necessary to refresh the menubar uncomment 3 lines below
+	//wxMenuBar* pMenuBar;
+	//pMenuBar = GetMainFrame()->GetMenuBar();
+	//pMenuBar->Refresh();
 
 	// Next, configure visibility of itemType == modeBar elements
 	
@@ -5502,18 +5847,16 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile(int currentProfile, int newP
 /// Associates the File History (MRU) with the File menu.
 /// Also adjusts some menu hot key assignments for the different platforms.
 //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::MakeMenuAndPlatformAdjustments()
+void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 {
 	CMainFrame* pMainFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
-	wxMenu* pFileMenu = pMenuBar->GetMenu(fileMenu);
-	wxASSERT(pFileMenu != NULL);
-	//m_pDocManager->FileHistoryUseMenu(pFileMenu);
-	//// This must come after Main Menu is created and FileHistoryUseMenu call
-	//m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
-	//											// list from *m_pConfig
+	wxMenu* pFileMenu;
+	pFileMenu = GetTopLevelMenuFromAIMenuBar(fileMenu);
+	// Note: The FileHistoryLoad() call is done in OnInit() before the first
+	// call of MakeMenuInitializationsAndPlatformAdjustments.
 
 	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
     // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
@@ -5528,8 +5871,11 @@ void CAdapt_ItApp::MakeMenuAndPlatformAdjustments()
     // On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active
     // Window, so we've defined the accelerator key on Mac for "Start Working..." as
     // Command-Shift-O, and on Linux as Ctrl-Shift-O, to avoid the conflict.
-	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
-				// & Linux have the default Ctrl-W
+	if (pFileMenu != NULL)
+	{
+		pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
+													// & Linux have the default Ctrl-W
+	}
 #endif
 	
 #ifdef __WXMAC__
@@ -5539,65 +5885,92 @@ void CAdapt_ItApp::MakeMenuAndPlatformAdjustments()
     // active window for Mac is Command-W.
 	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close 
 	// (wxID_CLOSE) menu item.
-	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
+	if (pFileMenu != NULL)
+	{
+		pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
 			// and Linux have the default Ctrl-J
+	}
     
 	// File | Exit
 	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
 	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
 	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
-    wxMenuItem* pFileExitItem;
-	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
-	wxASSERT(pFileExitItem != NULL);
-	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
-	
-	wxMenu* pEditMenu = pMenuBar->GetMenu(editMenu);
-	wxASSERT(pEditMenu != NULL);
-	
-	// Edit | Edit Source Text
-    // On Mac, the hot key command to quit the application is Command-Q and we have set a
-    // Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
-    // Ctrl-Shift-E for it here.
-    pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
-	
-	// Edit | Move Note Backward
-    // On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
-    // accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
-    // use Ctrl-Shift-2 for it here.
-    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
-	
-	// Edit | Move Note Forward
-    // On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
-    // accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
-    // use Ctrl-Shift-3 for it here.
-    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
-	
-	wxMenu* pToolsMenu = pMenuBar->GetMenu(toolsMenu);
-	wxASSERT(pToolsMenu != NULL);
-	
-	// Tools | Find and Replace
-	// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
-	// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
-	// menu to use Ctrl-Shift-F for it here.
-	pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
+    if (pFileMenu != NULL)
+	{
+		wxMenuItem* pFileExitItem;
+		pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
+		if(pFileExitItem != NULL)
+		{
+			pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+		}
+	}
 
-	wxMenu* pLayoutMenu = pMenuBar->GetMenu(layoutMenu);
-	wxASSERT(pLayoutMenu != NULL);
-	
-	// Layout | Layout Window Right To Left
-	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
-	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
-	// menu to use Ctrl-Shift-1 for it here.
-	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+	wxMenu* pEditMenu = GetTopLevelMenuFromAIMenuBar(editMenu);
+	if(pEditMenu != NULL)
+	{
+		// Edit | Edit Source Text
+		// On Mac, the hot key command to quit the application is Command-Q and we have set a
+		// Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
+		// Ctrl-Shift-E for it here.
+		if (pEditMenu->FindItem(ID_EDIT_SOURCE_TEXT) != NULL)
+		{
+			pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
+		}
+		
+		// Edit | Move Note Backward
+		// On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
+		// accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
+		// use Ctrl-Shift-2 for it here.
+		if (pEditMenu->FindItem(ID_EDIT_MOVE_NOTE_BACKWARD) != NULL)
+		{
+			pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
+		}
+		
+		// Edit | Move Note Forward
+		// On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
+		// accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
+		// use Ctrl-Shift-3 for it here.
+		if (pEditMenu->FindItem(ID_EDIT_MOVE_NOTE_FORWARD) != NULL)
+		{
+			pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
+		}
+	}
+
+	wxMenu* pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
+	if(pToolsMenu != NULL)
+	{
+		// Tools | Find and Replace
+		// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
+		// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
+		// menu to use Ctrl-Shift-F for it here.
+		if (pToolsMenu->FindItem(wxID_REPLACE) != NULL)
+		{
+			pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
+		}
+	}
+
+	wxMenu* pLayoutMenu = GetTopLevelMenuFromAIMenuBar(layoutMenu);
+	if(pLayoutMenu != NULL)
+	{
+		// Layout | Layout Window Right To Left
+		// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
+		// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
+		// menu to use Ctrl-Shift-1 for it here.
+		pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+	}
 
 	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
-	wxASSERT(pHelpTopicsMenu != NULL);
-	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
+	if (pHelpTopicsMenu != NULL)
+	{
+		pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
+	}
 
 #else
 	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP);
-	wxASSERT(pHelpTopicsMenu != NULL);
-	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
+	if (pHelpTopicsMenu != NULL)
+	{
+		pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
+	}
 
 #endif
 
@@ -5608,46 +5981,39 @@ void CAdapt_ItApp::MakeMenuAndPlatformAdjustments()
 	// So, for ANSI version, we'll just remove them from the MenuBar.
 #ifndef _UNICODE
 	// ANSI only
-	//AddForceUTF8Command(); // File... Export Target Text As UTF-8... menu command
-	// Rather than calling a AddForceUTF8Command() function we'll just use the
-	// pFileMenu pointer defined above and remove the menu item, deleting it to 
-	// avoid memory leaks.
-	// whm Bruce later made the following change to the MFC version:
-	// BEW removed 8Dec06 because we'll force UTF8 conversion for the standard command from now on
-	// leave this function in the app, commented out, it is a useful template for how to add
-	// a menu command dynamically
-	wxASSERT(pFileMenu != NULL);
-	wxMenuItem* pRemMenuItem;
-	//pRemMenuItem = pFileMenu->Remove(ID_FORCEUTF8);
-	//wxASSERT(pRemMenuItem != NULL);
-	//delete pRemMenuItem; // to avoid memory leaks
-	//pRemMenuItem = (wxMenuItem*)NULL;
-
 	// In the wx version we started with the Layout menu loaded with 
 	// other menu resources. Here we'll remove it for the ANSI version.
-	wxMenu* pLayoutMenu = pMenuBar->GetMenu(layoutMenu);
-	wxASSERT(pLayoutMenu != NULL);
-	// first delete the "Layout Window Right To Left\tCTRL+1" menu item
-	pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
-	wxASSERT(pRemMenuItem != NULL);
-	delete pRemMenuItem; // to avoid memory leaks
-	pRemMenuItem = (wxMenuItem*)NULL;
-	// then delete the top level "Layout" menu
-	wxMenu* pRemMenu;
-	pRemMenu = pMenuBar->Remove(layoutMenu);
-	wxASSERT(pRemMenu != NULL);
-	delete pRemMenu; // to avoid memory leaks
-	pRemMenu = (wxMenu*)NULL;
+	wxMenu* pLayoutMenu = GetTopLevelMenuFromAIMenuBar(layoutMenu);
+	if(pLayoutMenu != NULL)
+	{
+		// first delete the "Layout Window Right To Left\tCTRL+1" menu item
+		// Note: In the current profile, this item may not exist, so only
+		// call Remove if it exists!
+		if (pLayoutMenu->FindItem(ID_ALIGNMENT) != NULL)
+		{
+			wxMenuItem* pRemMenuItem;
+			pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
+			wxASSERT(pRemMenuItem != NULL);
+			delete pRemMenuItem; // to avoid memory leaks
+			pRemMenuItem = (wxMenuItem*)NULL;
+		}
+		// then delete the top level "Layout" menu
+		wxMenu* pRemMenu;
+		pRemMenu = pMenuBar->Remove(layoutMenu);
+		wxASSERT(pRemMenu != NULL);
+		delete pRemMenu; // to avoid memory leaks
+		pRemMenu = (wxMenu*)NULL;
+	}
 #else
 	// Unicode version
 	// Initialize the Layout menu to LTR
 	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
 	if(pLayoutMenuAlignment != NULL)
 	{
-	// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
-    // note: default display is LTR so menu item should read what clicking it should make
-    // the layout become after clicking. The menu text may be changed to appropriate value
-    // upon reading reading a project config file (the change is made in ???).
+		// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
+		// note: default display is LTR so menu item should read what clicking it should make
+		// the layout become after clicking. The menu text may be changed to appropriate value
+		// upon reading reading a project config file (the change is made in ???).
 #ifdef __WXMAC__
 		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
 #else
@@ -5689,6 +6055,7 @@ void CAdapt_ItApp::MakeMenuAndPlatformAdjustments()
 		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
 }
 
+/* This function is currently unused (and possibly untested/incomplete) but might be useful in the future
 bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind)
 {
 	if (itemKind == _T("wxITEM_SEPARATOR"))
@@ -5761,7 +6128,7 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 			// from menu labels. 
 			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
 			wxString subMenuLabelPlain = subMenuLabel;
-			subMenuLabelPlain.Replace(_T("&"),_T(""));
+			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain); // removes any & chars for comparison
 			int nTest;
 			nTest = subMenuLabelPlain.Find(_T("\\t"));
 			if (subMenuLabelPlain.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
@@ -5792,6 +6159,7 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 
 	return bItemExists;
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return    TRUE if menuItemID is supposed to be visible in this nProfile, FALSE otherwise
@@ -5808,6 +6176,12 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuIte
 	// we assume that a menu item is visible unless the m_pUserProfiles data
 	// indicates otherwise.
 	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection all all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
 	int ct;
 	int totct;
 	totct = m_pUserProfiles->profileItemList.GetCount();
@@ -5820,8 +6194,8 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuIte
 		wxASSERT(pUserProfileItem != NULL);
 		if (menuItemID == _T("menuSeparator"))
 		{
-			// We return FALSE for menuSeparators since they have no visibility data.
-			return FALSE;
+			// We return TRUE for menuSeparators since they are visible when present.
+			return TRUE;
 		}
 		wxString itemID;
 		itemID = pUserProfileItem->itemID;
@@ -5838,6 +6212,7 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuIte
 	return bItemIsVisible;
 }
 
+/* This function is currently unused (and incomplete/untested) but might be helpful in the future
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return    nothing
 /// \param      -> pMainMenuItem   pointer to the main menu item's struct on the heap
@@ -5852,10 +6227,326 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuIte
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
 {
-	pMainMenuItem = pMainMenuItem; // avoid warnings
-	pSubMenuItem = pSubMenuItem; // avoid warnings
-}
+	// Note: All menu items that can be added to the AI menu bar, would have
+	// previously been removed and stored within the m_pRemovedMenuItemArray
+	// array of pointers to wxMenuItems. We should be able to find the wxMenuItem* 
+	// in that array that corresponds to pSubMenuItem, and Insert it into the 
+	// appropriate top level menu corresponding to pMainMenuItem. The relative 
+	// position where it gets inserted is determined by consulting the 
+	// AI_MenuStructure data on the heap. Afterwards we also tidy up the menu
+	// separators. 
+	
+	// Verify that pSubMenuItem exists within the m_pRemovedMenuItemArray
+	int nIDofSubMenutoAddBack = -1;
+	int miCt;
+	int miTot;
+	wxString subMenuLabelPlain = RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
+	wxMenuItem* pMenuItemToAddBack = NULL;
+	miTot = m_pRemovedMenuItemArray->GetCount();
+	wxASSERT(miTot > 0); // this must be so if we are now adding back wxMenuItems!
+	for (miCt = 0; miCt < miTot; miCt++)
+	{
+		pMenuItemToAddBack = (wxMenuItem*)m_pRemovedMenuItemArray->Item(miCt);
+		if (pMenuItemToAddBack->GetLabel() == subMenuLabelPlain)
+		{
+			nIDofSubMenutoAddBack = pMenuItemToAddBack->GetId();
+			break;
+		}
+	}
+	wxASSERT(nIDofSubMenutoAddBack != -1);
+	wxASSERT(pMenuItemToAddBack != NULL);
 
+	// Get the menu item out of the removals list
+	m_pRemovedMenuItemArray->Remove(pMenuItemToAddBack); // does not delete the object, but removes it from the array
+	// We now have the pointer to the wxMenuItem* to be added back to the AI menu
+	// in pMenuItemToAddBack, along with its int ID value in nIDofSubMenutoAddBack.
+
+	// Determine in which top level menu pMenuItemToAddBack belongs
+	wxMenu* pTopLevelAIMenuToGetItem = NULL; // 
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	int mCt;
+	int nMenuItems = pMenuBar->GetMenuCount();
+	wxString mmLabel;
+	wxASSERT(nMenuItems > 0);
+	for (mCt = 0; mCt < nMenuItems; mCt++)
+	{
+		pTopLevelAIMenuToGetItem = pMenuBar->GetMenu(mCt);
+		mmLabel = pMenuBar->GetMenuLabel(mCt);
+		if (mmLabel == pMainMenuItem->mainMenuLabel)
+		{
+			break;
+		}
+		else
+		{
+			// we're not in the right top level menu
+			continue;
+		}
+	}
+	wxASSERT(pTopLevelAIMenuToGetItem != NULL);
+	
+	// Get the list of menu items currently in AI's top level menu
+	wxMenuItemList pAIMenuItemList = pTopLevelAIMenuToGetItem->GetMenuItems();
+	
+	// Get the list of all menu items in AI_MenuStructure for this top level menu
+	wxArrayPtrVoid ItemsOfThisMainMenuStructure;
+	ItemsOfThisMainMenuStructure = GetMenuStructureItemsArrayForThisTopLevelMenu(pMainMenuItem);
+	
+	// testing below!!!
+	// Testing shows that pMenuItemList contains menuSeparators which have empty
+	// strings for labels and -1 for wxItemKind; and, for the File menu, also 
+	// contains separate menu entries for all the file history entries prefixed 
+	// by a number and a space (1 up to a max of 9).
+	{
+		int i,tot;
+		tot = (int)pAIMenuItemList.GetCount();
+		wxMenuItem* pmItem;
+		wxMenuItemList::Node* pNode;
+		wxLogDebug(_T("AI Current %s Menu items:"),mmLabel.c_str());
+		for (i = 0; i < tot; i++)
+		{
+			pNode = pAIMenuItemList.Item(i);
+			pmItem = pNode->GetData();
+			wxLogDebug(_T("   %s | %s | %d"),pmItem->GetLabel().c_str(),pmItem->GetHelp().c_str(),pmItem->GetKind());
+			;
+		}
+	}
+	// Testing shows that the removed items list does NOT contain
+	// menuSeparators, but only the wxMenuItem information.
+	// m_pRemovedMenuItemArray, of course, contains removed items
+	// from all top level menus, whereas the pMenuItemList above
+	// contains the wxMenuItems that belong only to the 
+	// pMainMenuItem parameter.
+	{
+		int i,tot;
+		tot = (int)m_pRemovedMenuItemArray->GetCount();
+		wxLogDebug(_T("Removed Menu items (all menus):"));
+		for (i = 0; i < tot; i++)
+		{
+			wxMenuItem* pmItem;
+			pmItem = (wxMenuItem*)m_pRemovedMenuItemArray->Item(i);
+			wxLogDebug(_T("   %s | %s | %d"),pmItem->GetLabel().c_str(),pmItem->GetHelp().c_str(),pmItem->GetKind());
+			;
+		}
+
+	}
+	// Testing shows that ItemsOfThisMainMenuStructure contains menuSeparators 
+	// which have empty strings for labels and wxITEM_SEPARATOR for their item
+	// kind. And, for the File menu there, is NO separate menu entries for the 
+	// file history entries.
+	{
+		int i,tot;
+		tot = (int)ItemsOfThisMainMenuStructure.GetCount();
+		wxLogDebug(_T("Top Level %s menu items:"),pMainMenuItem->mainMenuLabel.c_str());
+		for (i = 0; i < tot; i++)
+		{
+			AI_SubMenuItem*  smItem;
+			smItem = (AI_SubMenuItem*)ItemsOfThisMainMenuStructure.Item(i);
+			wxLogDebug(_T("   %s | %s | %s"),smItem->subMenuLabel.c_str(),smItem->subMenuHelp.c_str(),smItem->subMenuKind.c_str());
+			;
+		}
+
+	}
+	// testing above !!!
+
+	// Our task now is to compare the list called pAIMenuItemList with the void ptr array called 
+	// ItemsOfThisMainMenuStructure, and figure out where the (parameter) pSubMenuItem should go
+	// into the pTopLevelAIMenuToGetItem.
+	// TODO: Up to here !!!
+	// Plan: Try to fit the following code into the solution.	
+	bool bInsertionMade = FALSE;
+	int nSubMenuItems = pAIMenuItemList.GetCount();
+	if (nSubMenuItems == 0)
+	{
+		// the menu exists but has no items so just append the item where it will
+		// be the only item in the list
+		pTopLevelAIMenuToGetItem->Insert(0,
+							pMenuItemToAddBack->GetId(),
+							pMenuItemToAddBack->GetItemLabel(),
+							pMenuItemToAddBack->GetHelp(),
+							pMenuItemToAddBack->GetKind() );
+		bInsertionMade = TRUE;
+	}
+	else
+	{
+		// The menu has existing items, so we have to decide where to
+		// insert them.
+		int smCt;
+		for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		{
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItemBeingScanned;
+			pNode = pAIMenuItemList.Item(smCt);
+			pMenuItemBeingScanned = pNode->GetData();
+			wxString smKindStr;
+			wxItemKind smKind = pMenuItemBeingScanned->GetKind();
+			switch (smKind)
+			{
+			case wxITEM_NORMAL:
+				smKindStr = _T("wxITEM_NORMAL");
+				break;
+			case wxITEM_SEPARATOR:
+				smKindStr = _T("wxITEM_SEPARATOR");
+				break;
+			case wxITEM_CHECK:
+				smKindStr = _T("wxITEM_CHECK");
+				break;
+			case wxITEM_RADIO: // fall through
+			default:
+				wxASSERT(FALSE); // we don't use wxITEM_RADIO, so this would be a programming error
+				smKindStr = _T("wxITEM_RADIO");
+			}
+			wxString smLabel = pMenuItemBeingScanned->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
+			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
+			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain);
+
+			// Q. Since the current menubar may already be missing certain menu items in
+			// its current profile representation, how do we know where to insert pSubMenuItem?
+			// A. We insert the menu item into the current menubar in its relative order
+			// as determined by examining the m_pAI_MenuStructure struct on the heap.
+			// It is sufficient to insert this item just before the first item known
+			// to follow this item in the default menu. To do that we need to query the 
+			// m_pAI_MenuStructure and get a list of menu items that normally follow 
+			// pSubMenuItem within that top level menu. The list could have one or more 
+			// items depending on where pSubMenuItem normally appears in the menu. 
+			// In our current scan of AI's current menubar, we are comparing the current 
+			// menubar item with what we found in our queried list of items. When we 
+			// arrive at any one of those items in the list we insert the pSubMenuItem
+			// into the menu at that point. If we get to the end of our current scan
+			// through the menu and haven't found any item in the list, or if our list
+			// was empty, we simply insert the pSubMenuItem at the end of the menu.
+			// Note: We'll take care of inserting any menuSeparators later after having
+			// inserted the item in the menu. 
+
+			if (smKind != wxITEM_SEPARATOR)
+			{
+				bool bAppendInsteadOfInsert = FALSE;
+				if (AddMenuItemBeforeThisOne(pSubMenuItem, pMenuItemBeingScanned, bAppendInsteadOfInsert))
+				{
+					// we have found the correct sub menu item to be added before
+					if (bAppendInsteadOfInsert)
+					{
+						pTopLevelAIMenuToGetItem->Append(
+											pMenuItemToAddBack->GetId(),
+											pMenuItemToAddBack->GetItemLabel(),
+											pMenuItemToAddBack->GetHelp(),
+											pMenuItemToAddBack->GetKind() );
+					}
+					else
+					{
+						pTopLevelAIMenuToGetItem->Insert(smCt,
+											pMenuItemToAddBack->GetId(),
+											pMenuItemToAddBack->GetItemLabel(),
+											pMenuItemToAddBack->GetHelp(),
+											pMenuItemToAddBack->GetKind() );
+					}
+					bInsertionMade = TRUE;
+					break;
+				}
+				else
+				{
+					// should not get here
+					int junk1;
+					junk1 = 0;
+				}
+			}
+		} // end of for (smCt = 0; smCt < nSubMenuItems; smCt++)
+	}
+	int junk;
+	junk = 1;
+
+		// TODO: code to insert any needed menu separator
+		//if (bInsertionMade)
+		//{
+		//	// Check for extraneous left-over menu separators in this top level menu
+		//	// and delete if found.
+		//	// Start at the bottom of the menu and remove all menu separators there.
+		//	bool bLastItemWasSeparator = FALSE;
+		//	wxMenuItemList::Node* pNode;
+		//	wxMenuItem* pMenuItem;
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+		//	pNode = pMenuItemList.GetLast();
+		//	while (pNode != NULL)
+		//	{
+		//		pMenuItem = pNode->GetData();
+		//		if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+		//		{
+		//			break;
+		//		}
+		//		else
+		//		{
+		//			// This menu separator is either the last item on the menu
+		//			// or it is the first of two adjacent separators in the menu.
+		//			// In either case we delete the current menu separator.
+		//			wxMenuItem* pRemMenuItem;
+		//			pRemMenuItem = pMainMenu->Remove(pMenuItem);
+		//			wxASSERT(pRemMenuItem != NULL);
+		//			delete pRemMenuItem; // to avoid memory leaks
+		//			pRemMenuItem = (wxMenuItem*)NULL;
+		//		}
+		//		pNode = pMenuItemList.GetLast();
+		//	}
+		//	// remove any separators at the top of the top level menu
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+		//	nSubMenuItems = pMenuItemList.GetCount();
+		//	pNode = pMenuItemList.GetFirst();
+		//	while (pNode != NULL)
+		//	{
+		//		pMenuItem = pNode->GetData();
+		//		if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+		//		{
+		//			break;
+		//		}
+		//		else
+		//		{
+		//			// This menu separator is at the top of the menu
+		//			// so remove it.
+		//			wxMenuItem* pRemMenuItem;
+		//			pRemMenuItem = pMainMenu->Remove(pMenuItem);
+		//			wxASSERT(pRemMenuItem != NULL);
+		//			delete pRemMenuItem; // to avoid memory leaks
+		//			pRemMenuItem = (wxMenuItem*)NULL;
+		//		}
+		//		pNode = pMenuItemList.GetFirst();
+		//	}
+		//	
+		//	// change any remaining multiple sequences of menu separators to a single separator
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
+		//	nSubMenuItems = pMenuItemList.GetCount();
+		//	for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
+		//	{
+		//		pNode = pMenuItemList.Item(smCt);
+		//		pMenuItem = pNode->GetData();
+		//		wxString smKindStr;
+		//		wxItemKind smKind = pMenuItem->GetKind();
+		//		if (smKind == wxITEM_SEPARATOR)
+		//		{
+		//			if (smCt == nSubMenuItems - 1 || bLastItemWasSeparator)
+		//			{
+		//				// This menu separator is either the last item on the menu
+		//				// or it is the first of two adjacent separators in the menu.
+		//				// In either case we delete the current menu separator.
+		//				wxMenuItem* pRemMenuItem;
+		//				pRemMenuItem = pMainMenu->Remove(pMenuItem);
+		//				wxASSERT(pRemMenuItem != NULL);
+		//				delete pRemMenuItem; // to avoid memory leaks
+		//				pRemMenuItem = (wxMenuItem*)NULL;
+		//			}
+		//			bLastItemWasSeparator = TRUE;
+		//		}
+		//		else
+		//		{
+		//			bLastItemWasSeparator = FALSE;
+		//		}
+		//	}
+		//	
+		//}
+
+	//}
+}
+*/
+
+/* The following function is currently unused (and incomplete/untested) but might be helpful in the future
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return    nothing
 /// \param      -> pMainMenuItem   pointer to the main menu item's struct on the heap
@@ -5915,34 +6606,17 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 			}
 			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
 			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
-			subMenuLabelPlain.Replace(_T("&"),_T(""));
-			int nTest;
-			nTest = subMenuLabelPlain.Find(_T("\\t"));
-			if (subMenuLabelPlain.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
-			{
-				// there is a tab char in the menu label, so remove from that point to remainder of string
-				subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("\\t")));
-			}
-			else
-			{
-				// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
-				if (subMenuLabelPlain.Find(_T("Ctrl-")) != wxNOT_FOUND)
-				{
-					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Ctrl-")));
-				}
-				else if (subMenuLabelPlain.Find(_T("Shift-")) != wxNOT_FOUND)
-				{
-					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Shift-")));
-				}
-			}
+			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain);
+
 			if (smLabel == subMenuLabelPlain && smKindStr == pSubMenuItem->subMenuKind)
 			{
 				// we have found the correct sub menu item to be removed
 				wxMenuItem* pRemMenuItem;
 				pRemMenuItem = pMainMenu->Remove(pMenuItem);
 				wxASSERT(pRemMenuItem != NULL);
-				delete pRemMenuItem; // to avoid memory leaks
-				pRemMenuItem = (wxMenuItem*)NULL;
+				m_pRemovedMenuItemArray->Add((void*)pRemMenuItem); // deleted in OnExit()
+				//delete pRemMenuItem; // to avoid memory leaks
+				//pRemMenuItem = (wxMenuItem*)NULL;
 				bDeletionMade = TRUE;
 			}
 		} // end of for (smCt = 0; smCt < nSubMenuItems; smCt++)
@@ -6031,6 +6705,480 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 			}
 			
 		}
+	}
+}
+*/
+
+/* The following function is currently unused (and untested/incomplete) but might be useful in the future
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if pMenuItemComingNext normally follows immediately after pMenuItemToAdd
+/// \param      -> pMenuItemToAdd      the menu item to be inserted in the menu
+/// \param      -> pMenuItemComingNext the menu item before which pMenuItemToAdd should go
+/// \remarks
+/// Called from: the App's AddSubMenuItemToAIMenuBar(). 
+/// This function is used as a test in the AddSubMenuItemToAIMenuBar() function. It is
+/// called from code that is scanning down a given menu of menu items from top to bottom. 
+/// It determines if the menu item represented by pMenuItemToAdd should be inserted in the 
+/// menu just before the menu item represented by pMenuItemComingNext, or appended to the
+/// end of the menu. When this function is called, the AI Menubar and its menus may have 
+/// had many of its normal menu items previously removed (depending on the currently 
+/// active user profile). Hence, this function consults the default menu structure 
+/// represented in m_pAI_MenuStructure to see where the pMenuItemToAdd would normally 
+/// appear within the full default menus. The caller will actually add the 
+/// pMenuItemToAdd to the menu. This function merely determines if it should be 
+/// inserted before pMenuItemComingNext or appended to the end of the menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
+											wxMenuItem* pMenuItemComingNext,
+											bool& bAppendInsteadOfInsert)
+{
+	bool bComesPrior = FALSE;
+
+	// First, get the top level menu in the menu structure where pMenuItemToAdd is located.
+	wxString topLevelMenuOfItemToAdd = GetTopLevelMenuLabelForThisSubMenuID(pMenuItemToAdd->subMenuID);
+	wxASSERT (!topLevelMenuOfItemToAdd.IsEmpty());
+
+	// Next, look in m_pAI_MenuStructure to get a wxArrayString of the menu item labels
+	// that follow pMenuItemToAdd in AI's full default menu structure
+	wxArrayString followingMenuItemsArray;
+	followingMenuItemsArray = GetMenuItemsThatFollowThisSubMenuID(pMenuItemToAdd->subMenuID,pMenuItemToAdd->subMenuLabel);
+	// Note: the followingMenuItemsArray now contains all sub menu item labels and menu 
+	// separators that normally follow the pMenuItemToAdd menu item. Since it comes from 
+	// an examination of the m_pAI_MenuStructure, it does not include any file history 
+	// items (that may show up as items on the File menu).
+
+	// Now, determine if pMenuItemComingNext is contained within the followingMenuItemsArray.
+	// If it is, or if the followingMenuItemsArray is empty, we return TRUE for bComesPrior, 
+	// otherwise FALSE for bComesPrior.
+	if (followingMenuItemsArray.IsEmpty())
+	{
+		bComesPrior = TRUE; // default above was FALSE
+		// when the array of menu items is empty it means that there were no other items
+		// found following the item being checked, so set the bAppendInsteadOfInsert flag
+		// to TRUE so it can be handled appropriately back in the caller
+		bAppendInsteadOfInsert = TRUE;
+		return bComesPrior;
+	}
+	else
+	{
+		// compare items in the array
+		int ct;
+		int tot;
+		tot = (int)followingMenuItemsArray.GetCount();
+		wxString itemLabelInArray;
+		wxString itemLabelOfwxMenuItem;
+		for (ct = 0; ct < tot; ct++)
+		{
+			itemLabelInArray = followingMenuItemsArray.Item(ct);
+			// We have to compare menu labels since pMenuItemComingNext is a wxMenuItem
+			// and, while we can query it with GetId() to get its int value, I don't know 
+			// of any way to get the string equivalent of that int's identifier!
+			// We also need to compare the strings without menu decorations.
+			// wxMenuItem::GetItemLabelText() gets without any accelerator chars or
+			// other decorations. Use this because GetItemLabel() doesn't handle \t correctly.
+			itemLabelInArray = this->RemoveMenuLabelDecorations(itemLabelInArray);
+			itemLabelOfwxMenuItem = pMenuItemComingNext->GetItemLabelText(); // 
+			if (itemLabelInArray == itemLabelOfwxMenuItem)
+			{
+				bComesPrior = TRUE;
+				break;
+			}
+		}
+	}
+	return bComesPrior;
+}
+*/
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the menu label in plain text with any & chars
+///             and any accelerator/hot key notation such as \tCtrl-S or \tShift-Ctrl-x
+///             removed from the incoming menuLabel string
+/// \param      -> menuLabel  the string value of the menu label with any "decorations" 
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile() and GetMenuItemIdFromAIMenuBar()
+/// and from PopulateListBox() and ProfileItemIsSubMenuOfThisMainMenu() in the
+/// CAdminEditMenuProfile class. 
+/// This function is used for comparing menu label strings. It removes any '&' chars as 
+/// well as any accelerator/hot key strings embedded within the menu label such as 
+/// \tCtrl-x or \tShift-Ctrl-x. Note: This function detects the presence of both _T("\\t") 
+/// and _T("\t") in the menuLabel string, and removes all text following those occurrences. 
+/// The need for detecting both comes from the fact that strings imported from the 
+/// external AI_UserProfiles.xml file have embedded tabs of the form _T("\\t"). The _T("\\t")
+/// form of the string is difficult to detect because they appear as "\t" within the IDE
+/// debugger! Menu labels embedded with \\t do not right-align when the menu it shown, but
+/// display the \t and its following Ctrl-x string suffixed on the text of the menu label 
+/// making for a rather ugly menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
+{
+	wxString tempStr = menuLabel;
+	tempStr.Replace(_T("&"),_T(""));
+	int nTest;
+	nTest = tempStr.Find(_T("\\t"));
+	if (tempStr.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
+	{
+		// there is a tab char in the menu label, so remove from that point to remainder of string
+		tempStr = tempStr.Left(tempStr.Find(_T("\\t")));
+	}
+	else if (tempStr.Find(_T("\t")) != wxNOT_FOUND) // in case it has "\t" in stead of "\\t")
+	{
+		// there is a tab char in the menu label, so remove from that point to remainder of string
+		tempStr = tempStr.Left(tempStr.Find(_T("\t")));
+	}
+	else
+	{
+		// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
+		if (tempStr.Find(_T("Ctrl-")) != wxNOT_FOUND)
+		{
+			tempStr = tempStr.Left(tempStr.Find(_T("Ctrl-")));
+		}
+		else if (tempStr.Find(_T("Shift-")) != wxNOT_FOUND)
+		{
+			tempStr = tempStr.Left(tempStr.Find(_T("Shift-")));
+		}
+	}
+	return tempStr;		
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the top level menu label corresponding to the
+///             top level menu ID string (i.e., ID_FILE_MENU). The label returned will 
+///             still contain any & character for ALT-key access to the menu.
+/// \param      -> IDStr    the string value representing the top level menu ID 
+///                         determining
+/// \remarks
+/// Called from: the App's GetTopLevelMenuName(). 
+/// This function determines the string value that represents the top level menu ID according
+/// to the m_pAI_MenuStructure that was populated from the external AI_UserProfiles.xml file.
+/// Note: The default string representations of the top level menus are all localizable as
+/// they exist in the AIMenuBarFunc() produced by wxDesigner. A user could change the labels 
+/// of AI's top level menus via the AI_UserProfiles.xml file's mainMenuLabel attribute of its 
+/// MENU_STRUCTURE > MAIN_MENU entires without having to do an entire localization for the
+/// application.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr)
+{
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return nullStr;
+	}
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		if (pMainMenuItem->mainMenuID == IDStr)
+		{
+			return menuLabel;
+		}
+	}
+	return nullStr;
+}
+
+/* This function is currently unused (and possibly incomplete/untested) but might be useful in the future
+// Gets the label of the top level AI menu where the submenu having IDStr is located
+// according to the current information stored in the m_pAI_MenuStructure object.
+wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
+{
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return nullStr;
+	}
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				return menuLabel;
+			}
+		}
+	}
+	return nullStr;
+}
+*/
+
+/* This function is currently unused (and possibly incomplete/untested) but might be useful in the future
+// Gets a wxArrayString of the menu item IDs that occur after the menu item 
+// represented by IDStr within the same top level menu, according to the current 
+// information stored in the m_pAI_MenuStructure object.
+wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr)
+{
+	wxArrayString itemArray;
+	itemArray.Clear();
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return itemArray; // array will have zero items
+	}
+	wxString mainMenuLabel;
+	wxString sameMenuLabel = _T("");
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	bool bStartCopying = FALSE;
+	int ct;
+	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		mainMenuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (bStartCopying && mainMenuLabel == sameMenuLabel)
+			{
+				itemArray.Add(pSubMenuItem->subMenuID);
+			}
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				bStartCopying = TRUE; //
+				sameMenuLabel = mainMenuLabel;
+			}
+		}
+	}
+	return itemArray;
+}
+*/
+
+/* This function is currently unused (and possibly uncomplete/untested) but might be useful in the future
+// This is an override of the previous function that gets an array of menu
+// labels instead of menu ID strings.
+// Gets a wxArrayString of the menu item IDs that occur after the menu item 
+// represented by IDStr within the same top level menu, according to the current 
+// information stored in the m_pAI_MenuStructure object.
+wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label)
+{
+	// the wxString Label paramter is not needed other than to make the signature of this
+	// override function be different from the other function that returns an array of ID
+	// strings.
+	wxArrayString itemArray;
+	itemArray.Clear();
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return itemArray; // array will have zero items
+	}
+	wxString mainMenuLabel;
+	wxString sameMenuLabel = _T("");
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	bool bStartCopying = FALSE;
+	int ct;
+	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		mainMenuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (bStartCopying && mainMenuLabel == sameMenuLabel)
+			{
+				if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
+					itemArray.Add(_T("menuSeparator"));
+				else
+					itemArray.Add(pSubMenuItem->subMenuLabel); // Add label rather than ID string
+			}
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				bStartCopying = TRUE; //
+				sameMenuLabel = mainMenuLabel;
+			}
+		}
+	}
+	return itemArray;
+}
+*/
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an array of pointers of wxMenuItem objects on the heap
+/// \param      -> pMainMenuItem    the main menu struct on the heap whose sub items are 
+///                                 being collected
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile(). 
+/// This function scans the main menu struct of the default AI menu structure represented 
+/// in the pMainMenuItem incoming parameter, and collects the pointers of the structs of type
+/// AI_SubMenuItem* representing the sub menu items contained in that main menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxArrayPtrVoid CAdapt_ItApp::GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem)
+{
+	wxArrayPtrVoid itemArray;
+	itemArray.Clear();
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return itemArray; // array will have zero items
+	}
+	wxString mainMenuLabel = pMainMenuItem->mainMenuLabel;
+	wxString sameMenuLabel = _T("");
+	int ct = 0;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	AI_MainMenuItem* pmmItem = NULL;
+	MainMenuItemList::Node* mmNode = m_pAI_MenuStructure->aiMainMenuItems.GetFirst();
+	while (mmNode != NULL && ct < nMainMenuItems)
+	{
+		pmmItem = mmNode->GetData();
+		mmNode = mmNode->GetNext();
+		if (pmmItem->mainMenuLabel == mainMenuLabel)
+			break;
+		ct++;
+	}
+	wxASSERT(pmmItem != NULL);
+	SubMenuItemList::Node* smNode;
+	AI_SubMenuItem* pSubMenuItem;
+	int ct_sm;
+	int nSubMenuItems = pmmItem->aiSubMenuItems.GetCount();
+	for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+	{
+		smNode = pmmItem->aiSubMenuItems.Item(ct_sm);
+		pSubMenuItem = smNode->GetData();
+		itemArray.Add(pSubMenuItem);
+	}
+	return itemArray;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the menu label of the incoming topLevelMenu enum
+/// \param      -> topLevelMenu    the enum of the top level menu whose label we are 
+///                                 determining
+/// \remarks
+/// Called from: the App's GetTopLevelMenuFromAIMenuBar(). 
+/// This function determines which string value label is associated (by default) with the
+/// enums describing the top level menus in Adapt It.
+/// Note: The default string representations of the top level menus are all localizable, but
+/// a user could change the labels of AI's top level menus via the AI_UserProfiles.xml file's 
+/// mainMenuLabel attribute of its MENU_STRUCTURE > MAIN_MENU entires without having to do
+/// an entire localization.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetTopLevelMenuName(TopLevelMenu topLevelMenu)
+{
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	wxASSERT(m_pAI_MenuStructure->aiMainMenuItems.GetCount() > 0);
+	switch(topLevelMenu)
+	{
+	case fileMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_FILE_MENU"));
+	case editMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_EDIT_MENU"));
+	case viewMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_VIEW_MENU"));
+	case toolsMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_TOOLS_MENU"));
+	case exportImportMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_EXPORT_IMPORT_MENU"));
+	case advancedMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_ADVANCED_MENU"));
+	case layoutMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_LAYOUT_MENU"));
+	case helpMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_HELP_MENU"));
+	case administratorMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_ADMINISTRATOR_MENU"));
+	default:
+		wxString msg = msg.Format(_T("Programming Error: The GetTopLevelMenuName() function received an illegal TopLevelFunction enum value of %d"),topLevelMenu);
+		wxASSERT_MSG(FALSE,msg); // programming error
+		return _T("");
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a pointer to a wxMenu* object representing the top level menu of the AI
+///             menu bar which is associated with the incoming topLevelMenu enum parameter
+/// \param      -> topLevelMenu    the enum of the top level menu whose wxMenu object we are 
+///                                 locating
+/// \remarks
+/// Called from: the App's MakeMenuInitializationsAndPlatformAdjustments(). 
+/// This function locates and returns the pointer to the wxMenu object that represents the
+/// wxMenu* of the AI menu bar associated with the incoming topLevelMenu enum parameter.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
+{
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	wxString tempName;
+	int index;
+	tempName = GetTopLevelMenuName(topLevelMenu);
+	index = pMenuBar->FindMenu(tempName); // ignores & chars in name
+	if (index == wxNOT_FOUND)
+	{
+		return (wxMenu*)NULL;
+	}
+	return pMenuBar->GetMenu(index);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the menu item id of the AI menu bar being examined
+/// \param      -> mainMenuItemLabel  the string label of the top level menu of the menu bar 
+/// \param      -> menuItemLabel  the string label of the sub menu item of the menu bar 
+/// \param      -> tempMenuBar  the AI Menu Bar we are examining (generally a temp one)
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile(). 
+/// This function determines and returns the int value of the identifier which was used
+/// in creating the menu item in the tempMenuBar; the menu item being specified by its
+/// location as being in the mainMenuItemLabel top level menu, and menuItemLabel sub
+/// menu label. This function is a work around as it seems there is no way to determine
+/// what the internal int value is of a program identifier such as ID_FILE_MENU when
+/// one only knows the string value "ID_FILE_MENU". Moreover, the available functions
+/// wxMenuBar::FindMenuItem() and wxMenu::FindItem() only take menu item labels.
+/// Note: a menu separator has the value of wxID_SEPARATOR which is -2.
+//////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar)
+{
+	// The only available options to get an int id are via calling wxMenu::FindItem(const wxString& itemString) const 
+	// or wxMenuBar::FindMenuItem(const wxString& menuString, const wxString& itemString) const
+	// on the appropriate top level menu of the tempMenuBar
+	wxString menuItemLabelPlain = menuItemLabel;
+	menuItemLabelPlain = RemoveMenuLabelDecorations(menuItemLabelPlain);
+	int menuItemId;
+	if (menuItemLabelPlain.IsEmpty())
+		return wxID_SEPARATOR; // wxID_SEPARATOR has value of -2.
+	else
+	{
+		menuItemId = tempMenuBar->FindMenuItem(mainMenuItemLabel,menuItemLabelPlain);
+		return menuItemId;
 	}
 }
 
@@ -6779,6 +7927,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pROP = new ReadOnlyProtection(this);
 	m_pROP->Initialize();
 	
+	//
+	m_pRemovedMenuItemArray = new wxArrayPtrVoid;
+
+
 	// test wxProcess functions
 	//unsigned long tempPID = ::wxGetProcessId(); 
 	//bool bPIDExists;
@@ -9442,7 +10594,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
-	MakeMenuAndPlatformAdjustments();
+	// whm 28Sep10 moved the MakeMenuInitializationsAndPlatformAdjustments() function and the code for
+	// loading the file history (MRU) from this location in OnInit() to much later after
+	// the AI_UserProfiles.xml file has been loaded.
+	/*
+	MakeMenuInitializationsAndPlatformAdjustments();
 
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
@@ -9452,96 +10608,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
-
-	/*
-	// whm put the following into the MakeMenuAndPlatformAdjustments() function
-	// above.
-
-	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
-    // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
-    // are made to coordinate with these menu hot key adjustments.
-#if defined (__WXMAC__) || defined (__WXGTK__)
-    // whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep
-    // them from conflicting with the customary Mac access keys and accelerator keys. The
-    // accelerator keys are created during the creation of the CMainFrame above, so we can
-    // make adjustments here.
-
-	// File | Start Working...
-    // On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active
-    // Window, so we've defined the accelerator key on Mac for "Start Working..." as
-    // Command-Shift-O, and on Linux as Ctrl-Shift-O, to avoid the conflict.
-	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
-				// & Linux have the default Ctrl-W
-#endif
-	
-#ifdef __WXMAC__
-	// File | Close Project
-    // On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used
-    // it on Windows/Linux for Close Project, but the comperable hot key to close the
-    // active window for Mac is Command-W.
-	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close 
-	// (wxID_CLOSE) menu item.
-	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
-			// and Linux have the default Ctrl-J
-    
-	// File | Exit
-	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
-	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
-	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
-    wxMenuItem* pFileExitItem;
-	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
-	wxASSERT(pFileExitItem != NULL);
-	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
-	
-	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(editMenu);
-	wxASSERT(pEditMenu != NULL);
-	
-	// Edit | Edit Source Text
-    // On Mac, the hot key command to quit the application is Command-Q and we have set a
-    // Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
-    // Ctrl-Shift-E for it here.
-    pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
-	
-	// Edit | Move Note Backward
-    // On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
-    // accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
-    // use Ctrl-Shift-2 for it here.
-    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
-	
-	// Edit | Move Note Forward
-    // On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
-    // accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
-    // use Ctrl-Shift-3 for it here.
-    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
-	
-	wxMenu* pToolsMenu = m_pMainFrame->GetMenuBar()->GetMenu(toolsMenu);
-	wxASSERT(pToolsMenu != NULL);
-	
-	// Tools | Find and Replace
-	// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
-	// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
-	// menu to use Ctrl-Shift-F for it here.
-	pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
-
-	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(layoutMenu);
-	wxASSERT(pLayoutMenu != NULL);
-	
-	// Layout | Layout Window Right To Left
-	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
-	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
-	// menu to use Ctrl-Shift-1 for it here.
-	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
-
-	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
-	wxASSERT(pHelpTopicsMenu != NULL);
-	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
-
-#else
-	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP);
-	wxASSERT(pHelpTopicsMenu != NULL);
-	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
-
-#endif
 	*/
 
     // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
@@ -9902,7 +10968,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Creation of targetbox moved to the View's OnCreate() method
 
 	/*
-	// whm moved the following to the MakeMenuAndPlatformAdjustments() 
+	// whm moved the following to the MakeMenuInitializationsAndPlatformAdjustments() 
 	// function.
     // These toggle menu items should be initially set as follows (TRUE=checked;
     // FALSE=unchecked):
@@ -9979,7 +11045,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbDoingInitialSetup = TRUE;
 
 	/*
-	// whm moved the following into the MakeMenuAndPlatformAdjustments()
+	// whm moved the following into the MakeMenuInitializationsAndPlatformAdjustments()
 	// function.
 	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
 	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
@@ -10487,11 +11553,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// uses its default interface of menus, etc.
 	if (m_nWorkflowProfile != 0)
 	{
-		ConfigureInterfaceForUserProfile(-1,m_nWorkflowProfile);
+		ConfigureInterfaceForUserProfile();
 	}
 
+	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally called much
+	// earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() it makes
+	// better sense to do the menu modifications (mostly for the Mac) here at this point
+	// in OnInit().
+ 	MakeMenuInitializationsAndPlatformAdjustments();
 
-    // Initialise the help system. We do it here because our m_setupFolder was determined
+	// whm Note: It makes better sense to associate the file history with the File
+	// menu, and load the File History AFTER calling ConfigureInterfaceForUserProfile()
+	// 
+	// Get the File Menu, tell the doc manager that we want the File History on the
+	// File Menu, and Load the File History (MRU) to it
+	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
+	wxASSERT(pFileMenu != NULL);
+	m_pDocManager->FileHistoryUseMenu(pFileMenu);
+	// This must come after Main Menu is created and FileHistoryUseMenu call
+	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
+												// list from *m_pConfig
+   
+	// Initialise the help system. We do it here because our m_setupFolder was determined
     // above and we now know the path to the setup folder where any help file is installed.
     //  
     // Determine the path to the installation folder where Adapt_It.xxx is located
@@ -11381,6 +12464,23 @@ int CAdapt_ItApp::OnExit(void)
 		m_pAI_MenuStructure = (AI_MenuStructure*)NULL;
 	}
 	
+	int aTot;
+	aTot = m_pRemovedMenuItemArray->GetCount();
+	if (aTot == 0L)
+	{
+		delete m_pRemovedMenuItemArray;
+	}
+	else
+	{
+		int aIndex;
+		for (aIndex = 0; aIndex < aTot; aIndex++)
+		{
+			wxMenuItem* mItem = (wxMenuItem*)(*m_pRemovedMenuItemArray)[aIndex];
+			delete mItem;
+		}
+		delete m_pRemovedMenuItemArray;
+	}
+
 	// whm: before deleting our CConsistentChanger objects, we need to
 	// free up the memory used by the structures within CCCModule.
 	int ct;
@@ -27470,8 +28570,8 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 		if (editMenuDlg.bChangesMadeToProfiles)
 		{
 			// Make changes to the interface here based on the user's workflow
-			// profile selection/changes.
-			// TODO: 
+			// profile selection/changes which are now stored in m_nWorkflowProfile.
+			ConfigureInterfaceForUserProfile();
 			// Also, save the changes to the AI_UserProfiles.xml file
 			// TODO:
 			;

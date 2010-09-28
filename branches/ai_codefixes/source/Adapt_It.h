@@ -380,6 +380,8 @@ const char end_sub_menu[] = "/SUB_MENU";
 const char profileVersion[] = "profileVersion";
 const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
 												// i.e., definedProfile1, definedProfile2, etc.
+const char descriptionProfile[] = "descriptionProfile"; // the xml will actually have a number suffix
+												// i.e., descriptionProfile1, descriptionProfile2, etc.
 const char itemID[] = "itemID";
 const char itemType[] = "itemType";
 const char itemText[] = "itemText";
@@ -389,6 +391,7 @@ const char itemUserProfile[] = "userProfile";
 const char itemVisibility[] = "itemVisibility";
 const char factory[] = "factory";
 
+const char mainMenuID[] = "mainMenuID";
 const char mainMenuLabel[] = "mainMenuLabel";
 const char subMenuID[] = "subMenuID";
 const char subMenuLabel[] = "subMenuLabel";
@@ -439,10 +442,19 @@ enum ConfigFileType
     projectConfigFile
 };
 
-/// An enum for the indices for the top level menus
-/// Note: item0 is the menubar itself, but that does not mean that the File menu is 
-/// at index 1; the menus in a menu bar are indexed from the first (File menu) starting
-/// with index == 0
+// whm NOTE 21Sep10: Moved this TopLevelMenu enum to become a private member of the
+// App because its enumerations should not be accessed directly, but only through
+// the GetTopLevelMenuName(TopLevelMenu topLevelMenu) function. We may decide at
+// some point to dynamically change the ordering of top level menus. We already
+// change the number of top level menus, i.e., the "Layout" menu is
+// removed for ANSI builds, and the "Administrator" menu is removed except when made
+// visible by an administrator.
+// 
+// An enum for the indices for the top level menus
+// Note: item0 is the menubar itself, but that does not mean that the File menu is 
+// at index 1; the menus in a menu bar are indexed from the first (File menu) starting
+// with index == 0
+/*
 enum TopLevelMenu
 {
     fileMenu,
@@ -455,6 +467,7 @@ enum TopLevelMenu
     helpMenu,
 	administratorMenu
 };
+*/
 
 enum ExportType
 {
@@ -959,6 +972,7 @@ struct UserProfiles
 {
 	wxString profileVersion;
 	wxArrayString definedProfileNames;
+	wxArrayString descriptionProfileTexts;
 	ProfileItemList profileItemList;
 };
 
@@ -976,6 +990,7 @@ WX_DECLARE_LIST(AI_SubMenuItem, SubMenuItemList); // see list definition macro i
 
 struct AI_MainMenuItem
 {
+	wxString mainMenuID;
 	wxString mainMenuLabel;
 	SubMenuItemList aiSubMenuItems;
 };
@@ -1563,7 +1578,23 @@ class CAdapt_ItApp : public wxApp
 
 private:
     
-    /// The application's m_pMainFrame member serves as the backbone for Adapt It's
+	// whm: This enum is made private because its enumerations should not
+	// be accessed directly, but through the public 
+	// GetTopLevelMenuName(TopLevelMenu topLevelMenu) function which 
+	// queries the defaultTopLevelMenuNames[] array of default menu names.
+	enum TopLevelMenu
+	{
+		fileMenu,
+		editMenu,
+		viewMenu,
+		toolsMenu,
+		exportImportMenu,
+		advancedMenu,
+		layoutMenu,
+		helpMenu,
+		administratorMenu
+	};
+   /// The application's m_pMainFrame member serves as the backbone for Adapt It's
     /// interface and its document-view framework. It is created in the App's OnInit()
     /// function and is the "parent" window for almost all other parts of Adapt It's
     /// interface including the menuBar, toolBar, controlBar, composeBar, statusBar and
@@ -2314,8 +2345,9 @@ public:
 	// whm added 30Aug10 for AI_UserProfiles.xml file processing
 	bool		m_bUsingAdminDefinedUserProfile;
 	UserProfiles* m_pUserProfiles; // a struct on the heap that contains the profileVersion,
-									// an array of definedProfileNames, and list of pointers
-									// to the UserProfileItem objects on the heap
+									// an array of definedProfileNames, descriptionProfileTexts
+									// and list of pointers to the UserProfileItem objects on 
+									// the heap
 	int			m_nWorkflowProfile; // zero-based index to the defined user workflow
 									// profiles and corresponds to the tab index of any
 									// selected workflow profile selected by an administrator
@@ -2329,6 +2361,8 @@ public:
 									// structure when changing profiles or when the "None"
 									// user workflow profile is selected after having used a
 									// different user workflow profile.
+	wxArrayPtrVoid* m_pRemovedMenuItemArray; // an array of pointers to wxMenuItem instances
+									// which have been removed for the current profile
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2598,13 +2632,27 @@ public:
 	void	ShowFilterMarkers(int refNum); // refNum is any number I want to pass in, it is shown too
 #endif
 
-	// whm added 21Sep10
-	bool	ConfigureInterfaceForUserProfile(int currentProfile, int newProfile);
-	void	MakeMenuAndPlatformAdjustments();
-	bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);
+	// whm added 21Sep10 the following for user profile support
+	bool	ConfigureInterfaceForUserProfile();
+	void	MakeMenuInitializationsAndPlatformAdjustments();
 	bool	MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID);
-	void	AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem);
-	void	RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem);
+	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr);
+	wxString RemoveMenuLabelDecorations(wxString menuLabel);
+	wxArrayPtrVoid GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem);
+	wxString GetTopLevelMenuName(TopLevelMenu topLevelMenu);
+	wxMenu* GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu);
+	int GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
+	// The following functions are currently unused and possibly incomplete/untested, but are left
+	// here because they might contain useful material for future use:
+	//bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);
+	//void	AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem); // unused
+	//void	RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem); // unused
+	//bool	AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd, // unused
+	//										wxMenuItem* pMenuItemComingNext,
+	//										bool& bAppendInsteadOfInsert);
+	//wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr); // unused
+	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr); // unused
+	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label); // unused
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 

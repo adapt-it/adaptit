@@ -7399,7 +7399,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_SELECT_A_TAB, _("1. Select a Tab according to the user workflow profile you want to edit"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_SELECT_A_TAB, _("1. Select a &Tab according to the user workflow profile you want to edit"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxNotebook *item6 = new wxNotebook( parent, ID_MENU_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
@@ -7415,36 +7415,83 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxPanel *item8 = new wxPanel( item6, -1 );
     MenuEditorPanelFunc( item8, FALSE );
-    item6->AddPage( item8, _("Custom 1") );
+    item6->AddPage( item8, _("Experienced") );
 
     wxPanel *item9 = new wxPanel( item6, -1 );
     MenuEditorPanelFunc( item9, FALSE );
-    item6->AddPage( item9, _("Custom 2") );
+    item6->AddPage( item9, _("Skilled") );
+
+    wxPanel *item10 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item10, FALSE );
+    item6->AddPage( item10, _("Custom") );
 
     item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxString strs10[] = 
+    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("2. Select the user workflow profile (below) that you want the interface to use:") );
+    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
+
+    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_NONE, _("&None (keep all menus and settings visible)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item13->SetValue( TRUE );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item14 = new wxRadioButton( parent, ID_RADIOBUTTON_USE_PROFILE, _("&Use a workflow profile  (Select from drop down list below)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxString strs16[] = 
     {
-        _("None (keep all menus and settings visible)"), 
-        _("Novice (you choose which menu items will be visible for Novice user)"), 
-        _("Custom 1 (you choose which menu items will be visible for Custom 1 user)"), 
-        _("Custom 2 (you choose which menu items will be visible for Custom 2 user)")
+        _("Novice"), 
+        _("Experienced"), 
+        _("Skilled"), 
+        _("Custom")
     };
-    wxRadioBox *item10 = new wxRadioBox( parent, ID_RADIOBOX, _("2. Select the user workflow profile (below) that you want the interface to use:"), wxDefaultPosition, wxDefaultSize, 4, strs10, 1, wxRA_SPECIFY_COLS );
-    item3->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxComboBox *item16 = new wxComboBox( parent, ID_COMBO_PROFILE_ITEMS, wxT(""), wxDefaultPosition, wxSize(200,-1), 4, strs16, wxCB_DROPDOWN|wxCB_READONLY );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item12 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetDefault();
-    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item17 = new wxButton( parent, ID_BUTTON_RESET_TO_FACTORY, _("&Reset to Factory Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item11->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxFlexGridSizer *item18 = new wxFlexGridSizer( 2, 0, 0 );
+    item18->AddGrowableCol( 1 );
+    item18->AddGrowableRow( 1 );
 
-    item3->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT_STATIC_DESCRIPTION, _("&Description of Selected User Profile (editable)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_PROFILE_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE );
+    item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item11->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item23 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetDefault();
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item3->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item3, 1, wxGROW|wxALL, 5 );
 
@@ -7471,33 +7518,23 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Note:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Items with a check will be visible in the interface"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Items with a check will be visible in the interface. Items without a check will not be visible."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Items without a check will not be visible"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Top level menus and category labels cannot be unchecked"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Top level menus and category labels cannot be unchecked"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxString strs7[] = 
-    {
-        _("Menu Item 1 - This is a very long menu item to see just what happens to the scroll bars when this item cannot be seen entirely within the listbox's assigned width."), 
-        _("Menu Item 2"), 
-        _("Menu Item 3")
-    };
-    wxCheckListBox *item7 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,250), 3, strs7, wxLB_SINGLE|wxLB_ALWAYS_SB|wxLB_HSCROLL );
-    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxString *strs6 = (wxString*) NULL;
+    wxCheckListBox *item6 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,220), 0, strs6, wxLB_SINGLE|wxLB_ALWAYS_SB );
+    item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
