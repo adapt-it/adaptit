@@ -1798,10 +1798,10 @@ listed below.
 		>
 		</PROFILE>
 </MENU>
-<MENU itemID="ID_BUTTON_DELETE_ALL_NOTES"
-	itemType="toolBar"
-	itemText="Delete All Notes"
-	itemDescr="Delete all the notes currently in the document"
+<MENU itemID="IDC_CHECK_ISGLOSSING"
+	itemType="modeBar"
+	itemText="Glossing"
+	itemDescr="Checkbox in Modebar"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
@@ -1825,10 +1825,10 @@ listed below.
 		>
 		</PROFILE>
 </MENU>
-<MENU itemID="IDC_CHECK_ISGLOSSING"
-	itemType="modeBar"
-	itemText="Glossing"
-	itemDescr="Checkbox in Modebar"
+<MENU itemID="ID_BUTTON_DELETE_ALL_NOTES"
+	itemType="toolBar"
+	itemText="Delete All Notes"
+	itemDescr="Delete all the notes currently in the document"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
