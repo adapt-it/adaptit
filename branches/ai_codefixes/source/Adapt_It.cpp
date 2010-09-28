@@ -1754,7 +1754,7 @@ const wxString defaultProfileItems[] =
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Send Synchronized Scrolling Messages\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -1764,7 +1764,7 @@ const wxString defaultProfileItems[] =
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Receive Synchronized Scrolling Messages\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -5743,6 +5743,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 					delete pRemMenuItem; // to avoid memory leaks
 					pRemMenuItem = (wxMenuItem*)NULL;
 				}
+				pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh list
 				pNode = pMenuItemList.GetLast();
 			}
 			// remove any separators at the top of the top level menu
@@ -5766,6 +5767,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 				{
 					break;
 				}
+				pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh list
 				pNode = pMenuItemList.GetFirst();
 			}
 			
