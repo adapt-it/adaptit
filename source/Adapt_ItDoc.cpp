@@ -520,7 +520,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->bUserSelectedFileNew = FALSE;	
 				GetLayout()->PlaceBox();
 			}
-			return FALSE;
+            //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+            //doc/view black box on which we rely, leading to our event handlers
+            //failing to be called, so return TRUE instead
+			return TRUE;
 		}
 		else // must be wxID_OK 
 		{
