@@ -245,6 +245,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		// IDS_EXPORT_TGT
 		s = _("Export Translation (Target) Text");
+		//wxLogDebug(_T("*** Title: %s"),s.c_str());
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Translation (Target) Text"
 		break;
 	}

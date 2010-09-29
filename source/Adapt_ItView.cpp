@@ -1562,8 +1562,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// destroyed too. Therefore, the target box must not be deleted again in
 	// the App's OnExit() method, when the App terminates.
 	pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1,_T(""),
-			wxDefaultPosition,wxDefaultSize,
-			wxSIMPLE_BORDER | wxWANTS_CHARS);
+			wxDefaultPosition,wxDefaultSize, wxSIMPLE_BORDER | wxWANTS_CHARS);
 	// whm Notes on the wxTextCtrl style flags:
 	// wxSIMPLE_BORDER - Displays a thin border around the window.
 	// wxWANTS_CHARS - According to the wx docs Use this to indicate that 
