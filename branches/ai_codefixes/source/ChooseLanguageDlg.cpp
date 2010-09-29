@@ -186,14 +186,22 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
 	*/
 	// Determine if the system default language has an existing localization
-	wxString shortDefaultLangName = infoSys->CanonicalName; //langsKnownToWX[0].shortName;
+	wxString shortDefaultLangName;
+	if (infoSys != NULL)
+	{
+		shortDefaultLangName = infoSys->CanonicalName; //langsKnownToWX[0].shortName;
+	}
+	else 
+	{
+		shortDefaultLangName.Empty();
+	}
 	//wxString fullDefaultLangName;
 	//wxLanguage sysLangFullName = gpApp->GetLanguageFromDirStr(shortDefaultLangName,fullDefaultLangName);
 	// If the system default language has an existing localization we'll put it first in the list.
 	// If the system default's canonical name is some form of en_XX we put "English [en_XX]" first in the list, otherwise
 	// we'll just put "English" as first language in the list.
 	
-	if (gpApp->PathHas_mo_LocalizationFile(pathToLocalizationFolders, shortDefaultLangName))
+	if (gpApp->PathHas_mo_LocalizationFile(pathToLocalizationFolders, shortDefaultLangName) && gpApp->m_languageInfo != NULL)
 	{
 		// the shortDefaultLangName has an Adapt It localization
 		fullDefaultLangNameListItem = fullDefaultLangNameListItem.Format(fullDefaultLangNameListItem, gpApp->m_languageInfo->Description.c_str());
@@ -374,7 +382,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// the listbox offered Dutch as the "default" language, there was not actually a Dutch localization
 	// of Adapt It existing on the machine. But, if the current system default language is French, we
 	// want French to be the default selected choice because we do have a localization in French.
-	if (fullDefaultLangNameListItem == _T("English"))
+	if (fullDefaultLangNameListItem == _T("English") || gpApp->m_languageInfo == NULL)
 		defaultDirStr = _T("en");
 	else
 		defaultDirStr = gpApp->m_languageInfo->CanonicalName;

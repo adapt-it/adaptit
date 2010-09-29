@@ -5970,6 +5970,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
 	}
 
+	// wxWidgets moves the wxID_HELP menu item from the Help menu to the Application menu, so we
+	// don't assume wxID_HELP is in the Help menu.
 	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
 	if (pHelpTopicsMenu != NULL)
 	{
@@ -5977,6 +5979,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	}
 
 #else
+	// wxDesigner's Menubars properties doesn't allow us to set function keys as shortcute
+	// so we'll do it manually here for Windows and Linux.
 	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP);
 	if (pHelpTopicsMenu != NULL)
 	{
@@ -7602,8 +7606,16 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 		int sysLanguage = wxLocale::GetSystemLanguage();
 		const wxLanguageInfo *info = wxLocale::GetLanguageInfo(sysLanguage);		
 		currLocalizationInfo.curr_UI_Language = sysLanguage;
-		currLocalizationInfo.curr_shortName = info->CanonicalName;
-		currLocalizationInfo.curr_fullName = info->Description;
+		if (info != NULL)
+		{
+			currLocalizationInfo.curr_shortName = info->CanonicalName;
+			currLocalizationInfo.curr_fullName = info->Description;
+		}
+		else
+		{
+			currLocalizationInfo.curr_shortName.Empty();
+			currLocalizationInfo.curr_fullName.Empty();
+		}
 		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
 		m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 	}
@@ -9170,14 +9182,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 														//  Ubuntu: m_systemLanguage = 58
 														//     Mac: m_systemLanguage = 58
 	m_languageInfo = wxLocale::GetLanguageInfo(m_systemLanguage);
-	wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
-	wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
-	wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
+	if (m_languageInfo != NULL)
+	{
+		wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
+		wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
+		wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
 #ifdef __WIN32__
-	wxLogDebug(_T("m_languageInfo->WinLang = %d"),m_languageInfo->WinLang); // Windows: 9
-	wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
+		wxLogDebug(_T("m_languageInfo->WinLang = %d"),m_languageInfo->WinLang); // Windows: 9
+		wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
 #endif
-	wxLogDebug(_T("m_languageInfo->LayoutDirection = %d"),m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
+		wxLogDebug(_T("m_languageInfo->LayoutDirection = %d"),m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
+	}
 	
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
 
