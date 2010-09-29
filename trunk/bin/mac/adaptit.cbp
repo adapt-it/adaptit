@@ -30,6 +30,7 @@
 					<Add after='echo \&quot;Running post-build phase script: ai_cbmac_postbuild_script.sh\&quot;' />
 					<Add after="${PROJECT_DIR}scripts/ai_cbmac_postbuild_script.sh $(TARGET_OUTPUT_DIR)" />
 					<Add after='echo \&quot;DONE running ai_cbmac_postbuild_script.sh\&quot;' />
+					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
 			<Target title="UnicodeRelease">
@@ -57,14 +58,12 @@
 					<Add after='echo \&quot;DONE running ai_cbmac_postbuild_script.sh\&quot;' />
 				</ExtraCommands>
 			</Target>
-			<Environment>
-				<Variable name="WXWIN" value="/Users/erik/wxMac-2.8.10" />
-			</Environment>
 		</Build>
 		<VirtualTargets>
 			<Add alias="All" targets="UnicodeDebug;UnicodeRelease;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-g" />
 			<Add option="-DwxUSE_UNICODE" />
 			<Add option="-DNO_GCC_PRAGMA" />
 			<Add option="-D__WXMAC__" />
@@ -576,6 +575,8 @@
 		<Unit filename="../../source/JoinDialog.h" />
 		<Unit filename="../../source/KB.cpp" />
 		<Unit filename="../../source/KB.h" />
+		<Unit filename="../../source/KBEditSearch.cpp" />
+		<Unit filename="../../source/KBEditSearch.h" />
 		<Unit filename="../../source/KBEditor.cpp" />
 		<Unit filename="../../source/KBEditor.h" />
 		<Unit filename="../../source/KBPage.cpp" />
