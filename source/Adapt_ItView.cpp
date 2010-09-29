@@ -14041,19 +14041,36 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 	SPList* pList = pApp->m_pSourcePhrases;
 	SPList::Node* insertPos	= pList->Item(nStartingSequNum); // the position before
 												// which we will make the insertion
-	CSourcePhrase* pOldLastSrcPhrase; // the sourcephrase which lies before the first 
+	//CSourcePhrase* pOldLastSrcPhrase; // the sourcephrase which lies before the first 
         // inserted ellipsis, we have to check this one for a m_bEndFreeTrans == TRUE flag
         // and move that BOOL value to the end of the insertions
 	bool bMoveEndOfFreeTrans = FALSE; // moved outside of if block below
+	int nPrevSequNum = -1;
 	if (nStartingSequNum > 0) // whm added to prevent assert and unneeded test for 
 							  // m_bEndFreeTrans when sequ num is zero
 	{
 		SPList::Node* earlierPos = pList->Item(nStartingSequNum - 1);
-		pOldLastSrcPhrase = (CSourcePhrase*)earlierPos->GetData();
-		if (pOldLastSrcPhrase->m_bEndFreeTrans)
+		//pOldLastSrcPhrase = (CSourcePhrase*)earlierPos->GetData();
+		pPrevSrcPhrase = (CSourcePhrase*)earlierPos->GetData();
+		//if (pOldLastSrcPhrase->m_bEndFreeTrans)
+		if (pPrevSrcPhrase->m_bEndFreeTrans)
 		{
-			pOldLastSrcPhrase->m_bEndFreeTrans = FALSE;
-			bMoveEndOfFreeTrans = TRUE;
+			if (bForRetranslation)
+			{
+				//pOldLastSrcPhrase->m_bEndFreeTrans = FALSE;
+				pPrevSrcPhrase->m_bEndFreeTrans = FALSE;
+				// only code in a "for retranslation" block will look at the
+				// bMoveEndOfFreeTrans boolean
+				bMoveEndOfFreeTrans = TRUE;
+			}
+			else
+			{
+				// when it is not for padding of a retranslation, we defer the decision
+				// about removal of the endmarkers and tranferring them to the placeholder
+				// until later - since it could be the case that the user may choose
+				// rightwards association and so no endmarker transfer would be needed
+				;
+			}
 		}
 	}
 
@@ -14115,7 +14132,7 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
             // instance before the first placeholder, and if the last sourcephrase before
             // the first placeholder was the end of the free translation section, then we
             // move the end of the section to the last placeholder as well
-			if (pSrcPhraseInsLoc->m_bHasFreeTrans)
+			if (pPrevSrcPhrase->m_bHasFreeTrans)
 				pSrcPhrasePH->m_bHasFreeTrans = TRUE; // handles the 'within' case
 			if ((i == nCount - 1) && bMoveEndOfFreeTrans)
 			{
@@ -14168,17 +14185,21 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
     // have to worry about any preceding context.
 	bool bAssociationRequired = FALSE; // it will be set true if the message box for 
 				// associating to the left or right is required at punctuation
+	
+
+	// The following 3 booleans are only looked at by code in "not-for-retranslation"
+	// blocks
 	bool bPreviousFollPunct = FALSE;
 	bool bFollowingPrecPunct = FALSE;
 	bool bFollowingMarkers = FALSE;
-	int nPrevSequNum = nStartingSequNum - 1; // remember, this could be -ve
+	nPrevSequNum = nStartingSequNum - 1; // remember, this could be -ve (i.e. -1)
 	if (!bForRetranslation)
 	{
 		if (nPrevSequNum != -1)
 		{
-			pPrevPile = GetPrevPile(pInsertLocPile); // old pointers are still valid
-			wxASSERT(pPrevPile != NULL);
-			pPrevSrcPhrase = pPrevPile->GetSrcPhrase();
+			//pPrevPile = GetPrevPile(pInsertLocPile); // old pointers are still valid
+			//wxASSERT(pPrevPile != NULL);
+			//pPrevSrcPhrase = pPrevPile->GetSrcPhrase();
 			if (!pPrevSrcPhrase->m_follPunct.IsEmpty())
 				bPreviousFollPunct = TRUE;
 		}
@@ -14286,8 +14307,11 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 				if (bFollowingMarkers)
 				{
 					if (pSrcPhraseInsLoc->m_bBeginRetranslation)
+					{
 						// can't right associate into a retranslation, so skip the block
+						wxBell();
 						goto m;
+					}
 					wxASSERT(pFirstOne != NULL); // whm added
 					pFirstOne->m_markers = pSrcPhraseInsLoc->m_markers; // transfer markers
 					pSrcPhraseInsLoc->m_markers.Empty();
@@ -14334,7 +14358,6 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 					pSrcPhraseInsLoc->m_bVerse = FALSE;
 					pSrcPhraseInsLoc->m_bParagraph = FALSE;
 					pSrcPhraseInsLoc->m_bChapter = FALSE;
-					pSrcPhraseInsLoc->m_bFootnote = FALSE;
 					pSrcPhraseInsLoc->m_bFootnote = FALSE;
 				}
 				if (bFollowingPrecPunct)
@@ -14389,13 +14412,14 @@ a:				bAssociatingRightwards = FALSE;
         // source phrases has following punctuation, we need to move it to the last null
         // source phrase inserted (note, the case of moving free-translation-supporting
         // BOOL values is done above)
-		CSourcePhrase* pPrevSrcPhrase2 = NULL;	// whm initialized to NULL
+		//CSourcePhrase* pPrevSrcPhrase2 = NULL;	// whm initialized to NULL
 		if (nPrevSequNum != -1)
 		{
-			CPile* pPrevPile = GetPrevPile(pInsertLocPile); // old pointers are still valid
-			wxASSERT(pPrevPile != NULL);
-			pPrevSrcPhrase2 = pPrevPile->GetSrcPhrase();
-			if (!pPrevSrcPhrase2->m_follPunct.IsEmpty())
+			//CPile* pPrevPile = GetPrevPile(pInsertLocPile); // old pointers are still valid
+			//wxASSERT(pPrevPile != NULL);
+			//pPrevSrcPhrase2 = pPrevPile->GetSrcPhrase();
+			//if (!pPrevSrcPhrase2->m_follPunct.IsEmpty())
+			if (!pPrevSrcPhrase->m_follPunct.IsEmpty())
 				bPreviousFollPunct = TRUE;
 		}
 
@@ -14403,9 +14427,12 @@ a:				bAssociatingRightwards = FALSE;
 		{
 			// the association is to the text which precedes, so transfer from there
 			// to the last in the list
-			wxASSERT(pPrevSrcPhrase2 != NULL); // whm added
-			pLastOne->m_follPunct = pPrevSrcPhrase2->m_follPunct; // transfer following punct
-			pPrevSrcPhrase2->m_follPunct.Empty();
+			//wxASSERT(pPrevSrcPhrase2 != NULL); // whm added
+			wxASSERT(pLastOne != NULL); // whm added
+			//pLastOne->m_follPunct = pPrevSrcPhrase2->m_follPunct; // transfer following punct
+			pLastOne->m_follPunct = pPrevSrcPhrase->m_follPunct; // transfer following punct
+			//pPrevSrcPhrase2->m_follPunct.Empty();
+			pPrevSrcPhrase->m_follPunct.Empty();
 		}
 	}
 
