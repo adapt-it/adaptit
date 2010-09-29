@@ -1,3 +1,217 @@
+----------------------------------------------
+Version 6.0.0 update  ??? release date - to be announced once it is released 2010: ???
+----------------------------------------------
+Feature changes and new features in 6.0.0
+----------------------------------------------
+* User Profiles support for an administrator to customize access to
+certain functionalities -- development is in progress.
+* OXES version 1 export support -- development is in progress.
+* Standard format exports now export the Adapt It custom markers
+\free, \free*, \note, \note* and \bt in a form which Paratext is happy
+to ignore: \zfree, \zfree*, \znote, \znote* and \zbt. Also, source text
+data with either forms of these markers will be parsed in correctly for 
+document creation within Adapt It.
+* The order of fields in standard format exports, particularly a target 
+text or source text export, has been altered. The information is export
+in the following order (not all these types may be present at any one 
+location of course): 1. filtered information 2. a collected back translation
+3. a note, 4. a free translation, 5 the adaptation (or source) text itself. 
+The old order was 2,4,3,1, which did not conform well to USFM 
+expected ordering. Creating an adaptation document from one of these 
+exports gives the same result as before - nothing is different.
+* On the languages page of the Start Working... wizard, the checkbox
+"Recognise standard format markers only following newlines" has 
+been removed, because the code for this feature has been broken
+now for several years, and appears to be no longer needed.
+* The knowledge base has been upgraded to version 2. It now stores
+the datetime for creation of an entry, modification of an entry, and
+deletion of an entry; also, a field for who created the entry. "Deletion"
+of an entry now does not physically delete it, rather the entry is marked
+as deleted and is hidden, but remains in the knowledge base. If the
+user later creates the same adaptation, the KB will silently "undelete"
+the deleted entry.
+Note: kbVersion 2 is not compatible with kbVersion 1 (the latter applies
+to all versions from 1.0.0 up to and including 5.2.1; kbVersion 2 applies
+from version 5.3.0 and onwards). Using 5.3.0 or later versions will 
+automatically transform a kbVersion 1 knowledge base to kbVersion 2
+format. Once that is done, earlier versions of Adapt It will not read
+a kbVersion 2 knowledge base, and empty the knowledge base file -
+so be warned. Keep a backup KB file, either in LIFT format, or in
+\lx and \ge format -- the latter is best because such a file preserves
+all the datetime and other kbVersion 2 information, whereas LIFT
+format doesn't; and all versions of Adapt It, from 1.0.0 to 5.3.0 and
+beyond can successfully read a KB stored as \lx & \ge records, even
+when such a file was produced by 5.3.0 or later versions.
+* The Export/Import menu now supports exporting the knowledge
+base in LIFT format, and importing data to the knowledge base from
+a LIFT format file. KB export as LIFT xml is now the default, the
+older KB export in the form of \lx & \ge fields is still supported, but
+to get it the user must drop down the combobox for the export type 
+and select this option. Exporting the KB in LIFT format only exports
+source text and adaptation (or gloss, if exporting when in glossing
+mode), and all datetime and other information in the KB is lost.
+* KB export and import in the form of records using \lx and \ge fields
+has been extended to support the extra information in kbVersion 2;
+and <Not In KB> entries are included in the export (whereas for
+kbVersion 1 exports of this type they were excluded); also, each time
+the user asks for an SFM export of the KB, a message box pops up
+to ask how deleted KB entries (which remain in the KB, but are
+hidden from the user) should be handled in the export - whether or 
+not to include them in the export. (This option is present because to 
+include them in the export, if the exported data is to be imported to
+the KB of a legacy version of Adapt It, would effectively make
+them become undeleted in the legacy version's KB - which is unlikely
+to be helpful to the user. But if the exported KB data is just a 
+KB backup, then the deleted entries should be included in the export.)
+There are additional custom SF markers for the extra kvVersion 2
+information, as follows:
+\del for storing the deleted flag (1 if deleted, 0 if not deleted)
+\cdt  for the creation date and time
+\mdt for the modification date and time
+\ddt for the deletion date and time
+\wc for the "who created" string, of form: username:machinename
+(or, when web use is supported, probably an ip address)
+Note: if you want to safeguard the KB contents by storing it
+in a file somewhere, this is the export type which you should
+do. It retains ALL the information in kbVersion 2. Not only
+that, legacy Adapt It versions (1.0.0 to 5.2.1) can still read
+this kind of exported KB data successfully, because they will
+just ignore the extra information in the above custom fields.
+* The internal format of Adapt It adaptation documents has
+been upgraded to docVersion 5. The previous format,
+docVersion 4, has been in operation for about 4 years. Users
+using version 5.3.0 or onwards on legacy documents, will
+find that their legacy documents are silently upgraded to
+docVersion 5 and saved in that (somewhat different) xml
+format. Legacy versions of Adapt It (prior to and including
+5.2.1) will not read docVersion 5 xml documents.
+Note: to give limited support to people in teams where
+some may be working with a legacy Adapt It version, and
+others in the team with 5.3.0 or later, we have included an
+option for saving the current document in docVersion 4, 
+doing so from within version 5.3.0 or later. This option is 
+available from the File / Save As... command. (Send the 
+document file saved as docVersion 4 to whoever needs it 
+before you do any more work in it with Adapt It version 
+5.3.0 or later, because when you next work on it using 
+5.3.0, it will automatically revert back to being in 
+docVersion 5 format.)
+* On the File menu there is now a Save As... command.
+It can be used to save a document with a new name (that
+is, the document is renamed, and no longer will be on
+disk with its earlier name). It can also be used to have
+the document saved in legacy docVersion 4 format. 
+(However, when next opened in the same version of
+Adapt It, the document will automatically be restored
+to docVersion 5.) The Save As... command will not let
+you change the folder in which the document is to be
+saved.
+* Although unseen to the user, Adapt It version
+6.0.0 and later versions have undergone extensive
+internal changes. These changes will make it easier 
+for the developers to maintain, and to provide versions
+of the application for a number of new platforms,
+collaborative contexts, and work environments.
+* The "Transform Adaptations To Glosses..." functionality
+has been improved. It no longer removes placeholders and 
+retranslations from the transformed project, but just
+transforms their adaptations to glosses as expected. Also
+the transformation of adaptation to glosses now also takes
+place on any hidden original data storage elements stored 
+on a merger - so that if the user later unmerges any of
+these, he'll see glosses as expected rather than
+untransformed adaptations.
+* The "Transform Adaptations Into Glosses..." feature has
+been improved. Formerly it erased the target project's
+adaptations and glossing KBs, then transformed the "other
+project's" adaptations KB into the target project's glossing
+KB, and then converted adaptions to glosses for the "other
+project's" documents. This behaviour made it difficult to 
+use the command more than once, because it would
+destroy any adapting work done in the target project,
+and lose the target project's KB data. The new behaviour
+preserves the adapting and glossing KB data in the target
+project while adding to it from the transformation
+process; and any "other project" document file which has
+the same name as a document file already in the target
+project, is skipped (even if chosen by the user for being
+transformed) - thereby protecting any adaptating work
+done in the target project since the last transformation
+process. These changes make it safe to do use the
+Transform Adaptations To Glosses command as many
+times as desired, as completed "Other project" adaptation
+documents become completed and therefore available
+for transformation. In addition, because the process no
+longer loses KB data, the warning message about what
+used to get lost now no longer needs to be shown.
+In addition, the transform of adaptations to glosses is 
+now also done on the stored original document storage
+elements that were involved in forming a merger. This
+means that if the user unmerges so as to restore the
+originals to the document, the originals will still have
+the adaptations stored instead as glosses.
+* If the user cancelled from the Which Files? dialog when
+doing a restore of the knowledge base, the knowledge base
+was left emptied. Now the application will make a temporary
+copy of the current knowledge base before attempting the 
+restore, and if the user cancels, then the knowledge base is 
+restored automatically to what it was earlier using the copy.
+* The Which Files? dialog has two additional buttons:
+"Move All Right >>" and "<< Move All Left" which move all
+the filenames with a single click.
+
+----------------------------------------------
+Bug fixes in 6.0.0
+----------------------------------------------
+* The placing and removal of placeholders in 5.2.1 was partly broken; 
+associating left or right did not worok properly, some filtered information
+could be lost, punctuation was not moved to the placeholder when it 
+should have been.
+* Removing a lot of source text near the end of the document and there 
+were several notes in the removed section, the app would crash.
+* Certain standard format markers in the USFM standard were 
+included in a free translation export. These were markers for things
+like bold, italic, glossary word, and so forth. If a merger was done
+to form a phrase resulting in one of these becoming a 'medial marker'
+to the phrase, then an RTF export of the free translation would 
+terminate at the unmatched end-marker which was not in the 
+merger. These kinds of markers are now automatically removed, 
+making the RTF export well-behaved.
+* The following sequence of actions caused a crash. Select some
+source text words, do File / Close, do File / Restore Knowledge Base.
+* The search function in the KB Editor dialog would fail to match 
+stored adaptations (or glosses) other than the first for source text keys
+which have multiple adaptations (or multiple glosses).
+* When launching and the phrase box is at a "hole" where the source
+text has two or more possible adaptations, the Choose Translation
+opened (which was corrrect) but then when dismissed it re-opened.
+* Repeated Move Up or Move Down button presses in the Choose 
+Translation dialog would get the reference counts messed up.
+* If the user had an adaptation in the phrase box, then unticked the
+ checkbox "Save to knowledge base" and immediately saved the
+ document and knowledge base, and then inspected the KB, 
+the "<Not In KB>" entry would display along with the phrase 
+box's contents as a visible alternative. This is now corrected, and 
+only <Not In KB> will appear.
+* In rare circumstances, a single-word lookup of the KB at a 
+location designated as "<Not In KB>" in the KB entry, the
+<Not In KB> string would appear in the phrase box. Now, it just 
+show puts an empty string in the phrase box.
+* Creating a CC table using the Unicode application, the application
+crashed after the user created a filename for the CC table.
+* If the user cancelled for the attempt to create a new document, 
+subsequent attempts to create a new document, or to open an
+existing document, did not work correctly.
+* Choosing the command to collect back translation, or the 
+command to remove collected back translations, did not update
+the main window after the command completed.
+* If a Save was requested while the phrase box was not in existence
+because the end of the document had been reached, the application
+crashed.
+* Editing the source text crashed the application if the edit was 
+done on the text stored at a single pile of the display.
+
+----------------------------------------------
 Version 5.2.2 update 17April2010:
 ----------------------------------------------
 Bug fixes in 5.2.2
@@ -34,7 +248,7 @@ Bug fixes in 5.2.1
 * Having source text selected when invoking any of the Split Document 
 or Join Document commands resulted in a crash when the application
 tried to remove the selection at the end of the operation.
-* Reatranslating a footnote at the end of the document with a longer 
+* Retranslating a footnote at the end of the document with a longer 
 footnote caused a crash.
 * Doing Restore Knowledge Base when in book folder mode, when the
 restore starts working through the book folders it fell into an 
