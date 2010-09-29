@@ -163,10 +163,6 @@ the filenames with a single click.
 ----------------------------------------------
 Bug fixes in 6.0.0
 ----------------------------------------------
-* The placing and removal of placeholders in 5.2.1 was partly broken; 
-associating left or right did not worok properly, some filtered information
-could be lost, punctuation was not moved to the placeholder when it 
-should have been.
 * Removing a lot of source text near the end of the document and there 
 were several notes in the removed section, the app would crash.
 * Certain standard format markers in the USFM standard were 
@@ -177,8 +173,6 @@ to the phrase, then an RTF export of the free translation would
 terminate at the unmatched end-marker which was not in the 
 merger. These kinds of markers are now automatically removed, 
 making the RTF export well-behaved.
-* The following sequence of actions caused a crash. Select some
-source text words, do File / Close, do File / Restore Knowledge Base.
 * The search function in the KB Editor dialog would fail to match 
 stored adaptations (or glosses) other than the first for source text keys
 which have multiple adaptations (or multiple glosses).
@@ -197,8 +191,6 @@ only <Not In KB> will appear.
 location designated as "<Not In KB>" in the KB entry, the
 <Not In KB> string would appear in the phrase box. Now, it just 
 show puts an empty string in the phrase box.
-* Creating a CC table using the Unicode application, the application
-crashed after the user created a filename for the CC table.
 * If the user cancelled for the attempt to create a new document, 
 subsequent attempts to create a new document, or to open an
 existing document, did not work correctly.
@@ -210,6 +202,28 @@ because the end of the document had been reached, the application
 crashed.
 * Editing the source text crashed the application if the edit was 
 done on the text stored at a single pile of the display.
+
+----------------------------------------------
+Version 5.2.3 update 30September2010:
+----------------------------------------------
+Bug fixes in 5.2.3
+----------------------------------------------
+* Creating a CC table using the Unicode application, the application
+crashed after the user created a filename for the CC table.
+* The placeholder insertion mechanism had become partly broken, 
+in particular, inserting a placeholder after a word which ended with
+punctuation, and telling Adapt It to associate the placeholder leftwards, 
+the left association did not happen and the punctuation did not get 
+transferred to the end of the placeholder. Similar problems with
+right association happened too.
+* Attempting to run the application on some localized versions of Windows
+Vista would, on some computers, cause a crash. (The problem was caused by
+a wrong value being supplied to Adapt It for the Adapt It built-in interface 
+localization functionality. Code to protect against this has been added.)
+* The following sequence of actions caused a crash. Select some
+source text words, do File / Close, then do some command which tried
+to remove the left-over selection parameters before the layout was 
+re-created & updated, such as a document Open attempt.
 
 ----------------------------------------------
 Version 5.2.2 update 17April2010:

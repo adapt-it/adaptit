@@ -1192,6 +1192,10 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		return;
 	}
 
+	// ensure no selection remains, in case the layout is destroyed later and the app
+	// tries to do a RemoveSelection() call on a non-existent layout
+	gpApp->GetView()->RemoveSelection();
+
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		// free translation mode is on, so we must first turn it off

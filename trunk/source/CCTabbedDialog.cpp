@@ -935,7 +935,13 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 		else
 		{
 			// whm: I think it is safest to just try using the default system encoding
-			gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+			// BEW 26July10, the default is not the system encoding as assumed.
+			// wxFONTENCODING_DEFAULT has a value of 0, and if passed to wxCSConv()
+			// conversion function (which happens within DoInputConversion() below), then
+			// wxWidgets asserts. So either use wxFONTENCODING_SYSTEM explicitly, or
+			// wxFONTENCODING_UTF8 -- and in the Unicode build, the latter is always best
+			//gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+			gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
 		}
 	}
 
