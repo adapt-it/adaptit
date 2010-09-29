@@ -1,3 +1,29 @@
+----------------------------------------------
+Version 5.2.3 update 29September2010:
+----------------------------------------------
+Bug fixes in 5.2.3
+----------------------------------------------
+* Attempting to run the application on some localized versions 
+of Windows Vista would, on some computers, cause a crash. (The 
+problem was caused by a wrong value being supplied to Adapt It 
+for the Adapt It built-in interface localization functionality. 
+Code to protect against this has been added.)
+* Creating a CC table using the Unicode application, the 
+application crashed after the user created a filename for the 
+CC table.
+* The placeholder insertion mechanism had become partly broken, 
+in particular, inserting a placeholder after a word which ended 
+with punctuation, and telling Adapt It to associate the 
+placeholder leftwards, the left association did not happen and 
+the punctuation did not get transferred to the end of the 
+placeholder. Similar problems with right association happened 
+too.
+* The following sequence of actions caused a crash. Select some
+source text words, do File / Close, then do some command which 
+tried to remove the left-over selection parameters before the 
+layout was re-created & updated, such as a document Open attempt.
+
+----------------------------------------------
 Version 5.2.2 update 17April2010:
 ----------------------------------------------
 Bug fixes in 5.2.2
@@ -34,7 +60,7 @@ Bug fixes in 5.2.1
 * Having source text selected when invoking any of the Split Document 
 or Join Document commands resulted in a crash when the application
 tried to remove the selection at the end of the operation.
-* Reatranslating a footnote at the end of the document with a longer 
+* Retranslating a footnote at the end of the document with a longer 
 footnote caused a crash.
 * Doing Restore Knowledge Base when in book folder mode, when the
 restore starts working through the book folders it fell into an 
