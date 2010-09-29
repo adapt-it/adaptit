@@ -103,6 +103,27 @@ struct aiGroup
 
 WX_DECLARE_OBJARRAY(aiGroup*,AIGroupArray); // store pointers, and manage the heap ourselves
 
+struct SectionInfo
+{
+	wxString strChunk;
+	bool bChapterStartsAtSectionStart; // default should be FALSE
+	bool bChapterEndsAtSectionEnd; // default should be FALSE
+    // a section can span a change of chapters (eg. Mark 8 to Mark 9), and so if both the
+    // above booleans are false it is possible that bChapterChangesMidSection can be TRUE,
+    // in which case strChapterNumAtSectionStart and strChapterNumAtSectionEnd will contain
+    // different values; it's even theoretically possible that the chapter number will
+	// change mid section and also at its end or start or both, though I doubt this would
+	// ever occur.
+	wxString strChapterNumAtSectionStart; // default should be empty string
+	wxString strChapterNumAtSectionEnd; // default should  be empty string
+	bool bChapterChangesMidSection; // default should be FALSE
+
+	// add more ??
+
+};
+
+WX_DECLARE_OBJARRAY(SectionInfo*,AISectionInfoArray); // store pointers, and manage the heap ourselves
+
 struct TitleInfo
 {
 	// currently supporting: id h h1 h2 h3 mt mt1 mt2 mt3, and SFM PNG: st
@@ -127,6 +148,19 @@ struct IntroductionInfo
 	AIGroupArray aiGroupArray; // stores aiGroup struct pointers
 };
 
+struct CanonInfo
+{
+	// Use an AISectionArray to store all the SectionInfo structs which chunk the
+	// cannonical material into a series of sections.
+	// Supports \s \s1 \s2 \s3 \ms \ms1 \ms2 \ms3 as as section defining markers, but we
+	// include code in our sectioning parser to ensure that a chapter \c marker preceding
+	// any of these is included within that section's chunk; the sectioning markers are
+	// space delimited in the string m_sectioningMkrs
+
+	wxString strChunk;
+	AISectionInfoArray arrSections;
+};
+
 
 class Usfm2Oxes : public wxEvtHandler
 {
@@ -149,13 +183,17 @@ private:
 
 // -----------------PRIVATE FUNCTIONS---------------------------
 
-	// setup functions & shutdown functions...
+	// setup functions & shutdown functions & initializing functions...
 	
 	void Initialize();
+	void InitializeSectionInfo(SectionInfo* pSectionInfo);
 	void ClearAIGroupArray(AIGroupArray& rGrpArray);
 	void ClearTitleInfo();
 	void ClearIntroInfo();
+	void ClearCanonInfo();
+	void ClearSectionInfo(SectionInfo* pSectionInfo);
 	void ClearNoteDetails(NoteDetailsArray& rNoteDetailsArray);
+	void ClearAISectionInfoArray(AISectionInfoArray& arrSections);
 	void SetupOxesTags();
 
 // ---------------------------------------------------------------
@@ -179,21 +217,24 @@ private:
 	bool IsAHaltingMarker(wxString& buff, CustomMarkersFT inclOrExclFreeTrans, 
 			CustomMarkersN inclOrExclNote); // used to ensure a halt when parsing a marker's content
 	bool IsAVerseBridge(wxString& data);
+	bool IsNormalSectionMkr(wxString& buffer); // TRUE if at start of buffer, \s or \s1 
+											   // or \s2 or \s3 is present
 	bool IsSpecialTextStyleMkr(wxChar* pChar);
 	//bool IsEmbeddedWholeMarker(wxChar* pChar);
 	bool IsOneOf(wxString& str, wxArrayString& array, CustomMarkersFT inclOrExclFreeTrans, 
 			CustomMarkersN inclOrExclNote); // eg. check for SFMkr in array
+	bool IsWhiteSpace(wxChar& ch);
 
 // ---------------------------------------------------------------
 
-	// chunking functions for SFM or USFM...
+	// chunking functions for USFM...
 	
 	wxString* GetTitleInfoChunk(wxString* pInputBuffer);
 	wxString* GetIntroInfoChunk(wxString* pInputBuffer);
 
 // ---------------------------------------------------------------
 
-	// (U)SFM parsing functions...
+	// USFM parsing functions...
 	
 	// a parser which parses over inline (ie. formatting) USFM markers until next halting
 	// SF marker is encountered
@@ -205,7 +246,11 @@ private:
 	void ParseTitleInfoForAIGroupStructs(); 
 	// a parser which takes the IntroInfo chunk and parses it for it's array of aiGroup
 	// structs
-	void ParseIntroInfoForAIGroupStructs(); 
+	void ParseIntroInfoForAIGroupStructs();
+	// a parser which takes the m_pCanonInfo->strChunk data and parses it into a series of
+	// SectionInfo structs - each of the latter stores the section data in its own
+	// strChunk member
+	void ParseCanonIntoSections(CanonInfo* pCanonInfo);
 
 
 // ---------------------------------------------------------------
@@ -217,6 +262,10 @@ private:
 	void WarnNoEndmarkerFound(wxString endMkr, wxString content);
 	void WarnAtBufferEndWithoutFindingEndmarker(wxString endMkr);
 	void SetNoteDetails(NoteDetails* pDetails, int beginOffset, wxString& dataStr);
+	wxString GetChapterNumber(wxString& subStr); // subStr will have white space
+				// followed by a chapter number string followed by probably a newline,
+				// and we want to just extract a copy of the chapter number without 
+				// changing anything in the subStr string
 
 
 // ---------------------------------------------------------------
@@ -237,6 +286,10 @@ private:
 							// charFormatMkrs & populated in class creator
 	wxString m_specialEndMkrs; // special markers not listed in the global 
 							   // charFormatMkrs & populated in class creator
+	wxString m_sectioningMkrs; // these divide the canonical part into sections,
+							   // no endmarkers are involved for these;
+							   // populated in Initialize()
+
 	wxString* m_pBuffer; // ptr to the (ex-class) buffer containing the (U)SFM text
 	bool m_bContainsFreeTrans;
 	bool m_bContainsNotes;
@@ -244,9 +297,16 @@ private:
 	wxString m_freeEndMkr; // "\free*"
 	wxString m_noteMkr; // "\note"
 	wxString m_noteEndMkr; // "\note*"
+	wxString m_chapterMkr; // "\c"
+	wxString m_verseMkr; // "\v"
+	wxString backslash; // "\"
+	wxString m_majorSectionMkr; // any marker beginning with "\ms"
+
 
 	TitleInfo* m_pTitleInfo; // struct for storage for TitleInfo part of document
 	IntroductionInfo* m_pIntroInfo; // struct for storage of Introduction material
+	CanonInfo* m_pCanonInfo; // struct for storing the canon data in wxString, and 
+							 // its parsing into SectionInfo chunks in AISectionInfoArray
 
 // ---------------------------------------------------------------
 

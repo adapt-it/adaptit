@@ -1461,9 +1461,17 @@ void CNotes::MoveToAndOpenLastNote()
 /// to the right to create the needed gaps.)
 /// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 27Sep10, trying to remove a big slab of source text near end of the document in
+/// which there were many Notes, pLocationsList was an empty lis, and so the test for
+/// (*pLocationsList)[0] failed. The appropriate behaviour is to test for an empty list
+/// and return FALSE if so - then the caller will simply abandon those notes because they
+/// can't be placed anywhere, and tell the user so.
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
+	if (pLocationsList->IsEmpty())
+		return FALSE; // abandon any unplaced notes which remain
+
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
 	int aSequNum;
