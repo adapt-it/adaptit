@@ -163,8 +163,8 @@ listed below.
 			>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 			>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -244,8 +244,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -271,13 +271,13 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
@@ -298,8 +298,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -352,8 +352,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -379,8 +379,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -401,8 +401,8 @@ listed below.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
@@ -487,8 +487,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -514,8 +514,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -541,18 +541,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -568,18 +568,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -595,8 +595,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -622,18 +622,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -644,8 +644,8 @@ listed below.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
@@ -703,8 +703,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -730,18 +730,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -811,8 +811,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -838,8 +838,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -865,8 +865,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -892,8 +892,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -919,18 +919,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -946,18 +946,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -1027,8 +1027,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1054,8 +1054,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1081,8 +1081,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1108,8 +1108,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1189,8 +1189,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1243,8 +1243,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1265,8 +1265,8 @@ listed below.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
@@ -1292,8 +1292,8 @@ listed below.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
@@ -1378,18 +1378,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -1400,8 +1400,8 @@ listed below.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
@@ -1432,8 +1432,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1513,8 +1513,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1567,18 +1567,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -1594,18 +1594,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -1621,18 +1621,18 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
@@ -1702,8 +1702,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
@@ -1778,8 +1778,8 @@ listed below.
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
@@ -1810,8 +1810,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Skilled"
