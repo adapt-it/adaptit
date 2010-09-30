@@ -251,19 +251,27 @@ void CEditPreferencesDlg::CreateControls()
 	if (filterPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(filterPageSize.GetX());
 	if (filterPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(filterPageSize.GetY());
 
-	wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
-	wxSize prefsSize = this->GetSize();
-	wxSize prefsClientSize = this->GetClientSize();
-	int prefsFrameHeight = abs(prefsSize.GetY() - prefsClientSize.GetY());
-    if (neededSize.GetHeight() + prefsFrameHeight > displaySize.GetHeight())
-    {
-		// We fit the prefs to the neededSize but it will be too big to fit in the display
-		// window, so we will have to limit the size of the prefs dialog and possibly make the 
-		// taller pages such as the punctMapPage a scrolling pane.
-		wxSize maxSz;
-		maxSz.SetHeight(displaySize.GetHeight() - 50);
-		this->SetMaxSize(maxSz);
-    }
+	// whm 31Aug10 added test below to validate results from wxDisplay after finding some problems with
+	// an invalid index on a Linux machine that had dual monitors.
+	int indexOfDisplay,numDisplays;
+	numDisplays = wxDisplay::GetCount();
+	indexOfDisplay = wxDisplay::GetFromWindow(this);
+	if (numDisplays >= 1 && numDisplays <= 4 && indexOfDisplay != wxNOT_FOUND && indexOfDisplay >= 0 && indexOfDisplay <=3)
+	{
+		wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
+		wxSize prefsSize = this->GetSize();
+		wxSize prefsClientSize = this->GetClientSize();
+		int prefsFrameHeight = abs(prefsSize.GetY() - prefsClientSize.GetY());
+		if (neededSize.GetHeight() + prefsFrameHeight > displaySize.GetHeight())
+		{
+			// We fit the prefs to the neededSize but it will be too big to fit in the display
+			// window, so we will have to limit the size of the prefs dialog and possibly make the 
+			// taller pages such as the punctMapPage a scrolling pane.
+			wxSize maxSz;
+			maxSz.SetHeight(displaySize.GetHeight() - 50);
+			this->SetMaxSize(maxSz);
+		}
+	}
 	// The wxNotebook will automatically adjust to the largest page if the conditional block above
 	// doesn't execute.
 }
