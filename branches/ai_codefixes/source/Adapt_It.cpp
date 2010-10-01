@@ -1202,7 +1202,7 @@ const wxString defaultProfileItems[] =
 	_T("UserProfilesSupport:profileVersion=\"1.0\":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
 	   _T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
 	   _T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
-	   _T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\""),
+	   _T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\":"),
 	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
@@ -1253,7 +1253,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1263,7 +1263,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1273,7 +1273,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1283,7 +1283,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -2546,6 +2546,7 @@ void SetupDefaultStylesMap()
 // whm added 11Sep10
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
+/// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being populated
 /// \remarks
 /// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
 /// called if the app cannot find the AI_UserProfiles.xml file and it must use 
@@ -2554,7 +2555,7 @@ void SetupDefaultStylesMap()
 /// the m_pUserProfiles is populated by the AtPROFILEEndTag() function in XML.cpp, 
 /// rather than by this SetupDefaultUserProfiles() function.
 /////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::SetupDefaultUserProfiles()
+void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 {
 	wxString field = _T("");
 	int nDefaultUserProfileItems;
@@ -2610,15 +2611,15 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 					}
 					else if (field == wxString::FromAscii(end_menu))
 					{
-						m_pUserProfiles->profileItemList.Append(pUserProfileItem);
+						pUserProfiles->profileItemList.Append(pUserProfileItem);
 					}
 					else if (field == wxString::FromAscii(userprofilessupport))
 					{
-						m_pUserProfiles = new UserProfiles;
-						m_pUserProfiles->profileVersion = _T("");
-						m_pUserProfiles->definedProfileNames.Clear();
-						m_pUserProfiles->descriptionProfileTexts.Clear();
-						m_pUserProfiles->profileItemList.Clear();
+						pUserProfiles = new UserProfiles;
+						pUserProfiles->profileVersion = _T("");
+						pUserProfiles->definedProfileNames.Clear();
+						pUserProfiles->descriptionProfileTexts.Clear();
+						pUserProfiles->profileItemList.Clear();
 					}
 					else if (field == wxString::FromAscii(end_userprofilessupport))
 					{
@@ -2641,18 +2642,18 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 					valueStr.Trim(TRUE);
 					if (attrStr == wxString::FromAscii(profileVersion))
 					{
-						wxASSERT(m_pUserProfiles != NULL);
-						m_pUserProfiles->profileVersion = valueStr;
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->profileVersion = valueStr;
 					}
 					else if (attrStr.Find(wxString::FromAscii(definedProfile)) == 0)
 					{
-						wxASSERT(m_pUserProfiles != NULL);
-						m_pUserProfiles->definedProfileNames.Add(valueStr);
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->definedProfileNames.Add(valueStr);
 					}
 					else if (attrStr.Find(wxString::FromAscii(descriptionProfile)) == 0)
 					{
-						wxASSERT(m_pUserProfiles != NULL);
-						m_pUserProfiles->descriptionProfileTexts.Add(valueStr);
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->descriptionProfileTexts.Add(valueStr);
 					}
 					else if (attrStr == wxString::FromAscii(itemID))
 					{
@@ -2707,6 +2708,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 // whm added 11Sep10
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
 /// \remarks
 /// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
 /// called if the app cannot find the AI_UserProfiles.xml file and it must use 
@@ -2715,7 +2717,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles()
 /// m_pAI_MenuStructure is populated by the AtPROFILEEndTag() function in XML.cpp, 
 /// rather than by this SetupDefaultMenuStructure() function.
 /////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::SetupDefaultMenuStructure()
+void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
 {
 	wxString field = _T("");
 	int nDefaultMenuStructureItems;
@@ -2773,15 +2775,15 @@ void CAdapt_ItApp::SetupDefaultMenuStructure()
 					}
 					else if (field == wxString::FromAscii(end_main_menu))
 					{
-						wxASSERT(m_pAI_MenuStructure != NULL);
+						wxASSERT(pMenuStructure != NULL);
 						wxASSERT(pMainMenuItem != NULL);
-						m_pAI_MenuStructure->aiMainMenuItems.Append(pMainMenuItem);
+						pMenuStructure->aiMainMenuItems.Append(pMainMenuItem);
 						pMainMenuItem = (AI_MainMenuItem*)NULL; // ready for the next use
 					}
 					else if (field == wxString::FromAscii(menuStructure))
 					{
-						m_pAI_MenuStructure = new AI_MenuStructure;
-						m_pAI_MenuStructure->aiMainMenuItems.Clear();
+						pMenuStructure = new AI_MenuStructure;
+						pMenuStructure->aiMainMenuItems.Clear();
 					}
 					else if (field == wxString::FromAscii(end_menuStructure))
 					{
@@ -5646,10 +5648,10 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 							tempStr.GetChar(0) == _T('9')) && tempStr.GetChar(1) == _T(' ') )
 						{
 							numFileHistoryItems++;
-							wxLogDebug(_T("Menu item skipped for deletion = %s"),mItem->GetLabel().c_str());
+							//wxLogDebug(_T("Menu item skipped for deletion = %s"),mItem->GetLabel().c_str());
 							continue;
 						}
-						wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
+						//wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
 						removedItem = pMainMenuItem_CurrentMenuBar->Remove(mItem);
 						delete removedItem;
 						removedItem = (wxMenuItem*)NULL;
@@ -6069,6 +6071,216 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
 		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() after the external XML files have been successfully read.
+/// Examines the App's internal unix-like strings with those in the external xml files and
+/// reports any inconsistencies to the developer in the form of an assert message plus
+/// wxLogDebug() outputs for each inconsistency found. This function doesn't issue any
+/// messages to the user of the release version; it merely exists to help the developer
+/// know of any inconsistencies and what they are.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
+{
+	// get temporary data structures from the internal unix-like strings
+	UserProfiles* pTempUserProfiles; // delete at end of function
+	AI_MenuStructure* pTempMenuStructure;; // delete at end of function
+	SetupDefaultUserProfiles(pTempUserProfiles); // calls new UserProfiles
+	SetupDefaultMenuStructure(pTempMenuStructure); // calls new AI_MenuStructure
+	// these temp... structs now represent what's in the internal unix-like strings
+	// whereas the values on the App (m_pUserProfiles and m_pAI_MenuStructure)
+	// represent what was read in from the external XML files.
+	
+	// First make sure we have good pointers
+	if (pTempUserProfiles == NULL)
+	{
+		wxLogDebug(_T("The pointer to the internal UserProfiles is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		return;
+	}
+	if (m_pUserProfiles == NULL)
+	{
+		wxLogDebug(_T("The pointer to the App's m_pUserProfiles is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		return;
+	}
+	if (pTempMenuStructure == NULL)
+	{
+		wxLogDebug(_T("The pointer to the internal AI_MenuStructure is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		return;
+	}
+	if (m_pAI_MenuStructure == NULL)
+	{
+		wxLogDebug(_T("The pointer to the App's m_pAI_MenuStructure is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		return;
+	}
+	// compare the profile version
+	// Note: When an administrator customizes a given profile we expect that the following things may
+	// be different between our internal values and the external xml file:
+	//    1. The profileVersion. We augment the version number if an admin makes changes to AI_UserProfiles. This
+	//       also is a signal that the user profiles have been edited.
+	//    2. The descriptionProfileTexts. These are editable by the admin.
+	//    3. The definedProfileNames. These would not normally be edited unless the admin changes or
+	//    localizes the names of the profiles/tabs.
+	if (pTempUserProfiles->profileVersion != m_pUserProfiles->profileVersion)
+	{
+		wxLogDebug(_T("The internal and external profileVersions have different versions %s and %s"),
+			pTempUserProfiles->profileVersion.c_str(),m_pUserProfiles->profileVersion.c_str());
+	}
+	// compare the number of elements
+	if (pTempUserProfiles->definedProfileNames.GetCount() != m_pUserProfiles->definedProfileNames.GetCount())
+	{
+		wxLogDebug(_T("The internal and external definedProfileNames arrays have different count %d and %d"),
+			pTempUserProfiles->definedProfileNames.GetCount(),m_pUserProfiles->definedProfileNames.GetCount());
+	}
+	if (pTempUserProfiles->descriptionProfileTexts.GetCount() != m_pUserProfiles->descriptionProfileTexts.GetCount())
+	{
+		wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different count %d and %d"),
+			pTempUserProfiles->descriptionProfileTexts.GetCount(),m_pUserProfiles->descriptionProfileTexts.GetCount());
+	}
+	if (pTempUserProfiles->profileItemList.GetCount() != m_pUserProfiles->profileItemList.GetCount())
+	{
+		wxLogDebug(_T("The internal and external profileItemLists have different count %d and %d"),
+			pTempUserProfiles->profileItemList.GetCount(),m_pUserProfiles->profileItemList.GetCount());
+	}
+
+	// Check for changes in their text and usedVisibilityValues arrays, but only if they have the same
+	// counts.
+	if (pTempUserProfiles->definedProfileNames.GetCount() == m_pUserProfiles->definedProfileNames.GetCount())
+	{
+		int ct;
+		int tot;
+		tot = pTempUserProfiles->definedProfileNames.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			wxString tempStr, appStr;
+			tempStr = pTempUserProfiles->definedProfileNames.Item(ct);
+			appStr = m_pUserProfiles->definedProfileNames.Item(ct);
+			if (pTempUserProfiles->definedProfileNames.Item(ct) != m_pUserProfiles->definedProfileNames.Item(ct))
+			{
+				wxLogDebug(_T("The internal and external definedProfileNames arrays have different names\n   %s and %s"),
+					tempStr.c_str(),appStr.c_str());
+			}
+		}
+	}
+	if (pTempUserProfiles->descriptionProfileTexts.GetCount() == m_pUserProfiles->descriptionProfileTexts.GetCount())
+	{
+		int ct;
+		int tot;
+		tot = pTempUserProfiles->descriptionProfileTexts.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			wxString tempStr, appStr;
+			tempStr = pTempUserProfiles->descriptionProfileTexts.Item(ct);
+			appStr = m_pUserProfiles->descriptionProfileTexts.Item(ct);
+			if (tempStr != appStr)
+			{
+				wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different descriptions\n   %s and %s"),
+					tempStr.c_str(),appStr.c_str());
+			}
+		}
+	}
+	if (pTempUserProfiles->profileItemList.GetCount() == m_pUserProfiles->profileItemList.GetCount())
+	{
+		ProfileItemList::Node* posTemp;
+		ProfileItemList::Node* posApp;
+		int count;
+		int item_count = pTempUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			posTemp = pTempUserProfiles->profileItemList.Item(count);
+			posApp = m_pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pTempItem;
+			UserProfileItem* pAppItem;
+			pTempItem = posTemp->GetData();
+			pAppItem = posApp->GetData();
+			if (pTempItem->itemID != pAppItem->itemID)
+			{
+				wxString tempStr = pTempItem->itemID;
+				wxString appStr = pAppItem->itemID;
+				wxLogDebug(_T("The internal and external itemID strings differ for this item: (%s) and (%s)"),
+					tempStr.c_str(),appStr.c_str());
+			}
+			if (pTempItem->itemText  != pAppItem->itemText)
+			{
+				wxString tempStr = pTempItem->itemText;
+				wxString appStr = pAppItem->itemText;
+				wxLogDebug(_T("The internal and external itemText strings differ for itemID: %s (%s) and (%s)"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			if (pTempItem->itemDescr != pAppItem->itemDescr)
+			{
+				wxString tempStr = pTempItem->itemDescr;
+				wxString appStr = pAppItem->itemDescr;
+				wxLogDebug(_T("The internal and external itemDescr strings differ for itemID: %s (%s) and (%s)"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			if (pTempItem->itemType  != pAppItem->itemType)
+			{
+				wxString tempStr = pTempItem->itemType;
+				wxString appStr = pAppItem->itemType;
+				wxLogDebug(_T("The internal and external itemType value differs for itemID: %s (%s) and (%s)"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			if (pTempItem->adminCanChange != pAppItem->adminCanChange)
+			{
+				wxString tempStr = pTempItem->adminCanChange;
+				wxString appStr = pAppItem->adminCanChange;
+				wxLogDebug(_T("The internal and external adminCanChange value differs for itemID: %s (%s) and (%s)"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			int ct;
+			int totCt;
+			totCt = pTempItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < totCt; ct++)
+			{
+				if (pTempItem->usedProfileNames.Item(ct) != pAppItem->usedProfileNames.Item(ct))
+				{
+					wxString tempStr = pTempItem->usedProfileNames.Item(ct);
+					wxString appStr = pAppItem->usedProfileNames.Item(ct);
+					wxLogDebug(_T("The internal and external usedProfileNames differ for itemID: %s (%s) and (%s)"),
+						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+				}
+				// Note: The usedProfileNames should always correspond to the definedProfileNames in the
+				// top level UserProfilesSupport tag's definedProfileN attributes. Therefore we not only
+				// check for consistency between the internal and external ones (above), but also that they
+				// match the defined names (see next 2 tests).
+				if (pTempItem->usedProfileNames.Item(ct) != pTempUserProfiles->definedProfileNames.Item(ct))
+				{
+					wxString tempStrUsed = pTempItem->usedProfileNames.Item(ct);
+					wxString tempStrDefined = pTempUserProfiles->definedProfileNames.Item(ct);
+					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s)"),
+						pTempItem->itemID.c_str(),tempStrUsed.c_str(),tempStrDefined.c_str());
+				}
+				if (pAppItem->usedProfileNames.Item(ct) != m_pUserProfiles->definedProfileNames.Item(ct))
+				{
+					wxString appStrUsed = pAppItem->usedProfileNames.Item(ct);
+					wxString appStrDefined = m_pUserProfiles->definedProfileNames.Item(ct);
+					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s)"),
+						pTempItem->itemID.c_str(),appStrUsed.c_str(),appStrDefined.c_str());
+				}
+				if (pTempItem->usedVisibilityValues.Item(ct) != pAppItem->usedVisibilityValues.Item(ct))
+				{
+					wxString tempStr = pTempItem->usedVisibilityValues.Item(ct);
+					wxString appStr = pAppItem->usedVisibilityValues.Item(ct);
+					wxLogDebug(_T("The internal and external usedVisibilityValues differ for itemID: %s (%s) and (%s)"),
+						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+				}
+				if (pTempItem->usedFactoryValues.Item(ct) != pAppItem->usedFactoryValues.Item(ct))
+				{
+					wxString tempStr = pTempItem->usedFactoryValues.Item(ct);
+					wxString appStr = pAppItem->usedFactoryValues.Item(ct);
+					wxLogDebug(_T("The internal and external usedFactoryValues differ for itemID: %s (%s) and (%s)"),
+						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+				}
+			}
+		}
+	}
+	// TODO: Compare the menu structure data
+	delete pTempUserProfiles;
+	delete pTempMenuStructure;
+}
+
 
 /* This function is currently unused (and possibly untested/incomplete) but might be useful in the future
 bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind)
@@ -11555,20 +11767,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
 			// We'll populate the list boxes with default settings parsed from our
 			// default unix-like strings.
-			SetupDefaultUserProfiles();
-			SetupDefaultMenuStructure();
+			SetupDefaultUserProfiles(m_pUserProfiles);
+			SetupDefaultMenuStructure(m_pAI_MenuStructure);
+		}
+		else
+		{
+			// The AI_UserProfiles.xml file was read, check for inconsistencies between
+			// our internal unix-like default strings and what was in AI_UserProfiles.xml.
+			ReportAnyInternalAndExternalProfilesInconsistencies();
 		}
 	}
 	else
 	{
         // no "AI_UserProfiles.xml" file in the work folder, so use default user profile (none);
-		wxLogDebug(_T("AI_UserProfiles.xml not found in work folder - using Adapt It's default user profile."));
+		wxLogDebug(_T("AI_UserProfiles.xml not found in work folder - using Adapt It's default internal user profile."));
 		m_bUsingAdminDefinedUserProfile = FALSE;
 		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
 		// We'll populate the list boxes with default settings parsed from our
 		// default unix-like strings.
-		SetupDefaultUserProfiles();
-		SetupDefaultMenuStructure();
+		SetupDefaultUserProfiles(m_pUserProfiles);
+		SetupDefaultMenuStructure(m_pAI_MenuStructure);
 	}
 
 	// At this point the config files have been read and the AI_UserProfiles.xml file has been

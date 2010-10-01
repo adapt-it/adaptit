@@ -2635,13 +2635,16 @@ public:
 	// whm added 21Sep10 the following for user profile support
 	bool	ConfigureInterfaceForUserProfile();
 	void	MakeMenuInitializationsAndPlatformAdjustments();
+	void	ReportAnyInternalAndExternalProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxArrayPtrVoid GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem);
 	wxString GetTopLevelMenuName(TopLevelMenu topLevelMenu);
 	wxMenu* GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu);
-	int GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
+	int		GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
+	void	SetupDefaultUserProfiles(UserProfiles*& pUserProfiles);
+	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure);
 	// The following functions are currently unused and possibly incomplete/untested, but are left
 	// here because they might contain useful material for future use:
 	//bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);
@@ -2757,9 +2760,6 @@ public:
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
 	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
-
-	void	SetupDefaultUserProfiles();
-	void	SetupDefaultMenuStructure();
 
     // rde: version 3.4.1 and up, determining the correct 'encoding=' string to put in an
     // XML file takes some extra thought...

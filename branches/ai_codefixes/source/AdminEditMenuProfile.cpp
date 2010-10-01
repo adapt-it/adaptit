@@ -261,7 +261,8 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// saved any changes to AI_UserProfiles.xml).
 	// Note: Reading the AI_UserProfiles.xml file, also repopulates the 
 	// m_pAI_MenuStructure with the latest current data.
-	wxString readDataFrom = _T("XML File");
+	wxString readDataFrom;
+	readDataFrom = _T("XML File");
 	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
 	if (!bReadOK)
 	{
@@ -269,10 +270,11 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// We'll populate the list boxes with default settings parsed from our
 		// default unix-like strings
 		readDataFrom = _T("Internal Default Strings");
-		m_pApp->SetupDefaultUserProfiles();
-		m_pApp->SetupDefaultMenuStructure();
+		m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles);
+		m_pApp->SetupDefaultMenuStructure(m_pApp->m_pAI_MenuStructure);
 	}
 	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
+	wxLogDebug(_T("Reading data from the %s"),readDataFrom.c_str());
 	
 	// Now that we've read the data (xml file or string defaults if xml file not present)
 	// we can initialize some characteristics of the dialog.

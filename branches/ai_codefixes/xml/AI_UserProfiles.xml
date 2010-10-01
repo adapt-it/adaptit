@@ -281,8 +281,8 @@ listed below.
 		>
 		</PROFILE>
 		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 </MENU>
