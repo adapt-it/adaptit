@@ -92,14 +92,9 @@
 #include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
 #include "NavProtectNewDoc.h"
 
-// forward declarations for functions called in tellenc.cpp
-// GDLC Temporary work around for PPC STL library bug
-//#if defined(__WXMAC__) && defined(__POWERPC__ )
-// tellenc() not used in PPC builds pending bug fix in PPC STL
-//#else
-//void init_utf8_char_table();
-//const char* tellenc(const char* const buffer, const size_t len);
-//#endif
+// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
+void init_utf8_char_table();
+const char* tellenc(const char* const buffer, const size_t len);
 
 // struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;
 // for glossing we can use the same structure with the understanding that the oldAdaptation

@@ -3361,15 +3361,10 @@ bool IsLoadableFile(wxString& absPathToFile)
 	// now find out what the file's data is
 	CBString resultStr;
 	resultStr.Empty();
-#if defined(__WXMAC__) && defined(__POWERPC__ )
-	// whm added conditional compile test to prevent link error on Mac PPC 
-	// build (part of universal binary releases on Mac)
-	// leave resultStr empty on PPC builds (it won't tell if resulsStr indicates a binary file)
-#else
+// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 	resultStr = tellenc2(saved_ptr, len); // xml files are returned as "binary" too
 										  // so hopefull html files without an extension
 										  // will likewise be "binary" & so be rejected
-#endif
 
 	f.Close();
 	// check it's not xml
@@ -4238,15 +4233,9 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
                 // <wuyongwei@gmail.com>. See tellenc.cpp source file for Copyright,
                 // Permissions and Restrictions.
 
-// GDLC Temporary work around for PPC STL library bug
-#if defined(__WXMAC__) && defined(__POWERPC__ )
-//[code here would build for PowerPC Macs only]
-				const char* enc = "utf-8";
-				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-#else
+// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 				init_utf8_char_table();
 				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
-#endif
 				if (!(enc) || strcmp(enc, "unknown") == 0)
 				{
 					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
