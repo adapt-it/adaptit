@@ -7574,6 +7574,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
+    item1->AppendSeparator();
     item0->Append( item1, _("&File") );
     
     wxMenu* item2 = new wxMenu;
@@ -7670,7 +7671,7 @@ wxMenuBar *AIMenuBarFunc()
     wxMenu* item8 = new wxMenu;
     item8->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
     item8->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
-    item8->Append( ID_USER_FORUM, _("User Forum (Requires Internet Access)"), wxT("") );
+    item8->Append( ID_USER_FORUM, _("User Forum (Requires Internet Access)"), _("Go to the Adapt It User Forum on the Internet in your browser") );
     item8->AppendSeparator();
     item8->Append( ID_HELP_USE_TOOLTIPS, _("Use Tooltips"), _("Select this item to turn on or turn off tooltip help messages"), wxITEM_CHECK );
     item8->AppendSeparator();

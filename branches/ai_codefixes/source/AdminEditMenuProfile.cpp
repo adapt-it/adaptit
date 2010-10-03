@@ -122,61 +122,8 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 {
 	// deallocate the memory used by our temporary objects
-	if (tempUserProfiles != NULL)
-	{
-		ProfileItemList::Node* pos;
-		int count;
-		int item_count = tempUserProfiles->profileItemList.GetCount();
-		for(count = 0; count < item_count; count++)
-		{
-			pos = tempUserProfiles->profileItemList.Item(count);
-			UserProfileItem* pItem;
-			pItem = pos->GetData();
-			//wxLogDebug(_T("Destructor temp Deleting UserProfileItem %s"),pItem->itemText.c_str());
-			delete pItem;
-			pItem = (UserProfileItem*)NULL;
-		}
-		tempUserProfiles->profileItemList.Clear();
-		//wxLogDebug(_T("Destructor temp InitDialog Deleting m_pUserProfiles - end"));
-		delete tempUserProfiles;
-		tempUserProfiles = (UserProfiles*)NULL;
-	}
-
-	if (tempMenuStructure != NULL)
-	{
-		MainMenuItemList::Node* mmpos;
-		int ct_mm;
-		int total_mm = tempMenuStructure->aiMainMenuItems.GetCount();
-		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
-		{
-			mmpos = tempMenuStructure->aiMainMenuItems.Item(ct_mm);
-			AI_MainMenuItem* pmmItem;
-			pmmItem = mmpos->GetData();
-			wxASSERT(pmmItem != NULL);
-			
-			SubMenuItemList::Node* smpos;
-			int ct_sm;
-			int total_sm = pmmItem->aiSubMenuItems.GetCount();
-			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
-			{
-				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
-				AI_SubMenuItem* psmItem;
-				psmItem = smpos->GetData();
-				wxASSERT(psmItem != NULL);
-				//wxLogDebug(_T("Destructor temp InitDialog Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
-				delete psmItem;
-				psmItem = (AI_SubMenuItem*)NULL;
-			}
-			pmmItem->aiSubMenuItems.Clear();
-			//wxLogDebug(_T("Destructor temp InitDialog Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
-			delete pmmItem;
-			pmmItem = (AI_MainMenuItem*)NULL;
-		}
-		tempMenuStructure->aiMainMenuItems.Clear();
-		//wxLogDebug(_T("Destructor temp InitDialog Deleting m_pAI_MenuStructure - end"));
-		delete tempMenuStructure;
-		tempMenuStructure = (AI_MenuStructure*)NULL;
-	}
+	m_pApp->DestroyUserProfiles(tempUserProfiles);
+	m_pApp->DestroyMenuStructure(tempMenuStructure);
 }
 
 void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -187,68 +134,12 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
 	compareLBStr = _T("      %s   [%s]");
 	
-	// Deallocate the memory in m_pUserProfiles. This is a single 
-	// instance of the UserProfiles struct that was allocated on the heap. Note
-	// that m_pUserProfiles also contains a list of pointers in its 
-	// profileItemList member that point to UserProfileItem instances on the 
-	// heap.
-	if (m_pApp->m_pUserProfiles != NULL)
-	{
-		ProfileItemList::Node* pos;
-		int count;
-		int item_count = m_pApp->m_pUserProfiles->profileItemList.GetCount();
-		for(count = 0; count < item_count; count++)
-		{
-			pos = m_pApp->m_pUserProfiles->profileItemList.Item(count);
-			UserProfileItem* pItem;
-			pItem = pos->GetData();
-			//wxLogDebug(_T("InitDialog Deleting UserProfileItem %s"),pItem->itemText.c_str());
-			delete pItem;
-			pItem = (UserProfileItem*)NULL;
-		}
-		m_pApp->m_pUserProfiles->profileItemList.Clear();
-		//wxLogDebug(_T("InitDialog Deleting m_pUserProfiles - end"));
-		delete m_pApp->m_pUserProfiles;
-		m_pApp->m_pUserProfiles = (UserProfiles*)NULL;
-	}
-
-	// Deallocate any memory that was allocated at startup or last invocation
-	// of this dialog
-	if (m_pApp->m_pAI_MenuStructure != NULL)
-	{
-		MainMenuItemList::Node* mmpos;
-		int ct_mm;
-		int total_mm = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.GetCount();
-		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
-		{
-			mmpos = m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Item(ct_mm);
-			AI_MainMenuItem* pmmItem;
-			pmmItem = mmpos->GetData();
-			wxASSERT(pmmItem != NULL);
-			
-			SubMenuItemList::Node* smpos;
-			int ct_sm;
-			int total_sm = pmmItem->aiSubMenuItems.GetCount();
-			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
-			{
-				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
-				AI_SubMenuItem* psmItem;
-				psmItem = smpos->GetData();
-				wxASSERT(psmItem != NULL);
-				//wxLogDebug(_T("InitDialog Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
-				delete psmItem;
-				psmItem = (AI_SubMenuItem*)NULL;
-			}
-			pmmItem->aiSubMenuItems.Clear();
-			//wxLogDebug(_T("InitDialog Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
-			delete pmmItem;
-			pmmItem = (AI_MainMenuItem*)NULL;
-		}
-		m_pApp->m_pAI_MenuStructure->aiMainMenuItems.Clear();
-		//wxLogDebug(_T("InitDialog Deleting m_pAI_MenuStructure - end"));
-		delete m_pApp->m_pAI_MenuStructure;
-		m_pApp->m_pAI_MenuStructure = (AI_MenuStructure*)NULL;
-	}
+	// Deallocate the memory in the App's m_pUserProfiles and m_pAI_MenuStructure
+	// These are instances of UserProfiles AI_MenuStructure that were allocated 
+	// on the heap. These routines first destroy the internal items that were
+	// allocated on the heap, then the top level items.
+	m_pApp->DestroyUserProfiles(m_pApp->m_pUserProfiles);
+	m_pApp->DestroyMenuStructure(m_pApp->m_pAI_MenuStructure);
 
 	// Reread the AI_UserProfiles.xml file (this also loads the App's 
 	// m_pUserProfiles data structure with latest values stored on disk).
@@ -671,13 +562,17 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			pUserProfileItem = piNode->GetData();
 			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mmLabel))
 			{
-				tempStr = compareLBStr.Format(compareLBStr,pUserProfileItem->itemText.c_str(),pUserProfileItem->itemDescr.c_str());
-				lbIndx = pCheckListBox->Append(tempStr);
-				numItemsLoaded++;
-				if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
-					pCheckListBox->Check(lbIndx,true);
-				else
-					pCheckListBox->Check(lbIndx,false);
+				// we only display in the list box items that the administrator can change
+				if (pUserProfileItem->adminCanChange == _T("1"))
+				{
+					tempStr = compareLBStr.Format(compareLBStr,pUserProfileItem->itemText.c_str(),pUserProfileItem->itemDescr.c_str());
+					lbIndx = pCheckListBox->Append(tempStr);
+					numItemsLoaded++;
+					if (pUserProfileItem->usedVisibilityValues.Item(newTabIndex) == _T("1"))
+						pCheckListBox->Check(lbIndx,true);
+					else
+						pCheckListBox->Check(lbIndx,false);
+				}
 			}
 		}
 		if (numItemsLoaded == 0)

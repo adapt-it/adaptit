@@ -1195,10 +1195,10 @@ const wxString defaultProfileItems[] =
 	// \tCtrl-A nor use any xml "entities", i.e., the &amp; for '&' to mark the letter used for
 	// ALT+key shortcuts, or &lt; or &gt; for '<' and '>' within the itemText strings.
 	// 
-	// TODO: write a function that would compare these menu strings (in the itemID and itemText fields) 
-	// with those that are used in the defaultMenuStructure strings (see below) To keep them in sync, 
-	// notify the programmer in debug mode using wxLogDebug() calls and wxASSERT(FALSE) statements for 
-	// any discrepancies discovered. 
+	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
+	// stored in the m_pUserProfiles struct on the heap with those that are used in the 
+	// defaultProfileItems string array below. It uses wxLogDebug() calls to alert the
+	// programmer of any significant differences/inconsistencies. 
 	_T("UserProfilesSupport:profileVersion=\"1.0\":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
 	   _T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
 	   _T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
@@ -1284,86 +1284,6 @@ const wxString defaultProfileItems[] =
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Fonts\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Backups and Misc\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Auto-Saving\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Punctuation\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Case\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Units\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1783,6 +1703,86 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Fonts\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Backups and Misc\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Auto-Saving\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Punctuation\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Case\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Units\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
 	_T("MENU:itemID=\"IDC_CHECK_SINGLE_STEP\":itemType=\"modeBar\":itemText=\"Automatic\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
@@ -1863,21 +1863,22 @@ const wxString defaultMenuStructure[] =
 	// menu label strings - including any accelerators (i.e., "\tCtrl-A") and ampersands preceding the 
 	// short cut ALT+key letters; the subMenuHelp should be the same as what is in wxDesigner; and the
 	// subMenuKind should accurately indicate whether the menu item is wxITEM_NORMAL, wxITEM_CHECK
-	// or wxITEM_SEPARATOR.
+	// or wxITEM_SEPARATOR. Cut and paste of strings from the AIMenuBarFunc() in Adapt_It_wdr.cpp helps
+	// insure exact copy - but Note: quote marks here need to be escaped with a backslash!
 	// 
-	// TODO: write a function that would compare these menu strings with those that are used in the
-	// default creation of the menu bar with AIMenuBarFunc(), and also with what is read in the
-	// AI_UserProfiles.xml file. To keep them in sync, notify the programmer in debug mode using 
-	// wxLogDebug() calls and wxASSERT(FALSE) statements for any discrepancies discovered. 
+	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
+	// stored in the m_pAI_MenuStructure struct on the heap with those that are used in the 
+	// defaultMenuStructure string array below. It uses wxLogDebug() calls to alert the
+	// programmer of any significant differences/inconsistencies. 
 	_T("MENU_STRUCTURE:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_FILE_MENU\":mainMenuLabel=\"&File\":"),
-	_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"wxID_OPEN\":subMenuLabel=\"&Open...\tCtrl-O\":subMenuHelp=\"Open an existing document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_OPEN\":subMenuLabel=\"&Open...\\tCtrl-O\":subMenuHelp=\"Open an existing document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"wxID_SAVE\":subMenuLabel=\"&Save\tCtrl-S\":subMenuHelp=\"Save the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_SAVE\":subMenuLabel=\"&Save\\tCtrl-S\":subMenuHelp=\"Save the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_SAVE_AS\":subMenuLabel=\"Save &As...\tCtrl-A\":subMenuHelp=\"Save the document with different xml format, or different filename\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_SAVE_AS\":subMenuLabel=\"Save &As...\\tCtrl-A\":subMenuHelp=\"Save the document with different xml format, or different filename\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"wxID_CLOSE\":subMenuLabel=\"&Close\":subMenuHelp=\"Close the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
@@ -1887,7 +1888,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"wxID_PRINT\":subMenuLabel=\"&Print...\tCtrl-P\":subMenuHelp=\"Print the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_PRINT\":subMenuLabel=\"&Print...\\tCtrl-P\":subMenuHelp=\"Print the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"wxID_PREVIEW\":subMenuLabel=\"Print Pre&view\":subMenuHelp=\"Show what printed pages will look like (without printing)\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
@@ -1895,9 +1896,9 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_FILE_STARTUP_WIZARD\":subMenuLabel=\"Start &Working...\tCtrl-W\":subMenuHelp=\"Show the sequence of dialog windows used for accessing a project and working on documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_STARTUP_WIZARD\":subMenuLabel=\"Start &Working...\\tCtrl-W\":subMenuHelp=\"Show the sequence of dialog windows used for accessing a project and working on documents\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_FILE_CLOSEKB\":subMenuLabel=\"Close Pro&ject\tCtrl-J\":subMenuHelp=\"Save the knowledge base and document, then close this project\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_CLOSEKB\":subMenuLabel=\"Close Pro&ject\\tCtrl-J\":subMenuHelp=\"Save the knowledge base and document, then close this project\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_FILE_CHANGEFOLDER\":subMenuLabel=\"Change Folder...\":subMenuHelp=\"Change to a different book folder for document storage (book mode must be ON)\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
@@ -1917,29 +1918,29 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_EDIT_MENU\":mainMenuLabel=\"&Edit\":"),
-	_T("SUB_MENU:subMenuID=\"wxID_UNDO\":subMenuLabel=\"&Undo\tCtrl-Z\":subMenuHelp=\"Undo the last action\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_UNDO\":subMenuLabel=\"&Undo\\tCtrl-Z\":subMenuHelp=\"Undo the last action\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EDIT_CUT\":subMenuLabel=\"Cu&t\tCtrl-X\":subMenuHelp=\"Cut the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_CUT\":subMenuLabel=\"Cu&t\\tCtrl-X\":subMenuHelp=\"Cut the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EDIT_COPY\":subMenuLabel=\"&Copy\tCtrl-C\":subMenuHelp=\"Copy the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_COPY\":subMenuLabel=\"&Copy\\tCtrl-C\":subMenuHelp=\"Copy the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EDIT_PASTE\":subMenuLabel=\"&Paste\tCtrl-V\":subMenuHelp=\"Insert Clipboard contents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_PASTE\":subMenuLabel=\"&Paste\\tCtrl-V\":subMenuHelp=\"Insert Clipboard contents\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_GO_TO\":subMenuLabel=\"&Go To...\tCtrl-G\":subMenuHelp=\"Go to a specific chapter and verse\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_GO_TO\":subMenuLabel=\"&Go To...\\tCtrl-G\":subMenuHelp=\"Go to a specific chapter and verse\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EDIT_SOURCE_TEXT\":subMenuLabel=\"Edit &Source Text...\tCtrl-Q\":subMenuHelp=\"Edit the selected source text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_SOURCE_TEXT\":subMenuLabel=\"Edit &Source Text...\\tCtrl-Q\":subMenuHelp=\"Edit the selected source text\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_EDIT_CONSISTENCY_CHECK\":subMenuLabel=\"Consist&ency Check...\":subMenuHelp=\"Check all translations with those in the knowledge base for consistency\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_FORWARD\":subMenuLabel=\"Move Note Forward\tCtrl-3\":subMenuHelp=\"Move the note forward in the document to the next word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_FORWARD\":subMenuLabel=\"Move Note Forward\\tCtrl-3\":subMenuHelp=\"Move the note forward in the document to the next word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":subMenuLabel=\"Move Note Backward\tCtrl-2\":subMenuHelp=\"Move the note backward in the document to the previous word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":subMenuLabel=\"Move Note Backward\\tCtrl-2\":subMenuHelp=\"Move the note backward in the document to the previous word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -1967,9 +1968,9 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_TOOLS_MENU\":mainMenuLabel=\"&Tools\":"),
-	_T("SUB_MENU:subMenuID=\"wxID_FIND\":subMenuLabel=\"&Find...\tCtrl-F\":subMenuHelp=\"Find text in source or target or both, or special search\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_FIND\":subMenuLabel=\"&Find...\\tCtrl-F\":subMenuHelp=\"Find text in source or target or both, or special search\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"wxID_REPLACE\":subMenuLabel=\"Find and &Replace...\tCtrl-H\":subMenuHelp=\"Replace in target text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_REPLACE\":subMenuLabel=\"Find and &Replace...\\tCtrl-H\":subMenuHelp=\"Replace in target text\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -1977,7 +1978,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_UNLOAD_CC_TABLES\":subMenuLabel=\"&Unload Consistent Changes\":subMenuHelp=\"Unload any loaded consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_USE_CC\":subMenuLabel=\"Use &Consistent Change\":subMenuHelp=\"Use the consistent changes when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("SUB_MENU:subMenuID=\"ID_USE_CC\":subMenuLabel=\"Use &Consistent Changes\":subMenuHelp=\"Use the consistent changes when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ACCEPT_CHANGES\":subMenuLabel=\"&Accept Changes Without Stopping\":subMenuHelp=\"Accept the changed source text as the translation and continue on\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
@@ -1989,7 +1990,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_TOOLS_KB_EDITOR\":subMenuLabel=\"&Knowledge Base Editor...\tCtrl-K\":subMenuHelp=\"Display dialog for editing the knowledge base\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_KB_EDITOR\":subMenuLabel=\"&Knowledge Base Editor...\\tCtrl-K\":subMenuHelp=\"Display dialog for editing the knowledge base\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -2071,19 +2072,19 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_LAYOUT_MENU\":mainMenuLabel=\"&Layout\":"),
-	_T("SUB_MENU:subMenuID=\"ID_ALIGNMENT\":subMenuLabel=\"Layout Window Right To Left\tCtrl-1\":subMenuHelp=\"Layout text in window from right to left\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ALIGNMENT\":subMenuLabel=\"Layout Window Right To Left\\tCtrl-1\":subMenuHelp=\"Layout text in window from right to left\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_HELP_MENU\":mainMenuLabel=\"&Help\":"),
-	_T("SUB_MENU:subMenuID=\"wxID_HELP\":subMenuLabel=\"&Help Topics\tShift-Ctrl-/\":subMenuHelp=\"List Help topics\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_HELP\":subMenuLabel=\"&Help Topics\\tShift-Ctrl-/\":subMenuHelp=\"List Help topics\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ONLINE_HELP\":subMenuLabel=\"Online Help (Requires Internet Access)\":subMenuHelp=\"Get Adapt It Help from the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_USER_FORUM\":subMenuLabel=\"User Forum (Requires Internet Access)\":subMenuHelp=\"\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_USER_FORUM\":subMenuLabel=\"User Forum (Requires Internet Access)\":subMenuHelp=\"Go to the Adapt It User Forum on the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_HELP_USE_TOOLTIPS\":subMenuLabel=\"Use Tooltips\":subMenuHelp=\"\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("SUB_MENU:subMenuID=\"ID_HELP_USE_TOOLTIPS\":subMenuLabel=\"Use Tooltips\":subMenuHelp=\"Select this item to turn on or turn off tooltip help messages\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -2105,7 +2106,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_MOVE_OR_COPY_FOLDERS_OR_FILES\":subMenuLabel=\"&Move Or Copy Folders Or Files...\tShift-Ctrl-M\":subMenuHelp=\"Dialog for moving folders or files, or copying them, into a destination folder\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_MOVE_OR_COPY_FOLDERS_OR_FILES\":subMenuLabel=\"&Move Or Copy Folders Or Files...\\tShift-Ctrl-M\":subMenuHelp=\"Dialog for moving folders or files, or copying them, into a destination folder\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_SOURCE_DATA_FOLDER\":subMenuLabel=\"Open &Source Data Folder...\":subMenuHelp=\"Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
@@ -2840,6 +2841,86 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
 			}
 		}
 		// We're at the end of a parsed line
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being destroyed
+/// \remarks
+/// Called from: the App's OnExit(), CAdminEditMenuProfile destructor and
+/// ReportMenuAndUserProfilesInconsistencies(). It deallocates the memory of
+/// the profileItemList items, and finally of the pUserProfiles itself.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
+{
+	if (pUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = pUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			//wxLogDebug(_T("Deleting UserProfileItem %s"),pItem->itemText.c_str());
+			delete pItem;
+			pItem = (UserProfileItem*)NULL;
+		}
+		pUserProfiles->profileItemList.Clear();
+		//wxLogDebug(_T("Deleting m_pUserProfiles - end"));
+		delete pUserProfiles;
+		pUserProfiles = (UserProfiles*)NULL;
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being destroyed
+/// \remarks
+/// Called from: the App's OnExit(), CAdminEditMenuProfile destructor and
+/// ReportMenuAndUserProfilesInconsistencies(). It deallocates the memory of
+/// the individual main menu items and sub menu items, and finally of the pMenuStructure
+/// itself.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
+{
+	if (pMenuStructure != NULL)
+	{
+		MainMenuItemList::Node* mmpos;
+		int ct_mm;
+		int total_mm = pMenuStructure->aiMainMenuItems.GetCount();
+		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
+		{
+			mmpos = pMenuStructure->aiMainMenuItems.Item(ct_mm);
+			AI_MainMenuItem* pmmItem;
+			pmmItem = mmpos->GetData();
+			wxASSERT(pmmItem != NULL);
+			
+			SubMenuItemList::Node* smpos;
+			int ct_sm;
+			int total_sm = pmmItem->aiSubMenuItems.GetCount();
+			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
+			{
+				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
+				AI_SubMenuItem* psmItem;
+				psmItem = smpos->GetData();
+				wxASSERT(psmItem != NULL);
+				//wxLogDebug(_T("Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
+				delete psmItem;
+				psmItem = (AI_SubMenuItem*)NULL;
+			}
+			pmmItem->aiSubMenuItems.Clear();
+			//wxLogDebug(_T("Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
+			delete pmmItem;
+			pmmItem = (AI_MainMenuItem*)NULL;
+		}
+		pMenuStructure->aiMainMenuItems.Clear();
+		//wxLogDebug(_T("Deleting m_pAI_MenuStructure - end"));
+		delete pMenuStructure;
+		pMenuStructure = (AI_MenuStructure*)NULL;
 	}
 }
 
@@ -5687,26 +5768,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 					menuItemId = GetMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
 					
 					wxItemKind itemKind;
-					if (pSubMenuItem->subMenuKind == _T("wxITEM_NORMAL"))
-					{
-						itemKind = wxITEM_NORMAL;
-					}
-					else if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
-					{
-						itemKind = wxITEM_SEPARATOR;
-					}
-					else if (pSubMenuItem->subMenuKind == _T("wxITEM_CHECK"))
-					{
-						itemKind = wxITEM_CHECK;
-					}
-					else if (pSubMenuItem->subMenuKind == _T("wxITEM_RADIO"))
-					{
-						itemKind = wxITEM_RADIO;
-					}
-					else
-					{
-						itemKind = wxITEM_NORMAL;
-					}
+					itemKind = GetMenuItemKindFromString(pSubMenuItem->subMenuKind);
 					// do the menu item insertion
 					// Note: menuItemId will be wxID_SEPARATOR (-2) and itemKind will be 
 					// wxITEM_SEPARATOR (-1) for menuSeparators.
@@ -6075,43 +6137,57 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's OnInit() after the external XML files have been successfully read.
-/// Examines the App's internal unix-like strings with those in the external xml files and
-/// reports any inconsistencies to the developer in the form of an assert message plus
-/// wxLogDebug() outputs for each inconsistency found. This function doesn't issue any
-/// messages to the user of the release version; it merely exists to help the developer
-/// know of any inconsistencies and what they are.
+/// Called from: the App's OnInit() after the external XML file AI_UserProfiles.xml has
+/// been successfully read. Examines the App's internal unix-like string arrays in 
+/// defaultProfileItems[] and defaultMenuStructure[] and the default AI menu bar. It
+/// compares all these with those values read in from the AI_UserProfiles.xml file. 
+/// This function does not re-read the raw data from the arrays nor the external file, 
+/// but "reads" the data from the m_pUserProfiles and m_pAI_menustructure structs, as 
+/// well as a temporary pMenuBar - all created on the heap. 
+/// It then reports any inconsistencies to the developer in the form of wxLogDebug() 
+/// outputs for each inconsistency found. It only displays the wxLogDebug messages in 
+/// debug mode, so this function doesn't issue any messages to the user in the release 
+/// version; it merely exists to help the developer know of any inconsistencies and 
+/// what they are.
 //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
+void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 {
 	// get temporary data structures from the internal unix-like strings
-	UserProfiles* pTempUserProfiles; // delete at end of function
-	AI_MenuStructure* pTempMenuStructure;; // delete at end of function
-	SetupDefaultUserProfiles(pTempUserProfiles); // calls new UserProfiles
-	SetupDefaultMenuStructure(pTempMenuStructure); // calls new AI_MenuStructure
+	UserProfiles* pTempUserProfiles; // destroyed at end of this function
+	AI_MenuStructure* pTempMenuStructure;; // destroyed at end of this function
+	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles
+	SetupDefaultMenuStructure(pTempMenuStructure); // creates a new AI_MenuStructure on heap pointed to by pTempMenuStructure
 	// these temp... structs now represent what's in the internal unix-like strings
 	// whereas the values on the App (m_pUserProfiles and m_pAI_MenuStructure)
-	// represent what was read in from the external XML files.
+	// represent what was read in from the external AI_UserProfiles.xml file.
+	wxMenuBar* pMenuBar;
+	pMenuBar = AIMenuBarFunc();
+	wxASSERT(pMenuBar != NULL);
 	
 	// First make sure we have good pointers
 	if (pTempUserProfiles == NULL)
 	{
-		wxLogDebug(_T("The pointer to the internal UserProfiles is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		wxLogDebug(_T("The pointer to the internal UserProfiles is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
 		return;
 	}
 	if (m_pUserProfiles == NULL)
 	{
-		wxLogDebug(_T("The pointer to the App's m_pUserProfiles is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		wxLogDebug(_T("The pointer to the App's m_pUserProfiles is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
 		return;
 	}
 	if (pTempMenuStructure == NULL)
 	{
-		wxLogDebug(_T("The pointer to the internal AI_MenuStructure is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		wxLogDebug(_T("The pointer to the internal AI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
 		return;
 	}
 	if (m_pAI_MenuStructure == NULL)
 	{
-		wxLogDebug(_T("The pointer to the App's m_pAI_MenuStructure is NULL - aborting the ReportAnyInternalAndExternalProfilesInconsistencies() function"));
+		wxLogDebug(_T("The pointer to the App's m_pAI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
+		return;
+	}
+	if (pMenuBar == NULL)
+	{
+		wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
 		return;
 	}
 	// compare the profile version
@@ -6119,32 +6195,36 @@ void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
 	// be different between our internal values and the external xml file:
 	//    1. The profileVersion. We augment the version number if an admin makes changes to AI_UserProfiles. This
 	//       also is a signal that the user profiles have been edited.
-	//    2. The descriptionProfileTexts. These are editable by the admin.
-	//    3. The definedProfileNames. These would not normally be edited unless the admin changes or
-	//    localizes the names of the profiles/tabs.
+	//    2. The usedVisibilityValues changed when an admin edits the profiles and clicks OK, regardless of
+	//       whether the edits were done to the currently selected profile.
+	//    3. The descriptionProfileTexts. These are editable by the admin.
+	//    4. The definedProfileNames. These would not normally be edited unless the admin changes or
+	//       localizes the names of the profiles/tabs by editing AI_UserProfiles.xml directly.
+	bool bVersionsDiffer = FALSE;
 	if (pTempUserProfiles->profileVersion != m_pUserProfiles->profileVersion)
 	{
+		bVersionsDiffer = TRUE;
 		wxLogDebug(_T("The internal and external profileVersions have different versions %s and %s"),
 			pTempUserProfiles->profileVersion.c_str(),m_pUserProfiles->profileVersion.c_str());
 	}
-	// compare the number of elements
+	// compare the number of elements - they should always be the same
 	if (pTempUserProfiles->definedProfileNames.GetCount() != m_pUserProfiles->definedProfileNames.GetCount())
 	{
-		wxLogDebug(_T("The internal and external definedProfileNames arrays have different count %d and %d"),
+		wxLogDebug(_T("The internal and external definedProfileNames arrays have different count %d and %d PLEASE FIX ME!"),
 			pTempUserProfiles->definedProfileNames.GetCount(),m_pUserProfiles->definedProfileNames.GetCount());
 	}
 	if (pTempUserProfiles->descriptionProfileTexts.GetCount() != m_pUserProfiles->descriptionProfileTexts.GetCount())
 	{
-		wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different count %d and %d"),
+		wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different count %d and %d PLEASE FIX ME!"),
 			pTempUserProfiles->descriptionProfileTexts.GetCount(),m_pUserProfiles->descriptionProfileTexts.GetCount());
 	}
 	if (pTempUserProfiles->profileItemList.GetCount() != m_pUserProfiles->profileItemList.GetCount())
 	{
-		wxLogDebug(_T("The internal and external profileItemLists have different count %d and %d"),
+		wxLogDebug(_T("The internal and external profileItemLists have different count %d and %d PLEASE FIX ME!"),
 			pTempUserProfiles->profileItemList.GetCount(),m_pUserProfiles->profileItemList.GetCount());
 	}
 
-	// Check for changes in their text and usedVisibilityValues arrays, but only if they have the same
+	// Check for changes in their text and usedVisibilityValues arrays, but only assuming they have the same
 	// counts.
 	if (pTempUserProfiles->definedProfileNames.GetCount() == m_pUserProfiles->definedProfileNames.GetCount())
 	{
@@ -6158,7 +6238,7 @@ void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
 			appStr = m_pUserProfiles->definedProfileNames.Item(ct);
 			if (pTempUserProfiles->definedProfileNames.Item(ct) != m_pUserProfiles->definedProfileNames.Item(ct))
 			{
-				wxLogDebug(_T("The internal and external definedProfileNames arrays have different names\n   %s and %s"),
+				wxLogDebug(_T("The internal and external definedProfileNames arrays have different names\n   %s and %s PLEASE FIX ME!"),
 					tempStr.c_str(),appStr.c_str());
 			}
 		}
@@ -6170,13 +6250,23 @@ void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
 		tot = pTempUserProfiles->descriptionProfileTexts.GetCount();
 		for (ct = 0; ct < tot; ct++)
 		{
-			wxString tempStr, appStr;
+			wxString tempStr, appStr, verStr, msg;
 			tempStr = pTempUserProfiles->descriptionProfileTexts.Item(ct);
 			appStr = m_pUserProfiles->descriptionProfileTexts.Item(ct);
 			if (tempStr != appStr)
 			{
-				wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different descriptions\n   %s and %s"),
-					tempStr.c_str(),appStr.c_str());
+				if (bVersionsDiffer)
+				{
+					verStr = _T("Note: Versions Differ.");
+					msg = msg.Format(_T("The internal and external descriptionProfileTexts arrays have different descriptions\n   %s and %s %s"),tempStr.c_str(),appStr.c_str(),verStr.c_str());
+				}
+				else
+				{
+					verStr = _T("Note: Same Versions! PLEASE FIX ME!");
+					msg = msg.Format(_T("The internal and external descriptionProfileTexts arrays have different descriptions\n   %s and %s %s"),tempStr.c_str(),appStr.c_str(),verStr.c_str());
+				}
+
+				wxLogDebug(msg);
 			}
 		}
 	}
@@ -6196,37 +6286,55 @@ void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
 			pAppItem = posApp->GetData();
 			if (pTempItem->itemID != pAppItem->itemID)
 			{
+				// The itemID is the most crucial/unique identifier so insure they match and are in 
+				// the same order.
 				wxString tempStr = pTempItem->itemID;
 				wxString appStr = pAppItem->itemID;
-				wxLogDebug(_T("The internal and external itemID strings differ for this item: (%s) and (%s)"),
+				wxLogDebug(_T("The internal and external itemID strings differ for this item: (%s) and (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
 					tempStr.c_str(),appStr.c_str());
+				wxASSERT_MSG(FALSE,_T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match. Are they spelled the same and in the same order? PLEASE FIX ME!"));
+				return; // no point in continuing the check
 			}
 			if (pTempItem->itemText  != pAppItem->itemText)
 			{
 				wxString tempStr = pTempItem->itemText;
 				wxString appStr = pAppItem->itemText;
-				wxLogDebug(_T("The internal and external itemText strings differ for itemID: %s (%s) and (%s)"),
-					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+				wxString verStr;
+				if (bVersionsDiffer)
+				{
+					verStr = _T("Note: Versions Differ.");
+				}
+				else
+				{
+					verStr = _T("Note: Same Versions! PLEASE FIX ME!");
+				}
+				wxString msg;
+				msg = msg.Format(_T("The internal and external itemText strings differ for itemID: %s\n   (%s) and (%s) %s"),
+							pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str(),verStr.c_str());
+				wxLogDebug(msg);
 			}
 			if (pTempItem->itemDescr != pAppItem->itemDescr)
 			{
 				wxString tempStr = pTempItem->itemDescr;
 				wxString appStr = pAppItem->itemDescr;
-				wxLogDebug(_T("The internal and external itemDescr strings differ for itemID: %s (%s) and (%s)"),
+				wxLogDebug(_T("The internal and external itemDescr strings differ for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
 			}
 			if (pTempItem->itemType  != pAppItem->itemType)
 			{
+				// differences here would result in an item not showing in the list (for an itemType typo)
+				// or not being listed in the appropriate category (for a recognized but incorrect itemType).
 				wxString tempStr = pTempItem->itemType;
 				wxString appStr = pAppItem->itemType;
-				wxLogDebug(_T("The internal and external itemType value differs for itemID: %s (%s) and (%s)"),
+				wxLogDebug(_T("The internal and external itemType value differs for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
 			}
 			if (pTempItem->adminCanChange != pAppItem->adminCanChange)
 			{
+				// differences here may result in an item unexpectedly showing/not showing in the list
 				wxString tempStr = pTempItem->adminCanChange;
 				wxString appStr = pAppItem->adminCanChange;
-				wxLogDebug(_T("The internal and external adminCanChange value differs for itemID: %s (%s) and (%s)"),
+				wxLogDebug(_T("The internal and external adminCanChange value differs for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
 			}
 			int ct;
@@ -6238,7 +6346,7 @@ void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
 				{
 					wxString tempStr = pTempItem->usedProfileNames.Item(ct);
 					wxString appStr = pAppItem->usedProfileNames.Item(ct);
-					wxLogDebug(_T("The internal and external usedProfileNames differ for itemID: %s (%s) and (%s)"),
+					wxLogDebug(_T("The internal and external usedProfileNames differ for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
 				}
 				// Note: The usedProfileNames should always correspond to the definedProfileNames in the
@@ -6249,36 +6357,195 @@ void CAdapt_ItApp::ReportAnyInternalAndExternalProfilesInconsistencies()
 				{
 					wxString tempStrUsed = pTempItem->usedProfileNames.Item(ct);
 					wxString tempStrDefined = pTempUserProfiles->definedProfileNames.Item(ct);
-					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s)"),
+					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 						pTempItem->itemID.c_str(),tempStrUsed.c_str(),tempStrDefined.c_str());
 				}
 				if (pAppItem->usedProfileNames.Item(ct) != m_pUserProfiles->definedProfileNames.Item(ct))
 				{
 					wxString appStrUsed = pAppItem->usedProfileNames.Item(ct);
 					wxString appStrDefined = m_pUserProfiles->definedProfileNames.Item(ct);
-					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s)"),
+					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 						pTempItem->itemID.c_str(),appStrUsed.c_str(),appStrDefined.c_str());
 				}
 				if (pTempItem->usedVisibilityValues.Item(ct) != pAppItem->usedVisibilityValues.Item(ct))
 				{
-					wxString tempStr = pTempItem->usedVisibilityValues.Item(ct);
-					wxString appStr = pAppItem->usedVisibilityValues.Item(ct);
-					wxLogDebug(_T("The internal and external usedVisibilityValues differ for itemID: %s (%s) and (%s)"),
-						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+					// These usedVisibility values are the main items we expect to be different so only
+					// report inconsistencies when the versions are the same
+					if (!bVersionsDiffer)
+					{
+						wxString tempStr = pTempItem->usedVisibilityValues.Item(ct);
+						wxString appStr = pAppItem->usedVisibilityValues.Item(ct);
+						wxLogDebug(_T("The internal and external usedVisibilityValues differ for itemID: %s (%s) and (%s)"),
+							pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+					}
 				}
 				if (pTempItem->usedFactoryValues.Item(ct) != pAppItem->usedFactoryValues.Item(ct))
 				{
 					wxString tempStr = pTempItem->usedFactoryValues.Item(ct);
 					wxString appStr = pAppItem->usedFactoryValues.Item(ct);
-					wxLogDebug(_T("The internal and external usedFactoryValues differ for itemID: %s (%s) and (%s)"),
+					wxLogDebug(_T("The internal and external usedFactoryValues differ for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
 						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
 				}
 			}
 		}
 	}
-	// TODO: Compare the menu structure data
-	delete pTempUserProfiles;
-	delete pTempMenuStructure;
+	// Now compare the menu structure data. This requires a 3-way comparison of  
+	// menu sets: (1) AI's default menu bar, (2) the App's internal unix-like
+	// default strings (in pTempMenuStructure), and (3) the menu structure (in 
+	// m_pAI_MenuStructure) defined in the second half of AI_UserProfiles.xml. 
+	// In order to access the default menu bar data we created a temporary menu bar 
+	// to avoid the possibility that this function might be called at some point 
+	// after the menus have been configured for the current profile (which could
+	// remove some menu items we want to check for consistencies).
+	// 
+	// Note: When an administrator customizes a given profile we do not expect changes 
+	// to be made to the menu structure described in AI_UserProfiles.xml, therefore any
+	// inconsistency discovered between the internal defaultMenuStructure[] strings and
+	// what was read from AI_UserProfiles.xml should be noted/reported.
+	int ct;
+	int tempct,appct,mbct;
+	tempct = pTempMenuStructure->aiMainMenuItems.GetCount(); // work from the pTempMenuStructure
+	appct = m_pAI_MenuStructure->aiMainMenuItems.GetCount(); // comparing with app's structure
+	mbct = pMenuBar->GetMenuCount(); // comparing with the default AI menu bar
+	wxString msg;
+	if (tempct != appct || tempct != mbct || appct != mbct)
+	{
+		msg = msg.Format(_T("The Main Menu Items have different counts: internal (%d), external (%d), AIMenuBar (%d) PLEASE FIX ME!\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),tempct,appct,mbct);
+		wxASSERT_MSG(tempct == appct && tempct == mbct && appct == mbct,msg);
+		return;
+	}
+	if (tempct == appct && tempct == mbct && appct == mbct)
+	{
+		for (ct = 0; ct < tempct; ct++)
+		{
+			AI_MainMenuItem* pTempMainMenuItem; // internal
+			AI_MainMenuItem* pAppMainMenuItem; // external
+			MainMenuItemList::Node* tempNode; // internal
+			MainMenuItemList::Node* appNode; // external
+			tempNode = pTempMenuStructure->aiMainMenuItems.Item(ct); // internal
+			appNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct); // external
+			pTempMainMenuItem = tempNode->GetData(); // internal
+			pAppMainMenuItem = appNode->GetData(); // external
+			wxMenu* pmbMainMenuItem = pMenuBar->GetMenu(ct); // AI menu bar
+			wxASSERT(pTempMainMenuItem != NULL);
+			wxASSERT(pAppMainMenuItem != NULL);
+			wxASSERT(pmbMainMenuItem != NULL);
+			if (pTempMainMenuItem != NULL && pAppMainMenuItem != NULL && pmbMainMenuItem != NULL) // be safe
+			{
+				// first handle the mainMenuID and mainMenuLabel fields
+				if (pTempMainMenuItem->mainMenuID != pAppMainMenuItem->mainMenuID)
+				{
+					wxString tempStr = pTempMainMenuItem->mainMenuID; // internal
+					wxString appStr = pAppMainMenuItem->mainMenuID; // external
+					wxLogDebug(_T("The internal and external mainMenuID strings differ in menu structure: (%s) and (%s)"),
+						tempStr.c_str(),appStr.c_str());
+				}
+				if (pTempMainMenuItem->mainMenuLabel != pAppMainMenuItem->mainMenuLabel)
+				{
+					wxString tempStr = pTempMainMenuItem->mainMenuLabel;
+					wxString appStr = pAppMainMenuItem->mainMenuLabel;
+					wxLogDebug(_T("The internal and external mainMenuLabel strings differ in menu structure: (%s) and (%s)"),
+						tempStr.c_str(),appStr.c_str());
+				}
+				// compare internal mainMenuLabel and external mainMenuLabel with AI menu bar main menu label 
+				wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
+				if (mbMainMenuText != pTempMainMenuItem->mainMenuLabel || mbMainMenuText != pAppMainMenuItem->mainMenuLabel)
+				{
+					wxString tempStr = pTempMainMenuItem->mainMenuLabel;
+					wxString appStr = pAppMainMenuItem->mainMenuLabel;
+					wxLogDebug(_T("The internal or external mainMenuLabel strings differ from AI menu bar: internal (%s) and external (%s) AI Menu bar (%s)"),
+						tempStr.c_str(),appStr.c_str(),mbMainMenuText.c_str());
+				}
+				// now handle the aiSubMenuItems lists
+				int i;
+				int itempct,iappct,imbct;
+				itempct = pTempMainMenuItem->aiSubMenuItems.GetCount(); // internal
+				iappct = pAppMainMenuItem->aiSubMenuItems.GetCount(); // external
+				imbct = pmbMainMenuItem->GetMenuItemCount(); // AI menu bar
+				wxString msg2;
+				if (itempct != iappct || itempct != imbct || iappct != imbct)
+				{
+					msg2 = msg2.Format(_T("The Sub Menu Items have different counts for %s menu: internal (%d), external (%d) AI menu bar (%d) PLEASE FIX ME!\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
+						pTempMainMenuItem->mainMenuLabel.c_str(),itempct,iappct,imbct);
+					wxASSERT_MSG(itempct == iappct && itempct == imbct && iappct == imbct,msg2);
+					return;
+				}
+				if (itempct == iappct && itempct == imbct && iappct == imbct)
+				{
+					for (i = 0; i < itempct; i++)
+					{
+						AI_SubMenuItem* pTempSubMenuItem; // internal
+						AI_SubMenuItem* pAppSubMenuItem; // external
+						wxMenuItemList pmbSubMenuItems = pmbMainMenuItem->GetMenuItems(); // AI menu bar
+						SubMenuItemList::Node* subTempNode; // internal
+						SubMenuItemList::Node* subAppNode; // external
+						wxMenuItemList::Node* mbListNode; // AI menu bar
+						subTempNode = pTempMainMenuItem->aiSubMenuItems.Item(i); // internal
+						subAppNode = pAppMainMenuItem->aiSubMenuItems.Item(i); // external
+						mbListNode = pmbSubMenuItems.Item(i); // AI menu bar
+						pTempSubMenuItem = subTempNode->GetData(); // internal
+						pAppSubMenuItem = subAppNode->GetData(); // external
+						wxMenuItem* pmbSubMenuItem = mbListNode->GetData(); // AI menu bar
+						wxASSERT(pTempSubMenuItem != NULL);
+						wxASSERT(pAppSubMenuItem != NULL);
+						wxASSERT(pmbSubMenuItem != NULL);
+						if (pTempSubMenuItem != NULL && pAppSubMenuItem != NULL && pmbSubMenuItem != NULL)
+						{
+							// now handle the submenu items
+							if (pTempSubMenuItem->subMenuHelp != pAppSubMenuItem->subMenuHelp 
+								|| pTempSubMenuItem->subMenuHelp != pmbSubMenuItem->GetHelp()
+								|| pAppSubMenuItem->subMenuHelp != pmbSubMenuItem->GetHelp())
+							{
+								wxString tempStr = pTempSubMenuItem->subMenuHelp;
+								wxString appStr = pAppSubMenuItem->subMenuHelp;
+								wxLogDebug(_T("The sub Menu Help strings differ in menu structure of %s: internal (%s), external (%s), AI menu bar (%s)"),
+									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str(),pmbSubMenuItem->GetHelp().c_str());
+							}
+							// for subMenuID strings I don't know of a way to get a string representation of AI's
+							// menu bar's GetId() int - so skip a three way test and only compare internal and external
+							if (pTempSubMenuItem->subMenuID != pAppSubMenuItem->subMenuID)
+							{
+								wxString tempStr = pTempSubMenuItem->subMenuID;
+								wxString appStr = pAppSubMenuItem->subMenuID;
+								wxLogDebug(_T("The internal and external subMenuID strings differ in menu structure of %s: (%s) and (%s)"),
+									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str());
+							}
+							wxString mbItemKindAsString = GetMenuItemKindAsString(pmbSubMenuItem->GetKind());
+							if (pTempSubMenuItem->subMenuKind != pAppSubMenuItem->subMenuKind
+								|| pTempSubMenuItem->subMenuKind != mbItemKindAsString
+								|| pAppSubMenuItem->subMenuKind != mbItemKindAsString)
+							{
+								wxString tempStr = pTempSubMenuItem->subMenuKind;
+								wxString appStr = pAppSubMenuItem->subMenuKind;
+								wxLogDebug(_T("The sub Menu Kind strings differ in menu structure of %s: internal (%s), external (%s), AI menu bar (%s)"),
+									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str(),mbItemKindAsString.c_str());
+							}
+							// The pmbSubMenuItem->GetItemLabel() string will have a literal tab, so for comparison
+							// with the internal and external strings change it temporarily from \t to \\t.
+							wxString mbLabel = pmbSubMenuItem->GetItemLabel();
+							mbLabel.Replace(_T("\t"),_T("\\t"));
+							if (pTempSubMenuItem->subMenuLabel != pAppSubMenuItem->subMenuLabel
+								|| pTempSubMenuItem->subMenuLabel != mbLabel
+								|| pAppSubMenuItem->subMenuLabel != mbLabel)
+							{
+								wxString tempStr = pTempSubMenuItem->subMenuLabel;
+								wxString appStr = pAppSubMenuItem->subMenuLabel;
+								wxLogDebug(_T("The sub Menu Label strings differ in menu structure of %s: internal (%s), external (%s), AI menu bar (%s)"),
+									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str(),mbLabel.c_str());
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	DestroyUserProfiles(pTempUserProfiles);
+	DestroyMenuStructure(pTempMenuStructure);
+	// Note: calling delete o pMenuBar is sufficient; because of its hierarchy of ownership
+	// all of its child objects get destroyed automatically.
+	delete pMenuBar;
+	pMenuBar = (wxMenuBar*)NULL;
 }
 
 
@@ -6316,42 +6583,12 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 			pMenuItem = pNode->GetData();
 			wxString smKindStr;
 			wxItemKind smKind = pMenuItem->GetKind();
-			switch (smKind)
-			{
-			case wxITEM_NORMAL:
-				smKindStr = _T("wxITEM_NORMAL");
-				break;
-			case wxITEM_SEPARATOR:
-				smKindStr = _T("wxITEM_SEPARATOR");
-				break;
-			case wxITEM_CHECK:
-				smKindStr = _T("wxITEM_CHECK");
-				break;
-			case wxITEM_RADIO: // fall through
-			default:
-				wxASSERT(FALSE); // we don't use wxITEM_RADIO, so this would be a programming error
-				smKindStr = _T("wxITEM_RADIO");
-			}
-			// for testing
-			//switch (smKind)
-			//{
-			//case wxITEM_SEPARATOR:
-			//	wxLogDebug(_T("-----Menu separator -----"));
-			//	break;
-			//case wxITEM_NORMAL:
-			//	wxLogDebug(_T("%s Menu: %s"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
-			//	break;
-			//case wxITEM_CHECK:
-			//	wxLogDebug(_T("%s Menu: %s: wxITEM_CHECK"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
-			//	break;
-			//case wxITEM_RADIO: // fall through
-			//default:
-			//	wxLogDebug(_T("%s Menu: %s: wxITEM_RADIO"),pMenuBar->GetMenuLabel(mCt).c_str(),pMenuItem->GetLabel().c_str());
-			//}
+			smKindStr = GetMenuItemKindAsString(smKind);
+
 			// Note: Using GetItemLabel() is supposed to preserve any & and Ctrl-key accelerator characters.
 			// Testing shows that it only partially does so - the \t character that separates the label from
-			// the Ctrl-key part gets lost. To achieve more reliable comparisons, it is best that we
-			// compare menu labels after removing both the & and any \tCtrl-key or Ctrl-key characters
+			// the Ctrl-key part is a literal whitespace tab. To achieve more reliable comparisons, it is best 
+			// that we compare menu labels after removing both the & and any \tCtrl-key or Ctrl-key characters
 			// from menu labels. 
 			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
 			wxString subMenuLabelPlain = subMenuLabel;
@@ -6607,22 +6844,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 			pMenuItemBeingScanned = pNode->GetData();
 			wxString smKindStr;
 			wxItemKind smKind = pMenuItemBeingScanned->GetKind();
-			switch (smKind)
-			{
-			case wxITEM_NORMAL:
-				smKindStr = _T("wxITEM_NORMAL");
-				break;
-			case wxITEM_SEPARATOR:
-				smKindStr = _T("wxITEM_SEPARATOR");
-				break;
-			case wxITEM_CHECK:
-				smKindStr = _T("wxITEM_CHECK");
-				break;
-			case wxITEM_RADIO: // fall through
-			default:
-				wxASSERT(FALSE); // we don't use wxITEM_RADIO, so this would be a programming error
-				smKindStr = _T("wxITEM_RADIO");
-			}
+			smKindStr = GetMenuItemKindAsString(smKind);
 			wxString smLabel = pMenuItemBeingScanned->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
 			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
 			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain);
@@ -6815,22 +7037,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 			pMenuItem = pNode->GetData();
 			wxString smKindStr;
 			wxItemKind smKind = pMenuItem->GetKind();
-			switch (smKind)
-			{
-			case wxITEM_NORMAL:
-				smKindStr = _T("wxITEM_NORMAL");
-				break;
-			case wxITEM_SEPARATOR:
-				smKindStr = _T("wxITEM_SEPARATOR");
-				break;
-			case wxITEM_CHECK:
-				smKindStr = _T("wxITEM_CHECK");
-				break;
-			case wxITEM_RADIO: // fall through
-			default:
-				wxASSERT(FALSE); // we don't use wxITEM_RADIO, so this would be a programming error
-				smKindStr = _T("wxITEM_RADIO");
-			}
+			smKindStr = GetMenuItemKindAsString(smKind);
 			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
 			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
 			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain);
@@ -7065,6 +7272,63 @@ wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
 		}
 	}
 	return tempStr;		
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the string equivalent of the itemKind enum value
+/// \param      -> itemKind  the wxItemKind enum value of the menu item 
+/// \remarks
+/// Called from: the App's ReportMenuAndUserProfilesInconsistencies().
+/// Returns the wxString equivalent of a menu's wxItemKind value.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetMenuItemKindAsString(wxItemKind itemKind)
+{
+	switch (itemKind)
+	{
+	case wxITEM_NORMAL:
+		return _T("wxITEM_NORMAL");
+	case wxITEM_CHECK:
+		return _T("wxITEM_CHECK");
+	case wxITEM_SEPARATOR:
+		return _T("wxITEM_SEPARATOR");
+	case wxITEM_RADIO:
+		return _T("wxITEM_RADIO");
+	default: return _T("wxITEM_NORMAL");
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     the wxItemKind enum value equivalent to the input itemKindStr
+/// \param      -> itemKindStr  a wxString in the form of "wxITEM_NORMAL", "wxITEM_SEPARATOR",
+///                             "wxITEM_CHECK" or "wxITEM_RADIO". 
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// A convenience function that returns the wxItemKind enum equivalent of the input 
+/// wxString representation.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxItemKind CAdapt_ItApp::GetMenuItemKindFromString(wxString itemKindStr)
+{
+	if (itemKindStr == _T("wxITEM_NORMAL"))
+	{
+		return wxITEM_NORMAL;
+	}
+	else if (itemKindStr == _T("wxITEM_SEPARATOR"))
+	{
+		return wxITEM_SEPARATOR;
+	}
+	else if (itemKindStr == _T("wxITEM_CHECK"))
+	{
+		return wxITEM_CHECK;
+	}
+	else if (itemKindStr == _T("wxITEM_RADIO"))
+	{
+		return wxITEM_RADIO;
+	}
+	else
+	{
+		wxASSERT(FALSE);
+		return wxITEM_NORMAL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -11774,7 +12038,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{
 			// The AI_UserProfiles.xml file was read, check for inconsistencies between
 			// our internal unix-like default strings and what was in AI_UserProfiles.xml.
-			ReportAnyInternalAndExternalProfilesInconsistencies();
+			ReportMenuAndUserProfilesInconsistencies();
 		}
 	}
 	else
@@ -12652,61 +12916,8 @@ int CAdapt_ItApp::OnExit(void)
 	// that m_pUserProfiles also contains a list of pointers in its 
 	// profileItemList member that point to UserProfileItem instances on the 
 	// heap.
-	if (m_pUserProfiles != NULL)
-	{
-		ProfileItemList::Node* pos;
-		int count;
-		int item_count = m_pUserProfiles->profileItemList.GetCount();
-		for(count = 0; count < item_count; count++)
-		{
-			pos = m_pUserProfiles->profileItemList.Item(count);
-			UserProfileItem* pItem;
-			pItem = pos->GetData();
-			//wxLogDebug(_T("Deleting UserProfileItem %s"),pItem->itemText.c_str());
-			delete pItem;
-			pItem = (UserProfileItem*)NULL;
-		}
-		m_pUserProfiles->profileItemList.Clear();
-		//wxLogDebug(_T("Deleting m_pUserProfiles - end"));
-		delete m_pUserProfiles;
-		m_pUserProfiles = (UserProfiles*)NULL;
-	}
-
-	if (m_pAI_MenuStructure != NULL)
-	{
-		MainMenuItemList::Node* mmpos;
-		int ct_mm;
-		int total_mm = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
-		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
-		{
-			mmpos = m_pAI_MenuStructure->aiMainMenuItems.Item(ct_mm);
-			AI_MainMenuItem* pmmItem;
-			pmmItem = mmpos->GetData();
-			wxASSERT(pmmItem != NULL);
-			
-			SubMenuItemList::Node* smpos;
-			int ct_sm;
-			int total_sm = pmmItem->aiSubMenuItems.GetCount();
-			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
-			{
-				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
-				AI_SubMenuItem* psmItem;
-				psmItem = smpos->GetData();
-				wxASSERT(psmItem != NULL);
-				//wxLogDebug(_T("Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
-				delete psmItem;
-				psmItem = (AI_SubMenuItem*)NULL;
-			}
-			pmmItem->aiSubMenuItems.Clear();
-			//wxLogDebug(_T("Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
-			delete pmmItem;
-			pmmItem = (AI_MainMenuItem*)NULL;
-		}
-		m_pAI_MenuStructure->aiMainMenuItems.Clear();
-		//wxLogDebug(_T("Deleting m_pAI_MenuStructure - end"));
-		delete m_pAI_MenuStructure;
-		m_pAI_MenuStructure = (AI_MenuStructure*)NULL;
-	}
+	DestroyUserProfiles(m_pUserProfiles);
+	DestroyMenuStructure(m_pAI_MenuStructure);
 	
 	int aTot;
 	aTot = m_pRemovedMenuItemArray->GetCount();

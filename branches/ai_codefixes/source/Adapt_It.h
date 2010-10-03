@@ -2635,16 +2635,20 @@ public:
 	// whm added 21Sep10 the following for user profile support
 	bool	ConfigureInterfaceForUserProfile();
 	void	MakeMenuInitializationsAndPlatformAdjustments();
-	void	ReportAnyInternalAndExternalProfilesInconsistencies();
+	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
+	wxString GetMenuItemKindAsString(wxItemKind itemKind);
+	wxItemKind GetMenuItemKindFromString(wxString itemKindStr);
 	wxArrayPtrVoid GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem);
 	wxString GetTopLevelMenuName(TopLevelMenu topLevelMenu);
 	wxMenu* GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu);
 	int		GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
 	void	SetupDefaultUserProfiles(UserProfiles*& pUserProfiles);
 	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure);
+	void	DestroyUserProfiles(UserProfiles*& pUserProfiles);
+	void	DestroyMenuStructure(AI_MenuStructure*& pMenuStructure);
 	// The following functions are currently unused and possibly incomplete/untested, but are left
 	// here because they might contain useful material for future use:
 	//bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);
