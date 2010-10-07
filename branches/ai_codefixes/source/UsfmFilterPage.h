@@ -27,6 +27,8 @@
     #pragma interface "UsfmFilterPage.h"
 #endif
 
+#include "Adapt_It.h"
+
 class MapSfmToUSFMAnalysisStruct;
 
 /// The CUsfmFilterPageCommon class contains data and methods which are 
