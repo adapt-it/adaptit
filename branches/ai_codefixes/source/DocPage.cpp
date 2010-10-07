@@ -53,8 +53,7 @@
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
@@ -103,14 +102,8 @@ extern CStartWorkingWizard* pStartWorkingWizard;
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
 
-//extern CLanguagesPage* pLanguagesPage;
-//extern CFontPageWiz* pFontPageWiz;
-//extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
-//extern CCaseEquivPageWiz* pCaseEquivPageWiz;
-//extern CUSFMPageWiz* pUsfmPageWiz;
-
 /// This global is defined in Adapt_It.cpp.
-extern CFilterPageWiz* pFilterPageWiz;
+extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
@@ -239,7 +232,7 @@ wxWizardPage* CDocPage::GetPrev() const
 	// wizard (the filterPage).
 	if (gbWizardNewProject)
 	{
-		return pFilterPageWiz;
+		return pUsfmFilterPageWiz;
 	}
 	else
 	{

@@ -555,10 +555,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\FilterPage.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\FindReplace.cpp"
 				>
 			</File>
@@ -771,7 +767,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\USFMPage.cpp"
+				RelativePath="..\..\source\UsfmFilterPage.cpp"
 				>
 			</File>
 			<File
@@ -957,10 +953,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\FilenameConflictDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\FilterPage.h"
 				>
 			</File>
 			<File
@@ -1176,7 +1168,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\USFMPage.h"
+				RelativePath="..\..\source\UsfmFilterPage.h"
 				>
 			</File>
 			<File

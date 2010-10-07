@@ -52,8 +52,7 @@
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 #include "Adapt_It.h"
@@ -74,12 +73,6 @@ extern CProjectPage* pProjectPage;
 
 /// This global is defined in Adapt_It.cpp.
 extern CLanguagesPage* pLanguagesPage;
-
-//extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
-
-//extern CCaseEquivPageWiz* pCaseEquivPageWiz;
-//extern CUSFMPageWiz* pUsfmPageWiz;
-//extern CFilterPageWiz* pFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;

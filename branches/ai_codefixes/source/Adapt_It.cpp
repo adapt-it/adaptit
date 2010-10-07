@@ -128,8 +128,7 @@
 #include "FontPage.h"
 #include "PhraseBox.h"
 #include "LanguagesPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
 #include "OpenExistingProjectDlg.h"
@@ -546,22 +545,14 @@ CPunctCorrespPageWiz* pPunctCorrespPageWiz = (CPunctCorrespPageWiz*)NULL;
 /// Pointer to the Wizard's case equivalences page instance
 CCaseEquivPageWiz* pCaseEquivPageWiz = (CCaseEquivPageWiz*)NULL;
 
-/// Pointer to the Wizard's usfm page instance
-CUSFMPageWiz* pUsfmPageWiz = (CUSFMPageWiz*)NULL;
-
-/// Pointer to the Wizard's filter page instance
-CFilterPageWiz*	pFilterPageWiz = (CFilterPageWiz*)NULL;
+/// Pointer to the Wizard's usfmFilterPage instance
+CUsfmFilterPageWiz*	pUsfmFilterPageWiz = (CUsfmFilterPageWiz*)NULL;
 
 /// Pointer to the doc page instance
 CDocPage* pDocPage = (CDocPage*)NULL;
 
-/// Pointer to the usfm page instance
-CUSFMPagePrefs*	pUSFMPageInPrefs = (CUSFMPagePrefs*)NULL; // To be able to access 
-			// the USFM page from other Preferences page(s)
-
-/// Pointer to the filter page instance
-CFilterPagePrefs* pFilterPageInPrefs = (CFilterPagePrefs*)NULL;	// To be able to 
-			// access the Filtering page from other Preferences page(s)
+/// Pointer to the Preferences usfmFilterPage instance
+CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs = (CUsfmFilterPagePrefs*)NULL;
 
 /// Contains the sequence number for the last auto save operation; -1 if auto save is
 /// turned off.
@@ -1613,7 +1604,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Target Text As Default Text's Font\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Target Text As Default Free Translation\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1643,7 +1634,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Collect Back Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Collect Back Translations...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1763,17 +1754,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM and Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -2604,6 +2585,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					{
 						pUserProfileItem = new UserProfileItem;
 						pUserProfileItem->itemID = _T("");
+						pUserProfileItem->itemIDint = -1;
 						pUserProfileItem->itemType = _T("");
 						pUserProfileItem->itemText = _T("");
 						pUserProfileItem->itemDescr = _T("");
@@ -2703,10 +2685,217 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 		}
 		// We're at the end of a parsed line
 	}
+	GetAndAssignIdValuesToUserProfilesStruct(pUserProfiles);
+}
+
+void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles)
+{
+	// Use the map that MapMenuIdStrToIdInt() set up
+	wxASSERT(pUserProfiles != NULL);
+
+	// scan through pUserProfiles and assign the int id values by looking them up in the
+	// m_mapMenuLabelStrToIdInt and assigning the mapped int values to the itemIDint
+	// member of the UserProfileItem part of pUserProfiles
+	if (pUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = pUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			if (pItem->itemType == _T("subMenu"))
+			{
+
+				// pItem->itemText is the string we want to look up, but remove decorations
+				wxString itemTextPlain = RemoveMenuLabelDecorations(pItem->itemText);
+				// Note: UserProfiles data does not list menuSeparators so itemTextPlain
+				// will never be menuSeparator
+				// now look up the mapped int value
+				MapMenuLabelStrToIdInt::iterator iter;
+				iter = m_mapMenuLabelStrToIdInt.find(itemTextPlain);
+				int itemId = -1;
+				if (iter != m_mapMenuLabelStrToIdInt.end())
+				{
+					// we found an associated value for the plain menu label
+					itemId = (int)iter->second;
+				}
+				else
+				{
+					// no mapping was found - this shouldn't happen
+					wxASSERT(FALSE);
+					;
+				}
+				pItem->itemIDint = itemId;
+			}
+		}
+	}
 
 }
 
-// whm added 11Sep10
+// whm revised 4Oct10
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
+/// \param      <- m_mapMenuLabelStrToIdInt a mapping of menu id strings to their menu id int values
+/// \remarks
+/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It represents
+/// Adapt It's default menu structure as derived from a temporary version of AI's menu
+/// bar (without being configured for any user profiles). Assumes pMenuStructure is NULL
+/// on entry to this function. While setting up the default menu structure, this function
+/// also populates the m_mapMenuLabelStrToIdInt map which is used in the 
+/// GetAndAssignIdValuesToUserProfilesStruct().
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt)
+{
+	wxASSERT(pMenuStructure == NULL);
+	AI_MainMenuItem* pMainMenuItem = NULL;
+	AI_SubMenuItem* pSubMenuItem = NULL;
+
+	pMenuStructure = new AI_MenuStructure;
+	wxASSERT(pMenuStructure != NULL);
+	// create a temporary AI menu bar on the heap from the wxDesigner's AIMenuBarFunc() function.
+	// This represents the default menu bar, as it does not get changed to accommodate the
+	// current user profile by ConfigureInterfaceForUserProfile()
+	wxMenuBar* pMenuBar;
+	pMenuBar = AIMenuBarFunc();
+	wxASSERT(pMenuBar != NULL);
+
+	MapMenuLabelStrToIdInt::iterator iter;
+	m_mapMenuLabelStrToIdInt.clear();
+
+	if (pMenuBar == NULL)
+	{
+		wxASSERT(FALSE);
+		wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the SetupDefaultMenuStructure() function"));
+		return;
+	}
+	int ct;
+	int mbct = pMenuBar->GetMenuCount(); // get the number of top level menu items
+	for (ct = 0; ct < mbct; ct++)
+	{
+		wxMenu* pmbMainMenuItem = pMenuBar->GetMenu(ct); // AI menu bar
+		wxASSERT(pmbMainMenuItem != NULL);
+		if (pmbMainMenuItem != NULL)
+		{
+			pMainMenuItem = new AI_MainMenuItem;
+			wxASSERT(pMainMenuItem != NULL);
+			// initialize the new pMainMenuItem's members
+			pMainMenuItem->mainMenuIDint = -1;
+			//pMainMenuItem->mainMenuID = _T("");
+			pMainMenuItem->mainMenuLabel = _T("");
+			pMainMenuItem->aiSubMenuItems.Clear();
+			
+			// get values for pMainMenuItem's members from the temp AI menu bar pMenuBar
+			wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
+			pMainMenuItem->mainMenuLabel = mbMainMenuText;
+			// For some reason a wxMenu item (top level or sub menu item) does not have a 
+			// GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
+			// determine the int ID of a main menu item in a round-about way.
+			
+			pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
+			//pMainMenuItem->mainMenuID = //can we get along without this string representation mainMenuID?
+			// Consider: When the compiled all of the menu item IDs are determined and those const int values
+			// are used at run time. They don't change during execution or even from session to session of a
+			// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+			// especially since the mainMenuIDint value never changes.
+			
+			// insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+			// Note: we remove menu decorations since we want to be able to look up the plain label in
+			// the map
+			wxString mainMenuItemLabelPlain = RemoveMenuLabelDecorations(mbMainMenuText);
+			iter = m_mapMenuLabelStrToIdInt.find(mainMenuItemLabelPlain);
+			if (iter != m_mapMenuLabelStrToIdInt.end())
+			{
+				// key exists in the map
+				m_mapMenuLabelStrToIdInt.insert(*iter); // associates (any new) pMainMenuItem->mainMenuIDint value with the keyCopy
+			}
+			else
+			{
+				// key not in the map
+				// The [] index operator can be used either of two ways in assignment statement
+				m_mapMenuLabelStrToIdInt[mainMenuItemLabelPlain] = pMainMenuItem->mainMenuIDint; // clearest
+				// or, the following is equivalent, but not so clear
+				//pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
+				// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+				// The only difference is that if the given key is not present in the hash map,
+				// an element with the default value_type() is inserted in the table."
+			}
+
+			int i;
+			int imbct;
+			imbct = pmbMainMenuItem->GetMenuItemCount(); // AI menu bar
+			for (i = 0; i < imbct; i++)
+			{
+				wxMenuItemList pmbSubMenuItems = pmbMainMenuItem->GetMenuItems(); // AI menu bar
+				wxMenuItemList::Node* mbListNode; // AI menu bar
+				mbListNode = pmbSubMenuItems.Item(i); // AI menu bar
+				wxMenuItem* pmbSubMenuItem = mbListNode->GetData(); // AI menu bar
+				wxASSERT(pmbSubMenuItem != NULL);
+				pSubMenuItem = new AI_SubMenuItem;
+				// initialize pSubMenuItem's members
+				wxASSERT(pSubMenuItem != NULL);
+				//pSubMenuItem->subMenuID = _T("");
+				pSubMenuItem->subMenuIDint = -1;
+				pSubMenuItem->subMenuLabel = _T("");
+				pSubMenuItem->subMenuHelp = _T("");
+				pSubMenuItem->subMenuKind = _T("");
+				
+				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's 
+				// pmbSubMenuItem objects
+				//pSubMenuItem->subMenuID = //can we get along without this string representation mainMenuID?
+				// Consider: When the compiled all of the menu item IDs are determined and those const int values
+				// are used at run time. They don't change during execution or even from session to session of a
+				// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+				// especially since the mainMenuIDint value never changes.
+				pSubMenuItem->subMenuIDint = pmbSubMenuItem->GetId(); // GetId() returns -2 for menu separator
+				pSubMenuItem->subMenuLabel = pmbSubMenuItem->GetItemLabel();
+				pSubMenuItem->subMenuHelp = pmbSubMenuItem->GetHelp();
+				pSubMenuItem->subMenuKind = GetMenuItemKindAsString(pmbSubMenuItem->GetKind());
+				// insert the sub menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+				// Note: we remove menu decorations since we want to be able to look up the plain label in
+				// the map
+				wxString subMenuItemLabelPlain = RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
+				if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
+					subMenuItemLabelPlain = _T("menuSeparator");
+				iter = m_mapMenuLabelStrToIdInt.find(subMenuItemLabelPlain);
+				if (iter != m_mapMenuLabelStrToIdInt.end())
+				{
+					// key exists in the map
+					m_mapMenuLabelStrToIdInt.insert(*iter); // associates (any new) pNewTU value with the keyCopy
+				}
+				else
+				{
+					// key not in the map
+					// The [] index operator can be used either of two ways in assignment statement
+					m_mapMenuLabelStrToIdInt[subMenuItemLabelPlain] = pSubMenuItem->subMenuIDint; // clearest
+					// or, the following is equivalent, but not so clear
+					//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+					// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+					// The only difference is that if the given key is not present in the hash map,
+					// an element with the default value_type() is inserted in the table."
+				}
+				// add pSubMenuItem to the pMainMenuItem's aiSubMenuItems list
+				pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
+			}
+			pMenuStructure->aiMainMenuItems.Append(pMainMenuItem);
+		}
+	}
+
+	// Note: calling delete on pMenuBar is sufficient; because of its hierarchy of ownership
+	// all of its child objects get destroyed automatically.
+	delete pMenuBar;
+	pMenuBar = (wxMenuBar*)NULL;
+}
+
+/* 
+// The following version of SetupDefaultMenuStructure() was based on collecting the
+// necessary data from the defaultMenuStructure[] array of strings in the App. This
+// version was replaced by another version (see above) that collects the same data
+// but does so from a temporary AI menu bar, thus eliminating the need to store the
+// redundant defaultMenuStructure[] array.
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
@@ -2843,6 +3032,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
 		// We're at the end of a parsed line
 	}
 }
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -5757,7 +5947,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 				pSubMenuItem = (AI_SubMenuItem*)pArrayOfSubMenuItemsToAdd.Item(ct_ptr);
 				wxASSERT(pSubMenuItem != NULL);
 
-				if (MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,pSubMenuItem->subMenuID))
+				if (MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,pSubMenuItem->subMenuIDint))
 				{
 					// In the line below the numFileHistoryItems will be zero for top level menus except for
 					// the File menu. We normally insert at the GetMenuItemCount() index, i.e., after the last
@@ -5765,7 +5955,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 					insertAtIndex = pMainMenuItem_CurrentMenuBar->GetMenuItemCount() - numFileHistoryItems;
 					wxASSERT(insertAtIndex >= 0);
 					int menuItemId;
-					menuItemId = GetMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
+					menuItemId = GetSubMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
 					
 					wxItemKind itemKind;
 					itemKind = GetMenuItemKindFromString(pSubMenuItem->subMenuKind);
@@ -5892,11 +6082,10 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	// Next, configure visibility of itemType == modeBar elements
 	
 
-	// Next, configure visibility of itemType == preferencesTab elements
-	// Note: This function only sets boolean flags for the visibility of
-	// Preferences tabs. The tabs are hidden or shown based on these
-	// visibility flags at the time when the Preferences dialog is 
-	// instantiated.
+	// Note: Changes in the visibility of itemType == preferencesTab elements
+	// are not done here but within the CEditPreferencesDlg dialog class. The 
+	// tabs are hidden or shown based on the visibility flags in m_pUserProfiles
+	// at the time when the Preferences dialog is instantiated.
 	
 
 	// Next, configure visibility of itemType == wizardListItem element
@@ -6139,11 +6328,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 /// \remarks
 /// Called from: the App's OnInit() after the external XML file AI_UserProfiles.xml has
 /// been successfully read. Examines the App's internal unix-like string arrays in 
-/// defaultProfileItems[] and defaultMenuStructure[] and the default AI menu bar. It
-/// compares all these with those values read in from the AI_UserProfiles.xml file. 
-/// This function does not re-read the raw data from the arrays nor the external file, 
-/// but "reads" the data from the m_pUserProfiles and m_pAI_menustructure structs, as 
-/// well as a temporary pMenuBar - all created on the heap. 
+/// defaultProfileItems[]. It compares them with those values read in from the 
+/// AI_UserProfiles.xml file. This function does not re-read the raw data from the 
+/// arrays nor the external file, but "reads" the data from the m_pUserProfiles created 
+/// on the heap. 
 /// It then reports any inconsistencies to the developer in the form of wxLogDebug() 
 /// outputs for each inconsistency found. It only displays the wxLogDebug messages in 
 /// debug mode, so this function doesn't issue any messages to the user in the release 
@@ -6154,15 +6342,17 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 {
 	// get temporary data structures from the internal unix-like strings
 	UserProfiles* pTempUserProfiles; // destroyed at end of this function
-	AI_MenuStructure* pTempMenuStructure;; // destroyed at end of this function
+	pTempUserProfiles = (UserProfiles*)NULL;
+	//AI_MenuStructure* pTempMenuStructure; // destroyed at end of this function
+	//pTempMenuStructure = (AI_MenuStructure*)NULL;
 	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles
-	SetupDefaultMenuStructure(pTempMenuStructure); // creates a new AI_MenuStructure on heap pointed to by pTempMenuStructure
+	//SetupDefaultMenuStructure(pTempMenuStructure); // creates a new AI_MenuStructure on heap pointed to by pTempMenuStructure
 	// these temp... structs now represent what's in the internal unix-like strings
 	// whereas the values on the App (m_pUserProfiles and m_pAI_MenuStructure)
 	// represent what was read in from the external AI_UserProfiles.xml file.
-	wxMenuBar* pMenuBar;
-	pMenuBar = AIMenuBarFunc();
-	wxASSERT(pMenuBar != NULL);
+	//wxMenuBar* pMenuBar;
+	//pMenuBar = AIMenuBarFunc();
+	//wxASSERT(pMenuBar != NULL);
 	
 	// First make sure we have good pointers
 	if (pTempUserProfiles == NULL)
@@ -6175,21 +6365,21 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 		wxLogDebug(_T("The pointer to the App's m_pUserProfiles is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
 		return;
 	}
-	if (pTempMenuStructure == NULL)
-	{
-		wxLogDebug(_T("The pointer to the internal AI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
-		return;
-	}
-	if (m_pAI_MenuStructure == NULL)
-	{
-		wxLogDebug(_T("The pointer to the App's m_pAI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
-		return;
-	}
-	if (pMenuBar == NULL)
-	{
-		wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
-		return;
-	}
+	//if (pTempMenuStructure == NULL)
+	//{
+	//	wxLogDebug(_T("The pointer to the internal AI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
+	//	return;
+	//}
+	//if (m_pAI_MenuStructure == NULL)
+	//{
+	//	wxLogDebug(_T("The pointer to the App's m_pAI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
+	//	return;
+	//}
+	//if (pMenuBar == NULL)
+	//{
+	//	wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
+	//	return;
+	//}
 	// compare the profile version
 	// Note: When an administrator customizes a given profile we expect that the following things may
 	// be different between our internal values and the external xml file:
@@ -6290,11 +6480,22 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 				// the same order.
 				wxString tempStr = pTempItem->itemID;
 				wxString appStr = pAppItem->itemID;
-				wxLogDebug(_T("The internal and external itemID strings differ for this item: (%s) and (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
-					tempStr.c_str(),appStr.c_str());
+				wxLogDebug(_T("The itemID strings differ for %s: internal (%s) and external (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
+					pAppItem->itemText.c_str(),tempStr.c_str(),appStr.c_str());
 				wxASSERT_MSG(FALSE,_T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match. Are they spelled the same and in the same order? PLEASE FIX ME!"));
 				return; // no point in continuing the check
 			}
+
+			if (pTempItem->itemIDint != pAppItem->itemIDint)
+			{
+				// The itemIDint is also a crucial/unique identifier so insure they match and are in 
+				// the same order.
+				wxLogDebug(_T("The itemID strings differ for %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
+					pAppItem->itemText.c_str(),pTempItem->itemIDint,pAppItem->itemIDint);
+				wxASSERT_MSG(FALSE,_T("AI_UserProfile.xml and internal itemIDint values don't match. PLEASE FIX ME!"));
+				return; // no point in continuing the check
+			}
+
 			if (pTempItem->itemText  != pAppItem->itemText)
 			{
 				wxString tempStr = pTempItem->itemText;
@@ -6389,6 +6590,8 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 			}
 		}
 	}
+
+	/*
 	// Now compare the menu structure data. This requires a 3-way comparison of  
 	// menu sets: (1) AI's default menu bar, (2) the App's internal unix-like
 	// default strings (in pTempMenuStructure), and (3) the menu structure (in 
@@ -6539,13 +6742,14 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 			}
 		}
 	}
+	*/
 	
 	DestroyUserProfiles(pTempUserProfiles);
-	DestroyMenuStructure(pTempMenuStructure);
+	//DestroyMenuStructure(pTempMenuStructure);
 	// Note: calling delete o pMenuBar is sufficient; because of its hierarchy of ownership
 	// all of its child objects get destroyed automatically.
-	delete pMenuBar;
-	pMenuBar = (wxMenuBar*)NULL;
+	//delete pMenuBar;
+	//pMenuBar = (wxMenuBar*)NULL;
 }
 
 
@@ -6628,14 +6832,14 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return    TRUE if menuItemID is supposed to be visible in this nProfile, FALSE otherwise
 /// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
-/// \param      -> menuItemID wxString representation of the menu item's ID
+/// \param      -> menuItemIDint the int representation of the menu item's ID
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// Determines whether the menu item represented in menuItemID it supposed to be visible in
-/// the interface for the user profile passed in as nProfile. Looks up the menuItemID in
+/// Determines whether the menu item represented in menuItemIDint is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the menuItemIDint in
 /// the m_pUserProfiles data struct stored on the heap.
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID)
+bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint)
 {
 	// we assume that a menu item is visible unless the m_pUserProfiles data
 	// indicates otherwise.
@@ -6656,19 +6860,19 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(int nProfile, wxString menuIte
 		node = m_pUserProfiles->profileItemList.Item(ct);
 		pUserProfileItem = node->GetData();
 		wxASSERT(pUserProfileItem != NULL);
-		if (menuItemID == _T("menuSeparator"))
+		if (menuItemIDint == wxID_SEPARATOR) // the value of wxID_SEPARATOR is -2
 		{
 			// We return TRUE for menuSeparators since they are visible when present.
 			return TRUE;
 		}
-		wxString itemID;
-		itemID = pUserProfileItem->itemID;
+		int itemIDint;
+		itemIDint = pUserProfileItem->itemIDint; //itemID;
 		int indexFromProfile = 0;
 		if (nProfile <= 0)
 			indexFromProfile = 0;
 		else if (nProfile > 0)
 			indexFromProfile = nProfile - 1;
-		if (itemID == menuItemID && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		if (itemIDint == menuItemIDint && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
 		{
 			return FALSE;
 		}
@@ -7229,7 +7433,7 @@ bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
 ///             removed from the incoming menuLabel string
 /// \param      -> menuLabel  the string value of the menu label with any "decorations" 
 /// \remarks
-/// Called from: the App's ConfigureInterfaceForUserProfile() and GetMenuItemIdFromAIMenuBar()
+/// Called from: the App's ConfigureInterfaceForUserProfile() and GetSubMenuItemIdFromAIMenuBar()
 /// and from PopulateListBox() and ProfileItemIsSubMenuOfThisMainMenu() in the
 /// CAdminEditMenuProfile class. 
 /// This function is used for comparing menu label strings. It removes any '&' chars as 
@@ -7333,21 +7537,17 @@ wxItemKind CAdapt_ItApp::GetMenuItemKindFromString(wxString itemKindStr)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the top level menu label corresponding to the
-///             top level menu ID string (i.e., ID_FILE_MENU). The label returned will 
+///             top level menu ID (i.e., ID_FILE_MENU). The label returned will 
 ///             still contain any & character for ALT-key access to the menu.
-/// \param      -> IDStr    the string value representing the top level menu ID 
-///                         determining
+/// \param      -> IDint    the int value representing the top level menu ID 
 /// \remarks
 /// Called from: the App's GetTopLevelMenuName(). 
 /// This function determines the string value that represents the top level menu ID according
 /// to the m_pAI_MenuStructure that was populated from the external AI_UserProfiles.xml file.
 /// Note: The default string representations of the top level menus are all localizable as
-/// they exist in the AIMenuBarFunc() produced by wxDesigner. A user could change the labels 
-/// of AI's top level menus via the AI_UserProfiles.xml file's mainMenuLabel attribute of its 
-/// MENU_STRUCTURE > MAIN_MENU entires without having to do an entire localization for the
-/// application.
+/// they exist in the AIMenuBarFunc() produced by wxDesigner. 
 //////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr)
+wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint)
 {
 	wxString nullStr = _T("");
 	// do a reality check
@@ -7366,7 +7566,7 @@ wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr)
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
 		pMainMenuItem = mmNode->GetData();
 		menuLabel = pMainMenuItem->mainMenuLabel;
-		if (pMainMenuItem->mainMenuID == IDStr)
+		if (pMainMenuItem->mainMenuIDint == IDint)
 		{
 			return menuLabel;
 		}
@@ -7591,27 +7791,56 @@ wxString CAdapt_ItApp::GetTopLevelMenuName(TopLevelMenu topLevelMenu)
 	switch(topLevelMenu)
 	{
 	case fileMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_FILE_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_FILE_MENU);
 	case editMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_EDIT_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_EDIT_MENU);
 	case viewMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_VIEW_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_VIEW_MENU);
 	case toolsMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_TOOLS_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_TOOLS_MENU);
 	case exportImportMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_EXPORT_IMPORT_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_EXPORT_IMPORT_MENU);
 	case advancedMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_ADVANCED_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_ADVANCED_MENU);
 	case layoutMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_LAYOUT_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_LAYOUT_MENU);
 	case helpMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_HELP_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_HELP_MENU);
 	case administratorMenu:
-		return GetTopLevelMenuLabelForThisTopLevelMenuID(_("ID_ADMINISTRATOR_MENU"));
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_ADMINISTRATOR_MENU);
 	default:
 		wxString msg = msg.Format(_T("Programming Error: The GetTopLevelMenuName() function received an illegal TopLevelFunction enum value of %d"),topLevelMenu);
 		wxASSERT_MSG(FALSE,msg); // programming error
 		return _T("");
+	}
+}
+
+int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
+{
+	wxString topLevelMenuLabelPlain;
+	topLevelMenuLabelPlain = topLevelMenuLabel; //RemoveMenuLabelDecorations(topLevelMenuLabel);
+	if (topLevelMenuLabelPlain == _("&File"))
+		return ID_FILE_MENU;
+	else if (topLevelMenuLabelPlain == _("&Edit"))
+		return ID_EDIT_MENU; 
+	else if (topLevelMenuLabelPlain == _("&View"))
+		return ID_VIEW_MENU;
+	else if (topLevelMenuLabelPlain == _("&Tools"))
+		return ID_TOOLS_MENU;
+	else if (topLevelMenuLabelPlain == _("E&xport-Import"))
+		return ID_EXPORT_IMPORT_MENU;
+	else if (topLevelMenuLabelPlain == _("&Advanced"))
+		return ID_ADVANCED_MENU;
+	else if (topLevelMenuLabelPlain == _("&Layout"))
+		return ID_LAYOUT_MENU;
+	else if (topLevelMenuLabelPlain == _("&Help"))
+		return ID_HELP_MENU;
+	else if (topLevelMenuLabelPlain == _("Ad&ministrator"))
+		return ID_ADMINISTRATOR_MENU;
+	else
+	{
+		wxASSERT_MSG(FALSE,_T("Programmer Error in GetTopLevelMenuID() function - Unknown top level menu ID symbol."));
+		return -1;
 	}
 }
 
@@ -7656,7 +7885,7 @@ wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
 /// wxMenuBar::FindMenuItem() and wxMenu::FindItem() only take menu item labels.
 /// Note: a menu separator has the value of wxID_SEPARATOR which is -2.
 //////////////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItApp::GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar)
+int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar)
 {
 	// The only available options to get an int id are via calling wxMenu::FindItem(const wxString& itemString) const 
 	// or wxMenuBar::FindMenuItem(const wxString& menuString, const wxString& itemString) const
@@ -8752,8 +8981,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 								// prior to Version 3.x)
 	gProjectSfmSetForConfig = UsfmOnly;	// Retains any value set in the project config file
                                 // unless user explicitly changes it in Edit Preferences
-                                // USFM/Filtering tab or the Start Working... wizard
-                                // USFM/Filtering page when creating a new project.
+                                // USFM and Filtering tab or the Start Working... wizard
+                                // USFM and Filtering page when creating a new project.
 
 	m_bSingleQuoteAsPunct = FALSE; // BEW added March 17, 2005
 	m_bDoubleQuoteAsPunct = TRUE; // BEW added April 28, 2005
@@ -11930,10 +12159,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
 	}
 
+
+	// Create the m_pAI_MenuStructure based on the default AI menu bar as found
+	// in the wxDesigner's AIMenuBarFunc() function. This also populates the
+	// m_mapMenuLabelStrToIdInt with all of AI's menu label -> menu id 
+	// associations.
+	SetupDefaultMenuStructure(m_pAI_MenuStructure, m_mapMenuLabelStrToIdInt);
+
 	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
 	// copy there if necessary from the installation resources.
-	// TODO: Should the loading of AI_UserProfiles.xml go before the creation of the 
-	// menu bar???
 	message = _("Loading AI_UserProfiles.xml ...");
 	wxASSERT(pStatusBar != NULL);
 	pStatusBar->SetStatusText(message,0); // use first field 0
@@ -12032,12 +12266,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// We'll populate the list boxes with default settings parsed from our
 			// default unix-like strings.
 			SetupDefaultUserProfiles(m_pUserProfiles);
-			SetupDefaultMenuStructure(m_pAI_MenuStructure);
 		}
 		else
 		{
 			// The AI_UserProfiles.xml file was read, check for inconsistencies between
 			// our internal unix-like default strings and what was in AI_UserProfiles.xml.
+			// Note: GetAndAssignIdValuesToUserProfilesStruct() needs to be called here
+			// because ReadPROFILES_XML() does not call it, and it needs to be called at
+			// some point before ReportMenuAndUserProfilesInconsistencies().
+			GetAndAssignIdValuesToUserProfilesStruct(m_pUserProfiles);
 			ReportMenuAndUserProfilesInconsistencies();
 		}
 	}
@@ -12050,7 +12287,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// We'll populate the list boxes with default settings parsed from our
 		// default unix-like strings.
 		SetupDefaultUserProfiles(m_pUserProfiles);
-		SetupDefaultMenuStructure(m_pAI_MenuStructure);
 	}
 
 	// At this point the config files have been read and the AI_UserProfiles.xml file has been
@@ -14556,15 +14792,15 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
-/// \param      pfilterPageCommon   ->  pointer to the appropriate filter page being 
+/// \param      pUsfmFilterPageCommon ->  pointer to the usfmFilterPage being 
 ///                                     displayed
-/// \param      reparseDoc          ->  enum value that can be either NoReparse or 
+/// \param      reparseDoc           ->  enum value that can be either NoReparse or 
 ///                                     DoReparse
 /// \remarks
-/// Called from: the CFilterPageWiz::OnWizardPageChanging() when moving forward, and the 
-/// CFilterPagePrefs::OnOK().
-/// Updates the internal data structures for any changes made in the filter page (or in the
-/// usfm page). It first checks for filtering changes made to the markers currently being
+/// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the 
+/// CUsfmFilterPagePrefs::OnOK().
+/// Updates the internal data structures for any changes made in the usfm filter page. 
+/// It first checks for filtering changes made to the markers currently being
 /// used in the Doc. If filtering changes are made in the doc and/or the parameter
 /// reparseDoc == DoReparse, DoUSFMFilterChanges calls RetokenizeText() with the
 /// appropriate flags. Next, DoUSFMFilterChanges checks for filtering changes made to the
@@ -14572,8 +14808,8 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 /// the updated filtering markers list in the App's gProjectFilterMarkersForConfig for
 /// later writing to the project config file.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, 
-									   enum Reparse reparseDoc)
+bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+				enum Reparse reparseDoc)
 {
 	// whm added 26Apr05
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -14593,11 +14829,11 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 
     // since the CUIntArrays contain all the document's markers, and since the user cannot
     // add markers in the GUI which calls this function, the sizes must be identical
-	int countBeforeEdit = pfilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
-	int countAfterEdit = pfilterPageCommon->m_filterFlagsDoc.GetCount();
+	int countBeforeEdit = pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
+	int countAfterEdit = pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	int numFlags = pfilterPageCommon->m_filterFlagsDoc.GetCount();
-    // The filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
+	int numFlags = pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
+    // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
     // m_filterFlagsDoc CUIntArray contain data for both known and unknown markers. The
     // former contains the list box formatted whole marker and its description. The later
     // contains flags indicating the filter state of the associated/parallel markers.
@@ -14612,14 +14848,14 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 	//       DoUsfmFilterChanges.
 	for (int index = 0; index < numFlags;  index++)
 	{
-		if (pfilterPageCommon->m_filterFlagsDoc[index] != 
-			pfilterPageCommon->m_filterFlagsDocBeforeEdit[index])
+		if (pUsfmFilterPageCommon->m_filterFlagsDoc[index] != 
+			pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index])
 		{
 			bFilterChangeInDoc = TRUE;
 			// while we are at it, collect the markers that need changing into a string
 			// that can be input into the Doc's ResetUSFMFilterStructs().
 
-			tempStr = pfilterPageCommon->m_SfmMarkerAndDescriptionsDoc[index];
+			tempStr = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsDoc[index];
 			int strLen = tempStr.Length();
 			int spCt = 0;
 			int nwspCt = 0;
@@ -14645,14 +14881,14 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 			if (gpApp->m_FilterStatusMap.find(filterMkr) == gpApp->m_FilterStatusMap.end())
 			{
 				// marker does not already exist in m_FilterStatusMap so add it
-				if (pfilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 0	// previously unfiltered
-					&& pfilterPageCommon->m_filterFlagsDoc[index] == 1)			// now filtered
+				if (pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 0	// previously unfiltered
+					&& pUsfmFilterPageCommon->m_filterFlagsDoc[index] == 1)			// now filtered
 				{
 					gpApp->m_FilterStatusMap[filterMkr] = _T("1");
 					strMarkersToBeFiltered += filterMkr + _T(' ');
 				}
-				else if (pfilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 1	// previously filtered
-					&& pfilterPageCommon->m_filterFlagsDoc[index] == 0)				// now unfiltered
+				else if (pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 1	// previously filtered
+					&& pUsfmFilterPageCommon->m_filterFlagsDoc[index] == 0)				// now unfiltered
 				{
 					gpApp->m_FilterStatusMap[filterMkr] = _T("0");
 					strMarkersToBeUnfiltered += filterMkr + _T(' ');
@@ -14762,30 +14998,30 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 	// Now check for changes in the Project's list of filter markers
 	wxString filterMkrStr;
 	filterMkrStr.Empty(); // start with an empty string
-	countBeforeEdit = pfilterPageCommon->m_filterFlagsProjBeforeEdit.GetCount();
-	countAfterEdit = pfilterPageCommon->m_filterFlagsProj.GetCount();
+	countBeforeEdit = pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit.GetCount();
+	countAfterEdit = pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	numFlags = pfilterPageCommon->m_filterFlagsProj.GetCount();
+	numFlags = pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
 	for (int index = 0; index < numFlags;  index++)
 	{
 		// Collect the markers to store as new filter marker defaults for the Project
 		// in case user made a change.
 		// whm modified 23Sep10 to do more robust parsing of marker
-		//int posn = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Find(_T("  "));
-		//filterMkr = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Mid(0,posn);
-		filterMkr = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index];
+		//int posn = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Find(_T("  "));
+		//filterMkr = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Mid(0,posn);
+		filterMkr = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsProj[index];
 		filterMkr.Trim(FALSE); // trim left end
 		int spPos = filterMkr.Find(_T(' '));
 		wxASSERT(spPos != -1);
 		filterMkr = filterMkr.Mid(0,spPos);
 		filterMkr.Trim(TRUE); // trim right end
-		if (pfilterPageCommon->m_filterFlagsProj[index] == TRUE)
+		if (pUsfmFilterPageCommon->m_filterFlagsProj[index] == TRUE)
 		{
 			filterMkrStr += filterMkr + _T(' ');
 		}
 		// check for changes
-		if (pfilterPageCommon->m_filterFlagsProj[index] != 
-			pfilterPageCommon->m_filterFlagsProjBeforeEdit[index])
+		if (pUsfmFilterPageCommon->m_filterFlagsProj[index] != 
+			pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit[index])
 		{
 			bFilterChangeInProj = TRUE;
 		}
@@ -14807,22 +15043,21 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
-/// \param      pUsfmPageCommon   -> pointer to the appropriate usfm page
-/// \param      pFilterPageCommon -> pointer to the appropriate filter page
+/// \param      pUsfmFilterPageCommon   -> pointer to the usfmFilterPage
 /// \param      bSetChanged       <- TRUE by reference if the sfm set changed, 
 ///                                  FALSE otherwise
 /// \param      reparseDoc        -> enum value that can be either NoReparse 
 ///                                  or DoReparse
 /// \remarks
-/// Called from: the CUSFMPageWiz::OnWizardPageChanging() when moving forward, and the
-/// CUSFMPagePrefs::OnOK().
+/// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the
+/// CUsfmFilterPagePrefs::OnOK().
 /// It updates the internal data structures for any changes made to the sfm set in the 
-/// CUSFMPage. It calls RetokenizeText with reparseDoc == DoReparse if the user changed 
+/// usfmFilterPage. It calls RetokenizeText with reparseDoc == DoReparse if the user changed 
 /// the SfmSet in the document.
+/// whm 5Oct10 modified user workflow profiles compatibility.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, 
-							CFilterPageCommon* pFilterPageCommon, bool& bSetChanged, 
-							enum Reparse reparseDoc)
+bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+									bool& bSetChanged, enum Reparse reparseDoc)
 {
 	// whm added 23May05
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -14836,7 +15071,7 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon,
 
     // whm Note 29Jun05: DoUsfmSetChanges() is always called when the user clicks on OK in
     // Preferences, and/or clicks FINISH in the wizard. As long as the local copies of the
-    // following variables are properly initialized in the USFM page and Filter page's
+    // following variables are properly initialized in the Usfm Filter page's
     // constructors, we can unconditionally copy those local copies back to their
     // corresponding variables on the App and Doc when the user clicks on OK in the
     // Preferences, and/or clicks FINISH in the wizard. These variables are:
@@ -14854,59 +15089,73 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon,
 	// 8. gpApp->m_filterFlagsUnkMkrs (CUIntArray)
 	// 9. gpApp->m_currentUnknownMarkersStr (wxString)
     // When checking code integrity, the above should be used to initialize the
-    // corresponding temporary local variables used in the USFM and Filter pages.
+    // corresponding temporary local variables used in the Usfm Filter page.
     // Only the temporary local variables should be modified while the Preferences and/or
     // Wizard are active. Only when the user clicks OK in Preferences or FINISH in the
     // wizard, should the temporary local variables be used to update the above global
     // variables on the App.
 
     // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
-    // reflects the state of the current Doc) with the USFM page's tempSfmSetAfterEditDoc
-	gpApp->gCurrentSfmSet = pUsfmPageCommon->tempSfmSetAfterEditDoc;
-	// Update the App's gCurrentFilterMarkers with the Filter page's 
+    // reflects the state of the current Doc) with the USFM and Filtering page's 
+    // tempSfmSetAfterEditDoc
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
+	// Update the App's gCurrentFilterMarkers with the USFM and Filtering page's 
 	// tempFilterMarkersAfterEditDoc
-	gpApp->gCurrentFilterMarkers = pFilterPageCommon->tempFilterMarkersAfterEditDoc;
-	// Update the global for the project sfm set with the USFM page's 
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gCurrentFilterMarkers = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
+	// Update the global for the project sfm set with the USFM and Filtering page's 
 	// tempSfmSetAfterEditProj
-	gpApp->gProjectSfmSetForConfig = pUsfmPageCommon->tempSfmSetAfterEditProj;
-	// Update the global for the project's filter markers with the Filter page's 
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gProjectSfmSetForConfig = pUsfmFilterPageCommon->tempSfmSetAfterEditProj;
+	// Update the global for the project's filter markers with the USFM and Filtering page's 
 	// tempFilterMarkersAfterEditProj
-	gpApp->gProjectFilterMarkersForConfig = pFilterPageCommon->tempFilterMarkersAfterEditProj;
-	// Update the sfm set stored on the App with the USFM page's tempSfmSetAfterEditDoc
-	gpApp->m_sfmSetAfterEdit = pUsfmPageCommon->tempSfmSetAfterEditDoc; // whm added 
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gProjectFilterMarkersForConfig = pUsfmFilterPageCommon->tempFilterMarkersAfterEditProj;
+	// Update the sfm set stored on the App with the USFM and Filtering page's 
+	// tempSfmSetAfterEditDoc
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->m_sfmSetAfterEdit = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc; // whm added 
 		// 10Jun05 for Bruce
-	// Update the list of filter markers on the App with the Filter page's 
+	// Update the list of filter markers on the App with the USFM and Filtering page's 
 	// tempFilterMarkersAfterEditDoc
-	gpApp->m_filterMarkersAfterEdit = pFilterPageCommon->tempFilterMarkersAfterEditDoc;
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->m_filterMarkersAfterEdit = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
 
 #ifdef _Trace_UnknownMarkers
-	TRACE0("In DoUsfmSetChanges BEFORE Doc's unknown markers copied from pFilterPageCommon\n");
+	TRACE0("In DoUsfmSetChanges BEFORE Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pDoc->m_unknownMarkers, &pDoc->m_filterFlagsUnkMkrs));
-	TRACE1("    Filter pg's unk mkrs = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pFilterPageCommon->m_unknownMarkers, &pFilterPageCommon->m_filterFlagsUnkMkrs));
+	TRACE1("    Filter pg's unk mkrs = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pUsfmFilterPageCommon->m_unknownMarkers, &pUsfmFilterPageCommon->m_filterFlagsUnkMkrs));
 #endif
 
-	// Update the unknown markers vars on the App with those in the Filter page
-	gpApp->m_unknownMarkers.Clear();
-	int ct;
-	for (ct = 0; ct < (int)pFilterPageCommon->m_unknownMarkers.GetCount(); ct++)
-		gpApp->m_unknownMarkers.Add(pFilterPageCommon->m_unknownMarkers.Item(ct));
-
-	gpApp->m_filterFlagsUnkMkrs.Clear();
-	for (ct = 0; ct < (int)pFilterPageCommon->m_filterFlagsUnkMkrs.GetCount(); ct++)
-		gpApp->m_filterFlagsUnkMkrs.Add(pFilterPageCommon->m_filterFlagsUnkMkrs.Item(ct));
-	gpApp->m_currentUnknownMarkersStr = pFilterPageCommon->m_currentUnknownMarkersStr;
-
-	if (pUsfmPageCommon->tempSfmSetBeforeEditDoc != pUsfmPageCommon->tempSfmSetAfterEditDoc)
+	if (pUsfmFilterPageCommon != NULL)
 	{
-		bSetChanged = TRUE; // return TRUE so that filtering call can be suppressed in caller
-							// (caller must default this flag to FALSE before DoUsfmSetChanges
-							// is called)
+		// Update the unknown markers vars on the App with those in the Usfm Filter page
+		gpApp->m_unknownMarkers.Clear();
+		int ct;
+		for (ct = 0; ct < (int)pUsfmFilterPageCommon->m_unknownMarkers.GetCount(); ct++)
+			gpApp->m_unknownMarkers.Add(pUsfmFilterPageCommon->m_unknownMarkers.Item(ct));
+
+		gpApp->m_filterFlagsUnkMkrs.Clear();
+		for (ct = 0; ct < (int)pUsfmFilterPageCommon->m_filterFlagsUnkMkrs.GetCount(); ct++)
+			gpApp->m_filterFlagsUnkMkrs.Add(pUsfmFilterPageCommon->m_filterFlagsUnkMkrs.Item(ct));
+		gpApp->m_currentUnknownMarkersStr = pUsfmFilterPageCommon->m_currentUnknownMarkersStr;
 	}
 
-	if (pUsfmPageCommon->bChangeFixedSpaceToRegularSpace != 
-		pUsfmPageCommon->bChangeFixedSpaceToRegularBeforeEdit)
+	if (pUsfmFilterPageCommon != NULL)
 	{
-		gpApp->m_bChangeFixedSpaceToRegularSpace = pUsfmPageCommon->bChangeFixedSpaceToRegularSpace;
+		if (pUsfmFilterPageCommon->tempSfmSetBeforeEditDoc != pUsfmFilterPageCommon->tempSfmSetAfterEditDoc)
+		{
+			bSetChanged = TRUE; // return TRUE so that filtering call can be suppressed in caller
+								// (caller must default this flag to FALSE before DoUsfmSetChanges
+								// is called)
+		}
+
+		if (pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace != 
+			pUsfmFilterPageCommon->bChangeFixedSpaceToRegularBeforeEdit)
+		{
+			gpApp->m_bChangeFixedSpaceToRegularSpace = pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace;
+		}
 	}
 
 	// whm added 12May06
@@ -15883,13 +16132,13 @@ bool CAdapt_ItApp::GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView,
 /// GetUnknownMarkersFromDoc(), the View's GetMarkerInventoryFromCurrentDoc(),
 /// MarkerTakesAnEndMarker(), and (from ExportFunctions.cpp) DoExportInterlinearRTF(),
 /// BuildRTFTagsMap(), BuildColorTableFromUSFMColorAttributes(), GetMaxMarkerLength(), the
-/// CFilterPageCommon::LoadDocSFMListBox(), CFilterPageCommon::LoadProjSFMListBox(),
-/// CUSFMPageCommon::DoInit(), CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(),
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsProj().
+/// CUsfmFilterPageCommon::LoadDocSFMListBox(), CUsfmFilterPageCommon::LoadProjSFMListBox(),
+/// CUsfmFilterPageCommon::DoInit(), CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj().
 /// Gets a pointer to the current MapSfmToUSFMAnalysisStruct map specified by sfmSet.
 ////////////////////////////////////////////////////////////////////////////////////////
 MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
@@ -21867,8 +22116,8 @@ t:				m_pCurrBookNamePair = NULL;
         // inventory of standard format markers, therefore we assign both gCurrentSfmSet
         // and gProjectSfmSetForConfig to be PngOnly. This setting remains PngOnly until
         // the user explicitly changes to a different SfmSet using Edit Preferences USFM
-        // tab, or the USFM page in the Start Working... wizard upon creation of a new
-        // project.
+        // and Filtering tab, or the USFM and Filtering page in the Start Working... wizard 
+        // upon creation of a new project.
 		gCurrentSfmSet = PngOnly;
 		gProjectSfmSetForConfig = gCurrentSfmSet; // whm added 6May05
 		gCurrentFilterMarkers = PngFilterMarkersStr; // whm added 13May05
@@ -25155,7 +25404,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 #ifdef _Trace_UnknownMarkers
 	wxString filteredUnkMkrsAddedTogCurrentFilterMarkers;
 	filteredUnkMkrsAddedTogCurrentFilterMarkers.Empty();
-	TRACE0("In SetupMarkerStrings BEFORE Doc's unknown markers copied from pFilterPageCommon\n");
+	TRACE0("In SetupMarkerStrings BEFORE Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
 #endif
 
@@ -25204,7 +25453,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
     }
 
 #ifdef _Trace_UnknownMarkers
-	TRACE0("In SetupMarkerStrings AFTER Doc's unknown markers copied from pFilterPageCommon\n");
+	TRACE0("In SetupMarkerStrings AFTER Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
 	TRACE1("   Unk mkrs added to glbl= %s\n", filteredUnkMkrsAddedTogCurrentFilterMarkers);
 #endif
@@ -25249,14 +25498,14 @@ void CAdapt_ItApp::RemoveMarkerFromString(wxString& markerStr, wxString wholeMar
 ///                                   descriptive text
 /// \remarks
 /// Called from: the View's GetMarkerInventoryFromCurrentDoc(), 
-/// from CFilterPageCommon::LoadDocSFMListBox(), CFilterPageCommon::LoadProjSFMListBox(),
-/// CFilterPageCommon::LoadFactorySFMListBox(), from CUSFMPageCommon::DoInit(),
-/// CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(),
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(),
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsProj().
+/// from CUsfmFilterPageCommon::LoadDocSFMListBox(), CUsfmFilterPageCommon::LoadProjSFMListBox(),
+/// from CUsfmFilterPageCommon::DoInit(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj().
 /// This function scans the array to find the whole marker that has the greatest text extent 
 /// in the pDC. It then scans the array again and uses that text extent determined in the 
 /// first scan to calculate and insert the amount of white space needed between the whole 
@@ -25287,9 +25536,9 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
     // the beginning of the list box. Because of this we preserve any initial white space
     // found on the array strings and only adjust the medial space in our formatting
     // process. wx version note: The wx version does not have a "Show All" button in the
-    // filter page dialog, therefore I've modified the code within the filterpage to
-    // eliminate from the wxArrayString items that won't be shown in the listbox before the
-    // wxArrayString is input into this FormatMarkerAndDescriptionsStringArray function.
+    // usfm filter page dialog, therefore I've modified the code within the usfm filter page 
+    // to eliminate from the wxArrayString items that won't be shown in the listbox before 
+    // the wxArrayString is input into this FormatMarkerAndDescriptionsStringArray function.
     // Hence, here in this function we only calculate the extents of markers that do not
     // display within list boxes.
     // whm added 19Jan09 additional parameter pUserCanSetFilterFlags so we can determine
@@ -27648,8 +27897,8 @@ void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox
 /// Called from: CExportOptionsDlg's OnBnClickedRadioExportSelectedMarkers(),
 /// OnLbnSelchangeListSfms(), OnCheckListBoxToggle(),
 /// OnBnClickedButtonFilterOutFromExport(), OnBnClickedButtonIncludeInExport(),
-/// OnBnClickedButtonUndo(), CFilterPageCommon's CheckListBoxToggleFactory(),
-/// DoBoxClickedIncludeOrFilterOutDoc() and DoBoxClickedIncludeOrFilterOutProj().
+/// OnBnClickedButtonUndo(), DoBoxClickedIncludeOrFilterOutDoc() and 
+/// DoBoxClickedIncludeOrFilterOutProj().
 /// This function does a brute force linear search through strArray looking for findStr. If
 /// found (array element == findStr exactly) it returns the found element's index in the
 /// array, otherwise it returns -1.

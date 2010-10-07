@@ -151,8 +151,7 @@ class CAdapt_ItView;
 class CPhraseBox;
 class CAdapt_ItDoc;
 class CPunctCorrespPageCommon;
-class CUSFMPageCommon;
-class CFilterPageCommon;
+class CUsfmFilterPageCommon;
 class CStdioFile;
 class CPrintingDlg;
 class CStdioFileEx;
@@ -366,15 +365,15 @@ const char xml_illustration[] = "illustration";
 const char userprofilessupport[] = "UserProfilesSupport";
 const char menu[] = "MENU";
 const char profile[] = "PROFILE";
-const char menuStructure[] = "MENU_STRUCTURE";
-const char main_menu[] = "MAIN_MENU";
-const char sub_menu[] = "SUB_MENU";
+//const char menuStructure[] = "MENU_STRUCTURE";
+//const char main_menu[] = "MAIN_MENU";
+//const char sub_menu[] = "SUB_MENU";
 const char end_userprofilessupport[] = "/UserProfilesSupport";
 const char end_menu[] = "/MENU";
 const char end_profile[] = "/PROFILE";
-const char end_menuStructure[] = "/MENU_STRUCTURE";
-const char end_main_menu[] = "/MAIN_MENU";
-const char end_sub_menu[] = "/SUB_MENU";
+//const char end_menuStructure[] = "/MENU_STRUCTURE";
+//const char end_main_menu[] = "/MAIN_MENU";
+//const char end_sub_menu[] = "/SUB_MENU";
 
 // this group are for the attribute names for AI_UserProfiles.xml
 const char profileVersion[] = "profileVersion";
@@ -670,7 +669,7 @@ void			SetupBookCodesArray(wxArrayPtrVoid* pBookCodes); // used in default
 BookNamePair*	MakePair(BookNamePair*& pPair, wxChar* dirNm, wxChar* seeNm);
 void			SetupDefaultBooksArray(wxArrayPtrVoid* pBookStructs);
 
-// for USFM Filtering support
+// for USFM and Filtering support
 void SetupDefaultStylesMap();
 
 /// An enum for specifying the type of rebuilding to be done when calling
@@ -695,15 +694,14 @@ enum SetInitialFilterStatus
 
 /// An enumb for specifying how to handle the loading of data into the filterPage's list
 /// boxes, one of the following: LoadInitialDefaults, UndoEdits,
-/// ReloadAndUpdateFromDocList, ReloadAndUpdateFromProjList or
-/// ReloadAndUpdateFromFactoryList.
+/// ReloadAndUpdateFromDocList or ReloadAndUpdateFromProjList.
 enum ListBoxProcess
 {
 	LoadInitialDefaults,
 	UndoEdits,
 	ReloadAndUpdateFromDocList,
 	ReloadAndUpdateFromProjList,
-	ReloadAndUpdateFromFactoryList
+	ReloadAndUpdateFromFactoryList // this one is now unused
 };
 
 /// An enum for specifying which standard format marker set is to be used or is active, one
@@ -877,7 +875,7 @@ enum USFMAnalysisField
 	keepWithNext	// addition for version 3
 };
 
-// for USFM Filtering support
+// for USFM and Filtering support
 // When adding or remove attributes from USFMAnalysis, the following need to be
 // checked for consistency:
 // 1. This USFMAnalysis struct
@@ -955,6 +953,7 @@ struct USFMAnalysis
 struct UserProfileItem
 {
 	wxString itemID;
+	int itemIDint;
 	wxString itemType;
 	wxString itemText;
 	wxString itemDescr;
@@ -978,7 +977,8 @@ struct UserProfiles
 
 struct AI_SubMenuItem
 {
-	wxString subMenuID;
+	//wxString subMenuID;
+	int subMenuIDint;
 	wxString subMenuLabel;
 	wxString subMenuHelp;
 	wxString subMenuKind;
@@ -990,7 +990,8 @@ WX_DECLARE_LIST(AI_SubMenuItem, SubMenuItemList); // see list definition macro i
 
 struct AI_MainMenuItem
 {
-	wxString mainMenuID;
+	//wxString mainMenuID;
+	int mainMenuIDint;
 	wxString mainMenuLabel;
 	SubMenuItemList aiSubMenuItems;
 };
@@ -1004,6 +1005,14 @@ struct AI_MenuStructure
 {
 	MainMenuItemList aiMainMenuItems;
 };
+
+/// wxHashMap declaration for the MapMenuLabelStrToIdInt class - a mapped association
+/// of Menu label keys (wxString) with integers representing Menu Id int values.
+WX_DECLARE_HASH_MAP(wxString,
+					int,
+					wxStringHash,
+					wxStringEqual,
+					MapMenuLabelStrToIdInt);
 
 /// wxHashMap declaration for the MapSfmToUSFMAnalysisStruct class - a mapped association
 /// of sfm marker keys (wxString) with pointers to USFMAnalysis objects.
@@ -2334,7 +2343,7 @@ public:
 	int			m_nTotalBooks;		// total count of all the book folder names in the 
 				// books.xml file
 
-	// whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
+	// whm added 19Jan05 AI_USFM.xml file processing and USFM and Filtering
 	bool		m_bUsingDefaultUsfmStyles;
 
 	// flag for skipping USFM fixed space "!$" 2-character sequence when parsing
@@ -2363,6 +2372,8 @@ public:
 									// different user workflow profile.
 	wxArrayPtrVoid* m_pRemovedMenuItemArray; // an array of pointers to wxMenuItem instances
 									// which have been removed for the current profile
+
+	MapMenuLabelStrToIdInt m_mapMenuLabelStrToIdInt; // map of menu string ids to the menu int ids
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2402,8 +2413,9 @@ public:
                 // user's explicitly chosen SfmSet in the project config file. The only
                 // time gProjectSfmSetForConfig changes is when the user explicitly changes
                 // the current working SfmSet to something else by means of Edit
-                // Preferences USFM/Filter tab (forcing a rebuild) or by means of the Start
-                // Working... wizard USFM/Filter page (no doc open, no rebuild).
+                // Preferences USFM and Filtering tab (forcing a rebuild) or by means of the 
+                // Start Working... wizard USFM and Filtering wizard page (no doc open, no 
+                // rebuild).
 	enum SfmSet gFactorySfmSet;	// will retain the factory default sfm set which is assigned
 				// to be UsfmOnly
 	MapSfmToUSFMAnalysisStruct*	m_pUsfmStylesMap;  // stores associations of key and ptr to
@@ -2439,7 +2451,7 @@ public:
                 // UsfmFilterMarkersStr, PngFilterMarkersStr, or
                 // UsfmAndPngFilterMarkersStr, depending on the currently selected sfm set.
                 // If the user saved a document that was created with a modified filter
-                // marker list (via changes to USFM/Filtering tab), the string value stored
+                // marker list (via changes to USFM and Filtering tab), the string value stored
                 // in it will be overridden upon serialization (loading) of the doc by the
                 // filter marker list stored in the doc's Buffer member, regardless of the
                 // filter marker string stored in the project config file (see the next
@@ -2636,17 +2648,19 @@ public:
 	bool	ConfigureInterfaceForUserProfile();
 	void	MakeMenuInitializationsAndPlatformAdjustments();
 	void	ReportMenuAndUserProfilesInconsistencies();
-	bool	MenuItemIsVisibleInThisProfile(int nProfile, wxString menuItemID);
-	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(wxString IDStr);
+	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
+	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxString GetMenuItemKindAsString(wxItemKind itemKind);
 	wxItemKind GetMenuItemKindFromString(wxString itemKindStr);
 	wxArrayPtrVoid GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem);
+	int		GetTopLevelMenuID(const wxString topLevelMenuLabel);
 	wxString GetTopLevelMenuName(TopLevelMenu topLevelMenu);
 	wxMenu* GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu);
-	int		GetMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
+	int		GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
 	void	SetupDefaultUserProfiles(UserProfiles*& pUserProfiles);
-	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure);
+	void	GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles);
+	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt);
 	void	DestroyUserProfiles(UserProfiles*& pUserProfiles);
 	void	DestroyMenuStructure(AI_MenuStructure*& pMenuStructure);
 	// The following functions are currently unused and possibly incomplete/untested, but are left
@@ -2701,16 +2715,15 @@ public:
 	void	CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders);
 	void	DoAutoSaveDoc();
 	void	DoAutoSaveKB();
-	bool	DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, 
-				CFilterPageCommon* pFilterPageCommon, bool& bSetChanged, 
-				enum Reparse reparseDoc); // whm added 23May05; BEW added bSetChanged 12Jun05
+	bool	DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+				bool& bSetChanged, enum Reparse reparseDoc); // whm added 23May05; BEW added bSetChanged 12Jun05
 	bool	DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, enum Reparse reparseDoc);
 	void	DoKBBackup();
 	void	DoGlossingKBBackup();
 	void	DoFileOpen(); // DoFileOpen() calls OnOpenDocument() which is in the Doc
 	bool	DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event));
-	bool	DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, 
-				enum Reparse reparseDoc); // whm revised 23May05
+	bool	DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+				enum Reparse reparseDoc); // whm revised 23May05 and 5Oct10
 	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath, 
 				bool bSuppressDialog = FALSE);
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10

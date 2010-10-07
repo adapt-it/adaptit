@@ -2521,190 +2521,6 @@ wxSizer *XMLErrorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
-wxSizer *USFMPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Define Uniform Standard Format Marker (USFM) Sets"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_USFMPAGE, _("USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project. After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 0 );
-
-    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("This Document's Settings:") );
-    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
-
-    wxRadioButton *item8 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY, _("&UBS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item8->SetValue( TRUE );
-    item8->SetToolTip( _("Select this button to use the USFM set of standard format markers for this document") );
-    item6->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item9 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY, _("SIL&PNG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("Select this button to use the PNG set of standard format markers for this document") );
-    item6->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item10 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS, _("Both UBS &and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers for this document") );
-    item6->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("Project Defaults:") );
-    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
-
-    wxRadioButton *item13 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_PROJ, _("U&BS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item13->SetValue( TRUE );
-    item13->SetToolTip( _("Select this button to use the USFM set of standard format markers as default for the whole project") );
-    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item14 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY_PROJ, _("SILP&NG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Select this button to use the PNG set of standard format markers as default for the whole project") );
-    item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item15 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS_PROJ, _("Bo&th UBS and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers as default for the whole project") );
-    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    item5->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticBox *item17 = new wxStaticBox( parent, -1, _("Factory Defaults (read only):") );
-    wxStaticBoxSizer *item16 = new wxStaticBoxSizer( item17, wxVERTICAL );
-
-    wxRadioButton *item18 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_FACTORY, _("UB&S USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item18->SetValue( TRUE );
-    item18->SetToolTip( _("The Factory default is USFM and cannot be changed") );
-    item16->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY_FACTORY, _("SILPN&G 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetToolTip( _("The Factory default is USFM and cannot be changed") );
-    item16->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item20 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS_FACTORY, _("Bot&h UBS and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->SetToolTip( _("The Factory default is USFM and cannot be changed") );
-    item16->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    item5->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("Factory Defaults cannot be changed"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item21, 0, wxALIGN_CENTER|wxALL, 10 );
-
-    item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item22 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
-
-    item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM, _("&Change USFM fixed space markers (!$) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
-    item23->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
-
-    item25->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Note: USFM discretionary line breaks (//) are always removed from input texts"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item22->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *FilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Define Marker Filtering (Marker Hiding)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_FILTERPAGE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Th&is Document's Filter Settings:") );
-    wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
-
-    wxString *strs9 = (wxString*) NULL;
-    wxCheckListBox *item9 = new wxCheckListBox( parent, IDC_LIST_SFMS, wxDefaultPosition, wxSize(-1,110), 0, strs9, wxLB_SINGLE|wxLB_SORT );
-    item9->SetToolTip( _("This is a list of standard format markers that can be used in this document; when boxes are checked the markers are filtered (hidden)") );
-    item7->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Pro&ject Filter Defaults:") );
-    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
-
-    wxString *strs12 = (wxString*) NULL;
-    wxCheckListBox *item12 = new wxCheckListBox( parent, IDC_LIST_SFMS_PROJ, wxDefaultPosition, wxSize(-1,110), 0, strs12, wxLB_SINGLE|wxLB_SORT );
-    item12->SetToolTip( _("This is a list of default standard format markers for the project; when boxes are checked the markers are filtered (hidden)") );
-    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item6->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    wxStaticBox *item14 = new wxStaticBox( parent, -1, _("&Factory Filter Defaults (read only):") );
-    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxVERTICAL );
-
-    wxString *strs15 = (wxString*) NULL;
-    wxCheckListBox *item15 = new wxCheckListBox( parent, IDC_LIST_SFMS_FACTORY, wxDefaultPosition, wxSize(-1,110), 0, strs15, wxLB_SINGLE|wxLB_SORT );
-    item15->SetToolTip( _("This is the list of default standard format markers that come from the Factory (at installation); their filter status cannot be changed") );
-    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item6->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
 wxSizer *SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7535,6 +7351,135 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Define USFM and Marker Filtering (Marker Hiding)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_FILTERPAGE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Th&is Document's Filter Settings:") );
+    wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
+
+    wxString *strs9 = (wxString*) NULL;
+    wxCheckListBox *item9 = new wxCheckListBox( parent, IDC_LIST_SFMS, wxDefaultPosition, wxSize(-1,110), 0, strs9, wxLB_SINGLE|wxLB_SORT );
+    item9->SetToolTip( _("This is a list of standard format markers that can be used in this document; when boxes are checked the markers are filtered (hidden)") );
+    item7->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Pro&ject Filter Defaults:") );
+    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
+
+    wxString *strs12 = (wxString*) NULL;
+    wxCheckListBox *item12 = new wxCheckListBox( parent, IDC_LIST_SFMS_PROJ, wxDefaultPosition, wxSize(-1,110), 0, strs12, wxLB_SINGLE|wxLB_SORT );
+    item12->SetToolTip( _("This is a list of default standard format markers for the project; when boxes are checked the markers are filtered (hidden)") );
+    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item6->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxStaticBox *item14 = new wxStaticBox( parent, -1, _("&USFM Set Selection:") );
+    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxVERTICAL );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("This Document's Settings:") );
+    wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
+
+    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY, _("&UBS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item19->SetValue( TRUE );
+    item19->SetToolTip( _("Select this button to use the USFM set of standard format markers for this document") );
+    item17->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item20 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY, _("SIL&PNG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Select this button to use the PNG set of standard format markers for this document") );
+    item17->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item21 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS, _("Both UBS &and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers for this document") );
+    item17->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Project Defaults:") );
+    wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
+
+    wxRadioButton *item24 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_PROJ, _("U&BS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item24->SetValue( TRUE );
+    item24->SetToolTip( _("Select this button to use the USFM set of standard format markers as default for the whole project") );
+    item22->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item25 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY_PROJ, _("SILP&NG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Select this button to use the PNG set of standard format markers as default for the whole project") );
+    item22->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item26 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS_PROJ, _("Bo&th UBS and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers as default for the whole project") );
+    item22->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item16->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+
+    item28->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM, _("&Change USFM fixed space markers (!$) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
+    item28->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item27->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+
+    item30->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("Note: USFM discretionary line breaks (//) are always removed from input texts"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item27->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item15->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item6->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {

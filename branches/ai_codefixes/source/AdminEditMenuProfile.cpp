@@ -139,7 +139,7 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// on the heap. These routines first destroy the internal items that were
 	// allocated on the heap, then the top level items.
 	m_pApp->DestroyUserProfiles(m_pApp->m_pUserProfiles);
-	m_pApp->DestroyMenuStructure(m_pApp->m_pAI_MenuStructure);
+	//m_pApp->DestroyMenuStructure(m_pApp->m_pAI_MenuStructure);
 
 	// Reread the AI_UserProfiles.xml file (this also loads the App's 
 	// m_pUserProfiles data structure with latest values stored on disk).
@@ -153,19 +153,28 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// Note: Reading the AI_UserProfiles.xml file, also repopulates the 
 	// m_pAI_MenuStructure with the latest current data.
 	wxString readDataFrom;
-	readDataFrom = _T("XML File");
+	readDataFrom = _T("AI_UserProfiles.xml File");
 	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
 	if (!bReadOK)
 	{
 		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read
 		// We'll populate the list boxes with default settings parsed from our
 		// default unix-like strings
-		readDataFrom = _T("Internal Default Strings");
+		readDataFrom = _T("Internal Default Strings (Unable to read AI_UserProfiles.xml)");
 		m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles);
-		m_pApp->SetupDefaultMenuStructure(m_pApp->m_pAI_MenuStructure);
+		//m_pApp->SetupDefaultMenuStructure(m_pApp->m_pAI_MenuStructure);
 	}
-	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
+	else
+	{
+		// AI_UserProfiles.xml was read successfully
+		// Note: GetAndAssignIdValuesToUserProfilesStruct() needs to be called here
+		// because ReadPROFILES_XML() does not call it, and it needs to be called at
+		// some point after ReadPROFILES_XML().
+		m_pApp->GetAndAssignIdValuesToUserProfilesStruct(m_pApp->m_pUserProfiles);
+	}
+	//wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
 	wxLogDebug(_T("Reading data from the %s"),readDataFrom.c_str());
+	
 	
 	// Now that we've read the data (xml file or string defaults if xml file not present)
 	// we can initialize some characteristics of the dialog.
@@ -720,10 +729,10 @@ void CAdminEditMenuProfile::CopyMenuStructure(const AI_MenuStructure* pFromMenuS
 			pToSubMenuItem = new AI_SubMenuItem;
 			wxASSERT(pToSubMenuItem != NULL);
 			pToSubMenuItem->subMenuHelp = pFromSubMenuItem->subMenuHelp;
-			pToSubMenuItem->subMenuID = pFromSubMenuItem->subMenuID;
+			pToSubMenuItem->subMenuIDint = pFromSubMenuItem->subMenuIDint;
 			pToSubMenuItem->subMenuKind = pFromSubMenuItem->subMenuKind;
 			pToSubMenuItem->subMenuLabel = pFromSubMenuItem->subMenuLabel;
-			pToMainMenuItem->mainMenuID = pFromMainMenuItem->mainMenuID;
+			pToMainMenuItem->mainMenuIDint = pFromMainMenuItem->mainMenuIDint;
 			pToMainMenuItem->mainMenuLabel = pFromMainMenuItem->mainMenuLabel;
 			pToMainMenuItem->aiSubMenuItems.Append(pToSubMenuItem);
 		}
@@ -768,6 +777,7 @@ void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfil
 			pToItem->adminCanChange = pFromItem->adminCanChange;
 			pToItem->itemDescr = pFromItem->itemDescr;
 			pToItem->itemID = pFromItem->itemID;
+			pToItem->itemIDint = pFromItem->itemIDint;
 			pToItem->itemText = pFromItem->itemText;
 			pToItem->itemType = pFromItem->itemType;
 			int ct;
@@ -810,8 +820,8 @@ bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* 
 	{
 		return FALSE;
 	}
-	wxString profileItemID;
-	profileItemID = pUserProfileItem->itemID;
+	int profileItemIDint;
+	profileItemIDint = pUserProfileItem->itemIDint;
 
 	
 	wxString menuLabel;
@@ -833,7 +843,7 @@ bool CAdminEditMenuProfile::ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* 
 		{
 			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
 			pSubMenuItem = smNode->GetData();
-			if (pSubMenuItem->subMenuID == profileItemID && menuLabel == mmLabel)
+			if (pSubMenuItem->subMenuIDint == profileItemIDint && menuLabel == mmLabel)
 			{
 				return TRUE;
 			}

@@ -10356,7 +10356,7 @@ void CAdapt_ItView::OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event))
 /// there are times when you'd want access when no doc is loaded - such as getting
 /// access to the Administrator menu should only require you be in an open project (and
 /// even that is maybe a bit too stringent). However our code won't support this currently
-/// because the USFM and Filtering pages do a lot of setup for USFM and filtering and for 
+/// because the USFM and Filtering page does a lot of setup for USFM and filtering and for 
 /// that it looks into the doc- which therefore has to be open.
 /// BEW modified 13Nov09: if the local user has read-only access (to a remote project
 /// folder) it must not be possible to change the remote settings so as to initiate a
