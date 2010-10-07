@@ -16,6 +16,7 @@
 		0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
+		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7D527D45124308E30077F9FE /* AI_UserProfiles.xml */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
@@ -72,7 +73,6 @@
 		C8F82E760F3F9CAB007579B8 /* ExportInterlinearDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DEB0F3F9CAB007579B8 /* ExportInterlinearDlg.cpp */; };
 		C8F82E770F3F9CAB007579B8 /* ExportOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DED0F3F9CAB007579B8 /* ExportOptionsDlg.cpp */; };
 		C8F82E780F3F9CAB007579B8 /* ExportSaveAsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DEF0F3F9CAB007579B8 /* ExportSaveAsDlg.cpp */; };
-		C8F82E790F3F9CAB007579B8 /* FilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF10F3F9CAB007579B8 /* FilterPage.cpp */; };
 		C8F82E7A0F3F9CAB007579B8 /* FindReplace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF30F3F9CAB007579B8 /* FindReplace.cpp */; };
 		C8F82E7B0F3F9CAB007579B8 /* FontPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF50F3F9CAB007579B8 /* FontPage.cpp */; };
 		C8F82E7C0F3F9CAB007579B8 /* GoToDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF70F3F9CAB007579B8 /* GoToDlg.cpp */; };
@@ -113,7 +113,6 @@
 		C8F82EA20F3F9CAB007579B8 /* UnitsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */; };
 		C8F82EA30F3F9CAB007579B8 /* UnitsPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E450F3F9CAB007579B8 /* UnitsPage.cpp */; };
 		C8F82EA40F3F9CAB007579B8 /* UnpackWarningDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E470F3F9CAB007579B8 /* UnpackWarningDlg.cpp */; };
-		C8F82EA50F3F9CAB007579B8 /* USFMPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E490F3F9CAB007579B8 /* USFMPage.cpp */; };
 		C8F82EA60F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E4B0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp */; };
 		C8F82EA70F3F9CAB007579B8 /* ViewPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E4D0F3F9CAB007579B8 /* ViewPage.cpp */; };
 		C8F82EA80F3F9CAB007579B8 /* WaitDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E4F0F3F9CAB007579B8 /* WaitDlg.cpp */; };
@@ -155,6 +154,8 @@
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
+		7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UsfmFilterPage.cpp; path = ../../source/UsfmFilterPage.cpp; sourceTree = SOURCE_ROOT; };
+		7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UsfmFilterPage.h; path = ../../source/UsfmFilterPage.h; sourceTree = SOURCE_ROOT; };
 		7D527D45124308E30077F9FE /* AI_UserProfiles.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_UserProfiles.xml; path = ../../xml/AI_UserProfiles.xml; sourceTree = SOURCE_ROOT; };
 		7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Layout.cpp; path = ../../source/Layout.cpp; sourceTree = SOURCE_ROOT; };
 		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
@@ -254,8 +255,6 @@
 		C8F82DEE0F3F9CAB007579B8 /* ExportOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExportOptionsDlg.h; path = ../../source/ExportOptionsDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82DEF0F3F9CAB007579B8 /* ExportSaveAsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ExportSaveAsDlg.cpp; path = ../../source/ExportSaveAsDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DF00F3F9CAB007579B8 /* ExportSaveAsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExportSaveAsDlg.h; path = ../../source/ExportSaveAsDlg.h; sourceTree = SOURCE_ROOT; };
-		C8F82DF10F3F9CAB007579B8 /* FilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FilterPage.cpp; path = ../../source/FilterPage.cpp; sourceTree = SOURCE_ROOT; };
-		C8F82DF20F3F9CAB007579B8 /* FilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FilterPage.h; path = ../../source/FilterPage.h; sourceTree = SOURCE_ROOT; };
 		C8F82DF30F3F9CAB007579B8 /* FindReplace.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FindReplace.cpp; path = ../../source/FindReplace.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DF40F3F9CAB007579B8 /* FindReplace.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FindReplace.h; path = ../../source/FindReplace.h; sourceTree = SOURCE_ROOT; };
 		C8F82DF50F3F9CAB007579B8 /* FontPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FontPage.cpp; path = ../../source/FontPage.cpp; sourceTree = SOURCE_ROOT; };
@@ -336,8 +335,6 @@
 		C8F82E460F3F9CAB007579B8 /* UnitsPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UnitsPage.h; path = ../../source/UnitsPage.h; sourceTree = SOURCE_ROOT; };
 		C8F82E470F3F9CAB007579B8 /* UnpackWarningDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UnpackWarningDlg.cpp; path = ../../source/UnpackWarningDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E480F3F9CAB007579B8 /* UnpackWarningDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UnpackWarningDlg.h; path = ../../source/UnpackWarningDlg.h; sourceTree = SOURCE_ROOT; };
-		C8F82E490F3F9CAB007579B8 /* USFMPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = USFMPage.cpp; path = ../../source/USFMPage.cpp; sourceTree = SOURCE_ROOT; };
-		C8F82E4A0F3F9CAB007579B8 /* USFMPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = USFMPage.h; path = ../../source/USFMPage.h; sourceTree = SOURCE_ROOT; };
 		C8F82E4B0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ViewFilteredMaterialDlg.cpp; path = ../../source/ViewFilteredMaterialDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E4C0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ViewFilteredMaterialDlg.h; path = ../../source/ViewFilteredMaterialDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82E4D0F3F9CAB007579B8 /* ViewPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ViewPage.cpp; path = ../../source/ViewPage.cpp; sourceTree = SOURCE_ROOT; };
@@ -404,6 +401,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */,
+				7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */,
 				7DD19D1B1239E0BA004A65DD /* Usfm2Oxes.cpp */,
 				7DD19D1C1239E0BA004A65DD /* Usfm2Oxes.h */,
 				C80E02B71222481000ECCA6A /* AdminEditMenuProfile.cpp */,
@@ -496,8 +495,6 @@
 				C8F82DEE0F3F9CAB007579B8 /* ExportOptionsDlg.h */,
 				C8F82DEF0F3F9CAB007579B8 /* ExportSaveAsDlg.cpp */,
 				C8F82DF00F3F9CAB007579B8 /* ExportSaveAsDlg.h */,
-				C8F82DF10F3F9CAB007579B8 /* FilterPage.cpp */,
-				C8F82DF20F3F9CAB007579B8 /* FilterPage.h */,
 				C8F82DF30F3F9CAB007579B8 /* FindReplace.cpp */,
 				C8F82DF40F3F9CAB007579B8 /* FindReplace.h */,
 				C8F82DF50F3F9CAB007579B8 /* FontPage.cpp */,
@@ -585,8 +582,6 @@
 				C8F82E460F3F9CAB007579B8 /* UnitsPage.h */,
 				C8F82E470F3F9CAB007579B8 /* UnpackWarningDlg.cpp */,
 				C8F82E480F3F9CAB007579B8 /* UnpackWarningDlg.h */,
-				C8F82E490F3F9CAB007579B8 /* USFMPage.cpp */,
-				C8F82E4A0F3F9CAB007579B8 /* USFMPage.h */,
 				C8F82E4B0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp */,
 				C8F82E4C0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.h */,
 				C8F82E4D0F3F9CAB007579B8 /* ViewPage.cpp */,
@@ -787,7 +782,6 @@
 				C8F82E760F3F9CAB007579B8 /* ExportInterlinearDlg.cpp in Sources */,
 				C8F82E770F3F9CAB007579B8 /* ExportOptionsDlg.cpp in Sources */,
 				C8F82E780F3F9CAB007579B8 /* ExportSaveAsDlg.cpp in Sources */,
-				C8F82E790F3F9CAB007579B8 /* FilterPage.cpp in Sources */,
 				C8F82E7A0F3F9CAB007579B8 /* FindReplace.cpp in Sources */,
 				C8F82E7B0F3F9CAB007579B8 /* FontPage.cpp in Sources */,
 				C8F82E7C0F3F9CAB007579B8 /* GoToDlg.cpp in Sources */,
@@ -828,7 +822,6 @@
 				C8F82EA20F3F9CAB007579B8 /* UnitsDlg.cpp in Sources */,
 				C8F82EA30F3F9CAB007579B8 /* UnitsPage.cpp in Sources */,
 				C8F82EA40F3F9CAB007579B8 /* UnpackWarningDlg.cpp in Sources */,
-				C8F82EA50F3F9CAB007579B8 /* USFMPage.cpp in Sources */,
 				C8F82EA60F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp in Sources */,
 				C8F82EA70F3F9CAB007579B8 /* ViewPage.cpp in Sources */,
 				C8F82EA80F3F9CAB007579B8 /* WaitDlg.cpp in Sources */,
@@ -859,6 +852,7 @@
 				C80E02BB1222481000ECCA6A /* AdminEditMenuProfile.cpp in Sources */,
 				C80E02BC1222481000ECCA6A /* NavProtectNewDoc.cpp in Sources */,
 				7DD19D1D1239E0BA004A65DD /* Usfm2Oxes.cpp in Sources */,
+				7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
