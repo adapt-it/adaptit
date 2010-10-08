@@ -54,6 +54,8 @@
 WX_DEFINE_OBJARRAY(NoteDetailsArray);
 WX_DEFINE_OBJARRAY(AIGroupArray);
 WX_DEFINE_OBJARRAY(AISectionInfoArray);
+WX_DEFINE_OBJARRAY(AISectHdrOrParaArray);
+
 
 /// This flag is used to indicate that the text being processed is unstructured, i.e.,
 /// not containing the standard format markers (such as verse and chapter) that would 
@@ -282,9 +284,38 @@ void Usfm2Oxes::Initialize()
 	// once an \s or \s1, etc, is found because often a \c chapter marker will precede and
 	// when that happens the chapter info goes within the Oxes <section>, so we'll have to
 	// make sure chapter starts at a section start are indicated in the section chunks  
-	m_sectioningMkrs = _T("\\s \\s1 \\s2 \\s3 \\ms \\ms1 \\ms2 \\ms3 ");											
-													
-													
+	m_sectioningMkrs = _T("\\s \\s1 \\s2 \\s3 \\ms \\ms1 \\ms2 \\ms3 ");
+
+	// any markers which can start a paragraph or finish one; \nb 'no break' is not
+	// included as while USFM lists it with paragraph markers, it indicates "no paragraph
+	// break" (occurs after \c ) and so we just ignore it; we'll also not include \cls
+	// "(epistle) closure" marker, as the text following belongs in the current paragraph
+	// anyway; also ignore \b as it only indicates some extra vertical white space, not a
+	// proper paragraph break -- we use this marker set for dividing off successive
+	// paragraphs; a complication is that either or both of \free or \note, if present,
+	// will occur before any of these which occur in the text (we don't include \free nor
+	// \note in these marker lists, but test for them explicitly in the code with a
+	// separate test -- it's better this way because we often have to give these separate
+	// handling in the protocols for storage etc)
+	m_paragraphMkrs = _T("\\p \\m \\pc \\pr \\pmo \\pm \\pmc \\pmr \\pi \\pi1 \\pi2 \\pi3 \\mi \\li \\li1 \\li2 \\ph \\ph1 \\ph2 \\ph3 ");													
+	// the following set can occur preceding paragraph marker within a section, probably
+	// these are all we'd expect (but add others if necessary) - the
+	// SectionHeaderOrParagraph struct has a wxString member for storing the content of
+	// each such marker type
+	m_allowedPreParagraphMkrs = _T("\\c \\s \\s1 \\s2 \\s3 \\ms \\mr \\r \\d \\ms1 \\ms2 \\ms3 ");
+	// the following set are the ones which possibly may occur immediately following markers
+	// from the m_allowedPreParagraphMkrs set; we'll test for this, and if a marker isn't
+	// in either set, our Oxes won't export it, but we'll store it and its content in 
+	// SectionHeaderOrParagraph.unexpectedMarkers and show that member's contents to the
+	// user in the view while parsing, so he can alert the developers that it needs to be
+	// handled; we won't repeat all the paragraph markers here, but include them in the
+	// tests by testing the marker against m_paragraphMkrs also
+	m_haltingMrks_PreFirstParagraph = _T("\\v \\q \\q1 \\q2 \\q3 \\qr \\qc \\qm \\qm1 \\qm2 \\qm3 ");
+	// the allowed set for non-first paragraphs in sections are just two, \c and \nb
+	m_allowedPreParagraphMkrs_NonFirstParagraph = _T("\\c \\nb ");
+
+
+
 	// create the structs: TitleInfo struct, IntroInfo struct
 	m_pTitleInfo = new TitleInfo;
 	m_pIntroInfo = new IntroductionInfo;
@@ -377,6 +408,29 @@ void Usfm2Oxes::ClearAIGroupArray(AIGroupArray& rGrpArray)
 	}
 }
 
+// clear an AISectHdrOrParaArray of its set of SectionHeaderOrParagraph struct instances
+void Usfm2Oxes::ClearAISectHdrOrParaArray(AISectHdrOrParaArray& rParagraphArray)
+{
+	if (!rParagraphArray.IsEmpty())
+	{
+		int count = rParagraphArray.GetCount();
+		int index;
+		for (index = 0; index < count; index++)
+		{
+			SectionHeaderOrParagraph* pParagraph = rParagraphArray.Item(index);
+			// temporarily, just delete, it has only wxString members so far, but when we
+			// get to the point of having it store an array of substructures, we'll need a
+			// prior call to a clearing function here as well
+			// *** TODO *** -- any more than the two below???
+			ClearAIGroupArray(pParagraph->majorHeaderGroupArray);
+			ClearAIGroupArray(pParagraph->sectionHeaderGroupArray);
+			delete pParagraph;
+		}
+		rParagraphArray.Clear(); // remove its stored pointers which are all now hanging
+	}
+}
+
+
 void Usfm2Oxes::ClearCanonInfo()
 {
     // this function cleans out the file-specific data present in the IntroInfo struct from
@@ -403,9 +457,7 @@ void Usfm2Oxes::ClearAISectionInfoArray(AISectionInfoArray& arrSections)
 void Usfm2Oxes::ClearSectionInfo(SectionInfo* pSectionInfo)
 {
 	pSectionInfo->strChunk.Empty();
-
-	// *** TODO *** add more code as I add extra members to the SectionInfo struct
-
+	ClearAISectHdrOrParaArray(pSectionInfo->paraArray); // does nothing if paraArray is empty
 	delete pSectionInfo;
 }
 
@@ -478,6 +530,47 @@ bool Usfm2Oxes::IsSpecialTextStyleMkr(wxChar* pChar)
 	{
 		return FALSE;
 	}
+}
+
+bool Usfm2Oxes::IsMkrAllowedPrecedingParagraphs(wxString& wholeMkr)
+{
+	if (wholeMkr.Len() < 2)
+		return FALSE;
+	wxString wholeMkrPlusSpace = wholeMkr + _T(' ');
+	size_t offset = m_allowedPreParagraphMkrs.Find(wholeMkrPlusSpace);
+	if (offset >= 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+bool Usfm2Oxes::IsANoteMarker(wxString& wholeMkr)
+{
+	if (wholeMkr = m_noteMkr)
+		return TRUE;
+	return FALSE;
+}
+
+bool Usfm2Oxes::IsAFreeMarker(wxString& wholeMkr)
+{
+	if (wholeMkr = m_freeMkr)
+		return TRUE;
+	return FALSE;
+}
+
+
+bool Usfm2Oxes::IsAHaltingMarker_PreFirstParagraph(wxString& wholeMkr)
+{
+	if (wholeMkr.Len() < 2)
+		return FALSE;
+	wxString wholeMkrPlusSpace = wholeMkr + _T(' ');
+	size_t offset = m_haltingMrks_PreFirstParagraph.Find(wholeMkrPlusSpace);
+	if (offset >= 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 // if str has an exact match in the passed in array, return TRUE, else return FALSE
@@ -992,358 +1085,6 @@ bool Usfm2Oxes::IsNormalSectionMkr(wxString& buffer)
 		}
 	}
 	return FALSE; // it's not one of \s or \s1 or \s2 or \s3
-}
-
-// This function chunks the canonical information into 'sections' - these have no formal
-// existence in USFM nor in other markup schemas. The 'section' is defined as the material
-// starting with a section header, up as far as the next section header. Non-linearities
-// cause complications at this point, because in correct USFM markup, a \c marker must
-// precede any \ms or \s type of section heading markers (ie. \ms \ms1 \ms2, etc) and the
-// chapter marker's line needs to associate with the new section about to be created,
-// rather than the current one about to be closed off. A further complication is that the
-// presence of section divisions does not always coincide with chapter divisions, though it
-// very often does. An additional complicating factor is that an \ms type of marker (for
-// types of 'major section') may precede a \s type of marker (for a normal subheading for
-// the material which follows) and when this is the case, BOTH of these belong in the one
-// section. It is difficult to check for and ensure this happens right - our solution is to
-// use the fact that proper USFM markup will have either of the following two marker
-// sequences: \ms followed by \mr followed by \s (these, of course could be \ms2 \mr \s1,
-// or other possible combinations of these two marker types), or, \ms followed by \s. We
-// therefore set a counter to 0 when an \ms type is matched, and count iterations of the
-// loop - any \s type of marker encountered before the counter reaches the value 3 are
-// included in the current new section, rather than being an indicator for closing the
-// current section and opening a new one.
-void Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
-{
-	// the markers for sectioning are stored in m_sectioningMkrs
-	wxChar aSpace = _T(' ');
-	wxASSERT(pCanonInfo != NULL);
-	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-	wxASSERT(pDoc != NULL);
-	wxString canonStr = pCanonInfo->strChunk;
-	SectionInfo* pCurSection = new SectionInfo;
-	InitializeSectionInfo(pCurSection);
-	// first section, so get everything preceding the initial verse into the first section
-	// before we start looking for the end of the section; since we are at the start of a
-	// book, we can assume a chapter starts the section and has a chapter number of 1.
-	pCurSection->bChapterStartsAtSectionStart = TRUE;
-	pCurSection->strChapterNumAtSectionStart = _T("1");
-
-	int offset = canonStr.Find(m_verseMkr); // this will match USFM markers \v \va \vp, 
-						// and also the non-standard \vn (verse number) and \vt
-						// (verse text) which are sometimes used in Sth Asia Group;
-						// but no matter, because any of these matches is okay here
-	wxASSERT(offset != wxNOT_FOUND);
-	pCurSection->strChunk = canonStr.Left(offset);
-	canonStr = canonStr.Mid(offset); // bleed out the transferred data
-
-	wxString chapterStuff; // temporarily store \c followed by its chapter number here
-			// when found in the loop, pending the decision whether it belongs in the
-			// current section (if there is no section header at the chapter start) or
-			// in the next section (if there is a section header at the chapter start)
-	wxString chapterNum; chapterNum.Empty(); // put parsed chapter number string here temporarily
-
-	// Now we must search for section ends in a loop, consuming all canonStr as we
-	// delineate successive sections and transfer their data to each successive instance
-	// of pCurSection->strChunk. Since many, but probably not all, sections will, in
-	// correct USFM markup, start at a chapter break where there is also a sectioning
-	// marker present, the \c and its chapter number are also to be included in the next
-	// section, rather than at the end of the current one.
-	int nIterationCount = -1; // set to 0 when \ms marker type encountered, a following 
-							  // \s marker must be encountered before nIterationCount
-							  // reaches the value 3 for it to be included in the current
-							  // section, rather than starting a new section; once such
-							  // a decision has been made, return the value to -1 which
-							  // used to indicate that iteration counting is not in effect
-	offset = wxNOT_FOUND;
-	chapterStuff.Empty();
-	wxString wholeMkr;
-	wxString wholeMkrPlusSpace;
-	wxString precedingStr;
-	int offset2;
-	bool bIsNormalSectionMkr = FALSE;
-	bool bFoundChapterStart = FALSE;
-	do {
-		if (nIterationCount != -1)
-		{
-			nIterationCount++; // only values 1 and 2 are useful, after that we turn it off
-		}
-		if (nIterationCount > 2)
-		{
-			// turn it off once it reaches 3
-			nIterationCount = -1;
-		}
-		offset = canonStr.Find(backslash);
-		if (offset == wxNOT_FOUND)
-		{
-			// there are no more markers, so the current section gets what remains and
-			// then we'll exit the loop after storing the current section's struct
-			pCurSection->strChunk += canonStr;
-			canonStr.Empty();
-
-			// closing off the last section -- so the ending chapter number will be the one
-			// already in strChapterNumAtSectionEnd provided that
-			// bChapterChangesMidSection is TRUE, but if that boolean is
-			// FALSE, then it will need to be the value in which is stored in 
-			// strChapterNumAtSectionStart
-            if (pCurSection->bChapterChangesMidSection)
-			{
-				// nothing to do, except set the flag
-				pCurSection->bChapterEndsAtSectionEnd = TRUE;
-			}
-			else
-			{
-				wxASSERT(!pCurSection->strChapterNumAtSectionStart.IsEmpty());
-				pCurSection->strChapterNumAtSectionEnd = 
-									pCurSection->strChapterNumAtSectionStart;
-				pCurSection->bChapterEndsAtSectionEnd = TRUE;
-			}
-
-			pCanonInfo->arrSections.Add(pCurSection);
-		}
-		else
-		{
-			// we've found a marker, determine if it is a chapter marker, and if so, store
-			// it and its chapter number temporarily until we can determine where that
-			// information belows - the current section, or the next section
-			precedingStr = canonStr.Left(offset); // where we store it depends on another test
-			canonStr = canonStr.Mid(offset); // shorten, so the marker is initial
-			// store the rest (the chapter number) if the previous iteration found a \c
-			// marker (Note: our algorithm relies on correct markup for chapter and
-			// subheading, the subheading should, if it is present, be immediately
-			// following the chapter marker's line. We'll test for this an assert if that
-			// is not the case.)
-			if (bFoundChapterStart)
-			{
-				// precedingStr will contain the white space and following chapter number
-				// so complete the chapter stuff information by adding it to the \c marker
-				// which is already present from the previous iteration
-				chapterStuff += precedingStr;
-				chapterNum = GetChapterNumber(precedingStr);
-				// we clear the bFoundChapterStart flag further below, because we need to
-				// use it in further tests
-			}
-			else
-			{
-				pCurSection->strChunk += precedingStr;
-			}
-			wholeMkr = pDoc->GetWholeMarker(canonStr);
-			int length = wholeMkr.Len();
-			// a chapter marker will have white space following it, test and if it is not
-			// so, -- then it is some other marker - in which case check for it being a
-			// section-ending marker
-			if (wholeMkr == m_chapterMkr && IsWhiteSpace(canonStr[length]))
-			{
-				// it is a \c marker, so we have come to the start of a new chapter
-				bFoundChapterStart = TRUE;
-				chapterStuff = wholeMkr;
-				canonStr = canonStr.Mid(length);
-				offset2 = wxNOT_FOUND;
-				precedingStr.Empty();
-				continue;
-			}
-			else
-			{
-				// it is not a chapter marker, so check if it is one of the section-ending
-				// ones
-				wholeMkrPlusSpace = wholeMkr + aSpace;
-				offset2 = m_sectioningMkrs.Find(wholeMkrPlusSpace);
-				if (offset2 == wxNOT_FOUND)
-				{
-					// the whole marker is not a sectioning one, so continue iterating
-					if (bFoundChapterStart)
-					{
-                        // If this flag is still TRUE, then the last iteration found a
-                        // chapter number, and this iteration has just parsed over and
-                        // accumulated its chapter number. Also, we've found a marker which
-                        // is not a type of subheading marker - in which case there is no
-                        // subheading, nor major section heading, at the start of this
-                        // chapter and so the chapterStuff string has to be immediately
-                        // placed in the current section now, and the chapterStuff string
-                        // cleared, before we start grabbing more data from canonStr.
-                        // Moreover, we know that this chapter change is neither at the
-                        // start of a section nor at its end, and so we can set other
-                        // SectionInfo members now to preserve this understanding
-						pCurSection->strChunk += chapterStuff;
-						chapterStuff.Empty();
-						pCurSection->bChapterChangesMidSection = TRUE;
-						pCurSection->strChapterNumAtSectionEnd = chapterNum;
-						// to get the value of the previous chapter's number, we'll not do
-						// arithmetic (we might be handling a test document with chapters
-						// omitted) but instead get the ending chapter number of the
-						// last-stored SectionInfo struct
-						if (!pCanonInfo->arrSections.IsEmpty())
-						{
-							wxString lastChapterNum = 
-								(pCanonInfo->arrSections.Last())->strChapterNumAtSectionEnd;
-							wxASSERT(!lastChapterNum.IsEmpty());
-							pCurSection->strChapterNumAtSectionStart = lastChapterNum;
-						}
-						else
-						{
-							// we can assume the section-starting chapter number would be 1
-							// in this case 
-							pCurSection->strChapterNumAtSectionStart = _T("1");
-						}
-					}
-					// accumulate the marker we found into the current section and iterate
-					pCurSection->strChunk += wholeMkr;
-					canonStr = canonStr.Mid(length); // bleed out the marker we've accumulated
-					bFoundChapterStart = FALSE; // ensure it is now FALSE
-				} // end of TRUE block for test: if (offset2 == wxNOT_FOUND)
-				  // (which means 'the found marker is not one of the sectioning ones')
-				else
-				{
-                    // the whole marker is a sectioning one, so check the contents of
-                    // chapterStuff to see if it contains \c and a chapter number stored on
-                    // the previous iteration - if it does, then that information belongs
-                    // in the next section; whatever the case the current section has to be
-					// finished off and a new section started; and set the members for
-					// tracking the chapter number at start and end of the section, etc.
-					// We also much check for the sectioning marker being a majorSection
-					// one (ie. one which starts with "\ms") and if that is the case, we
-					// must ensure that any subheading (\s type of marker) which may
-					// follow the \ms type of marker does not cause a new section to begin
-					// but is instead included in the one which has the \ms data.
-					bIsNormalSectionMkr = IsNormalSectionMkr(canonStr); // TRUE if \s or \s#
-					if (bIsNormalSectionMkr && nIterationCount > 0 && nIterationCount < 3)
-					{
-						// this section header belongs in the current section
-						nIterationCount = -1; // it's done it job, turn it back off
-					}
-					else
-					{
-						// a type of \s marker further away than \ms than two iterations,
-						// or a sesctioning marker which is not one of the \s ones, must
-						// be able to finish of the current section and get a new section
-						// commenced
-						if (bFoundChapterStart)
-						{
-							// there is chapter start data (\c nn where nn is a chapter number)
-							// which we must deal with - it goes in the next section, which
-							// means that the chapter number at the end of the current section
-							// will be the one in strChapterNumAtSectionEnd if the boolean
-							// bChapterChangesMidSection is TRUE (the former string is already
-							// set if that boolean is TRUE), otherwise if the latter flag
-							// is FALSE, it is the same as is in strChapterNumAtSectionStart
-							if (pCurSection->bChapterChangesMidSection)
-							{
-								pCurSection->bChapterEndsAtSectionEnd = TRUE;
-							}
-							else
-							{
-								pCurSection->bChapterEndsAtSectionEnd = TRUE;
-								wxASSERT(!pCurSection->strChapterNumAtSectionStart.IsEmpty());
-								pCurSection->strChapterNumAtSectionEnd = 
-													pCurSection->strChapterNumAtSectionStart;
-							}
-	                        
-							// store the section in the array for that purpose
-							pCanonInfo->arrSections.Add(pCurSection);
-
-							// create a new SectionInfo struct, and set the chapter information
-							pCurSection = new SectionInfo;
-							InitializeSectionInfo(pCurSection);
-							pCurSection->bChapterStartsAtSectionStart = TRUE;
-							pCurSection->strChapterNumAtSectionStart = chapterNum;
-
-							// put the chapter start information in the new section's strChunk
-							// and clear both chapterStuff and chapterNum strings
-							pCurSection->strChunk = chapterStuff;
-							chapterStuff.Empty();
-							chapterNum.Empty();							
-						}
-						else
-						{
-							// a new section is starting but the chapter number remains
-							// unchanged because there is no change of chapter at the end of
-							// this section -- so the ending chapter number will be the one
-							// already in strChapterNumAtSectionEnd provided that
-							// bChapterChangesMidSection is TRUE, but if that boolean is
-							// FALSE, then it will need to be the value in which is stored in 
-							// strChapterNumAtSectionStart
-							if (pCurSection->bChapterChangesMidSection)
-							{
-								// nothing to do
-								;
-							}
-							else
-							{
-								wxASSERT(!pCurSection->strChapterNumAtSectionStart.IsEmpty());
-								pCurSection->strChapterNumAtSectionEnd = 
-													pCurSection->strChapterNumAtSectionStart;
-							}
-							wxString strCarryForwardEndingChapterNum = 
-													pCurSection->strChapterNumAtSectionEnd;
-
-							// store the section in the array for that purpose
-							pCanonInfo->arrSections.Add(pCurSection);
-
-							// create a new SectionInfo struct
-							pCurSection = new SectionInfo;
-							InitializeSectionInfo(pCurSection);
-							// set the strChapterNumAtSectionStart string, but leave the
-							// boolean bChapterStartsAtSectionStart FALSE because the chapter
-							// hasn't just been changed
-							pCurSection->strChapterNumAtSectionStart = 
-													strCarryForwardEndingChapterNum;
-							strCarryForwardEndingChapterNum.Empty();
-							// ensure the next two are empty (both should already be empty, but
-							// it is a good idea to ensure it is so)
-							chapterStuff.Empty();
-							chapterNum.Empty();
-							
-						} // end of else block for test: if (bFoundChapterStart)
-					} // end of else block for test: 
-					  // if (bIsNormalSectionMkr && nIterationCount > 0 && nIterationCount < 3)
-
-					bFoundChapterStart = FALSE;
-					offset2 = wxNOT_FOUND;
-
-					// determine if the marker is a type of \ms marker, and if so
-					// start iteration counting (in order to determine whether a
-					// closely following type of \s marker belongs in this section or not)
-					int offset3 = wxNOT_FOUND;
-					offset3 = wholeMkr.Find(m_majorSectionMkr);
-					if (offset3 != wxNOT_FOUND && nIterationCount == -1)
-					{
-						nIterationCount = 0;
-					}
-
-					// accumulate the sectioning marker in the new current struct,
-					// so that the loop will recommence looking for the end of this new
-					// section
-					pCurSection->strChunk += wholeMkr;
-					canonStr = canonStr.Mid(length); // bleed out the marker we've accumulated
-				} // end of else block for test: if (offset2 == wxNOT_FOUND)
-				  // (i.e. offset2 is >= 0 if a m_sectioningMkrs marker caused section halt)
-				  
-			} // end of else block for test:  if (wholeMkr == m_chapterMkr && 
-			  // IsWhiteSpace(canonStr[length]))
-			  
-		} // end of else block for test: if (offset == wxNOT_FOUND)
-
-	} while(!canonStr.IsEmpty() && offset != wxNOT_FOUND);
-
-	// verify that the sections are chunked correctly, using a loop and wxLogDebug calls
-	size_t count = pCanonInfo->arrSections.GetCount();
-	if (count > 0)
-	{
-		size_t index;
-		wxString a,b,c;
-		for (index = 0; index < count; index++)
-		{
-			SectionInfo* pSectionInfo = m_pCanonInfo->arrSections.Item(index);
-			a = pSectionInfo->bChapterStartsAtSectionStart?_T("TRUE"):_T("FALSE");
-			b = pSectionInfo->bChapterEndsAtSectionEnd?_T("TRUE"):_T("FALSE");
-			c = pSectionInfo->bChapterChangesMidSection?_T("TRUE"):_T("FALSE");
-			wxLogDebug(_T("\nSection with index = %d\n   bChapterStartsAtSectionStart = %s\n   bChapterEndsAtSectionEnd = %s\n   bChapterChangesMidSection = %s\n      chapterNum at start:  %s\n      chapterNum at end:  %s\n%s"),
-				index, a.c_str(), b.c_str(), c.c_str(),
-				pSectionInfo->strChapterNumAtSectionStart.c_str(),
-				pSectionInfo->strChapterNumAtSectionEnd.c_str(),
-				pSectionInfo->strChunk.c_str());
-		}
-	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -2380,6 +2121,855 @@ void Usfm2Oxes::ExtractNotesAndStoreText(aiGroup* pCurAIGroup, wxString& theText
 
 	// store accumStr in the aiGroup's textStr member
 	pCurAIGroup->textStr = accumStr;
+}
+
+
+// This function chunks the canonical information into 'sections' - these have no formal
+// existence in USFM nor in other markup schemas. The 'section' is defined as the material
+// starting with a section header, up as far as the next section header. Non-linearities
+// cause complications at this point, because in correct USFM markup, a \c marker must
+// precede any \ms or \s type of section heading markers (ie. \ms \ms1 \ms2, etc) and the
+// chapter marker's line needs to associate with the new section about to be created,
+// rather than the current one about to be closed off. A further complication is that the
+// presence of section divisions does not always coincide with chapter divisions, though it
+// very often does. An additional complicating factor is that an \ms type of marker (for
+// types of 'major section') may precede a \s type of marker (for a normal subheading for
+// the material which follows) and when this is the case, BOTH of these belong in the one
+// section. It is difficult to check for and ensure this happens right - our solution is to
+// use the fact that proper USFM markup will have either of the following two marker
+// sequences: \ms followed by \mr followed by \s (these, of course could be \ms2 \mr \s1,
+// or other possible combinations of these two marker types), or, \ms followed by \s. We
+// therefore set a counter to 0 when an \ms type is matched, and count iterations of the
+// loop - any \s type of marker encountered before the counter reaches the value 3 are
+// included in the current new section, rather than being an indicator for closing the
+// current section and opening a new one.
+void Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
+{
+	// the markers for sectioning are stored in m_sectioningMkrs
+	wxChar aSpace = _T(' ');
+	wxASSERT(pCanonInfo != NULL);
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	wxASSERT(pDoc != NULL);
+	wxString canonStr = pCanonInfo->strChunk;
+	SectionInfo* pCurSection = new SectionInfo;
+	InitializeSectionInfo(pCurSection);
+	// first section, so get everything preceding the initial verse into the first section
+	// before we start looking for the end of the section; since we are at the start of a
+	// book, we can assume a chapter starts the section and has a chapter number of 1.
+	pCurSection->bChapterStartsAtSectionStart = TRUE;
+	pCurSection->strChapterNumAtSectionStart = _T("1");
+
+	int offset = canonStr.Find(m_verseMkr); // this will match USFM markers \v \va \vp, 
+						// and also the non-standard \vn (verse number) and \vt
+						// (verse text) which are sometimes used in Sth Asia Group;
+						// but no matter, because any of these matches is okay here
+	wxASSERT(offset != wxNOT_FOUND);
+	pCurSection->strChunk = canonStr.Left(offset);
+	canonStr = canonStr.Mid(offset); // bleed out the transferred data
+
+	wxString chapterStuff; // temporarily store \c followed by its chapter number here
+			// when found in the loop, pending the decision whether it belongs in the
+			// current section (if there is no section header at the chapter start) or
+			// in the next section (if there is a section header at the chapter start)
+	wxString chapterNum; chapterNum.Empty(); // put parsed chapter number string here temporarily
+
+	// Now we must search for section ends in a loop, consuming all canonStr as we
+	// delineate successive sections and transfer their data to each successive instance
+	// of pCurSection->strChunk. Since many, but probably not all, sections will, in
+	// correct USFM markup, start at a chapter break where there is also a sectioning
+	// marker present, the \c and its chapter number are also to be included in the next
+	// section, rather than at the end of the current one.
+	int nIterationCount = -1; // set to 0 when \ms marker type encountered, a following 
+							  // \s marker must be encountered before nIterationCount
+							  // reaches the value 3 for it to be included in the current
+							  // section, rather than starting a new section; once such
+							  // a decision has been made, return the value to -1 which
+							  // used to indicate that iteration counting is not in effect
+	offset = wxNOT_FOUND;
+	chapterStuff.Empty();
+	wxString wholeMkr;
+	wxString wholeMkrPlusSpace;
+	wxString precedingStr;
+	int offset2;
+	bool bIsNormalSectionMkr = FALSE;
+	bool bFoundChapterStart = FALSE;
+	do {
+		if (nIterationCount != -1)
+		{
+			nIterationCount++; // only values 1 and 2 are useful, after that we turn it off
+		}
+		if (nIterationCount > 2)
+		{
+			// turn it off once it reaches 3
+			nIterationCount = -1;
+		}
+		offset = canonStr.Find(backslash);
+		if (offset == wxNOT_FOUND)
+		{
+			// there are no more markers, so the current section gets what remains and
+			// then we'll exit the loop after storing the current section's struct
+			pCurSection->strChunk += canonStr;
+			canonStr.Empty();
+
+			// closing off the last section -- so the ending chapter number will be the one
+			// already in strChapterNumAtSectionEnd provided that
+			// bChapterChangesMidSection is TRUE, but if that boolean is
+			// FALSE, then it will need to be the value in which is stored in 
+			// strChapterNumAtSectionStart
+            if (pCurSection->bChapterChangesMidSection)
+			{
+				// nothing to do, except set the flag
+				pCurSection->bChapterEndsAtSectionEnd = TRUE;
+			}
+			else
+			{
+				wxASSERT(!pCurSection->strChapterNumAtSectionStart.IsEmpty());
+				pCurSection->strChapterNumAtSectionEnd = 
+									pCurSection->strChapterNumAtSectionStart;
+				pCurSection->bChapterEndsAtSectionEnd = TRUE;
+			}
+
+			pCanonInfo->arrSections.Add(pCurSection);
+		}
+		else
+		{
+			// we've found a marker, determine if it is a chapter marker, and if so, store
+			// it and its chapter number temporarily until we can determine where that
+			// information belows - the current section, or the next section
+			precedingStr = canonStr.Left(offset); // where we store it depends on another test
+			canonStr = canonStr.Mid(offset); // shorten, so the marker is initial
+			// store the rest (the chapter number) if the previous iteration found a \c
+			// marker (Note: our algorithm relies on correct markup for chapter and
+			// subheading, the subheading should, if it is present, be immediately
+			// following the chapter marker's line. We'll test for this an assert if that
+			// is not the case.)
+			if (bFoundChapterStart)
+			{
+				// precedingStr will contain the white space and following chapter number
+				// so complete the chapter stuff information by adding it to the \c marker
+				// which is already present from the previous iteration
+				chapterStuff += precedingStr;
+				chapterNum = GetChapterNumber(precedingStr);
+				// we clear the bFoundChapterStart flag further below, because we need to
+				// use it in further tests
+			}
+			else
+			{
+				pCurSection->strChunk += precedingStr;
+			}
+			wholeMkr = pDoc->GetWholeMarker(canonStr);
+			int length = wholeMkr.Len();
+			// a chapter marker will have white space following it, test and if it is not
+			// so, -- then it is some other marker - in which case check for it being a
+			// section-ending marker
+			if (wholeMkr == m_chapterMkr && IsWhiteSpace(canonStr[length]))
+			{
+				// it is a \c marker, so we have come to the start of a new chapter
+				bFoundChapterStart = TRUE;
+				chapterStuff = wholeMkr;
+				canonStr = canonStr.Mid(length);
+				offset2 = wxNOT_FOUND;
+				precedingStr.Empty();
+				continue;
+			}
+			else
+			{
+				// it is not a chapter marker, so check if it is one of the section-ending
+				// ones
+				wholeMkrPlusSpace = wholeMkr + aSpace;
+				offset2 = m_sectioningMkrs.Find(wholeMkrPlusSpace);
+				if (offset2 == wxNOT_FOUND)
+				{
+					// the whole marker is not a sectioning one, so continue iterating
+					if (bFoundChapterStart)
+					{
+                        // If this flag is still TRUE, then the last iteration found a
+                        // chapter number, and this iteration has just parsed over and
+                        // accumulated its chapter number. Also, we've found a marker which
+                        // is not a type of subheading marker - in which case there is no
+                        // subheading, nor major section heading, at the start of this
+                        // chapter and so the chapterStuff string has to be immediately
+                        // placed in the current section now, and the chapterStuff string
+                        // cleared, before we start grabbing more data from canonStr.
+                        // Moreover, we know that this chapter change is neither at the
+                        // start of a section nor at its end, and so we can set other
+                        // SectionInfo members now to preserve this understanding
+						pCurSection->strChunk += chapterStuff;
+						chapterStuff.Empty();
+						pCurSection->bChapterChangesMidSection = TRUE;
+						pCurSection->strChapterNumAtSectionEnd = chapterNum;
+						// to get the value of the previous chapter's number, we'll not do
+						// arithmetic (we might be handling a test document with chapters
+						// omitted) but instead get the ending chapter number of the
+						// last-stored SectionInfo struct
+						if (!pCanonInfo->arrSections.IsEmpty())
+						{
+							wxString lastChapterNum = 
+								(pCanonInfo->arrSections.Last())->strChapterNumAtSectionEnd;
+							wxASSERT(!lastChapterNum.IsEmpty());
+							pCurSection->strChapterNumAtSectionStart = lastChapterNum;
+						}
+						else
+						{
+							// we can assume the section-starting chapter number would be 1
+							// in this case 
+							pCurSection->strChapterNumAtSectionStart = _T("1");
+						}
+					}
+					// accumulate the marker we found into the current section and iterate
+					pCurSection->strChunk += wholeMkr;
+					canonStr = canonStr.Mid(length); // bleed out the marker we've accumulated
+					bFoundChapterStart = FALSE; // ensure it is now FALSE
+				} // end of TRUE block for test: if (offset2 == wxNOT_FOUND)
+				  // (which means 'the found marker is not one of the sectioning ones')
+				else
+				{
+                    // the whole marker is a sectioning one, so check the contents of
+                    // chapterStuff to see if it contains \c and a chapter number stored on
+                    // the previous iteration - if it does, then that information belongs
+                    // in the next section; whatever the case the current section has to be
+					// finished off and a new section started; and set the members for
+					// tracking the chapter number at start and end of the section, etc.
+					// We also much check for the sectioning marker being a majorSection
+					// one (ie. one which starts with "\ms") and if that is the case, we
+					// must ensure that any subheading (\s type of marker) which may
+					// follow the \ms type of marker does not cause a new section to begin
+					// but is instead included in the one which has the \ms data.
+					bIsNormalSectionMkr = IsNormalSectionMkr(canonStr); // TRUE if \s or \s#
+					if (bIsNormalSectionMkr && nIterationCount > 0 && nIterationCount < 3)
+					{
+						// this section header belongs in the current section
+						nIterationCount = -1; // it's done it job, turn it back off
+					}
+					else
+					{
+						// a type of \s marker further away than \ms than two iterations,
+						// or a sesctioning marker which is not one of the \s ones, must
+						// be able to finish of the current section and get a new section
+						// commenced
+						if (bFoundChapterStart)
+						{
+							// there is chapter start data (\c nn where nn is a chapter number)
+							// which we must deal with - it goes in the next section, which
+							// means that the chapter number at the end of the current section
+							// will be the one in strChapterNumAtSectionEnd if the boolean
+							// bChapterChangesMidSection is TRUE (the former string is already
+							// set if that boolean is TRUE), otherwise if the latter flag
+							// is FALSE, it is the same as is in strChapterNumAtSectionStart
+							if (pCurSection->bChapterChangesMidSection)
+							{
+								pCurSection->bChapterEndsAtSectionEnd = TRUE;
+							}
+							else
+							{
+								pCurSection->bChapterEndsAtSectionEnd = TRUE;
+								wxASSERT(!pCurSection->strChapterNumAtSectionStart.IsEmpty());
+								pCurSection->strChapterNumAtSectionEnd = 
+													pCurSection->strChapterNumAtSectionStart;
+							}
+	                        
+							// store the section in the array for that purpose
+							pCanonInfo->arrSections.Add(pCurSection);
+
+							// create a new SectionInfo struct, and set the chapter information
+							pCurSection = new SectionInfo;
+							InitializeSectionInfo(pCurSection);
+							pCurSection->bChapterStartsAtSectionStart = TRUE;
+							pCurSection->strChapterNumAtSectionStart = chapterNum;
+
+							// put the chapter start information in the new section's strChunk
+							// and clear both chapterStuff and chapterNum strings
+							pCurSection->strChunk = chapterStuff;
+							chapterStuff.Empty();
+							chapterNum.Empty();							
+						}
+						else
+						{
+							// a new section is starting but the chapter number remains
+							// unchanged because there is no change of chapter at the end of
+							// this section -- so the ending chapter number will be the one
+							// already in strChapterNumAtSectionEnd provided that
+							// bChapterChangesMidSection is TRUE, but if that boolean is
+							// FALSE, then it will need to be the value in which is stored in 
+							// strChapterNumAtSectionStart
+							if (pCurSection->bChapterChangesMidSection)
+							{
+								// nothing to do
+								;
+							}
+							else
+							{
+								wxASSERT(!pCurSection->strChapterNumAtSectionStart.IsEmpty());
+								pCurSection->strChapterNumAtSectionEnd = 
+													pCurSection->strChapterNumAtSectionStart;
+							}
+							wxString strCarryForwardEndingChapterNum = 
+													pCurSection->strChapterNumAtSectionEnd;
+
+							// store the section in the array for that purpose
+							pCanonInfo->arrSections.Add(pCurSection);
+
+							// create a new SectionInfo struct
+							pCurSection = new SectionInfo;
+							InitializeSectionInfo(pCurSection);
+							// set the strChapterNumAtSectionStart string, but leave the
+							// boolean bChapterStartsAtSectionStart FALSE because the chapter
+							// hasn't just been changed
+							pCurSection->strChapterNumAtSectionStart = 
+													strCarryForwardEndingChapterNum;
+							strCarryForwardEndingChapterNum.Empty();
+							// ensure the next two are empty (both should already be empty, but
+							// it is a good idea to ensure it is so)
+							chapterStuff.Empty();
+							chapterNum.Empty();
+							
+						} // end of else block for test: if (bFoundChapterStart)
+					} // end of else block for test: 
+					  // if (bIsNormalSectionMkr && nIterationCount > 0 && nIterationCount < 3)
+
+					bFoundChapterStart = FALSE;
+					offset2 = wxNOT_FOUND;
+
+					// determine if the marker is a type of \ms marker, and if so
+					// start iteration counting (in order to determine whether a
+					// closely following type of \s marker belongs in this section or not)
+					int offset3 = wxNOT_FOUND;
+					offset3 = wholeMkr.Find(m_majorSectionMkr);
+					if (offset3 != wxNOT_FOUND && nIterationCount == -1)
+					{
+						nIterationCount = 0;
+					}
+
+					// accumulate the sectioning marker in the new current struct,
+					// so that the loop will recommence looking for the end of this new
+					// section
+					pCurSection->strChunk += wholeMkr;
+					canonStr = canonStr.Mid(length); // bleed out the marker we've accumulated
+				} // end of else block for test: if (offset2 == wxNOT_FOUND)
+				  // (i.e. offset2 is >= 0 if a m_sectioningMkrs marker caused section halt)
+				  
+			} // end of else block for test:  if (wholeMkr == m_chapterMkr && 
+			  // IsWhiteSpace(canonStr[length]))
+			  
+		} // end of else block for test: if (offset == wxNOT_FOUND)
+
+	} while(!canonStr.IsEmpty() && offset != wxNOT_FOUND);
+
+	// verify that the sections are chunked correctly, using a loop and wxLogDebug calls
+	size_t count = pCanonInfo->arrSections.GetCount();
+	if (count > 0)
+	{
+		size_t index;
+		wxString a,b,c;
+		for (index = 0; index < count; index++)
+		{
+			SectionInfo* pSectionInfo = m_pCanonInfo->arrSections.Item(index);
+			a = pSectionInfo->bChapterStartsAtSectionStart?_T("TRUE"):_T("FALSE");
+			b = pSectionInfo->bChapterEndsAtSectionEnd?_T("TRUE"):_T("FALSE");
+			c = pSectionInfo->bChapterChangesMidSection?_T("TRUE"):_T("FALSE");
+			wxLogDebug(_T("\nSection with index = %d\n   bChapterStartsAtSectionStart = %s\n   bChapterEndsAtSectionEnd = %s\n   bChapterChangesMidSection = %s\n      chapterNum at start:  %s\n      chapterNum at end:  %s\n%s"),
+				index, a.c_str(), b.c_str(), c.c_str(),
+				pSectionInfo->strChapterNumAtSectionStart.c_str(),
+				pSectionInfo->strChapterNumAtSectionEnd.c_str(),
+				pSectionInfo->strChunk.c_str());
+		}
+	}
+}
+
+void Usfm2Oxes::ParseSectionsIntoParagraphs(CanonInfo* pCanonInfo)
+{
+	SectionInfo* pSection = NULL;
+	size_t count = pCanonInfo->arrSections.GetCount();
+	wxASSERT(count != 0);
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		pSection = pCanonInfo->arrSections.Item(index);
+		wxASSERT(pSection != NULL);
+		ParseOneSection(pSection);
+	}
+}
+
+void Usfm2Oxes::ParseOneSection(SectionInfo* pSection)
+{
+	wxASSERT(pSection != NULL);
+    // get the text to be parsed; sectionText is a copy of the chunk contents and our
+    // parsing will consume this copied text
+	wxString sectionText = pSection->strChunk;
+	wxASSERT(!sectionText.IsEmpty());
+	wxASSERT(sectionText[0] == _T('\\')); // the section should start with a marker
+	SectionHeaderOrParagraph* pCurPara = new SectionHeaderOrParagraph;
+	// set the pointer to the parent section
+	pCurPara->pSectionInfo = pSection;
+	pCurPara->bHasHeaderInfo = FALSE; // initialize, most paragraphs have no header info
+	pCurPara->paragraphOpeningMkr.Empty(); // store the paragraph's opening marker if there
+										   // is one (eg. \p or \m or \q etc), but not if
+										   // none were present and we halted parsing of
+										   // header info for another reason, such as a 
+										   // \c without following \nb and no paragraph marker
+										   // either, or no paragraph marker but \v was found
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	wxASSERT(pDoc != NULL);
+	wxString parsedParagraphData; parsedParagraphData.Empty(); 
+
+    // This parser has two parts; since there may be things like \c or \s or \r etc at the
+    // start of the section, we have to parse over any such allowed markers which may
+    // preceded the first of any paragraphs in this section - so we parse, checking for one
+    // of the allowed ones and so long as we get TRUE we are still within the section
+    // header (or pre-Paragraph) part of the first paragraph - we store this preliminary
+    // information at the start of the first SectionHeaderOrParagraph struct instance.
+    // The second part of the syntax takes over when we get to a paragraph marker or some
+    // other marker which is considered to halt the parsing of the preParagraph info - such
+    // as \v, \free, \note, \q, etc. A complication is that either or both of \free or
+    // \note will occur, if present, preceding a paragraph marker. (There are over a score
+    // of different types of paragraph marker in USFM.) We have to store these temporarily
+    // and add them back to the data at the start of each new paragraph chunk.
+	// Any marker encountered which is not within a paragraph nor is one of the allowed
+	// pre-paragraph markers, we store in a special location (m_unexpectedMarkers) and
+	// don't include it's data in the Oxes file, but we show its marker and content to the
+	// user so that he can alert the developers that we've not handled something and need to.
+	wxString aSpace = _T(" ");
+	wxString eolStr = _T("\n");
+	wxString precedingStr;
+	int offset = wxNOT_FOUND;
+	int offset1 = wxNOT_FOUND;
+	bool bReachedEndOfHdrMaterial = FALSE;
+	bool bMatchedOpeningParagraphMkr = FALSE;
+	wxString wholeMkr;
+	wxString wholeMkr_AtParaOpening; wholeMkr_AtParaOpening.Empty();
+	WhichParagraph whichPara = parsingFirstParagraph;
+	bool bMatchedNoBreakMkr = FALSE; // TRUE if \nb encountered after a \c marker
+	bool bHandledChapterChange = FALSE; // TRUE if a \c marker mid section was handled
+
+	// parse over, and store, the information from where the section header stuff is -
+	// this stuff can only be at the start of a section; a section may lack a section
+	// header too (e.g. a chapter start which has no \s type of marker); also a section
+	// may have a mid-section chapter change
+	do {
+		if (whichPara == parsingFirstParagraph)
+		{
+			offset = sectionText.Find(backslash);
+			if (offset == wxNOT_FOUND)
+			{
+				// there are no more markers so the rest belongs in the current
+				// paragraph's chunk
+				pCurPara->paragraphChunk += sectionText;
+				sectionText.Empty();
+				break;
+			}
+			else
+			{
+				// found a marker
+				wxASSERT(offset == 0);
+				wholeMkr = pDoc->GetWholeMarker(sectionText);
+				int length = wholeMkr.Len();
+				if (
+					(IsMkrAllowedPrecedingParagraphs(wholeMkr) 
+					|| IsAFreeMarker(wholeMkr)
+					|| IsANoteMarker(wholeMkr)
+				   ))
+				{
+                    // the marker is one of \c \s \s1 \s2 \s3 \ms \mr \r \d \ms1 \ms2 \ms3,
+                    // or even \free or \note, because Adapt It allows the user to attach a
+                    // note to any word, even a word of a subheading, and to free translate
+                    // these as well of course; it's a note or free translation which
+                    // immediately precedes a \p or other paragraph type of marker that we
+                    // have to keep with the paragraph information following, rather than
+                    // with the subheading information
+					pCurPara->bHasHeaderInfo = TRUE;
+					ParseHeaderInfoAndFirstParagraph(&sectionText, pCurPara, 
+									&bReachedEndOfHdrMaterial, &bMatchedOpeningParagraphMkr, 
+									&wholeMkr_AtParaOpening);
+					// check if we are at the end of the header material
+					if (bReachedEndOfHdrMaterial)
+					{
+						wxASSERT(!sectionText.IsEmpty());
+						// if we halted due to matching a paragraph type of marker, then
+						// store it in the struct, and remove it from the paragraph chunk
+						// to be parsed over below (if we halted for any other reason,
+						// don't store a marker in the struct)
+						if (bMatchedOpeningParagraphMkr)
+						{
+							// store the marker
+							pCurPara->paragraphOpeningMkr = wholeMkr_AtParaOpening;
+							// now remove the opening paragraph marker from the data for
+							// the chunk
+							offset1 = sectionText.Find(wholeMkr_AtParaOpening);
+							wxASSERT(offset1 >= 0);
+							wxString strLeft = sectionText.Left(offset1);
+							sectionText = sectionText.Mid(offset1);
+							wholeMkr = pDoc->GetWholeMarker(sectionText);
+							int length = wholeMkr.Len();
+							wxASSERT(length > 1);
+							// toss the marker in the garbage
+							sectionText = sectionText.Mid(length);
+							// join the bits that remain
+							if (strLeft.IsEmpty())
+							{
+								sectionText.Trim(FALSE); // trim white space off of its start
+							}
+							else
+							{
+								strLeft.Trim(); // trim white space off of its end
+								strLeft += eolStr; // start a new line
+								sectionText = strLeft + sectionText; // append the rest
+							}
+						}
+					}
+					else
+					{
+						wxASSERT(sectionText[0] == _T('\\')); // must commence with a marker
+						bMatchedOpeningParagraphMkr = FALSE;
+						wholeMkr_AtParaOpening.Empty();
+					}
+				} // end of TRUE block for the test: if ((IsMkrAllowedPrecedingParagraphs(wholeMkr) etc
+			} // end of else block for the test: if (offset == wxNOT_FOUND)
+		} // end of TRUE block for the test: if (whichPara == parsingFirstParagraph)
+		else
+		{
+			// It's not the first paragraph, so there will not be a section heading of any
+			// kind, but there could be a chapter marker  - and it may, or may not, start a new
+			// paragraph depending on whether a 'no break' marker, \nb, does not follow it, or
+			// does follow it, respectively (we consider \c not followed by \p as equivalent
+			// to \c followed by \p, to handle improper markup acceptably). There may be free
+			// translation and/or a note present also - see comments above for how we handle
+			// them.
+			offset = sectionText.Find(backslash);
+			if (offset == wxNOT_FOUND)
+			{
+				// there are no more markers so the rest belongs in the current
+				// paragraph's chunk
+				pCurPara->paragraphChunk += sectionText;
+				sectionText.Empty();
+				break;
+			}
+			else
+			{
+				// found a marker
+				wxASSERT(offset == 0);
+				wholeMkr = pDoc->GetWholeMarker(sectionText);
+				int length = wholeMkr.Len();
+				bMatchedNoBreakMkr = FALSE; // ensure it's set to the default value
+				wxString wholeMkrPlusSpace = wholeMkr + aSpace;
+				if (
+					((m_allowedPreParagraphMkrs_NonFirstParagraph.Find(wholeMkrPlusSpace) >= 0)
+					|| IsAFreeMarker(wholeMkr)
+					|| IsANoteMarker(wholeMkr)
+				   ))
+				{
+                    // the marker is one of \c or \nb or it's a note or free translation which
+                    // immediately precedes a \p or other paragraph type of marker that we
+                    // have to keep with the paragraph information following, rather than
+					// with the subheading information (actually \nb should never occur
+					// without a preceding \c, but just in case someone fouls the markup...)
+					pCurPara->bHasHeaderInfo = TRUE;
+					ParseNonFirstParagraph(&sectionText, pCurPara, &bHandledChapterChange, 
+							&bMatchedOpeningParagraphMkr, &wholeMkr_AtParaOpening, &bMatchedNoBreakMkr);
+					// check if we are at the end of the allowed non-paragraph material
+					if (bHandledChapterChange)
+					{
+						wxASSERT(!sectionText.IsEmpty());
+						// what we did depended on whether there was \nb after \c, so
+						// check it out and process accordingly
+						if (bMatchedNoBreakMkr)
+						{
+							// there is to be no paragraph break here, so keep looking
+							// (sectionText should have had both the \c, its chapter
+							// number, and the following \nb marker removed (the user
+							// should not have a \p marker following a \nb marker, as they
+							// conflict, but if he does, the \p marker will be ignored and
+							// removed as well)
+							wxASSERT(sectionText[0] == _T('\\')); // must be pointing at a mkr
+						}
+						else
+						{
+							// if we are at a paragraph type of marker at a paragraph chunk's
+							// start, then store it in the struct, and remove it from the
+							// paragraph chunk to be parsed over below (if we halted for any
+							// other reason, don't store a marker in the struct)
+							if (bMatchedOpeningParagraphMkr)
+							{
+								// store the marker
+								pCurPara->paragraphOpeningMkr = wholeMkr_AtParaOpening;
+								// now remove the opening paragraph marker from the data for
+								// the chunk
+								offset1 = sectionText.Find(wholeMkr_AtParaOpening);
+								wxASSERT(offset1 >= 0);
+								wxString strLeft = sectionText.Left(offset1);
+								sectionText = sectionText.Mid(offset1);
+								wholeMkr = pDoc->GetWholeMarker(sectionText);
+								int length = wholeMkr.Len();
+								wxASSERT(length > 1);
+								// toss the marker in the garbage
+								sectionText = sectionText.Mid(length);
+								// join the bits that remain
+								if (strLeft.IsEmpty())
+								{
+									sectionText.Trim(FALSE); // trim white space off of its start
+								}
+								else
+								{
+									strLeft.Trim(); // trim white space off of its end
+									strLeft += eolStr; // start a new line
+									sectionText = strLeft + sectionText; // append the rest
+								}
+							} // end of TRUE block for test: if (bMatchedParagraphMkrAtEnd)
+							else
+							{
+								// there wan't a paragraph marker -- this shouldn't
+								// happen, because there would be no reason to start a paragraph
+								;
+							} // end of else block for test: if (bMatchedParagraphMkrAtEnd)
+						} // end of else block for test: if (bMatchedNoBreakMkr)
+
+					} // end of TRUE block for test: if (bHandledChapterChange)
+					else
+					{
+						wxASSERT(sectionText[0] == _T('\\')); // must commence with a marker
+						bMatchedOpeningParagraphMkr = FALSE;
+						wholeMkr_AtParaOpening.Empty();
+					}
+				} // end of TRUE block for the test of wholeMkr being \c or \free or \note
+			} // end of else block for the test: if (offset == wxNOT_FOUND)
+		} // end of else block for the test: if (whichPara == parsingFirstParagraph)
+
+		if (sectionText.IsEmpty())
+		{
+			pCurPara->paragraphChunk += parsedParagraphData;
+			pSection->paraArray.Add(pCurPara);
+			break;
+		}
+
+		// get the rest of the paragraph's chunk
+		if (whichPara == parsingFirstParagraph)
+		{
+			if (bMatchedOpeningParagraphMkr)
+			{
+				// we can proceed with the parsing of the rest of the opening paragraph
+				// data because we've gotten past the header information				
+				ParseParagraphData(&sectionText, &parsedParagraphData, pCurPara);
+				pCurPara->paragraphChunk += parsedParagraphData;
+				parsedParagraphData.Empty();
+
+				// when the above function returns, the paragraph chunk is complete, but
+				// not stored, so store it and then start a new paragraph if possible
+				if (sectionText.IsEmpty())
+				{
+					// the section is parsed and all its paragraphs created, it just
+					// remains to store the last one which we've now completed
+					pSection->paraArray.Add(pCurPara);
+					break;
+				}
+				else
+				{
+					// the paragraph is completed, but there is more in sectionText, so we
+					// must continue looping to create more paragraphs
+					pSection->paraArray.Add(pCurPara); // store the completed one
+					pCurPara = new SectionHeaderOrParagraph; // make a new one
+					pCurPara->bHasHeaderInfo = FALSE;
+					pCurPara->paragraphOpeningMkr.Empty();
+					// set the pointer to the parent section
+					pCurPara->pSectionInfo = pSection;
+				}
+				whichPara = parsingNonFirstParagraph; // next iteration will be a non-first paragraph
+				continue;
+			}
+			else
+			{
+				// we are in the first paragraph, but have not yet parsed over all the
+				// header information, so skip the parse of the paragraph data until we've
+				// gotten past the header stuff
+				continue;
+			}
+		} // end of TRUE block for test: if (whichParagraph == parsingFirstParagraph)
+		else
+		{
+			// we are parsing a non-first paragraph...
+			
+            //  if we got to a chapter marker, \c, and it was not followed by a \nb "no
+            //  break" marker, then we must close off this paragraph and start a new one if
+            //  possible; but if we did encounter a \nb marker, we just continue the
+			//  parsing forwards to find the end of the paragraph, after storing whatever
+			//  we've accumulated thus far
+            if (bMatchedNoBreakMkr)
+			{
+				pCurPara->paragraphChunk += parsedParagraphData; // store what we have so far
+				parsedParagraphData.Empty();
+				
+				// proceed to accumulate more parsed data until the paragraph end is reached
+				ParseParagraphData(&sectionText, &parsedParagraphData, pCurPara);
+				pCurPara->paragraphChunk += parsedParagraphData; // append it to the chunk
+				parsedParagraphData.Empty();
+				if (sectionText.IsEmpty())
+				{
+					// the section is parsed and all its paragraphs created, it just
+					// remains to store the last one which we've now completed
+					pSection->paraArray.Add(pCurPara);
+					break;
+				}
+				else
+				{
+					// the paragraph is completed, but there is more in sectionText, so we
+					// must continue looping to create more paragraphs
+					pSection->paraArray.Add(pCurPara); // store the completed one
+					pCurPara = new SectionHeaderOrParagraph; // make a new one
+					pCurPara->bHasHeaderInfo = FALSE;
+					pCurPara->paragraphOpeningMkr.Empty();
+					// set the pointer to the parent section
+					pCurPara->pSectionInfo = pSection;
+					continue;
+				}
+			}
+			else
+			{
+				// close off the paragraph at his chapter break location, and start a new
+				// paragraph
+				pCurPara->paragraphChunk += parsedParagraphData; // store what we have so far
+				parsedParagraphData.Empty();
+				pSection->paraArray.Add(pCurPara); // store the completed one
+				pCurPara = new SectionHeaderOrParagraph; // make a new one
+				pCurPara->bHasHeaderInfo = FALSE;
+				pCurPara->paragraphOpeningMkr.Empty();
+				// set the pointer to the parent section
+				pCurPara->pSectionInfo = pSection;
+				continue;
+			}
+		}  // end of else block for test: if (whichParagraph == parsingFirstParagraph)
+	} while (!sectionText.IsEmpty());
+
+	// when control gets to here, all the paragraph structs for this section are done so
+	// this is a place to put wxLogDebug calls to check the parsing is working right
+	
+
+	// *** TODO ***
+	
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return         nothing
+/// \param  pSectionText                <-> ptr to a copy of the section's text, the
+///                                         header information is located at its start
+/// \param  pHdrOrPara                  <-  ptr to the (first) SectionHeaderOrParagraph
+///                                         struct, where we store parsed information
+/// \param  pbReachedEndOfHdrMaterial   <-  TRUE when parsing reaches a marker not in the
+///                                         header region, such as \p or \m or \q etc
+/// \param  pbMatchedParagraphMkrAtEnd  <-  TRUE if after parsing over any free translation 
+///                                         and/or a note, we come not to a marker type which
+///                                         belongs to the header information, but one which
+///                                         indicates that paragraph data is commencing (such
+///                                         as a \p or other paragraph type of marker)
+/// \param  pStr_wholeMkrAtOpening      <-  ptr to the wholeMarker which halted the parsing
+///                                         of the header information, such as a \p or a \m
+///                                         etc. It's the opening paragraph marker usually
+/// \remarks
+/// A lot of code for a little bit of parsing work!
+/// At the start of a new section there could be a marker sequence like this:
+/// \c \free \note \ms \mr \free \note \s \r \free \note \d \free \p \v 
+/// or as little as:
+/// \s \p \v    
+/// and in the above, \ms could be any one of \ms, \ms1, \ms2, \ms3, and likewise \s could
+/// be any one of \s1, \s2 or \s3. We assume \mr or \r would not contain a note nor be free
+/// translated since they only contain scripture references; but \ms and/or \s and/or \d
+/// are both free translatable and a user could (though it's highly unlikely) put one or
+/// more notes within such a header's content. Our code has to be able to deal with all
+/// these possibilities. Moreover, if a free translation and/or a note is present, they
+/// will precede the marker and marker content to which they apply - and this is also true
+/// when the header information's end is reached (typically at a \p marker) because the
+/// following verse text if free translated and/or has a note at its start, the free
+/// translation and the note would be, in that order, preceding the \p marker. Hence the
+/// final free translation and/or note, in that circumstance, belongs with the verse text
+/// which follows, rather than with the header information which precedes.
+/// 
+/// Our approach to parsing is to parse over three possible information types which
+/// constitute a group, in a loop: an optional free translation, an optional note, and 
+/// then a header marker of some kind which has text (which could also contain embedded
+/// notes) with which the preceding free translation and note, if either or both are
+/// present, are associated. What halts parsing of such a group is encountering
+/// another marker in the set stored in m_allowedPreParagraphMkrs. The parser is a
+/// bleeding parser - it consumes the information parsed over, storing it
+/// appropriately within the passed in pHdrOrPara struct - though the actual storage
+/// will be done within a further bleeding parser which this present one calls. On return,
+/// the passed in sectionText should be shortened (the parsed stuff bled out) and must
+/// begin with the next wholeMarker we wish to commence our parsing from in the next
+/// iteration of the loop.
+/// 
+/// Because free translations can be shorter than the stretch of text in a header, and
+/// so there may be more than one associated with the text content for a \ms or \s
+/// marker, the marker's content may be broken up into smaller substrings, the
+/// non-first of which start with no marker at all. Likewise, the presence of notes
+/// interposes \note ... \note* substrings within a span of text. So we have to take
+/// on board the possibility that the strings we want are not continuous. This problem
+/// we encountered earlier in the parsing of title and introductory material, and
+/// we'll modify the solution used there for use here as well - by constructing a
+/// second parser (mentioned above) which will parse the \ms or \s marker content into
+/// one or more aiGroup structs, and store these in pHdrOrPara struct's array members
+/// for that purpose.                                 
+//////////////////////////////////////////////////////////////////////////////////////////
+void Usfm2Oxes::ParseHeaderInfoAndFirstParagraph(wxString* pSectionText, 
+		SectionHeaderOrParagraph* pCurPara, bool* pbReachedEndOfHdrMaterial, 
+		bool* pbMatchedParagraphMkrAtEnd, wxString* pStr_wholeMkrAtOpening)
+{
+
+
+
+
+
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return         nothing
+/// \param  pSectionText                <-> ptr to a copy of the section's text (there
+///                                         could be a chapter change in a non-first
+///                                         paragraph chunk within the section's text)
+/// \param  pHdrOrPara                  <-  ptr to this instance of SectionHeaderOrParagraph
+///                                         struct, where we store parsed information
+/// \param  pbHandledChapterChange      <-  TRUE when parsing reaches a \c marker (normally
+///                                         a new paragraph will commence, but not if a \nb
+///                                         marker follows it)
+/// \param  pbMatchedParagraphMkrAtEnd  <-  TRUE if after parsing over any free translation 
+///                                         and/or a note, we come to a marker type which 
+///                                         indicates that paragraph data is commencing (such
+///                                         as a \p or other paragraph type of marker)
+/// \param  pStr_wholeMkrAtOpening      <-  ptr to the wholeMarker which halted the parsing
+///                                         of the header information, such as a \p or a \m
+///                                         etc; its the opening para marker for the paragraph
+/// \param  pbMatchedNoBreakMkr         <-  TRUE if a \nb marker follows a \c marker
+///                                         (indicating there is no paragraph break at the
+///                                         chapter break eg. Luke 7)
+/// \remarks
+/// This function is like ParseHeaderInfoAndFirstParagraph() except it is internally
+/// simpler because in non-initial paragraphs within a section there cannot be any section
+/// header information (if there were, a new section would have been commenced there). Our
+/// approach to the parsing is described in the comments for the other function mentioned
+/// above, and we need similar information returned, plus one extra boolean - hence the
+/// signature is almost the same, but internally ParseNonFirstParagraph has much less to
+/// deal with, and any free translation and/or note information automatically are
+/// associated with the verse text which lies within the paragraph, because nobody could
+/// ever free translate a chapter number nor try to attach a note to it. The extra
+/// parameter, pbMatchedNoBreakMkr, allows the caller to work out whether or not it needs
+/// to initiate a new paragraph when there has been a chapter change. One of the booleans
+/// changes its name also because it does a different job, i.e. pbHandledChapterChange,
+/// because the caller needs to know that a \c marker was encountered mid-section.
+//////////////////////////////////////////////////////////////////////////////////////////
+void Usfm2Oxes::ParseNonFirstParagraph(wxString* pSectionText, 
+		SectionHeaderOrParagraph* pCurPara, bool* pbHandledChapterChange,
+		bool* pbMatchedParagraphMkrAtEnd, wxString* pStr_wholeMkrAtOpening,
+		bool* pbMatchedNoBreakMkr)
+{
+
+
+
+
+}
+
+void Usfm2Oxes::ParseParagraphData(wxString* pSectionText, wxString* pAccumulatedParagraphData,
+								   SectionHeaderOrParagraph* pCurPara)
+{
+
+
+
 }
 
 

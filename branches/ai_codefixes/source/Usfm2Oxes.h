@@ -61,6 +61,14 @@ enum CustomMarkersN {
 	haltAtNoteWhenParsing
 };
 
+// when parsing a section for it's paragraph chunks, the first paragraph chunk is special
+// because that is the one which will have sectionHeader info (although some paragraphs
+// might lack a section header - of what SF markup typically calls a 'subheading')
+enum WhichParagraph {
+	parsingFirstParagraph,
+	parsingNonFirstParagraph
+};
+
 struct NoteDetails
 {
 	// this is enough to make an OXES annotation, for the datetimes, we will use the
@@ -103,6 +111,68 @@ struct aiGroup
 
 WX_DECLARE_OBJARRAY(aiGroup*,AIGroupArray); // store pointers, and manage the heap ourselves
 
+struct SectionInfo; // forward reference
+struct SectionHeaderOrParagraph
+{
+    // next set of wxStrings stores the info which can occur in a section at its start but
+    // which does not belong within a paragraph chunk; by giving each possibility its own
+    // storage, it becomes easier to contruct the correct order of Oxes elements later on;
+    // most instances of SectionHeaderOrParagraph within a section do not have any of these
+    // 13 strings with data in them, except the first instance may have one or more of
+    // these strings with content (we assume \r and \mr markers' content strings never are
+    // free translated nor contain notes)
+	SectionInfo* pSectionInfo; // owning struct
+	bool bHasHeaderInfo; // set TRUE when this is the first paragraph and it contains some 
+						 // or a lot of header information
+	wxString chapterNumAtStart; // chapter marker \c is in this struct,
+		// before the first paragraph starts; store its number here, else leave it empty
+	wxString majorHeader_ms; // store \ms content here
+	wxString majorHeader_ms1; // store \ms1 content here
+	wxString majorHeader_ms2; // store \ms2 content here
+	wxString majorHeader_ms3; // store \ms3 content here
+	AIGroupArray majorHeaderGroupArray; // there could be free translations and notes
+										 // segmenting the content string into bits, so
+										 // parse to the level of aiGroup instances
+	wxString sectionHeader_s; // store \s content here
+	wxString sectionHeader_s1; // store \s1 content here
+	wxString sectionHeader_s2; // store \s2 content here
+	wxString sectionHeader_s3; // store \s3 content here
+	AIGroupArray sectionHeaderGroupArray; // there could be free translations and notes
+										 // segmenting the content string into bits, so
+										 // parse to the level of aiGroup instances
+	wxString descriptiveTitle_d; // store \d content here
+	wxString majorSectionRef_mr; // store \mr content here
+	wxString parallelRef_r; // store \r content here 
+	wxString unexpectedMarkers; // store any markers not allowed for this initial stuff,
+								// but which are not halting markers for this initial
+								// stuff (store their marker with the content, space
+								// delimited) -- anything in here should be shown to the
+								// user as "unhandled", and not included in the Oxes file
+	wxString paragraphOpeningMkr; // store whatever marker begins the paragraph, usually
+								  // this is \p, but other possibilities such as \m or \pc
+								  // or one of the \q markers will require a type attribute
+								  // to be set in the Oxes production, and so we have to
+								  // store the marker here so as to test it later on
+	// anything not for storage above, should belong to a paragraph chunk, and except for
+	// an embedded change of chapter (which, if it occurs, really should be followed by
+	// \nb "no break" marker and then would come a verse marker..., so we don't need any
+	// other storage here, except for the array which stores the section's set of
+	// SectionHeaderOrParagraph instances, called SectHdrOrParaArray. Dividing into
+	// paragraphs consumes whatever paragraph type of marker causes the division (there
+	// are several possibilities, not just \p only); a complication is that Adapt It's
+	// export will show any free translation, or note on the first word, preceding the
+	// paragraph marker - so we have to store these temporarily and put them into the
+	// chunk at its start once the new paragraph chunk commences
+	wxString chapterNumInParaChunk; // chapter marker \c is in this struct,
+		// within a paragraph chunk; store its number here, else leave it empty
+	bool bNoParagraphBreak_MkrEncountered; // default FALSE, set TRUE if \nb is after \c
+		// and when that happens, do not close off the paragraph at the chapter boundary
+	wxString paragraphChunk; // the paragraph data, with paragraph marker removed
+};
+
+WX_DECLARE_OBJARRAY(SectionHeaderOrParagraph*,AISectHdrOrParaArray); // store pointers, 
+													  // and manage the heap ourselves
+													  
 struct SectionInfo
 {
 	wxString strChunk;
@@ -118,11 +188,17 @@ struct SectionInfo
 	wxString strChapterNumAtSectionEnd; // default should  be empty string
 	bool bChapterChangesMidSection; // default should be FALSE
 
-	// add more ??
-
+	// store the initial info of a section, and the set of paragraph chunks, here
+	// (stores SectionHeaderOrParagraph structs, and each such has a pointer pSectionInfo
+	// which points at the owning Section Info struct; this is the next level of the
+	// parsing hierarchy defined over the canonical information, some people call this
+	// hierarchy the 'section hierarchy') 
+	AISectHdrOrParaArray paraArray;
 };
 
-WX_DECLARE_OBJARRAY(SectionInfo*,AISectionInfoArray); // store pointers, and manage the heap ourselves
+WX_DECLARE_OBJARRAY(SectionInfo*,AISectionInfoArray); // store pointers, and manage 
+													  // the heap ourselves
+
 
 struct TitleInfo
 {
@@ -186,6 +262,7 @@ private:
 	// setup functions & shutdown functions & initializing functions...
 	
 	void Initialize();
+	void SetupOxesTags(); // *** TODO *** finish this off later
 	void InitializeSectionInfo(SectionInfo* pSectionInfo);
 	void ClearAIGroupArray(AIGroupArray& rGrpArray);
 	void ClearTitleInfo();
@@ -194,7 +271,7 @@ private:
 	void ClearSectionInfo(SectionInfo* pSectionInfo);
 	void ClearNoteDetails(NoteDetailsArray& rNoteDetailsArray);
 	void ClearAISectionInfoArray(AISectionInfoArray& arrSections);
-	void SetupOxesTags();
+	void ClearAISectHdrOrParaArray(AISectHdrOrParaArray& rParagraphArray);
 
 // ---------------------------------------------------------------
 
@@ -224,6 +301,12 @@ private:
 	bool IsOneOf(wxString& str, wxArrayString& array, CustomMarkersFT inclOrExclFreeTrans, 
 			CustomMarkersN inclOrExclNote); // eg. check for SFMkr in array
 	bool IsWhiteSpace(wxChar& ch);
+	bool IsMkrAllowedPrecedingParagraphs(wxString& wholeMkr); // tests against the marker
+		// set stored (space delimited) in m_allowedPreParagraphMkrs (see Initialize())
+	bool IsAHaltingMarker_PreFirstParagraph(wxString& wholeMkr); // tests against the
+		// marker set stored in m_haltingMrks_PreFirstParagraph (see Initialize())
+	bool IsANoteMarker(wxString& wholeMkr);
+	bool IsAFreeMarker(wxString& wholeMkr);
 
 // ---------------------------------------------------------------
 
@@ -251,7 +334,29 @@ private:
 	// SectionInfo structs - each of the latter stores the section data in its own
 	// strChunk member
 	void ParseCanonIntoSections(CanonInfo* pCanonInfo);
-
+	// a parser which parses the information in each SectionInfo, into paragraphs, and any
+	// pre-paragraph fields such as \ms \s \c \mr \r etc
+	void ParseSectionsIntoParagraphs(CanonInfo* pCanonInfo); // level 2 of the hierarchy
+	void ParseOneSection(SectionInfo* pSection); // ParseSectionsIntoParagraphs() calls 
+				// this in a loop over all the sections in the document's canonical text
+	// ParseHeaderInfoOfSection() is for parsing through header information at the start
+	// of the first paragraph of a section
+	void ParseHeaderInfoAndFirstParagraph(wxString* pSectionText, 
+		SectionHeaderOrParagraph* pCurPara, bool* pbReachedEndOfHdrMaterial,
+		bool* pbMatchedParagraphMkrAtEnd, wxString* pStr_wholeMkrAtOpening);
+    // ParseNonFirstParagraph() is for parsing a section into a series of
+    // non-first-paragraph paragraph chunks - these contain no header information, but may
+    // involve a change of chapter, or a non-breaking chapter change which causes the
+    // section to continue into the next chapter until a section header is encountered
+    // there
+	void ParseNonFirstParagraph(wxString* pSectionText, 
+		SectionHeaderOrParagraph* pCurPara, bool* pbHandledChapterChange,
+		bool* pbMatchedParagraphMkrAtEnd, wxString* pStr_wholeMkrAtOpening,
+		bool* bMatchedNoBreakMkr);
+	// pass in and parse *pSectionText, bleed of parsed data, storing it in the
+	// *pAccumulatedParagraphData string
+	void ParseParagraphData(wxString* pSectionText, wxString* pAccumulatedParagraphData,
+							SectionHeaderOrParagraph* pCurPara);
 
 // ---------------------------------------------------------------
 
@@ -289,6 +394,15 @@ private:
 	wxString m_sectioningMkrs; // these divide the canonical part into sections,
 							   // no endmarkers are involved for these;
 							   // populated in Initialize()
+	wxString m_paragraphMkrs; // any paragraph markers, \p or \m etc
+	wxString m_allowedPreParagraphMkrs; // markers like \ms \mr \c \s \r and 
+		// \ms# or \s# which can occur in a section but preceding any paragraphs
+	wxString m_allowedPreParagraphMkrs_NonFirstParagraph; // just \c and \nb
+	wxString m_haltingMrks_PreFirstParagraph; // any marker parsed which is not
+		// in m_allowedPreParagraphMkrs should then be in m_haltingMkrs_PreFirstParagraph,
+		// but if that is not the case, then put that marker and whatever content
+		// follows it into SectionHeaderOrParagraph.unexpectedMarkers, to be shown
+		// to the user in the view, but not included in the Oxes export
 
 	wxString* m_pBuffer; // ptr to the (ex-class) buffer containing the (U)SFM text
 	bool m_bContainsFreeTrans;

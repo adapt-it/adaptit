@@ -7839,7 +7839,6 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 		if (*ptr != gSFescapechar)
 		{
 			// we are not pointing at a backslash...
-
 			if (!gpApp->m_bChangeFixedSpaceToRegularSpace && wxStrncmp(ptr,_T("!$"),2) == 0)
 			{
 				ptr += 2;
@@ -7863,83 +7862,15 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 		}
 		else
 		{
-            // we are pointing at a backslash, so either we have come to a SFM and parsing
-            // of the word must halt, or it is a backslash which is to not be interpretted
-            // as the onset of an SFM - the gbSfmOnlyAfterNewlines flag tells us which is
-            // the case except when a word with backslash as its first character happens
-            // (accidently) to be at the start of a line (we'll not check for when it
-            // accidently may start the file - that's too unlikely to bother about), so for
-            // such a possibility we'll do a USFMAnalysis lookup and if we detect one of
-            // the markers, we'll assume that it's a valid SFM and halt parsing, if not a
-            // known marker we'll let the gbSfmOnlyAfterNewlines flag decide
-            
-			// BEW 8Jun10, removed support for checkbox "Recognise standard format
-			// markers only following newlines"
-			//if (gbSfmOnlyAfterNewlines)
-			//{
-				// the flag is on, so parse over the backslash provided it and what follows
-				// is not identified as a character string identical to a known SFM
-			//	USFMAnalysis* pUsfmAnalysis = LookupSFM(ptr);
-			//	if (pUsfmAnalysis != NULL)
-			//	{
-					// it's a known marker, so halt right here
-			//		goto m; // a little further down
-			//	}
-			//	else
-			//	{
-					// it's not a known marker, so assume its a word-building character & 
-					// keep parsing
-
-                    // if we are turned on and not pointing at white space either, then
-                    // turn off and reset the pointers for a following punctuation span
-			//		if (bStarted)
-			//		{
-						// the punctuation span was word-internal, so we forget about it
-			//			bStarted = FALSE;
-			//			pPunctStart = ptr;
-			//			pPunctEnd = ptr;
-			//		}
-					// move on & iterate
-			//		ptr++;
-			//		len++;
-			//	}
-			//}
-			//else
-			//{
-				// the flag is off, so every backslash is to be interpretted as an SFM,
-				// so halt parsing early, that is, right here; and return the len value....
-				// But before we return, if detection of (following) punctuation was turned
-				// on and the end of it is at the current location (ie. preceding SF escape
-				// character), then we have to put the final punctuation into followPunct
-				// so the caller can do what it has to do with word-final punctuation
-				// whm 26Feb10. Removed the (wxUint32) casts from the pPunctEnd and pPunctStart
-				// pointers in the if test and assignment of numChars below. They are not needed
-				// for correct pointer math. The math works correctly without dividing by
-				// sizeof(wxChar). I verified this by testing on both Unicode and ANSI builds.
-				// While enclosing everything in (wxUint32) casts also works, it does NOT
-				// work if the app is compiled for 64 bit systems - a fact reported by David 
-				// Gardner who successfully compiled the sources for 64-bit AMD64, but only
-				// by removing the (wxUint32) casts.
-				
-				// BEW 8Jun10, removed support for checkbox "Recognise standard format
-				// markers only following newlines"
-//m:				if (bStarted && (pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
-				if (bStarted && (pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
-				{
-					// there is word-final punctuation content to be dealt with
-					// BEW modified 23Feb07; when working in Unicode, UTF-16 characters are
-					// two bytes long, so setting numChars to the pointer difference will
-					// double the correct value; we have to therefore divide by sizeof(wxChar)
-					// to get numChars right in regular and unicode apps
-					// whm 26Feb10 see note above the if statement.
-					//int numChars = (int)((wxUint32)pPunctEnd - (wxUint32)pPunctStart) / 
-					//						(wxUint32)sizeof(wxChar);
-					int numChars = (int)(pPunctEnd - pPunctStart); // / sizeof(wxChar);
-					wxString finals(pPunctStart,numChars);
-					followPunct = finals;
-				}
-				return len;
-			//}
+            // we are pointing at a backslash
+			if (bStarted && (pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
+			{
+				// there is word-final punctuation content to be dealt with
+				int numChars = (int)(pPunctEnd - pPunctStart);
+				wxString finals(pPunctStart,numChars);
+				followPunct = finals;
+			}
+			return len;
 		}
 	}
     // now, work backwards first - we may have stopped at a space and there could have been
@@ -7981,244 +7912,220 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 	smchunk.Empty();
 	int nChunkLen = 0;
 	bool bFoundDetachedRightQuote = FALSE;
-	// BEW 8Jun10, removed support for checkbox "Recognise standard format
-	// markers only following newlines"
-	//if (gbSfmOnlyAfterNewlines)
-	//{
-        // treat the escape character as if it is an alphabetic word-building character and
-        // so don't test for it as a loop ending criterion
-	//	if (!IsEnd(ptr))
-	//	{
-	//		goto c;
-	//	}
-	//	else
-	//	{
-	//		goto d;
-	//	}
-	//}
-	//else
-	//{
-        // treat the escape character as indicating the presence of a (U)SFM, so test for
-        // it as a loop ending criterion
-		wxChar* ptr2;
-		wxChar* ptr3;
-a:		if (!IsEnd(ptr) && *ptr != gSFescapechar)
+    // treat the escape character as indicating the presence of a (U)SFM, so test for
+    // it as a loop ending criterion
+	wxChar* ptr2;
+	wxChar* ptr3;
+a:	if (!IsEnd(ptr) && *ptr != gSFescapechar)
+	{
+		if (IsWhiteSpace(ptr))
 		{
-			// BEW 8Jun10, removed support for checkbox "Recognise standard format
-			// markers only following newlines"
-//c:			if (IsWhiteSpace(ptr))
-			if (IsWhiteSpace(ptr))
+			smchunk += _T(' '); // we may as well normalize to space 
+								// while we are at it
+			ptr++; // accumulate it and advance pointer then iterate
+			goto a;
+		}
+		else
+		{	
+			// it's not white space, so what is it?
+			if (IsClosingQuote(ptr))
 			{
-				smchunk += _T(' '); // we may as well normalize to space 
-									// while we are at it
-				ptr++; // accumulate it and advance pointer then iterate
-				goto a;
-			}
-			else
-			{	
-				// it's not white space, so what is it?
-				if (IsClosingQuote(ptr))
+                // it's one of the closing quote characters (but " or ' are ambiguous,
+                // so test further because " or ' might be preceding punctuation on a
+                // following word not yet parsed)
+				if (IsAmbiguousQuote(ptr))
 				{
-                    // it's one of the closing quote characters (but " or ' are ambiguous,
-                    // so test further because " or ' might be preceding punctuation on a
-                    // following word not yet parsed)
-					if (IsAmbiguousQuote(ptr))
+                    // it's one of the two ambiguous ones; we'll assume this does not
+                    // belong with our word if there was no preceding punctuation, or
+                    // if there was preceding punctuation but we have already found at
+                    // least one closing curly quote, or if bHasOpeningQuote is FALSE,
+                    // otherwise we'll accept it as a detached following quote mark
+					if (bHasPrecPunct)
 					{
-                        // it's one of the two ambiguous ones; we'll assume this does not
-                        // belong with our word if there was no preceding punctuation, or
-                        // if there was preceding punctuation but we have already found at
-                        // least one closing curly quote, or if bHasOpeningQuote is FALSE,
-                        // otherwise we'll accept it as a detached following quote mark
-						if (bHasPrecPunct)
+						if (!bHasOpeningQuote)
 						{
-							if (!bHasOpeningQuote)
+                            // there was no opening quote on this word, but the word
+                            // may be the end of a quoted section and so we must test
+                            // further
+							if (bFoundDetachedRightQuote)
 							{
-                                // there was no opening quote on this word, but the word
-                                // may be the end of a quoted section and so we must test
-                                // further
-								if (bFoundDetachedRightQuote)
+                                // a detached right quote was found earlier, so we
+                                // should stop the iteration right here, and not
+                                // accumulate the non-curly quote symbol because it is
+                                // unlikely it would associate to the left
+								goto g;
+							}
+							else
+							{
+                                // we only know where was opening punctuation and no
+                                // detached closing quote has yet been found, so we
+                                // need to apply the tests in the next block to decide
+                                // what to do with the ambiguous quote at ptr; OR
+                                // control got directed here from the bHasOpeningQuote
+                                // == FALSE block and we've not found a detached right
+                                // quote earlier, so we must make our final decision
+                                // based on the tests in the block below
+								goto e;
+							}
+						}
+						else // next block is where the 'final' decisions will be 
+                             // made (only one option iterates from within the next
+                             // battery of tests)
+						{
+                            // there was an opening quote on this word, or control was
+                            // directed here from the block immediately above; so this
+                            // ambiguous quote may be a closing one, or it could belong
+                            // to the next word - so we must test further
+e:							ptr2 = ptr;
+							ptr2++; // point at the next character
+							if (IsWhiteSpace(ptr2))
+							{
+                                // *ptr is bracketed by white space either side, so it
+                                // could associate either to the left or two the right
+                                // - so we must make some assumptions: we assume it is
+                                // detached quote for the current (ie. to the left)
+                                // word if the next character past ptr2 is not
+                                // punctuation (if it's a white space we jump it and
+                                // test again), if it is punctuation we assume the
+                                // quote at ptr associates to the right, and if the
+                                // character at ptr2 is not white space we assume we
+                                // have moved into the preceding punctuation of a
+                                // following word and so associate the quote at ptr
+                                // rightwards
+								ptr2++; // point beyond the white space
+
+								// skip over any additional white spaces
+								while (IsWhiteSpace(ptr2)) {ptr2++;} 
+
+								// find out what the first non-whitespace character is
+								if (nospacePuncts.Find(*ptr2) == -1)
 								{
-                                    // a detached right quote was found earlier, so we
-                                    // should stop the iteration right here, and not
-                                    // accumulate the non-curly quote symbol because it is
-                                    // unlikely it would associate to the left
-									goto g;
+                                    // the character at ptr2 is not punctuation, so we
+                                    // will assume the character at ptr associates to
+                                    // the left; if ptr2 is actually at the end of the
+                                    // data (eg, when rebuilding a sourcephrase for
+                                    // document rebuild) then this is also accomodated
+                                    // by the same decision
+f:									bFoundDetachedRightQuote = TRUE;
+									smchunk += *ptr++; // accumulate it, advance pointer
+									goto a; // and iterate
 								}
 								else
 								{
-                                    // we only know where was opening punctuation and no
-                                    // detached closing quote has yet been found, so we
-                                    // need to apply the tests in the next block to decide
-                                    // what to do with the ambiguous quote at ptr; OR
-                                    // control got directed here from the bHasOpeningQuote
-                                    // == FALSE block and we've not found a detached right
-                                    // quote earlier, so we must make our final decision
-                                    // based on the tests in the block below
-									goto e;
+                                    // it is punctuation at ptr2, so we could have a
+                                    // series of detached quotes which associate left,
+                                    // or a series which associates right. To
+                                    // distinguish these we will favour rightmost
+                                    // association if there is a next word with initial
+                                    // punctuation; otherwise we'll assume we should
+                                    // associate leftwards
+									ptr3 = ptr2;
+									ptr3++; // point at next char (it could be space, etc)
+									if (IsEnd(ptr3)) goto f; // associate leftwards & iterate
+									if (IsWhiteSpace(ptr3))
+									{
+										while (IsWhiteSpace(ptr3)) {ptr3++;} // skip any others
+										if (IsEnd(ptr3)) goto f;
+										if (nospacePuncts.Find(*ptr3) == -1)
+										{
+											// it's not punctuation
+											goto f; // iterate
+										}
+										else
+										{
+                                            // it's punctuation; so we'll limit the
+                                            // nesting of tests to a max of two
+                                            // detached ambiguous quotes, so we will
+                                            // here examine what follows - if it is a
+                                            // space or the end of the data we will
+                                            // assume it is the last of detached
+                                            // punctuation associating to the left;
+                                            // anything else, we'll have the quote at
+                                            // ptr associated rightwards
+											ptr3++;
+											if (IsEnd(ptr3) || IsWhiteSpace(ptr3))
+												goto f; // iterate
+										}
+									}
+									// bale out (ie. associate right)
+g:									followPunct += smchunk;
+									nChunkLen = smchunk.Length();
+									len += nChunkLen;
+									return len;
 								}
 							}
-							else // next block is where the 'final' decisions will be 
-                                 // made (only one option iterates from within the next
-                                 // battery of tests)
+							else
 							{
-                                // there was an opening quote on this word, or control was
-                                // directed here from the block immediately above; so this
-                                // ambiguous quote may be a closing one, or it could belong
-                                // to the next word - so we must test further
-e:								ptr2 = ptr;
-								ptr2++; // point at the next character
-								if (IsWhiteSpace(ptr2))
+                                // it was not whitespace, so we assume the quote
+                                // character at ptr must associate to the right, so
+                                // bale out; however, if we are at the end of the text
+                                // (eg. when doing document rebuild) then associating
+                                // rightwards is impossible and we then associate to
+                                // the left
+								if (IsEnd(ptr2))
 								{
-                                    // *ptr is bracketed by white space either side, so it
-                                    // could associate either to the left or two the right
-                                    // - so we must make some assumptions: we assume it is
-                                    // detached quote for the current (ie. to the left)
-                                    // word if the next character past ptr2 is not
-                                    // punctuation (if it's a white space we jump it and
-                                    // test again), if it is punctuation we assume the
-                                    // quote at ptr associates to the right, and if the
-                                    // character at ptr2 is not white space we assume we
-                                    // have moved into the preceding punctuation of a
-                                    // following word and so associate the quote at ptr
-                                    // rightwards
-									ptr2++; // point beyond the white space
-
-									// skip over any additional white spaces
-									while (IsWhiteSpace(ptr2)) {ptr2++;} 
-
-									// find out what the first non-whitespace character is
-									if (nospacePuncts.Find(*ptr2) == -1)
-									{
-                                        // the character at ptr2 is not punctuation, so we
-                                        // will assume the character at ptr associates to
-                                        // the left; if ptr2 is actually at the end of the
-                                        // data (eg, when rebuilding a sourcephrase for
-                                        // document rebuild) then this is also accomodated
-                                        // by the same decision
-f:										bFoundDetachedRightQuote = TRUE;
-										smchunk += *ptr++; // accumulate it, advance pointer
-										goto a; // and iterate
-									}
-									else
-									{
-                                        // it is punctuation at ptr2, so we could have a
-                                        // series of detached quotes which associate left,
-                                        // or a series which associates right. To
-                                        // distinguish these we will favour rightmost
-                                        // association if there is a next word with initial
-                                        // punctuation; otherwise we'll assume we should
-                                        // associate leftwards
-										ptr3 = ptr2;
-										ptr3++; // point at next char (it could be space, etc)
-										if (IsEnd(ptr3)) goto f; // associate leftwards & iterate
-										if (IsWhiteSpace(ptr3))
-										{
-											while (IsWhiteSpace(ptr3)) {ptr3++;} // skip any others
-											if (IsEnd(ptr3)) goto f;
-											if (nospacePuncts.Find(*ptr3) == -1)
-											{
-												// it's not punctuation
-												goto f; // iterate
-											}
-											else
-											{
-                                                // it's punctuation; so we'll limit the
-                                                // nesting of tests to a max of two
-                                                // detached ambiguous quotes, so we will
-                                                // here examine what follows - if it is a
-                                                // space or the end of the data we will
-                                                // assume it is the last of detached
-                                                // punctuation associating to the left;
-                                                // anything else, we'll have the quote at
-                                                // ptr associated rightwards
-												ptr3++;
-												if (IsEnd(ptr3) || IsWhiteSpace(ptr3))
-													goto f; // iterate
-											}
-										}
-										// bale out (ie. associate right)
-g:										followPunct += smchunk;
-										nChunkLen = smchunk.Length();
-										len += nChunkLen;
-										return len;
-									}
+                                    // associate it to the left, that is, it is part of
+                                    // the currently being parsed word
+									bFoundDetachedRightQuote = TRUE;
+									smchunk += *ptr++; // accumulate it, advance pointer
+									goto a; // and iterate
 								}
-								else
-								{
-                                    // it was not whitespace, so we assume the quote
-                                    // character at ptr must associate to the right, so
-                                    // bale out; however, if we are at the end of the text
-                                    // (eg. when doing document rebuild) then associating
-                                    // rightwards is impossible and we then associate to
-                                    // the left
-									if (IsEnd(ptr2))
-									{
-                                        // associate it to the left, that is, it is part of
-                                        // the currently being parsed word
-										bFoundDetachedRightQuote = TRUE;
-										smchunk += *ptr++; // accumulate it, advance pointer
-										goto a; // and iterate
-									}
-									// if not at the end, then assume it belongs to the 
-									// next word
-									goto g;
-								}
-							} // end of the "final battery of tests" block
-						}
-						else // bHasPredPunct was FALSE
-						{
-                            // there was no opening punctuation on our parsed word, but the
-                            // ambiguous quote at ptr could still be a closing quote, or it
-                            // could be a quote belonging to the next word - so additional
-                            // tests are required
-							goto e;
-						}
+								// if not at the end, then assume it belongs to the 
+								// next word
+								goto g;
+							}
+						} // end of the "final battery of tests" block
 					}
-					else
+					else // bHasPredPunct was FALSE
 					{
-                        // it's a genuine curly closing quote or a right wedge, either way
-                        // this is detached punctuation belonging to the previous word, so
-                        // we must accumulate it & iterate
-						bFoundDetachedRightQuote = TRUE;
-						smchunk += *ptr++; // accumulate it, and advance to the 
-										   // next character
-						goto a; // iterate
+                        // there was no opening punctuation on our parsed word, but the
+                        // ambiguous quote at ptr could still be a closing quote, or it
+                        // could be a quote belonging to the next word - so additional
+                        // tests are required
+						goto e;
 					}
 				}
 				else
 				{
-					// it's not one of the possible closing quotes, so we have to stop 
-					// iterating
-b:					wxString spaceless = smchunk;
-					while (spaceless.Find(_T(' ')) != -1)
-					{
-						spaceless.Remove(spaceless.Find(_T(' ')),1);
-					}
-					if (smchunk.Length() > 0 && bFoundDetachedRightQuote)
-					{
-						// there is something to accumulate
-						followPunct += smchunk;
-						nChunkLen = smchunk.Length();
-						len += nChunkLen;
-						return len;
-					}
-					else
-					{
-						// there is nothing worth accumulating
-						return len;
-					}
+                    // it's a genuine curly closing quote or a right wedge, either way
+                    // this is detached punctuation belonging to the previous word, so
+                    // we must accumulate it & iterate
+					bFoundDetachedRightQuote = TRUE;
+					smchunk += *ptr++; // accumulate it, and advance to the 
+									   // next character
+					goto a; // iterate
+				}
+			}
+			else
+			{
+				// it's not one of the possible closing quotes, so we have to stop 
+				// iterating
+b:				wxString spaceless = smchunk;
+				while (spaceless.Find(_T(' ')) != -1)
+				{
+					spaceless.Remove(spaceless.Find(_T(' ')),1);
+				}
+				if (smchunk.Length() > 0 && bFoundDetachedRightQuote)
+				{
+					// there is something to accumulate
+					followPunct += smchunk;
+					nChunkLen = smchunk.Length();
+					len += nChunkLen;
+					return len;
+				}
+				else
+				{
+					// there is nothing worth accumulating
+					return len;
 				}
 			}
 		}
-		else
-		{
-			// we are at the end or at the start of a (U)SFM, so we cannot iterate further
-			// BEW 8Jun10, removed support for checkbox "Recognise standard format
-			// markers only following newlines"
-//d:			goto b;
-			goto b;
-		}	
-	//}
+	}
+	else
+	{
+		// we are at the end or at the start of a (U)SFM, so we cannot iterate further
+		goto b;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -11532,7 +11439,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 		if (pLast)
 		{
 			// set the global, and it will stay set until an endmarker or a footnote
-			// endmarker makes use of it, and then clears it to FALSE
+			// endmarker makes use of it, and then clears it
 			gPreviousTextType = pLast->m_curTextType;
 		}
 		else
