@@ -1133,6 +1133,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 	if (UserProfileSelectionHasChanged())
 	{
 		bChangeMadeToProfileSelection = TRUE;
+		m_pApp->m_nWorkflowProfile = tempWorkflowProfile;
 	}
 	if (UserProfileItemsHaveChanged(tempUserProfiles, m_pApp->m_pUserProfiles))
 	{
@@ -1217,7 +1218,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		// Changes to the external AI_UserProfiles.xml file are also done in the 
 		// caller - in the App's OnEditUserMenuSettingsProfiles().
 		
-		// if we get here the user responded "Yes"
+		// if we get here the user responded "Yes", so update the App's members
 		CopyUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
 	}
 	

@@ -5804,14 +5804,10 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     true if configuration was successful, false if there was an error
 /// \remarks
-/// Called from: the App's OnInit() and CAdminEditMenuProfile class dialog.
-/// Sets the visibility of menu items and other interface settings according to the 
-/// currently set user workflow profile. This function reads the UserProfile data stored
-/// in the App's m_pUserProfiles member, and sets the visibility of interface menus and
-/// settings based on the information stored there. It also reads the App's 
-/// m_pAI_MenuStructure member and uses it to insure the menu structure and other interface
-/// items are restored to a uniform state when changing the user profile or reverting to 
-/// the "None" default profile.
+/// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
+/// This function calls functions that set the visibility of the interface's menus, modeBar, 
+/// toolBar, wizardListItem and other potential interface settings, all based on the information 
+/// stored in AI_UserProfiles.xml and the App's m_pAI_MenuStructure member.
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 {
@@ -5830,13 +5826,12 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	// are not done here but within the CEditPreferencesDlg dialog class. The 
 	// tabs are hidden or shown based on the visibility flags in m_pUserProfiles
 	// at the time when the Preferences dialog is instantiated.
+
+	// Next, configure visibility of itemType == toolBar element
 	
 
 	// Next, configure visibility of itemType == wizardListItem element
 	
-
-	// Next, configure visibility of itemType == toolBar element
-	// Note: These are currently not used
 	
 	// Finally, configure visibility of itemType == dialogControl elements
 	// AI_UserProfiles.xml currently does not include any dialogControl 
@@ -5848,6 +5843,16 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	return TRUE;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
+/// and sets the visibility of the interface's menus based on the information 
+/// stored in AI_UserProfiles.xml. It also reads the App's m_pAI_MenuStructure member and 
+/// uses it to insure Adapt It's menu structure is restored to a uniform state when 
+/// changing the user profile or reverting to the "None" default profile.
+//////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 {
 	// whm 27Sep10 notes:
@@ -6114,6 +6119,16 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 	delete pTempMenuBar;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
+/// and sets the visibility of the interface's mode bar based on the information 
+/// stored in AI_UserProfiles.xml. It destroys the existing mode bar then constructs a 
+/// new mode bar and uses it as the starting baseline, removing elements according to the 
+/// currently selected user profile.
+//////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 {
 	// Note: The ModeBar (also called "controlBar") is created on a wxPanel in the 
@@ -6171,51 +6186,147 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
 	
-	if (m_bExecutingOnXO) //if (m_bUsingHighResDPIScreen)
+	if (m_bExecutingOnXO) // prefix m_bExecutingOnXO with ! to test the two-line control bar configuration
 	{
 		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
 		// better fit in main frame
 		ControlBar2LineFunc( controlBar, TRUE, TRUE );
+		// make m_pControlBar point to the new control bar
+		pMainFrame->m_pControlBar = controlBar;
+		// In the case of the two line control bar, we have two
+		// named wxBoxSizers. 
+		// The upper sizer called ID_CONTROLBAR_2_LINE_SIZER_TOP
+		// has the following controls:
+		//    1. Spacer
+		//    2. Drafting [wxRadioButton]
+		//    3. Reviewing [wxRadioButton]
+		//    4. *Automatic [wxCheckBox]
+		//    5. Save to Knowledge Base [wxCheckBox]
+		//    6. *Delay [wxStaticText}
+		//    7. wxTextCtrl named IDC_EDIT_DELAY
+		// The lower sizer called ID_CONTROLBAR_2_LINE_SIZER_BOTTOM
+		// has the following controls:
+		//    1. Spacer
+		//    2. *Force Choice For This Item [wxCheckBox]
+		//    3. Spacer
+		//    4. <no adaptation> [wxButton]
+		//    5. Spacer
+		//    6. *Glossing [wxCheckBox]
+		// * These are the potentially "hidden" items depending on the selected 
+		// user profile.
+		// Note: On the XO screen, it is the horizontal space that gets overly crowded due to
+		// the system's increase in font size, rather than the vertical space, so I don't 
+		// think it would be worth the effort to try to consolidate the two bars into a one 
+		// line control bar in the case that an administrator sets up a profile in which many 
+		// items are not to be made visible.
+		//  
+		// Go through the children of the two line control bar and
+		// remove any that are not supposed to be visible in the current
+		// profile.
+		// First, the upper sizer ID_CONTROLBAR_2_LINE_SIZER_TOP
+		wxSizer* pModeBarSizer = ID_CONTROLBAR_2_LINE_SIZER_TOP;
+		wxASSERT(pModeBarSizer != NULL);
+		wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
+		wxSizerItemList::Node* node;
+		int nSizerItems = modeBarItems.GetCount();
+		int ct;
+		for (ct = 0; ct < nSizerItems; ct++)
+		{
+			node = modeBarItems.Item(ct);
+			wxSizerItem* pSizerItem = node->GetData();
+			wxString itemLabel;
+			if (!pSizerItem->IsSpacer())
+			{
+				// don't call GetWindow()->GetLabel() on a spacer; it will crash
+				itemLabel = pSizerItem->GetWindow()->GetLabel();
+			}
+			else
+				itemLabel = _T("");
+			if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+			{
+				if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+				{
+					// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
+					// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
+					// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
+					// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+					// time the app starts up. Hence, we can insure Glossing is turned off here.
+					gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+				}
+				pSizerItem->DeleteWindows();
+			}
+		}
+		// Second, the lower sizer ID_CONTROLBAR_2_LINE_SIZER_BOTTOM
+		pModeBarSizer = ID_CONTROLBAR_2_LINE_SIZER_BOTTOM;
+		wxASSERT(pModeBarSizer != NULL);
+		modeBarItems = pModeBarSizer->GetChildren();
+		nSizerItems = modeBarItems.GetCount();
+		for (ct = 0; ct < nSizerItems; ct++)
+		{
+			node = modeBarItems.Item(ct);
+			wxSizerItem* pSizerItem = node->GetData();
+			wxString itemLabel;
+			if (!pSizerItem->IsSpacer())
+			{
+				// don't call GetWindow()->GetLabel() on a spacer; it will crash
+				itemLabel = pSizerItem->GetWindow()->GetLabel();
+			}
+			else
+				itemLabel = _T("");
+			if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+			{
+				if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+				{
+					// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
+					// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
+					// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
+					// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+					// time the app starts up. Hence, we can insure Glossing is turned off here.
+					gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+				}
+				pSizerItem->DeleteWindows();
+			}
+		}
 	}
 	else
 	{
 		ControlBarFunc( controlBar, TRUE, TRUE );
-	}
-	// make m_pControlBar point to the new control bar
-	pMainFrame->m_pControlBar = controlBar;
-	
-	// Now we go through the children of the default mode bar and remove any that are
-	// not supposed to be visible in the current profile
-	wxSizer* pModeBar1LineSizer = ID_CONTROLBAR_1_LINE_SIZER;
-	wxASSERT(pModeBar1LineSizer != NULL);
-	wxSizerItemList modeBarItems = pModeBar1LineSizer->GetChildren();
-	wxSizerItemList::Node* node;
-	int nSizerItems = modeBarItems.GetCount();
-	int ct;
-	for (ct = 0; ct < nSizerItems; ct++)
-	{
-		node = modeBarItems.Item(ct);
-		wxSizerItem* pSizerItem = node->GetData();
-		wxString itemLabel;
-		if (!pSizerItem->IsSpacer())
+		// make m_pControlBar point to the new control bar
+		pMainFrame->m_pControlBar = controlBar;
+		
+		// Now we go through the children of the default mode bar and remove any that are
+		// not supposed to be visible in the current profile
+		wxSizer* pModeBarSizer = ID_CONTROLBAR_1_LINE_SIZER;
+		wxASSERT(pModeBarSizer != NULL);
+		wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
+		wxSizerItemList::Node* node;
+		int nSizerItems = modeBarItems.GetCount();
+		int ct;
+		for (ct = 0; ct < nSizerItems; ct++)
 		{
-			// don't call GetWindow()->GetLabel() on a spacer; it will crash
-			itemLabel = pSizerItem->GetWindow()->GetLabel();
-		}
-		else
-			itemLabel = _T("");
-		if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
-		{
-			if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+			node = modeBarItems.Item(ct);
+			wxSizerItem* pSizerItem = node->GetData();
+			wxString itemLabel;
+			if (!pSizerItem->IsSpacer())
 			{
-				// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
-				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
-				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
-				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
-				// time the app starts up. Hence, we can insure Glossing is turned off here.
-				gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+				// don't call GetWindow()->GetLabel() on a spacer; it will crash
+				itemLabel = pSizerItem->GetWindow()->GetLabel();
 			}
-			pSizerItem->DeleteWindows();
+			else
+				itemLabel = _T("");
+			if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+			{
+				if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+				{
+					// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
+					// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
+					// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
+					// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+					// time the app starts up. Hence, we can insure Glossing is turned off here.
+					gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+				}
+				pSizerItem->DeleteWindows();
+			}
 		}
 	}
 	// If the "[] Glossing" check box is not removed in this profile after the above code
@@ -6242,6 +6353,20 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 	pMainFrame->m_controlBarHeight = controlBarSize.GetHeight();
 	pMainFrame->Thaw(); // to avoid flicker
 	pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
+/// and sets the visibility of the interface's tool bar based on the information 
+/// stored in AI_UserProfiles.xml. It destroys the existing tool bar then constructs a 
+/// new tool bar and uses it as the starting baseline, removing elements according to the 
+/// currently selected user profile.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureToolBarForUserProfile()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -29284,7 +29409,8 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 		if (editMenuDlg.bChangesMadeToProfileItems || editMenuDlg.bChangeMadeToProfileSelection)
 		{
 			// Make changes to the interface here based on the user's workflow
-			// profile selection/changes which are now stored in m_nWorkflowProfile.
+			// profile selection/changes which are now stored in m_nWorkflowProfile
+			// and m_pUserProfiles.
 			ConfigureInterfaceForUserProfile();
 			// Also, save the changes to the AI_UserProfiles.xml file
 			// TODO:

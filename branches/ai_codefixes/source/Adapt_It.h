@@ -2648,6 +2648,7 @@ public:
 	bool	ConfigureInterfaceForUserProfile();
 	void	ConfigureMenuBarForUserProfile();
 	void	ConfigureModeBarForUserProfile();
+	void	ConfigureToolBarForUserProfile();
 	void	MakeMenuInitializationsAndPlatformAdjustments();
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
