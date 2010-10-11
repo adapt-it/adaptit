@@ -2649,6 +2649,7 @@ public:
 	void	ConfigureMenuBarForUserProfile();
 	void	ConfigureModeBarForUserProfile();
 	void	ConfigureToolBarForUserProfile();
+	void	RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer);
 	void	MakeMenuInitializationsAndPlatformAdjustments();
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);

@@ -819,6 +819,13 @@ void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfil
 {
 	wxASSERT(pFromUserProfiles != NULL);
 	wxASSERT(pToUserProfiles != NULL);
+	
+	// insure that the pToUserProfiles fields are empty and arrays are empty
+	pToUserProfiles->profileVersion.Empty();
+	pToUserProfiles->definedProfileNames.Clear();
+	pToUserProfiles->descriptionProfileTexts.Clear();
+	pToUserProfiles->profileItemList.Clear();
+
 	if (pFromUserProfiles != NULL)
 	{
 		pToUserProfiles->profileVersion = pFromUserProfiles->profileVersion;

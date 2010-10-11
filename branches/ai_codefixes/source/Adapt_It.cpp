@@ -5828,7 +5828,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	// at the time when the Preferences dialog is instantiated.
 
 	// Next, configure visibility of itemType == toolBar element
-	
+	ConfigureToolBarForUserProfile();
 
 	// Next, configure visibility of itemType == wizardListItem element
 	
@@ -6225,68 +6225,11 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		// profile.
 		// First, the upper sizer ID_CONTROLBAR_2_LINE_SIZER_TOP
 		wxSizer* pModeBarSizer = ID_CONTROLBAR_2_LINE_SIZER_TOP;
-		wxASSERT(pModeBarSizer != NULL);
-		wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
-		wxSizerItemList::Node* node;
-		int nSizerItems = modeBarItems.GetCount();
-		int ct;
-		for (ct = 0; ct < nSizerItems; ct++)
-		{
-			node = modeBarItems.Item(ct);
-			wxSizerItem* pSizerItem = node->GetData();
-			wxString itemLabel;
-			if (!pSizerItem->IsSpacer())
-			{
-				// don't call GetWindow()->GetLabel() on a spacer; it will crash
-				itemLabel = pSizerItem->GetWindow()->GetLabel();
-			}
-			else
-				itemLabel = _T("");
-			if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
-			{
-				if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
-				{
-					// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
-					// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
-					// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
-					// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
-					// time the app starts up. Hence, we can insure Glossing is turned off here.
-					gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
-				}
-				pSizerItem->DeleteWindows();
-			}
-		}
+		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
+
 		// Second, the lower sizer ID_CONTROLBAR_2_LINE_SIZER_BOTTOM
 		pModeBarSizer = ID_CONTROLBAR_2_LINE_SIZER_BOTTOM;
-		wxASSERT(pModeBarSizer != NULL);
-		modeBarItems = pModeBarSizer->GetChildren();
-		nSizerItems = modeBarItems.GetCount();
-		for (ct = 0; ct < nSizerItems; ct++)
-		{
-			node = modeBarItems.Item(ct);
-			wxSizerItem* pSizerItem = node->GetData();
-			wxString itemLabel;
-			if (!pSizerItem->IsSpacer())
-			{
-				// don't call GetWindow()->GetLabel() on a spacer; it will crash
-				itemLabel = pSizerItem->GetWindow()->GetLabel();
-			}
-			else
-				itemLabel = _T("");
-			if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
-			{
-				if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
-				{
-					// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
-					// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
-					// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
-					// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
-					// time the app starts up. Hence, we can insure Glossing is turned off here.
-					gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
-				}
-				pSizerItem->DeleteWindows();
-			}
-		}
+		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
 	}
 	else
 	{
@@ -6297,37 +6240,7 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		// Now we go through the children of the default mode bar and remove any that are
 		// not supposed to be visible in the current profile
 		wxSizer* pModeBarSizer = ID_CONTROLBAR_1_LINE_SIZER;
-		wxASSERT(pModeBarSizer != NULL);
-		wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
-		wxSizerItemList::Node* node;
-		int nSizerItems = modeBarItems.GetCount();
-		int ct;
-		for (ct = 0; ct < nSizerItems; ct++)
-		{
-			node = modeBarItems.Item(ct);
-			wxSizerItem* pSizerItem = node->GetData();
-			wxString itemLabel;
-			if (!pSizerItem->IsSpacer())
-			{
-				// don't call GetWindow()->GetLabel() on a spacer; it will crash
-				itemLabel = pSizerItem->GetWindow()->GetLabel();
-			}
-			else
-				itemLabel = _T("");
-			if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
-			{
-				if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
-				{
-					// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
-					// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
-					// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
-					// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
-					// time the app starts up. Hence, we can insure Glossing is turned off here.
-					gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
-				}
-				pSizerItem->DeleteWindows();
-			}
-		}
+		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
 	}
 	// If the "[] Glossing" check box is not removed in this profile after the above code
 	// executes (i.e., NULL), check here to see if it should be visible or hidden according to the 
@@ -6354,6 +6267,74 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 	pMainFrame->Thaw(); // to avoid flicker
 	pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureModeBarForUserProfile().
+/// This function is a helper function for ConfigureModeBarForUserProfile().
+/// It removes any mode bar items that are not visible in the currently selected user 
+/// profile.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
+{
+	wxASSERT(pModeBarSizer != NULL);
+	wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
+	wxSizerItemList::Node* node;
+	int nSizerItems = modeBarItems.GetCount();
+	int ct;
+	bool bDelayRemoved = FALSE;
+	for (ct = 0; ct < nSizerItems; ct++)
+	{
+		node = modeBarItems.Item(ct);
+		wxSizerItem* pSizerItem = node->GetData();
+		wxString itemLabel;
+		if (!pSizerItem->IsSpacer())
+		{
+			// don't call GetWindow()->GetLabel() on a spacer; it will crash
+			itemLabel = pSizerItem->GetWindow()->GetLabel();
+			itemLabel.Trim(FALSE);
+			itemLabel.Trim(TRUE);
+		}
+		else
+		{
+			itemLabel = _T("");
+		}
+		if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+		{
+			if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+			{
+				// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
+				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
+				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
+				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+				// time the app starts up. Hence, we can insure Glossing is turned off here.
+				gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+			}
+			if (itemLabel == _("Delay"))
+			{
+				// the "Delay" is actually associated with the itemLabel of the wxStaticText control and
+				// not the following wxTextCtrl, so when the "Delay" wxStaticText control is removed we
+				// also flag for removal (see below) the following wxTextCtrl which has the identifier of
+				// IDC_EDIT_DELAY.
+				bDelayRemoved = TRUE;
+			}
+			pSizerItem->DeleteWindows();
+		}
+	}
+	if (bDelayRemoved)
+	{
+		// the Delay wxStaticText was removed, so remove the following wxTextCtrl as well
+		wxTextCtrl* pDelayTextCtrl;
+		pDelayTextCtrl = (wxTextCtrl*)GetMainFrame()->m_pControlBar->FindWindowById(IDC_EDIT_DELAY);
+		wxASSERT(pDelayTextCtrl != NULL);
+		if (pDelayTextCtrl != NULL)
+		{
+			pDelayTextCtrl->Destroy();
+		}
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -7001,6 +6982,8 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 		}
 		wxString itemLabelStr;
 		itemLabelStr = pUserProfileItem->itemText;
+		itemLabelStr.Trim(FALSE);
+		itemLabelStr.Trim(TRUE);
 		int indexFromProfile = 0;
 		if (nProfile <= 0)
 			indexFromProfile = 0;
