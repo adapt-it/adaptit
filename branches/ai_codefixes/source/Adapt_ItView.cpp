@@ -25267,6 +25267,9 @@ void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
+/// TODO: Check if it makes sense for the caller of ToggleSeeGlossesMode() to actually call
+/// this function when the current user workflow profile removes the Advanced menu's 
+/// "See Glosses" item, or the mode bar's "[] Glossing" checkbox
 void CAdapt_ItView::ToggleSeeGlossesMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

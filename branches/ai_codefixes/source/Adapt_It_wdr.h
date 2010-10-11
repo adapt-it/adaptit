@@ -47,6 +47,7 @@ const int ID_STATIC_SYS_ENCODING_NAME = 12;
 const int ID_STATIC_SYSTEM_LAYOUT_DIR = 13;
 wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
+extern wxSizer *ID_CONTROLBAR_1_LINE_SIZER;
 const int IDC_RADIO_DRAFTING = 14;
 const int IDC_RADIO_REVIEWING = 15;
 const int IDC_CHECK_SINGLE_STEP = 16;
@@ -621,6 +622,8 @@ const int IDC_EDIT_2SRC9 = 468;
 const int IDC_EDIT_2TGT9 = 469;
 wxSizer *DoublePunctTabPageFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
+extern wxSizer *ID_CONTROLBAR_2_LINE_SIZER_TOP;
+extern wxSizer *ID_CONTROLBAR_2_LINE_SIZER_BOTTOM;
 wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
 const int ID_TEXTCTRL_MSG1 = 470;

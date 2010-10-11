@@ -22,7 +22,7 @@
 /// will continue to use that profile each time the application is run. 
 /// The selection is saved in the basic and project config files, and the 
 /// profile information is saved in an external xml control file. 
-/// \derivation		The CAdminEditMenuProfile class is derived from AIModalDialog.
+/// \derivation		The CAdminEditMenuProfile class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef AdminEditMenuProfile_h
@@ -33,7 +33,7 @@
     #pragma interface "AdminEditMenuProfile.h"
 #endif
 
-class CAdminEditMenuProfile : public AIModalDialog
+class CAdminEditMenuProfile : public wxDialog // use wxDialog instead of AIModalDialog because we use wxUpdateUIEvent
 {
 public:
 	CAdminEditMenuProfile(wxWindow* parent); // constructor
@@ -48,18 +48,24 @@ public:
 	wxCheckListBox* pCheckListBox;
 	wxButton* pOKButton;
 	int tempWorkflowProfile; // 0 = "None", 1 = "Novice", 2 = "Experienced", 3 = "Skilled", 4 = "Custom"
+	int startingWorkflowProfile;
 	int selectedComboProfileIndex; // 0 = "Novice", 1 = "Experienced", 2 = "Skilled", 3 = "Custom"
 	int notebookTabIndex; // 0 = "Novice", 1 = "Experienced", 2 = "Skilled", 3 = "Custom"
-	AI_MenuStructure* tempMenuStructure;
+	int lastNotebookTabIndex;
 	UserProfiles* tempUserProfiles;
 	wxArrayInt itemsAlwaysChecked;
-	bool bChangesMadeToProfiles;
+	bool bChangesMadeToProfileItems;
+	bool bChangeMadeToProfileSelection;
+	wxArrayInt bProfileChanged;
 	// other methods
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnUpdateButtonOK(wxUpdateUIEvent& WXUNUSED(event));
+	void OnCancel(wxCommandEvent& WXUNUSED(event));
 	void OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateBtnResetToFactory(wxUpdateUIEvent& WXUNUSED(event));
 	void OnNotebookTabChanged(wxNotebookEvent& event);
 	void OnComboBoxSelection(wxCommandEvent& WXUNUSED(event));
 	void OnCheckListBoxToggle(wxCommandEvent& event);
@@ -71,7 +77,14 @@ protected:
 	void CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
-	bool UserProfilesHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles);
+	bool UserProfileItemsHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles);
+	bool ThisUserProfilesItemsDifferFromFactory(int profileSelectionIndex);
+	bool UserProfileSelectionHasChanged();
+	wxString GetNameOfProfileFromProfileValue(int tempWorkflowProfile);
+	wxString GetNameOfProfileFromProfileIndex(int profileIndex);
+	int GetIndexOfProfileFromProfileName(wxString profileName);
+	wxString GetNamesOfEditedProfiles();
+	void CopyProfileVisibilityValues(int sourceProfileIndex, int destinationProfileIndex);
 
 private:
 	// class attributes

@@ -22,7 +22,7 @@
 /// will continue to use that profile each time the application is run. 
 /// The selection is saved in the basic and project config files, and the 
 /// profile information is saved in an external xml control file. 
-/// \derivation		The CAdminEditMenuProfile class is derived from AIModalDialog.
+/// \derivation		The CAdminEditMenuProfile class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in AdminEditMenuProfile.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -52,7 +52,7 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
-//#include <wx/valtext.h> // for wxTextValidator
+#include <wx/choicdlg.h>
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "AdminEditMenuProfile.h"
@@ -62,10 +62,13 @@
 extern CAdapt_ItApp* m_pApp;
 
 // event handler table
-BEGIN_EVENT_TABLE(CAdminEditMenuProfile, AIModalDialog)
+BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxDialog)
 	EVT_INIT_DIALOG(CAdminEditMenuProfile::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_BUTTON(wxID_CANCEL, CAdminEditMenuProfile::OnCancel)
 	EVT_BUTTON(wxID_OK, CAdminEditMenuProfile::OnOK)
+	EVT_UPDATE_UI(wxID_OK, CAdminEditMenuProfile::OnUpdateButtonOK)
 	EVT_BUTTON(ID_BUTTON_RESET_TO_FACTORY, CAdminEditMenuProfile::OnBtnResetToFactory)
+	EVT_UPDATE_UI(ID_BUTTON_RESET_TO_FACTORY, CAdminEditMenuProfile::OnUpdateBtnResetToFactory)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_MENU_EDITOR_NOTEBOOK, CAdminEditMenuProfile::OnNotebookTabChanged)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_NONE,CAdminEditMenuProfile::OnRadioNone)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_USE_PROFILE,CAdminEditMenuProfile::OnRadioUseProfile)
@@ -75,7 +78,7 @@ BEGIN_EVENT_TABLE(CAdminEditMenuProfile, AIModalDialog)
 END_EVENT_TABLE()
 
 CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("User Workflow Profiles"),
+	: wxDialog(parent, -1, _("User Workflow Profiles"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -114,7 +117,6 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	wxASSERT(pCheckListBox != NULL);
 
 	tempUserProfiles = (UserProfiles*)NULL;
-	tempMenuStructure = (AI_MenuStructure*)NULL;
 
 	// other attribute initializations
 }
@@ -123,15 +125,16 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 {
 	// deallocate the memory used by our temporary objects
 	m_pApp->DestroyUserProfiles(tempUserProfiles);
-	m_pApp->DestroyMenuStructure(tempMenuStructure);
 }
 
 void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
-	bChangesMadeToProfiles = FALSE;
+	bChangesMadeToProfileItems = FALSE;
+	bChangeMadeToProfileSelection = FALSE;
 	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
+	startingWorkflowProfile = tempWorkflowProfile;
 	compareLBStr = _T("      %s   [%s]");
 	
 	// Deallocate the memory in the App's m_pUserProfiles and m_pAI_MenuStructure
@@ -139,7 +142,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// on the heap. These routines first destroy the internal items that were
 	// allocated on the heap, then the top level items.
 	m_pApp->DestroyUserProfiles(m_pApp->m_pUserProfiles);
-	//m_pApp->DestroyMenuStructure(m_pApp->m_pAI_MenuStructure);
 
 	// Reread the AI_UserProfiles.xml file (this also loads the App's 
 	// m_pUserProfiles data structure with latest values stored on disk).
@@ -150,8 +152,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// reload the data from the xml file in case the administrator previously
 	// changed the profile during the current session (which automatically
 	// saved any changes to AI_UserProfiles.xml).
-	// Note: Reading the AI_UserProfiles.xml file, also repopulates the 
-	// m_pAI_MenuStructure with the latest current data.
 	wxString readDataFrom;
 	readDataFrom = _T("AI_UserProfiles.xml File");
 	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
@@ -162,7 +162,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// default unix-like strings
 		readDataFrom = _T("Internal Default Strings (Unable to read AI_UserProfiles.xml)");
 		m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles);
-		//m_pApp->SetupDefaultMenuStructure(m_pApp->m_pAI_MenuStructure);
 	}
 	else
 	{
@@ -172,7 +171,6 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// some point after ReadPROFILES_XML().
 		m_pApp->GetAndAssignIdValuesToUserProfilesStruct(m_pApp->m_pUserProfiles);
 	}
-	//wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
 	wxLogDebug(_T("Reading data from the %s"),readDataFrom.c_str());
 	
 	
@@ -235,6 +233,11 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		}
 	}
 
+	// To keep track of which profiles an administrator may have edited, set up an array of 
+	// bool values to track which profiles have changed
+	const int numProfiles = ct;
+	bProfileChanged.SetCount(numProfiles,0); // initialize all array elements to zero (0)
+
 	// Select whatever tab the administrator has set if any, first tab if none.
 	if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount())
 	{
@@ -251,12 +254,14 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// The tempWorkflowProfile > 0 so tab selection index is tempWorkflowProfile - 1
 		notebookTabIndex = tempWorkflowProfile - 1;
 		selectedComboProfileIndex = notebookTabIndex;
+		lastNotebookTabIndex = notebookTabIndex;
 	}
 	else
 	{
 		// tempWorkflowProfile is 0 ("None"), so just set the notebook tab to the first page Novice (default)
 		notebookTabIndex = 0; // open the dialog with the "Novice" tab displaying if "None" selected for user profile
 		selectedComboProfileIndex = notebookTabIndex;
+		lastNotebookTabIndex = notebookTabIndex;
 	}
 	// ChangeSelection does not generate page changing events
 	pNotebook->ChangeSelection(notebookTabIndex);
@@ -292,11 +297,10 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	// create a temporary UserProfiles object for use in AdminEditMenuProfile.
 	tempUserProfiles = new UserProfiles;
-	// create a temporary MenuStructure object for use in AdminEditMenuProfile.
-	tempMenuStructure = new AI_MenuStructure;
-	// Make a copy of the App's objects
+	// Make a temporary copy tempUserProfiles of the App's m_pUserProfiles and only work with it
+	// until OnOK() is called. Only in OnOK() do we then copy the tempUserProfiles data back to
+	// the App's m_pUserProfiles.
 	CopyUserProfiles(m_pApp->m_pUserProfiles, tempUserProfiles);
-	CopyMenuStructure(m_pApp->m_pAI_MenuStructure, tempMenuStructure);
 	
 	if (tempWorkflowProfile > 0)
 	{
@@ -329,9 +333,73 @@ void CAdminEditMenuProfile::OnNotebookTabChanged(wxNotebookEvent& event)
 		// the previously or the newly selected page on some platforms, making it 
 		// unreliable for our cross-platform needs.
 		int eGetSel = event.GetSelection(); // event.GetSelection() gets the index of the new tab
-		PopulateListBox(eGetSel);
-		// Note: we don't change the radio button or combo box selection in response 
-		// to a change in the notebook tab
+		notebookTabIndex = eGetSel;
+
+		// If no previous changes have been made to the "Custom" profile, present a
+		// wxChoice dialog allowing the user to select another profile's visibility
+		// settings as a preset for the Custom profile.
+		int indexOfCustomProfile;
+		indexOfCustomProfile = GetIndexOfProfileFromProfileName(_("Custom"));
+		if (indexOfCustomProfile != wxNOT_FOUND 
+			&& notebookTabIndex == indexOfCustomProfile
+			&& !ThisUserProfilesItemsDifferFromFactory(indexOfCustomProfile))
+		{
+			// the Custom profile has not been changed from its factory defaults so we will
+			// present a wxSingleChoiceDialog with the other (non-Custom) profile names that 
+			// the administrator can use to preset the values of the Custom profile. 
+			wxArrayString nonCustomProfileNamesArray;
+			int ct;
+			int numComboItems;
+			numComboItems = pNotebook->GetPageCount();
+			for (ct = 0; ct < (int)numComboItems; ct++)
+			{
+				wxString nbPageLabel = pNotebook->GetPageText(ct); // gets label without mnemonics
+				if (nbPageLabel != _("Custom"))
+				{
+					nonCustomProfileNamesArray.Add(nbPageLabel);
+				}
+
+			}
+			wxString msg;
+			msg = _("For the Custom profile, you can copy the settings from one of the following profiles.\nThen continue customizing the profile to your liking:");
+			wxSingleChoiceDialog ChooseProfileForCustomPreset(this,msg,_T("Choose a user profile to copy from"),nonCustomProfileNamesArray);
+			// preselect the listed profile in the dialog representing the last tab that was 
+			// selected before choosing the Custom tab
+			ChooseProfileForCustomPreset.SetSelection(lastNotebookTabIndex);
+			if (ChooseProfileForCustomPreset.ShowModal() == wxID_OK)
+			{
+				int userSelectionInt;
+				wxString userSelectionStr;
+				userSelectionStr = ChooseProfileForCustomPreset.GetStringSelection();
+				userSelectionInt = ChooseProfileForCustomPreset.GetSelection();
+				// The indices of the profile names in the dialog's list correspond to the
+				// indices of the non-Custom profiles in our lists.
+				// Preset the checkboxes to the selected profile
+				CopyProfileVisibilityValues(userSelectionInt,indexOfCustomProfile);
+			}
+		}
+		// whm Note: Originally I felt it would be good to allow the tab page to be 
+		// changed without keeping the combobox selection in sync with it, but the 
+		// more I play with it, the more I feel it would be better to keep two in
+		// sync as long as the "Use a workflow profile" radio button is selected.
+		// When "None" is selected, we allow the two selections to operate out of
+		// sync - albeit, the combo box is disabled/grayed out when "None" is 
+		// selected.
+		// Place this synching here so that the previous combobox selection is still
+		// visible behind the dialog.
+		if (pRadioBtnUseAProfile->GetValue() == TRUE) // TRUE is selected
+		{
+			selectedComboProfileIndex = notebookTabIndex;
+			pComboBox->SetSelection(selectedComboProfileIndex); // keep combobox in sync with tabs
+			tempWorkflowProfile = selectedComboProfileIndex + 1;
+		}
+		
+		PopulateListBox(notebookTabIndex);
+		
+		// Update lastNotebookTabIndex here just before leaving and not before the possible
+		// call of the dialog. Reason: the actual lastNotebookTabIndex may have been needed 
+		// above for the dialog.
+		lastNotebookTabIndex = notebookTabIndex;  
 	}
 }
 	
@@ -456,7 +524,7 @@ void CAdminEditMenuProfile::OnRadioUseProfile(wxCommandEvent& WXUNUSED(event))
 	// Use whatever previous value selectedComboProfileIndex had
 	pComboBox->SetSelection(selectedComboProfileIndex); // this does not cause a wxEVT_COMMAND_COMBOBOX_SELECTED event
 	// Make the corresponding notebook tab appear too, since pComboBox->SetSelection does not cause it to change
-	wxASSERT(selectedComboProfileIndex == notebookTabIndex);
+	notebookTabIndex = selectedComboProfileIndex;
 	pNotebook->SetSelection(notebookTabIndex);
 }
 
@@ -469,12 +537,14 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	// pointers to these controls need to be reestablished each time a Notebook 
 	// tab is changed (which brings a different panel and controls into view). 
 	
-	// The pNotebook and pComboBox pointers shouldn't actually change, but 
+	// The pNotebook, pComboBox and pOKButton pointers shouldn't actually change, but 
 	// it won't hurt to get them again here
 	pNotebook = (wxNotebook*)FindWindowById(ID_MENU_EDITOR_NOTEBOOK);
 	wxASSERT(pNotebook != NULL);
 	pComboBox = (wxComboBox*)FindWindowById(ID_COMBO_PROFILE_ITEMS);
 	wxASSERT(pComboBox != NULL);
+	pOKButton = (wxButton*)FindWindowById(wxID_OK);
+	wxASSERT(pOKButton != NULL);
 	
 	// Note: Each tab page's wxPanel has a wxCheckListBox instance with 
 	// ID_CHECKLISTBOX_MENU_ITEMS as its identifier, so there are duplicate 
@@ -497,11 +567,12 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	itemsAlwaysChecked.Clear(); 
 
 	wxASSERT(m_pApp->m_pAI_MenuStructure != NULL);
-	wxASSERT(m_pApp->m_pUserProfiles != NULL);
-	// Since we have internal strings to use in creation of m_pAI_MenuStructure and m_pUserProfiles
-	// in case the xml file is not found, the following test should never succeed, but just in case
-	// I've coded it anyway. Non-localized English message is ok.
-	if (m_pApp->m_pAI_MenuStructure == NULL || m_pApp->m_pUserProfiles == NULL)
+	wxASSERT(tempUserProfiles != NULL);
+	// Since we have internal strings to use in creation of tempUserProfiles in case the xml file 
+	// is not found, and we create m_pAI_MenuStructure from a temporary default menu bar in 
+	// SetupDefaultMenuStructure(), the following test should never succeed, but just in case
+	// I've coded it anyway. A non-localized English message here is ok.
+	if (m_pApp->m_pAI_MenuStructure == NULL || tempUserProfiles == NULL)
 	{
 		pCheckListBox->Append(_T("[Warning: No User Workflow Profile data is available for display -"));
 		pCheckListBox->Append(_T("you cannot use this dialog to change user workflow profiles until"));
@@ -525,10 +596,10 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	
 	// to load the listbox with menu items, we scan through our m_pAI_MenuStructure
 	// object, and examine the mainMenuLabel sections corresponding to the top level
-	// menus ("File" "Edit" "View" "Tools" etc). We look for a match between the 
-	// m_pUserProfile's <MENU>'s itemID field and the m_pAI_MenuStructure's 
-	// <SUB_MENU>'s subMenuID field. Where the ID's match we list the <MENU>'s string
-	// values in the listbox.
+	// menus ("File" "Edit" "View" "Tools" etc). We list items in which the
+	// ProfileItemIsSubMenuOfThisMainMenu() is TRUE, and for which the 
+	// adminCanChange attribute is set to _T("1"), and the usedVisibilityValues
+	// array for the given profile is also set to _T("1").
 	wxString mainMenuLabel = _T("");
 	wxString prevMainMenuLabel = _T("");
 	wxString tempStr;
@@ -557,17 +628,17 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 			//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 		}
 
-		// now scan through the App's m_pUserProfiles->profileItemList and load profile items
+		// now scan through tempUserProfiles->profileItemList and load profile items
 		// that match this main menu label
 		ProfileItemList::Node* piNode;
 		UserProfileItem* pUserProfileItem;
 		int ct_pi;
 		int numItemsLoaded = 0;
 		int lbIndx;
-		int nProfileItems = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+		int nProfileItems = tempUserProfiles->profileItemList.GetCount();
 		for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
 		{
-			piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct_pi);
+			piNode = tempUserProfiles->profileItemList.Item(ct_pi);
 			pUserProfileItem = piNode->GetData();
 			if (ProfileItemIsSubMenuOfThisMainMenu(pUserProfileItem,mmLabel))
 			{
@@ -603,10 +674,10 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	UserProfileItem* pUserProfileItem;
 	int lbIndx;
 	int numItemsLoaded = 0;
-	int nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	int nProfItemCount = tempUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < nProfItemCount; ct++)
 	{
-		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		piNode = tempUserProfiles->profileItemList.Item(ct);
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("preferencesTab"))
 		{
@@ -628,10 +699,10 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
 	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	numItemsLoaded = 0;
-	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	nProfItemCount = tempUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < nProfItemCount; ct++)
 	{
-		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		piNode = tempUserProfiles->profileItemList.Item(ct);
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("modeBar"))
 		{
@@ -645,7 +716,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 		}
 	}
 	
-	// Next, handle modebar items in the listbox
+	// Next, handle Toolbar items in the listbox
 	lbIndexOfInsertion = pCheckListBox->Append(_("Adapt It Toolbar Items:"));
 	pCheckListBox->Check(lbIndexOfInsertion);
 	itemsAlwaysChecked.Add(lbIndexOfInsertion);
@@ -653,10 +724,10 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
 	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	numItemsLoaded = 0;
-	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	nProfItemCount = tempUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < nProfItemCount; ct++)
 	{
-		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		piNode = tempUserProfiles->profileItemList.Item(ct);
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("toolBar"))
 		{
@@ -678,10 +749,10 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetBackgroundColour(*wxBLACK); //(m_pApp->sysColorBtnFace);
 	//pCheckListBox->GetItem(lbIndexOfInsertion)->SetTextColour(*wxWHITE);
 	numItemsLoaded = 0;
-	nProfItemCount = m_pApp->m_pUserProfiles->profileItemList.GetCount();
+	nProfItemCount = tempUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < nProfItemCount; ct++)
 	{
-		piNode = m_pApp->m_pUserProfiles->profileItemList.Item(ct);
+		piNode = tempUserProfiles->profileItemList.Item(ct);
 		pUserProfileItem = piNode->GetData();
 		if (pUserProfileItem->itemType == _T("wizardListItem"))
 		{
@@ -878,7 +949,7 @@ bool CAdminEditMenuProfile::SubMenuIsInCurrentAIMenuBar(wxString itemText)
 
 
 // Used in OnOK().
-bool CAdminEditMenuProfile::UserProfilesHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles)
+bool CAdminEditMenuProfile::UserProfileItemsHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles)
 {
 	bool bChanged = FALSE;
 	wxASSERT(tempUserProfiles != NULL);
@@ -912,12 +983,54 @@ bool CAdminEditMenuProfile::UserProfilesHaveChanged(const UserProfiles* tempUser
 				if (pTempItem->usedVisibilityValues.Item(ct) != pAppItem->usedVisibilityValues.Item(ct))
 				{
 					bChanged = TRUE;
-					return TRUE;
+					bProfileChanged[ct] = 1;
+					// don't break here because we want the bProfileChanged array to account
+					// for any and all profiles that may have been edited/changed 
 				}
 			}
 		}
 	}
 	return bChanged;
+}
+
+bool CAdminEditMenuProfile::ThisUserProfilesItemsDifferFromFactory(int profileSelectionIndex)
+{
+	bool bChanged = FALSE;
+	wxASSERT(tempUserProfiles != NULL);
+
+	// We only need to check for differences in usedVisibilityValues compared 
+	// with usedFactoryValues for the given profileSelectionIndex.
+	if (tempUserProfiles != NULL)
+	{
+		ProfileItemList::Node* posTemp;
+		int count;
+		int item_count = tempUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			posTemp = tempUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pTempItem;
+			pTempItem = posTemp->GetData();
+			if (pTempItem->usedFactoryValues.Item(profileSelectionIndex) != pTempItem->usedVisibilityValues.Item(profileSelectionIndex))
+			{
+				bChanged = TRUE;
+				break;
+			}
+		}
+	}
+	return bChanged;
+}
+
+
+bool CAdminEditMenuProfile::UserProfileSelectionHasChanged()
+{
+	if (tempWorkflowProfile != m_pApp->m_nWorkflowProfile)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 // Reset the itemVisibility values for the currently selected profile 
@@ -942,12 +1055,49 @@ void CAdminEditMenuProfile::OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event))
 		// assign the usedFactoryValues values back to the usedVisibilityValues
 		for (ct = 0; ct < tot; ct++)
 		{
-			pUserProfileItem->usedVisibilityValues[ct] = pUserProfileItem->usedFactoryValues[ct];
+			if (pUserProfileItem->usedVisibilityValues[ct] != pUserProfileItem->usedFactoryValues[ct])
+			{
+				pUserProfileItem->usedVisibilityValues[ct] = pUserProfileItem->usedFactoryValues[ct];
+				// also note which profile changed in this process
+				bProfileChanged[ct] = 1;
+			}
 		}
 	}
 	// reload the listbox
 	PopulateListBox(notebookTabIndex);
 }
+
+void CAdminEditMenuProfile::OnUpdateBtnResetToFactory(wxUpdateUIEvent& WXUNUSED(event))
+{
+	wxASSERT(pButtonResetToFactory != NULL);
+	wxASSERT(pRadioBtnUseAProfile != NULL);
+
+	if (pRadioBtnUseAProfile->GetValue() == TRUE)
+	{
+		if (ThisUserProfilesItemsDifferFromFactory(selectedComboProfileIndex))
+		{
+			if (pButtonResetToFactory != NULL && !pButtonResetToFactory->IsEnabled())
+			{
+				pButtonResetToFactory->Enable(TRUE);
+			}
+		}
+		else
+		{
+			if (pButtonResetToFactory != NULL && pButtonResetToFactory->IsEnabled())
+			{
+				pButtonResetToFactory->Enable(FALSE);
+			}
+		}
+	}
+	else
+	{
+		if (pButtonResetToFactory != NULL)
+		{
+			pButtonResetToFactory->Enable(FALSE);
+		}
+	}
+}
+
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
@@ -955,6 +1105,10 @@ void CAdminEditMenuProfile::OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event))
 // if the dialog is modeless.
 void CAdminEditMenuProfile::OnOK(wxCommandEvent& event) 
 {
+	// save the previous work profile name
+	wxString previousProfileName;
+	previousProfileName = GetNameOfProfileFromProfileValue(startingWorkflowProfile); // returns _("None) when tempWorkflowProfile == 0
+	
 	// Check the radio buttons for the final value to assign to the 
 	// m_pApp->m_nWorkflowProfile member. The tempWorkflowProfile should
 	// already be set, but getting the values from the UI gets what the
@@ -970,29 +1124,263 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		sel = pComboBox->GetSelection();
 		tempWorkflowProfile = sel + 1; // the saved profile is one greater than the combobox selection
 	}
+
+	// get the new work profile name
+	wxString newProfileName;
+	newProfileName = GetNameOfProfileFromProfileValue(tempWorkflowProfile); // returns _("None) when tempWorkflowProfile == 0
+
 	// update the App member for config file updating on next save
-	if (tempWorkflowProfile != m_pApp->m_nWorkflowProfile)
+	if (UserProfileSelectionHasChanged())
 	{
-		m_pApp->m_nWorkflowProfile = tempWorkflowProfile;
-		// make the doc dirty so it will prompt for saving (in caller)
-		bChangesMadeToProfiles = TRUE;
+		bChangeMadeToProfileSelection = TRUE;
 	}
-	// Copy any changes made in the user workflow profiles to the App's
-	// member.
-	if (UserProfilesHaveChanged(tempUserProfiles, m_pApp->m_pUserProfiles))
+	if (UserProfileItemsHaveChanged(tempUserProfiles, m_pApp->m_pUserProfiles))
 	{
-		bChangesMadeToProfiles = TRUE;
+		bChangesMadeToProfileItems = TRUE;
+		// Copy any changes made in the user workflow profiles to the App's
+		// member.
+		// Notify the user if changes were made in a profile other than the
+		// profile that is selected here on OnOK().
+		for (int i=0; i < (int)bProfileChanged.GetCount(); i++)
+		{
+			wxLogDebug(_T("bProfileChanged array element %d = %d"),i,bProfileChanged.Item(i));
+		}
+		wxString editedProfilesStr;
+		editedProfilesStr = GetNamesOfEditedProfiles();
+		wxString msg1 = _("You made changes in the following work profile(s):");
+		wxString msg2a = _("However, you did not make any changes in the currently selected user profile which is %s.");
+		wxString msg2b = _("However, you changed the user profile selection from %s to %s.");
+		wxString msg2c = _("However, the user profile selection remains %s.");
+		wxString msg3 = _("Are you sure you want to use the %s work profile?");
+		wxString msg4 = _("Click \"Yes\" to use the %s profile (and also save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
+		wxString msg; // the final composed string
+		int response = -1;
+		if (tempWorkflowProfile == 0)
+		{
+			msg = msg1; // _("You made changes in the following work profile(s):");
+			msg += _T("\n   %s\n");
+			// the "None" profile is selected
+			if (startingWorkflowProfile != tempWorkflowProfile)
+			{
+				// The user switch from some other profile to "None" in this session and
+				// he also made changes to some other profile items - make query!
+				msg += msg2b; // _("However, you changed the user profile selection from (%s) to (%s).");
+				msg += _T("\n");
+				msg += msg3; // _("Are you sure you want to use the %s work profile?");
+				msg += _T("\n");
+				msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
+				msg = msg.Format(msg,editedProfilesStr.c_str(),previousProfileName.c_str(),newProfileName.c_str(),newProfileName.c_str(),newProfileName.c_str());
+			}
+			else
+			{
+				// the selection remains "None", but user made changes to another profile's items
+				// - make query!
+				msg += msg2c; // _("However, the user profile selection remains %s.");
+				msg += _T("\n");
+				msg += msg3; // _("Are you sure you want to use the %s work profile?");
+				msg += _T("\n");
+				msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
+				msg = msg.Format(msg,editedProfilesStr.c_str(),previousProfileName.c_str(),previousProfileName.c_str(),previousProfileName.c_str()); // in this case oldProfileName == newProfileName
+			}
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+		}
+		else if (bProfileChanged.Item(tempWorkflowProfile - 1) != 1) // when tempWorkflowProfile is other than 0, the profile index is 1 less
+		{
+			// Something other than "None" is currently selected as profile and changes were 
+			// detected in one or more of those other profiles. The user may have intended to 
+			// select one of those other profiles before clicking OK, but we aren't sure, so 
+			// we should - make query!
+			msg = msg1; // _("You made changes in the following work profile(s):");
+			msg += _T("\n   %s\n");
+			msg += msg2a; // _("However, you did not make any changes in the currently selected user profile which is %s.");
+			msg += _T("\n");
+			msg += msg3; //_("Are you sure you want to use the %s work profile?");
+			msg += _T("\n");
+			msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
+			msg = msg.Format(msg,editedProfilesStr.c_str(),newProfileName.c_str(),newProfileName.c_str(),newProfileName.c_str());
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+		}
+		else
+		{
+			// This block is entered if at least some of the changes were made to the same work profile 
+			// that is currently selected - we don't warn the user in such cases. Any changes that were
+			// also made to other profiles will be silently saved.
+			;
+		}
+		if (response == wxNO || response == wxCANCEL)
+		{
+			// abort the OK handler and go back to the dialog
+			return;
+		}
+		// Note: Making the interface change is actually done in the caller in 
+		// ConfigureInterfaceForUserProfile(). 
+		// Changes to the external AI_UserProfiles.xml file are also done in the 
+		// caller - in the App's OnEditUserMenuSettingsProfiles().
+		
+		// if we get here the user responded "Yes"
 		CopyUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
-		CopyMenuStructure(tempMenuStructure, m_pApp->m_pAI_MenuStructure);
-		// Note: Making the interface change is actually done in the 
-		// caller in ConfigureInterfaceForUserProfile(). 
-		// Changes to the external AI_UserProfiles.xml file are also done
-		// in the caller - in the App's OnEditUserMenuSettingsProfiles().
 	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
+	
+void CAdminEditMenuProfile::OnUpdateButtonOK(wxUpdateUIEvent& WXUNUSED(event))
+{
+	wxASSERT(pOKButton != NULL);
+	if (tempWorkflowProfile != startingWorkflowProfile || UserProfileItemsHaveChanged(tempUserProfiles, m_pApp->m_pUserProfiles))
+	{
+		if (pOKButton != NULL && pOKButton->GetLabel() != _("Save Changes"))
+		{
+			pOKButton->SetLabel(_("Save Changes"));
+			pOKButton->Refresh();
+		}
+	}
+	else
+	{
+		if (pOKButton != NULL && pOKButton->GetLabel() != _("OK"))
+		{
+			pOKButton->SetLabel(_("OK"));
+			pOKButton->Refresh();
+		}
+	}
+}
 
+void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event)) 
+{
+	// If changes were made ask user to verify it is OK to loose those
+	// changes. If not abort Cancel.
+	bool bSelChanged = UserProfileSelectionHasChanged();
+	bool bItemsChanged = UserProfileItemsHaveChanged(tempUserProfiles, m_pApp->m_pUserProfiles);
+	if (bSelChanged || bItemsChanged)
+	{
+		wxString editedProfilesStr;
+		editedProfilesStr = GetNamesOfEditedProfiles();
+		wxString msg,msg2;
+		int response = -1;
+		msg2 = _("\nIf you Cancel now those changes will be lost. Cancel anyway?");
+		if (bSelChanged && bItemsChanged)
+		{
+			msg = _("You changed the user workflow profile selection and one or more items in the following profile(s):");
+			msg += _T("\n   %s");
+			msg += msg2;
+			msg = msg.Format(msg,editedProfilesStr.c_str());
+			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+		}
+		else if (bSelChanged)
+		{
+			msg = _("You changed the user workflow profile selection from %s to %s.");
+			msg += msg2;
+			msg = msg.Format(msg,GetNameOfProfileFromProfileValue(startingWorkflowProfile).c_str(),
+				GetNameOfProfileFromProfileValue(tempWorkflowProfile).c_str());
+			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+		}
+		else if (bItemsChanged)
+		{
+			msg = _("You changed one or more items in the following profile(s):");
+			msg += _T("\n   %s");
+			msg += msg2;
+			msg = msg.Format(msg,editedProfilesStr.c_str());
+			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+		}
+		if (response == wxNO)
+		{
+			return; // don't Cancel
+		}
+	}
+	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event); // need to call EndModal here
+}
+
+wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileValue(int tempWorkflowProfile)
+{
+	int profileIndex = 0;
+	if (tempWorkflowProfile == 0)
+		return _("None");
+	else
+		profileIndex = tempWorkflowProfile - 1;
+	// if we get here user has selected one of the user workflow profiles
+	int totNames;
+	totNames = tempUserProfiles->definedProfileNames.GetCount();
+	wxASSERT(profileIndex >= 0 && profileIndex < totNames);
+	wxString str = tempUserProfiles->definedProfileNames.Item(profileIndex);
+	return str;
+}
+
+wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileIndex(int profileIndex)
+{
+	int totNames;
+	totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
+	wxASSERT(profileIndex >= 0 && profileIndex < totNames);
+	wxString str = tempUserProfiles->definedProfileNames.Item(profileIndex);
+	return str;
+}
+
+int CAdminEditMenuProfile::GetIndexOfProfileFromProfileName(wxString profileName)
+{
+	int ct;
+	int totNames;
+	totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
+	for (ct = 0; ct < totNames; ct++)
+	{
+		if (tempUserProfiles->definedProfileNames.Item(ct) == profileName)
+		{
+			return ct;
+		}
+	}
+	return -1;
+}
+
+wxString CAdminEditMenuProfile::GetNamesOfEditedProfiles()
+{
+	wxString str;
+	int totNames = tempUserProfiles->definedProfileNames.GetCount();
+	int ct;
+	for (ct = 0; ct < totNames; ct++)
+	{
+		if (bProfileChanged[ct] == 1)
+		{
+			if (str.IsEmpty())
+				str = GetNameOfProfileFromProfileIndex(ct);
+			else
+				str = str + _T(", ") + GetNameOfProfileFromProfileIndex(ct);
+		}
+	}
+	return str;
+}
+
+void CAdminEditMenuProfile::CopyProfileVisibilityValues(int sourceProfileIndex, int destinationProfileIndex)
+{
+	// Scan through the tempUserProfiles and, for the currently selected 
+	// profile, change the UserProfileItem's userVisibility values back to
+	// their usedFactoryValues.
+	ProfileItemList::Node* piNode;
+	UserProfileItem* pUserProfileItem;
+	int ct_pi;
+	int nProfileItems = tempUserProfiles->profileItemList.GetCount();
+	for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
+	{
+		piNode = tempUserProfiles->profileItemList.Item(ct_pi);
+		pUserProfileItem = piNode->GetData();
+		int tot;
+		tot = pUserProfileItem->usedVisibilityValues.GetCount();
+		wxASSERT(tot == (int)pUserProfileItem->usedFactoryValues.GetCount());
+		// copy the sourceProfileIndex values to the destinationProfileIndex values
+		// TODO: Why doesn't the following assignement work???
+		wxString destName;
+		destName = pUserProfileItem->usedProfileNames[destinationProfileIndex];
+		wxString srcName;
+		srcName = pUserProfileItem->usedProfileNames[sourceProfileIndex];
+		
+		wxLogDebug(_T("Before Dest Visibility of %s = %s; Before Src Visibility of %s = %s"),destName.c_str(),
+			pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
+			srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+		
+		pUserProfileItem->usedVisibilityValues[destinationProfileIndex] = pUserProfileItem->usedVisibilityValues[sourceProfileIndex];
+		
+		wxLogDebug(_T("After Dest Visibility of %s = %s; After Src Visibility of %s = %s"),destName.c_str(),
+			pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
+			srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+	}
+}
 
 // other class methods
 

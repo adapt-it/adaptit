@@ -5809,23 +5809,51 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 /// currently set user workflow profile. This function reads the UserProfile data stored
 /// in the App's m_pUserProfiles member, and sets the visibility of interface menus and
 /// settings based on the information stored there. It also reads the App's 
-/// m_pAI_MenuStructure member and uses it to insure the menu structure is restored to
-/// a uniform state when changing the user profile or reverting to the "None" default
-/// profile.
+/// m_pAI_MenuStructure member and uses it to insure the menu structure and other interface
+/// items are restored to a uniform state when changing the user profile or reverting to 
+/// the "None" default profile.
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 {
-	// if currentProfile and newProfile are the same, no change is required
-	//if (currentProfile == newProfile)
-	//	return TRUE;
-	// use the menu and settings data in m_pUserProfiles to set visibility of interface
-	// elements
+	// We use the menu and settings data in m_pUserProfiles to set visibility of interface
+	// elements.
 	// 
 	// First, configure visibility of itemType == subMenu elements
+	ConfigureMenuBarForUserProfile();
+	// Note: The MakeMenuInitializationsAndPlatformAdjustments() function is called in OnInit()
+	// after this ConfigureInterfaceForUserProfile() completes.
+
+	// Next, configure visibility of itemType == modeBar elements
+	ConfigureModeBarForUserProfile();
+
+	// Note: Changes in the visibility of itemType == preferencesTab elements
+	// are not done here but within the CEditPreferencesDlg dialog class. The 
+	// tabs are hidden or shown based on the visibility flags in m_pUserProfiles
+	// at the time when the Preferences dialog is instantiated.
 	
+
+	// Next, configure visibility of itemType == wizardListItem element
+	
+
+	// Next, configure visibility of itemType == toolBar element
+	// Note: These are currently not used
+	
+	// Finally, configure visibility of itemType == dialogControl elements
+	// AI_UserProfiles.xml currently does not include any dialogControl 
+	// elements.
+	// Note: This function only sets boolean flags for the visibility of
+	// the particular dialog element. The dialog control is hidden or shown 
+	// based on these visibility flags at the time when the dialog is 
+	// instantiated.
+	return TRUE;
+}
+
+void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
+{
 	// whm 27Sep10 notes:
 	// I tried calling delete on pMenuBar and reconstructing it from scratch as a way to
-	// implement interface menu configuration. But deleting the menu bar leads to some 
+	// implement interface menu configuration. But deleting the menu bar (when it has
+	// already been "set" into the main frame via the SetMenuBar() function, leads to some 
 	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load 
 	// the file history from our m_pConfig. 
 	// Later, I attempted to try adding menu items one-by-one to individual top level
@@ -5833,9 +5861,11 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	// the resulting menu bar. That approach also proved problematic as I could not
 	// guarantee robustness of the result. Finally I decided on removing all menu items
 	// from a given top level menu, and constructing the menu anew using the 
-	// p_mAI_Menustructure's itemVisibility info as the guide. That approach gives a
+	// m_pAI_Menustructure's itemVisibility info as the guide. That approach gives a
 	// robust result that also allows for the insertion of menu separators at the right
-	// places to fit the profile.
+	// places to fit the profile. Note: the m_pAI_MenuStructure struct is populated from
+	// a temporary default menu bar in the SetupDefaultMenuStructure() function, not 
+	// from any internal string data, nor from any data in AI_UserProfiles.xml.
 
 	// I don't know how to get the defined int value for an idenfifier from a string 
 	// representation such as "ID_SAVE_AS", so I'll just create a temporary default 
@@ -5923,6 +5953,18 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 							continue;
 						}
 						//wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
+						if (mItem->GetLabel() == _("See Glosses"))
+						{
+							// TODO: Check the following assumption: We should unilaterally disable Glossing here.
+							// Reasoning: An administrator cannot really force the "See Glossing" Advanced
+							// menu item to remain ticked in a persistent manner by turning it ticking it "ON", 
+							// then hiding the See Glossing menu item in the current profile, because the 
+							// "See Glossing" setting is not persistent - it reverts back to being "OFF" each 
+							// time the app starts up. Hence, we can insure Glossing is disabled here along with
+							// the removal of the "See Glosses" Advanced menu item in this profile.
+							gbEnableGlossing = FALSE;
+							gbIsGlossing = FALSE; // this must be FALSE if gbEnableGlossing is FALSE
+						}
 						removedItem = pMainMenuItem_CurrentMenuBar->Remove(mItem);
 						delete removedItem;
 						removedItem = (wxMenuItem*)NULL;
@@ -6070,38 +6112,136 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	pMenuBar_Current->Thaw(); // to avoid flicker while changing the menu
 	// remove the temporary invisible menu bar to avoid memory leaks
 	delete pTempMenuBar;
+}
 
-	// Note: The MakeMenuInitializationsAndPlatformAdjustments() function is called in OnInit()
-	// after this ConfigureInterfaceForUserProfile() completes.
-
-	// If it proves necessary to refresh the menubar uncomment 3 lines below
-	//wxMenuBar* pMenuBar;
-	//pMenuBar = GetMainFrame()->GetMenuBar();
-	//pMenuBar->Refresh();
-
-	// Next, configure visibility of itemType == modeBar elements
+void CAdapt_ItApp::ConfigureModeBarForUserProfile()
+{
+	// Note: The ModeBar (also called "controlBar") is created on a wxPanel in the 
+	// CMainFrame constructor in MainFrm.cpp. Its pointer on the App is m_pControlBar.
+	// Unlike the menu bar, the m_pControlBar is not managed directly by its enclosing
+	// frame (CMainFrame). The m_pControlBar, once created is never optionally hidden 
+	// (using the View menu) as can be done for the Tool bar, Status bar and Compose 
+	// bar. Nevertheless, the height of m_pControlBar must be current in the 
+	// main frame's m_controlBarHeight member in order to correctly size the main frame.
+	// The m_controlBarHeight is kept current whether the application is using the normal
+	// control bar (ControlBarFunc) or the two-line control bar (ControlBar2LineFunc) 
+	// designed for better visibility on the OLPC XO machines. 
+	// We will get the control bar and recreate it for the current user profile's 
+	// "modeBar" item visibility specifications. As with the AI menu bar, it is easiest
+	// to simply remove the items from the existing mode bar, and add back those which
+	// should appear in the current profile.
+	// 
+	// We need to get the mode bar's sizer(s) in order to remove and add controls to 
+	// the correct part of the mode bar. We have assigned "Access variable names" for 
+	// the needed sizers in both mode bars. For the normal single-line mode bar the 
+	// access variable name is ID_CONTROLBAR_1_LINE_SIZER; for the two-line mode bar 
+	// the access variable names are ID_CONTROLBAR_2_LINE_SIZER_TOP and 
+	// ID_CONTROLBAR_2_LINE_SIZER_BOTTOM. These sizers are created as 
+	// wxBoxSizer( wxHORIZONTAL ) in wxDesigner.
+	// The ID_CONTROLBAR_1_LINE_SIZER sizer has its items in the following order:
+	// 1. Drafting [wxRadioButton]
+	// 2. Reviewing [wxRadioButton]
+	// 3. Automatic [wxCheckBox]
+	// 4. Save to Knowledge Base [wxCheckBox]
+	// 5. Force Choice For This Item [wxCheckBox]
+	// 6. <no adaptation> [wxButton]
+	// 7. Delay [wxStaticText] + wxTextCtrl
+	// 8. Spacer
+	// 9. Glossing [wxCheckBox]
+	// Note: There are also two wxStaticLine controls created one above the ID_CONTROLBAR_1_LINE_SIZER and
+	// one below it. We won't need to change those, just the contents of ID_CONTROLBAR_1_LINE_SIZER.
 	
+	CMainFrame* pMainFrame;
+	pMainFrame = GetMainFrame();
+	pMainFrame->Freeze(); // to avoid flicker
+	pMainFrame->m_pControlBar->Destroy(); // removes the existing mode bar which may not be showing all items in the current profile
 
-	// Note: Changes in the visibility of itemType == preferencesTab elements
-	// are not done here but within the CEditPreferencesDlg dialog class. The 
-	// tabs are hidden or shown based on the visibility flags in m_pUserProfiles
-	// at the time when the Preferences dialog is instantiated.
+	// Create the new control bar using a wxPanel (see similar code in CMainFrame's constructor)
+	// whm note: putting the control bar on a panel could have been done in wxDesigner
+	// TODO: Make sure this works whether or not the toolbar and/or composebar are currently visible
+	wxPanel *controlBar = new wxPanel(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, 0);
+	wxASSERT(controlBar != NULL);
 	
+	// The ControlBarFunc() and ControlBar2LineFunc() functions are located 
+	// in Adapt_It_wdr.cpp. 
+	// To populate the controlBar panel we've used wxBoxSizers. The outer
+	// most sizer is a vertical box sizer which has a horizontal line in
+	// the upper part of the box (for the line between the toolbar and 
+	// controlbar), and the row of controls laid out in wxHORIZONTAL 
+	// alignment within an embedded horizontal box sizer, below the line
+	// within the vertical box sizer
+	
+	if (m_bExecutingOnXO) //if (m_bUsingHighResDPIScreen)
+	{
+		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
+		// better fit in main frame
+		ControlBar2LineFunc( controlBar, TRUE, TRUE );
+	}
+	else
+	{
+		ControlBarFunc( controlBar, TRUE, TRUE );
+	}
+	// make m_pControlBar point to the new control bar
+	pMainFrame->m_pControlBar = controlBar;
+	
+	// Now we go through the children of the default mode bar and remove any that are
+	// not supposed to be visible in the current profile
+	wxSizer* pModeBar1LineSizer = ID_CONTROLBAR_1_LINE_SIZER;
+	wxASSERT(pModeBar1LineSizer != NULL);
+	wxSizerItemList modeBarItems = pModeBar1LineSizer->GetChildren();
+	wxSizerItemList::Node* node;
+	int nSizerItems = modeBarItems.GetCount();
+	int ct;
+	for (ct = 0; ct < nSizerItems; ct++)
+	{
+		node = modeBarItems.Item(ct);
+		wxSizerItem* pSizerItem = node->GetData();
+		wxString itemLabel;
+		if (!pSizerItem->IsSpacer())
+		{
+			// don't call GetWindow()->GetLabel() on a spacer; it will crash
+			itemLabel = pSizerItem->GetWindow()->GetLabel();
+		}
+		else
+			itemLabel = _T("");
+		if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+		{
+			if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+			{
+				// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
+				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
+				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
+				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+				// time the app starts up. Hence, we can insure Glossing is turned off here.
+				gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+			}
+			pSizerItem->DeleteWindows();
+		}
+	}
+	// If the "[] Glossing" check box is not removed in this profile after the above code
+	// executes (i.e., NULL), check here to see if it should be visible or hidden according to the 
+	// current value of gbIsGlossing.
+	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)pMainFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
+	// pCheckboxIsGlossing will be null if it is not visible in the current profile
+	if (pCheckboxIsGlossing != NULL)
+	{
+		if (gbIsGlossing)
+		{
+			pCheckboxIsGlossing->Show(TRUE);
+		}
+		else
+		{
+			pCheckboxIsGlossing->Show(FALSE);
+		}
+	}
 
-	// Next, configure visibility of itemType == wizardListItem element
-	
-
-	// Next, configure visibility of itemType == toolBar element
-	// Note: These are currently not used
-	
-	// Finally, configure visibility of itemType == dialogControl elements
-	// AI_UserProfiles.xml currently does not include any dialogControl 
-	// elements.
-	// Note: This function only sets boolean flags for the visibility of
-	// the particular dialog element. The dialog control is hidden or shown 
-	// based on these visibility flags at the time when the dialog is 
-	// instantiated.
-	return TRUE;
+	// lastly update the CMainFrame's m_controlBarHeight member with the newly populated
+	// mode bar
+	wxSize controlBarSize;
+	controlBarSize = pMainFrame->m_pControlBar->GetSize();
+	pMainFrame->m_controlBarHeight = controlBarSize.GetHeight();
+	pMainFrame->Thaw(); // to avoid flicker
+	pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -6343,16 +6483,8 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	// get temporary data structures from the internal unix-like strings
 	UserProfiles* pTempUserProfiles; // destroyed at end of this function
 	pTempUserProfiles = (UserProfiles*)NULL;
-	//AI_MenuStructure* pTempMenuStructure; // destroyed at end of this function
-	//pTempMenuStructure = (AI_MenuStructure*)NULL;
+	
 	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles
-	//SetupDefaultMenuStructure(pTempMenuStructure); // creates a new AI_MenuStructure on heap pointed to by pTempMenuStructure
-	// these temp... structs now represent what's in the internal unix-like strings
-	// whereas the values on the App (m_pUserProfiles and m_pAI_MenuStructure)
-	// represent what was read in from the external AI_UserProfiles.xml file.
-	//wxMenuBar* pMenuBar;
-	//pMenuBar = AIMenuBarFunc();
-	//wxASSERT(pMenuBar != NULL);
 	
 	// First make sure we have good pointers
 	if (pTempUserProfiles == NULL)
@@ -6365,21 +6497,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 		wxLogDebug(_T("The pointer to the App's m_pUserProfiles is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
 		return;
 	}
-	//if (pTempMenuStructure == NULL)
-	//{
-	//	wxLogDebug(_T("The pointer to the internal AI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
-	//	return;
-	//}
-	//if (m_pAI_MenuStructure == NULL)
-	//{
-	//	wxLogDebug(_T("The pointer to the App's m_pAI_MenuStructure is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
-	//	return;
-	//}
-	//if (pMenuBar == NULL)
-	//{
-	//	wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
-	//	return;
-	//}
+
 	// compare the profile version
 	// Note: When an administrator customizes a given profile we expect that the following things may
 	// be different between our internal values and the external xml file:
@@ -6591,165 +6709,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 		}
 	}
 
-	/*
-	// Now compare the menu structure data. This requires a 3-way comparison of  
-	// menu sets: (1) AI's default menu bar, (2) the App's internal unix-like
-	// default strings (in pTempMenuStructure), and (3) the menu structure (in 
-	// m_pAI_MenuStructure) defined in the second half of AI_UserProfiles.xml. 
-	// In order to access the default menu bar data we created a temporary menu bar 
-	// to avoid the possibility that this function might be called at some point 
-	// after the menus have been configured for the current profile (which could
-	// remove some menu items we want to check for consistencies).
-	// 
-	// Note: When an administrator customizes a given profile we do not expect changes 
-	// to be made to the menu structure described in AI_UserProfiles.xml, therefore any
-	// inconsistency discovered between the internal defaultMenuStructure[] strings and
-	// what was read from AI_UserProfiles.xml should be noted/reported.
-	int ct;
-	int tempct,appct,mbct;
-	tempct = pTempMenuStructure->aiMainMenuItems.GetCount(); // work from the pTempMenuStructure
-	appct = m_pAI_MenuStructure->aiMainMenuItems.GetCount(); // comparing with app's structure
-	mbct = pMenuBar->GetMenuCount(); // comparing with the default AI menu bar
-	wxString msg;
-	if (tempct != appct || tempct != mbct || appct != mbct)
-	{
-		msg = msg.Format(_T("The Main Menu Items have different counts: internal (%d), external (%d), AIMenuBar (%d) PLEASE FIX ME!\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),tempct,appct,mbct);
-		wxASSERT_MSG(tempct == appct && tempct == mbct && appct == mbct,msg);
-		return;
-	}
-	if (tempct == appct && tempct == mbct && appct == mbct)
-	{
-		for (ct = 0; ct < tempct; ct++)
-		{
-			AI_MainMenuItem* pTempMainMenuItem; // internal
-			AI_MainMenuItem* pAppMainMenuItem; // external
-			MainMenuItemList::Node* tempNode; // internal
-			MainMenuItemList::Node* appNode; // external
-			tempNode = pTempMenuStructure->aiMainMenuItems.Item(ct); // internal
-			appNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct); // external
-			pTempMainMenuItem = tempNode->GetData(); // internal
-			pAppMainMenuItem = appNode->GetData(); // external
-			wxMenu* pmbMainMenuItem = pMenuBar->GetMenu(ct); // AI menu bar
-			wxASSERT(pTempMainMenuItem != NULL);
-			wxASSERT(pAppMainMenuItem != NULL);
-			wxASSERT(pmbMainMenuItem != NULL);
-			if (pTempMainMenuItem != NULL && pAppMainMenuItem != NULL && pmbMainMenuItem != NULL) // be safe
-			{
-				// first handle the mainMenuID and mainMenuLabel fields
-				if (pTempMainMenuItem->mainMenuID != pAppMainMenuItem->mainMenuID)
-				{
-					wxString tempStr = pTempMainMenuItem->mainMenuID; // internal
-					wxString appStr = pAppMainMenuItem->mainMenuID; // external
-					wxLogDebug(_T("The internal and external mainMenuID strings differ in menu structure: (%s) and (%s)"),
-						tempStr.c_str(),appStr.c_str());
-				}
-				if (pTempMainMenuItem->mainMenuLabel != pAppMainMenuItem->mainMenuLabel)
-				{
-					wxString tempStr = pTempMainMenuItem->mainMenuLabel;
-					wxString appStr = pAppMainMenuItem->mainMenuLabel;
-					wxLogDebug(_T("The internal and external mainMenuLabel strings differ in menu structure: (%s) and (%s)"),
-						tempStr.c_str(),appStr.c_str());
-				}
-				// compare internal mainMenuLabel and external mainMenuLabel with AI menu bar main menu label 
-				wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
-				if (mbMainMenuText != pTempMainMenuItem->mainMenuLabel || mbMainMenuText != pAppMainMenuItem->mainMenuLabel)
-				{
-					wxString tempStr = pTempMainMenuItem->mainMenuLabel;
-					wxString appStr = pAppMainMenuItem->mainMenuLabel;
-					wxLogDebug(_T("The internal or external mainMenuLabel strings differ from AI menu bar: internal (%s) and external (%s) AI Menu bar (%s)"),
-						tempStr.c_str(),appStr.c_str(),mbMainMenuText.c_str());
-				}
-				// now handle the aiSubMenuItems lists
-				int i;
-				int itempct,iappct,imbct;
-				itempct = pTempMainMenuItem->aiSubMenuItems.GetCount(); // internal
-				iappct = pAppMainMenuItem->aiSubMenuItems.GetCount(); // external
-				imbct = pmbMainMenuItem->GetMenuItemCount(); // AI menu bar
-				wxString msg2;
-				if (itempct != iappct || itempct != imbct || iappct != imbct)
-				{
-					msg2 = msg2.Format(_T("The Sub Menu Items have different counts for %s menu: internal (%d), external (%d) AI menu bar (%d) PLEASE FIX ME!\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
-						pTempMainMenuItem->mainMenuLabel.c_str(),itempct,iappct,imbct);
-					wxASSERT_MSG(itempct == iappct && itempct == imbct && iappct == imbct,msg2);
-					return;
-				}
-				if (itempct == iappct && itempct == imbct && iappct == imbct)
-				{
-					for (i = 0; i < itempct; i++)
-					{
-						AI_SubMenuItem* pTempSubMenuItem; // internal
-						AI_SubMenuItem* pAppSubMenuItem; // external
-						wxMenuItemList pmbSubMenuItems = pmbMainMenuItem->GetMenuItems(); // AI menu bar
-						SubMenuItemList::Node* subTempNode; // internal
-						SubMenuItemList::Node* subAppNode; // external
-						wxMenuItemList::Node* mbListNode; // AI menu bar
-						subTempNode = pTempMainMenuItem->aiSubMenuItems.Item(i); // internal
-						subAppNode = pAppMainMenuItem->aiSubMenuItems.Item(i); // external
-						mbListNode = pmbSubMenuItems.Item(i); // AI menu bar
-						pTempSubMenuItem = subTempNode->GetData(); // internal
-						pAppSubMenuItem = subAppNode->GetData(); // external
-						wxMenuItem* pmbSubMenuItem = mbListNode->GetData(); // AI menu bar
-						wxASSERT(pTempSubMenuItem != NULL);
-						wxASSERT(pAppSubMenuItem != NULL);
-						wxASSERT(pmbSubMenuItem != NULL);
-						if (pTempSubMenuItem != NULL && pAppSubMenuItem != NULL && pmbSubMenuItem != NULL)
-						{
-							// now handle the submenu items
-							if (pTempSubMenuItem->subMenuHelp != pAppSubMenuItem->subMenuHelp 
-								|| pTempSubMenuItem->subMenuHelp != pmbSubMenuItem->GetHelp()
-								|| pAppSubMenuItem->subMenuHelp != pmbSubMenuItem->GetHelp())
-							{
-								wxString tempStr = pTempSubMenuItem->subMenuHelp;
-								wxString appStr = pAppSubMenuItem->subMenuHelp;
-								wxLogDebug(_T("The sub Menu Help strings differ in menu structure of %s: internal (%s), external (%s), AI menu bar (%s)"),
-									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str(),pmbSubMenuItem->GetHelp().c_str());
-							}
-							// for subMenuID strings I don't know of a way to get a string representation of AI's
-							// menu bar's GetId() int - so skip a three way test and only compare internal and external
-							if (pTempSubMenuItem->subMenuID != pAppSubMenuItem->subMenuID)
-							{
-								wxString tempStr = pTempSubMenuItem->subMenuID;
-								wxString appStr = pAppSubMenuItem->subMenuID;
-								wxLogDebug(_T("The internal and external subMenuID strings differ in menu structure of %s: (%s) and (%s)"),
-									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str());
-							}
-							wxString mbItemKindAsString = GetMenuItemKindAsString(pmbSubMenuItem->GetKind());
-							if (pTempSubMenuItem->subMenuKind != pAppSubMenuItem->subMenuKind
-								|| pTempSubMenuItem->subMenuKind != mbItemKindAsString
-								|| pAppSubMenuItem->subMenuKind != mbItemKindAsString)
-							{
-								wxString tempStr = pTempSubMenuItem->subMenuKind;
-								wxString appStr = pAppSubMenuItem->subMenuKind;
-								wxLogDebug(_T("The sub Menu Kind strings differ in menu structure of %s: internal (%s), external (%s), AI menu bar (%s)"),
-									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str(),mbItemKindAsString.c_str());
-							}
-							// The pmbSubMenuItem->GetItemLabel() string will have a literal tab, so for comparison
-							// with the internal and external strings change it temporarily from \t to \\t.
-							wxString mbLabel = pmbSubMenuItem->GetItemLabel();
-							mbLabel.Replace(_T("\t"),_T("\\t"));
-							if (pTempSubMenuItem->subMenuLabel != pAppSubMenuItem->subMenuLabel
-								|| pTempSubMenuItem->subMenuLabel != mbLabel
-								|| pAppSubMenuItem->subMenuLabel != mbLabel)
-							{
-								wxString tempStr = pTempSubMenuItem->subMenuLabel;
-								wxString appStr = pAppSubMenuItem->subMenuLabel;
-								wxLogDebug(_T("The sub Menu Label strings differ in menu structure of %s: internal (%s), external (%s), AI menu bar (%s)"),
-									pTempMainMenuItem->mainMenuID,tempStr.c_str(),appStr.c_str(),mbLabel.c_str());
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	*/
-	
 	DestroyUserProfiles(pTempUserProfiles);
-	//DestroyMenuStructure(pTempMenuStructure);
-	// Note: calling delete o pMenuBar is sufficient; because of its hierarchy of ownership
-	// all of its child objects get destroyed automatically.
-	//delete pMenuBar;
-	//pMenuBar = (wxMenuBar*)NULL;
 }
 
 
@@ -6865,6 +6825,10 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int 
 			// We return TRUE for menuSeparators since they are visible when present.
 			return TRUE;
 		}
+		if (pUserProfileItem->itemType != _T("subMenu")) // we are only checking for subMenu items
+		{
+			continue;
+		}
 		int itemIDint;
 		itemIDint = pUserProfileItem->itemIDint; //itemID;
 		int indexFromProfile = 0;
@@ -6879,6 +6843,52 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int 
 	}
 	return bItemIsVisible;
 }
+
+bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
+{
+	// we assume that a mode bar item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection all all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType != _T("modeBar"))
+		{
+			continue;
+		}
+		if (itemLabel == _T("")) // the item is a spacer in the sizer (just before the Glossing wxCheckBox)
+		{
+			// We skip the processing of the spacer
+			continue;
+		}
+		wxString itemLabelStr;
+		itemLabelStr = pUserProfileItem->itemText;
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemLabelStr == itemLabel && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
 
 /* This function is currently unused (and incomplete/untested) but might be helpful in the future
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -7543,7 +7553,7 @@ wxItemKind CAdapt_ItApp::GetMenuItemKindFromString(wxString itemKindStr)
 /// \remarks
 /// Called from: the App's GetTopLevelMenuName(). 
 /// This function determines the string value that represents the top level menu ID according
-/// to the m_pAI_MenuStructure that was populated from the external AI_UserProfiles.xml file.
+/// to the m_pAI_MenuStructure that was populated from the SetupDefaultMenuStructure() function.
 /// Note: The default string representations of the top level menus are all localizable as
 /// they exist in the AIMenuBarFunc() produced by wxDesigner. 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -29271,7 +29281,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
 	if (editMenuDlg.ShowModal() == wxID_OK)
 	{
-		if (editMenuDlg.bChangesMadeToProfiles)
+		if (editMenuDlg.bChangesMadeToProfileItems || editMenuDlg.bChangeMadeToProfileSelection)
 		{
 			// Make changes to the interface here based on the user's workflow
 			// profile selection/changes which are now stored in m_nWorkflowProfile.

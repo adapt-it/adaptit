@@ -78,7 +78,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 20
-#define VERSION_DATE_MONTH 9
+#define VERSION_DATE_MONTH 11
 #define VERSION_DATE_YEAR 2010
 
 #define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
@@ -2646,9 +2646,12 @@ public:
 
 	// whm added 21Sep10 the following for user profile support
 	bool	ConfigureInterfaceForUserProfile();
+	void	ConfigureMenuBarForUserProfile();
+	void	ConfigureModeBarForUserProfile();
 	void	MakeMenuInitializationsAndPlatformAdjustments();
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
+	bool	ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxString GetMenuItemKindAsString(wxItemKind itemKind);

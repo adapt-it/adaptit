@@ -254,6 +254,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *ID_CONTROLBAR_1_LINE_SIZER;
 wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -262,6 +263,7 @@ wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    ID_CONTROLBAR_1_LINE_SIZER = item2;
 
     wxRadioButton *item3 = new wxRadioButton( parent, IDC_RADIO_DRAFTING, _("Drafting "), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item3->SetValue( TRUE );
@@ -6474,6 +6476,8 @@ wxSizer *DoublePunctTabPageFunc( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+wxSizer *ID_CONTROLBAR_2_LINE_SIZER_TOP;
+wxSizer *ID_CONTROLBAR_2_LINE_SIZER_BOTTOM;
 wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6482,6 +6486,7 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    ID_CONTROLBAR_2_LINE_SIZER_TOP = item2;
 
     item2->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
 
@@ -6514,6 +6519,7 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item2, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+    ID_CONTROLBAR_2_LINE_SIZER_BOTTOM = item9;
 
     item9->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
 
@@ -7264,7 +7270,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
         _("Skilled"), 
         _("Custom")
     };
-    wxComboBox *item16 = new wxComboBox( parent, ID_COMBO_PROFILE_ITEMS, wxT(""), wxDefaultPosition, wxSize(200,-1), 4, strs16, wxCB_DROPDOWN|wxCB_READONLY );
+    wxComboBox *item16 = new wxComboBox( parent, ID_COMBO_PROFILE_ITEMS, wxT(""), wxDefaultPosition, wxSize(100,-1), 4, strs16, wxCB_DROPDOWN|wxCB_READONLY );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );

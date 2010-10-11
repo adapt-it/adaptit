@@ -1987,15 +1987,6 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpUserProfiles->profileItemList.Clear();
 		gpApp->m_pUserProfiles = gpUserProfiles; // make the App's pointer also point at it
 	}
-	//else if (tag == menuStructure)
-	//{
-	//	// create a new AI_MenuStructure struct to store the menu structure data
-	//	// contained in the AI_UserProfiles.xml file. The gpAI_MenuStructure mainly
-	//	// holds the aiMainMenuItems which is an instance of the MainMenuItemList.
-	//	gpAI_MenuStructure = new AI_MenuStructure;
-	//	gpAI_MenuStructure->aiMainMenuItems.Clear();
-	//	gpApp->m_pAI_MenuStructure = gpAI_MenuStructure; // make the App's pointer also point at it
-	//}
 	else if (tag == menu)
 	{
 		// create a new UserProfileItem struct to accept the values from the 
@@ -2016,39 +2007,6 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpUserProfileItem->adminCanChange = _T("");
 		gpUserProfileItem->usedProfileNames.Clear();
 	}
-	//else if (tag == sub_menu)
-	//{
-	//	// create a new AI_SubMenuItem struct to accpet the values from the
-	//	// <SUB_MENU> tag's attributes.
-	//	// whm Note: The object pointed at by gpSubMenuItem will not ordinarily
-	//	// need to be deleted by calling delete on the gpSubMenuItem "scratch" 
-	//	// pointer, because each such object created here will be handed off to 
-	//	// another data structure which will eventually be responsible for 
-	//	// object deletion of the objects it owns in OnExit(). It need only be
-	//	// deleted directly if it cannot be handed off to an appropriate data
-	//	// structure (see the AtPROFILEEndTag function below).
-	//	gpSubMenuItem = new AI_SubMenuItem;
-	//	gpSubMenuItem->subMenuID = _T("");
-	//	gpSubMenuItem->subMenuLabel = _T("");
-	//	gpSubMenuItem->subMenuHelp = _T("");
-	//	gpSubMenuItem->subMenuKind = _T("");
-	//}
-	//else if (tag == main_menu)
-	//{
-	//	// create a new AI_MainMenuItem struct to accpet the values from the
-	//	// <MAIN_MENU> tag's attributes.
-	//	// whm Note: The object pointed at by gpMainMenuItem will not ordinarily
-	//	// need to be deleted by calling delete on the gpMainMenuItem "scratch" 
-	//	// pointer, because each such object created here will be handed off to 
-	//	// another data structure which will eventually be responsible for 
-	//	// object deletion of the objects it owns in OnExit(). It need only be
-	//	// deleted directly if it cannot be handed off to an appropriate data
-	//	// structure (see the AtPROFILEEndTag function below).
-	//	gpMainMenuItem = new AI_MainMenuItem;
-	//	gpMainMenuItem->mainMenuID = _T("");
-	//	gpMainMenuItem->mainMenuLabel = _T("");
-	//	gpMainMenuItem->aiSubMenuItems.Clear();
-	//}
 
 	return TRUE;
 }
@@ -2118,8 +2076,9 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 #endif
 		}
 		// Note: AI_UserProfiles.xml does not contain itemIDint values, so they are
-		// not determined here, but are looked up after AI_UserProfiles.xml is read
-		// by querying the in-memory structures (mainly the menu bar) using GetId()
+		// not determined here, but are looked up dynamically after AI_UserProfiles.xml 
+		// is read by calling the GetAndAssignIdValuesToUserProfilesStruct(m_pUserProfiles)
+		// function.
 		else if (attrName == itemType)
 		{
 #ifdef _UNICODE
@@ -2183,65 +2142,7 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 #endif
 		}
 	}
-//	else if (tag == main_menu)
-//	{
-//		if (attrName == mainMenuID)
-//		{
-//			// add the main menu ID to the usedProfileNames array
-//#ifdef _UNICODE
-//			gpMainMenuItem->mainMenuID = pValueW;
-//#else
-//			gpMainMenuItem->mainMenuID = pValue;
-//#endif
-//		}
-//		if (attrName == mainMenuLabel)
-//		{
-//			// add the main menu label to the usedProfileNames array
-//#ifdef _UNICODE
-//			gpMainMenuItem->mainMenuLabel = pValueW;
-//#else
-//			gpMainMenuItem->mainMenuLabel = pValue;
-//#endif
-//		}
-//	}
-//	else if (tag == sub_menu)
-//	{
-//		if (attrName == subMenuID)
-//		{
-//#ifdef _UNICODE
-//			gpSubMenuItem->subMenuID = pValueW;
-//#else
-//			gpSubMenuItem->subMenuID = pValue;
-//#endif
-//		}
-//		else if (attrName == subMenuLabel)
-//		{
-//			// add the main menu label to the usedProfileNames array
-//#ifdef _UNICODE
-//			gpSubMenuItem->subMenuLabel = pValueW;
-//#else
-//			gpSubMenuItem->subMenuLabel = pValue;
-//#endif
-//		}
-//		else if (attrName == subMenuHelp)
-//		{
-//			// add the main menu label to the usedProfileNames array
-//#ifdef _UNICODE
-//			gpSubMenuItem->subMenuHelp = pValueW;
-//#else
-//			gpSubMenuItem->subMenuHelp = pValue;
-//#endif
-//		}
-//		else if (attrName == subMenuKind)
-//		{
-//			// add the main menu label to the usedProfileNames array
-//#ifdef _UNICODE
-//			gpSubMenuItem->subMenuKind = pValueW;
-//#else
-//			gpSubMenuItem->subMenuKind = pValue;
-//#endif
-//		}
-//	}
+
 	return TRUE;
 }
 
@@ -2272,20 +2173,6 @@ bool AtPROFILEEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		}
 		gpUserProfileItem = (UserProfileItem*)NULL; // ready for the next use
 	}
-	//else if (tag == sub_menu)
-	//{
-	//	wxASSERT(gpSubMenuItem != NULL);
-	//	wxASSERT(gpMainMenuItem != NULL);
-	//	gpMainMenuItem->aiSubMenuItems.Append(gpSubMenuItem);
-	//	gpSubMenuItem = (AI_SubMenuItem*)NULL; // ready for the next use
-	//}
-	//else if (tag == main_menu)
-	//{
-	//	wxASSERT(gpAI_MenuStructure != NULL);
-	//	wxASSERT(gpMainMenuItem != NULL);
-	//	gpAI_MenuStructure->aiMainMenuItems.Append(gpMainMenuItem);
-	//	gpMainMenuItem = (AI_MainMenuItem*)NULL; // ready for the next use
-	//}
 	else if (tag == profile)
 	{
 		;
