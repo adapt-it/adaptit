@@ -811,46 +811,93 @@ void CAdminEditMenuProfile::CopyMenuStructure(const AI_MenuStructure* pFromMenuS
 	}
 }
 
-// Copies the UserProfiles of a pFromUserProfiles instance to a pToUserProfiles instance, copying
+// "Deep" copies the UserProfiles of a pFromUserProfiles instance to a pToUserProfiles instance, copying
 // all of the internal attributes and lists.
 // Note: Assumes that pFromUserProfiles and pToUserProfiles were created on the heap before this
-// function was called.
+// function was called and that all member counts are identical
 void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles)
 {
 	wxASSERT(pFromUserProfiles != NULL);
 	wxASSERT(pToUserProfiles != NULL);
-	
-	// insure that the pToUserProfiles fields are empty and arrays are empty
-	pToUserProfiles->profileVersion.Empty();
-	pToUserProfiles->definedProfileNames.Clear();
-	pToUserProfiles->descriptionProfileTexts.Clear();
-	pToUserProfiles->profileItemList.Clear();
 
 	if (pFromUserProfiles != NULL)
 	{
 		pToUserProfiles->profileVersion = pFromUserProfiles->profileVersion;
 		
 		int count;
-		int totPNames = pFromUserProfiles->definedProfileNames.GetCount();
-		for (count = 0; count < totPNames; count++)
+		int totPNamesFrom = (int)pFromUserProfiles->definedProfileNames.GetCount();
+		int totPNamesTo = (int)pToUserProfiles->definedProfileNames.GetCount();
+		wxASSERT(totPNamesTo <= totPNamesFrom);
+		if (totPNamesTo < totPNamesFrom)
 		{
-			pToUserProfiles->definedProfileNames.Add(pFromUserProfiles->definedProfileNames.Item(count));
+			for (count = 0; count < totPNamesFrom - totPNamesTo; count++)
+			{
+				// insure the pToUserProfiles->definedProfileNames has the same number of array elements
+				pToUserProfiles->definedProfileNames.Add(_T("")); // the added string elements will get copied below
+			}
 		}
-		totPNames = pFromUserProfiles->descriptionProfileTexts.GetCount();
-		for (count = 0; count < totPNames; count++)
+		totPNamesFrom = (int)pFromUserProfiles->definedProfileNames.GetCount();
+		totPNamesTo = (int)pToUserProfiles->definedProfileNames.GetCount();
+		wxASSERT(totPNamesFrom == totPNamesTo);
+		// now copy the definedProfileNames elements
+		for (count = 0; count < totPNamesFrom; count++)
 		{
-			pToUserProfiles->descriptionProfileTexts.Add(pFromUserProfiles->descriptionProfileTexts.Item(count));
+			pToUserProfiles->definedProfileNames[count] = pFromUserProfiles->definedProfileNames[count];
 		}
-		
-		ProfileItemList::Node* pos;
-		int item_count = pFromUserProfiles->profileItemList.GetCount();
-		for(count = 0; count < item_count; count++)
+		totPNamesFrom = (int)pFromUserProfiles->descriptionProfileTexts.GetCount();
+		totPNamesTo = (int)pToUserProfiles->descriptionProfileTexts.GetCount();
+		wxASSERT(totPNamesTo <= totPNamesFrom);
+		if (totPNamesTo < totPNamesFrom)
 		{
-			pos = pFromUserProfiles->profileItemList.Item(count);
+			for (count = 0; count < totPNamesFrom - totPNamesTo; count ++)
+			{
+				// insure the pToUserProfiles->descriptionProfileTexts has the same number of array elements
+				pToUserProfiles->descriptionProfileTexts.Add(_T("")); // the added string elements will get copied below
+			}
+		}
+		totPNamesFrom = (int)pFromUserProfiles->descriptionProfileTexts.GetCount();
+		totPNamesTo = (int)pToUserProfiles->descriptionProfileTexts.GetCount();
+		wxASSERT(totPNamesFrom == totPNamesTo);
+		for (count = 0; count < totPNamesFrom; count++)
+		{
+			pToUserProfiles->descriptionProfileTexts[count] = pFromUserProfiles->descriptionProfileTexts[count];
+		}
+		ProfileItemList::Node* Frompos;
+		ProfileItemList::Node* Topos;
+		int item_countFrom = pFromUserProfiles->profileItemList.GetCount();
+		int item_countTo = pToUserProfiles->profileItemList.GetCount();
+		wxASSERT(item_countTo <= item_countFrom);
+		if (item_countTo < item_countFrom)
+		{
+			for (count = 0; count < item_countFrom - item_countTo; count++)
+			{
+				// add new objects to profileItemList
+				UserProfileItem* pToItem;
+				pToItem = new UserProfileItem;
+				pToItem->adminCanChange = _T("");
+				pToItem->itemDescr = _T("");
+				pToItem->itemID = _T("");
+				pToItem->itemIDint = -1;
+				pToItem->itemText = _T("");
+				pToItem->itemType = _T("");
+				pToItem->usedFactoryValues.Clear();
+				pToItem->usedProfileNames.Clear();
+				pToItem->usedVisibilityValues.Clear();
+				pToUserProfiles->profileItemList.Append(pToItem);
+			}
+		}
+		item_countFrom = (int)pFromUserProfiles->profileItemList.GetCount();
+		item_countTo = (int)pToUserProfiles->profileItemList.GetCount();
+		wxASSERT(item_countFrom == item_countTo);
+		for(count = 0; count < item_countFrom; count++)
+		{
+			Frompos = pFromUserProfiles->profileItemList.Item(count);
+			Topos = pToUserProfiles->profileItemList.Item(count);
 			UserProfileItem* pFromItem;
 			UserProfileItem* pToItem;
-			pFromItem = pos->GetData();
-			pToItem = new UserProfileItem;
+			pFromItem = Frompos->GetData();
+			wxASSERT(pFromItem != NULL);
+			pToItem = Topos->GetData();
 			wxASSERT(pToItem != NULL);
 			pToItem->adminCanChange = pFromItem->adminCanChange;
 			pToItem->itemDescr = pFromItem->itemDescr;
@@ -859,23 +906,49 @@ void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfil
 			pToItem->itemText = pFromItem->itemText;
 			pToItem->itemType = pFromItem->itemType;
 			int ct;
-			int totCt;
-			totCt = pFromItem->usedFactoryValues.GetCount();
-			for (ct = 0; ct < totCt; ct++)
+			int totCtFrom,totCtTo;
+			totCtFrom = (int)pFromItem->usedFactoryValues.GetCount();
+			totCtTo = (int)pToItem->usedFactoryValues.GetCount();
+			wxASSERT(totCtTo <= totCtFrom);
+			for (ct = 0; ct < totCtFrom - totCtTo; ct++)
 			{
-				pToItem->usedFactoryValues.Add(pFromItem->usedFactoryValues.Item(ct));
+				pToItem->usedFactoryValues.Add(_T(""));
 			}
-			totCt = pFromItem->usedProfileNames.GetCount();
-			for (ct = 0; ct < totCt; ct++)
+			totCtFrom = (int)pFromItem->usedFactoryValues.GetCount();
+			totCtTo = (int)pToItem->usedFactoryValues.GetCount();
+			wxASSERT(totCtFrom == totCtTo);
+			for (ct = 0; ct < totCtFrom; ct++)
 			{
-				pToItem->usedProfileNames.Add(pFromItem->usedProfileNames.Item(ct));
+				pToItem->usedFactoryValues[ct] = pFromItem->usedFactoryValues[ct];
 			}
-			totCt = pFromItem->usedVisibilityValues.GetCount();
-			for (ct = 0; ct < totCt; ct++)
+			totCtFrom = (int)pFromItem->usedProfileNames.GetCount();
+			totCtTo = (int)pToItem->usedProfileNames.GetCount();
+			wxASSERT(totCtTo <= totCtFrom);
+			for (ct = 0; ct < totCtFrom - totCtTo; ct++)
 			{
-				pToItem->usedVisibilityValues.Add(pFromItem->usedVisibilityValues.Item(ct));
+				pToItem->usedProfileNames.Add(_T(""));
 			}
-			pToUserProfiles->profileItemList.Append(pToItem);
+			totCtFrom = (int)pFromItem->usedProfileNames.GetCount();
+			totCtTo = (int)pToItem->usedProfileNames.GetCount();
+			wxASSERT(totCtFrom == totCtTo);
+			for (ct = 0; ct < totCtFrom; ct++)
+			{
+				pToItem->usedProfileNames[ct] = pFromItem->usedProfileNames[ct];
+			}
+			totCtFrom = (int)pFromItem->usedVisibilityValues.GetCount();
+			totCtTo = (int)pToItem->usedVisibilityValues.GetCount();
+			wxASSERT(totCtTo <= totCtFrom);
+			for (ct = 0; ct < totCtFrom - totCtTo; ct++)
+			{
+				pToItem->usedVisibilityValues.Add(_T(""));
+			}
+			totCtFrom = (int)pFromItem->usedVisibilityValues.GetCount();
+			totCtTo = (int)pToItem->usedVisibilityValues.GetCount();
+			wxASSERT(totCtFrom == totCtTo);
+			for (ct = 0; ct < totCtFrom; ct++)
+			{
+				pToItem->usedVisibilityValues[ct] = pFromItem->usedVisibilityValues[ct];
+			}
 		}
 	}
 }
