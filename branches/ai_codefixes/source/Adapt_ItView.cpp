@@ -1222,12 +1222,15 @@ void CAdapt_ItView::OnInitialUpdate()
 
 	// update the copy shown on mode bar (it's read only there)
 	wxTextCtrl* pDelayBox = (wxTextCtrl*)pControlBar->FindWindowById(IDC_EDIT_DELAY);
-	wxASSERT(pDelayBox != NULL);
-	wxString s;
-	s.Empty();
-	s << pApp->m_nCurDelay; //s = buf;
-	pDelayBox->ChangeValue(s);
-	pControlBar->Refresh();
+	// whm 12Oct10 modified below for user workflow compatibility
+	if (pDelayBox != NULL)
+	{
+		wxString s;
+		s.Empty();
+		s << pApp->m_nCurDelay; //s = buf;
+		pDelayBox->ChangeValue(s);
+		pControlBar->Refresh();
+	}
 
 	// add the extra menu if it is the Unicode version
 #ifdef _RTL_FLAGS
@@ -9488,6 +9491,9 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+	// whm 12Oct10 modified for user workflow profile compatibility
+	if (pToolBar->GetToolPos(ID_BUTTON_RESTORE) == wxNOT_FOUND)
+		return;
 	if (!pToolBar->GetToolEnabled(ID_BUTTON_RESTORE))
 	{
 		::wxBell();
@@ -10781,14 +10787,25 @@ void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& WXUNUSED(event))
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
 	wxRadioButton* pReviewingBtn = 
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
-	pDraftingBtn->SetValue(TRUE);
-	pReviewingBtn->SetValue(FALSE);
+	// whm modified 12Oct10 for user profiles compatibility
+	if (pDraftingBtn != NULL)
+	{
+		pDraftingBtn->SetValue(TRUE);
+	}
+	if (pReviewingBtn != NULL)
+	{
+		pReviewingBtn->SetValue(FALSE);
+	}
 	pApp->m_bDrafting = TRUE;
 
 	// ensure the Automatic checkbox is enabled
 	wxCheckBox* pAuto = (wxCheckBox*)
 		pControlBar->FindWindowById(IDC_CHECK_SINGLE_STEP);
-	pAuto->Enable(TRUE);
+	// whm modified 12Oct10 for user profiles compatibility
+	if (pAuto != NULL)
+	{
+		pAuto->Enable(TRUE);
+	}
 
 	// restore focus to the targetBox, if it is visible
 	if (pApp->m_pTargetBox != NULL)
@@ -10810,14 +10827,25 @@ void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& WXUNUSED(event))
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
 	wxRadioButton* pReviewingBtn = 
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
-	pDraftingBtn->SetValue(FALSE);
-	pReviewingBtn->SetValue(TRUE);
+	// whm 12Oct10 modified for user profiles compatibility
+	if (pDraftingBtn != NULL)
+	{
+		pDraftingBtn->SetValue(FALSE);
+	}
+	if (pReviewingBtn)
+	{
+		pReviewingBtn->SetValue(TRUE);
+	}
 	pApp->m_bDrafting = FALSE;
 
 	// ensure the Automatic checkbox is disabled
 	wxCheckBox* pAuto = (wxCheckBox*)
 		pControlBar->FindWindowById(IDC_CHECK_SINGLE_STEP);
-	pAuto->Enable(FALSE);
+	// whm 12Oct10 modified for user profiles compatibility
+	if (pAuto != NULL)
+	{
+		pAuto->Enable(FALSE);
+	}
 
 	// restore focus to the targetBox, if it is visible
 	if (pApp->m_pTargetBox != NULL)
@@ -17273,10 +17301,15 @@ void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXU
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_IGNORING_BDRY); // toolPos should be 18
+	toolPos = pToolBar->GetToolPos(ID_BUTTON_IGNORING_BDRY);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_BUTTON_RESPECTING_BDRY);
+	// whm 12Oct10 note: these buttons for ignoring/respecting boundaries will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (pApp->m_bRespectBoundaries)
 	{
         // The app is currently respecting boundaries. The user wants to switch from
@@ -17352,10 +17385,15 @@ void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXU
 
 	// user or the app wants to restore respect for boundarires, fix accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_IGNORING_BDRY); // toolPos should be 18
+	toolPos = pToolBar->GetToolPos(ID_BUTTON_IGNORING_BDRY);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_BUTTON_RESPECTING_BDRY);
+	// whm 12Oct10 note: these buttons for ignoring/respecting boundaries will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (!pApp->m_bRespectBoundaries)
 	{
 		// The app is currently ingoring boundaries. The user wants to switch from ignoring
@@ -17476,10 +17514,15 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_HIDING_PUNCT); // toolPos should be 19
+	toolPos = pToolBar->GetToolPos(ID_BUTTON_HIDING_PUNCT);
 	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_SHOWING_PUNCT); // toolPos should be 19
+		toolPos = pToolBar->GetToolPos(ID_BUTTON_SHOWING_PUNCT);
+	// whm 12Oct10 note: these buttons for hiding/showing punctuation will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (!pApp->m_bHidePunctuation)
 	{
         // The app is currently showing (not hiding) punctuation. The user wants to switch
@@ -17637,10 +17680,15 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event))
     // pressed, rather than the present state as indicated by the value of
     // m_bCopySourcePunctuation as set at the end of this handler.
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_NO_PUNCT_COPY); // toolPos should be 40
+	toolPos = pToolBar->GetToolPos(ID_BUTTON_NO_PUNCT_COPY);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_BUTTON_ENABLE_PUNCT_COPY);
+	// whm 12Oct10 note: these buttons for no/yes punctuation copy will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (!pApp->m_bCopySourcePunctuation)
 	{
 		// In WX we delete the unwanted button and insert the wanted button to create 
@@ -17747,10 +17795,15 @@ void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_NO_PUNCT_COPY); // toolPos should be 40
+	toolPos = pToolBar->GetToolPos(ID_BUTTON_NO_PUNCT_COPY);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_BUTTON_ENABLE_PUNCT_COPY);
+	// whm 12Oct10 note: these buttons for no/yes punctuation copy will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (pApp->m_bCopySourcePunctuation)
 	{
 		// In WX we delete the unwanted button and insert the wanted button to 
@@ -17862,10 +17915,15 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_HIDING_PUNCT); // toolPos should be 19
+	toolPos = pToolBar->GetToolPos(ID_BUTTON_HIDING_PUNCT);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_BUTTON_SHOWING_PUNCT);
+	// whm 12Oct10 note: these buttons for hiding/showing punctuation will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (pApp->m_bHidePunctuation)
 	{
         // The app is currently hiding punctuation. The user wants to switch from hiding
@@ -18015,10 +18073,15 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_SHOWING_TGT); // toolPos should be 38
+	toolPos = pToolBar->GetToolPos(ID_SHOWING_TGT);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_SHOWING_ALL);
+	// whm 12Oct10 note: these buttons for showing only target/showing all will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (!gbShowTargetOnly)
 	{
 		// The app is currently showing all. The user wants to switch from showing all
@@ -18152,10 +18215,15 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_SHOWING_TGT); // toolPos should be 38
+	toolPos = pToolBar->GetToolPos(ID_SHOWING_TGT);
 	if (toolPos == wxNOT_FOUND)
 		toolPos = pToolBar->GetToolPos(ID_SHOWING_ALL);
+	// whm 12Oct10 note: these buttons for showing only target/showing all will probably never
+	// be candidates for hiding in a user workflow profile, but in case they do, the
+	// wxASSERT and the following test will give notice and prevent a crash.
 	wxASSERT(toolPos != wxNOT_FOUND);
+	if (toolPos == wxNOT_FOUND)
+		return; // whm 12Oct10 added
 	if (gbShowTargetOnly)
 	{
         // The app is currently showing only target lines. The user wants to switch from
@@ -25529,12 +25597,18 @@ void CAdapt_ItView::ToggleGlossingMode()
 						pFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
 		if (gbIsGlossing)
 		{
-			pCheckboxIsGlossing->SetValue(FALSE);
+			if (pCheckboxIsGlossing != NULL)
+			{
+				pCheckboxIsGlossing->SetValue(FALSE);
+			}
 			gbIsGlossing = FALSE;
 		}
 		else
 		{
-			pCheckboxIsGlossing->SetValue(TRUE);
+			if (pCheckboxIsGlossing != NULL)
+			{
+				pCheckboxIsGlossing->SetValue(TRUE);
+			}
 			gbIsGlossing = TRUE;
 		}
 	}
@@ -25681,9 +25755,19 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pCheckboxIsGlossing != NULL);
 
 	if (gbIsGlossing)
-		pCheckboxIsGlossing->SetValue(TRUE);
+	{
+		if (pCheckboxIsGlossing != NULL)
+		{
+			pCheckboxIsGlossing->SetValue(TRUE);
+		}
+	}
 	else
-		pCheckboxIsGlossing->SetValue(FALSE);
+	{
+		if (pCheckboxIsGlossing != NULL)
+		{
+			pCheckboxIsGlossing->SetValue(FALSE);
+		}
+	}
 
     // redraw the layout etc. (Must do it after the flag is toggled, otherwise
     // RecalcLayout( ) will think that the untoggled setting is still in effect
@@ -26226,11 +26310,14 @@ void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 		wxPanel* pControlBar = pMainFrame->m_pControlBar;
 		wxASSERT(pControlBar); 
 		wxTextCtrl* pDelayBox = (wxTextCtrl*)pControlBar->FindWindowById(IDC_EDIT_DELAY);
-		wxASSERT(pDelayBox);
-		wxString s;
-		s.Empty();
-		s << dlg.m_nDelay; //s = buf;
-		pDelayBox->SetValue(s);
+		// whm 12Oct10 modified to be safe for user profile hiding
+		if (pDelayBox != NULL)
+		{
+			wxString s;
+			s.Empty();
+			s << dlg.m_nDelay; //s = buf;
+			pDelayBox->SetValue(s);
+		}
 		pControlBar->Refresh();
 	}
 }

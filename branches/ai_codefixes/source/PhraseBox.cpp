@@ -4041,6 +4041,9 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				wxToolBarBase* pToolBar = pFrame->GetToolBar();
 				wxASSERT(pToolBar != NULL);
+				// whm 12Oct10 modified for user workflow profile compatibility
+				if (pToolBar->GetToolPos(ID_BUTTON_RETRANSLATION) == wxNOT_FOUND)
+					return;
 				pToolBar->EnableTool(ID_BUTTON_RETRANSLATION,TRUE);
 				pApp->GetRetranslation()->DoRetranslationByUpArrow();
 			}

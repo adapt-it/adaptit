@@ -1538,6 +1538,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+	// whm 12Oct10 modified for user workflow profile compatibility
+	if (pToolBar->GetToolPos(ID_BUTTON_RETRANSLATION) == wxNOT_FOUND)
+		return;
 	if (!pToolBar->GetToolEnabled(ID_BUTTON_RETRANSLATION))
 	{
 		::wxBell();
@@ -2120,6 +2123,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+	// whm 12Oct10 modified for user workflow profile compatibility
+	if (pToolBar->GetToolPos(ID_BUTTON_EDIT_RETRANSLATION) == wxNOT_FOUND)
+		return;
 	if (!pToolBar->GetToolEnabled(ID_BUTTON_EDIT_RETRANSLATION))
 	{
 		::wxBell();

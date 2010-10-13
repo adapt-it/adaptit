@@ -1293,7 +1293,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	m_pMenuBar = (wxMenuBar*) NULL;			// handle/pointer to the menuBar
 	m_pStatusBar = (wxStatusBar*) NULL;		// handle/pointer to the statusBar
-	m_pToolBar = (wxToolBar*) NULL;			// handle/pointer to the toolBar
+	m_pToolBar = (AIToolBar*) NULL;			// handle/pointer to the toolBar
 	m_pControlBar = (wxPanel*) NULL;		// handle/pointer to the controlBar
 	m_pComposeBar = (wxPanel*) NULL;		// handle/pointer to the composeBar
 	m_pRemovalsBar = (wxPanel*) NULL;		// handle/pointer to the removalsBar
@@ -1333,7 +1333,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// We can also manage the toolbar in our mainsizer. along with the controlbar, 
 	// composebar and canvas.
     long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
-	wxToolBar* toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
+	AIToolBar* toolBar = new AIToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
 	wxASSERT(toolBar != NULL);
 	m_pToolBar = toolBar;
 
@@ -1360,21 +1360,14 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
 	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
 
-	if (gpApp->m_bExecutingOnXO) //if (screenDPI > 150.0)
+	if (gpApp->m_bExecutingOnXO)
 	{
-		//m_bUsingHighResDPIScreen = TRUE;
 		toolBar->SetToolBitmapSize(wxSize(32,30));
 		AIToolBar32x30Func( toolBar );
-		//wxString msg;
-		//msg = msg.Format(_T("High Resolution Screen detected at %4.1f DPI - using alternate Toolbar and ControlBar."),screenDPI);
-		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 	}
 	else
 	{
 		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
-		//wxString msg;
-		//msg = msg.Format(_T("Screen Resolution detected at %4.1f DPI."),screenDPI);
-		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 	}
 	SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
@@ -1397,7 +1390,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 												// presence when calculating the client size
 												// with pMainFrame->GetClientSize()
 
-	// MFC version also has 3 lines here to EnableDocking() of toolBar. Do won't use docking in 
+	// MFC version also has 3 lines here to EnableDocking() of toolBar. We won't use docking in 
 	// the wx version, although the wxGTK version enables docking by default (we turn it off).
 
 	// Create the control bar using a wxPanel
@@ -2397,21 +2390,26 @@ wxSize CMainFrame::GetCanvasClientSize()
 /////////////////////////////////////////////////////////////////////////////
 
 // BEW 26Mar10, no changes needed for support of doc version 5
+// whm 12Oct10 modified for user profiles support
 void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 {
-    wxToolBar *tbar = GetToolBar();
-
-    if ( !tbar )
-    {
-        RecreateToolBar();
+	if (m_pToolBar == NULL)
+	{
+        RecreateToolBar(); // whm 12Oct10 modified RecreateToolBar() for user profile compatibility
+		wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
+		if (pMenuItem == NULL)
+			return;
 		GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
 		SendSizeEvent();
-    }
-    else
-    {
-        delete tbar;
-		tbar = (wxToolBar*)NULL;
-        SetToolBar(NULL);
+	}
+	else
+	{
+        delete m_pToolBar;
+		m_pToolBar = (AIToolBar*)NULL;
+		SetToolBar(NULL);
+		wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
+		if (pMenuItem == NULL)
+			return;
 		GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
     }
 }
@@ -2480,14 +2478,13 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // wx version notes about frame size changes:
     // CMainFrame is Adapt It's primary application frame or window. The CMainFrame is the
     // parent frame for everything that happens in Adapt It, including all first level
-    // dialogs. CMainFrame's toolbar and statusbar are created by wxFrame's CreateToolBar()
-    // and CreateStatusBar() methods, and so CMainFrame knows how to manage these windows,
-    // adjusting the value returned by GetClientSize to reflect the remaining size
-    // available to application windows.
-    //
-    // Adapt It has several other windows to be managed within CMainFrame. These are the
-    // m_pControlBar, the m_pComposeBar, m_pRemovalsBar, m_pVertEditBar, and the actual
-    // canvas which the user knows as Adapt It's "main window."
+    // dialogs. CMainFrame knows about some of the windows attached to its frame, but
+    // not others. It knows about the menu bar, tool bar and status bar. For those it
+    // can adjust the value returned by GetClientSize to reflect the remaining size
+    // available to application windows. But there are other windows that can appear in 
+    // the main frame and we must account for those. These are the m_pControlBar, the 
+    // m_pComposeBar, m_pRemovalsBar, m_pVertEditBar, and the actual canvas which the 
+    // user knows as Adapt It's "main window."
     // 
     // These windows are managed here in OnSize, which dynamically adjusts the size of
     // mainFrameClientSize depending on which of these window elements are visible on the
@@ -2698,61 +2695,54 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
+// whm 12Oct10 modified for configurable tool bar under user profiles
 void CMainFrame::RecreateToolBar()
 {
-    // delete and recreate the toolbar
-    wxToolBar *toolBar = GetToolBar();
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	// delete and recreate the toolbar
+    AIToolBar *toolBar = GetToolBar();
     delete toolBar;
-	toolBar = (wxToolBar*)NULL;
+	toolBar = (AIToolBar*)NULL;
     SetToolBar(NULL);
 
     long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
 
-    // CreateToolBar is a method of the Frame class and informs the doc/view of the
-    // existence of the toolbar so the client window allows space for it.
-	//toolBar = CreateToolBar(style, -1);
-    // The following line can be used also to create the toolbar, but SetToolBar(toolBar)
-    // must be then called to register it with the doc/view framework
-	toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
+    // We do not use CreateToolBar() now in the wx version. It is a method of 
+    // the Frame class and can be used to inform the doc/view of the existence 
+    // of the toolbar so the client window can allow space for it, but we manage 
+    // the calculations for the size of the client window on our own.
+	//toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
+	toolBar = new AIToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
 	wxASSERT(toolBar != NULL);
-
 	m_pToolBar = toolBar;
 
-    // AIToolBarFunc is located in the Adapt_It_Resources.cpp file and handles the
-    // construction and initial state of all the toolBar items on the main frame
-	AIToolBarFunc( toolBar );
+	if (gpApp->m_bExecutingOnXO)
+	{
+		toolBar->SetToolBitmapSize(wxSize(32,30));
+		AIToolBar32x30Func( toolBar );
+		// see the App's ConfigureToolBarForUserProfile() for notes on the following call
+		pApp->RemoveToolBarItemsFromToolBar(toolBar);
+	}
+	else
+	{
+		AIToolBarFunc( toolBar );
+		// see the App's ConfigureToolBarForUserProfile() for notes on the following call
+		pApp->RemoveToolBarItemsFromToolBar(toolBar);
+	}
+	SetToolBar(toolBar);
+	
+	m_pToolBar = GetToolBar();
+	wxASSERT(m_pToolBar == toolBar);
 
-    // Tidy up the toolbar by removing the three toggle-on state buttons (physically
-    // located at the end of the AIToolBarFunc array). Removing them does not delete them,
-    // but allows us to insert them in the correct button slot after deleting the untoggled
-    // button or vice versa depending on whether the toggle is on or off. The button
-    // swapping is done in event handlers in the View.
-    // Note: Just calling RemoveTool on a button removes it from the toolbar, but when
-    // program exits, the IDE will report "Detected memory leaks!" In tbarbase.h where
-    // RemoveTool() is declared it says, "RemoveTool: remove the tool from the toolbar: the
-    // caller is responsible for actually deleting the pointer". So, how do we get the
-    // pointer? RemoveTool returns a pointer to wxToolBarToolBase. So it should be
-    // sufficient to do the following:
-	// NOTE: In the end I decided to dynamically insert and remove the toggle buttons 
-	// in the View
-	//wxToolBarToolBase *remToolptr;
-	//remToolptr = toolBar->RemoveTool(ID_BUTTON_IGNORING_BDRY);
-	//delete remToolptr;
-	//remToolptr = toolBar->RemoveTool(ID_BUTTON_HIDING_PUNCT);
-	//delete remToolptr;
-	//remToolptr = toolBar->RemoveTool(ID_SHOW_ALL);
-	//delete remToolptr;
+	wxSize toolBarSize;
+	toolBarSize = m_pToolBar->GetSize();
+	m_toolBarHeight = toolBarSize.GetHeight();	
+}
 
-	// If an application does not use CreateToolBar() to create the application toolbar
-	// it must call SetToolBar() to register the toolBar with the doc/view framework so
-	// that it will manage it properly
-	SetToolBar(toolBar); // called in CreateToolBar() above
-
-	// Deleting the pointers above do eliminate the "Detected memory leaks" message when
-	// RemoveTool() is used.
-	// Note: InsertTool, although it also returns a pointer to wxToolBarToolBase, 
-	// InsertTool does not produce any memory leaks reported by the IDE on exiting the app.
-	//toolBar->Realize(); // called in AIToolBarFunc() above - done by wxDesigner
+// this overrides the wxFrame::GetToolBar() method which returns a wxToolBar*
+AIToolBar* CMainFrame::GetToolBar()
+{
+	return m_pToolBar;
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5

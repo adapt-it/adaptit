@@ -1688,6 +1688,9 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+	// whm 12Oct10 modified for user workflow profile compatibility
+	if (pToolBar->GetToolPos(ID_BUTTON_REMOVE_NULL_SRCPHRASE) == wxNOT_FOUND)
+		return;
 	if (!pToolBar->GetToolEnabled(ID_BUTTON_REMOVE_NULL_SRCPHRASE))
 	{
 		::wxBell();
@@ -1839,6 +1842,9 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+	// whm 12Oct10 modified for user workflow profile compatibility
+	if (pToolBar->GetToolPos(ID_BUTTON_NULL_SRC) == wxNOT_FOUND)
+		return;
 	if (!pToolBar->GetToolEnabled(ID_BUTTON_NULL_SRC))
 	{
 		::wxBell();

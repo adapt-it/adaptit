@@ -3,7 +3,7 @@
 /// \file			AdminEditMenuProfile.h
 /// \author			Bill Martin
 /// \date_created	20 August 2010
-/// \date_revised	20 August 2010
+/// \date_revised	11 October 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdminEditMenuProfile class. 
@@ -73,7 +73,7 @@ protected:
 	void OnRadioNone(wxCommandEvent& WXUNUSED(event));
 	void OnRadioUseProfile(wxCommandEvent& WXUNUSED(event));
 	void PopulateListBox(int newTabIndex);
-	void CopyMenuStructure(const AI_MenuStructure* pFromMenuStructure, AI_MenuStructure*& pToMenuStructure);
+	//void CopyMenuStructure(const AI_MenuStructure* pFromMenuStructure, AI_MenuStructure*& pToMenuStructure);
 	void CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);

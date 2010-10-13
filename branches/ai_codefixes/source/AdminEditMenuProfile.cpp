@@ -3,7 +3,7 @@
 /// \file			AdminEditMenuProfile.cpp
 /// \author			Bill Martin
 /// \date_created	20 August 2010
-/// \date_revised	20 August 2010
+/// \date_revised	11 October 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CAdminEditMenuProfile class. 
@@ -767,6 +767,7 @@ void CAdminEditMenuProfile::PopulateListBox(int newTabIndex)
 	}
 }
 
+/*
 // Copies the menu structure of a pFromMenuStructure instance to a pToMenuStructure instance, copying
 // all of the internal attributes and lists.
 // Note: Assumes that pFromMenuStructure and pToMenuStructure were created on the heap before this
@@ -810,6 +811,7 @@ void CAdminEditMenuProfile::CopyMenuStructure(const AI_MenuStructure* pFromMenuS
 		pToMenuStructure->aiMainMenuItems.Append(pToMainMenuItem);
 	}
 }
+*/
 
 // "Deep" copies the UserProfiles of a pFromUserProfiles instance to a pToUserProfiles instance, copying
 // all of the internal attributes and lists.

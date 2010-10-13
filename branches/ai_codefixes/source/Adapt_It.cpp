@@ -64,6 +64,9 @@
 #include <wx/stdpaths.h> // for GetResourcesDir and GetLocalizedResourcesDir
 #include <wx/tooltip.h>
 #include <wx/process.h> // for wxProcess::Exists()
+#include <wx/toolbar.h> // (to allow wxWidgets to select an appropriate toolbar class)
+#include <wx/tbarbase.h> // (the base class)
+
 
 // the next are for wxHtmlHelpController (wxWidgets chooses the appropriate help controller
 // class) 
@@ -1805,6 +1808,56 @@ const wxString defaultProfileItems[] =
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_BUTTON_DELETE_ALL_NOTES\":itemType=\"toolBar\":itemText=\"Delete All Notes\":itemDescr=\"Delete all the notes currently in the document\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_CUT\":itemType=\"toolBar\":itemText=\"Cut\":itemDescr=\"Cut the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_COPY\":itemType=\"toolBar\":itemText=\"Copy\":itemDescr=\"Copy the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_PASTE\":itemType=\"toolBar\":itemText=\"Paste\":itemDescr=\"Insert Clipboard contents\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"wxID_PRINT\":itemType=\"toolBar\":itemText=\"Print\":itemDescr=\"Print the active document\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"wxID_HELP\":itemType=\"toolBar\":itemText=\"Display Help Topics\":itemDescr=\"Display Adapt It program help topics\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -3611,7 +3664,34 @@ LangInfo langsKnownToWX[] =
     { NULL, wxLANGUAGE_UNKNOWN, NULL}												// 1
 };
 
+// whm 12Oct10 added this class. It didn't seem worth the bother to put it into
+// separate source files, since it is a very minimal override of wxToolBar for
+// the basic purpose of implementing a GetToolBarToolsList() getter. We need this
+// in ConfigureToolBarForUserProfile() to configure AI's toolbar for user profiles.
+// Begin AIToolBar class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+IMPLEMENT_DYNAMIC_CLASS(AIToolBar, wxToolBar)
 
+AIToolBar::AIToolBar()
+{
+}
+
+AIToolBar::AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
+	const wxSize& size, long style,	const wxString& name)
+	: wxToolBar(parent, id, pos, size, style, name)
+{
+}
+
+AIToolBar::~AIToolBar()
+{
+}
+
+// This is our only derived method - a getter for
+// the actual list of tool bar items
+wxToolBarToolsList AIToolBar::GetToolBarToolsList()
+{
+	return m_tools;
+}
+// enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // beginning of AIModalDialog class implementation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // whm Note: The AIModalDialog class exists as a base dialog class for Adapt It modal
@@ -6123,11 +6203,11 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 /// \return     nothing
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
-/// and sets the visibility of the interface's mode bar based on the information 
-/// stored in AI_UserProfiles.xml. It destroys the existing mode bar then constructs a 
-/// new mode bar and uses it as the starting baseline, removing elements according to the 
-/// currently selected user profile.
+/// This function destroys the existing mode bar then constructs a new mode bar and uses 
+/// it as the starting baseline, removing elements according to the currently selected 
+/// user profile. The mode bar may be either the standard 1-line mode bar or the 
+/// special 2-line mode bar used when the -xo command line parameter is used with
+/// an OLPC XO computer.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 {
@@ -6274,7 +6354,9 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 /// Called from: the App's ConfigureModeBarForUserProfile().
 /// This function is a helper function for ConfigureModeBarForUserProfile().
 /// It removes any mode bar items that are not visible in the currently selected user 
-/// profile.
+/// profile. It also deals with the special cases of the Glossing checkbox and the Delay's 
+/// wxTextCtrl. If Glossing is ON it turns it OFF if the Glossing checkbox is removed from
+/// the modebar. If the Delay static text is removed, it removes the associated wxTextCtrl.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 {
@@ -6304,7 +6386,7 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 		{
 			if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
 			{
-				// TODO: Check the following assumption: We should unilaterally turn of Glossing here.
+				// TODO: Check the following assumption: We should unilaterally turn off Glossing here.
 				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
 				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
 				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
@@ -6340,14 +6422,166 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 /// \return     nothing
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
-/// and sets the visibility of the interface's tool bar based on the information 
-/// stored in AI_UserProfiles.xml. It destroys the existing tool bar then constructs a 
-/// new tool bar and uses it as the starting baseline, removing elements according to the 
-/// currently selected user profile.
+/// This function destroys the existing tool bar then constructs a new tool bar and uses 
+/// it as the starting baseline, removing elements according to the currently selected 
+/// user profile. The tool bar may be either the standard tool bar (AIToolBarFunc) or the 
+/// alternate tool bar (AIToolBar32x32Func) which has fewer buttons but larger bitmaps for
+/// use when the -xo command line parameter is used with an OLPC XO computer.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 {
+	CMainFrame* pMainFrame;
+	pMainFrame = GetMainFrame();
+	pMainFrame->Freeze(); // to avoid flicker
+	pMainFrame->m_pToolBar->Destroy(); // removes the existing tool bar which may not be showing all items in the current profile
+
+	// Create the new tool bar with our AIToolBar class override of wxToolBar (see similar 
+	// code in CMainFrame's constructor)
+    long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
+	AIToolBar* toolBar = new AIToolBar(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, style);
+	wxASSERT(toolBar != NULL);
+	pMainFrame->m_pToolBar = toolBar;
+	
+	// The AIToolBarFunc() and AIToolBar32x30Func() functions are located 
+	// in Adapt_It_wdr.cpp. 
+	if (gpApp->m_bExecutingOnXO) // add a ! to test the 32x32 toolbar when -xo is not set
+	{
+		toolBar->SetToolBitmapSize(wxSize(32,30));
+		AIToolBar32x30Func( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+		// Note: AIToolBar32x32Func() creates 33 defauls elements including toolbar separators
+		// The default elements that are not included (compared to AIToolBarFunc()) are:
+		// 1. Cut [not likely used much - also has Ctrl-X hotkey]
+		// 2. Copy [not likely used much - also has Ctrl-C hotkey]
+		// 3. Paste [not likely used much - also has Ctrl-V hotkey]
+		// 4. Spacer
+		// 5. Print [available on File menu]
+		// 6. Spacer
+		// 7. Display Help Topics [available on Help menu]
+
+		// scan through this default toolbar and remove items that are not supposed to
+		// be visible in the current profile.
+		// The wxToolBarBase class has a protected member called 
+		// wxToolBarToolsList m_tools which is "the list of all our tools" which 
+		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
+		RemoveToolBarItemsFromToolBar(toolBar);
+	}
+	else
+	{
+		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+		// Note: AIToolBar32x32Func() creates 40 default elements including toolbar separators
+
+		// scan through this default toolbar and remove items that are not supposed to
+		// be visible in the current profile.
+		// The wxToolBarBase class has a protected member called 
+		// wxToolBarToolsList m_tools which is "the list of all our tools" which 
+		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
+		RemoveToolBarItemsFromToolBar(toolBar);
+	}
+	// Note: The RemoveToolBarItemsFromToolBar() call above also removed any "leftover" 
+	// or duplicate tool bar separators. 
+	
+	pMainFrame->SetToolBar(toolBar);
+	// Notes on SetToolBar(): WX Docs say,
+	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
+	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage 
+	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect 
+	// the available space for application windows. Under Pocket PC, you should always use this 
+	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use 
+	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar 
+	// as usual."
+	pMainFrame->m_pToolBar = pMainFrame->GetToolBar();
+	wxASSERT(pMainFrame->m_pToolBar == toolBar);
+
+	wxSize toolBarSize;
+	toolBarSize = pMainFrame->m_pToolBar->GetSize();
+	pMainFrame->m_toolBarHeight = toolBarSize.GetHeight();	// we shouldn't need this since doc/view
+												// is supposed to manage the toolbar and
+												// our Main Frame should account for its
+												// presence when calculating the client size
+												// with pMainFrame->GetClientSize()
+	pMainFrame->Thaw();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      the AIToolBar (derived from wxToolBar) from which items are to be removed
+/// \remarks
+/// Called from: the App's ConfigureToolBarForUserProfile().
+/// This function is a helper function for ConfigureToolBarForUserProfile().
+/// It removes any tool bar items that are not visible in the currently selected user 
+/// profile. It also removes any left-over or duplicate tool bar separators.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
+{
+	int ct,toolCount;
+	toolCount = (int)pToolBar->GetToolsCount();
+	wxToolBarToolsList toolBarToolsList = pToolBar->GetToolBarToolsList();
+	wxToolBarToolsList::Node* node;
+	wxToolBarToolBase* pTBItem;
+	// Since we are removing the tool bar items by position in the bar, we 
+	// need to remove the items from the right end (higher position) to the
+	// left end (lower) position, otherwise our position index ct will not
+	// be accurate after the first removal.
+	for (ct = toolCount-1; ct >= 0; ct--) // counting downwards from right end
+	{
+		node = toolBarToolsList.Item(ct);
+		pTBItem = (wxToolBarToolBase*)node->GetData();
+		wxString itemLabel;
+		if (!pTBItem->IsSeparator())
+		{
+			//wxString isSepStr = _T("");
+			//wxLogDebug(_T("Toolbar window item: Short Help: %s, Long Help: %s"),
+			//	pTBItem->GetShortHelp().c_str(),pTBItem->GetLongHelp().c_str());
+			itemLabel = pTBItem->GetShortHelp();
+			itemLabel.Trim(FALSE);
+			itemLabel.Trim(TRUE);
+		}
+		else
+		{
+			//wxString isSepStr = _T("");
+			//isSepStr = _T("Separator");
+			//wxLogDebug(_T("Toolbar window item: wxItemKind: %s"),isSepStr.c_str());
+			itemLabel = _T("");
+		}
+		// Note: the above wxLogDebug() shows that GetLabel() always is null str, GetShortHelp() is
+		// the name of the toolbar button (the tooltip), and GetLongHelp() is the status help for the
+		// button. We can use the string returned from GetShortHelp() to identify the toolbar button.
+		// separators are a null string in GetShortHelp and GetLongHelp - and they also have a
+		// getter called IsSeparator() which returns TRUE for separators, FALSE otherwise.
+		if (!ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+		{
+			pToolBar->DeleteToolByPos(ct);
+		}
+	}
+	// Now take care of left-over or duplicate tool bar separators
+	toolCount = (int)pToolBar->GetToolsCount();
+	toolBarToolsList = pToolBar->GetToolBarToolsList();
+	// Since we are removing the tool bar items by position in the bar, we 
+	// need to remove the items from the right end (higher position) to the
+	// left end (lower) position, otherwise our position index ct will not
+	// be accurate after the first removal.
+	bool bLastItemWasSeparator = FALSE;
+	for (ct = toolCount-1; ct >= 0; ct--) // counting downwards from right end
+	{
+		node = toolBarToolsList.Item(ct);
+		pTBItem = (wxToolBarToolBase*)node->GetData();
+		if (!pTBItem->IsSeparator())
+		{
+			// item is a normal tool bar item (not a separator)
+			bLastItemWasSeparator = FALSE;
+		}
+		else
+		{
+			// item is a tool bar separator
+			// delete if the last item was a separator
+			if (bLastItemWasSeparator)
+			{
+				pToolBar->DeleteToolByPos(ct);
+			}
+			bLastItemWasSeparator = TRUE;
+		}
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -6957,7 +7191,7 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 	bool bItemIsVisible = TRUE;
 	if (nProfile == 0)
 	{
-		// The work flow profile 0 (zero) is the "None" selection all all interface
+		// The work flow profile 0 (zero) is the "None" selection and all interface
 		// items are visible by default
 		return bItemIsVisible; 
 	}
@@ -6978,6 +7212,53 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 		if (itemLabel == _T("")) // the item is a spacer in the sizer (just before the Glossing wxCheckBox)
 		{
 			// We skip the processing of the spacer
+			continue;
+		}
+		wxString itemLabelStr;
+		itemLabelStr = pUserProfileItem->itemText;
+		itemLabelStr.Trim(FALSE);
+		itemLabelStr.Trim(TRUE);
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemLabelStr == itemLabel && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
+bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
+{
+	// we assume that a tool bar item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection and all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType != _T("toolBar"))
+		{
+			continue;
+		}
+		if (itemLabel == _T("")) // the item is a separator in the toolbar group
+		{
+			// We skip the processing of the separator
 			continue;
 		}
 		wxString itemLabelStr;
@@ -11865,8 +12146,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	pBar = m_pMainFrame->m_pControlBar;
 	wxASSERT(pBar != NULL);
 	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)pBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-	wxASSERT(pCheckboxIsGlossing != NULL);
-	pCheckboxIsGlossing->Show(FALSE);
+	if(pCheckboxIsGlossing != NULL)
+	{
+		pCheckboxIsGlossing->Show(FALSE);
+	}
 
     m_pMainFrame->Show(TRUE);
     SetTopWindow(m_pMainFrame);
@@ -12906,10 +13189,17 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 		wxASSERT(pControlBar);
 		wxRadioButton* pDraftingBtn = 
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
-		pDraftingBtn->Hide();
+		// whm 12Oct10 modified below to make safe for user workflow profiles
+		if (pDraftingBtn != NULL)
+		{
+			pDraftingBtn->Hide();
+		}
 		wxRadioButton* pReviewingBtn = 
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
-		pReviewingBtn->Hide();
+		if (pReviewingBtn != NULL)
+		{
+			pReviewingBtn->Hide();
+		}
 	}
 	else if (m_bAutoExport)
 	{
@@ -29395,6 +29685,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 			// profile selection/changes which are now stored in m_nWorkflowProfile
 			// and m_pUserProfiles.
 			ConfigureInterfaceForUserProfile();
+			MakeMenuInitializationsAndPlatformAdjustments()
 			// Also, save the changes to the AI_UserProfiles.xml file
 			// TODO:
 			;
