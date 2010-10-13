@@ -6631,8 +6631,11 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// (wxID_CLOSE) menu item.
 	if (pFileMenu != NULL)
 	{
-		pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
-			// and Linux have the default Ctrl-J
+		if (pFileMenu->FindItem(ID_FILE_CLOSEKB) != NULL)
+		{
+			pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
+				// and Linux have the default Ctrl-J
+		}
 	}
     
 	// File | Exit
@@ -6700,7 +6703,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
 		// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
 		// menu to use Ctrl-Shift-1 for it here.
-		pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+		if (pLayoutMenu->FindItem(ID_ALIGNMENT) != NULL)
+		{
+			pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+		}
 	}
 
 	// wxWidgets moves the wxID_HELP menu item from the Help menu to the Application menu, so we
@@ -6712,7 +6718,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	}
 
 #else
-	// wxDesigner's Menubars properties doesn't allow us to set function keys as shortcute
+	// wxDesigner's Menubars properties doesn't allow us to set function keys as shortcuts
 	// so we'll do it manually here for Windows and Linux.
 	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP);
 	if (pHelpTopicsMenu != NULL)
