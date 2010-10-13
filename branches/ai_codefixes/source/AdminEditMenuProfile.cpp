@@ -81,13 +81,19 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	: wxDialog(parent, -1, _("User Workflow Profiles"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
+	// Note: Since this dialog is derived from wxDialog rather than AIModalDialog we need to turn
+	// off update idle handling here early in the constructor until initialization is done. We 
+	// turn it back on at the end of InitDialog().
+	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
+	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
+
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	bCreatingDlg = TRUE;
 
-	MenuEditorDlgFunc(this, TRUE, TRUE);
+	pAdminEditMenuProfileDlgSizer = MenuEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	bCreatingDlg = FALSE;
@@ -309,6 +315,10 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	}
 	// Finally populate the list box corresponding to the notebookTabIndex
 	PopulateListBox(notebookTabIndex);
+
+	// turn update idle handling back on so it will update our buttons.
+	wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
+	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
 }
 
 // event handling functions
@@ -1315,7 +1325,7 @@ void CAdminEditMenuProfile::OnUpdateButtonOK(wxUpdateUIEvent& WXUNUSED(event))
 		if (pOKButton != NULL && pOKButton->GetLabel() != _("Save Changes"))
 		{
 			pOKButton->SetLabel(_("Save Changes"));
-			pOKButton->Refresh();
+			pAdminEditMenuProfileDlgSizer->Layout();
 		}
 	}
 	else
@@ -1323,7 +1333,7 @@ void CAdminEditMenuProfile::OnUpdateButtonOK(wxUpdateUIEvent& WXUNUSED(event))
 		if (pOKButton != NULL && pOKButton->GetLabel() != _("OK"))
 		{
 			pOKButton->SetLabel(_("OK"));
-			pOKButton->Refresh();
+			pAdminEditMenuProfileDlgSizer->Layout();
 		}
 	}
 }

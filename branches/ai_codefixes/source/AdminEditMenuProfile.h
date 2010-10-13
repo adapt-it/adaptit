@@ -57,6 +57,7 @@ public:
 	bool bChangesMadeToProfileItems;
 	bool bChangeMadeToProfileSelection;
 	wxArrayInt bProfileChanged;
+	wxSizer* pAdminEditMenuProfileDlgSizer;
 	// other methods
 
 protected:
