@@ -149,9 +149,6 @@ Item gStoreItem; // temporary storage for popped items
 
 static UserProfiles* gpUserProfiles = NULL;
 static UserProfileItem* gpUserProfileItem = NULL;
-static AI_MenuStructure* gpAI_MenuStructure = NULL;
-static AI_MainMenuItem* gpMainMenuItem = NULL;
-static AI_SubMenuItem* gpSubMenuItem = NULL;
 
 // define our needed tags, entities and attribute names
 
