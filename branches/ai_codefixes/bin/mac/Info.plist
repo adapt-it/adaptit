@@ -20,7 +20,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleGetInfoString</key>
-	<string>$(PRODUCT_NAME) version 5.2.1, (c) 2010 Bruce Waters, Bill Martin, SIL International</string>
+	<string>$(PRODUCT_NAME) version 6.0.0, (c) 2010 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleIconFile</key>
 	<string>Adapt It.icns</string>
 	<key>CFBundleIdentifier</key>
