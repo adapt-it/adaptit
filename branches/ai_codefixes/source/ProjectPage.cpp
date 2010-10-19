@@ -274,10 +274,16 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	wxArrayString possibleAdaptions;
 	possibleAdaptions.Clear();
 	m_pListBox->Clear();
-	wxString str;
-	// IDS_NEW_PROJECT
-	str = str.Format(_("<New Project>"));
-	possibleAdaptions.Add(str);
+
+	// Add <New Project> to the listbox unless the current user profile says to hide 
+	// the <New Project> item from the interface
+	if (gpApp->m_bShowNewProjectItem)
+	{
+		wxString str;
+		// IDS_NEW_PROJECT
+		str = str.Format(_("<New Project>"));
+		possibleAdaptions.Add(str);
+	}
 	pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
 
 	// fill the list box with the folder name strings

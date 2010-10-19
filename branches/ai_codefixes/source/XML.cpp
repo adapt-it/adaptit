@@ -151,13 +151,8 @@ static UserProfiles* gpUserProfiles = NULL;
 static UserProfileItem* gpUserProfileItem = NULL;
 
 // define our needed tags, entities and attribute names
-
-// the standard entities
-const char amp[] = "&amp;";
-const char quote[] = "&quot;";
-const char apos[] = "&apos;";
-const char lt[] = "&lt;";
-const char gt[] = "&gt;";
+// Note: Many of the const char declarations have been
+// moved to Adapt_It.h and had an "xml_" prefix added
 
 // some basic XML strings
 const char xml[] = "<?xml";
@@ -186,42 +181,6 @@ const char code[] = "code";
 static int divIndex = -1;
 static int divCount = 0;
 static int totalCount = 0;
-
-//// this group of tags are for the AI_UserProfiles.xml file
-//const char userprofilessupport[] = "UserProfilesSupport";
-//const char menu[] = "MENU";
-//const char profile[] = "PROFILE";
-//const char menuStructure[] = "MENU_STRUCTURE";
-//const char main_menu[] = "MAIN_MENU";
-//const char sub_menu[] = "SUB_MENU";
-//const char end_userprofilessupport[] = "/UserProfilesSupport";
-//const char end_menu[] = "/MENU";
-//const char end_profile[] = "/PROFILE";
-//const char end_menuStructure[] = "/MENU_STRUCTURE";
-//const char end_main_menu[] = "/MAIN_MENU";
-//const char end_sub_menu[] = "/SUB_MENU";
-//
-//// this group are for the attribute names for AI_UserProfiles.xml
-//const char profileVersion[] = "profileVersion";
-//const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
-//												// i.e., definedProfile1, definedProfile2, etc.
-//const char descriptionProfile[] = "descriptionProfile"; // the xml will actually have a number suffix
-//												// i.e., descriptionProfile1, descriptionProfile2, etc.
-//const char itemID[] = "itemID";
-//const char itemType[] = "itemType";
-//const char itemText[] = "itemText";
-//const char itemDescr[] = "itemDescr";
-//const char itemAdminCanChange[] = "adminCanChange";
-//const char itemUserProfile[] = "userProfile";
-//const char itemVisibility[] = "itemVisibility";
-//const char factory[] = "factory";
-//
-//const char mainMenuID[] = "mainMenuID";
-//const char mainMenuLabel[] = "mainMenuLabel";
-//const char subMenuID[] = "subMenuID";
-//const char subMenuLabel[] = "subMenuLabel";
-//const char subMenuHelp[] = "subMenuHelp";
-//const char subMenuKind[] = "subMenuKind";
 
 // this group of tags are for the AI_USFM.xml file
 const char usfmsupport[] = "USFMsupport";
@@ -466,19 +425,19 @@ void InsertEntities(CBString& s)
 	Int16 offset;
 	ch = "&";
 	offset = -1;
-	DoEntityInsert(s,offset,ch,amp);
+	DoEntityInsert(s,offset,ch,xml_amp);
 	ch = "<";
 	offset = -1;
-	DoEntityInsert(s,offset,ch,lt);
+	DoEntityInsert(s,offset,ch,xml_lt);
 	ch = "\'";
 	offset = -1;
-	DoEntityInsert(s,offset,ch,apos);
+	DoEntityInsert(s,offset,ch,xml_apos);
 	ch = ">";
 	offset = -1;
-	DoEntityInsert(s,offset,ch,gt);
+	DoEntityInsert(s,offset,ch,xml_gt);
 	ch = "\"";
 	offset = -1;
-	DoEntityInsert(s,offset,ch,quote);
+	DoEntityInsert(s,offset,ch,xml_quote);
 }
 
 void DoEntityReplace(CBString& s,Int16& offset,const char* ent,char ch)
@@ -567,19 +526,19 @@ void ReplaceEntities(CBString& s)
 	Int16 offset;
 	ch = '&';
 	offset = -1;
-	DoEntityReplace(s,offset,amp,ch);
+	DoEntityReplace(s,offset,xml_amp,ch);
 	ch = '<';
 	offset = -1;
-	DoEntityReplace(s,offset,lt,ch);
+	DoEntityReplace(s,offset,xml_lt,ch);
 	ch = '\'';
 	offset = -1;
-	DoEntityReplace(s,offset,apos,ch);
+	DoEntityReplace(s,offset,xml_apos,ch);
 	ch = '>';
 	offset = -1;
-	DoEntityReplace(s,offset,gt,ch);
+	DoEntityReplace(s,offset,xml_gt,ch);
 	ch = '\"';
 	offset = -1;
-	DoEntityReplace(s,offset,quote,ch);
+	DoEntityReplace(s,offset,xml_quote,ch);
 }
 
 void SkipWhiteSpace(char*& pPos,char* pEnd)
@@ -2055,6 +2014,7 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			// the <UserProfilesSupport> tag, descriptionProfile1, descriptionProfile2, 
 			// descriptionProfile3 and descriptionProfile4. The .Find in the test above will 
 			// return 0 for all descriptionProfileN attributes where N is 1,2,3,4...
+			// Note: ReplaceEntities() is called on the attrValue above.
 #ifdef _UNICODE
 			gpUserProfiles->descriptionProfileTexts.Add(pValueW);
 #else

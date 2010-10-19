@@ -7254,9 +7254,11 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_NONE, _("&None (keep all menus and settings visible)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item13->SetValue( TRUE );
+    item13->SetToolTip( _("Select this one if you do not want to activate a user profile") );
     item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxRadioButton *item14 = new wxRadioButton( parent, ID_RADIOBUTTON_USE_PROFILE, _("&Use a workflow profile  (Select from drop down list below)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Select this one to activate a user profile using the drop down box below") );
     item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
@@ -7271,11 +7273,13 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
         _("Custom")
     };
     wxComboBox *item16 = new wxComboBox( parent, ID_COMBO_PROFILE_ITEMS, wxT(""), wxDefaultPosition, wxSize(100,-1), 4, strs16, wxCB_DROPDOWN|wxCB_READONLY );
+    item16->SetToolTip( _("Click here to see all choices and make selection") );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item17 = new wxButton( parent, ID_BUTTON_RESET_TO_FACTORY, _("&Reset to Factory Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetToolTip( _("Reset the profile items of the selected profile to their factory defaults") );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -7294,6 +7298,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
     wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_PROFILE_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE );
+    item21->SetToolTip( _("A brief description of the selected workflow profile") );
     item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -7306,9 +7311,11 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item23 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->SetDefault();
+    item23->SetToolTip( _("Click here when finished") );
     item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Click here to close this dialog without saving any changes") );
     item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );

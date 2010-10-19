@@ -199,7 +199,19 @@ class Usfm2Oxes;
 // whm CAUTION: Some of the original identifier names/symbols used in the MFC version are
 // very short containing only one or two letters, which makes it more likely that they
 // might conflict with other defined symbols in the code. Therefore I've prefixed the
-// symbols with xml_ in the wx version.
+// symbols with "xml_" in the wx version.
+
+/// the standard entities
+const char xml_amp[] = "&amp;";
+/// the standard entities
+const char xml_quote[] = "&quot;";
+/// the standard entities
+const char xml_apos[] = "&apos;";
+/// the standard entities
+const char xml_lt[] = "&lt;";
+/// the standard entities
+const char xml_gt[] = "&gt;";
+
 
 /// For Adapt It document output as XML, and parsing of XML elements.
 const char xml_adaptitdoc[] = "AdaptItDoc";
@@ -1013,6 +1025,16 @@ WX_DECLARE_HASH_MAP(wxString,
 					wxStringHash,
 					wxStringEqual,
 					MapMenuLabelStrToIdInt);
+
+/// wxHashMap declaration for the MapProfileChangesToStringValues class - a mapped 
+/// association of profile item (compound) keys (wxString) with strings representing
+/// their values. Instantiated in m_mapProfileChangesToStringValues.
+WX_DECLARE_HASH_MAP(wxString,
+					wxString,
+					wxStringHash,
+					wxStringEqual,
+					MapProfileChangesToStringValues);
+
 
 /// wxHashMap declaration for the MapSfmToUSFMAnalysisStruct class - a mapped association
 /// of sfm marker keys (wxString) with pointers to USFMAnalysis objects.
@@ -2376,6 +2398,11 @@ public:
 									// an array of definedProfileNames, descriptionProfileTexts
 									// and list of pointers to the UserProfileItem objects on 
 									// the heap
+	UserProfiles* m_pFactoryUserProfiles; // a struct on the heap that is similar to m_pUserProfiles
+									// above, but always represents the factory version of the
+									// user profiles since it is created in OnInit() from the
+									// internal default unix-like strings in the defaultProfileItems[]
+									// array. It is created by calling SetupDefaultUserProfiles()
 	int			m_nWorkflowProfile; // zero-based index to the defined user workflow
 									// profiles and corresponds to the tab index of any
 									// selected workflow profile selected by an administrator
@@ -2391,8 +2418,26 @@ public:
 									// different user workflow profile.
 	wxArrayPtrVoid* m_pRemovedMenuItemArray; // an array of pointers to wxMenuItem instances
 									// which have been removed for the current profile
-
 	MapMenuLabelStrToIdInt m_mapMenuLabelStrToIdInt; // map of menu string ids to the menu int ids
+	MapProfileChangesToStringValues m_mapProfileChangesToStringValues; // map of profile items
+									// that have changed to their string values. The map's
+									// key value is:
+									//    a contatenation of the string values of
+									//    itemText + ":" + userProfile for UserProfileItems,
+									//    for example: "Save As...:Novice"; a key may also be
+									//    the string "descriptionProfileN" where N is
+									//    1, 2, 3, or 4 for those top level items, for example
+									//    "description3". The key maps to a variable length 
+									//    string for the descriptionProfileN key, and to a 
+									//    "1" or a "2" string for UserProfileItems visibility
+									//    items.
+	bool m_bShowNewProjectItem;		// If TRUE <New Project> is to be shown as first item in the
+									// projectPage's list box of projects; if FALSE, the <New
+									// Project> item is not included in the projectPage's list box.
+									// The value is determined by the current user workflow profile's
+									// visibility value for the <New Project> profile item. If the
+									// <New Project> item is absent from the list box, it
+									// effectively prevents the user from creating new projects.
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2664,10 +2709,12 @@ public:
 #endif
 
 	// whm added 21Sep10 the following for user profile support
+	bool	BuildUserProfileXMLFile(wxTextFile* textFile);
 	bool	ConfigureInterfaceForUserProfile();
 	void	ConfigureMenuBarForUserProfile();
 	void	ConfigureModeBarForUserProfile();
 	void	ConfigureToolBarForUserProfile();
+	void	ConfigureWizardForUserProfile();
 	void	RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer);
 	void	RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar);
 	void	MakeMenuInitializationsAndPlatformAdjustments();
@@ -2675,6 +2722,7 @@ public:
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
 	bool	ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
 	bool	ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
+	bool	NewProjectItemIsVisibleInThisProfile(const int nProfile);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxString GetMenuItemKindAsString(wxItemKind itemKind);
@@ -2684,11 +2732,15 @@ public:
 	wxString GetTopLevelMenuName(TopLevelMenu topLevelMenu);
 	wxMenu* GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu);
 	int		GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
+	int		ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemTextStr, wxString profileStr, wxString valueStr);
+	int		ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString descrProfileN, wxString valueStr);
 	void	SetupDefaultUserProfiles(UserProfiles*& pUserProfiles);
 	void	GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles);
 	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt);
 	void	DestroyUserProfiles(UserProfiles*& pUserProfiles);
 	void	DestroyMenuStructure(AI_MenuStructure*& pMenuStructure);
+	bool	SaveUserProfilesDataToXML();
+	void	MapChangesInUserProfiles(UserProfiles* tempUserProfiles, UserProfiles* appUserProfiles);
 	// The following functions are currently unused and possibly incomplete/untested, but are left
 	// here because they might contain useful material for future use:
 	//bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);

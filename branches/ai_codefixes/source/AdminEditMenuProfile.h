@@ -3,25 +3,26 @@
 /// \file			AdminEditMenuProfile.h
 /// \author			Bill Martin
 /// \date_created	20 August 2010
-/// \date_revised	11 October 2010
+/// \date_revised	15 October 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdminEditMenuProfile class. 
 /// The CAdminEditMenuProfile class allows a program administrator to 
 /// simplify a user's interface by only making certain menu items and 
 /// other settings available (visible) and other menu items unavailable 
-/// (hidden) to the user. A tabbed dialog is created that has one tab for a 
-/// "Novice" profile, one for a "Custom 1" profile, and one for a "Custom 2" 
-/// profile. Each tab page contains a checklist of interface menu items and 
-/// other settings preceded by check boxes. Each profile tab starts with a
-/// subset of preselected items, to which the administrator can tweak to 
+/// (hidden) to the user. A tabbed dialog is created that has tabs for 
+/// "Novice", "Experienced", "Skilled" and "Custom" profiles. Each tab 
+/// page contains a checklist of interface menu items and other settings 
+/// preceded by check boxes. Each profile tab starts with a subset of 
+/// preselected items, which the administrator can further modify to 
 /// his liking, checking those menu items he wants to be visible in the 
 /// interface and un-checking the menu items that are to be hidden. After 
 /// adjusting the visibility of the desired menu items for a given profile, 
 /// the administrator can select the profile to be used, and the program 
 /// will continue to use that profile each time the application is run. 
 /// The selection is saved in the basic and project config files, and the 
-/// profile information is saved in an external xml control file. 
+/// profile information is saved in an external control file under the
+/// name AI_UserProfiles.xml. 
 /// \derivation		The CAdminEditMenuProfile class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -56,7 +57,10 @@ public:
 	wxArrayInt itemsAlwaysChecked;
 	bool bChangesMadeToProfileItems;
 	bool bChangeMadeToProfileSelection;
+	bool bChangeMadeToDescriptionItems;
 	wxArrayInt bProfileChanged;
+	wxArrayInt bDescriptionChanged;
+	wxArrayString factoryDescrArrayStrings;
 	wxSizer* pAdminEditMenuProfileDlgSizer;
 	// other methods
 
@@ -73,18 +77,21 @@ protected:
 	void OnCheckListBoxDblClick(wxCommandEvent& WXUNUSED(event));
 	void OnRadioNone(wxCommandEvent& WXUNUSED(event));
 	void OnRadioUseProfile(wxCommandEvent& WXUNUSED(event));
+	void OnEditBoxDescrChanged(wxCommandEvent& WXUNUSED(event));
 	void PopulateListBox(int newTabIndex);
-	//void CopyMenuStructure(const AI_MenuStructure* pFromMenuStructure, AI_MenuStructure*& pToMenuStructure);
 	void CopyUserProfiles(const UserProfiles* pFromUserProfiles, UserProfiles*& pToUserProfiles);
 	bool ProfileItemIsSubMenuOfThisMainMenu(UserProfileItem* pUserProfileItem, wxString mmLabel);
 	bool SubMenuIsInCurrentAIMenuBar(wxString itemText);
-	bool UserProfileItemsHaveChanged(const UserProfiles* tempUserProfiles, const UserProfiles* appUserProfiles);
+	bool UserProfileItemsHaveChanged();
+	bool UserProfileDescriptionsHaveChanged();
+	bool CurrentProfileDescriptionHasChanged();
 	bool ThisUserProfilesItemsDifferFromFactory(int profileSelectionIndex);
 	bool UserProfileSelectionHasChanged();
 	wxString GetNameOfProfileFromProfileValue(int tempWorkflowProfile);
 	wxString GetNameOfProfileFromProfileIndex(int profileIndex);
-	int GetIndexOfProfileFromProfileName(wxString profileName);
 	wxString GetNamesOfEditedProfiles();
+	int GetIndexOfProfileFromProfileName(wxString profileName);
+	wxArrayString GetArrayOfFactoryDescrStrings();
 	void CopyProfileVisibilityValues(int sourceProfileIndex, int destinationProfileIndex);
 
 private:

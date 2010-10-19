@@ -1186,8 +1186,14 @@ const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1
 const wxString defaultProfileItems[] = 
 {
 	// Note: In the strings below, the itemText field should not use the accelerator substrings, i.e.,
-	// \tCtrl-A nor use any xml "entities", i.e., the &amp; for '&' to mark the letter used for
-	// ALT+key shortcuts, or &lt; or &gt; for '<' and '>' within the itemText strings.
+	// \tCtrl-A. Nor do we use any xml "entities", i.e., the &amp; for '&' to mark the letter used for
+	// ALT+key shortcuts, or &lt; or &gt; for '<' and '>' within the itemText strings. Since the 
+	// descriptionProfileN strings are administrator editable, it is possible that an administrator
+	// might edit into the string one of the entity characters '<', '>', '&', ''', or '"'. While these
+	// strings are internal within the program we retain their character representations in order to
+	// facilitate accurate comparisons of the descriptionProfileN strings. When the descriptionProfileN
+	// string data is about to be written to xml, however, we replace the entitity chars with their xml
+	// entity representations.
 	// 
 	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
 	// stored in the m_pUserProfiles struct on the heap with those that are used in the 
@@ -1880,6 +1886,10 @@ const wxString defaultProfileItems[] =
 	_T("/UserProfilesSupport:")
 };
 
+/*
+// whm removed since the app now gets its default menu structure from a temporary
+// instance of the wxDesigner's AIMenuBarFunc().
+// 
 // Note: An array of top level menu names is available from the App's GetToopLevelMenuName()
 // function.
 
@@ -2153,6 +2163,8 @@ const wxString defaultMenuStructure[] =
 	_T("/MAIN_MENU:"),
 	_T("/MENU_STRUCTURE:")
 };
+*/
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to a BookNamePair struct whose members have been assigned
 /// \param      pPair      <- the struce whose members are assigned values
@@ -2583,12 +2595,15 @@ void SetupDefaultStylesMap()
 /// \return     nothing
 /// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being populated
 /// \remarks
-/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
-/// called if the app cannot find the AI_UserProfiles.xml file and it must use 
-/// SetupDefaultUserProfiles() to establish its internal representation of any user
-/// selected User Workflow Profile. When AI_UserProfiles.xml is available (the usual case) 
-/// the m_pUserProfiles is populated by the AtPROFILEEndTag() function in XML.cpp, 
-/// rather than by this SetupDefaultUserProfiles() function.
+/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is  
+/// called in OnInit() to set up a factoryUserProfiles struct on the heap for use
+/// in AdminEditMenuProfile class. It is also called if the app cannot find the 
+/// AI_UserProfiles.xml file and it must use SetupDefaultUserProfiles() to establish 
+/// its internal representation of any user selected User Workflow Profile. 
+/// When AI_UserProfiles.xml is available (the usual case) the m_pUserProfiles is 
+/// populated by the AtPROFILEEndTag() function in XML.cpp, rather than by this 
+/// SetupDefaultUserProfiles() function. After setting up the pUserProfiles struct
+/// this function also calls GetAndAssignIdValuesToUserProfilesStruct().
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 {
@@ -2689,6 +2704,8 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					else if (attrStr.Find(wxString::FromAscii(descriptionProfile)) == 0)
 					{
 						wxASSERT(pUserProfiles != NULL);
+						// Note: we keep entity characters in their non xml form here, i.e.,
+						// '<', '>', '&', ''', and '"' remain as it.
 						pUserProfiles->descriptionProfileTexts.Add(valueStr);
 					}
 					else if (attrStr == wxString::FromAscii(itemID))
@@ -2753,7 +2770,7 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 	{
 		ProfileItemList::Node* pos;
 		int count;
-		int item_count = pUserProfiles->profileItemList.GetCount();
+		int item_count = (int)pUserProfiles->profileItemList.GetCount();
 		for(count = 0; count < item_count; count++)
 		{
 			pos = pUserProfiles->profileItemList.Item(count);
@@ -3101,7 +3118,7 @@ void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
 	{
 		ProfileItemList::Node* pos;
 		int count;
-		int item_count = pUserProfiles->profileItemList.GetCount();
+		int item_count = (int)pUserProfiles->profileItemList.GetCount();
 		for(count = 0; count < item_count; count++)
 		{
 			pos = pUserProfiles->profileItemList.Item(count);
@@ -3134,7 +3151,7 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 	{
 		MainMenuItemList::Node* mmpos;
 		int ct_mm;
-		int total_mm = pMenuStructure->aiMainMenuItems.GetCount();
+		int total_mm = (int)pMenuStructure->aiMainMenuItems.GetCount();
 		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
 		{
 			mmpos = pMenuStructure->aiMainMenuItems.Item(ct_mm);
@@ -3144,7 +3161,7 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 			
 			SubMenuItemList::Node* smpos;
 			int ct_sm;
-			int total_sm = pmmItem->aiSubMenuItems.GetCount();
+			int total_sm = (int)pmmItem->aiSubMenuItems.GetCount();
 			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
 			{
 				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
@@ -3166,6 +3183,238 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 		pMenuStructure = (AI_MenuStructure*)NULL;
 	}
 }
+
+bool CAdapt_ItApp::SaveUserProfilesDataToXML()
+{
+	// In order to preserve the comments at the beginning of AI_UserProfiles.xml, we will
+	// open the existing file and copy those comments into memory, then place them at the
+	// beginning of the updated file being written out initially to a temporary file on
+	// disk. Once the temporary file is successfully saved the original file will be
+	// overwritten by copying the temporary file over the original AI_UserProfiles.xml file.
+	// The AI_UserProfiles.xml file is fairly small (only about 45kb) so it would be easy
+	// to construct it in a memory buffer and write it out in a single write operation.
+	// The path established in OnInit() to the AI_UserProfiles.xml file is stored in the
+	// m_userProfileFileWorkFolderPath member variable.
+	
+	wxTextFile textFile;
+	
+	// Does AI_UserProfiles.xml exist in the work folder
+	bool bUserProfilesFileExists = wxFileExists(m_userProfileFileWorkFolderPath);
+	if (!bUserProfilesFileExists)
+	{
+		wxString msg = _("The AI_UserProfiles.xml file was not located at the following path:\n   %s\nA new AI_UserProfiles.xml file will be created there.");
+		msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		// Construct a new AI_UserProfiles.xml file from our internal data
+		textFile.Create(m_userProfileFileWorkFolderPath); // Create() must only be called when the doesn't exist - verified above
+		// Note textFile is empty at this point
+		bool bOK;
+		bOK = textFile.Open(m_userProfileFileWorkFolderPath);
+		bOK = BuildUserProfileXMLFile(&textFile);
+		// Write the modified wxText file back out to disk
+		textFile.Write(); // no need to do anything special for Unicode
+	}
+	else
+	{
+		// Read the existing xml file into memory using wxTextFile, so we can retrieve the
+		// xml comments at the beginning of the file and compare the data in memory and
+		// make changes there before saving the file back to disk
+		bool bOpenedOK;
+		bOpenedOK = textFile.Open(m_userProfileFileWorkFolderPath);
+		if (!bOpenedOK)
+		{
+			wxString msg = _("Unable to open the AI_UserProfiles.xml file at the following path:\n   %s\nChanges to user workflow profiles will not be saved.\nInsure that the AI_UserProfiles.xml file is not open in another program, then try again.");
+			msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			return FALSE;
+		}
+		else
+		{
+			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through textFile.
+			// Note: The AI_UserProfiles.xml file was read and parsed in the m_pUserProfiles struct just
+			// before the editing process (in InitDialog in the AdminEditMenuProfile class). Therefore,
+			// the AI_UserProfiles.xml file (just read above into memory as a wxTextFile) is basically 
+			// identical in structure to the xml file on disk. It should have the same number of 
+			// attributes and array elements in its top level, and have the same number of UserProfileItem 
+			// entries in its userProfileItemList. Only small parts of the xml data were modified as a 
+			// result of the editing process. The following could have been edited from within the dialog:
+			// 1. The UserProfiles' wxArrayString of descriptionProfileTexts (4 items, one for each profile) 
+			//    may have been edited (total of 4 strings of varying length).
+			// 2. The UserProfileItem's wxArrayString of usedVisibilityValues (4 items, one for each profile
+			//    x 67 profile items) may have been edited (total of 268 1-character strings of the form 
+			//    "1" or "0".
+			// Our approach will be to scan through the in-memory wxTextFile line by line and check all
+			// the attribute values encountered, comparing them with what is in m_pUserProfiles. We update
+			// any differences by changing the string attribute values in the in-memory wxTextFile. When
+			// finished we simply write the wxTextFile back to disk replacing the existing AI_UserProfiles.xml
+			// file.
+			// 
+			// The map key values can be:
+			//    1. A contatenation of the string values of itemText + ":" + userProfile for a given
+			//       UserProfileItem, for example: "Save As...:Novice"
+			//    2. A key may also be the string "descriptionProfileN" where N is 1, 2, 3, or 4 for 
+			//       those top level items, for example "description3"
+			// The key maps to a variable length string for the descriptionProfileN key, and to a
+			// "1" or a "2" string for UserProfileItems visibility items.
+			wxString keyFromMap;
+			wxString valueFromMap;
+			MapProfileChangesToStringValues::iterator iter;
+			for( iter = m_mapProfileChangesToStringValues.begin(); iter != m_mapProfileChangesToStringValues.end(); ++iter )
+			{
+				keyFromMap = iter->first;
+				valueFromMap = iter->second;
+				wxLogDebug(_T("iter->first = %s, iter->second = %s"),keyFromMap.c_str(),valueFromMap.c_str());
+				wxString itemTextStr,userProfileStr,descriptionProfileN;
+				int colonPos = keyFromMap.Find(_T(':'));
+				if (colonPos != wxNOT_FOUND)
+				{
+					// the keyFromMap is of the form itemText:Novice
+					itemTextStr = keyFromMap.Mid(0,colonPos);
+					userProfileStr = keyFromMap.Mid(colonPos + 1);
+					// in the wxTextFile we search for the line that has <tab>itemText="itemTextStr"
+					// from that line we step through each succeeding line until we come to a line
+					// that has <tab><tab><PROFILE userProfile="userProfileStr"
+					// from that line we get the next line, i.e., <tab><tab><tab>itemVisibility="x"
+					// and replace the "x" part with the "valueFromMap"
+					int linePos;
+					linePos = ReplaceVisibilityStrInwxTextFile(&textFile,itemTextStr,userProfileStr,valueFromMap);
+					if (linePos == wxNOT_FOUND)
+					{
+						// unable to save the field in the wxTextFile
+						wxASSERT(FALSE); // notify programmer
+						return FALSE;
+					}
+				}
+				else
+				{
+					// the keyFromMap is of the form descriptionProfileN where N is 1, 2, 3, or 4.
+					descriptionProfileN = keyFromMap;
+					// In the wxTextFile we search for the line that has <tab>descriptionProfileN="str"
+					// and we replace the "str" with "valueFromMap". 
+					// Note: Entity chars are replaced by their xml mandated form (xml_lt, xml_gt,
+					// xml_amp, xml_apos, and xml_quote) in ReplaceDescriptionStrInwxTextFile() below.
+					int linePos;
+					linePos = ReplaceDescriptionStrInwxTextFile(&textFile,descriptionProfileN,valueFromMap);
+					if (linePos == wxNOT_FOUND)
+					{
+						// unable to save the field in the wxTextFile
+						wxASSERT(FALSE); // notify programmer
+						return FALSE;
+					}
+				}
+			}
+		}
+		// Write the modified wxText file back out to disk
+		textFile.Write(); // no need to do anything special for Unicode
+	}
+	return TRUE;
+}
+
+// populates the App's m_mapProfileChangesToStringValues with user profile changes the user has made
+// to descriptionProfileTexts and/or to UserProfileItems' usedVisibilityValues. The map is used to 
+// make changes in the wxTextFile representation of AI_UserProfiles.xml before writing it back to
+// disk in SaveUserProfilesDataToXML().
+// Called in CAdminEditMenuProfile::OnOK().
+void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, UserProfiles* appUserProfiles)
+{
+	wxASSERT(tempUserProfiles != NULL);
+	wxASSERT(appUserProfiles != NULL);
+	if (tempUserProfiles != NULL && appUserProfiles != NULL)
+	{
+		MapProfileChangesToStringValues::iterator iter;
+		//m_mapProfileChangesToStringValues.clear();
+		// Note: we don't clear the map because it is called twice to get all changes, once
+		// for visibility items and once for description items. The clear() method must be
+		// invoked in the caller CAdminEditMenuProfile::OnOK().
+		int descCt;
+		int descTot = (int)tempUserProfiles->descriptionProfileTexts.GetCount();
+		for (descCt = 0; descCt < descTot; descCt++)
+		{
+			if (tempUserProfiles->descriptionProfileTexts[descCt] != appUserProfiles->descriptionProfileTexts[descCt])
+			{
+				wxString key = wxString::FromAscii(descriptionProfile);
+				key << descCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+				iter = m_mapProfileChangesToStringValues.find(key);
+				if (iter != m_mapProfileChangesToStringValues.end())
+				{
+					// key exists in the map
+					m_mapProfileChangesToStringValues.insert(*iter); // associates (any new) pNewTU value with the keyCopy
+				}
+				else
+				{
+					// key not in the map
+					// The [] index operator can be used either of two ways in assignment statement
+					m_mapProfileChangesToStringValues[key] = tempUserProfiles->descriptionProfileTexts[descCt]; // clearest
+					// or, the following is equivalent, but not so clear
+					//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+					// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+					// The only difference is that if the given key is not present in the hash map,
+					// an element with the default value_type() is inserted in the table."
+				}
+			}
+		}
+		ProfileItemList::Node* tpos;
+		ProfileItemList::Node* apos;
+		int count;
+		int t_tot = (int)tempUserProfiles->profileItemList.GetCount();
+		int a_tot = (int)appUserProfiles->profileItemList.GetCount();
+		wxASSERT(t_tot == a_tot);
+		if (t_tot == a_tot)
+		{
+			for(count = 0; count < t_tot; count++)
+			{
+				tpos = tempUserProfiles->profileItemList.Item(count);
+				apos = appUserProfiles->profileItemList.Item(count);
+				UserProfileItem* ptItem;
+				UserProfileItem* paItem;
+				ptItem = tpos->GetData();
+				wxASSERT(ptItem != NULL);
+				paItem = apos->GetData();
+				wxASSERT(paItem != NULL);
+				wxASSERT(ptItem->itemID == paItem->itemID);
+				wxASSERT(ptItem->itemIDint == paItem->itemIDint);
+				int ct;
+				int ct_t,ct_a;
+				ct_t = (int)ptItem->usedVisibilityValues.GetCount();
+				ct_a = (int)paItem->usedVisibilityValues.GetCount();
+				wxASSERT(ct_t == ct_a);
+				if (ct_t == ct_a)
+				{
+					for (ct = 0; ct < ct_t; ct++)
+					{
+						if (paItem->usedVisibilityValues[ct] != ptItem->usedVisibilityValues[ct])
+						{
+							wxString key = ptItem->itemText + _T(":") + ptItem->usedProfileNames[ct]; // key is itemText + name of the profile, i.e., "Save As...Novice"
+							iter = m_mapProfileChangesToStringValues.find(key);
+							if (iter != m_mapProfileChangesToStringValues.end())
+							{
+								// key exists in the map
+								m_mapProfileChangesToStringValues.insert(*iter); // associates (any new) pNewTU value with the keyCopy
+							}
+							else
+							{
+								// key not in the map
+								// The [] index operator can be used either of two ways in assignment statement
+								m_mapProfileChangesToStringValues[key] = ptItem->usedVisibilityValues[ct]; // clearest
+								// or, the following is equivalent, but not so clear
+								//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+								// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+								// The only difference is that if the given key is not present in the hash map,
+								// an element with the default value_type() is inserted in the table."
+							}
+						}
+					}
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( iter = m_mapProfileChangesToStringValues.begin(); iter != m_mapProfileChangesToStringValues.end(); ++iter )
+		//{
+		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
+		//}
+	}
+}
+
 
 /*
 enum wxLanguage
@@ -5678,7 +5927,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 				keyArray[ct] = keyArray[ct + 1];
 			}
 			keyArray[nKeys] = _T("[UNASSIGNED]");
-			int nCount = foundCodesArray.GetCount();
+			int nCount = (int)foundCodesArray.GetCount();
 			wxASSERT(nCount > 0);
 			foundCodesArray.Sort();
 			wxString highestCodeStr = foundCodesArray[nCount - 1];
@@ -5689,7 +5938,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		else if (bKeysPresent)
 		{
 			// should be at least one slot available
-			int nCount = foundCodesArray.GetCount();
+			int nCount = (int)foundCodesArray.GetCount();
 			wxASSERT(nCount > 0);
 			foundCodesArray.Sort();
 			wxString highestCodeStr = foundCodesArray[nCount - 1];
@@ -5880,6 +6129,249 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	m_pConfig->SetPath(oldPath);
 }
 
+bool CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
+{
+	wxString fileCommentBlock[] =
+	{
+		_T("<!--"),
+		_T("Filename:	AI_UserProfiles.xml"),
+		_T("Author: 	Bill Martin"),
+		_T("Date Created:	27 August 2010"),
+		_T("Last Updated:	12 October 2010, by Bill Martin"),
+		_T("Description:	The first part of this file contains the user profile "),
+		_T("		definitions and attributes for Adapt It's interface menus and "),
+		_T("		settings. Adapt It reads and parses this AI_UserProfiles.xml"),
+		_T("		when it starts up and when an administrator accesses the user"),
+		_T("		workflow profiles dialog. Changes made to individual items in"),
+		_T("		that dialog are automatically saved back to this file. "),
+		_T("		The second part of this file contains Adapt It's default menu "),
+		_T("		structure. Adapt It uses this structure as its baseline for "),
+		_T("		hiding and restoring individual menu items depending on the "),
+		_T("		user workflow profile selected."),
+		_T("***********************************************************************"),
+		_T("**** DO NOT EDIT THIS FILE - UNLESS YOU KNOW WHAT YOU ARE DOING! ******"),
+		_T("**** MAKE CHANGES TO THE USER WORKFLOW PROFILES BY SELECTING THE ******"),
+		_T("**** User Workflow Profiles... ITEM ON THE ADMINISTRATOR MENU. ********"),
+		_T("**** Manually changing the settings in this file may make Adapt It ****"),
+		_T("**** fail or operate incorrectly. If you have edited this file and ****"),
+		_T("**** and subsequently Adapt It fails or operates incorrectly, you *****"),
+		_T("**** should delete AI_UserProfiles.xml from your Adapt It Work ********"),
+		_T("**** folder and reinstall Adapt It. ***********************************"),
+		_T("***********************************************************************"),
+		_T("Notes:"),
+		_T("	1. All attribute values must be enclosed within double"),
+		_T("		quote marks."),
+		_T(""),
+		_T("Description of Marker Attributes for the MENU tag:"),
+		_T("The attributes below affect how certain menu items and settings within"),
+		_T("Adapt It are displayed (or hidden) from the user depending on which"),
+		_T("PROFILE is selected by an administrator."),
+		_T("	itemID:"),
+		_T("		=\"ID_...\" the identifier used internally within Adapt It"),
+		_T("			for event handling. ID_NONE is used if the item has"),
+		_T("			no identifier. If itemID (other than ID_NONE) "),
+		_T("			does not match a valid resource identifier, no "),
+		_T("			change in interface behavior for this item will "),
+		_T("			take effect."),
+		_T("	itemType:"),
+		_T("		= \"subMenu\" the valid values for itemType are subMenu,"),
+		_T("			modeBar, toolBar, preferencesTab, and wizardListItem. "),
+		_T("			Possible itemType values for future use include: "),
+		_T("			dialogControl."),
+		_T("	itemText:"),
+		_T("		=\"The wording of the menu item or setting\" must always"),
+		_T("			matche the menu item or setting in the interface"),
+		_T("			(in English). This itemText will appear in the "),
+		_T("			list of menu items and settings in each user workflow"),
+		_T("			profile within the User Workflow Profiles dialog."),
+		_T("	itemDescr:"),
+		_T("		=\"Description of the menu or setting\" a brief description"),
+		_T("			of the menu or setting defined by itemID and itemText."),
+		_T("			This description is optional, but is available for"),
+		_T("			menu or settings whose meaning might not be clear when"),
+		_T("			listed outside the interface context. Any description"),
+		_T("			given will appear in the list box to the right of the"),
+		_T("			itemText (user may need to scroll horizontally or"),
+		_T("			resize the dialog to see the description)."),
+		_T("	adminCanChange:"),
+		_T("		=\"1\" the menu item or setting will appear in the user workflow"),
+		_T("			profile list boxes (and be enabled) so the administrator"),
+		_T("			can change the itemVisibility setting (see below)."),
+		_T("		=\"0\" (default value when absent) the marker will not appear (or "),
+		_T("			will be disabled when shown) in the user workflow profile"),
+		_T("			list boxes. The administrator will not be able to change"),
+		_T("			the itemVisibility setting (see below)."),
+		_T("Description of Marker Attributes for the PROFILE tag:"),
+		_T("The attributes below affect how certain menu items and settings within"),
+		_T("Adapt It are displayed (or hidden) from the user depending on which"),
+		_T("PROFILE is selected by an administrator."),
+		_T("	userProfile:"),
+		_T("		=\"Novice\" the profile defined for the least skilled user. "),
+		_T("		=\"Experienced\" the profile defined for the Experienced user."),
+		_T("		=\"Skilled\" the profile defined for the Skilled user."),
+		_T("		=\"Custom\" a profile that can be preset to one of the other profiles"),
+		_T("		   and customized further."),
+		_T("	itemVisibility:"),
+		_T("		=\"1\" (default value when absent) the menu item or setting will be "),
+		_T("			visible in the interface for the given PROFILE. "),
+		_T("		=\"0\" the menu item or setting will not be visible in the interface"),
+		_T("			for the given PROFILE."),
+		_T("	factory:"),
+		_T("		=\"1\" factory setting is for the menu item or setting to be "),
+		_T("			visible in the interface for the given PROFILE. "),
+		_T("		=\"0\" factory setting is for the menu item or setting to not be "),
+		_T("			visible in the interface for the given PROFILE."),
+		_T("		Note: The factory setting cannot be changed from within Adapt It."),
+		_T("NOTE: Each <MENU> group should have the same number of <PROFILE> tags as "),
+		_T("are defined in the attributes of the top level <UserProfilesSupport> tag."),
+		_T("The userProfile attributes must match those that are defined in the top level"),
+		_T("<UserProfilesSupport> tag."),
+		_T("Note: The number of defined profiles below and their name/label values must "),
+		_T("agree with those used in the userProfile attributes within the <PROFILE> tags "),
+		_T("listed below."),
+		_T("  -->"),
+	};
+	
+	wxString composeXmlStr;
+	if (textFile->IsOpened())
+	{
+		CBString xmlPrologue;
+		wxString tab1,tab2,tab3;
+		tab1 = _T("\t");
+		tab2 = _T("\t\t");
+		tab3 = _T("\t\t\t");
+		GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
+		composeXmlStr = wxString::FromAscii(xmlPrologue); // first string in xml file
+		composeXmlStr.Replace(_T("\r\n"),_T("")); // remove the ending \r\n added by GetEncodingStringForXmlFiles wxTextFile::AddLine adds its own eol
+		textFile->AddLine(composeXmlStr);
+		int nCommentItems;
+		nCommentItems = sizeof(fileCommentBlock)/sizeof(wxString);
+		int i;
+		for (i = 0; i < nCommentItems; i++)
+		{
+			textFile->AddLine(fileCommentBlock[i]);
+		}
+		// now we start building the actual xml part of the file (remainder of file)
+		// We use the data stored in m_pUserProfiles
+		composeXmlStr.Empty();
+		composeXmlStr += _T('<');
+		composeXmlStr += wxString::FromAscii(userprofilessupport);
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		// Modify the version to keep track of admin modified profiles
+		composeXmlStr = tab1 + wxString::FromAscii(profileVersion);
+		wxString verStr = m_pUserProfiles->profileVersion;
+		// Add the word ":user_modified" to the version number if not already present
+		if (verStr.Find(_T(":user_modified")) == wxNOT_FOUND)
+		{
+			verStr += _T(":user_modified");
+		}
+		composeXmlStr += _T("=\"") + verStr + _T("\"");
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		int ct;
+		int tot = m_pUserProfiles->definedProfileNames.GetCount();
+		wxString strVal;
+		for (ct = 0; ct < tot; ct++)
+		{
+			strVal.Empty();
+			strVal << ct+1;
+			composeXmlStr = tab1 + wxString::FromAscii(definedProfile) + strVal + _T("=\"") + m_pUserProfiles->definedProfileNames.Item(ct) + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			
+			// replace any entity chars with their xml entity representations
+			wxString str = m_pUserProfiles->descriptionProfileTexts.Item(ct);
+			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+			str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+			
+			composeXmlStr = tab1 + wxString::FromAscii(descriptionProfile) + strVal + _T("=\"") + str + _T("\"");
+			textFile->AddLine(composeXmlStr);
+		}
+		composeXmlStr.Empty();
+		composeXmlStr = tab1 + _T('>');
+		textFile->AddLine(composeXmlStr);
+		// the top level <UserProfilesSupport tag and attributes are done, now loop through the
+		// profileItemList and output the data for each item in the list
+		ProfileItemList::Node* node;
+		UserProfileItem* pItem;
+		tot = m_pUserProfiles->profileItemList.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			node = m_pUserProfiles->profileItemList.Item(ct);
+			pItem = node->GetData();
+			wxASSERT(pItem != NULL);
+			composeXmlStr.Empty();
+			composeXmlStr = _T('<') + wxString::FromAscii(menu) + _T(' ') + wxString::FromAscii(itemID) + _T("=\"") + pItem->itemID + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			composeXmlStr = tab1 + wxString::FromAscii(itemType) + _T("=\"") + pItem->itemType + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			
+			// replace any entity chars with their xml entity representations
+			wxString str = pItem->itemText;
+			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+			str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+			composeXmlStr = tab1 + wxString::FromAscii(itemText) + _T("=\"") + str + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			
+			// replace any entity chars with their xml entity representations
+			str = pItem->itemDescr;
+			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+			str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+			composeXmlStr = tab1 + wxString::FromAscii(itemDescr) + _T("=\"") + str + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			composeXmlStr = tab1 + wxString::FromAscii(itemAdminCanChange) + _T("=\"") + pItem->adminCanChange + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			composeXmlStr = tab1 + _T('>');
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			int ct2;
+			int tot2 = pItem->usedProfileNames.GetCount();
+			for (ct2 = 0; ct2 < tot2; ct2++)
+			{
+				composeXmlStr = tab2 + _T('<') + wxString::FromAscii(profile) + _T(' ') + wxString::FromAscii(itemUserProfile) + _T("=\"") + pItem->usedProfileNames.Item(ct2) + _T("\"");
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab3 + wxString::FromAscii(itemVisibility) + _T("=\"") + pItem->usedVisibilityValues.Item(ct2) +  _T("\"");
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab3 + wxString::FromAscii(factory) + _T("=\"") + pItem->usedFactoryValues.Item(ct2) +  _T("\"");
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab2 +  _T('>');
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab2 + _T('<') + wxString::FromAscii(end_profile) + _T('>');
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+			}
+			composeXmlStr = _T('<') + wxString::FromAscii(end_menu) + _T('>');
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+		}
+		composeXmlStr.Empty();
+		composeXmlStr += _T('<');
+		composeXmlStr += wxString::FromAscii(end_userprofilessupport) + _T('>');
+		textFile->AddLine(composeXmlStr);
+	}
+	return TRUE;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     true if configuration was successful, false if there was an error
@@ -5911,7 +6403,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	ConfigureToolBarForUserProfile();
 
 	// Next, configure visibility of itemType == wizardListItem element
-	
+	ConfigureWizardForUserProfile();
 	
 	// Finally, configure visibility of itemType == dialogControl elements
 	// AI_UserProfiles.xml currently does not include any dialogControl 
@@ -5971,7 +6463,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 	wxASSERT(pMenuBar_Current != NULL);
 	pMenuBar_Current->Freeze(); // to avoid flicker while changing the menu
 	int ct;
-	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
 		bool bProcessingFileMenu = FALSE;
@@ -6008,7 +6500,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 				wxMenuItemList menuItemListForThisMainMenu;
 				menuItemListForThisMainMenu = pMainMenuItem_CurrentMenuBar->GetMenuItems();
 				int numItemsToRemove;
-				numItemsToRemove = menuItemListForThisMainMenu.GetCount(); // could be empty already
+				numItemsToRemove = (int)menuItemListForThisMainMenu.GetCount(); // could be empty already
 				// Note: testing shows that a wxMenuItemList also enumerates menu separators as
 				// countable items in the list.
 				if (numItemsToRemove != 0)
@@ -6129,7 +6621,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 			}
 			// remove any separators at the top of the top level menu
 			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
-			int nSubMenuItems = pMenuItemList.GetCount();
+			int nSubMenuItems = (int)pMenuItemList.GetCount();
 			pNode = pMenuItemList.GetFirst();
 			while (pNode != NULL)
 			{
@@ -6154,7 +6646,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 			
 			// change any remaining multiple sequences of menu separators to a single separator
 			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items
-			nSubMenuItems = pMenuItemList.GetCount();
+			nSubMenuItems = (int)pMenuItemList.GetCount();
 			int smCt;
 			for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
 			{
@@ -6363,7 +6855,7 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 	wxASSERT(pModeBarSizer != NULL);
 	wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
 	wxSizerItemList::Node* node;
-	int nSizerItems = modeBarItems.GetCount();
+	int nSizerItems = (int)modeBarItems.GetCount();
 	int ct;
 	bool bDelayRemoved = FALSE;
 	for (ct = 0; ct < nSizerItems; ct++)
@@ -6500,6 +6992,63 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 												// presence when calculating the client size
 												// with pMainFrame->GetClientSize()
 	pMainFrame->Thaw();
+}
+
+// Sets the value of m_bShowNewProjectItem to FALSE if the <New Project> user profile
+// item's itemVisibility for the current profile is set to "0"; otherwise sets the
+// value of m_bShowNewProjectItem to TRUE.
+void CAdapt_ItApp::ConfigureWizardForUserProfile()
+{
+	// we assume that a mode bar item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	if (NewProjectItemIsVisibleInThisProfile(m_nWorkflowProfile))
+	{
+		m_bShowNewProjectItem = TRUE;
+	}
+	else
+	{
+		m_bShowNewProjectItem = FALSE;
+	}
+}
+
+bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
+{
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection and all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType != _T("wizardListItem"))
+		{
+			continue;
+		}
+		wxString itemLabelStr;
+		itemLabelStr = pUserProfileItem->itemText;
+		itemLabelStr.Trim(FALSE);
+		itemLabelStr.Trim(TRUE);
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemLabelStr == _("<New Project>") && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -6884,7 +7433,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	{
 		int ct;
 		int tot;
-		tot = pTempUserProfiles->definedProfileNames.GetCount();
+		tot = (int)pTempUserProfiles->definedProfileNames.GetCount();
 		for (ct = 0; ct < tot; ct++)
 		{
 			wxString tempStr, appStr;
@@ -6901,7 +7450,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	{
 		int ct;
 		int tot;
-		tot = pTempUserProfiles->descriptionProfileTexts.GetCount();
+		tot = (int)pTempUserProfiles->descriptionProfileTexts.GetCount();
 		for (ct = 0; ct < tot; ct++)
 		{
 			wxString tempStr, appStr, verStr, msg;
@@ -6929,7 +7478,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 		ProfileItemList::Node* posTemp;
 		ProfileItemList::Node* posApp;
 		int count;
-		int item_count = pTempUserProfiles->profileItemList.GetCount();
+		int item_count = (int)pTempUserProfiles->profileItemList.GetCount();
 		for(count = 0; count < item_count; count++)
 		{
 			posTemp = pTempUserProfiles->profileItemList.Item(count);
@@ -7004,7 +7553,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 			}
 			int ct;
 			int totCt;
-			totCt = pTempItem->usedVisibilityValues.GetCount();
+			totCt = (int)pTempItem->usedVisibilityValues.GetCount();
 			for (ct = 0; ct < totCt; ct++)
 			{
 				if (pTempItem->usedProfileNames.Item(ct) != pAppItem->usedProfileNames.Item(ct))
@@ -7084,7 +7633,7 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 		wxASSERT(pMainMenu != NULL);
 		wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
 		int smCt;
-		int nSubMenuItems = pMenuItemList.GetCount();
+		int nSubMenuItems = (int)pMenuItemList.GetCount();
 		for (smCt = 0; smCt < nSubMenuItems; smCt++)
 		{
 			wxMenuItemList::Node* pNode;
@@ -7158,7 +7707,7 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int 
 	}
 	int ct;
 	int totct;
-	totct = m_pUserProfiles->profileItemList.GetCount();
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < totct; ct++)
 	{
 		UserProfileItem* pUserProfileItem;
@@ -7203,7 +7752,7 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 	}
 	int ct;
 	int totct;
-	totct = m_pUserProfiles->profileItemList.GetCount();
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < totct; ct++)
 	{
 		UserProfileItem* pUserProfileItem;
@@ -7250,7 +7799,7 @@ bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const w
 	}
 	int ct;
 	int totct;
-	totct = m_pUserProfiles->profileItemList.GetCount();
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
 	for (ct = 0; ct < totct; ct++)
 	{
 		UserProfileItem* pUserProfileItem;
@@ -7428,7 +7977,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 	// TODO: Up to here !!!
 	// Plan: Try to fit the following code into the solution.	
 	bool bInsertionMade = FALSE;
-	int nSubMenuItems = pAIMenuItemList.GetCount();
+	int nSubMenuItems = (int)pAIMenuItemList.GetCount();
 	if (nSubMenuItems == 0)
 	{
 		// the menu exists but has no items so just append the item where it will
@@ -7546,7 +8095,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		//	}
 		//	// remove any separators at the top of the top level menu
 		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
-		//	nSubMenuItems = pMenuItemList.GetCount();
+		//	nSubMenuItems = (int)pMenuItemList.GetCount();
 		//	pNode = pMenuItemList.GetFirst();
 		//	while (pNode != NULL)
 		//	{
@@ -7570,7 +8119,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		//	
 		//	// change any remaining multiple sequences of menu separators to a single separator
 		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
-		//	nSubMenuItems = pMenuItemList.GetCount();
+		//	nSubMenuItems = (int)pMenuItemList.GetCount();
 		//	for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
 		//	{
 		//		pNode = pMenuItemList.Item(smCt);
@@ -7636,7 +8185,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 		wxASSERT(pMainMenu != NULL);
 		wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
 		int smCt;
-		int nSubMenuItems = pMenuItemList.GetCount();
+		int nSubMenuItems = (int)pMenuItemList.GetCount();
 		bool bDeletionMade = FALSE;
 		for (smCt = 0; smCt < nSubMenuItems; smCt++)
 		{
@@ -7695,7 +8244,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 			}
 			// remove any separators at the top of the top level menu
 			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
-			nSubMenuItems = pMenuItemList.GetCount();
+			nSubMenuItems = (int)pMenuItemList.GetCount();
 			pNode = pMenuItemList.GetFirst();
 			while (pNode != NULL)
 			{
@@ -7719,7 +8268,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 			
 			// change any remaining multiple sequences of menu separators to a single separator
 			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
-			nSubMenuItems = pMenuItemList.GetCount();
+			nSubMenuItems = (int)pMenuItemList.GetCount();
 			for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
 			{
 				pNode = pMenuItemList.Item(smCt);
@@ -7965,7 +8514,7 @@ wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint)
 	MainMenuItemList::Node* mmNode;
 	AI_MainMenuItem* pMainMenuItem;
 	int ct;
-	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
@@ -7995,7 +8544,7 @@ wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
 	MainMenuItemList::Node* mmNode;
 	AI_MainMenuItem* pMainMenuItem;
 	int ct;
-	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
@@ -8004,7 +8553,7 @@ wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
 		SubMenuItemList::Node* smNode;
 		AI_SubMenuItem* pSubMenuItem;
 		int ct_sm;
-		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		int nSubMenuItems = (int)pMainMenuItem->aiSubMenuItems.GetCount();
 		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
 		{
 			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
@@ -8040,7 +8589,7 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr)
 	AI_MainMenuItem* pMainMenuItem;
 	bool bStartCopying = FALSE;
 	int ct;
-	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
@@ -8049,7 +8598,7 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr)
 		SubMenuItemList::Node* smNode;
 		AI_SubMenuItem* pSubMenuItem;
 		int ct_sm;
-		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		int nSubMenuItems = (int)pMainMenuItem->aiSubMenuItems.GetCount();
 		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
 		{
 			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
@@ -8095,7 +8644,7 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, 
 	AI_MainMenuItem* pMainMenuItem;
 	bool bStartCopying = FALSE;
 	int ct;
-	int nMainMenuItems = m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
@@ -8104,7 +8653,7 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, 
 		SubMenuItemList::Node* smNode;
 		AI_SubMenuItem* pSubMenuItem;
 		int ct_sm;
-		int nSubMenuItems = pMainMenuItem->aiSubMenuItems.GetCount();
+		int nSubMenuItems = (int)pMainMenuItem->aiSubMenuItems.GetCount();
 		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
 		{
 			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
@@ -8166,7 +8715,7 @@ wxArrayPtrVoid CAdapt_ItApp::GetMenuStructureItemsArrayForThisTopLevelMenu(AI_Ma
 	SubMenuItemList::Node* smNode;
 	AI_SubMenuItem* pSubMenuItem;
 	int ct_sm;
-	int nSubMenuItems = pmmItem->aiSubMenuItems.GetCount();
+	int nSubMenuItems = (int)pmmItem->aiSubMenuItems.GetCount();
 	for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
 	{
 		smNode = pmmItem->aiSubMenuItems.Item(ct_sm);
@@ -8306,6 +8855,169 @@ int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxStr
 		return menuItemId;
 	}
 }
+
+int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemTextStr, wxString profileStr, wxString valueStr)
+{
+	wxString lineStr;
+	int linePos = -1;
+	if (f->IsOpened())
+	{
+		// Note: we are scanning an in-memory representation of the xml file, so
+		// our comparison string itemTextStr needs to have xml entity representations
+		// to effect the comparison
+		wxString str = itemTextStr;
+		str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+		str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+		str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+		str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+		str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+		bool bFoundItemTextLine = FALSE;
+		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundItemTextLine; lineStr = f->GetNextLine())
+		{
+			int chPos;
+			// does this line have our itemTextStr?
+			chPos = lineStr.Find(_T("itemText=\"")+str+_T("\""));
+			if (chPos != wxNOT_FOUND)
+			{
+				bFoundItemTextLine = TRUE;
+			}
+		}
+		if (bFoundItemTextLine)
+		{
+			// note: lineStr is now the next line beyond the "itemText..." line
+			// so use a do ... while () loop
+			bool bFoundProfileLine = FALSE;
+			bool bMadeReplacement = FALSE;
+			int chPos;
+			do 
+			{
+				chPos = lineStr.Find(profileStr);
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundProfileLine = TRUE;
+				}
+				lineStr = f->GetNextLine();
+			} while (!bFoundProfileLine && !f->Eof());
+			if (bFoundProfileLine)
+			{
+				// the lineStr = f->GetNextLine() call above means we should now be pointing at the
+				// itemVisibility line that we want to modify
+				if (lineStr.Find(_T("itemVisibility")) != wxNOT_FOUND)
+				{
+					int rPos = -1;
+					if (lineStr.Find(_T("\"0\"")) != wxNOT_FOUND)
+					{
+						rPos = (int)lineStr.Replace(_T("\"0\""),_T("\"1\""));
+					}
+					else if (lineStr.Find(_T("\"1\"")) != wxNOT_FOUND)
+					{
+						rPos = (int)lineStr.Replace(_T("\"1\""),_T("\"0\""));
+					}
+					else
+					{
+						wxASSERT(FALSE); // programmer error!
+						return linePos;
+					}
+					if (rPos != wxNOT_FOUND)
+						bMadeReplacement = TRUE;
+				}
+				else
+				{
+					wxASSERT(FALSE); // programmer error!
+					return linePos;
+				}
+			}
+			else
+			{
+				wxASSERT(FALSE); // programmer error!
+				return linePos;
+			}
+			if (bMadeReplacement)
+			{
+				linePos = f->GetCurrentLine();
+			}
+		}
+		else
+		{
+			wxASSERT(FALSE);
+			return linePos;
+		}
+		wxString testStr1,testStr2; // for debugging below
+		if (linePos != wxNOT_FOUND)
+		{
+			// now remove the "current" textFile line and replace it with lineStr
+			testStr1 = f->GetLine(linePos); // for debugging
+			f->RemoveLine(linePos);
+			f->InsertLine(lineStr,linePos);
+			testStr2 = f->GetLine(linePos); // for debugging
+		}
+	}
+	return linePos;
+}
+
+int CAdapt_ItApp::ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString descrProfileN, wxString valueStr)
+{
+	wxString lineStr;
+	int linePos = -1;
+	if (f->IsOpened())
+	{
+		bool bFoundDescrLine = FALSE;
+		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundDescrLine; lineStr = f->GetNextLine())
+		{
+			int chPos;
+			// does this line have our itemTextStr?
+			chPos = lineStr.Find(descrProfileN);
+			if (chPos != wxNOT_FOUND)
+			{
+				bFoundDescrLine = TRUE;
+			}
+		}
+		if (bFoundDescrLine)
+		{
+			// note: lineStr is now the next line beyond the "itemText..." line
+			// so back up one line
+			lineStr = f->GetPrevLine();
+			wxString testStr1,testStr2; // for debugging below
+			if (lineStr.Find(descrProfileN) != wxNOT_FOUND)
+			{
+				// Note: the default descriptive text describing each profile does not
+				// use any "entities". However, since the description field is editable
+				// by the user, a user may have introduced some characters or "entities"
+				// i.e., '<', '>' '&', ''', and '"'. These need to be replaced by the
+				// xml form: &lt;, &gt; &amp; &apos; and &quot; respectively, otherwise
+				// it will produce malformed xml. The XML.cpp file has a ReplaceEntities()
+				// function but it takes a CBString. Rather than converting to and from
+				// CBString to use that function, we'll simply do the conversion directly
+				// here.
+				wxString str = valueStr;
+				// replace entities
+				str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+				str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+				str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+				str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+				str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+				lineStr = lineStr.Mid(0,descrProfileN.Length()+1); // removes "="..." to right end of descr line
+				lineStr += _T("=\"");
+				lineStr += str;
+				lineStr +=  _T("\"");
+				linePos = f->GetCurrentLine();
+				testStr1 = f->GetLine(linePos); // for debugging
+				f->RemoveLine(linePos);
+				f->InsertLine(lineStr,linePos);
+				testStr2 = f->GetLine(linePos); // for debugging
+			}
+			else
+			{
+				wxASSERT(FALSE); // programmer error!
+				return linePos;
+			}
+		}
+	}
+	return linePos;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
@@ -9035,6 +9747,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pAI_MenuStructure = (AI_MenuStructure*)NULL; // whm added 8Sep10
 	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
+	m_pFactoryUserProfiles = (UserProfiles*)NULL; // whm added 15Oct10
 
 	m_bForceFullConsistencyCheck = FALSE; // set true if user has respellings in the KB and
 			// after the KB save to disk and the message comes up asking if he wants a full
@@ -9371,6 +10084,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm added 30Aug10 for AI_UserProfiles.xml file processing
 	m_bUsingAdminDefinedUserProfile = FALSE;
+	// whm added 19Oct10 for user workflow profiles support
+	m_bShowNewProjectItem = TRUE; // show <New Project> in projectPage by default
 
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
 											   // into phrases for adapting
@@ -12572,6 +13287,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// m_mapMenuLabelStrToIdInt with all of AI's menu label -> menu id 
 	// associations.
 	SetupDefaultMenuStructure(m_pAI_MenuStructure, m_mapMenuLabelStrToIdInt);
+	// The following SetupDefaultUserProfiles() must come after the SetupDefaultMenuStructure()
+	// call above within OnInit().
+	SetupDefaultUserProfiles(m_pFactoryUserProfiles);
 
 	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
 	// copy there if necessary from the installation resources.
@@ -13567,6 +14285,13 @@ int CAdapt_ItApp::OnExit(void)
 	// profileItemList member that point to UserProfileItem instances on the 
 	// heap.
 	DestroyUserProfiles(m_pUserProfiles);
+	// also destroy the allocated memory in m_pFactoryUserProfiles. This is a single 
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pFactoryUserProfiles also contains a list of pointers in its 
+	// profileItemList member that point to UserProfileItem instances on the 
+	// heap.
+	DestroyUserProfiles(m_pFactoryUserProfiles);
+	
 	DestroyMenuStructure(m_pAI_MenuStructure);
 	
 	int aTot;
@@ -15243,10 +15968,10 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 
     // since the CUIntArrays contain all the document's markers, and since the user cannot
     // add markers in the GUI which calls this function, the sizes must be identical
-	int countBeforeEdit = pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
-	int countAfterEdit = pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
+	int countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
+	int countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	int numFlags = pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
+	int numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
     // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
     // m_filterFlagsDoc CUIntArray contain data for both known and unknown markers. The
     // former contains the list box formatted whole marker and its description. The later
@@ -15412,10 +16137,10 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 	// Now check for changes in the Project's list of filter markers
 	wxString filterMkrStr;
 	filterMkrStr.Empty(); // start with an empty string
-	countBeforeEdit = pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit.GetCount();
-	countAfterEdit = pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
+	countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit.GetCount();
+	countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	numFlags = pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
+	numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
 	for (int index = 0; index < numFlags;  index++)
 	{
 		// Collect the markers to store as new filter marker defaults for the Project
@@ -29685,16 +30410,17 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
 	if (editMenuDlg.ShowModal() == wxID_OK)
 	{
-		if (editMenuDlg.bChangesMadeToProfileItems || editMenuDlg.bChangeMadeToProfileSelection)
+		if (editMenuDlg.bChangesMadeToProfileItems 
+			|| editMenuDlg.bChangeMadeToProfileSelection
+			|| editMenuDlg.bChangeMadeToDescriptionItems)
 		{
 			// Make changes to the interface here based on the user's workflow
 			// profile selection/changes which are now stored in m_nWorkflowProfile
 			// and m_pUserProfiles.
 			ConfigureInterfaceForUserProfile();
-			MakeMenuInitializationsAndPlatformAdjustments()
+			MakeMenuInitializationsAndPlatformAdjustments();
 			// Also, save the changes to the AI_UserProfiles.xml file
-			// TODO:
-			;
+			SaveUserProfilesDataToXML();
 		}
 	}
 }
