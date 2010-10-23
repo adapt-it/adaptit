@@ -2902,7 +2902,6 @@ bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles
 		}
 		ProfileItemList::Node* apos;
 		MapProfileChangesToStringValues::iterator a_iter;
-		count;
 		int a_tot = (int)baseUserProfiles->profileItemList.GetCount();
 		for(count = 0; count < a_tot; count++)
 		{
@@ -3953,7 +3952,6 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 		}
 		ProfileItemList::Node* apos;
 		MapProfileChangesToStringValues::iterator a_iter;
-		count;
 		int a_tot = (int)appUserProfiles->profileItemList.GetCount();
 		for(count = 0; count < a_tot; count++)
 		{
