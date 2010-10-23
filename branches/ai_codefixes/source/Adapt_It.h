@@ -81,6 +81,10 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_DATE_MONTH 11
 #define VERSION_DATE_YEAR 2010
 
+// whm added 20Oct10 for user profiles support
+#define PROFILE_VERSION_MAJOR_PART 1
+#define PROFILE_VERSION_MINOR_PART 0
+
 #define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
                       // never kept & tweaked; if #defined, piles & strips are retained &
                       // tweaked where necessary to update after user editing -- our final
@@ -389,6 +393,8 @@ const char end_profile[] = "/PROFILE";
 
 // this group are for the attribute names for AI_UserProfiles.xml
 const char profileVersion[] = "profileVersion";
+const char applicationCompatibility[] = "applicationCompatibility";
+const char adminModified[] = "adminModified";
 const char definedProfile[] = "definedProfile"; // the xml will actually have a number suffix
 												// i.e., definedProfile1, definedProfile2, etc.
 const char descriptionProfile[] = "descriptionProfile"; // the xml will actually have a number suffix
@@ -962,6 +968,15 @@ struct USFMAnalysis
 };
 
 // whm added 31Aug10 for User Workflow Profiles support
+
+enum VersionComparison
+{
+	sameAppVersion,
+	runningAppVersionIsNewer,
+	runningAppVersionIsOlder,
+	profileVersionDiffers
+};
+
 struct UserProfileItem
 {
 	wxString itemID;
@@ -982,6 +997,8 @@ WX_DECLARE_LIST(UserProfileItem, ProfileItemList); // see list definition macro 
 struct UserProfiles
 {
 	wxString profileVersion;
+	wxString applicationCompatibility;
+	wxString adminModified;
 	wxArrayString definedProfileNames;
 	wxArrayString descriptionProfileTexts;
 	ProfileItemList profileItemList;
@@ -2392,12 +2409,10 @@ public:
 	// used in the ParseWord() function in the document class
 	bool		m_bChangeFixedSpaceToRegularSpace;
 
-	// whm added 30Aug10 for AI_UserProfiles.xml file processing
-	bool		m_bUsingAdminDefinedUserProfile;
 	UserProfiles* m_pUserProfiles; // a struct on the heap that contains the profileVersion,
-									// an array of definedProfileNames, descriptionProfileTexts
-									// and list of pointers to the UserProfileItem objects on 
-									// the heap
+									// applicationCompatibility, adminModified, an array of 
+									// definedProfileNames, descriptionProfileTexts and list 
+									// of pointers to the UserProfileItem objects on the heap
 	UserProfiles* m_pFactoryUserProfiles; // a struct on the heap that is similar to m_pUserProfiles
 									// above, but always represents the factory version of the
 									// user profiles since it is created in OnInit() from the
@@ -2709,8 +2724,8 @@ public:
 #endif
 
 	// whm added 21Sep10 the following for user profile support
-	bool	BuildUserProfileXMLFile(wxTextFile* textFile);
-	bool	ConfigureInterfaceForUserProfile();
+	void	BuildUserProfileXMLFile(wxTextFile* textFile);
+	void	ConfigureInterfaceForUserProfile();
 	void	ConfigureMenuBarForUserProfile();
 	void	ConfigureModeBarForUserProfile();
 	void	ConfigureToolBarForUserProfile();
@@ -2734,13 +2749,21 @@ public:
 	int		GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
 	int		ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemTextStr, wxString profileStr, wxString valueStr);
 	int		ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString descrProfileN, wxString valueStr);
+	void	UpdateAdminModifiedLineToYesOrNo(wxTextFile* f);
 	void	SetupDefaultUserProfiles(UserProfiles*& pUserProfiles);
+	bool	CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles, UserProfiles* baseUserProfiles);
 	void	GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles);
+	void	GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath, 
+				wxString& profileVersionStr,wxString& applicationCompatibilityStr,wxString& adminModifiedStr);
+	bool	BackupExistingUserProfilesFileInWorkFolder(wxString AIuserProfilesWorkFolderPath, wxString& backupPathNameUsed);
 	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt);
 	void	DestroyUserProfiles(UserProfiles*& pUserProfiles);
 	void	DestroyMenuStructure(AI_MenuStructure*& pMenuStructure);
-	bool	SaveUserProfilesDataToXML();
+	bool	SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath);
 	void	MapChangesInUserProfiles(UserProfiles* tempUserProfiles, UserProfiles* appUserProfiles);
+	enum VersionComparison CompareRunningVersionWithWorkFolderVersion(wxString oldProfileVersion, wxString oldApplicationCompatibility);
+	wxString GetAppVersionOfRunningAppAsString();
+	wxString GetProfileVersionOfRunningAppAsString();
 	// The following functions are currently unused and possibly incomplete/untested, but are left
 	// here because they might contain useful material for future use:
 	//bool	MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind);

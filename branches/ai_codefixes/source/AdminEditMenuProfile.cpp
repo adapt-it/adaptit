@@ -175,7 +175,7 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// We'll populate the list boxes with default settings parsed from our
 		// default unix-like strings
 		readDataFrom = _T("Internal Default Strings (Unable to read AI_UserProfiles.xml)");
-		m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles);
+		m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 	}
 	else
 	{
@@ -823,6 +823,8 @@ void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfil
 	if (pFromUserProfiles != NULL)
 	{
 		pToUserProfiles->profileVersion = pFromUserProfiles->profileVersion;
+		pToUserProfiles->applicationCompatibility = pFromUserProfiles->applicationCompatibility;
+		pToUserProfiles->adminModified = pFromUserProfiles->adminModified;
 		
 		int count;
 		int totPNamesFrom = (int)pFromUserProfiles->definedProfileNames.GetCount();
@@ -1044,6 +1046,8 @@ bool CAdminEditMenuProfile::UserProfileItemsHaveChanged()
 	wxASSERT(tempUserProfiles->descriptionProfileTexts.GetCount() == appUserProfiles->descriptionProfileTexts.GetCount());
 	wxASSERT(tempUserProfiles->profileItemList.GetCount() == appUserProfiles->profileItemList.GetCount());
 	wxASSERT(tempUserProfiles->profileVersion == appUserProfiles->profileVersion);
+	wxASSERT(tempUserProfiles->applicationCompatibility == appUserProfiles->applicationCompatibility);
+	wxASSERT(tempUserProfiles->adminModified == appUserProfiles->adminModified);
 
 	// We only need to check for changes between tempUserProfiles and appUserProfiles, checking for changes
 	// in their usedVisibilityValues arrays.
@@ -1279,14 +1283,14 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		bChangeMadeToProfileSelection = TRUE;
 		m_pApp->m_nWorkflowProfile = tempWorkflowProfile;
 	}
-	if (UserProfileDescriptionsHaveChanged())
+	if (UserProfileDescriptionsHaveChanged() || UserProfileItemsHaveChanged())
 	{
 		m_pApp->MapChangesInUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
 	}
 	if (UserProfileItemsHaveChanged())
 	{
 		bChangesMadeToProfileItems = TRUE;
-		m_pApp->MapChangesInUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
+		//m_pApp->MapChangesInUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
 		// Copy any changes made in the user workflow profiles to the App's
 		// member.
 		// Notify the user if changes were made in a profile other than the

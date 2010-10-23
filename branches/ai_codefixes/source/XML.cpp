@@ -1938,6 +1938,8 @@ bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// ProfileItemList.
 		gpUserProfiles = new UserProfiles;
 		gpUserProfiles->profileVersion = _T("");
+		gpUserProfiles->applicationCompatibility = _T("");
+		gpUserProfiles->adminModified = _T("");
 		gpUserProfiles->definedProfileNames.Clear();
 		gpUserProfiles->descriptionProfileTexts.Clear();
 		gpUserProfiles->profileItemList.Clear();
@@ -1994,6 +1996,22 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			gpUserProfiles->profileVersion = pValueW;
 #else
 			gpUserProfiles->profileVersion = pValue;
+#endif
+		}
+		else if (attrName == applicationCompatibility)
+		{
+#ifdef _UNICODE
+			gpUserProfiles->applicationCompatibility = pValueW;
+#else
+			gpUserProfiles->applicationCompatibility = pValue;
+#endif
+		}
+		else if (attrName == adminModified)
+		{
+#ifdef _UNICODE
+			gpUserProfiles->adminModified = pValueW;
+#else
+			gpUserProfiles->adminModified = pValue;
 #endif
 		}
 		else if (attrName.Find(definedProfile) == 0)

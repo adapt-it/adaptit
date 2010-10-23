@@ -1199,10 +1199,11 @@ const wxString defaultProfileItems[] =
 	// stored in the m_pUserProfiles struct on the heap with those that are used in the 
 	// defaultProfileItems string array below. It uses wxLogDebug() calls to alert the
 	// programmer of any significant differences/inconsistencies. 
-	_T("UserProfilesSupport:profileVersion=\"1.0\":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
-	   _T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
-	   _T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
-	   _T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\":"),
+	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.0.0\":adminModified=\"No\"")
+		_T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
+		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
+		_T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
+		_T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\":"),
 	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
@@ -2590,16 +2591,16 @@ void SetupDefaultStylesMap()
 	}
 }
 
-// whm added 11Sep10
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being populated
 /// \remarks
-/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is  
-/// called in OnInit() to set up a factoryUserProfiles struct on the heap for use
-/// in AdminEditMenuProfile class. It is also called if the app cannot find the 
-/// AI_UserProfiles.xml file and it must use SetupDefaultUserProfiles() to establish 
-/// its internal representation of any user selected User Workflow Profile. 
+/// Called from: the App's OnInit(), ReportMenuAndUserProfilesInconsistencies(), and 
+/// CAdminEditMenuProfile::InitDialog. It is called in OnInit() to set up a 
+/// factoryUserProfiles struct on the heap for use in AdminEditMenuProfile class. 
+/// It is also called if the app cannot find the AI_UserProfiles.xml file and it must 
+/// use SetupDefaultUserProfiles() to establish its internal representation of any user 
+/// selected User Workflow Profile. 
 /// When AI_UserProfiles.xml is available (the usual case) the m_pUserProfiles is 
 /// populated by the AtPROFILEEndTag() function in XML.cpp, rather than by this 
 /// SetupDefaultUserProfiles() function. After setting up the pUserProfiles struct
@@ -2668,6 +2669,8 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					{
 						pUserProfiles = new UserProfiles;
 						pUserProfiles->profileVersion = _T("");
+						pUserProfiles->applicationCompatibility = _T("");
+						pUserProfiles->adminModified = _T("");
 						pUserProfiles->definedProfileNames.Clear();
 						pUserProfiles->descriptionProfileTexts.Clear();
 						pUserProfiles->profileItemList.Clear();
@@ -2695,6 +2698,16 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					{
 						wxASSERT(pUserProfiles != NULL);
 						pUserProfiles->profileVersion = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(applicationCompatibility))
+					{
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->applicationCompatibility = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(adminModified))
+					{
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->adminModified = valueStr;
 					}
 					else if (attrStr.Find(wxString::FromAscii(definedProfile)) == 0)
 					{
@@ -2758,9 +2771,195 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 	GetAndAssignIdValuesToUserProfilesStruct(pUserProfiles);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the compareUserProfiles and baseUserProfiles differ in the significant
+///             profile items that they share in common, FALSE if those items are the same
+/// \param      <- compareUserProfiles  a pointer to the UserProfiles struct whose profile items
+///                 are being checked/compared
+/// \param      <- baseUserProfiles  a pointer to the UserProfiles struct whose profile items
+///                 are the basis against which the compareUserProfiles items are being compared
+/// \remarks
+/// Called from: the App's UpdateAdminModifiedLineToYesOrNo(). 
+/// Determines if the current user profile m_pUserProfiles (compareUserProfiles) differs from 
+/// the factory profile m_pFactoryUserProfiles (baseUserProfiles). It only check for differences in 
+/// profile items that the two profiles (compareUserProfiles and baseUserProfiles) have in common. 
+/// It ignores any profile items that are present but are not shared in common. This allows 
+/// upgrades to be done where different profile items might be present/absent in the course 
+/// of an upgrade to a newer, or downgrade to an older version of the application and the
+/// AI_UserProfiles.xml file.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles, UserProfiles* baseUserProfiles)
+{
+	// whm 22Oct10 rewrote to allow for different numbers of items in baseUserProfiles
+	// and compareUserProfiles. See MapChangesInUserProfiles().
+	bool bTheyDiffer = FALSE;
+	// Strategy:
+	// There is an m_pFactoryUserProfiles (baseUserProfiles) struct created in OnInit() 
+	// that we can use for comparison with the current compareUserProfiles. This comparison 
+	// ignores the adminModified attributes and others which are not editable by the 
+	// administrator. If CommonItemsInProfilesDiffer() returns FALSE it means that the
+	// compareUserProfiles struct essentially contains only baseUserProfiles (i.e., factory)
+	// data.
+	
+	wxASSERT(compareUserProfiles != NULL);
+	wxASSERT(baseUserProfiles != NULL);
+
+	if (compareUserProfiles != NULL && baseUserProfiles != NULL)
+	{
+		// we use a temporary map tempMap to associate the necessary attribute
+		// items with their associated values.
+		MapProfileChangesToStringValues tempMap;
+		MapProfileChangesToStringValues::iterator iter;
+		
+		// Enter all compareUserProfiles items into our tempMap
+		// First enter all of compareUserProfiles->descriptionProfileTexts into the map
+		int descCt;
+		int descTot = (int)compareUserProfiles->descriptionProfileTexts.GetCount();
+		for (descCt = 0; descCt < descTot; descCt++)
+		{
+			// enter all of compareUserProfiles->descriptionProfileTexts into the map
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << descCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				tempMap.insert(*iter);
+			}
+			else
+			{
+				// key not in the map
+				tempMap[key] = compareUserProfiles->descriptionProfileTexts[descCt];
+			}
+		}
+		// Next, enter all of compareUserProfiles->profileItemList items into the tempMap
+		ProfileItemList::Node* tpos;
+		int count;
+		int t_tot = (int)compareUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < t_tot; count++)
+		{
+			tpos = compareUserProfiles->profileItemList.Item(count);
+			UserProfileItem* ptItem;
+			ptItem = tpos->GetData();
+			wxASSERT(ptItem != NULL);
+			int ct;
+			int ct_t;
+			ct_t = (int)ptItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_t; ct++)
+			{
+				wxString key = ptItem->itemText + _T(":") + ptItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					tempMap.insert(*iter);
+				}
+				else
+				{
+					// key not in the map
+					tempMap[key] = ptItem->usedVisibilityValues[ct];
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( iter = tempMap.begin(); iter != tempMap.end(); ++iter )
+		//{
+		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
+		//}
+		
+		// Now go through all items of the baseUserProfiles struct, and do a lookup to see if
+		// each item is in the map. If so, check the map's associated value. If the map's 
+		// associated value is different, then we immediately return TRUE. 
+		int appCt;
+		int appTot = (int)baseUserProfiles->descriptionProfileTexts.GetCount();
+		int nAppItemsNotAmongTempItems = 0;
+		int nTempItemsNotAmongAppItems = (int)compareUserProfiles->descriptionProfileTexts.GetCount() + (4*(int)compareUserProfiles->profileItemList.GetCount());
+		for (appCt = 0; appCt < appTot; appCt++)
+		{
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << appCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				wxString keyTemp = iter->first;
+				wxString valueTemp = iter->second;
+				wxString appDescrText = baseUserProfiles->descriptionProfileTexts.Item(appCt);
+				// check if the valueTemp differs from the appDescrText
+				if (valueTemp != appDescrText)
+				{
+					bTheyDiffer = TRUE;
+					return bTheyDiffer;
+				}
+				nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+			}
+			else
+			{
+				// key not in the map
+				nAppItemsNotAmongTempItems++;
+			}
+		}
+		ProfileItemList::Node* apos;
+		MapProfileChangesToStringValues::iterator a_iter;
+		count;
+		int a_tot = (int)baseUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < a_tot; count++)
+		{
+			apos = baseUserProfiles->profileItemList.Item(count);
+			UserProfileItem* paItem;
+			paItem = apos->GetData();
+			wxASSERT(paItem != NULL);
+			int ct;
+			int ct_a;
+			ct_a = (int)paItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_a; ct++)
+			{
+				wxString key = paItem->itemText + _T(":") + paItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					wxString keyTemp = iter->first;
+					wxString valueTemp = iter->second;
+					wxString appVisibility = paItem->usedVisibilityValues.Item(ct);
+					// check if the valueTemp differs from the appDescrText
+					if (valueTemp != appVisibility)
+					{
+						bTheyDiffer = TRUE;
+						return bTheyDiffer;
+					}
+					nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+				}
+				else
+				{
+					// key not in the map
+					nAppItemsNotAmongTempItems++;
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( a_iter = m_mapProfileChangesToStringValues.begin(); a_iter != m_mapProfileChangesToStringValues.end(); ++a_iter )
+		//{
+		//	wxLogDebug(_T("a_iter->first = %s, a_iter->second = %s"),a_iter->first.c_str(),a_iter->second.c_str());
+		//}
+	}
+	return bTheyDiffer;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pUserProfiles  a pointer to the UserProfiles struct whose profile items
+///                 are being modified
+/// \remarks
+/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog(). 
+/// Scans through pUserProfiles and assigns the itemIDint values by looking them up in the
+/// m_mapMenuLabelStrToIdInt and assigning the mapped int values to the itemIDint member of 
+/// the UserProfileItem part of pUserProfiles.
+/////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles)
 {
-	// Use the map that MapMenuIdStrToIdInt() set up
+	// Use the map m_mapMenuLabelStrToIdInt
 	wxASSERT(pUserProfiles != NULL);
 
 	// scan through pUserProfiles and assign the int id values by looking them up in the
@@ -2805,17 +3004,185 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 
 }
 
-// whm revised 4Oct10
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing (but three wxString parameter values passed back by reference)
+/// \param      -> AIuserProfilesWorkFolderPath path and name of AI_UserProfiles.xml in the work folder
+/// \param      -> profileVersionStr the string value of the profileVersion attribute in the xml file
+/// \param      -> applicationCompatibilityStr the string value of the applicationCompatibility attribute
+///                 in the xml file
+/// \param      -> adminModifiedStr the string value of the adminModified attribute in the xml file, i.e.,
+///                 which is "Yes" or "No"
+/// \remarks
+/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog(). 
+/// Opens and reads the AI_UserProfiles.xml file at the AIuserProfilesWorkFolderPath path, 
+/// and retrieves the string values associated with these three attribute values: profileVersion, 
+/// applicationCompatibility, and adminModified. It returns them in the parameters passed by 
+/// reference.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath, 
+		wxString& profileVersionStr,wxString& applicationCompatibilityStr,wxString& adminModifiedStr)
+{
+	wxTextFile f;
+	bool bUserProfilesFileExists = wxFileExists(AIuserProfilesWorkFolderPath);
+	if (bUserProfilesFileExists)
+	{
+		// Read the existing xml file into memory using wxTextFile, so we can retrieve the
+		// xml comments at the beginning of the file and compare the data in memory and
+		// make changes there before saving the file back to disk
+		bool bOpenedOK;
+		bOpenedOK = f.Open(m_userProfileFileWorkFolderPath);
+		if (bOpenedOK)
+		{
+			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through textFile.
+			bool bFoundprofileVersion = FALSE;
+			wxString lineStr;
+			for (lineStr = f.GetFirstLine(); !f.Eof() && !bFoundprofileVersion; lineStr = f.GetNextLine())
+			{
+				int chPos;
+				// does this line have our itemTextStr?
+				chPos = lineStr.Find(wxString::FromAscii(profileVersion));
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundprofileVersion = TRUE;
+					wxString str = lineStr;
+					int beginQPos, endQPos;
+					beginQPos = str.Find(_T("\""));
+					wxASSERT(beginQPos != wxNOT_FOUND);
+					str = str.Mid(beginQPos+1);
+					endQPos = str.Find(_T("\""));
+					wxASSERT(endQPos != wxNOT_FOUND);
+					str = str.Mid(0,endQPos);
+					profileVersionStr = str;
+					break;
+				}
+			}
+			bool bFoundapplicationCompatibility = FALSE;
+			for (lineStr = f.GetFirstLine(); !f.Eof() && !bFoundapplicationCompatibility; lineStr = f.GetNextLine())
+			{
+				int chPos;
+				// does this line have our itemTextStr?
+				chPos = lineStr.Find(wxString::FromAscii(applicationCompatibility));
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundapplicationCompatibility = TRUE;
+					wxString str = lineStr;
+					int beginQPos, endQPos;
+					beginQPos = str.Find(_T("\""));
+					wxASSERT(beginQPos != wxNOT_FOUND);
+					str = str.Mid(beginQPos+1);
+					endQPos = str.Find(_T("\""));
+					wxASSERT(endQPos != wxNOT_FOUND);
+					str = str.Mid(0,endQPos);
+					applicationCompatibilityStr = str;
+					break;
+				}
+			}
+			bool bFoundadminModified = FALSE;
+			for (lineStr = f.GetFirstLine(); !f.Eof() && !bFoundadminModified; lineStr = f.GetNextLine())
+			{
+				int chPos;
+				// does this line have our itemTextStr?
+				chPos = lineStr.Find(wxString::FromAscii(adminModified));
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundadminModified = TRUE;
+					wxString str = lineStr;
+					int beginQPos, endQPos;
+					beginQPos = str.Find(_T("\""));
+					wxASSERT(beginQPos != wxNOT_FOUND);
+					str = str.Mid(beginQPos+1);
+					endQPos = str.Find(_T("\""));
+					wxASSERT(endQPos != wxNOT_FOUND);
+					str = str.Mid(0,endQPos);
+					adminModifiedStr = str;
+					break;
+				}
+			}
+		}
+		f.Close();
+	}
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if backup copy was successful, FALSE if the copy process failed
+/// \param      -> AIuserProfilesWorkFolderPath path and name of AI_UserProfiles.xml in the work folder
+/// \param      <- backupPathNameUsed the string value returned of the backup file name generated for the
+///                 backup, i.e., of the form AI_UserProfiles_Old_nn.xml where nn is 01, 02, 03, etc.
+/// \remarks
+/// Called from the App's OnInit(). 
+/// Makes a backup copy of the user's AI_UserProfiles.xml file naming it to AI_UserProfiles_Oldnn.xml
+/// where nn is a numerical 01, 02, 03, etc., to avoid overwriting a previous backup. The backup copy
+/// is made in the user's work folder (m_userProfileFileWorkFolderPath). This function does not remove
+/// the original AI_UserProfiles.xml file at m_userProfileFileWorkFolderPath.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::BackupExistingUserProfilesFileInWorkFolder(wxString AIuserProfilesWorkFolderPath, wxString& backupPathNameUsed)
+{
+	bool bBackupOK = TRUE;
+	bool bExists;
+	bExists = ::wxFileExists(AIuserProfilesWorkFolderPath);
+	wxASSERT(bExists == TRUE);
+	wxFileName fn(AIuserProfilesWorkFolderPath);
+	wxString profileWorkFolderPathOnly = fn.GetPath();
+	wxString profileWorkFolderNameOnly = fn.GetName(); // file title only without dot and extension
+	wxString profileWorkFolderFullName = fn.GetFullName(); // file title and extension
+	if (bExists)
+	{
+		wxString backupName,backupName0,backupName1,backupName2,tensDigit;
+		backupName0 = profileWorkFolderNameOnly; // "AI_UserProfiles"
+		backupName1 = backupName0 + _T("_Old_"); // "AI_UserProfiles_Old_"
+		tensDigit = _T("0");
+		backupName2 = _T(".xml");
+		int inc = 1;
+		wxString incStr;
+		incStr.Empty();
+		incStr << inc;
+		if (inc < 10)
+		{
+			backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + tensDigit + incStr + backupName2; // "AI_UserProfiles_Old_01.xml" ... "AI_UserProfiles_Old_09.xml"
+		}
+		else
+		{
+			backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + incStr + backupName2; // "AI_UserProfiles_Old_10.xml" and greater
+		}
+		while (::wxFileExists(backupName))
+		{
+			inc++;
+			incStr.Empty();
+			incStr << inc;
+			if (inc < 10)
+			{
+				backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + tensDigit + incStr + backupName2;
+			}
+			else
+			{
+				backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + incStr + backupName2;
+			}
+		}
+		// We should now have a backup name that does not yet exist as a file in the work folder.
+		// Now copy the existing AI_UserProfiles.xml to the backupName (backupName is full path + filename).
+		bool bCopiedOK;
+		bCopiedOK = ::wxCopyFile(AIuserProfilesWorkFolderPath,backupName); // overwrite is default but shouldn't be one there with name backupName
+		if (!bCopiedOK)
+		{
+			bBackupOK = FALSE;
+		}
+		backupPathNameUsed = backupName; // to return to caller via reference
+	}
+	return bBackupOK;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
 /// \param      <- m_mapMenuLabelStrToIdInt a mapping of menu id strings to their menu id int values
 /// \remarks
-/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It represents
-/// Adapt It's default menu structure as derived from a temporary version of AI's menu
-/// bar (without being configured for any user profiles). Assumes pMenuStructure is NULL
-/// on entry to this function. While setting up the default menu structure, this function
-/// also populates the m_mapMenuLabelStrToIdInt map which is used in the 
+/// Called from: the App's OnInit().
+/// It represents Adapt It's default menu structure as derived from a temporary version of AI's 
+/// menu bar (without being configured for any user profiles). Assumes pMenuStructure is NULL 
+/// on entry to this function. While setting up the default menu structure, this function also 
+/// populates the m_mapMenuLabelStrToIdInt map which is used in the 
 /// GetAndAssignIdValuesToUserProfilesStruct().
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt)
@@ -3108,9 +3475,10 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
 /// \return     nothing
 /// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being destroyed
 /// \remarks
-/// Called from: the App's OnExit(), CAdminEditMenuProfile destructor and
-/// ReportMenuAndUserProfilesInconsistencies(). It deallocates the memory of
-/// the profileItemList items, and finally of the pUserProfiles itself.
+/// Called from: the App's OnInit(), OnExit(), CAdminEditMenuProfile's InitDialog(), and
+/// its class destructor and ReportMenuAndUserProfilesInconsistencies(). 
+/// It deallocates the memory of the profileItemList items, and finally of the pUserProfiles 
+/// itself.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
 {
@@ -3138,12 +3506,12 @@ void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being destroyed
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is 
+///                 being destroyed
 /// \remarks
-/// Called from: the App's OnExit(), CAdminEditMenuProfile destructor and
-/// ReportMenuAndUserProfilesInconsistencies(). It deallocates the memory of
-/// the individual main menu items and sub menu items, and finally of the pMenuStructure
-/// itself.
+/// Called from: the App's OnExit(). 
+/// It deallocates the memory of the individual main menu items and sub menu items, 
+/// and finally of the pMenuStructure itself.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 {
@@ -3184,70 +3552,129 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 	}
 }
 
-bool CAdapt_ItApp::SaveUserProfilesDataToXML()
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE on success, FALSE if a problem occurred
+/// \param      -> fullFilePath  path and file name of the AI_UserProfiles.xml file being 
+///                 accessed (may be the one in work folder or setup install folder)
+/// \remarks
+/// Called from the App's OnEditUserMenuSettingsProfiles() after User Workflow
+/// Profiles editing, and from the App's OnInit() to upgrade (or downgrade) a 
+/// modified AI_UserProfiles.xml file to a newer (or older) version after a 
+/// version update.
+/// SaveUserProfilesMergingDataToXMLFile() saves edits of user profiles to the
+/// wxTextFile representing AI_UserProfiles.xml file on disk.
+/// The AI_UserProfiles.xml file is fairly small (only about 45kb) so we
+/// open it as a wxTextFile (into memory), make necessary changes according
+/// to the current m_pUserProfiles and write it back out in a single write 
+/// operation. If AI_UserProfiles.xml doesn't exist we create a new wxTextFile
+/// and call BuildUserProfileXMLFile() passing our new wxTextFile to that
+/// function to create one anew. We can do double duty with this function: 
+/// (1) Save edits made by an administrator to the User Workflow Profiles dialog 
+/// back to the AI_UserProfiles.xml file located in the work folder, or
+/// (2) Merge the edits of a modified existing AI_UserProfiles.xml file into 
+/// a newer version of AI_UserProfiles.xml that was installed as an AI version 
+/// update since the last running of the application.
+/// The path established in OnInit() to the AI_UserProfiles.xml file is stored 
+/// in the m_userProfileFileWorkFolderPath member variable.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 {
-	// In order to preserve the comments at the beginning of AI_UserProfiles.xml, we will
-	// open the existing file and copy those comments into memory, then place them at the
-	// beginning of the updated file being written out initially to a temporary file on
-	// disk. Once the temporary file is successfully saved the original file will be
-	// overwritten by copying the temporary file over the original AI_UserProfiles.xml file.
-	// The AI_UserProfiles.xml file is fairly small (only about 45kb) so it would be easy
-	// to construct it in a memory buffer and write it out in a single write operation.
-	// The path established in OnInit() to the AI_UserProfiles.xml file is stored in the
-	// m_userProfileFileWorkFolderPath member variable.
-	
+	// Note: fullFilePath can be the user's work folder, or the install setup folder
 	wxTextFile textFile;
 	
 	// Does AI_UserProfiles.xml exist in the work folder
-	bool bUserProfilesFileExists = wxFileExists(m_userProfileFileWorkFolderPath);
+	bool bUserProfilesFileExists = wxFileExists(fullFilePath);
+	wxString userProfileFileSetupInstallPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
+
+	bool bThisIsAnUpgradeOfProfileFile;
+	if (fullFilePath == userProfileFileSetupInstallPath)
+		bThisIsAnUpgradeOfProfileFile = TRUE;
+	else
+		bThisIsAnUpgradeOfProfileFile = FALSE;
+
 	if (!bUserProfilesFileExists)
 	{
+		// No AI_UserProfiles.xml file exists at the fullFilePath location
+		// This shouldn't happen in the case we are being called to merge a newer AI_UserProfiles.xml
+		// file with a modified AI_UserProfiles.xml in the user's work folder, but for safety sake:
+		if (bThisIsAnUpgradeOfProfileFile)
+		{
+			// The fullFilePath pointed to a AI_UserProfiles.xml file in the install setup
+			// folder, but no AI_UserProfiles.xml exist there. There is nothing to merge
+			// and we don't want to create one there since that is the job of the AI installation
+			// process, so just return FALSE from SaveUserProfilesMergingDataToXMLFile(). Any
+			// error/warning messages are the responsibility of the caller.
+			return FALSE;
+		}
 		wxString msg = _("The AI_UserProfiles.xml file was not located at the following path:\n   %s\nA new AI_UserProfiles.xml file will be created there.");
-		msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
+		msg = msg.Format(msg,fullFilePath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_WARNING);
 		// Construct a new AI_UserProfiles.xml file from our internal data
-		textFile.Create(m_userProfileFileWorkFolderPath); // Create() must only be called when the doesn't exist - verified above
+		textFile.Create(fullFilePath); // Create() must only be called when the file doesn't exist - verified above
 		// Note textFile is empty at this point
 		bool bOK;
-		bOK = textFile.Open(m_userProfileFileWorkFolderPath);
-		bOK = BuildUserProfileXMLFile(&textFile);
+		bOK = textFile.Open(fullFilePath);
+		BuildUserProfileXMLFile(&textFile);
 		// Write the modified wxText file back out to disk
 		textFile.Write(); // no need to do anything special for Unicode
 	}
 	else
 	{
-		// Read the existing xml file into memory using wxTextFile, so we can retrieve the
-		// xml comments at the beginning of the file and compare the data in memory and
-		// make changes there before saving the file back to disk
+		// Read the existing xml file into memory using wxTextFile, so we don't have
+		// to recreate the whole xml file. All we need to do is to compare the data in 
+		// memory with the xml file which is in memory as a wxTextFile, and make changes 
+		// there before saving the file back to disk.
+		// Note: fullFilePath may point to the AI_UserProfiles.xml in the setup folder (when
+		// merging changes into an upgraded AI_UserProfiles.xml), or it may point to the
+		// AI_UserProfiles.xml in the user's work folder (when doing a normal save/merge of
+		// changes made in the User Workflow Profiles dialog).
 		bool bOpenedOK;
-		bOpenedOK = textFile.Open(m_userProfileFileWorkFolderPath);
+		bOpenedOK = textFile.Open(fullFilePath);
 		if (!bOpenedOK)
 		{
 			wxString msg = _("Unable to open the AI_UserProfiles.xml file at the following path:\n   %s\nChanges to user workflow profiles will not be saved.\nInsure that the AI_UserProfiles.xml file is not open in another program, then try again.");
-			msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
+			msg = msg.Format(msg,fullFilePath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_WARNING);
 			return FALSE;
 		}
 		else
 		{
-			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through textFile.
-			// Note: The AI_UserProfiles.xml file was read and parsed in the m_pUserProfiles struct just
-			// before the editing process (in InitDialog in the AdminEditMenuProfile class). Therefore,
-			// the AI_UserProfiles.xml file (just read above into memory as a wxTextFile) is basically 
-			// identical in structure to the xml file on disk. It should have the same number of 
-			// attributes and array elements in its top level, and have the same number of UserProfileItem 
-			// entries in its userProfileItemList. Only small parts of the xml data were modified as a 
-			// result of the editing process. The following could have been edited from within the dialog:
+			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through the
+			// methods of wxTextFile.
+			// Note: The AI_UserProfiles.xml file was read from the user's work folder and parsed into 
+			// the m_pUserProfiles struct prior to the calling of SaveUserProfileMergingDataToXMLFile().
+			// (whether in InitDialog in the AdminEditMenuProfile class or in the App's OnInit). Therefore,
+			// the AI_UserProfiles.xml file (just read above into memory as a wxTextFile) is either 
+			// identical in structure to the xml file on disk (when saving edits) or similar if not
+			// identical in structure (for version upgrade). If identical, the process below should 
+			// account for all changes. If we are merging changes into a newer AI_UserProfiles.xml file
+			// from the setup folder, there may be more candidate profile items in the setup folder's
+			// version than in the current work folder's version. Those will simply retain their 
+			// existing defaul values. If the setup folder's version has fewer candidate profile items (not
+			// likely) and a change was made for one of those now-missing items, the change will simply be
+			// ignored. During editing in AdminEditMenuProfile dialog, only small parts of the xml data 
+			// would be modified as a result of the editing process. An administrator could have edited 
+			// the following from within the dialog:
 			// 1. The UserProfiles' wxArrayString of descriptionProfileTexts (4 items, one for each profile) 
 			//    may have been edited (total of 4 strings of varying length).
 			// 2. The UserProfileItem's wxArrayString of usedVisibilityValues (4 items, one for each profile
 			//    x 67 profile items) may have been edited (total of 268 1-character strings of the form 
 			//    "1" or "0".
-			// Our approach will be to scan through the in-memory wxTextFile line by line and check all
-			// the attribute values encountered, comparing them with what is in m_pUserProfiles. We update
-			// any differences by changing the string attribute values in the in-memory wxTextFile. When
-			// finished we simply write the wxTextFile back to disk replacing the existing AI_UserProfiles.xml
-			// file.
+			// Note: When an administrator only changes the profile selected, but not any individual profile
+			// item visibility checkboxes, he does not make any changes to AI_UserProfiles.xml (his change of
+			// profile is simply recorded in the project config file.
+			// 
+			// Our approach will be to go through our map of profile changes (m_mapProfileChangesToStringValues)
+			// and change the individual lines in our wxTextFile that need to be changed to reflect the 
+			// administrator's edits. When finished we simply write the wxTextFile back to disk replacing 
+			// the existing AI_UserProfiles.xml file. If we read AI_UserProfiles.xml from the setup folder,
+			// we don't write it back there, but we write it to the current work folder, replacing the
+			// older version that was there - which will now have the new version number in its
+			// applicationCompatibility attribute matching the one copied from the setup folder.
+			// In order to write a wxTextFile to a different location than where we got it in the Open()
+			// call, there doesn't appear to be a way to change the writing path, so we will create a new
+			// wxTextFile instance, copy all lines from the one we've changed to it and write this new file
+			// and simply close the original instance without writing it back to the setup folder.
 			// 
 			// The map key values can be:
 			//    1. A contatenation of the string values of itemText + ":" + userProfile for a given
@@ -3271,11 +3698,11 @@ bool CAdapt_ItApp::SaveUserProfilesDataToXML()
 					// the keyFromMap is of the form itemText:Novice
 					itemTextStr = keyFromMap.Mid(0,colonPos);
 					userProfileStr = keyFromMap.Mid(colonPos + 1);
-					// in the wxTextFile we search for the line that has <tab>itemText="itemTextStr"
+					// in the wxTextFile we search for the line that has itemText="itemTextStr" and
 					// from that line we step through each succeeding line until we come to a line
-					// that has <tab><tab><PROFILE userProfile="userProfileStr"
-					// from that line we get the next line, i.e., <tab><tab><tab>itemVisibility="x"
-					// and replace the "x" part with the "valueFromMap"
+					// that has <PROFILE userProfile="userProfileStr"
+					// from that line we get the next line, i.e., itemVisibility="x" and replace 
+					// the "x" part with the "valueFromMap" (see ReplaceVisibilityStrInwxTextFile).
 					int linePos;
 					linePos = ReplaceVisibilityStrInwxTextFile(&textFile,itemTextStr,userProfileStr,valueFromMap);
 					if (linePos == wxNOT_FOUND)
@@ -3289,7 +3716,7 @@ bool CAdapt_ItApp::SaveUserProfilesDataToXML()
 				{
 					// the keyFromMap is of the form descriptionProfileN where N is 1, 2, 3, or 4.
 					descriptionProfileN = keyFromMap;
-					// In the wxTextFile we search for the line that has <tab>descriptionProfileN="str"
+					// In the wxTextFile we search for the line that has descriptionProfileN="str"
 					// and we replace the "str" with "valueFromMap". 
 					// Note: Entity chars are replaced by their xml mandated form (xml_lt, xml_gt,
 					// xml_amp, xml_apos, and xml_quote) in ReplaceDescriptionStrInwxTextFile() below.
@@ -3303,118 +3730,436 @@ bool CAdapt_ItApp::SaveUserProfilesDataToXML()
 					}
 				}
 			}
+			// Lastly, we update the wxTextFile line that contains the attribute: adminModified="" is
+			// changed to either adminModified="Yes" or adminModified="No", depending on whether the
+			// above edits changed the data to differ from the factory defaults.
+			UpdateAdminModifiedLineToYesOrNo(&textFile);
 		}
-		// Write the modified wxText file back out to disk
-		textFile.Write(); // no need to do anything special for Unicode
+		// Write the modified wxText file back out to disk.
+		// Note: If bThisIsAnUpgradeOfProfileFile is TRUE, we don't write the file back to its
+		// original setup up folder location, but instead create a new wxTextFile, copy the contents
+		// of the one we've modified and write the upgraded one to the user's work folder.
+		if (bThisIsAnUpgradeOfProfileFile)
+		{
+			// This is an upgrade operation, so create a new wxTextFile
+			wxTextFile newTextFile;
+			// wxTextFile::Create() fails when there already exists the file of the same name
+			// so we first remove the existing one in the work folder
+			wxASSERT(!m_userProfileFileWorkFolderPath.IsEmpty());
+			bool bRemovedFile = FALSE;
+			wxString msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+			wxString titleMsg;
+			if (wxFileExists(m_userProfileFileWorkFolderPath))
+			{
+				bRemovedFile = wxRemoveFile(m_userProfileFileWorkFolderPath);
+				// tell user if we couldn't remove the work folder's AI_UserProfiles.xml
+				if (!bRemovedFile)
+				{
+					// error message
+					titleMsg = _("Unable to remove existing AI_UserProfiles.xml file");
+					// msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					return FALSE;
+				}
+			}
+			bool bCreatedOK, bOpenedOK;
+			bCreatedOK = newTextFile.Create(m_userProfileFileWorkFolderPath);
+			bOpenedOK = newTextFile.Open();
+			if (newTextFile.IsOpened())
+			{
+				// now copy the lines from textFile to newTextFile
+				int ct;
+				int nLines = textFile.GetLineCount();
+				for (ct = 0; ct < nLines; ct++)
+				{
+					wxString lineStr = textFile.GetLine(ct);
+					newTextFile.AddLine(lineStr);
+				}
+				// save the newTextFile
+				bool bWriteOK;
+				bWriteOK = newTextFile.Write();
+				wxASSERT(bWriteOK != FALSE);
+				if (!bWriteOK)
+				{
+					// error message
+					titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
+					//msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					return FALSE;
+				}
+				newTextFile.Close();
+			}
+			else
+			{
+				// error message
+				titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
+				//msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+				wxMessageBox(msg,titleMsg,wxICON_WARNING);
+				return FALSE;
+			}
+
+		}
+		else
+		{
+			// This is a normal save of edits that have been done in the User Workflow Profile
+			// dialog, so write it back to its same location
+			textFile.Write(); // no need to do anything special for Unicode
+			textFile.Close();
+		}
 	}
 	return TRUE;
 }
 
-// populates the App's m_mapProfileChangesToStringValues with user profile changes the user has made
-// to descriptionProfileTexts and/or to UserProfileItems' usedVisibilityValues. The map is used to 
-// make changes in the wxTextFile representation of AI_UserProfiles.xml before writing it back to
-// disk in SaveUserProfilesDataToXML().
-// Called in CAdminEditMenuProfile::OnOK().
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      -> tempUserProfiles  pointer to the UserProfiles* being compared 
+/// \param      -> appUserProfiles  pointer to the UserProfiles* the tempUserProfiles
+///                 if being compared with to determine changes 
+/// \remarks
+/// Called from the App's OnInit(), and from CAdminEditMenuProfile::OnOK().
+/// Populates the App's m_mapProfileChangesToStringValues with user profile changes the user 
+/// has made to descriptionProfileTexts and/or to UserProfileItems' usedVisibilityValues. 
+/// The map is used to make changes in the wxTextFile representation of AI_UserProfiles.xml 
+/// before writing it back to disk in SaveUserProfilesMergingDataToXMLFile().
+/// Note: the caller is responsible to call m_mapProfileChangesToStringValues.clear(), 
+/// to start a fresh map of changes.
+/////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, UserProfiles* appUserProfiles)
 {
+	// whm 21Oct10 rewritten so that tempUserProfiles and appUserProfiles can have different counts for their
+	// ->descriptionProfileTexts.GetCount() and different counts for their ->profileItemList.GetCount() 
+	// calls. This will avoid problems for when MapChangesInUserProfiles() is called in OnInit() in the
+	// process of upgrading or downgrading versions which involve AI_UserProfiles.xml files having
+	// different numbers of these items.
+	// Strategy: Fill a temporary map with all items from tempUserProfiles. Then go through all items
+	// in the appUserProfiles struct and lookup each item from appUserProfiles to see if it is already
+	// in the map of tempUserProfiles items. If it is compare the data of those "common" items only.
+	// For those which have changes, enter only the changes in the m_mapProfileChangesToStringValues map.
+	// In the process, keep track of how many items were not in common and report that number back through
+	// a return value or reference parameter.
 	wxASSERT(tempUserProfiles != NULL);
 	wxASSERT(appUserProfiles != NULL);
+
 	if (tempUserProfiles != NULL && appUserProfiles != NULL)
 	{
+		MapProfileChangesToStringValues tempMap;
 		MapProfileChangesToStringValues::iterator iter;
 		//m_mapProfileChangesToStringValues.clear();
-		// Note: we don't clear the map because it is called twice to get all changes, once
-		// for visibility items and once for description items. The clear() method must be
-		// invoked in the caller CAdminEditMenuProfile::OnOK().
+		// Note: The clear() method must be invoked in the caller if a fresh map of changes is desired.
+		
+		// Enter all tempUserProfiles items into our tempMap
+		// First enter all of tempUserProfiles->descriptionProfileTexts into the map
 		int descCt;
 		int descTot = (int)tempUserProfiles->descriptionProfileTexts.GetCount();
 		for (descCt = 0; descCt < descTot; descCt++)
 		{
-			if (tempUserProfiles->descriptionProfileTexts[descCt] != appUserProfiles->descriptionProfileTexts[descCt])
+			// enter all of tempUserProfiles->descriptionProfileTexts into the map
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << descCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
 			{
-				wxString key = wxString::FromAscii(descriptionProfile);
-				key << descCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
-				iter = m_mapProfileChangesToStringValues.find(key);
-				if (iter != m_mapProfileChangesToStringValues.end())
+				// key exists in the map
+				tempMap.insert(*iter);
+			}
+			else
+			{
+				// key not in the map
+				tempMap[key] = tempUserProfiles->descriptionProfileTexts[descCt];
+			}
+		}
+		// Next, enter all of tempUserProfiles->profileItemList items into the tempMap
+		ProfileItemList::Node* tpos;
+		int count;
+		int t_tot = (int)tempUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < t_tot; count++)
+		{
+			tpos = tempUserProfiles->profileItemList.Item(count);
+			UserProfileItem* ptItem;
+			ptItem = tpos->GetData();
+			wxASSERT(ptItem != NULL);
+			int ct;
+			int ct_t;
+			ct_t = (int)ptItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_t; ct++)
+			{
+				wxString key = ptItem->itemText + _T(":") + ptItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
 				{
 					// key exists in the map
-					m_mapProfileChangesToStringValues.insert(*iter); // associates (any new) pNewTU value with the keyCopy
+					tempMap.insert(*iter);
 				}
 				else
 				{
 					// key not in the map
-					// The [] index operator can be used either of two ways in assignment statement
-					m_mapProfileChangesToStringValues[key] = tempUserProfiles->descriptionProfileTexts[descCt]; // clearest
-					// or, the following is equivalent, but not so clear
-					//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
-					// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
-					// The only difference is that if the given key is not present in the hash map,
-					// an element with the default value_type() is inserted in the table."
-				}
-			}
-		}
-		ProfileItemList::Node* tpos;
-		ProfileItemList::Node* apos;
-		int count;
-		int t_tot = (int)tempUserProfiles->profileItemList.GetCount();
-		int a_tot = (int)appUserProfiles->profileItemList.GetCount();
-		wxASSERT(t_tot == a_tot);
-		if (t_tot == a_tot)
-		{
-			for(count = 0; count < t_tot; count++)
-			{
-				tpos = tempUserProfiles->profileItemList.Item(count);
-				apos = appUserProfiles->profileItemList.Item(count);
-				UserProfileItem* ptItem;
-				UserProfileItem* paItem;
-				ptItem = tpos->GetData();
-				wxASSERT(ptItem != NULL);
-				paItem = apos->GetData();
-				wxASSERT(paItem != NULL);
-				wxASSERT(ptItem->itemID == paItem->itemID);
-				wxASSERT(ptItem->itemIDint == paItem->itemIDint);
-				int ct;
-				int ct_t,ct_a;
-				ct_t = (int)ptItem->usedVisibilityValues.GetCount();
-				ct_a = (int)paItem->usedVisibilityValues.GetCount();
-				wxASSERT(ct_t == ct_a);
-				if (ct_t == ct_a)
-				{
-					for (ct = 0; ct < ct_t; ct++)
-					{
-						if (paItem->usedVisibilityValues[ct] != ptItem->usedVisibilityValues[ct])
-						{
-							wxString key = ptItem->itemText + _T(":") + ptItem->usedProfileNames[ct]; // key is itemText + name of the profile, i.e., "Save As...Novice"
-							iter = m_mapProfileChangesToStringValues.find(key);
-							if (iter != m_mapProfileChangesToStringValues.end())
-							{
-								// key exists in the map
-								m_mapProfileChangesToStringValues.insert(*iter); // associates (any new) pNewTU value with the keyCopy
-							}
-							else
-							{
-								// key not in the map
-								// The [] index operator can be used either of two ways in assignment statement
-								m_mapProfileChangesToStringValues[key] = ptItem->usedVisibilityValues[ct]; // clearest
-								// or, the following is equivalent, but not so clear
-								//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
-								// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
-								// The only difference is that if the given key is not present in the hash map,
-								// an element with the default value_type() is inserted in the table."
-							}
-						}
-					}
+					tempMap[key] = ptItem->usedVisibilityValues[ct];
 				}
 			}
 		}
 		// dump the map contents for testing
-		//for( iter = m_mapProfileChangesToStringValues.begin(); iter != m_mapProfileChangesToStringValues.end(); ++iter )
+		//for( iter = tempMap.begin(); iter != tempMap.end(); ++iter )
 		//{
 		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
+		//}
+		
+		// Now go through all items of the appUserProfiles struct, and do a lookup to see if
+		// each item is in the map. If so, check the map's associated value. If the map's 
+		// associated value is different, then add that item to the App's 
+		// m_mapProfileChangesToStringValues map. If any of the appUserProfiles items are
+		// not found in the map, we can ignore them, but just get a count of how many such
+		// ignored items we encountered.
+
+		int appCt;
+		int appTot = (int)appUserProfiles->descriptionProfileTexts.GetCount();
+		int nAppItemsNotAmongTempItems = 0;
+		int nTempItemsNotAmongAppItems = (int)tempUserProfiles->descriptionProfileTexts.GetCount() + (4*(int)tempUserProfiles->profileItemList.GetCount());
+		for (appCt = 0; appCt < appTot; appCt++)
+		{
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << appCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				wxString keyTemp = iter->first;
+				wxString valueTemp = iter->second;
+				wxString appDescrText = appUserProfiles->descriptionProfileTexts.Item(appCt);
+				// check if the valueTemp differs from the appDescrText
+				if (valueTemp != appDescrText)
+				{
+					// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes 
+					MapProfileChangesToStringValues::iterator a_iter;
+					a_iter = m_mapProfileChangesToStringValues.find(keyTemp);
+					if (a_iter != m_mapProfileChangesToStringValues.end())
+					{
+						// key exists in the map
+						m_mapProfileChangesToStringValues.insert(*a_iter);
+					}
+					else
+					{
+						// key not in the map
+						m_mapProfileChangesToStringValues[keyTemp] = valueTemp;
+					}
+				}
+				nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+			}
+			else
+			{
+				// key not in the map
+				nAppItemsNotAmongTempItems++;
+			}
+		}
+		ProfileItemList::Node* apos;
+		MapProfileChangesToStringValues::iterator a_iter;
+		count;
+		int a_tot = (int)appUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < a_tot; count++)
+		{
+			apos = appUserProfiles->profileItemList.Item(count);
+			UserProfileItem* paItem;
+			paItem = apos->GetData();
+			wxASSERT(paItem != NULL);
+			int ct;
+			int ct_a;
+			ct_a = (int)paItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_a; ct++)
+			{
+				wxString key = paItem->itemText + _T(":") + paItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					wxString keyTemp = iter->first;
+					wxString valueTemp = iter->second;
+					wxString appVisibility = paItem->usedVisibilityValues.Item(ct);
+					// check if the valueTemp differs from the appDescrText
+					if (valueTemp != appVisibility)
+					{
+						// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes 
+						a_iter = m_mapProfileChangesToStringValues.find(keyTemp);
+						if (a_iter != m_mapProfileChangesToStringValues.end())
+						{
+							// key exists in the map
+							m_mapProfileChangesToStringValues.insert(*a_iter);
+						}
+						else
+						{
+							// key not in the map
+							m_mapProfileChangesToStringValues[keyTemp] = valueTemp;
+						}
+					}
+					nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+				}
+				else
+				{
+					// key not in the map
+					nAppItemsNotAmongTempItems++;
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( a_iter = m_mapProfileChangesToStringValues.begin(); a_iter != m_mapProfileChangesToStringValues.end(); ++a_iter )
+		//{
+		//	wxLogDebug(_T("a_iter->first = %s, a_iter->second = %s"),a_iter->first.c_str(),a_iter->second.c_str());
 		//}
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a VersionComparison enum with possible values of sameAppVersion, 
+///             runningAppVersionIsNewer, runningAppVersionIsOlder, or profileVersionDiffers
+/// \param      -> oldProfileVersion  string representing the existing profileVersion attribute
+///                 value
+/// \param      -> oldApplicationCompatibility  string representing the existing 
+///                 applicationCompatibility value
+/// \remarks
+/// Called from the App's OnInit().
+/// Starting with AI version 6.0.0, the application checks the profileVersion and applicationCompatibility 
+/// version numbers of any existing AI_UserProfiles.xml file in the Adapt It (Unicode) Work folder against
+/// the corresponding numbers of the running application. The version number of the existing AI_UserProfiles.xml
+/// are represented in the oldProfileVersion and oldApplicationCompatibility incoming parameters. The
+/// running application's corresponding numbers are set as #define constants at the beginning of Adapt_It.h.
+/// When an Adapt It user upgrades to a newer version of the application, the installer places the latest version
+/// of AI_UserProfiles.xml in the setup folder, but the installer does not copy it at install time to the 
+/// Adapt It (Unicode) Work folder. Each time the Adapt It application runs, however, this function compares 
+/// the version numbers of the running application with those of the existing AI_UserProfiles.xml file in the Adapt It 
+/// (Unicode) Work folder. The running application determines whether the newer version should be copied to 
+/// overwrite the older existing version, or be merged with the older existing version. This function returns
+/// an enum VersionComparison which informs the caller whether comparison of version numbers is: sameAppVersion,
+/// runningAppVersionIsNewer, runningAppVersionIsOlder (all comparing the 6.x.x version numbers), or
+/// profileVersionDiffers in the case that the profileVersion 1.x version differs (regardless of the 6.x.x
+/// versions are).
+/////////////////////////////////////////////////////////////////////////////////////////
+enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(wxString oldProfileVersion, wxString oldApplicationCompatibility)
+{
+	// parse the oldApplicationCompatibility string into int parts
+	int nWorkFolderProfileMajV, nWorkFolderProfileMinV;
+	int nRunningAppProfileMajV, nRunningAppProfileMinV;
+	// get the part of the profileVersion number of the running application
+	nRunningAppProfileMajV = PROFILE_VERSION_MAJOR_PART;
+	nRunningAppProfileMinV = PROFILE_VERSION_MINOR_PART;
+	// parse out the parts of the profileVersioin number of the AI_UserProfiles.xml of
+	// the work folder from the incoming oldProfileVersion parameter
+	wxString tempStr,intStr;
+	tempStr = oldProfileVersion;
+	tempStr.Trim(FALSE);
+	tempStr.Trim(TRUE);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderProfileMajV = wxAtoi(intStr);
+	tempStr = tempStr.Mid(tempStr.Find(_T('.'))+1);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderProfileMinV = wxAtoi(intStr);
+	// Is the running app's profileVersion the same as the work folder's profileVersion?
+	// If so, no problem - continue checking the applicationCompatibility version numbers.
+	// If the app's profileVersion differs from the work folder's profileVersion we return
+	// profileVersionDiffers to the caller.
+	if (nRunningAppProfileMajV == nWorkFolderProfileMajV && nRunningAppProfileMinV == nWorkFolderProfileMinV)
+	{
+		// nothing special need be done, continue checking the applicationCompatibility version
+		;
+	}
+	else if (nRunningAppProfileMajV != nWorkFolderProfileMajV || nRunningAppProfileMinV != nWorkFolderProfileMinV)
+	{
+		return profileVersionDiffers;
+	}
+
+	int nWorkFolderAppCompatMajV, nWorkFolderAppCompatMinV, nWorkFolderAppCompatBuiV;
+	int nRunningAppCompatMajV, nRunningAppCompatMinV, nRunningAppCompatBuiV;
+	// get the parts of the version number of the running application
+	nRunningAppCompatMajV = VERSION_MAJOR_PART;
+	nRunningAppCompatMinV = VERSION_MINOR_PART;
+	nRunningAppCompatBuiV = VERSION_BUILD_PART;
+	// parse out the parts of the version number of the AI_UserProfiles.xml of the work folder
+	// from the incoming oldApplicationCompatibility parameter
+	tempStr = oldApplicationCompatibility;
+	tempStr.Trim(FALSE);
+	tempStr.Trim(TRUE);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderAppCompatMajV = wxAtoi(intStr);
+	tempStr = tempStr.Mid(tempStr.Find(_T('.'))+1);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderAppCompatMinV = wxAtoi(intStr);
+	tempStr = tempStr.Mid(tempStr.Find(_T('.'))+1);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderAppCompatBuiV = wxAtoi(intStr);
+
+	// Is the running app's version the same as the work folder's version? 
+	// If so, no merge is necessary (caller will simply copy and overwrite the 
+	// existing older AI_UserProfiles.xml in the work folder). Return FALSE.
+	if (nRunningAppCompatMajV == nWorkFolderAppCompatMajV && nRunningAppCompatMinV == nWorkFolderAppCompatMinV && nRunningAppCompatBuiV == nWorkFolderAppCompatBuiV)
+	{
+		return sameAppVersion;
+	}
+	// If we get here the running version is either older or newer than the work folder version.
+	// 
+	// Is the running app's version older than the work folder's version?
+	// This might happen if the user installed and reverted to running an older
+	// version in the 6.x.x series for some reason (after having installed a 
+	// newer version). In this case we can't really guarantee that the older
+	// application will be able to successfully deal with a newer 
+	// AI_UserProfiles.xml file. So, we return FALSE to get the caller to 
+	// rename the work folder's copy of AI_UserProfiles.xml to 
+	// AI_UserProfiles_old.xml and copy the newer AI_UserProfiles.xml from
+	// the setup folder to the work folder.
+	if (nRunningAppCompatMajV < nWorkFolderAppCompatMajV)
+	{
+		return runningAppVersionIsOlder;
+	}
+	else if (nRunningAppCompatMinV < nWorkFolderAppCompatMinV)
+	{
+		return runningAppVersionIsOlder;
+	}
+	else if (nRunningAppCompatBuiV < nWorkFolderAppCompatBuiV)
+	{
+		return runningAppVersionIsOlder;
+	}
+	// If we get here the running version must be newer
+	// 
+	// Is the running app's version newer than the work folder's version?
+	// If so, we should merge the setup folder's newer AI_UserProfiles.xml with 
+	// the work folder's older AI_UserProfiles.xml file. Return TRUE.
+	wxASSERT(nRunningAppCompatMajV > nWorkFolderAppCompatMajV || nRunningAppCompatMinV > nWorkFolderAppCompatMinV || nRunningAppCompatBuiV > nWorkFolderAppCompatBuiV); 
+	// the defaul bMerge value is TRUE;
+	return runningAppVersionIsNewer;
+}
+
+/// \return     a wxString representing the running applications version number in 6.x.x format
+/// \remarks
+/// Called from the App's OnInit() and from ReportMenuAndUserProfilesInconsistencies().
+/// Forms a wxString from the app's version constants that are #defined at the 
+/// beginning of Adapt_It.h. The constants are: VERSION_MAJOR_PART, VERSION_MINOR_PART, 
+/// and VERSION_BUILD_PART.
+/////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetAppVersionOfRunningAppAsString()
+{
+	wxString str;
+	str.Empty();
+	str << VERSION_MAJOR_PART;
+	str += _T('.');
+	str << VERSION_MINOR_PART;
+	str += _T('.');
+	str << VERSION_BUILD_PART;
+	return str;
+}
+
+/// \return     a wxString representing the running applications profile version in 1.x format
+/// \remarks
+/// Called from the App's OnInit() and from ReportMenuAndUserProfilesInconsistencies().
+/// Forms a wxString from the app's profile version constants that are #defined at
+/// the beginning of Adapt_It.h. The constants are: PROFILE_VERSION_MAJOR_PART
+/// and PROFILE_VERSION_MINOR_PART.
+/////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetProfileVersionOfRunningAppAsString()
+{
+	wxString str;
+	str.Empty();
+	str << PROFILE_VERSION_MAJOR_PART;
+	str += _T('.');
+	str << PROFILE_VERSION_MINOR_PART;
+	return str;
+}
 
 /*
 enum wxLanguage
@@ -6129,7 +6874,18 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	m_pConfig->SetPath(oldPath);
 }
 
-bool CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks This function builds the complete content for a new default AI_UserProfiles.xml
+/// file including the comment at the beginning of the file. It assumes that the caller has
+/// created and opened an empty wxTextFile (the textFile parameter) before calling this
+/// function. The caller only calls this function in the unlikely case that no 
+/// AI_UserProfiles.xml file exists at the fullFilePath location used in calling
+/// SaveUserProfilesMergingDataToXMLFile().
+/// Called from: SaveUserProfilesMergingDataToXMLFile().
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 {
 	wxString fileCommentBlock[] =
 	{
@@ -6137,17 +6893,14 @@ bool CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		_T("Filename:	AI_UserProfiles.xml"),
 		_T("Author: 	Bill Martin"),
 		_T("Date Created:	27 August 2010"),
-		_T("Last Updated:	12 October 2010, by Bill Martin"),
-		_T("Description:	The first part of this file contains the user profile "),
-		_T("		definitions and attributes for Adapt It's interface menus and "),
-		_T("		settings. Adapt It reads and parses this AI_UserProfiles.xml"),
-		_T("		when it starts up and when an administrator accesses the user"),
-		_T("		workflow profiles dialog. Changes made to individual items in"),
-		_T("		that dialog are automatically saved back to this file. "),
-		_T("		The second part of this file contains Adapt It's default menu "),
-		_T("		structure. Adapt It uses this structure as its baseline for "),
-		_T("		hiding and restoring individual menu items depending on the "),
-		_T("		user workflow profile selected."),
+		_T("Last Updated:	22 October 2010, by Bill Martin"),
+		_T("Description:	This file contains the user profile definitions and"),
+		_T("		attributes for Adapt It's interface menus and settings."),
+		_T("		Adapt It reads and parses this AI_UserProfiles.xml file"),
+		_T("		when it starts up and when an administrator accesses the"),
+		_T("		user workflow profiles dialog. Changes made to"),
+		_T("		individual items in that dialog are automatically saved"),
+		_T("		back to this file."),
 		_T("***********************************************************************"),
 		_T("**** DO NOT EDIT THIS FILE - UNLESS YOU KNOW WHAT YOU ARE DOING! ******"),
 		_T("**** MAKE CHANGES TO THE USER WORKFLOW PROFILES BY SELECTING THE ******"),
@@ -6158,77 +6911,6 @@ bool CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		_T("**** should delete AI_UserProfiles.xml from your Adapt It Work ********"),
 		_T("**** folder and reinstall Adapt It. ***********************************"),
 		_T("***********************************************************************"),
-		_T("Notes:"),
-		_T("	1. All attribute values must be enclosed within double"),
-		_T("		quote marks."),
-		_T(""),
-		_T("Description of Marker Attributes for the MENU tag:"),
-		_T("The attributes below affect how certain menu items and settings within"),
-		_T("Adapt It are displayed (or hidden) from the user depending on which"),
-		_T("PROFILE is selected by an administrator."),
-		_T("	itemID:"),
-		_T("		=\"ID_...\" the identifier used internally within Adapt It"),
-		_T("			for event handling. ID_NONE is used if the item has"),
-		_T("			no identifier. If itemID (other than ID_NONE) "),
-		_T("			does not match a valid resource identifier, no "),
-		_T("			change in interface behavior for this item will "),
-		_T("			take effect."),
-		_T("	itemType:"),
-		_T("		= \"subMenu\" the valid values for itemType are subMenu,"),
-		_T("			modeBar, toolBar, preferencesTab, and wizardListItem. "),
-		_T("			Possible itemType values for future use include: "),
-		_T("			dialogControl."),
-		_T("	itemText:"),
-		_T("		=\"The wording of the menu item or setting\" must always"),
-		_T("			matche the menu item or setting in the interface"),
-		_T("			(in English). This itemText will appear in the "),
-		_T("			list of menu items and settings in each user workflow"),
-		_T("			profile within the User Workflow Profiles dialog."),
-		_T("	itemDescr:"),
-		_T("		=\"Description of the menu or setting\" a brief description"),
-		_T("			of the menu or setting defined by itemID and itemText."),
-		_T("			This description is optional, but is available for"),
-		_T("			menu or settings whose meaning might not be clear when"),
-		_T("			listed outside the interface context. Any description"),
-		_T("			given will appear in the list box to the right of the"),
-		_T("			itemText (user may need to scroll horizontally or"),
-		_T("			resize the dialog to see the description)."),
-		_T("	adminCanChange:"),
-		_T("		=\"1\" the menu item or setting will appear in the user workflow"),
-		_T("			profile list boxes (and be enabled) so the administrator"),
-		_T("			can change the itemVisibility setting (see below)."),
-		_T("		=\"0\" (default value when absent) the marker will not appear (or "),
-		_T("			will be disabled when shown) in the user workflow profile"),
-		_T("			list boxes. The administrator will not be able to change"),
-		_T("			the itemVisibility setting (see below)."),
-		_T("Description of Marker Attributes for the PROFILE tag:"),
-		_T("The attributes below affect how certain menu items and settings within"),
-		_T("Adapt It are displayed (or hidden) from the user depending on which"),
-		_T("PROFILE is selected by an administrator."),
-		_T("	userProfile:"),
-		_T("		=\"Novice\" the profile defined for the least skilled user. "),
-		_T("		=\"Experienced\" the profile defined for the Experienced user."),
-		_T("		=\"Skilled\" the profile defined for the Skilled user."),
-		_T("		=\"Custom\" a profile that can be preset to one of the other profiles"),
-		_T("		   and customized further."),
-		_T("	itemVisibility:"),
-		_T("		=\"1\" (default value when absent) the menu item or setting will be "),
-		_T("			visible in the interface for the given PROFILE. "),
-		_T("		=\"0\" the menu item or setting will not be visible in the interface"),
-		_T("			for the given PROFILE."),
-		_T("	factory:"),
-		_T("		=\"1\" factory setting is for the menu item or setting to be "),
-		_T("			visible in the interface for the given PROFILE. "),
-		_T("		=\"0\" factory setting is for the menu item or setting to not be "),
-		_T("			visible in the interface for the given PROFILE."),
-		_T("		Note: The factory setting cannot be changed from within Adapt It."),
-		_T("NOTE: Each <MENU> group should have the same number of <PROFILE> tags as "),
-		_T("are defined in the attributes of the top level <UserProfilesSupport> tag."),
-		_T("The userProfile attributes must match those that are defined in the top level"),
-		_T("<UserProfilesSupport> tag."),
-		_T("Note: The number of defined profiles below and their name/label values must "),
-		_T("agree with those used in the userProfile attributes within the <PROFILE> tags "),
-		_T("listed below."),
 		_T("  -->"),
 	};
 	
@@ -6258,17 +6940,35 @@ bool CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		composeXmlStr += wxString::FromAscii(userprofilessupport);
 		textFile->AddLine(composeXmlStr);
 		composeXmlStr.Empty();
-		// Modify the version to keep track of admin modified profiles
 		composeXmlStr = tab1 + wxString::FromAscii(profileVersion);
 		wxString verStr = m_pUserProfiles->profileVersion;
-		// Add the word ":user_modified" to the version number if not already present
-		if (verStr.Find(_T(":user_modified")) == wxNOT_FOUND)
-		{
-			verStr += _T(":user_modified");
-		}
 		composeXmlStr += _T("=\"") + verStr + _T("\"");
 		textFile->AddLine(composeXmlStr);
 		composeXmlStr.Empty();
+		
+		composeXmlStr = tab1 + wxString::FromAscii(applicationCompatibility);
+		wxString appCStr = m_pUserProfiles->applicationCompatibility;
+		composeXmlStr += _T("=\"") + appCStr + _T("\"");
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		
+		composeXmlStr = tab1 + wxString::FromAscii(adminModified);
+		wxString adminModStr = m_pUserProfiles->adminModified;
+		// Indicate "Yes" for adminModified if not already set to "Yes"
+		if (adminModStr.Find(_T("Yes")) == wxNOT_FOUND)
+		{
+			int pos = adminModStr.Find(_T("No"));
+			wxASSERT(pos != wxNOT_FOUND);
+			if (pos != wxNOT_FOUND)
+			{
+				adminModStr.Remove(pos,2);
+				adminModStr.insert(pos,_T("Yes"));
+			}
+		}
+		composeXmlStr += _T("=\"") + adminModStr + _T("\"");
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		
 		int ct;
 		int tot = m_pUserProfiles->definedProfileNames.GetCount();
 		wxString strVal;
@@ -6370,18 +7070,17 @@ bool CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		composeXmlStr += wxString::FromAscii(end_userprofilessupport) + _T('>');
 		textFile->AddLine(composeXmlStr);
 	}
-	return TRUE;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     true if configuration was successful, false if there was an error
+/// \return     nothing
 /// \remarks
 /// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
-/// This function calls functions that set the visibility of the interface's menus, modeBar, 
-/// toolBar, wizardListItem and other potential interface settings, all based on the information 
-/// stored in AI_UserProfiles.xml and the App's m_pAI_MenuStructure member.
+/// This function calls a series of functions that set the visibility of the interface's menus, 
+/// modeBar, toolBar, wizardListItem and other potential interface settings, all based on the 
+/// information stored in AI_UserProfiles.xml and the App's m_pAI_MenuStructure member.
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
+void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 {
 	// We use the menu and settings data in m_pUserProfiles to set visibility of interface
 	// elements.
@@ -6408,11 +7107,7 @@ bool CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	// Finally, configure visibility of itemType == dialogControl elements
 	// AI_UserProfiles.xml currently does not include any dialogControl 
 	// elements.
-	// Note: This function only sets boolean flags for the visibility of
-	// the particular dialog element. The dialog control is hidden or shown 
-	// based on these visibility flags at the time when the dialog is 
-	// instantiated.
-	return TRUE;
+	// Other configuration capabilities could go here
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -6680,9 +7375,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 			// The top level menu was not found in the menu bar. This can happen for
 			// the Administrator menu when it is not present, and in an ANSI build
 			// where the Layout menu is not present.
-			int i;
-			i = 0;
-			; // TODO: test!
+			;
 		}
 	} // end of for (ct = 0; ct < nMainMenuItems; ct++)
 
@@ -6909,7 +7602,6 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 	}
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
@@ -6994,9 +7686,17 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 	pMainFrame->Thaw();
 }
 
-// Sets the value of m_bShowNewProjectItem to FALSE if the <New Project> user profile
-// item's itemVisibility for the current profile is set to "0"; otherwise sets the
-// value of m_bShowNewProjectItem to TRUE.
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function sets the value of m_bShowNewProjectItem to FALSE if the <New Project> user 
+/// profile item's itemVisibility attribute for the current profile is set to "0"; otherwise 
+/// sets the value of m_bShowNewProjectItem to TRUE. The CProjectPage class uses the App's
+/// m_bShowNewProjectItem flag to include <New Project> as the first item in the page's
+/// list of projects, or omit it from the list.
+//////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureWizardForUserProfile()
 {
 	// we assume that a mode bar item is visible unless the m_pUserProfiles data
@@ -7011,6 +7711,18 @@ void CAdapt_ItApp::ConfigureWizardForUserProfile()
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if the "<New Project>" item is supposed to be visible in this nProfile, 
+///                 FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+///                     i.e., the tooltip
+/// \remarks
+/// Called from: the App's ConfigureWizardForUserProfile().
+/// Determines whether the "<New Project>" item is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the itemLabel in
+/// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
+/// for that item as indexed for the nProfile.
+//////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 {
 	bool bItemIsVisible = TRUE;
@@ -7055,7 +7767,7 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 /// \return     nothing
 /// \param      the AIToolBar (derived from wxToolBar) from which items are to be removed
 /// \remarks
-/// Called from: the App's ConfigureToolBarForUserProfile().
+/// Called from: the App's ConfigureToolBarForUserProfile() and CMainFrame::RecreateToolBar().
 /// This function is a helper function for ConfigureToolBarForUserProfile().
 /// It removes any tool bar items that are not visible in the currently selected user 
 /// profile. It also removes any left-over or duplicate tool bar separators.
@@ -7136,9 +7848,11 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's OnInit() and ConfigureInterfaceForUserProfile().
-/// Associates the File History (MRU) with the File menu.
-/// Also adjusts some menu hot key assignments for the different platforms.
+/// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
+/// Adjusts some menu hot key assignments for the different platforms - different
+/// platforms reserve certain hot key combinations for their own system use. 
+/// This function also sets the initial checked/unchecked state of menu items which are 
+/// checkable.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 {
@@ -7362,16 +8076,15 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 /// \return     nothing
 /// \remarks
 /// Called from: the App's OnInit() after the external XML file AI_UserProfiles.xml has
-/// been successfully read. Examines the App's internal unix-like string arrays in 
-/// defaultProfileItems[]. It compares them with those values read in from the 
-/// AI_UserProfiles.xml file. This function does not re-read the raw data from the 
-/// arrays nor the external file, but "reads" the data from the m_pUserProfiles created 
-/// on the heap. 
+/// been successfully read. This function does not re-read the raw data from the 
+/// arrays nor the external file, but "reads" the data from the pTempUserProfiles and
+/// m_pUserProfiles created on the heap. The pTempUserProfiles is created by the 
+/// SetupDefaultUserProfiles() function from the internal unix-like default strings.
 /// It then reports any inconsistencies to the developer in the form of wxLogDebug() 
-/// outputs for each inconsistency found. It only displays the wxLogDebug messages in 
-/// debug mode, so this function doesn't issue any messages to the user in the release 
-/// version; it merely exists to help the developer know of any inconsistencies and 
-/// what they are.
+/// outputs for each inconsistency found. It only displays the wxLogDebug messages 
+/// and a few wxASSERT_MSG() messages in debug mode, so this function doesn't issue 
+/// any messages to the user in the release version; it merely exists to help the 
+/// developer know of any inconsistencies and what they are.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 {
@@ -7379,7 +8092,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	UserProfiles* pTempUserProfiles; // destroyed at end of this function
 	pTempUserProfiles = (UserProfiles*)NULL;
 	
-	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles
+	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles; calls GetAndAssignIdValuesToUserProfilesStruct()
 	
 	// First make sure we have good pointers
 	if (pTempUserProfiles == NULL)
@@ -7394,21 +8107,57 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	}
 
 	// compare the profile version
-	// Note: When an administrator customizes a given profile we expect that the following things may
-	// be different between our internal values and the external xml file:
-	//    1. The profileVersion. We augment the version number if an admin makes changes to AI_UserProfiles. This
-	//       also is a signal that the user profiles have been edited.
+	// Note: When an administrator customizes a given profile we expect that the following things
+	// will be different between our internal values and the external xml file:
+	//    1. The adminModified attribute will have the value of "Yes".
 	//    2. The usedVisibilityValues changed when an admin edits the profiles and clicks OK, regardless of
 	//       whether the edits were done to the currently selected profile.
 	//    3. The descriptionProfileTexts. These are editable by the admin.
-	//    4. The definedProfileNames. These would not normally be edited unless the admin changes or
-	//       localizes the names of the profiles/tabs by editing AI_UserProfiles.xml directly.
+	// Note: The definedProfileNames would not normally be edited unless the admin manually
+	// attempts to change or localize the names of the profiles/tabs.
+	
 	bool bVersionsDiffer = FALSE;
+	// we need to insure that the app's version (6.x.x) and the app's profile version (1.x)
+	// agree with the data in the unix-like default strings (here it is in pTempUserProfiles).
+	wxString appVerOfRunningApp = GetAppVersionOfRunningAppAsString();
+	wxString profVerOfRunningApp = GetProfileVersionOfRunningAppAsString();
+	if (pTempUserProfiles->profileVersion != profVerOfRunningApp)
+	{
+		bVersionsDiffer = TRUE;
+		wxString msg;
+		msg = _T("The app's defaultProfileItems[] and the app's PROFILE_VERSION_MAJOR_PART.PROFILE_VERSION_MINOR_PART have different profile versions %s and %s PLEASE FIX ME!");
+		msg = msg.Format(msg,pTempUserProfiles->profileVersion.c_str(),profVerOfRunningApp.c_str());
+		wxLogDebug(msg);
+		wxASSERT_MSG(FALSE,msg);
+	}
+	
+	if (pTempUserProfiles->applicationCompatibility != appVerOfRunningApp)
+	{
+		bVersionsDiffer = TRUE;
+		wxString msg;
+		msg = _T("The app's defaultProfileItems[] and the app's VERSION_MAJOR_PART.VERSION_MINOR_PART.VERSION_BUILD_PART have different compatibility versions %s and %s PLEASE FIX ME!");
+		msg = msg.Format(msg,pTempUserProfiles->applicationCompatibility.c_str(),appVerOfRunningApp.c_str());
+		wxLogDebug(msg);
+		wxASSERT_MSG(FALSE,msg);
+	}
+	
 	if (pTempUserProfiles->profileVersion != m_pUserProfiles->profileVersion)
 	{
 		bVersionsDiffer = TRUE;
 		wxLogDebug(_T("The internal and external profileVersions have different versions %s and %s"),
 			pTempUserProfiles->profileVersion.c_str(),m_pUserProfiles->profileVersion.c_str());
+	}
+	if (pTempUserProfiles->applicationCompatibility != m_pUserProfiles->applicationCompatibility)
+	{
+		bVersionsDiffer = TRUE;
+		wxLogDebug(_T("The internal and external applicationCompatibility have different versions %s and %s"),
+			pTempUserProfiles->applicationCompatibility.c_str(),m_pUserProfiles->applicationCompatibility.c_str());
+	}
+	if (pTempUserProfiles->adminModified != m_pUserProfiles->adminModified)
+	{
+		bVersionsDiffer = TRUE;
+		wxLogDebug(_T("The internal and external adminModified have different values %s and %s"),
+			pTempUserProfiles->adminModified.c_str(),m_pUserProfiles->adminModified.c_str());
 	}
 	// compare the number of elements - they should always be the same
 	if (pTempUserProfiles->definedProfileNames.GetCount() != m_pUserProfiles->definedProfileNames.GetCount())
@@ -7685,14 +8434,16 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 */
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return    TRUE if menuItemID is supposed to be visible in this nProfile, FALSE otherwise
+/// \return    TRUE if menuItemIDint is supposed to be visible in this nProfile, FALSE otherwise
 /// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
 /// \param      -> menuItemIDint the int representation of the menu item's ID
 /// \remarks
-/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Called from: the App's ConfigureMenuBarForUserProfile().
 /// Determines whether the menu item represented in menuItemIDint is supposed to be visible in
 /// the interface for the user profile passed in as nProfile. Looks up the menuItemIDint in
-/// the m_pUserProfiles data struct stored on the heap.
+/// the m_pUserProfiles data struct stored on the heap. Note: this function depends on valid
+/// values being assigned to the UserProfiles struct's itemIDInt attribute by a call to
+/// GetAndAssignIdValuesToUserProfilesStruct().
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint)
 {
@@ -7739,6 +8490,17 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int 
 	return bItemIsVisible;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if itemLabel is supposed to be visible in this nProfile, FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+/// \param      -> itemLabel the string representation of the mode bar item's text
+/// \remarks
+/// Called from: the App's RemoveModeBarItemsFromModeBarSizer().
+/// Determines whether the mode bar item represented in itemLabel is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the itemLabel in
+/// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
+/// for that item as indexed for the nProfile.
+//////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
 {
 	// we assume that a mode bar item is visible unless the m_pUserProfiles data
@@ -7786,6 +8548,18 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 	return bItemIsVisible;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if itemLabel is supposed to be visible in this nProfile, FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+/// \param      -> itemLabel the string representation of the tool bar item's (short) help text
+///                     i.e., the tooltip
+/// \remarks
+/// Called from: the App's RemoveToolBarItemsFromToolBar().
+/// Determines whether the tool bar item represented in itemLabel is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the itemLabel in
+/// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
+/// for that item as indexed for the nProfile.
+//////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
 {
 	// we assume that a tool bar item is visible unless the m_pUserProfiles data
@@ -8385,9 +9159,10 @@ bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
 /// \return     a wxString representing the menu label in plain text with any & chars
 ///             and any accelerator/hot key notation such as \tCtrl-S or \tShift-Ctrl-x
 ///             removed from the incoming menuLabel string
-/// \param      -> menuLabel  the string value of the menu label with any "decorations" 
+/// \param      -> menuLabel  the string value of the menu label containing any "decorations" 
 /// \remarks
-/// Called from: the App's ConfigureInterfaceForUserProfile() and GetSubMenuItemIdFromAIMenuBar()
+/// Called from: the App's GetAndAssignIdValuesToUserProfilesStruct(), SetupDefaultMenuStructure(),
+/// ConfigureMenuBarForUserProfile() and GetSubMenuItemIdFromAIMenuBar()
 /// and from PopulateListBox() and ProfileItemIsSubMenuOfThisMainMenu() in the
 /// CAdminEditMenuProfile class. 
 /// This function is used for comparing menu label strings. It removes any '&' chars as 
@@ -8436,7 +9211,7 @@ wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
 /// \return     a wxString representing the string equivalent of the itemKind enum value
 /// \param      -> itemKind  the wxItemKind enum value of the menu item 
 /// \remarks
-/// Called from: the App's ReportMenuAndUserProfilesInconsistencies().
+/// Called from: the App's SetupDefaultMenuStructure().
 /// Returns the wxString equivalent of a menu's wxItemKind value.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetMenuItemKindAsString(wxItemKind itemKind)
@@ -8460,7 +9235,7 @@ wxString CAdapt_ItApp::GetMenuItemKindAsString(wxItemKind itemKind)
 /// \param      -> itemKindStr  a wxString in the form of "wxITEM_NORMAL", "wxITEM_SEPARATOR",
 ///                             "wxITEM_CHECK" or "wxITEM_RADIO". 
 /// \remarks
-/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Called from: the App's ConfigureMenuBarForUserProfile().
 /// A convenience function that returns the wxItemKind enum equivalent of the input 
 /// wxString representation.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -8678,10 +9453,10 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     an array of pointers of wxMenuItem objects on the heap
-/// \param      -> pMainMenuItem    the main menu struct on the heap whose sub items are 
+/// \param      -> pMainMenuItem    the AI_MainMenuItem struct on the heap whose sub items are 
 ///                                 being collected
 /// \remarks
-/// Called from: the App's ConfigureInterfaceForUserProfile(). 
+/// Called from: the App's ConfigureMenuBarForUserProfile(). 
 /// This function scans the main menu struct of the default AI menu structure represented 
 /// in the pMainMenuItem incoming parameter, and collects the pointers of the structs of type
 /// AI_SubMenuItem* representing the sub menu items contained in that main menu.
@@ -8730,7 +9505,7 @@ wxArrayPtrVoid CAdapt_ItApp::GetMenuStructureItemsArrayForThisTopLevelMenu(AI_Ma
 /// \param      -> topLevelMenu    the enum of the top level menu whose label we are 
 ///                                 determining
 /// \remarks
-/// Called from: the App's GetTopLevelMenuFromAIMenuBar(). 
+/// Called from: the App's ConfigureMenuBarForUserProfile() and GetTopLevelMenuFromAIMenuBar(). 
 /// This function determines which string value label is associated (by default) with the
 /// enums describing the top level menus in Adapt It.
 /// Note: The default string representations of the top level menus are all localizable, but
@@ -8769,10 +9544,20 @@ wxString CAdapt_ItApp::GetTopLevelMenuName(TopLevelMenu topLevelMenu)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the current value of the top level menu's identifier,
+///                     i.e., an int for ID_FILE_MENU, etc.
+/// \param      -> topLevelMenuLabel the wxString value of the top level menu whose int
+///                                  we are determining
+/// \remarks
+/// Called from: the App's SetupDefaultMenuStructure(). 
+/// This function determines int value of the top level menu's identifier which is associated
+/// with the input string in topLevelMenuLabel. 
+//////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
 {
 	wxString topLevelMenuLabelPlain;
-	topLevelMenuLabelPlain = topLevelMenuLabel; //RemoveMenuLabelDecorations(topLevelMenuLabel);
+	topLevelMenuLabelPlain = topLevelMenuLabel;
 	if (topLevelMenuLabelPlain == _("&File"))
 		return ID_FILE_MENU;
 	else if (topLevelMenuLabelPlain == _("&Edit"))
@@ -8829,7 +9614,7 @@ wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
 /// \param      -> menuItemLabel  the string label of the sub menu item of the menu bar 
 /// \param      -> tempMenuBar  the AI Menu Bar we are examining (generally a temp one)
 /// \remarks
-/// Called from: the App's ConfigureInterfaceForUserProfile(). 
+/// Called from: the App's ConfigureMenuBarForUserProfile(). 
 /// This function determines and returns the int value of the identifier which was used
 /// in creating the menu item in the tempMenuBar; the menu item being specified by its
 /// location as being in the mainMenuItemLabel top level menu, and menuItemLabel sub
@@ -8838,6 +9623,9 @@ wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
 /// one only knows the string value "ID_FILE_MENU". Moreover, the available functions
 /// wxMenuBar::FindMenuItem() and wxMenu::FindItem() only take menu item labels.
 /// Note: a menu separator has the value of wxID_SEPARATOR which is -2.
+/// We cannot store the int values of identifiers in AI_UserProfiles.xml since those
+/// int values will change for each build in which wxDesigner's inventory of identifiers
+/// changes (it assigns them afresh for each build).
 //////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar)
 {
@@ -8856,6 +9644,18 @@ int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxStr
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing line position where replacement was done in the f wxTextFile
+/// \param      -> f  the wxText file whose line we are modifying
+/// \param      -> itemTextStr the highest level profile item we are looking for
+/// \param      -> profileStr  the profile section under itemTextStr
+/// \param      -> valueStr  the string value of the itemVisibility for the given profileStr
+/// \remarks
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// This function scans through the file f until it locates the line containing itemTextStr,
+/// continues until the profileStr associated with itemTextStr is found, then replaces the
+/// itemVisibility value associated with the above with the valueStr parameter.
+//////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemTextStr, wxString profileStr, wxString valueStr)
 {
 	wxString lineStr;
@@ -8956,6 +9756,86 @@ int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemT
 	return linePos;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      -> f  the wxText file whose line we are modifying
+/// \remarks
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// This function is called last after updating the wxTextFile with all other changes made 
+/// to the user workflow profiles. Here we update the adminModified="" line in the wxTextFile 
+/// to adminModified="Yes" if the data in the file differs from the factory data (determined
+/// by calling CommonItemsInProfilesDiffer), otherwise we we insure that the line reads 
+/// adminModified="No". Note: Working from the factory data as a baseline allows for the 
+/// possibility that a AI_UserProfiles.xml file that was previously modified resulting in the 
+/// line becoming adminModified="Yes", could now be modified again resulting in the line becoming 
+/// adminModified="No" in the event that the later modifications returned the data in the file
+/// back to be identidal to the factory data.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::UpdateAdminModifiedLineToYesOrNo(wxTextFile* f)
+{
+	bool bProfilesDiffer = FALSE;
+	bProfilesDiffer = CommonItemsInProfilesDiffer(m_pUserProfiles,m_pFactoryUserProfiles);
+
+	wxString lineStr;
+	int linePos = -1;
+	if (f->IsOpened())
+	{
+		bool bFoundAdminModifiedLine = FALSE;
+		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundAdminModifiedLine; lineStr = f->GetNextLine())
+		{
+			int chPos;
+			// does this line have our adminModified= line? If so, change it to adminModified="Yes"
+			// or adminModified="No" depending on the value of bProfilesDiffer.
+			chPos = lineStr.Find(_T("adminModified="));
+			if (chPos != wxNOT_FOUND)
+			{
+				bFoundAdminModifiedLine = TRUE;
+				linePos = f->GetCurrentLine();
+				wxString str = lineStr;
+				if (bProfilesDiffer)
+				{
+					// The profiles are different so modifications were made.
+					// If adminModified="No" is in the line replace it with adminModified="Yes"
+					if (str.Find(_T("adminModified=\"No\"")) != wxNOT_FOUND)
+					{
+						str.Replace(_T("adminModified=\"No\""),_T("adminModified=\"Yes\""));
+					}
+				}
+				else
+				{
+					// The profiles are essentially the same as factory there are now no modifications.
+					// If adminModified="Yes" is in the line replace it with adminModified="No"
+					if (str.Find(_T("adminModified=\"Yes\"")) != wxNOT_FOUND)
+					{
+						str.Replace(_T("adminModified=\"Yes\""),_T("adminModified=\"No\""));
+					}
+				}
+				wxString testStr1,testStr2; // for debugging below
+				if (linePos != wxNOT_FOUND)
+				{
+					// now remove the "current" textFile line and replace it with lineStr
+					testStr1 = f->GetLine(linePos); // for debugging
+					f->RemoveLine(linePos);
+					f->InsertLine(str,linePos);
+					testStr2 = f->GetLine(linePos); // for debugging
+				}
+				break;
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing line position where replacement was done in the f wxTextFile
+/// \param      -> f   the wxTextFile whose descriptionProfileN data we are replacing
+/// \param      -> descrProfileN  the descriptionProfileN we are looking for in the file
+/// \param      -> valueStr  the value of the new replacement descriptionProfileN text
+/// \remarks
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// This function scans through the file f until it locates the line containing descrProfileN,
+/// then it replaces the existing text with the text in valueSrt.
+//////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString descrProfileN, wxString valueStr)
 {
 	wxString lineStr;
@@ -10082,8 +10962,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
 	m_bUsingDefaultUsfmStyles = FALSE;
 
-	// whm added 30Aug10 for AI_UserProfiles.xml file processing
-	m_bUsingAdminDefinedUserProfile = FALSE;
 	// whm added 19Oct10 for user workflow profiles support
 	m_bShowNewProjectItem = TRUE; // show <New Project> in projectPage by default
 
@@ -12997,16 +13875,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	if (!bBooksFileExists)
 	{
 
-		wxString filecopyPath;
-		filecopyPath = m_xmlInstallPath + PathSeparator + _("books.xml");
-		bBooksFileExists = ::wxFileExists(filecopyPath) && !::wxDirExists(filecopyPath);
+		wxString booksInstallFolderFileCopyPath;
+		booksInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _("books.xml");
+		bBooksFileExists = ::wxFileExists(booksInstallFolderFileCopyPath) && !::wxDirExists(booksInstallFolderFileCopyPath);
 		if (bBooksFileExists)
 		{
 			//wxLogDebug(_T("Copying existing books.xml from m_xmlInstallPath to user's work folder."));
 			// copy the file to the work folder
 			bool success;
 			// Use the simple wxCopyFile() method
-			success = wxCopyFile(filecopyPath, booksfilePath, TRUE); // TRUE = overwrite
+			success = wxCopyFile(booksInstallFolderFileCopyPath, booksfilePath, TRUE); // TRUE = overwrite
 			if (!success)
 			{
 				bBooksFileExists = FALSE;
@@ -13117,18 +13995,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
 	
-	// Does AI_UserProfiles.xml exist in the work folder
-	bool bUserProfilesFileExists = wxFileExists(AIuserProfilesWorkFolderPath);
-
     // Note: The path to the m_setupFolder may differ from the default installation
     // location if user installed Adapt It to a non-default user defined folder, The call
     // to FindAppPath() above determines the path to the currently running executable,
     // which is safer than hard coding the path to a predetermined setup location.
-	wxString filecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
-	wxString userProfileFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
-
-	bool bSetupStyleFileExists = wxFileExists(filecopyPath);
-	bool bSetupProfileFileExists = wxFileExists(userProfileFilecopyPath);
+	wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
+	bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
+	
+	wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
+	// Does AI_UserProfiles.xml exist in the work folder
+	bool bWorkFolderUserProfilesFileExists = wxFileExists(m_userProfileFileWorkFolderPath);
+	bool bInstallFolderUserProfileFileExists = wxFileExists(userProfileInstallFolderFilecopyPath);
 
 	// Now, check that the AI_USFM.xml file exists in the work folder (make a copy there
 	// if necessary from the installation resources.
@@ -13148,7 +14025,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{
 			// copy the file to the work folder
 			bool copyOK;
-			copyOK = wxCopyFile(filecopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
+			copyOK = wxCopyFile(usfmStyleInstallFolderFileCopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
 			if (copyOK)
 			{
                 // Testing shows that the wxCopyFile call above actually preserves the mod
@@ -13156,7 +14033,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 // successful copy will automatically make the newly copied file in the
                 // work folder have same date it has in the installation/setup folder.
 				//wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-				//wxFileName fnInSetupFolderPath(filecopyPath);
+				//wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
 				//wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
 				//wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
 				//fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
@@ -13191,7 +14068,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // get implemented unless the user manually moves the file to the work folder
             // and we don't want to expect users to have to remember to do such a thing.
 			wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-			wxFileName fnInSetupFolderPath(filecopyPath);
+			wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
 			wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
 			wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
 			fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
@@ -13214,7 +14091,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			{
 				// copy the file to the work folder
 				bool copyOK;
-				copyOK = wxCopyFile(filecopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
+				copyOK = wxCopyFile(usfmStyleInstallFolderFileCopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
 				if (copyOK)
 				{
                     // Testing shows that the wxCopyFile call above actually preserves the
@@ -13223,7 +14100,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                     // file in the work folder have same date it has in the
                     // installation/setup folder.
 					//wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-					//wxFileName fnInSetupFolderPath(filecopyPath);
+					//wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
 					//wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
 					//wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
 					//fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
@@ -13289,7 +14166,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	SetupDefaultMenuStructure(m_pAI_MenuStructure, m_mapMenuLabelStrToIdInt);
 	// The following SetupDefaultUserProfiles() must come after the SetupDefaultMenuStructure()
 	// call above within OnInit().
-	SetupDefaultUserProfiles(m_pFactoryUserProfiles);
+	SetupDefaultUserProfiles(m_pFactoryUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 
 	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
 	// copy there if necessary from the installation resources.
@@ -13298,99 +14175,379 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	pStatusBar->SetStatusText(message,0); // use first field 0
 
 	// If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the 
-	// setup folder and, if there, then copy it to the work folder before opening it 
-	// from the latter location.
-	if (!bUserProfilesFileExists)
+	// setup install folder and, if there, decide how to handle version differences due to
+	// possible upgrades/downgrades which may require merging of any changes made to
+	// AI_UserProfiles.xml by an administrator who has customized one or more profiles
+	// using the User Workflow Profiles dialog from the Administrator menu.
+	if (!bWorkFolderUserProfilesFileExists)
 	{
 		// There is no AI_UserProfiles.xml file in the work folder, so get one from
 		// the setup folder if one is there, and copy it to the work folder preserving
 		// the date it had in the setup folder.
-		if (bSetupProfileFileExists)
+		if (bInstallFolderUserProfileFileExists)
 		{
 			// copy the file to the work folder
 			bool copyOK;
-			copyOK = wxCopyFile(userProfileFilecopyPath, AIuserProfilesWorkFolderPath, TRUE); // TRUE = overwrite
+			copyOK = wxCopyFile(userProfileInstallFolderFilecopyPath, m_userProfileFileWorkFolderPath, TRUE); // TRUE = overwrite
 			if (copyOK)
 			{
-				bUserProfilesFileExists = TRUE;
+				bWorkFolderUserProfilesFileExists = TRUE;
 				//wxLogDebug(_T("Copying existing AI_UserProfiles.xml from m_xmlInstallPath to user's work folder."));
 			}
 			else
 			{
-				bUserProfilesFileExists = FALSE;
+				bWorkFolderUserProfilesFileExists = FALSE;
 				wxLogDebug(_T("Could NOT copy existing AI_UserProfiles.xml from m_xmlInstallPath to user's work folder."));
 			}
 		}
 	}
 	else
 	{
-		bool bSetupFolderHasNewerVersion = FALSE;
-		if (bSetupProfileFileExists)
+		// There is an AI_UserProfiles.xml file already in the work folder. 
+		// Does it need to be upgraded to a more recent (higher number) version?
+		// If the installation setup folder contains an AI_UserProfiles.xml file  
+		// (normally there should be one there), we need to compare their versions 
+		// and see if the one in the work folder needs to be upgraded. The one in 
+		// the installation folder might be a newer version if the user installed 
+		// an AI update since the last time the app was run. Note however, that 
+		// the user/administrator may have previously modified the work folder's 
+		// existing AI_UserProfiles.xml via edits done in the User Workflow 
+		// Profiles dialog. So, in the event the user has installed a newer AI 
+		// update, we don't want to obliterate his existing user profiles modifications 
+		// (stored in the AI_UserProfiles.xml in his work folder), but we want to 
+		// preserve his profile edits while upgrading the AI_UserProfiles.xml to
+		// the newer version. This requires that we merge his existing modifications 
+		// into the newly installed AI_UserProfiles.xml data as we copy the merged
+		// AI_UserProfiles.xml file to his work folder.
+		// In actuality the basic steps are:
+		// 1. The work folder's existing AI_UserProfiles.xml file's xml content is
+		// read using ReadPROFILES_XML(); this populates the m_pUserProfiles struct
+		// on the heap with the existing old (but modified) data.
+		// 2. The work folder's existing AI_UserProfiles.xml file is removed/deleted.
+		// 3. We call SaveUserProfilesMergingDataToXMLFile() which reads the install
+		// setup folder's (newer) version of AI_UserProfiles.xml into memory as a
+		// wxTextFile, and merges changes into the appropriate lines of its in-memory
+		// copy of the newer AI_UserProfiles.xml. Then it creates a new instance of
+		// a wxTextFile (pointing to the user's work folder), copies all of the 
+		// in-memory text lines from install setup folder's version to the newly
+		// created version. Finally it writes the newly created version out to the
+		// user's work folder.
+		// into memory (as a wxTextFile), the merging is done in memory, then the result is written
+		// out to disk afterwards to a newly created AI_UserProfiles.xml file.
+		bool bSetupFoldersVersionCanReplace = FALSE; // FALSE unless the next block changes it to TRUE
+		if (bInstallFolderUserProfileFileExists)
 		{
-            // The AI_UserProfiles.xml file exists, but there may have been a more recent
-            // installation just done in which the file in the setup folder exists as a
-            // later version with changed content, so we have to check for a later version
-            // and if so we copy it to replace the old version in the work folder - if we
-            // don't do this, tweaks done to the file in incremental version updates won't
-            // get implemented unless the user manually moves the file to the work folder
-            // and we don't want to expect users to have to remember to do such a thing.
-			wxFileName fnInWorkFolderPath(AIuserProfilesWorkFolderPath);
-			wxFileName fnInSetupFolderPath(userProfileFilecopyPath);
-			wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
-			wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
-			fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
-			fnInSetupFolderPath.GetTimes(&dtSetupFolderFileAccessTime,&dtSetupFolderFileModTime,&dtSetupFolderFileCreateTime);
-			// Check if we have a newer version in the setup folder
-			bSetupFolderHasNewerVersion = dtSetupFolderFileModTime > dtWorkFolderFileModTime;
+			// The AI_UserProfiles.xml file exists, but it may have been edited/customized
+			// by an administrator. If so we should attempt to merge any edited/customized
+			// data into any more recent version of AI_UserProfiles.xml file that now 
+			// exists in the work folder. We need to do the following each time the app 
+			// runs:
+			// 1. Read the existing AI_UserProfiles.xml in the work folder and determine:
+			//    a. The profileVersion attribute's value, i.e., "1.0"
+			//    b. The applicationCompatibility attribute's value, i.e., "6.0.0"
+			//    c. The adminModified attribute's value, i.e., "No" or "Yes"
+			// 2. If the adminModified attribute is "No" we can quietly replace the existing
+			//    AI_UserProfiles.xml file with any newer version contained in the setup folder,
+			//    since we know that no edits/customizations would be lost in the update and
+			//    replacement of the existing AI_UserProfiles.xml file with the one in the
+			//    setup folder.
+			// 3. If the adminModified attribute is "Yes" it differs from its factory defaults
+			//    and we must consider the applicationCompatibility and profileVersion 
+			//    attibutes' values and determine the following: 
+			//    a. If the versions are deemed compatible, we quietly merge the 
+			//       edits/customizations made by the administrator into the incoming 
+			//       AI_UserProfiles.xml file and copy that merged AI_UserProfiles.xml 
+			//       file into the work folder location.
+			//    b. If they are not compatible, we rename the existing file to 
+			//       AI_UserProfiles_old.xml, and inform the user that a backup copy of
+			//       their edited/customized AI_UserProfiles.xml file was made in the work
+			//       folder by that name, and that they will likely need to edit/customize 
+			//       the user workflow profiles anew for the updated version of the 
+			//       application.
+
+			wxString profileVersionStr;
+			wxString applicationCompatibilityStr;
+			wxString adminModifiedStr;
+			GetVersionAndModInfoFromProfilesXMLFile(m_userProfileFileWorkFolderPath, 
+				profileVersionStr,applicationCompatibilityStr,adminModifiedStr);
+			wxASSERT(!profileVersionStr.IsEmpty());
+			wxASSERT(!applicationCompatibilityStr.IsEmpty());
+			wxASSERT(!adminModifiedStr.IsEmpty());
+			
+			if (adminModifiedStr == _T("No"))
+			{
+				// The work folder's version of AI_UserProfiles.xml has not been modified so
+				// it is safe to quietly copy the install folder's version over it resulting
+				// in an automatic upgrade of any newer version of AI_UserProfiles.xml.
+				bSetupFoldersVersionCanReplace = TRUE;
+			}
+			else if (adminModifiedStr == _T("Yes"))
+			{
+				// The work folder's version of AI_UserProfiles.xml has been modified by an
+				// administrator. How we proceed depends on what we find when we compare the
+				// versions encoded in the profileVersion attribute and the applicationCompatibility 
+				// attribute of the work folder's AI_UserProfiles.xml against the application's 
+				// running versions (encoded in #defines at the beginning of Adapt_It.h). 
+				// Note: The running App's versions encoded in #defines should be identical to 
+				// those encoded in the AI_UserProfiles.xml file in the setup install folder - if 
+				// we have prepared our installers correctly!
+				wxString runningAppVerStr;
+				runningAppVerStr = GetAppVersionOfRunningAppAsString();
+				wxString profileAppVerStr;
+				profileAppVerStr = GetProfileVersionOfRunningAppAsString();
+				enum VersionComparison versionComparison;
+				// CompareRunningVersionWithWorkFolderVersion() compares the App's running version numbers
+				// against those of the current work folder's AI_UserProfile.xml file. The profileVersionStr
+				// and applicationCompatibilityStr strings were determined above in the 
+				// GetVersionAndModInfoFromProfilesXMLFile() function call.
+				versionComparison = CompareRunningVersionWithWorkFolderVersion(profileVersionStr, applicationCompatibilityStr);
+				
+				// whm Note Regarding the handling of version "conflicts" between AI and 
+				// AI_UserProfiles.xml:
+				// We attempt to handle both the case situations below together by merging the 
+				// AI_UserProfiles.xml file in the work folder with the one that now exists in the 
+				// install setup folder (which compared with the running application has a newer or 
+				// older version. For example, the running application may be version 6.0.3 but the 
+				// version of the AI_UserProfiles.xml file in the work folder might be 6.0.0 (which 
+				// could happen in a normal upgrade scenario). Another possible example might happen 
+				// when the running application may be version 6.0.1 but the version of the 
+				// AI_UserProfiles.xml file in the work folder might be 6.0.3 (which might happen if 
+				// a user decided to downgrade from AI version 6.0.3 to 6.0.1 because of some bug or 
+				// other problem, or could happen in a circumstance when someone copies a work 
+				// folder from a computer running version 6.0.3 to a computer that is still using
+				// version 6.0.1). In either case, I've tried to make the upgrade and downgrade process
+				// capable of handling such scenarios without problems. The worst that might happen is
+				// that there could be some instances in which a profile item might return to its 
+				// default factory value or might not be available after an upgrade or downgrade. 
+				// It is not likely this would happen to much extent since I don't forsee us making 
+				// huge changes to the profiles design of the user profiles features in the future.
+				// 
+				switch (versionComparison)
+				{
+				case runningAppVersionIsNewer:
+				case runningAppVersionIsOlder:
+					{
+						// The work folder's AI_UserProfiles.xml was modified and there is a newer or
+						// older version in the install setup folder.
+						// In either case we do a backup of the user's modified AI_UserProfiles.xml file 
+						// before merging it with the newer or older version associated with the currently
+						// running AI application.
+						
+						// Backup the existing AI_UserProfiles.xml file to AI_UserProfiles_Old_01.xml
+						wxString backupPathNameUsed = _T("");
+						bool bOK;
+						bOK = BackupExistingUserProfilesFileInWorkFolder(m_userProfileFileWorkFolderPath,backupPathNameUsed);
+						if (!bOK)
+						{
+							// This message should be localized
+							wxString msg = _("Could not create backup of the modified AI_UserProfiles.xml file: \n   %s\nPlease ask your administrator to check your user workflow profiles.");
+							msg = msg.Format(msg,AIuserProfilesWorkFolderPath.c_str());
+							wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+						}
+						// Note: we do the above back up quietly - unless
+						// BackupExistingUserProfilesFileInWorkFolder() does not succeed for some reason.
+						// The commented out code below might be used if we want to notify the user of the
+						// upgrade or downgrade process with the recommendation that the administrator check
+						// the user profiles.
+						//else
+						//{
+						//	// This message should be localized
+						//	wxString msg = _("There was a newer version (%s) of AI_UserProfiles.xml in the work folder than Adapt It version %s expected. It was backed up as:\n   %s\n and a new AI_UserProfiles.xml was created/merged.\nPlease ask your administrator to check your user workflow profiles.");
+						//	// here we fill the first %s with the applicationCompatibilityStr which is in the
+						//	// form of the application's version number, i.e., 6.x.x
+						//	msg = msg.Format(msg,applicationCompatibilityStr.c_str(),runningAppVerStr.c_str(),backupPathNameUsed.c_str());
+						//	wxMessageBox(msg,_T(""),wxICON_WARNING);
+						//}
+						
+						// The "normal" calling of ReadPROFILES_XML() has not happened yet, so we need to
+						// do it temporarily here in order to populate the existing m_pUserProfiles struct
+						// in order to use it in the merging process.
+						wxASSERT(m_pUserProfiles == NULL);
+						bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath);
+						if (!bReadOK)
+						{
+							// a bad parse, or failure to read the file in off the disk correctly, means we
+							// will inform the user of the situation and use the default user profile which
+							// makes all menu items/settings visible.
+							wxMessageBox(_(
+				"Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
+							_T(""), wxICON_INFORMATION);
+
+							// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
+							// We'll populate the list boxes with default settings parsed from our
+							// default unix-like strings, so modifications the administrator did will
+							// be lost (see information message above).
+							SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+						}
+						else
+						{
+							// We don't call GetAndAssignIdValuesToUserProfilesStruct(m_pUserProfiles)
+							// nor ReportMenuAndUserProfilesInconsistencies() here - they are called
+							// later after merging issues are handled.
+							
+							// The SaveUserProfilesMergingDataToXMLFile() below requires that we first 
+							// have the m_mapProfileChangesToStringValues map populated with the user's
+							// modifications by a call to MapChangesInUserProfiles().
+							// MapChangesInUserProfiles() allows for different number of
+							// descriptionProfileTexts entries and a different number of UserProfileItems in
+							// the ->profileItemList(s). This may happen when the applicationCompatibility
+							// versions are different due to upgrades, downgrades, or copying of
+							// work folder contents to a different machine running a different version
+							// of Adapt It.
+							// MapChangesInUserProfiles() internally keeps track of the number of 
+							// differences it encounteres in listed profile items.
+							MapChangesInUserProfiles(m_pUserProfiles, m_pFactoryUserProfiles);
+
+							// Remove the existing work folder's AI_UserProfiles.xml file. It was backed
+							// up above and we have its data already in m_pUserProfiles because of the 
+							// ReadPROFILES_XML() call above.
+							bool bRemovedOK;
+							bRemovedOK = wxRemoveFile(m_userProfileFileWorkFolderPath);
+							if (bRemovedOK)
+							{
+								bool bMergedSavedOK;
+								// Note: below we use the userProfileInstallFolderFilecopyPath path which makes
+								// SaveUserProfilesMergingDataToXMLFile() merge the install version's
+								// AI_UserProfiles.xml into the work folder's version
+								bMergedSavedOK = SaveUserProfilesMergingDataToXMLFile(userProfileInstallFolderFilecopyPath);
+								if (!bMergedSavedOK)
+								{
+									// Note: Specific error messages are handled within
+									// SaveUserProfilesMergingDataToXMLFile() above.
+									SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+								}
+							}
+							else
+							{
+								wxMessageBox(_(
+					"Unable to update the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
+								_T(""), wxICON_INFORMATION);
+								SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+							}
+						}
+						// We're finished with our temporary copy of m_pUserProfiles.
+						DestroyUserProfiles(m_pUserProfiles); // it will get created again below in the normal call of ReadPROFILES_XML()
+						// Note: bSetupFoldersVersionCanReplace stays FALSE here, because we handle getting
+						// updated AI_UserProfiles.xml into the user's work folder above
+						break;
+					}
+				case profileVersionDiffers:
+					{
+						// The profileVersion differs. The profileVersion only changes when
+						// there has been a major change to the AI_UserProfiles.xml file that
+						// would make it incompatible with the earlier "1.0" version. The
+						// CompareRunningVersionWithWorkFolderVersion() function above indicates
+						// that this is the case. Whether a merge would be possible in this 
+						// situation will need to be determined when the new profileVersion is 
+						// created (if ever). So, for now we notify the programmer via a debug assert,
+						// make a backup copy of the edited/customized AI_UserProfiles.xml, and notify
+						// the user that they will likely need to "check and recreate your user work
+						// profiles if necessary" for the updated version of the application. The
+						// bSetupFoldersVersionCanReplace flag is set TRUE, which will cause the
+						// AI_UserProfiles.xml to be overwritten by the "incompatible version" that
+						// is in the setup install folder (i.e., since profileVersion differences
+						// mean some kind of incompatibility it is safest to use the AI_UserProfiles.xml
+						// that is designed for the application that is currently running.
+						wxASSERT_MSG(FALSE,_T("The PROFILE_VERSION_MAJOR_PART or PROFILE_VERSION_MINOR_PART version numbers of the running application differ\nfrom the profileVersion attribute of the modified AI_UserProfiles.xml file in the user's work folder."));
+						// Backup the existing AI_UserProfiles.xml file to AI_UserProfiles_Old_01.xml
+						wxString backupPathNameUsed = _T("");
+						bool bOK;
+						bOK = BackupExistingUserProfilesFileInWorkFolder(m_userProfileFileWorkFolderPath,backupPathNameUsed);
+						if (!bOK)
+						{
+							// This message should be localized
+							wxString msg = _("Could not create backup of the modified AI_UserProfiles.xml file: \n   %s\nPlease ask your administrator to recreate your user workflow profiles.");
+							msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
+							wxMessageBox(msg,_T(""),wxICON_WARNING);
+						}
+						else
+						{
+							// This message should be localized
+							wxString msg = _("There was an incompatible version (%s) of AI_UserProfiles.xml in the work folder.\nAdapt It version %s expected it to be %s. The existing AI_UserProfiles.xml file was backed up as:\n   %s\n and a new AI_UserProfiles.xml was created in the work folder.\nPlease ask your administrator to check and recreate your user workflow profiles if necessary.");
+							// here we fill the first %s with the profileAppVerStr which is in the
+							// form of the AI_UserProfiles.xml's profileVersion number, i.e., 1.x
+							msg = msg.Format(msg,profileVersionStr.c_str(),runningAppVerStr.c_str(),profileAppVerStr.c_str(),backupPathNameUsed.c_str());
+							wxMessageBox(msg,_T(""),wxICON_WARNING);
+						}
+						// Set bSetupFoldersVersionCanReplace = TRUE here because we want the version in the
+						// setup install folder to be used since it is known to be compatible with the running
+						// application.
+						bSetupFoldersVersionCanReplace = TRUE;
+						break;
+					}
+				case sameAppVersion: // fall through to sameAppVersion - the most common scenario
+				default:
+					{
+						// Versions are the same so we don't need to copy the setup folder's version
+						// to the work folder, i.e., the modified one in the work folder remains unchanged.
+						// This is the most common case when edits have been made to AI_UserProfiles.xml
+						// by an administrator. We set bSetupFoldersVersionCanReplace = FALSE so the
+						// existing AI_UserProfiles.xml file in the user's work folder does NOT get
+						// overwritten (in code below) by the unmodified one residing in the setup install 
+						// folder.
+						bSetupFoldersVersionCanReplace = FALSE;
+					}
+				}
+			}
+			
+			// Note: The checking for modification times of files is not appropriate for our
+			// AI_UserProfiles.xml file handling in regards to upgrades or downgrades.
+			// The AI_UserProfiles.xml file is likely to be edited by an administrator so
+			// its modification date cannot be compared to the modification date of the 
+			// AI_UserProfiles.xml file installed in a given AI version update. The 
+			// modification time of the AI_UserProfiles.xml file in the user's work folder 
+			// could well be newer than one recently installed in the setup folder that
+			// has a newer internal version.
 		}
-		// If setup folder has a newer version, we will first delete what is in the work 
-		// folder, then copy the file from the setup folder to replace it. If setup folder 
-		// version is not newer then do nothing.
-		if (bSetupFolderHasNewerVersion)
+		// If bSetupFoldersVersionCanReplace is TRUE, we will first delete what is in the 
+		// work folder, then copy the file from the setup folder to replace it. If 
+		// bSetupFoldersVersionCanReplace is FALSE then do nothing.
+		if (bSetupFoldersVersionCanReplace)
 		{
-			if (!wxRemoveFile(AIuserProfilesWorkFolderPath))
+			if (!wxRemoveFile(m_userProfileFileWorkFolderPath))
 			{
 				wxMessageBox(_("Could not remove the AI_UserProfiles.xml file from the work folder."),
 					_T(""), wxICON_INFORMATION);
 			}
-			if (bSetupProfileFileExists)
+			if (bInstallFolderUserProfileFileExists)
 			{
 				// copy the file to the work folder
 				bool copyOK;
-				copyOK = wxCopyFile(userProfileFilecopyPath, AIuserProfilesWorkFolderPath, TRUE); // TRUE = overwrite
+				copyOK = wxCopyFile(userProfileInstallFolderFilecopyPath, m_userProfileFileWorkFolderPath, TRUE); // TRUE = overwrite
 				if (copyOK)
 				{
-					bUserProfilesFileExists = TRUE;
+					bWorkFolderUserProfilesFileExists = TRUE;
 					//wxLogDebug(_T("Copying newer version of AI_UserProfiles.xml to user's work folder."));
 				}
 				else
 				{
-					bUserProfilesFileExists = FALSE;
-					wxLogDebug(_T("Could not copy newer version of AI_UserProfiles.xml to user's work folder."));
+					bWorkFolderUserProfilesFileExists = FALSE;
+					wxLogDebug(_T("Could not copy installed version of AI_UserProfiles.xml to user's work folder."));
 				}
 			}
 		}
 	}
 
-	if (bUserProfilesFileExists)
+	// Now, do the normal reading of AI_UserProfiles.xml which creates the m_pUserProfiles struct on
+	// the heap.
+	if (bWorkFolderUserProfilesFileExists)
 	{
-		wxLogDebug(_T("The AIuserProfilesWorkFolderPath = %s"),AIuserProfilesWorkFolderPath.c_str());
+		wxLogDebug(_T("The m_userProfileFileWorkFolderPath = %s"),m_userProfileFileWorkFolderPath.c_str());
 		// parse the xml file, and set up the data structures
-		bool bReadOK = ReadPROFILES_XML(AIuserProfilesWorkFolderPath);
+		bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath);
 		if (!bReadOK)
 		{
             // a bad parse, or failure to read the file in off the disk correctly, means we
             // will inform the user of the situation and use the default user profile which
             // makes all menu items/settings visible.
 			wxMessageBox(_(
-"Warning: using the default user profile until a AI_UserProfiles.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_UserProfiles.xml file if you have previously told Adapt It to use a Novice or Custom profile."),
-			_T(""), wxICON_INFORMATION);
-			m_bUsingAdminDefinedUserProfile = FALSE;
+				"Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
+				_T(""), wxICON_INFORMATION);
 
 			// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
 			// We'll populate the list boxes with default settings parsed from our
 			// default unix-like strings.
-			SetupDefaultUserProfiles(m_pUserProfiles);
+			SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 		}
 		else
 		{
@@ -13407,15 +14564,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	{
         // no "AI_UserProfiles.xml" file in the work folder, so use default user profile (none);
 		wxLogDebug(_T("AI_UserProfiles.xml not found in work folder - using Adapt It's default internal user profile."));
-		m_bUsingAdminDefinedUserProfile = FALSE;
 		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
 		// We'll populate the list boxes with default settings parsed from our
 		// default unix-like strings.
-		SetupDefaultUserProfiles(m_pUserProfiles);
+		SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 	}
 
 	// At this point the config files have been read and the AI_UserProfiles.xml file has been
-	// read and the m_pUserProfiles data structure has been updated
+	// read and the m_pUserProfiles and m_pFactoryUserProfiles data structures have been 
+	// created.
+	// 
 	// Adjust menus and settings for the selected user workflow profile by calling
 	// ConfigureInterfaceForUserProfile(). However, if the m_nWorkflowProfile is 0 "None" 
 	// we simply bypass calling ConfigureInterfaceForUserProfile() and the application
@@ -13425,14 +14583,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		ConfigureInterfaceForUserProfile();
 	}
 
-	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally called much
-	// earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() it makes
-	// better sense to do the menu modifications (mostly for the Mac) here at this point
-	// in OnInit().
+	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally 
+	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() 
+	// it makes better sense to do the menu modifications (mostly for the Mac) here at this 
+	// point in OnInit().
  	MakeMenuInitializationsAndPlatformAdjustments();
 
-	// whm Note: It makes better sense to associate the file history with the File
-	// menu, and load the File History AFTER calling ConfigureInterfaceForUserProfile()
+	// whm Note: We should associate the file history with the File menu, and load 
+	// the File History AFTER calling ConfigureInterfaceForUserProfile() above.
 	// 
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
@@ -13443,12 +14601,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
    
-	// Initialise the help system. We do it here because our m_setupFolder was determined
-    // above and we now know the path to the setup folder where any help file is installed.
+	// Next, initialise the help system. We do it here because our m_setupFolder was 
+	// determined above and we now know the path to the setup folder where any help 
+	// file is installed.
     //  
     // Determine the path to the installation folder where Adapt_It.xxx is located
-    // Note: Our function FindAppPath() determined the most likely path where the Adapt It
-    // executable program is located and stored it in m_setupFolder.
+    // Note: Our function FindAppPath() determined the most likely path where the 
+    // Adapt It executable program is located and stored it in m_setupFolder.
 
 	wxString appName;
 	appName = GetAppName();
@@ -30420,7 +31579,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 			ConfigureInterfaceForUserProfile();
 			MakeMenuInitializationsAndPlatformAdjustments();
 			// Also, save the changes to the AI_UserProfiles.xml file
-			SaveUserProfilesDataToXML();
+			SaveUserProfilesMergingDataToXMLFile(m_userProfileFileWorkFolderPath);
 		}
 	}
 }
