@@ -64,7 +64,6 @@
 #include <wx/busyinfo.h>
 #include <wx/print.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary
-#include <malloc.h>
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -11832,7 +11831,7 @@ wxString CAdapt_ItView::DoGuess(const wxString& str, bool& bIsGuess)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	
-	wxChar* pszGuess = (wxChar*)_malloca( MAX_GUESS_LENGTH ); // Alloc space to pass as pointer, 100 is enough
+	wxChar* pszGuess = (wxChar*)malloc( MAX_GUESS_LENGTH ); // Alloc space to pass as pointer, 100 is enough
 
 	bool bGuessReturned = FALSE;
 	if (gbIsGlossing)
