@@ -64,6 +64,7 @@
 #include <wx/busyinfo.h>
 #include <wx/print.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary
+#include <malloc.h>
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
