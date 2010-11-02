@@ -119,6 +119,7 @@
 #include "Notes.h"
 #include "Retranslation.h"
 #include "Placeholder.h"
+#include "GuesserSettingsDlg.h"
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -1003,6 +1004,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_BUTTON_CHOOSE_TRANSLATION, CAdapt_ItView::OnUpdateButtonChooseTranslation)
 	EVT_TOOL(ID_BUTTON_EARLIER_TRANSLATION, CAdapt_ItView::OnButtonEarlierTranslation)
 	EVT_UPDATE_UI(ID_BUTTON_EARLIER_TRANSLATION, CAdapt_ItView::OnUpdateButtonEarlierTranslation)
+	EVT_TOOL(ID_BUTTON_GUESSER, CAdapt_ItView::OnButtonGuesserSettings)
+	EVT_UPDATE_UI(ID_BUTTON_GUESSER, CAdapt_ItView::OnUpdateButtonGuesserSettings)
 	// End of ToolBar event handlers
 
 	// ComposeBar handlers
@@ -1590,6 +1593,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		if (bOK)
 		{
 			pApp->m_bKBReady = TRUE;
+			pApp->LoadGuesser(pApp->m_pKB); // whm added 29Oct10
 
 			// now do it for the glossing KB
 			// BEW 23Aug10 removed wxASSERT() - see reason in comment above of same date
@@ -1608,6 +1612,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			if (bOK)
 			{
 				pApp->m_bGlossingKBReady = TRUE;
+				pApp->LoadGuesser(pApp->m_pGlossingKB); // whm added 29Oct10
 			}
 			else
 			{
@@ -1719,9 +1724,26 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	return pileWidth;
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pPile        -> the m_pActivePile where the phrasebox is located when paste 
+///                             command is invoked
+/// \remarks
+/// Called from the View's OnEditPaste().
+/// DoTargetBoxPaste() is generally only called when the user pastes something from the 
+/// clipboard into the phrase box. DoTargetBoxPaste() applies any necessary modifications as 
+/// the result of Consistent Changes (if m_bUseConsistentChanges is TRUE) or any modifications
+/// made by SIL Converters (if m_bUseSilConverter is TRUE) or any modifications made by the
+/// Guesser (if m_bUseAdaptationsGuesser is TRUE) before inserting the string to the
+/// m_targetPhrase. The Guesser cannot be used if the SIL Converters is being used.
+/// Also, the Guesser can be used only if Consistent Changes is not being used 
+/// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput was set to true by the 
+/// administrator checking the appropriate checkbox in the GuesserSettingsDlg.
+/////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 {
 	// Modified to handle glossing or adapting
+	// whm modified 29Oct10 to handle Guessing
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't
@@ -1766,6 +1788,25 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		    insertionText = DoSilConvert(pasteStr);
 	    }
     }
+
+	bool bIsGuess = FALSE;
+	if (pApp->m_bUseAdaptationsGuesser && !pApp->m_bUseSilConverter)
+	{
+		// The Guesser cannot be used if the SIL Converters is being used.
+		// Also, the Guesser can be used only if Consistent Changes is not being used 
+		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
+		// was set to true by the administrator checking the appropriate checkbox
+		// in the GuesserSettingsDlg.
+		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
+		{
+			// We don't need to query the user in this case because the 
+			// m_bAllowGuesseronUnchangedCCOutput flag would have been changed 
+			// explicitly by the administrator ticking the checkbox in the 
+			// GuesserSettingsDlg.
+			insertionText = DoGuess(pasteStr,bIsGuess);
+			pApp->m_bIsGuess = bIsGuess;
+		}
+	}
 
     // if there is a text selection in the current targetBox, erase the selected chars,
     // then get its text and the caret offset - this is where pasteStr must be inserted wx
@@ -5093,7 +5134,16 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		// enable clicks and editing to be done in the phrase box
 		// (do also in OnAdvancedFreeTranslationMode())
 		pApp->m_pTargetBox->SetEditable(TRUE);
-		pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
+		if (pApp->m_bIsGuess)
+		{
+			pApp->m_pTargetBox->SetBackgroundColour(pApp->m_GuessHighlightColor);
+			// immediately set clear the m_bIsGuess flag
+			pApp->m_bIsGuess = FALSE;
+		}
+		else
+		{
+			pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
+		}
 	}
 }
 
@@ -11449,7 +11499,7 @@ CKB* CAdapt_ItView::GetKB()
 /// \return     a wxString representing a copy of the m_key member (which has punctuation 
 ///             stripped off) of pSrcPhrase after m_key has been modified by Consistent Changes
 ///             (if m_bUseConsistentChanges is TRUE) or by SIL Converters (if m_bUseSilConverter
-///             if TRUE)
+///             if TRUE) or by the Guesser (if m_bUseAdaptationsGuesser is TRUE)
 /// \param      pSrcPhrase              -> the source phrase from which the m_key is copied
 /// \param      bUseConsistentChanges   -> flag indicating if Consistent Changes is required
 /// \remarks
@@ -11467,11 +11517,18 @@ CKB* CAdapt_ItView::GetKB()
 /// punctuation). CopySourceKey() applies any necessary modifications as the result of
 /// Consistent Changes (if m_bUseConsistentChanges is TRUE) or any modifications made by
 /// SIL Converters (if m_bUseSilConverter if TRUE) before returning the final string to the
-/// caller. Thus, CopySourceKey() is the primary place where Consistent Changes and SIL
-/// Converter changes is done within the Adapt It application.
+/// caller. The Guesser cannot be used if the SIL Converters is being used.
+/// Also, the Guesser can be used only if Consistent Changes is not being used 
+/// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput was set to true by the 
+/// administrator checking the appropriate checkbox in the GuesserSettingsDlg.
+/// CopySourceKey() is the primary place where Consistent Changes are done, where the SIL 
+/// Converter changes are done and where Guesser changes are done within the Adapt It 
+/// application. See also DoTargetBoxPaste() for where these operations can also take
+/// place.
 /////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsistentChanges)
 {
+	// whm modified 29Oct10 to handle Guessing
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString str = pSrcPhrase->m_key;
 	if (str.IsEmpty())
@@ -11502,6 +11559,8 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	}
 
 	gbByCopyOnly = TRUE;
+	
+	wxString str2 = _T("");
 	if (bUseConsistentChanges)
 	{
 		// these added spaces are automatically stripped before storage takes place, after cc
@@ -11510,8 +11569,14 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		str += _T(" ");
 
 		// apply to the merged string (ie. merged with whatever is returned here)
-		wxString str2 = DoConsistentChanges(str);
+		str2 = DoConsistentChanges(str);
 
+		if (str2 != str)
+		{
+			str.Trim(FALSE); // in case DoGuess is called below
+			str.Trim(TRUE); // in case DoGuess is called below
+		}
+		
 		// strip the added spaces back off
 		// whm comment: the following GetChar() operations assume that str2 can never be an 
 		// empty string when it returns from DoConsistentChanges; for safety sake, I'm just
@@ -11523,15 +11588,31 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		//	str2 = str2.Left(len-1); // remove final space
 		str2.Trim(FALSE); // trim the left end
 		str2.Trim(TRUE); // trim the right end
-
-		return str2;
 	}
 	else if( pApp->m_bUseSilConverter )
 	{
 		return DoSilConvert(str);
 	}
 	else
-		return str;
+	{
+		str2 = str;
+	}
+
+	bool bIsGuess = FALSE;
+	if (pApp->m_bUseAdaptationsGuesser && !pApp->m_bUseSilConverter)
+	{
+		// The Guesser cannot be used if the SIL Converters is being used.
+		// Also, the Guesser can be used only if Consistent Changes is not being used 
+		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
+		// was set to true by the administrator checking the appropriate checkbox
+		// in the GuesserSettingsDlg.
+		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
+		{
+			str2 = DoGuess(str,bIsGuess);
+			pApp->m_bIsGuess = bIsGuess;
+		}
+	}
+	return str2;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -11726,6 +11807,48 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 	return pApp->Convert8to16(tempBuff);
 
 #endif // for _UNICODE
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing text after any Guess has been performed
+///             on the text
+/// \param      str    -> the incoming string on which a Guess of corresponding target text
+///                         is to be performe
+/// \param      bIsGuess <- set to TRUE if a guess was returned, FALSE otherwise
+/// \remarks
+/// Called from: the View's CopySourceKey() and DoTargetBoxPaste().
+/// If str is not empty, DoGuess passes str through the Guesser processes. DoGuess()
+/// takes care of the selection of the appropriate Guesser object, either the
+/// m_pAdaptationsGuesser or the m_pGlossesGuesser. If a target guess is not found for 
+/// the incoming str, str is not changed and is returned just as it was input.
+/////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItView::DoGuess(const wxString& str, bool& bIsGuess)
+{
+	wxString tempStr = str;
+	if (tempStr.IsEmpty())
+		return _T("");
+
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	
+	wxChar* pszGuess = (wxChar*)_alloca( MAX_GUESS_LENGTH ); // Alloc space to pass as pointer, 100 is enough
+
+	bool bGuessReturned = FALSE;
+	if (gbIsGlossing)
+	{
+		bGuessReturned = pApp->m_pGlossesGuesser->bTargetGuess(tempStr,&pszGuess); // Return target guess
+	}
+	else
+	{
+		bGuessReturned = pApp->m_pAdaptationsGuesser->bTargetGuess(tempStr,&pszGuess); // Return target guess
+	}
+	if (bGuessReturned)
+	{
+		// set the bIsGuess reference parameter for return to the caller
+		bIsGuess = bGuessReturned;
+		tempStr = pszGuess;
+	}
+	return tempStr;
 }
 
 void CAdapt_ItView::ChooseTranslation()
@@ -18875,6 +18998,62 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 		{
 			pApp->m_pTargetBox->OnEditUndo(event);
 		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the idle handler
+///                        and responded to by the Guesser tool bar button
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism as it enables/disables the associated 
+/// tool bar item.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event)
+{
+	// enable when a project is open since changes may require reading
+	// kb correspondences
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is generated when the Guesser
+///                         tool bar button is pressed
+/// \remarks
+/// Calls up the GuesserSettingsDlg dialog.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CGuesserSettingsDlg gsDlg(pApp->GetMainFrame());
+	if (gsDlg.ShowModal() == wxID_OK)
+	{
+		// Assign any new settings to the App's corresponding members if we
+		// detect any changes made in GuesserSettingsDlg.
+
+		// Generally the Guesser's correspondence list is populated when a 
+		// project is opened by calling LoadGuesser() after a LoadKB() or a
+		// LoadGlossingKB() call. If an administrator previously turned OFF
+		// the guesser, and is now turning it back on, or adjusted the guesser
+		// level we need to load/reload the appropriate Guesser here
+		if ((gsDlg.bUseAdaptationsGuesser && !pApp->m_bUseAdaptationsGuesser)
+			|| gsDlg.nGuessingLevel != pApp->m_nGuessingLevel)
+		{
+			if (gbIsGlossing)
+			{
+				pApp->LoadGuesser(pApp->m_pGlossingKB);
+			}
+			else
+			{
+				pApp->LoadGuesser(pApp->m_pKB);
+			}
+		}
+		pApp->m_bUseAdaptationsGuesser = gsDlg.bUseAdaptationsGuesser;
+		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
+		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowCConUnchangedGuesserOutput;
 	}
 }
 

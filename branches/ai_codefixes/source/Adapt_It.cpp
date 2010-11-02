@@ -165,6 +165,7 @@
 #include "NavProtectNewDoc.h"
 #include "AdminEditMenuProfile.h"
 #include "Usfm2Oxes.h"
+#include "CorGuess.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -5340,6 +5341,14 @@ wxString szSuppressTargetHighlighting = _T("SuppressTargetHighlighting");
 wxString szAutoInsertionsHighlightColor = _T("AutoInsertionsHighlightColor");
 
 /// The label that identifies the following string encoded number as the application's
+/// "GuessHighlightColor". This value is written in the "Settings" part of the
+/// basic configuration file. Adapt It stores this path in the App's
+/// m_GuessHighlightColor member variable. Adapt It uses the WxColour2Int() and
+/// Int2wxColour() helper functions to convert between the integer and wx color enum
+/// symbols.
+wxString szGuessHighlightColor = _T("GuessHighlightColor");
+
+/// The label that identifies the following string encoded number as the application's
 /// "UseStartupWizardOnLaunch". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this path in the App's m_bUseStartupWizardOnLaunch
 /// member variable.
@@ -5717,6 +5726,22 @@ wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");
 /// the Administrator menu become visible at the end of the menu bar. (A checkbox in the
 /// View tab of Preferences is where an administrator can request the menu be shown or hid)
 wxString szAdministratorPassword = _T("AdministratorPassword");
+
+/// The label that identifies the following string encoded number as the application's 
+/// "UseAdaptationsGuesser". Adapt It stores this value in the App's m_bUseAdaptationsGuesser 
+/// member  variable.
+wxString szUseAdaptationsGuesser = _T("UseAdaptationsGuesser");
+
+/// The label that identifies the following string encoded number as the application's 
+/// "GuessingLevel". Adapt It stores this value in the App's m_nGuessingLevel 
+/// member  variable.
+wxString szGuessingLevel = _T("GuessingLevel");
+
+/// The label that identifies the following string encoded number as the application's 
+/// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's 
+/// m_bAllowGuesseronUnchangedCCOutput. 
+/// member  variable.
+wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput");
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
@@ -10962,6 +10987,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm added 19Oct10 for user workflow profiles support
 	m_bShowNewProjectItem = TRUE; // show <New Project> in projectPage by default
+	m_bUseAdaptationsGuesser = TRUE; // the default is TRUE; use the Guesser for adaptations unless 
+									// changed by config file settings
+	m_bIsGuess = FALSE;				// the default is FALSE, changed by the guesser when returning a guess
+	m_nGuessingLevel = 50;			// The guesser level (can range from 0 to 100, default is 50); 
+									// default is 50 unless changed by config file settings
+	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
+	m_nCorrespondencesLoadedInGlossingGuesser = 0;
+	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
+									// guesser output; default is FALSE unless changed by config file 
+									// settings
+	m_pAdaptationsGuesser = (Guesser*)NULL;
+	m_pGlossesGuesser = (Guesser*)NULL;
 
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
 											   // into phrases for adapting
@@ -15154,6 +15191,10 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 	// export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
 	m_pUsfm2Oxes = new Usfm2Oxes(this);
 
+	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
+	m_pAdaptationsGuesser = new Guesser;
+	m_pGlossesGuesser = new Guesser;
+
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
 	//	m_pTargetBox->GetCancelAndSelectFlag());
 	return TRUE;
@@ -15229,6 +15270,12 @@ int CAdapt_ItApp::OnExit(void)
 	// 2. CNotes
 	// 3. 
 	//wxEvtHandler* pHdlr = NULL;
+	
+	// delete the Guesser objects
+	if (m_pAdaptationsGuesser != NULL)
+		delete m_pAdaptationsGuesser;
+	if (m_pGlossesGuesser != NULL)
+		delete m_pGlossesGuesser;
 
 	// delete the object for support of oxes
 	delete m_pUsfm2Oxes;
@@ -15930,6 +15977,7 @@ void CAdapt_ItApp::InitializeFonts()
 	m_specialTextColor = wxColour(255,0,0); // red "255" - whm added
 	m_reTranslnTextColor = wxColour(160,80,0); // mid brown "32896" - whm added
 	m_AutoInsertionsHighlightColor = wxColour(203,151,255); // solid light purple "16750539"
+	m_GuessHighlightColor = wxColour(255,128,0); // orange background for Guess - whm added 1Nov10
 	m_freeTransTextColor = wxColour(100,0,100); // dark purple - fixed not user selectable
 
 	// color used for read-only text controls displaying static text info button face color
@@ -16539,6 +16587,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				LoadGuesser(m_pKB); // whm added 29Oct10
 
 				// now do it for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -16548,6 +16597,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					LoadGuesser(m_pGlossingKB); // whm added 29Oct10
 				}
 				else
 				{
@@ -16590,6 +16640,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
 
 				// now do the same for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -16600,6 +16651,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
 				}
 				else
 				{
@@ -16782,6 +16834,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
 
 				// now do it for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -16791,6 +16844,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
 				}
 				else
 				{
@@ -16832,6 +16886,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
 
 				// now do the same for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -16842,6 +16897,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
 				}
 				else
 				{
@@ -17800,6 +17856,137 @@ bool CAdapt_ItApp::LoadKB()
 #endif
 	
 	return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      -> m_pKB the knowledge base from which correspondences are taken for this Guesser
+///                 which can be either the m_pAdaptationsGuesser or the m_pGlossesGuesser
+/// \remarks
+/// Called from: the App's SetupDirectories(), SubstituteKBBackup(), OnFileRestoreKb(),
+/// the View's OnCreate(), and CProjectPage::OnWizardPageChanging() when moving forward. 
+/// Initializes the appropriate Guesser, then reads the appropriate KB to populate the
+/// correspondence list of the guesser object.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
+{
+	// whm added 29Oct10 for Guesser support
+	if (m_pKB->IsThisAGlossingKB())
+		m_pGlossesGuesser->Init(m_nGuessingLevel);
+	else
+		m_pAdaptationsGuesser->Init(m_nGuessingLevel); // clears the Guesser correspondence list
+	int numCorrespondencesLoaded = 0;
+	int numWords;
+	int counter = 0;
+	wxString key,baseKey,gloss,baseGloss;
+	wxString strNotInKB = _T("<Not In KB>");
+	MapKeyStringToTgtUnit::iterator iter;
+	CTargetUnit* pTU = 0;
+	CRefString* pRefStr;
+	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
+	{
+		if (m_pKB->IsThisAGlossingKB() && numWords > 1)
+			continue; // when glossing we want to consider only the first map, the others
+					  // are all empty
+		if (m_pKB->m_pMap[numWords-1]->size() == 0) 
+			continue;
+		else
+		{
+			iter = m_pKB->m_pMap[numWords-1]->begin();
+			do 
+			{
+				counter++;
+				key = iter->first; 
+				pTU = (CTargetUnit*)iter->second; 
+				wxASSERT(pTU != NULL);
+				baseKey = key;
+
+				// get the reference strings
+				TranslationsList::Node* posRef = 0; 
+
+				// if the data somehow got corrupted by a CTargetUnit being retained in the
+				// list but which has an empty list of reference strings, this illegal
+				// instance would cause a crash - so test for it and if such occurs, then
+				// remove it from the list and then just continue looping
+				if (pTU->m_pTranslations->IsEmpty())
+				{
+					m_pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
+														// invalid association
+					delete pTU; // its memory chunk is freed (don't leak memory)
+					continue;
+				}
+				else
+				{
+					posRef = pTU->m_pTranslations->GetFirst(); 
+				}
+				wxASSERT(posRef != 0);
+
+				// if control gets here, there will be at least one non-null posRef
+				pRefStr = (CRefString*)posRef->GetData();
+				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
+				wxASSERT(pRefStr != NULL);
+				gloss = pRefStr->m_translation;
+				baseGloss = gloss;
+				// Don't add correspondences for deleted or "<Not In KB>"
+				if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+				{
+					// Add correspondence to the Guesser
+					if (m_pKB->IsThisAGlossingKB())
+						m_pGlossesGuesser->AddCorrespondence(key,gloss);
+					else
+						m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+					numCorrespondencesLoaded++;
+				}
+				// According to Alan Buseman, he says, "I recommend for the guesser that you only 
+				// give it one equivalent for each word, preferably the most frequent. Giving the 
+				// guesser multiple equivalents for a word will tend to reduce the number of guesses 
+				// it can make." If this is the case we should limit the correspondences given to
+				// the Guesser to the first item in the m_pTranslations list - which presumably also
+				// is the one at the top of the list in the ChooseTranslation dialog and as such
+				// probably also the one the user feels is the most frequent or important translation
+				// for a given target unit. Therefore I will comment out the code below which 
+				// functions to add the additional CRefString instances within the same CTargetUnit
+				// instance.
+				/*
+
+				// now deal with any additional CRefString instances within the same
+				// CTargetUnit instance
+				while (posRef != 0)
+				{
+					pRefStr = (CRefString*)posRef->GetData();
+					wxASSERT(pRefStr != NULL); 
+					posRef = posRef->GetNext(); // prepare for possibility of yet another
+					gloss = pRefStr->m_translation;
+					baseGloss = gloss;
+
+					if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+					{
+						// Add correspondence to the Guesser
+						if (m_pKB->IsThisAGlossingKB())
+							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+						else
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+						numCorrespondencesLoaded++;
+					}
+				} // end of inner loop for looping over CRefString instances
+
+				*/
+				// point at the next CTargetUnit instance, or at end() (which is NULL) if
+				// completeness has been obtained in traversing the map 
+				iter++;
+			} while (iter != m_pKB->m_pMap[numWords-1]->end());
+		} // end of normal situation block ...
+	} // end of numWords outer loop
+	if (m_pKB->IsThisAGlossingKB())
+	{
+		m_nCorrespondencesLoadedInGlossingGuesser = numCorrespondencesLoaded;
+		wxLogDebug(_T("The Glossing guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInGlossingGuesser);
+	}
+	else
+	{
+		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
+		wxLogDebug(_T("The Adaptations guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -19282,7 +19469,10 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			wxASSERT(m_pGlossingKB != NULL);
 			bool bOK = LoadGlossingKB();
 			if (bOK)
+			{
 				m_bGlossingKBReady = TRUE;
+				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+			}
 			else
 			{
 				wxMessageBox(_(
@@ -19314,7 +19504,10 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			wxASSERT(m_pKB != NULL);
 			bool bOK = LoadKB();
 			if (bOK)
+			{
 				m_bKBReady = TRUE;
+				LoadGuesser(m_pKB); // whm added 29Oct10
+			}
 			else
 			{
 				// IDS_LOAD_KB_FAILURE
@@ -19826,6 +20019,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			if (bOK)
 			{
 				m_bGlossingKBReady = TRUE;
+				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
 			}
 		}
 		else
@@ -19835,6 +20029,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				LoadGuesser(m_pKB); // whm added 29Oct10
 			}
 		}
 		// remove the temporary copy of the KB file or Glossing KB file
@@ -21395,6 +21590,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szAutoInsertionsHighlightColor << tab 
 			<< WxColour2Int(m_AutoInsertionsHighlightColor);
 	pf->AddLine(data);
+
+	data.Empty();
+	data << szGuessHighlightColor << tab 
+			<< WxColour2Int(m_GuessHighlightColor); // whm added 1Nov10
+	pf->AddLine(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -22824,6 +23024,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			num = wxAtoi(strValue); // allow anything 
 			m_AutoInsertionsHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
+		else if (name == szGuessHighlightColor)
+		{
+			num = wxAtoi(strValue); // allow anything 
+			m_GuessHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
+		}
 
 #ifdef _RTL_FLAGS
 		else if (name == szRTLSource)
@@ -23520,6 +23725,27 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
+	// whm added next three for Guesser support
+	data.Empty();
+	if (m_bUseAdaptationsGuesser)
+		number = _T("1");
+	else 
+		number = _T("0");
+	data << szUseAdaptationsGuesser << tab << number;
+	pf->AddLine(data);
+	
+	data.Empty();
+	if (m_bAllowGuesseronUnchangedCCOutput)
+		number = _T("1");
+	else 
+		number = _T("0");
+	data << szAllowCConUnchangedGuesserOutput << tab << number;
+	pf->AddLine(data);
+	
+	data.Empty();
+	data << szGuessingLevel << tab << m_nGuessingLevel;
+	pf->AddLine(data);
+
 	if (m_bRTL_Layout)
 		number = _T("1");
 	else
@@ -24139,12 +24365,39 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bBackupDocument = FALSE;
 		}
-		else if (name == szWorkflowProfile)
+		else if (name == szWorkflowProfile) // whm added 3Sep10 for user workflow profile support
 		{
 			num = wxAtoi(strValue);
 			if (num < 0 || num > 10)
 				num = 0; // if out of reasonable range default to a profile of "None".
 			m_nWorkflowProfile = num;
+		}
+		else if (name == szUseAdaptationsGuesser) // whm added 28Oct10 for Guesser support
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 1)
+				m_bUseAdaptationsGuesser = TRUE;
+			else
+				m_bUseAdaptationsGuesser = FALSE;
+		}
+		else if (name == szGuessingLevel) // whm added 28Oct10 for Guesser support
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 100) // m_nGuessingLevel must be between 0 and 100; 50 is default
+				num = 50;
+			m_nGuessingLevel = num;
+		}
+		else if (name == szAllowCConUnchangedGuesserOutput) // whm added 28Oct10 for Guesser support
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 1)
+				m_bAllowGuesseronUnchangedCCOutput = TRUE;
+			else
+				m_bAllowGuesseronUnchangedCCOutput = FALSE;
 		}
 		else if (name == szRTL_Layout)
 		{

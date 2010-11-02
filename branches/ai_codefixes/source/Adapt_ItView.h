@@ -279,6 +279,7 @@ public: // edb 05 March 2010 - set to public (this is called from CRetranslation
 protected:
 	wxString	DoConsistentChanges(wxString& str);
 	wxString	DoSilConvert(const wxString& str);
+	wxString	DoGuess(const wxString& str, bool& bIsGuess);
 	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc, 
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
@@ -441,6 +442,8 @@ protected:
 	void OnRadioReviewing(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event);
 	void OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event);
+	void OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditSourceText(wxUpdateUIEvent& event);
 	void OnEditSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnButtonNoAdapt(wxCommandEvent& event);

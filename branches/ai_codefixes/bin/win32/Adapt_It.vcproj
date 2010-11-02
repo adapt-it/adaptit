@@ -520,6 +520,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CorGuess.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\DocPage.cpp"
 				>
 			</File>
@@ -569,6 +573,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\GoToDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GuesserSettingsDlg.cpp"
 				>
 			</File>
 			<File
@@ -913,6 +921,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CorGuess.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\DocPage.h"
 				>
 			</File>
@@ -970,6 +982,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\GoToDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GuesserSettingsDlg.h"
 				>
 			</File>
 			<File

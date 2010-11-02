@@ -542,6 +542,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			if (bOK)
 			{
 				pApp->m_bKBReady = TRUE;
+				pApp->LoadGuesser(pApp->m_pKB); // whm added 20Oct10
 
 				// now do it for the glossing KB
 				wxASSERT(pApp->m_pGlossingKB == NULL);
@@ -562,6 +563,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				if (bOK)
 				{
 					pApp->m_bGlossingKBReady = TRUE;
+					pApp->LoadGuesser(pApp->m_pGlossingKB); // whm added 20Oct10
 				}
 				else
 				{

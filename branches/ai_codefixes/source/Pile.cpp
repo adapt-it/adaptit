@@ -987,6 +987,7 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 			pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
 			pDC->DrawLine(topLeft.x, topLeft.y+height, topLeft.x, topLeft.y);
 			pDC->SetPen(wxNullPen);
+
 		}
 	}
 }

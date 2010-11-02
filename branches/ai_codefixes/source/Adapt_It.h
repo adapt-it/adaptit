@@ -142,6 +142,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 #include "PhraseBox.h"
 #include "FindReplace.h"
 #include "Retranslation.h"
+#include "CorGuess.h"
 
 // forward references (added to wxWidgets version):
 class wxSingleInstanceChecker;
@@ -196,6 +197,9 @@ class ReadOnlyProtection;
 
 // forward reference for Oxes export support
 class Usfm2Oxes;
+
+// forward reference for Guesser support
+class Guesser;
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x
 // could find them but the g++ 4.x linker can't find them even though XML.h is included
@@ -2083,6 +2087,7 @@ public:
 	wxColour	m_specialTextColor;
 	wxColour	m_reTranslnTextColor;
 	wxColour	m_AutoInsertionsHighlightColor;
+	wxColour	m_GuessHighlightColor; // whm added 1Nov10 for Guesser support
 	wxColour	m_freeTransDefaultBackgroundColor; // it will be light pastel green 
 				// (set in app constructor)
 	wxColour	m_freeTransCurrentSectionBackgroundColor; // it will be light 
@@ -2453,6 +2458,15 @@ public:
 									// visibility value for the <New Project> profile item. If the
 									// <New Project> item is absent from the list box, it
 									// effectively prevents the user from creating new projects.
+	bool m_bUseAdaptationsGuesser;	// If TRUE(the default) use the Guesser for adaptations
+	bool m_bIsGuess;				// If TRUE there is a guess for the current target text
+	int m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
+	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE Consistent Changes can operate on unchanged
+									// guesser output; default is FALSE
+	Guesser* m_pAdaptationsGuesser;	// our Guesser object for adaptations
+	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
+	int m_nCorrespondencesLoadedInAdaptationsGuesser;
+	int m_nCorrespondencesLoadedInGlossingGuesser;
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2866,6 +2880,7 @@ public:
 	bool	LayoutAndPaginate(int& nPagePrintingWidthLU, int& nPagePrintingLengthLU);
 	bool	LoadKB();
 	bool	LoadGlossingKB();
+	void	LoadGuesser(CKB* Kb);
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);
 	int		MapWXFontEncodingToMFCCharset(const wxFontEncoding fontEnc);
 	int		MapWXtoMFCPaperSizeCode(wxPaperSize id);
