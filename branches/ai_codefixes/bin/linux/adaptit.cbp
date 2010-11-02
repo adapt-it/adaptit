@@ -230,6 +230,8 @@
 		<Unit filename="../../source/ConsistencyCheckDlg.h" />
 		<Unit filename="../../source/ConsistentChanger.cpp" />
 		<Unit filename="../../source/ConsistentChanger.h" />
+		<Unit filename="../../source/CorGuess.cpp" />
+		<Unit filename="../../source/CorGuess.h" />
 		<Unit filename="../../source/DocPage.cpp" />
 		<Unit filename="../../source/DocPage.h" />
 		<Unit filename="../../source/EarlierTranslationDlg.cpp" />
@@ -256,6 +258,8 @@
 		<Unit filename="../../source/FreeTrans.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
 		<Unit filename="../../source/GoToDlg.h" />
+		<Unit filename="../../source/GuesserSettingsDlg.cpp" />
+		<Unit filename="../../source/GuesserSettingsDlg.h" />
 		<Unit filename="../../source/JoinDialog.cpp" />
 		<Unit filename="../../source/JoinDialog.h" />
 		<Unit filename="../../source/KB.cpp" />
