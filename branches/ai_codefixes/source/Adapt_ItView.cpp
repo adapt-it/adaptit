@@ -11831,7 +11831,7 @@ wxString CAdapt_ItView::DoGuess(const wxString& str, bool& bIsGuess)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	
-	wxChar* pszGuess = (wxChar*)_alloca( MAX_GUESS_LENGTH ); // Alloc space to pass as pointer, 100 is enough
+	wxChar* pszGuess = (wxChar*)_malloca( MAX_GUESS_LENGTH ); // Alloc space to pass as pointer, 100 is enough
 
 	bool bGuessReturned = FALSE;
 	if (gbIsGlossing)
@@ -19034,22 +19034,16 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 		// Assign any new settings to the App's corresponding members if we
 		// detect any changes made in GuesserSettingsDlg.
 
-		// Generally the Guesser's correspondence list is populated when a 
+		// Generally the Guesser's correspondence lists are populated when a 
 		// project is opened by calling LoadGuesser() after a LoadKB() or a
 		// LoadGlossingKB() call. If an administrator previously turned OFF
 		// the guesser, and is now turning it back on, or adjusted the guesser
-		// level we need to load/reload the appropriate Guesser here
+		// level we need to load/reload the Guesser instances here
 		if ((gsDlg.bUseAdaptationsGuesser && !pApp->m_bUseAdaptationsGuesser)
 			|| gsDlg.nGuessingLevel != pApp->m_nGuessingLevel)
 		{
-			if (gbIsGlossing)
-			{
-				pApp->LoadGuesser(pApp->m_pGlossingKB);
-			}
-			else
-			{
-				pApp->LoadGuesser(pApp->m_pKB);
-			}
+			pApp->LoadGuesser(pApp->m_pGlossingKB);
+			pApp->LoadGuesser(pApp->m_pKB);
 		}
 		pApp->m_bUseAdaptationsGuesser = gsDlg.bUseAdaptationsGuesser;
 		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
