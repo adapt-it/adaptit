@@ -42,6 +42,7 @@
 #include "Adapt_It_Resources.h"
 #include <wx/snglinst.h> // for wxSingleInstanceChecker in OnInit
 #include <wx/config.h> // for wxConfig in OnInit
+#include <wx/fileconf.h> // for wxFileConfig in Oninit
 #include <wx/datetime.h> // for wxDateTime in OnInit
 #include <wx/filesys.h> // for wxFileName
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
@@ -8089,8 +8090,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 
     // insure that the Use Tooltips menu item in the Help menu is checked or unchecked
-    // according to the current value of m_bUseToolTips (retrieved from registry/hidden
-    // settings via wxConfig object earlier in OnInit)
+    // according to the current value of m_bUseToolTips
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
 		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
 }
@@ -9921,6 +9921,189 @@ int CAdapt_ItApp::ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString desc
 	return linePos;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit(). 
+/// On Windows machines, transitions any registry information previously stored in the 
+/// Adapt_It_WX registry key to a Adapt_It_WX.ini file-on-disk format configuration file
+/// and, once done, removes the old Adapt_It_WX registry key from the Windows registry, 
+/// so that this transition to using the file-on-disk format needs to happen only once.
+/// As of version 6.0.0, the information saved previously in the Windows registry under
+/// the HKEY_CURRENT_USER\Software\Adapt_It_WX key is now stored instead in a disk file
+/// called Adapt_It_WX.ini - so that the Windows port now saves this information in the 
+/// same way that the Linux and Mac ports save it. It also makes Adapt It 6.0.0 more
+/// compatible as a PortableApps application.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::TransitionWindowsRegistryEntriesTowxFileConfig()
+{
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyAIWX(_T("HKEY_CURRENT_USER\\Software\\Adapt_It_WX"));
+	if (keyAIWX.Exists())
+	{
+		// From version 6.0.0 Adapt It uses a wxFileConfig object instead of a wxConfig object 
+		// on the App called m_pConfig.
+		// When TransitionWindowsRegistryEntriesTowxFileConfig() is called we don't know 
+		// whether AI's config info was transitioned previously from the host Windows' 
+		// registry or not, so we'll do this with a local object that we delete at the 
+		// end of this function.
+		// The registry groups prior to 6.0.0 will have this heirarchical structure:
+		// Adapt_It_WX
+		//    Recent_File_List           [contains 11 REG_SZ entries and 8 REG_DWORD entries] 
+		//       wxHtmlWindow            [contains 3 REG_SZ entries and 8 REG_DWORD entries]
+		//    Recent_File_List_Unicode   [contains 11 REG_SZ entries and 8 REG_DWORD entries]
+		//       wxHtmlWindow            [contains 3 REG_SZ entries and 8 REG_DWORD entries]
+		//    Settings                   [containes 13 REG_SZ entries and 3 REG_DWORD entries]
+		// 
+		wxConfig* mpConfig;
+		mpConfig = new wxConfig(_T("Adapt_It_WX")); // a local instance of wxConfig
+		wxASSERT(mpConfig != NULL);
+
+		wxFileConfig* mpFileConfig;
+		// Note: in the wxFileConfig call below:
+		// m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T("Adapt_It_WX.ini") on Windows
+		// m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T(".Adapt_It_WX") on Linux and Mac
+		mpFileConfig = new wxFileConfig(wxEmptyString,wxEmptyString,m_wxFileConfigPathAndName,wxEmptyString);
+		wxASSERT(mpFileConfig != NULL);
+
+		int nG;
+		// Note: GetNumberOfEntries does not include the (Default) entry shown as first line in Regedit
+		nG = mpConfig->GetNumberOfGroups(FALSE); // FALSE don't count groups recursively (i.e., don't include the wxHtmlWindow groups)
+		bool bGroupOK;
+		wxString groupName;
+		long groupIndex; // we don't use this returned groupIndex
+		bGroupOK = mpConfig->GetFirstGroup(groupName,groupIndex);
+		int ctG = 0;
+		while (bGroupOK && ctG < nG && !groupName.IsEmpty())
+		{
+			wxString path = _T('/') + groupName;
+			// set the path to the current Group
+			mpConfig->SetPath(path); // we know it exists so it won't be created
+			// write the Group name to the mpFileConfig object
+			mpFileConfig->SetPath(path); // if groupName doesn't exist it is created
+			// read all entries for this group and write them to the wxFileConfig object
+			wxString valueStr = _T("");
+			int valueInt = 0;
+			bool valueBool = FALSE;
+			wxString entryName;
+			bool bEntryOK;
+			long entryIndex;
+			int nE = mpConfig->GetNumberOfEntries(FALSE); // FALSE don't count entries recursively
+			bEntryOK = mpConfig->GetFirstEntry(entryName,entryIndex);
+			int ctE = 0;
+			while (bEntryOK && ctE < nE && !entryName.IsEmpty())
+			{
+				bool bReadOK = FALSE;
+				if (mpConfig->GetEntryType(entryName) == mpConfig->Type_String)
+					bReadOK = mpConfig->Read(entryName,&valueStr);
+				else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Integer)
+					bReadOK = mpConfig->Read(entryName,&valueInt);
+				else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Boolean)
+					bReadOK = mpConfig->Read(entryName,&valueBool);
+				if (bReadOK)
+				{
+					bool bWriteOK = FALSE;
+					if (mpConfig->GetEntryType(entryName) == mpConfig->Type_String)
+						bWriteOK = mpFileConfig->Write(entryName,valueStr);
+					else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Integer)
+						bWriteOK = mpFileConfig->Write(entryName,valueInt);
+					else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Boolean)
+						bWriteOK = mpFileConfig->Write(entryName,valueBool);
+					if (!bWriteOK)
+					{
+						wxASSERT(FALSE);
+					}
+				}
+				else
+				{
+					wxASSERT(FALSE);
+				}
+				ctE++;
+				bEntryOK = mpConfig->GetNextEntry(entryName,entryIndex);
+			}
+			// all the entries of the current Group have been copied, but
+			// there are also some sub-Groups called "wxHtmlWindow" containing
+			// more entries, so we now handle those before getting the next top
+			// level group
+			int nSubG;
+			nSubG = mpConfig->GetNumberOfGroups(FALSE); // don't count recursively
+			bool bSubGroupOK;
+			wxString subGroupName;
+			long subGroupIndex; // we don't use this returned groupIndex
+			bSubGroupOK = mpConfig->GetFirstGroup(subGroupName,subGroupIndex);
+			int ctSubG = 0;
+			while (bSubGroupOK && ctSubG < nSubG && !subGroupName.IsEmpty())
+			{
+				wxString subPath = _T('/') + groupName + _T('/') + subGroupName;
+				// set the path to the current Group
+				mpConfig->SetPath(subPath); // we know it exists so it won't be created
+				// write the Group name to the mpFileConfig object
+				mpFileConfig->SetPath(subPath); // if groupName doesn't exist it is created
+				// read all entries for this group and write them to the wxFileConfig object
+				wxString subValueStr = _T("");
+				int subValueInt = 0;
+				bool subValueBool = FALSE;
+				wxString subEntryName;
+				bool bSubEntryOK;
+				long subEntryIndex;
+				int nSubE = mpConfig->GetNumberOfEntries(FALSE); // FALSE don't count entries recursively
+				bSubEntryOK = mpConfig->GetFirstEntry(subEntryName,subEntryIndex);
+				int ctSubE = 0;
+				while (bSubEntryOK && ctSubE < nSubE && !subEntryName.IsEmpty())
+				{
+					bool bSubReadOK = FALSE;
+					if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_String)
+						bSubReadOK = mpConfig->Read(subEntryName,&subValueStr);
+					else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Integer)
+						bSubReadOK = mpConfig->Read(subEntryName,&subValueInt);
+					else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Boolean)
+						bSubReadOK = mpConfig->Read(subEntryName,&subValueBool);
+					if (bSubReadOK)
+					{
+						bool bSubWriteOK = FALSE;
+						if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_String)
+							bSubWriteOK = mpFileConfig->Write(subEntryName,subValueStr);
+						else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Integer)
+							bSubWriteOK = mpFileConfig->Write(subEntryName,subValueInt);
+						else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Boolean)
+							bSubWriteOK = mpFileConfig->Write(subEntryName,subValueBool);
+						if (!bSubWriteOK)
+						{
+							wxASSERT(FALSE);
+						}
+					}
+					ctSubE++;
+					bSubEntryOK = mpConfig->GetNextEntry(subEntryName,subEntryIndex);
+				}
+				ctSubG++;
+				bSubGroupOK = mpConfig->GetNextGroup(subGroupName,subGroupIndex);
+			}
+			ctG++;
+			// set the paths back up to the top level
+			mpConfig->SetPath(_T('/'));
+			mpFileConfig->SetPath(_T('/'));
+			bGroupOK = mpConfig->GetFirstGroup(groupName,groupIndex); // have to initialize group list again with GetFirstGroup
+			// get the next first level group after the previous one (which is ctG steps down from top level)
+			for (int i=0; i < ctG; i++)
+			{
+				bGroupOK = mpConfig->GetNextGroup(groupName,groupIndex);
+			}
+		}
+		// Delete the Adapt_It_WX key along with all of its subgroups and subentries
+		bool bDeletedOK = TRUE;
+		bDeletedOK = keyAIWX.DeleteSelf(); // deletes the key with all its sub entries recursively
+		wxASSERT(bDeletedOK == TRUE);
+		mpConfig->Flush();
+		mpFileConfig->Flush();
+		// Finally, delete the temporary objects we've used above. 
+		// Note: mpFileConfig will be created again for the duration of the running app 
+		// in OnInit() just after this function ends.
+		delete mpConfig;
+		delete mpFileConfig;
+	}
+#endif
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
@@ -11580,6 +11763,33 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Note: The m_htbHelpFileName is also determined in  
 	// GetDefaultPathForHelpFiles() call above
 
+	// m_appUserConfigDir stores the path (only the path, not path and name) where the
+	// wxFileConfig's (.)Adapt_It_WX(.ini) file is located beginning with version 6.0.0.
+	// m_appUserConfigDir is set by calling wxStandardPaths::GetUserConfigDir().
+	// On wxMSW: "C:\Users\Bill Martin\AppData\Roaming"
+	// On wxGTK: "/home/wmartin"
+	// On wxMac: "/Users/wmartin"
+	m_appUserConfigDir =stdPaths.GetUserConfigDir();
+	wxLogDebug(_T("The m_appUserConfigDir = %s"),m_appUserConfigDir.c_str());
+
+	// m_appUserConfigDir stores the path and name of the wxFileConfig file's
+	// on-disk configuration file. It is of the form: Adapt_It_WX.ini on Windows
+	// and a .Adapt_It_WX hidden file on Linux and the Mac.
+	// On Windows the Adapt_It_WX.ini file is first used with version 6.0.0 which
+	// automatically transitions some settings previously stored in the Windows
+	// registry into the external Adapt_It_WX.ini file.
+	// m_appUserConfigDir is set by calling wxStandardPaths::GetUserConfigDir().
+	// On wxMSW: "C:\Users\Bill Martin\AppData\Roaming\Adapt_It_WX.ini"
+	// On wxGTK: "/home/wmartin/.Adapt_It_WX"
+	// On wxMac: "/Users/wmartin/.Adapt_It_WX"
+#ifdef __WXMSW__
+	m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T("Adapt_It_WX.ini");
+#else
+	m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T(".Adapt_It_WX");
+#endif
+	wxLogDebug(_T("The m_wxFileConfigPathAndName = %s"),m_wxFileConfigPathAndName.c_str());
+
+
 	// !!!!!!!!!!! SET UP SOME STANDARD PATHS ABOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	
@@ -11603,7 +11813,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm moved/changed 13Apr09 Command-line processing implemented in wx version and
     // moved earlier in OnInit() to this location after most variable initializations and
-    // just before the application wxConfig processing. The command line processing must be
+    // just before the application wxFileConfig processing. The command line processing must be
     // done before CMainFrame is created since the parameter -xo determines which toolbar
     // and commandbar is used in the main frame.
 	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
@@ -11806,25 +12016,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	*/
 
+	// whm 2Nov10 design notes for use of wxConfig and wxFileConfig in version 6.0.0:
+	// The application should make as little use as possible of the Windows registry.
+	// As of version 6.0.0, the information saved previously in the Windows registry 
+	// will be stored instead in an Adapt_It_WX.ini file, similar to what has been
+	// the case for the Linux and Mac ports previous to version 6.0.0. For users who 
+	// previously used a version prior to 6.0.0, we automatically and quitely 
+	// transition any registry information previously stored in the Adapt_It_WX 
+	// registry key to the Adapt_It_WX.ini on-disk file format and, once done, remove 
+	// the old registry key, so that the transition to using the file-on-disk format 
+	// needs to happen only once.
+	TransitionWindowsRegistryEntriesTowxFileConfig();
+	
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
-	// wxConfig (below) stores the key "Adapt_It_WX" in HKEY_USERS "Software" 
-	// branch of the registry (under Windows), or in a hidden text config file under 
-	// Unix/Linux (named .Adapt_It_WX).
-    // wxConfig provides an interface which hides the differences between the Windows
-    // registry and the standard Unix text format configuration files. With this wxConfig
-    // class we could store various kinds of string and int information, but we will mainly
-    // use it for the file history (MRU) list and the ui_language setting. Later we may
-    // also use m_pConfig to set other things like the default path.
-	m_pConfig = new wxConfig(_T("Adapt_It_WX")); // must delete m_pConfig in OnExit()
+	// Previous to version 6.0.0 we used a wxConfig class object below to stored 
+	// some settings in the Registry under a Adapt_It_WX key on Windows, and in an 
+	// external hidden file called .Adapt_It_WX on Linux and the Mac. Starting with 
+	// version 6.0.0, however, all platforms now use wxFileConfig and store certain
+	// settings in an external file. The TransitionWindowsRegistryEntriesTowxFileConfig()
+	// call above transitions the host OS to use the external file rather than the
+	// Windows registry (if settings were stored under the Adapt_It_WX key), on
+	// first run of the version 6.0.0 of the program.
+	m_pConfig = new wxFileConfig(wxEmptyString,wxEmptyString,m_wxFileConfigPathAndName,wxEmptyString); // must delete m_pConfig in OnExit()
 	wxASSERT(m_pConfig != NULL);
 	// Note: We'll use "Adapt_It_WX" to distinguish the wxWidgets version from MFC version 
-	// 
-    // We also need another wxConfig object that we can use to query whether the SIL
-    // Converters has been installed (on Windows) machines.
-	m_pConfigSIL = new wxConfig(_T("SIL"),wxEmptyString,wxEmptyString,wxEmptyString,
-								wxCONFIG_USE_LOCAL_FILE);
-	wxASSERT(m_pConfigSIL != NULL);
 
 	// Retrieve the m_bUseToolTips setting from m_pConfig if it exists.
 	{
@@ -12026,23 +12242,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//LoadStdProfileSettings(9);  // Load standard INI file options (including MRU) - MFC version
 	// Set things up for file history (MRU) list
 	// File History is loaded below after Main Menu is created
-	wxString strOldPath = m_pConfig->GetPath();// store old wxConfig path in case we need it
-    // whm Note: Recently used files (MRU) that get recorded in the registry/hidden
-    // settings file are not really compatible between Unicode and Ansi versions. It may
-    // well be the case that the user switches between the Unicode and Ansi versions. In
-    // that case we don't want there to be a mix of files in the MRU, some using Unicode
-    // and some Ansi. Therefore I'm setting a different registry/hidden settings file key
-    // for Unicode. In either case the path that is set for m_pConfig will be one or the
-    // other as default so that wxFileHistory will use it appropriately.
+	wxString strOldPath = m_pConfig->GetPath();// store old wxFileConfig path in case we need it
+    // whm Note: Recently used files (MRU) that get recorded in the settings file are not 
+    // really compatible between Unicode and Ansi versions. It may well be the case that 
+    // the user switches between the Unicode and Ansi versions. In that case we don't want 
+    // there to be a mix of files in the MRU, some using Unicode and some Ansi. Therefore 
+    // I'm setting a different settings file group for Unicode. In either case the path 
+    // that is set for m_pConfig will be one or the other as default so that wxFileHistory 
+    // will use it appropriately.
 #ifdef _UNICODE
-	m_pConfig->SetPath(_T("/Recent_File_List_Unicode"));// set wxConfig path in registry/hidden settings file
+	m_pConfig->SetPath(_T("/Recent_File_List_Unicode"));// set wxFileConfig path in external settings file
 #else
-	m_pConfig->SetPath(_T("/Recent_File_List"));// set wxConfig path in registry/hidden settings file
+	m_pConfig->SetPath(_T("/Recent_File_List"));// set wxFileConfig path in external settings file
 #endif
     // wx note: In SetPath above we should use the _T() macro rather than _() so the config
     // string stays the same regardless of interface language chosen. Also, since the
     // "Recent_File_List" key is probably the most commonly used, we'll always leave the
-    // "Path" for wxConfig::SetPath(Path) set as _T("/Recent_File_List"). Whenever we
+    // "Path" for wxFileConfig::SetPath(Path) set as _T("/Recent_File_List"). Whenever we
     // change a setting other than an item under Recent_File_List, we'll save the oldPath
     // and restore it after doing the other setting.
 
@@ -13810,72 +14026,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // when in OnButtonMerge()
 	gbDoingInitialSetup = TRUE;
 
-	/*
-	// whm moved the following into the MakeMenuInitializationsAndPlatformAdjustments()
-	// function.
-	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
-	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
-	// resource. With wxDesigner handling resources, it's easier to start with the item 
-	// in the menu and programmatically delete it, rather than create it from scratch.
-	// So, for ANSI version, we'll just remove them from the MenuBar.
-#ifndef _UNICODE
-	// ANSI only
-	//AddForceUTF8Command(); // File... Export Target Text As UTF-8... menu command
-	// Rather than calling a AddForceUTF8Command() function we'll just use the
-	// pFileMenu pointer defined above and remove the menu item, deleting it to 
-	// avoid memory leaks.
-	// whm Bruce later made the following change to the MFC version:
-	// BEW removed 8Dec06 because we'll force UTF8 conversion for the standard command from now on
-	// leave this function in the app, commented out, it is a useful template for how to add
-	// a menu command dynamically
-	wxASSERT(pFileMenu != NULL);
-	wxMenuItem* pRemMenuItem;
-	//pRemMenuItem = pFileMenu->Remove(ID_FORCEUTF8);
-	//wxASSERT(pRemMenuItem != NULL);
-	//delete pRemMenuItem; // to avoid memory leaks
-	//pRemMenuItem = (wxMenuItem*)NULL;
-
-	// In the wx version we started with the Layout menu loaded with 
-	// other menu resources. Here we'll remove it for the ANSI version.
-	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(layoutMenu);
-	wxASSERT(pLayoutMenu != NULL);
-	// first delete the "Layout Window Right To Left\tCTRL+1" menu item
-	pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
-	wxASSERT(pRemMenuItem != NULL);
-	delete pRemMenuItem; // to avoid memory leaks
-	pRemMenuItem = (wxMenuItem*)NULL;
-	// then delete the top level "Layout" menu
-	//wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
-	wxMenu* pRemMenu;
-	pRemMenu = pMenuBar->Remove(layoutMenu);
-	wxASSERT(pRemMenu != NULL);
-	delete pRemMenu; // to avoid memory leaks
-	pRemMenu = (wxMenu*)NULL;
-#else
-	// Unicode version
-	// Initialize the Layout menu to LTR
-	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
-	wxASSERT(pLayoutMenuAlignment != NULL);
-	// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
-    // note: default display is LTR so menu item should read what clicking it should make
-    // the layout become after clicking. The menu text may be changed to appropriate value
-    // upon reading reading a project config file (the change is made in ???).
-#ifdef __WXMAC__
-	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
-#else
-	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
-#endif
-
-#endif 
-
-    // insure that the Use Tooltips menu item in the Help menu is checked or unchecked
-    // according to the current value of m_bUseToolTips (retrieved from registry/hidden
-    // settings via wxConfig object earlier in OnInit)
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
-	wxASSERT(pUseToolTips != NULL);
-	pUseToolTips->Check(m_bUseToolTips);
-*/
 	// change the unnamedN title to "Untitled - Adapt It"
 	wxString viewTitle = _("Untitled - Adapt It");
 	GetDocument()->SetTitle(viewTitle);
@@ -15354,9 +15504,8 @@ int CAdapt_ItApp::OnExit(void)
 	//m_pTargetBox = (CPhraseBox*)NULL;
 
 	delete m_pConfig;
-	m_pConfig = (wxConfig*)NULL;
-	delete m_pConfigSIL;
-	m_pConfigSIL = (wxConfig*)NULL;
+	m_pConfig = (wxFileConfig*)NULL;
+
 	if (m_pChecker)
 	{
 		delete m_pChecker;

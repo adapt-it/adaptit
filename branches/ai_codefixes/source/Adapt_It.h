@@ -146,7 +146,8 @@ class NavProtectNewDoc; // for user navigation protection feature
 
 // forward references (added to wxWidgets version):
 class wxSingleInstanceChecker;
-class wxConfig;
+//class wxConfig;
+class wxFileConfig;
 class wxCmdLineParser;
 class wxTextFile;
 class CMainFrame; // added for GetMainFrame()
@@ -1593,14 +1594,8 @@ class CAdapt_ItApp : public wxApp
     /// of most of the basic config file settings, but for the sake of compatibility with
     /// the MFC version we only use it to store the following things: (1) the user
     /// interface language of choice, (2) the recent files used list (file history), and
-    /// (3) [to be implemented] any non-default work folder location preferred for the
-    /// local machine when the default "Adapt It Work" or "Adapt It Unicode Work" folder
-    /// won't do.
-	wxConfig* m_pConfig;
-
-	/// The application's m_pConfigSIL member is used mainly to query whether the 
-	/// "SOFTWARE\\SIL\\SilEncConverters22" entry exists in the (Windows) registry.
-	wxConfig* m_pConfigSIL;
+	/// (3) the Html Help Controller window's size, position, fonts, etc.
+	wxFileConfig* m_pConfig;
 
     /// The application's m_pParser member can be used to process command line arguments.
     /// The command line processing in the MFC version was implemented but did not work
@@ -2244,7 +2239,28 @@ public:
 										// the administrator requests it)
 	wxArrayString m_sortedLoadableFiles; // for use by the NavProtectNewDoc class's dialog
 
-    /// m_appInstallPathOnly stores the path (only the path, not path and name) where the
+	/// m_appUserConfigDir stores the path (only the path, not path and name) where the
+	/// wxFileConfig's (.)Adapt_It_WX(.ini) file is located beginning with version 6.0.0.
+	/// m_appUserConfigDir is set by calling wxStandardPaths::GetUserConfigDir().
+	/// On wxMSW: "C:\Users\Bill Martin\AppData\Roaming"
+	/// On wxGTK: "/home/wmartin"
+	/// On wxMac: "/Users/wmartin"
+	wxString m_appUserConfigDir;
+
+
+	/// m_appUserConfigDir stores the path and name of the wxFileConfig file's
+	/// on-disk configuration file. It is of the form: Adapt_It_WX.ini on Windows
+	/// and a .Adapt_It_WX hidden file on Linux and the Mac.
+	/// On Windows the Adapt_It_WX.ini file is first used with version 6.0.0 which
+	/// automatically transitions some settings previously stored in the Windows
+	/// registry into the external Adapt_It_WX.ini file.
+	/// m_appUserConfigDir is set by calling wxStandardPaths::GetUserConfigDir().
+	/// On wxMSW: "C:\Users\Bill Martin\AppData\Roaming\Adapt_It_WX.ini"
+	/// On wxGTK: "/home/wmartin/.Adapt_It_WX"
+	/// On wxMac: "/Users/wmartin/.Adapt_It_WX"
+	wxString m_wxFileConfigPathAndName;
+	
+	/// m_appInstallPathOnly stores the path (only the path, not path and name) where the
     /// executable application file is installed on the given platform.
     /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
     /// On wxGTK: "/usr/bin/"
@@ -2789,6 +2805,8 @@ public:
 	//wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label); // unused
+
+	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 

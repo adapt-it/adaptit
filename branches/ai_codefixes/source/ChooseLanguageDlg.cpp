@@ -300,7 +300,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 				// we should check first and use that instead of "[Contains Unknown or New Localization]".
 				// If it really is a new localization, the user may choose to add this unknown language 
 				// once it is selected from the list, in which case we query him for the language name 
-				// Description and store it in wxConfig. See above for three ways to go from here.
+				// Description and store it in wxFileConfig. See above for three ways to go from here.
 				// 
 				bool bFound = FALSE;
 				wxString str = _T("");

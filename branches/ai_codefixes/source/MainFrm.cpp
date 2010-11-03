@@ -44,8 +44,8 @@
 #include <wx/docview.h>
 #include <wx/filename.h>
 #include <wx/tooltip.h>
-#include <wx/config.h> // for wxConfig
 #include <wx/wizard.h>
+#include <wx/fileconf.h>
 
 #ifdef __WXMSW__
 #include <wx/msw/registry.h> // for wxRegKey - used in SantaFeFocus sync scrolling mechanism

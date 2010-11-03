@@ -45,7 +45,6 @@
 #include <wx/filesys.h> // for wxFileName
 #include <wx/window.h> // for CaptureMouse()
 #include <wx/event.h> // for GetCapturedWindow()
-#include <wx/config.h> // for wxConfig
 #include <wx/tokenzr.h>
 #include <wx/textfile.h> // to get EOL info
 #include "Adapt_ItCanvas.h"
