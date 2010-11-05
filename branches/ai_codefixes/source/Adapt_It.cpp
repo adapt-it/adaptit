@@ -20035,7 +20035,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// IDS_RESTORE_KB_MSG
 	int value = wxMessageBox(_(
 "Use this command if the knowledge base has become corrupted.\n(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\nIt will throw away your current knowledge base, and then using your saved document files it will build a new one.\n\nDo you wish to go ahead?"),
-	_T(""), wxYES_NO);
+	_T("Restore Knowledge Base..."), wxYES_NO);
 	if (!(value == wxYES))
 		return;
 
@@ -20061,7 +20061,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	bool bRescueFlags = FALSE;
 	value = wxMessageBox(_(
 "Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
-	_T(""), wxYES_NO);
+	_T("Restore Knowledge Base..."), wxYES_NO);
 	if (value == wxYES)
 		bRescueFlags = TRUE;
 	KPlusCList keys;
@@ -20141,7 +20141,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		{
 			wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-			_T(""), wxICON_EXCLAMATION);
+			_T("Restore Knowledge Base..."), wxICON_EXCLAMATION);
 
 			// let the view respond again to updates
 			pView->canvas->Thaw();
@@ -20388,7 +20388,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	stats = stats.Format(_(
 "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."),
 	nCumulativeTotal,nDocCount);
-	wxMessageBox(stats);
+	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION);
 
 	// let the view respond again to updates
 	pView->canvas->Thaw();
