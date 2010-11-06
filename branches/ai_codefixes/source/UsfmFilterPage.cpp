@@ -268,32 +268,27 @@ void CUsfmFilterPageCommon::DoInit()
 
 
 	LoadProjSFMListBox(LoadInitialDefaults);
-	if (pStartWorkingWizard == NULL)
+	// whm 5Nov10 modified below to disable doc related controls when no doc is loaded
+	if (pStartWorkingWizard == NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
 	{
+		// We're in the Preferences dialog and a document is open
 		LoadDocSFMListBox(LoadInitialDefaults);
+		// initially have focus on the Doc list box
+		pListBoxSFMsDoc->SetFocus();
 	}
 	else
 	{
-		// In the wizard there is no doc open so load only a message into the pListBoxSFMsDoc
-		// saying that "(NO DOCUMENTS CREATED YET IN THIS PROJECT)"
+		// When in the wizard or in Preferences with NO doc open, load only a 
+		// message into the pListBoxSFMsDoc saying that "(NO DOCUMENTS CREATED YET IN THIS PROJECT)"
+		// and disable the doc controls
 		pListBoxSFMsDoc->Clear();
 		pListBoxSFMsDoc->Append(_("(NO DOCUMENT AVAILABLE IN THIS PROJECT - NO FILTER SETTINGS TO DISPLAY)"));
-	}
-	
-	// initially have focus on the Doc list box
-	if (pStartWorkingWizard == NULL)
-	{
-		// We are in Edit Preferences with an existing document open
-		// The Doc's controls are disabled, so set focus on the Proj list box
-		if (pListBoxSFMsProj->IsEnabled())
-			pListBoxSFMsProj->SetFocus();
-	}
-	else
-	{
-		// We are in the start working wizard with no document open, set
-		// focus on the Doc's list box
-		if (pListBoxSFMsDoc->IsEnabled())
-			pListBoxSFMsDoc->SetFocus();
+		pListBoxSFMsDoc->Enable(FALSE);
+		pRadioUsfmOnly->Enable(FALSE);
+		pRadioPngOnly->Enable(FALSE);
+		pRadioUsfmAndPng->Enable(FALSE);
+		// initially have focus on the Proj list box
+		pListBoxSFMsProj->SetFocus();
 	}
 
 	// set the default state of the buttons
@@ -2245,7 +2240,6 @@ void CUsfmFilterPageWiz::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	//InitDialog() is not virtual, no call needed to a base class
 
 	usfm_filterPgCommon.DoInit();
-	gpApp->m_pLayout->m_bUSFMChanged = FALSE; // initialize
 }
 
 void CUsfmFilterPageWiz::OnLbnSelchangeListSfmsDoc(wxCommandEvent& WXUNUSED(event))
@@ -2404,6 +2398,7 @@ void CUsfmFilterPagePrefs::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 
 	usfm_filterPgCommon.DoInit();
 	gpApp->m_pLayout->m_bFilteringChanged = FALSE; // initialize
+	gpApp->m_pLayout->m_bUSFMChanged = FALSE; // initialize
 }
 
 void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))

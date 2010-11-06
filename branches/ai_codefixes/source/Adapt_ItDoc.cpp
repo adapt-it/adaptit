@@ -10772,7 +10772,6 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 	MapSfmToUSFMAnalysisStruct::iterator iter;
 	SPList::Node* posn;
 	posn = pList->GetFirst();
-	wxASSERT(posn != NULL);
 	CSourcePhrase* pSrcPhrase;
 	while (posn != 0)
 	{

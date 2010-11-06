@@ -5269,6 +5269,27 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	// DoRecalcLayoutAfterPreferencesDlg() function, which makes a more intelligent
 	// decision about which particular kind of RecalcLayout() call to make
 	CLayout* pLayout = GetLayout();
+	// whm added 5Nov10 the following test block in support of Preferences being 
+	// made available when no documen is open.
+	if (pApp->GetDocument() == NULL || pApp->m_pSourcePhrases->GetCount() == 0)
+	{
+		// no document is open so there is no need to do pLayout calls nor phrasebox
+		// adjustments, etc. We can return here, but first make sure Idle processing
+		// is turned back on and the pLayout boolean flags are cleared.
+		wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL); // turn idle processing back on
+		// it's not necessary to clear these flags here, as they get cleared automatically in
+		// the CEditPreferences::InitDialog() function, which is called when the Preferences
+		// dialog is first opened. However, it is good defensive practice not to leave them set
+		// until then
+		pLayout->m_bViewParamsChanged = FALSE;
+		pLayout->m_bUSFMChanged = FALSE;
+		pLayout->m_bFilteringChanged = FALSE;
+		pLayout->m_bPunctuationChanged = FALSE;
+		pLayout->m_bCaseEquivalencesChanged = FALSE;
+		pLayout->m_bFontInfoChanged = FALSE;
+		// return before performing pLayout calls and phrasebox adjustments
+		return;
+	}
 	pLayout->DoRecalcLayoutAfterPreferencesDlg(); // inside are smarts for making the
 												  // best possible RecalcLayout() call
 	if (pApp->m_nActiveSequNum == -1)
@@ -10437,15 +10458,15 @@ void CAdapt_ItView::OnUpdateEditPreferences(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if ((CAdapt_ItDoc*)GetDocument() == NULL)
+	// Allow Edit > Preferences only if a project is open (a doc need not be open)
+	if ((!gbIsGlossing && pApp->m_bKBReady) || (gbIsGlossing && pApp->m_bGlossingKBReady))
+	{
+		event.Enable(TRUE);
+	}
+	else
 	{
 		event.Enable(FALSE);
-		return;
 	}
-	if (pApp->m_pSourcePhrases->GetCount() > 0)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
 }
 
 void CAdapt_ItView::OnCheckSingleStep(wxCommandEvent& WXUNUSED(event))
