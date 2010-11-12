@@ -240,6 +240,8 @@
 		<Unit filename="../../source/EditPreferencesDlg.h" />
 		<Unit filename="../../source/EditSourceTextDlg.cpp" />
 		<Unit filename="../../source/EditSourceTextDlg.h" />
+		<Unit filename="../../source/EmailReportDlg.cpp" />
+		<Unit filename="../../source/EmailReportDlg.h" />
 		<Unit filename="../../source/ExportFunctions.cpp" />
 		<Unit filename="../../source/ExportFunctions.h" />
 		<Unit filename="../../source/ExportInterlinearDlg.cpp" />
