@@ -420,6 +420,18 @@ const char subMenuLabel[] = "subMenuLabel";
 const char subMenuHelp[] = "subMenuHelp";
 const char subMenuKind[] = "subMenuKind";
 
+// this group are for the email problem and email feedback reports
+const char adaptitproblemreport[] = "AdaptItProblemReport";
+const char adaptitfeedbackreport[] = "AdaptItFeedbackReport";
+const char reportemailheader[] = "ReportEmailHeader";
+const char reportemailbody[] = "ReportEmailBody";
+const char reportattachmentusagelog[] = "ReportAttachmentUsageLog";
+const char reportattachmentpackeddocument[] = "ReportAttachmentPackedDocument";
+const char emailfrom[] = "emailFrom";
+const char emailto[] = "emailTo";
+const char emailsubject[] = "emailSubject";
+const char usagelogfilepathname[] = "usageLogFilePathName";
+const char packeddocumentfilepathname[] = "packedDocumentFilePathName";
 
 /// struct for saving top and bottom logical coord offsets for printing pages, stored in
 /// m_pagesList Instances of PageOffsets are populated in the PaginateDoc() function in the
@@ -1038,6 +1050,23 @@ WX_DECLARE_LIST(AI_MainMenuItem, MainMenuItemList); // see list definition macro
 struct AI_MenuStructure
 {
 	MainMenuItemList aiMainMenuItems;
+};
+
+enum EmailReportType
+{
+	problemReport,
+	feedbackReport
+};
+
+struct EmailReportData
+{
+	enum EmailReportType reportType;
+	wxString fromAddress;
+	wxString toAddress;
+	wxString subjectSummary;
+	wxString emailBody;
+	wxString usageLogFilePathName;
+	wxString packedDocumentFilePathName;
 };
 
 /// wxHashMap declaration for the MapMenuLabelStrToIdInt class - a mapped association
@@ -2202,6 +2231,9 @@ public:
 									// been made persistent, else FALSE
 	
 	wxString	m_userProfileFileWorkFolderPath; // whm added 7Sep10
+	wxString	m_emailReportFolderPathOnly; // whm added 8Nov10
+	wxString	m_usageLogFilePathAndName; // whm added 8Nov10
+	wxString	m_packedDocumentFilePathOnly; // whm added 8Nov10
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
@@ -2483,6 +2515,8 @@ public:
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
 	int m_nCorrespondencesLoadedInAdaptationsGuesser;
 	int m_nCorrespondencesLoadedInGlossingGuesser;
+	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
+	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2807,6 +2841,7 @@ public:
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label); // unused
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
+	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 

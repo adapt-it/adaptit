@@ -1324,6 +1324,77 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 		return TRUE;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a filename based on the name in the first param but incremented with a possible
+///             suffix and a unique ascending set of digits, i.e., fileName001.txt, fileName002.txt, 
+///             fileName003.txt etc.
+/// \param      baseFilePathAndName  -> path and file name of the base file to "increment" such
+///                                     as fileName.txt
+/// \param	    digitWidth	->	the depth of the incrementing: fileName2.txt had digitWidth of 1,
+///                             fileName02.txt has digitWidth of 2, fileName002.txt had digitWidth
+///                             of 3, etc
+/// \param      suffix   -> any string suffix to be added between the base name and the incrementing
+///                         digits, i.e., fileName_Old_002.txt where "_Old_" is the suffix
+/// \remarks
+/// A helper function for generating a file name using the file name given in baseFilePathAndName.
+/// If the file name at baseFilePathAndName does not exist, this function returns the
+/// baseFilePathAndName with any suffix suffixed to the file title. If the input baseFilePathAndName 
+/// exists, the function increments the name only part of baseFilePathAndName, so that it is unique 
+/// from the base file name and any other previously incremented file names created by this function 
+/// at the same path. The file name returned preserves any extension that was on the baseFilePathAndName. 
+/// If suffix is not a null string, the function adds the suffix to the end of the name followed by an 
+/// ascending set of digits at the end of the name before retaining any existing extension.
+////////////////////////////////////////////////////////////////////////////////////////////
+wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWidth, wxString suffix)
+{
+	wxString PathSeparator = wxFileName::GetPathSeparator();
+	wxFileName fn(baseFilePathAndName);
+	wxString folderPathOnly = fn.GetPath(); // folder path only of the baseFilePathAndName (not including the file name)
+	wxString fileTitleOnly = fn.GetName(); // file title only without dot and extension
+	wxString fileTitleAndExtension = fn.GetFullName(); // file title and extension
+	wxString fileExtensionOnly = fn.GetExt(); // file extension only
+	bool bExists = ::wxFileExists(baseFilePathAndName);
+	wxString backupName;
+	if (bExists)
+	{
+		wxString backupName0,backupName1,backupName2;
+		backupName0 = fileTitleOnly;
+		backupName1 = backupName0 + suffix;
+		int inc = 1;
+		wxString incStr;
+		incStr.Empty();
+		incStr << inc;
+		int strLen = incStr.Length();
+		while (strLen < digitWidth)
+		{
+			incStr = _T("0") + incStr; // prefix with zeros
+			strLen = incStr.Length();
+		}
+		backupName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
+		
+		while (::wxFileExists(backupName))
+		{
+			inc++;
+			incStr.Empty();
+			incStr << inc;
+			int strLen = incStr.Length();
+			while (strLen < digitWidth)
+			{
+				incStr = _T("0") + incStr; // prefix with zeros
+				strLen = incStr.Length();
+			}
+			backupName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
+		}
+	}
+	else
+	{
+		backupName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + _T(".") + fileExtensionOnly;;
+	}
+	return backupName;
+}
+
+
 int	sortCompareFunc(const wxString& first, const wxString& second)
 {
 #ifdef __WXMSW__

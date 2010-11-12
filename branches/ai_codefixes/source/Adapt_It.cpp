@@ -2127,7 +2127,9 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ONLINE_HELP\":subMenuLabel=\"Online Help (Requires Internet Access)\":subMenuHelp=\"Get Adapt It Help from the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_USER_FORUM\":subMenuLabel=\"User Forum (Requires Internet Access)\":subMenuHelp=\"Go to the Adapt It User Forum on the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_REPORT_A_PROBLEM\":subMenuLabel=\"Report a problem...\":subMenuHelp=\"Send a bug or problem report to the Adapt It developers\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_GIVE_FEEDBACK\":subMenuLabel=\"Give feedback...\":subMenuHelp=\"Give the developers feedback on your use of Adapt It\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -3123,43 +3125,10 @@ bool CAdapt_ItApp::BackupExistingUserProfilesFileInWorkFolder(wxString AIuserPro
 	bool bExists;
 	bExists = ::wxFileExists(AIuserProfilesWorkFolderPath);
 	wxASSERT(bExists == TRUE);
-	wxFileName fn(AIuserProfilesWorkFolderPath);
-	wxString profileWorkFolderPathOnly = fn.GetPath();
-	wxString profileWorkFolderNameOnly = fn.GetName(); // file title only without dot and extension
-	wxString profileWorkFolderFullName = fn.GetFullName(); // file title and extension
 	if (bExists)
 	{
-		wxString backupName,backupName0,backupName1,backupName2,tensDigit;
-		backupName0 = profileWorkFolderNameOnly; // "AI_UserProfiles"
-		backupName1 = backupName0 + _T("_Old_"); // "AI_UserProfiles_Old_"
-		tensDigit = _T("0");
-		backupName2 = _T(".xml");
-		int inc = 1;
-		wxString incStr;
-		incStr.Empty();
-		incStr << inc;
-		if (inc < 10)
-		{
-			backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + tensDigit + incStr + backupName2; // "AI_UserProfiles_Old_01.xml" ... "AI_UserProfiles_Old_09.xml"
-		}
-		else
-		{
-			backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + incStr + backupName2; // "AI_UserProfiles_Old_10.xml" and greater
-		}
-		while (::wxFileExists(backupName))
-		{
-			inc++;
-			incStr.Empty();
-			incStr << inc;
-			if (inc < 10)
-			{
-				backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + tensDigit + incStr + backupName2;
-			}
-			else
-			{
-				backupName = profileWorkFolderPathOnly + PathSeparator + backupName1 + incStr + backupName2;
-			}
-		}
+		wxString backupName;
+		backupName = GetUniqueIncrementedFileName(AIuserProfilesWorkFolderPath,2,_T("_Old_"));
 		// We should now have a backup name that does not yet exist as a file in the work folder.
 		// Now copy the existing AI_UserProfiles.xml to the backupName (backupName is full path + filename).
 		bool bCopiedOK;
@@ -10105,6 +10074,19 @@ void CAdapt_ItApp::TransitionWindowsRegistryEntriesTowxFileConfig()
 #endif
 }
 
+// The XML.cpp's InsertEntities() function takes a CBString which is inconvenient
+// here so we'll just insert entities manually.
+// replace any entity chars with their xml entity representations
+wxString CAdapt_ItApp::InsertEntities(wxString str)
+{
+	str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+	str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+	str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+	str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+	str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+	return str;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
 ///             m_pConfig info
@@ -10835,6 +10817,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
 	m_pFactoryUserProfiles = (UserProfiles*)NULL; // whm added 15Oct10
 
+	m_pEmailReportData = (EmailReportData*)NULL; // whm added 10Nov10
+
 	m_bForceFullConsistencyCheck = FALSE; // set true if user has respellings in the KB and
 			// after the KB save to disk and the message comes up asking if he wants a full
 			// consistency check done, and he responds by clicking Yes button
@@ -10885,6 +10869,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//		m_pROP->GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
 	//}
 	// end test of GetReadOnlyProtectionFileInProjectFolder() function
+	// 
+	// testing of GetUniqueIncrementedFileName
+	//int junkCt;
+	//for (junkCt = 0; junkCt < 300; junkCt++)
+	//{
+	//	wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Junk\\TestFile.txt");
+	//	wxString newFile = GetUniqueIncrementedFileName(testPath,2,_T("_Old_"));
+	//	::wxCopyFile(testPath,newFile);
+	//}
+	// end test of GetUniqueIncrementedFileName
 	
 	m_nWorkflowProfile = 0; // default value is for "Novice" unless changed by the
 							// value stored in the basic and/or config files.
@@ -10995,6 +10989,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bLockedCustomWorkFolderPath = FALSE;
 
 	m_userProfileFileWorkFolderPath = _T(""); // whm added 7Sep10
+	m_emailReportFolderPathOnly = _T(""); // whm added 8Nov10
+	m_usageLogFilePathAndName = _T(""); // whm added 8Nov10
+	m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
 
 	// The following use the _T() macro as they shouldn't be translated/localized
 	m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"),m_strNR.c_str());
@@ -11182,6 +11179,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
+
+	m_aiDeveloperEmailAddresses = _T("bruce_waters@sil.org,bill_martin@sil.org"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
 											   // into phrases for adapting
@@ -14156,6 +14155,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Unix-like default strings.
 	wxString AIstyleFileWorkFolderPath;
 	wxString AIuserProfilesWorkFolderPath;
+	wxString AIemailReportFolderPathOnly;
+	wxString AIusageLogFolderPath;
+	wxString AIpackedDocumentFolderPathOnly;
 	if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
 	{
 		#ifdef Output_Default_Style_Strings
@@ -14164,6 +14166,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		AIstyleFileWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
 		AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+		AIemailReportFolderPathOnly = m_customWorkFolderPath;
+		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UsageLog.txt");
+		AIpackedDocumentFolderPathOnly = m_customWorkFolderPath;
 	}
 	else
 	{
@@ -14173,9 +14178,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		AIstyleFileWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
 		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+		AIemailReportFolderPathOnly = m_workFolderPath;
+		AIusageLogFolderPath = m_workFolderPath + PathSeparator + _T("AI_UsageLog.txt");
+		AIpackedDocumentFolderPathOnly = m_workFolderPath;
 	}
 
 	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
+	m_emailReportFolderPathOnly = AIemailReportFolderPathOnly; // whm added 8Nov10
+	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
+	m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
@@ -15644,6 +15655,9 @@ int CAdapt_ItApp::OnExit(void)
 	// profileItemList member that point to UserProfileItem instances on the 
 	// heap.
 	DestroyUserProfiles(m_pFactoryUserProfiles);
+
+	if (m_pEmailReportData != NULL)
+		delete m_pEmailReportData;
 	
 	DestroyMenuStructure(m_pAI_MenuStructure);
 	

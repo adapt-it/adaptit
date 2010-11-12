@@ -7610,6 +7610,224 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+wxSizer *STATIC_TEXT_DESCRIPTION;
+wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item2 = new wxStaticBox( parent, -1, _("Email Heading Information:") );
+    wxStaticBoxSizer *item1 = new wxStaticBoxSizer( item2, wxVERTICAL );
+
+    wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 0 );
+    item3->AddGrowableCol( 1 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("TO: (Adapt It Developers)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_DEVS_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item5->SetToolTip( _("Adapt It developers who will receive this email report (addresses separated by commas)") );
+    item3->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("FROM: (Your Email Address)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MY_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
+    item7->SetToolTip( _("Enter your email address here so we can respond to you") );
+    item3->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("RE: Summary (Email Subject)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_SUMMARY_SUBJECT, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
+    item9->SetToolTip( _("Enter a brief summary of your report - it becomes the subject of your email") );
+    item3->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Description (Body of Email):") );
+    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
+    STATIC_TEXT_DESCRIPTION = item10;
+
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION_BODY, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    item12->SetToolTip( _("Enter the details of your report here - this becomes the main body of your email message") );
+    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECKBOX_LET_DEVS_KNOW_AI_USAGE, _("Let Adapt It developers know how I use Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetValue( TRUE );
+    item14->SetToolTip( _("Attaches the Adapt It usage log to your email") );
+    item13->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item13->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item15 = new wxButton( parent, ID_BUTTON_VIEW_USAGE_LOG, _("View Usage Log"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("Click to view the contents of the Adapt It usage log before sending") );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item10->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item17 = new wxStaticBox( parent, -1, _("System Information (automatically included in report):") );
+    wxStaticBoxSizer *item16 = new wxStaticBoxSizer( item17, wxVERTICAL );
+
+    wxFlexGridSizer *item18 = new wxFlexGridSizer( 4, 0, 3 );
+    item18->AddGrowableCol( 1 );
+    item18->AddGrowableCol( 3 );
+
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("AI Version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_AI_VERSION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("Release Date:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT_RELEASE_DATE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Data type:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_DATA_TYPE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Free Memory (MB):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT_FREE_MEMORY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("Sys Locale:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT_SYS_LOCALE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("Interface Language:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item30 = new wxStaticText( parent, ID_TEXT_INTERFACE_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("Sys Encoding:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT_SYS_ENCODING, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Sys Layout Dir:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT_SYS_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("wxWidgets version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item35, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT_WXWIDGETS_VERSION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("OS version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT_OS_VERSION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item18->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item16->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item39 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item16->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item41 = new wxStaticBox( parent, -1, _("Send the above report to Adapt It developers:") );
+    wxStaticBoxSizer *item40 = new wxStaticBoxSizer( item41, wxVERTICAL );
+
+    wxFlexGridSizer *item42 = new wxFlexGridSizer( 2, 3, 0 );
+    item42->AddGrowableCol( 1 );
+
+    wxStaticBox *item44 = new wxStaticBox( parent, -1, _("Report handling:") );
+    wxStaticBoxSizer *item43 = new wxStaticBoxSizer( item44, wxVERTICAL );
+
+    wxButton *item45 = new wxButton( parent, ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, _("Save report as text file"), wxDefaultPosition, wxDefaultSize, 0 );
+    item45->SetToolTip( _("Click to save this report on your computer, if desired, before sending it as email") );
+    item43->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxButton *item46 = new wxButton( parent, ID_BUTTON_LOAD_SAVED_REPORT, _("Load a saved report"), wxDefaultPosition, wxDefaultSize, 0 );
+    item46->SetToolTip( _("Click to load a previously saved report - which you can then send as email if you wish") );
+    item43->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxButton *item47 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->SetToolTip( _("Click to close this dialog (you should first save any unsent changes)") );
+    item43->Add( item47, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item42->Add( item43, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    wxStaticBox *item49 = new wxStaticBox( parent, -1, _("Email handling:") );
+    wxStaticBoxSizer *item48 = new wxStaticBoxSizer( item49, wxVERTICAL );
+
+    wxRadioButton *item50 = new wxRadioButton( parent, ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI, _("Send it directly from Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
+    item48->Add( item50, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item51 = new wxRadioButton( parent, ID_RADIOBUTTON_SEND_TO_MY_EMAIL, _("Send to my email program (I'll send it from there)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item51->SetValue( TRUE );
+    item48->Add( item51, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item52 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item53 = new wxButton( parent, ID_BUTTON_ATTACH_PACKED_DOC, _("Attach a packed document"), wxDefaultPosition, wxDefaultSize, 0 );
+    item53->SetToolTip( _("Click to attach a packed adaptation document if you refer to it in your report") );
+    item52->Add( item53, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item52->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item54 = new wxButton( parent, ID_BUTTON_SEND_NOW, _("Send Now"), wxDefaultPosition, wxDefaultSize, 0 );
+    item54->SetToolTip( _("Click to send this report via email") );
+    item52->Add( item54, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item48->Add( item52, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item42->Add( item48, 0, wxGROW|wxALL, 0 );
+
+    item40->Add( item42, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item40, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -7735,7 +7953,9 @@ wxMenuBar *AIMenuBarFunc()
     wxMenu* item8 = new wxMenu;
     item8->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
     item8->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
-    item8->Append( ID_USER_FORUM, _("User Forum (Requires Internet Access)"), _("Go to the Adapt It User Forum on the Internet in your browser") );
+    item8->AppendSeparator();
+    item8->Append( ID_REPORT_A_PROBLEM, _("Report a problem..."), _("Send a bug or problem report to the Adapt It developers") );
+    item8->Append( ID_GIVE_FEEDBACK, _("Give feedback..."), _("Give the developers feedback on your use of Adapt It") );
     item8->AppendSeparator();
     item8->Append( ID_HELP_USE_TOOLTIPS, _("Use Tooltips"), _("Select this item to turn on or turn off tooltip help messages"), wxITEM_CHECK );
     item8->AppendSeparator();

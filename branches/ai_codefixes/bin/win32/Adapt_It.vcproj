@@ -540,6 +540,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\EmailReportDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ExportFunctions.cpp"
 				>
 			</File>
@@ -942,6 +946,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\EditSourceTextDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\EmailReportDlg.h"
 				>
 			</File>
 			<File

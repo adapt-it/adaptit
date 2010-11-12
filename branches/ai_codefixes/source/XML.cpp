@@ -150,6 +150,8 @@ Item gStoreItem; // temporary storage for popped items
 static UserProfiles* gpUserProfiles = NULL;
 static UserProfileItem* gpUserProfileItem = NULL;
 
+static EmailReportData* gpEmailReportData = NULL;
+
 // define our needed tags, entities and attribute names
 // Note: Many of the const char declarations have been
 // moved to Adapt_It.h and had an "xml_" prefix added
@@ -1984,7 +1986,7 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 #ifdef _UNICODE
 	wxString valueStr;
 	gpApp->Convert8to16(attrValue,valueStr);
-	const wxChar* pValueW = valueStr; //const wxChar* pValueW = (LPCTSTR)valueStr;
+	const wxChar* pValueW = valueStr;
 #endif
 	char* pValue = (char*)attrValue; // always do this one, whether unicode or not
 	pValue = pValue; // avoid warnings in Unicode builds
@@ -2151,6 +2153,121 @@ bool AtPROFILEEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	else if (tag == profile)
 	{
 		;
+	}
+
+	return TRUE;
+}
+
+/***************************************************************************
+* Callbacks - for parsing the AI_ReportProblem.xml/AI_ReportFeedback.xml data. whm added 9Nov10
+****************************************************************************/
+bool AtEMAILRptTag(CBString& tag,CStack*& WXUNUSED(pStack))
+{
+	if (tag == adaptitproblemreport || tag == adaptitfeedbackreport)
+	{
+		// create a new EmailReportData
+		gpEmailReportData = new EmailReportData;
+		if (tag == adaptitproblemreport)
+			gpEmailReportData->reportType = problemReport;
+		else if (tag == adaptitfeedbackreport)
+			gpEmailReportData->reportType = feedbackReport;
+		gpEmailReportData->fromAddress = _T("");
+		gpEmailReportData->toAddress = _T("");
+		gpEmailReportData->subjectSummary = _T("");
+		gpEmailReportData->emailBody = _T("");
+		gpApp->m_pEmailReportData = gpEmailReportData; // make the App's point also point at it
+	}
+
+	return TRUE;
+}
+
+bool AtEMAILRptEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack))
+{
+	return TRUE;
+}
+
+bool AtEMAILRptAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack))
+{
+	wxASSERT(gpEmailReportData != NULL);
+	ReplaceEntities(attrValue); // replace entities on all attrValues to be safe
+#ifdef _UNICODE
+	wxString valueStr;
+	gpApp->Convert8to16(attrValue,valueStr);
+	const wxChar* pValueW = valueStr;
+#endif
+	char* pValue = (char*)attrValue; // always do this one, whether unicode or not
+	pValue = pValue; // avoid warnings in Unicode builds
+	if (gpEmailReportData != NULL)
+	{
+		if (tag == reportemailheader)
+		{
+			if (attrName == emailfrom)
+			{
+	#ifdef _UNICODE
+				gpEmailReportData->fromAddress = pValueW;
+	#else
+				gpEmailReportData->fromAddress = pValue;
+	#endif
+			}
+			else if (attrName == emailsubject)
+			{
+	#ifdef _UNICODE
+				gpEmailReportData->subjectSummary = pValueW;
+	#else
+				gpEmailReportData->subjectSummary = pValue;
+	#endif
+			}
+		}
+
+		if (tag == reportattachmentusagelog)
+		{
+			if (attrName == usagelogfilepathname)
+			{
+	#ifdef _UNICODE
+				gpEmailReportData->usageLogFilePathName = pValueW;
+	#else
+				gpEmailReportData->usageLogFilePathName = pValue;
+	#endif
+			}
+		}
+
+		if (tag == reportattachmentpackeddocument)
+		{
+			if (attrName == packeddocumentfilepathname)
+			{
+	#ifdef _UNICODE
+				gpEmailReportData->packedDocumentFilePathName = pValueW;
+	#else
+				gpEmailReportData->packedDocumentFilePathName = pValue;
+	#endif
+			}
+		}
+
+	}
+	return TRUE;
+}
+
+bool AtEMAILRptEndTag(CBString& tag,CStack*& WXUNUSED(pStack))
+{
+	if (tag == adaptitproblemreport || tag == adaptitfeedbackreport)
+	{
+		gpEmailReportData = (EmailReportData*)NULL;
+	}
+
+	return TRUE;
+}
+
+bool AtEMAILRptPCDATA(CBString& tag,CBString& pcdata,CStack*& WXUNUSED(pStack))
+{
+	if (tag == reportemailbody)
+	{
+		ReplaceEntities(pcdata); // replace entities on all attrValues to be safe
+#ifdef _UNICODE
+		gpEmailReportData->emailBody = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
+#else
+		gpEmailReportData->emailBody = pcdata.GetBuffer();
+#endif
+
 	}
 
 	return TRUE;
@@ -5607,6 +5724,27 @@ bool ReadPROFILES_XML(wxString& path)
 {
 	bool bXMLok = ParseXML(path,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
 							AtPROFILEEndTag,AtPROFILEPCDATA);
+	return bXMLok;
+}
+
+/*****************************************************************
+*
+* ReadEMAIL_REPORT_XML
+*
+* Returns: TRUE if no error, else FALSE
+*
+* Parameters:
+* -> path  -- (wxString) absolute path to the AI_ReportFeedback.xml file or AI_ReportProblem.xml file on the storage medium
+*
+* Calls ParseXML to parse the AI_ReportFeedback.xml/AI_ReportProblem.xml file containing 
+* the email message data
+*
+*******************************************************************/
+
+bool ReadEMAIL_REPORT_XML(wxString& path)
+{
+	bool bXMLok = ParseXML(path,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
+							AtEMAILRptEndTag,AtEMAILRptPCDATA);
 	return bXMLok;
 }
 

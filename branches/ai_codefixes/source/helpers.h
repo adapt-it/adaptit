@@ -142,6 +142,8 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox);
 
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum);
 
+wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWidth, wxString suffix);
+
 // end of whm's additions
  
 // 2010 additions by BEW

@@ -245,6 +245,13 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*&
 bool AtPROFILEEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtPROFILEPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& WXUNUSED(pStack));
 
+// Functions used as callbacks for AI_ReportProblem.xml/AI_ReportFeedback.xml
+bool AtEMAILRptTag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtEMAILRptEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
+bool AtEMAILRptAttr(CBString& WXUNUSED(tag),CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack));
+bool AtEMAILRptEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtEMAILRptPCDATA(CBString& tag,CBString& pcdata,CStack*& WXUNUSED(pStack));
+
 // Functions used as callbacks for XML-marked-up Adapt It documents
 bool AtDocTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtDocEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
@@ -277,6 +284,9 @@ bool ReadSFM_XML(wxString& path);
 
 // read and parse function for AI_UserProfiles.xml
 bool ReadPROFILES_XML(wxString& path);
+
+// read and parse function for AI_ReportProblem.xml/AI_ReportFeedback.xml
+bool ReadEMAIL_REPORT_XML(wxString& path);
 
 // read and parse function for Adapt It xml documents
 bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc);

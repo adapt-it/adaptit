@@ -81,6 +81,7 @@
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
 #include "StartWorkingWizard.h"
+#include "EmailReportDlg.h"
 // includes above
 
 /// This global is defined in Adapt_It.cpp
@@ -275,10 +276,10 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(IDC_CHECK_FORCE_ASK, CMainFrame::OnUpdateCheckForceAsk)
 	EVT_UPDATE_UI(IDC_CHECK_SINGLE_STEP, CMainFrame::OnUpdateCheckSingleStep)
 	EVT_ACTIVATE(CMainFrame::OnActivate) // to set focus to targetbox when visible
-	//EVT_HELP(wxID_HELP,CMainFrame::OnHelp)
 	EVT_MENU(wxID_HELP, CMainFrame::OnAdvancedHtmlHelp)
 	EVT_MENU(ID_ONLINE_HELP, CMainFrame::OnOnlineHelp)
-	EVT_MENU(ID_USER_FORUM, CMainFrame::OnUserForum)
+	EVT_MENU(ID_REPORT_A_PROBLEM, CMainFrame::OnHelpReportAProblem)
+	EVT_MENU(ID_GIVE_FEEDBACK, CMainFrame::OnHelpGiveFeedback)
 	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
@@ -1343,10 +1344,20 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm Note 14Apr09: The XO machine running under Intrepid actually reports 100.0 DPI!
 	// Therefore this test won't distinguish an XO from any other "normal" screen computer,
 	// so we try using wxPlatformInfo::GetArchName()
-	wxString archName,OSSystemID,hostName;
+	wxString archName,OSSystemID,OSSystemIDName,hostName;
+	int OSMajorVersion, OSMinorVersion;
 	wxPlatformInfo platInfo;
 	archName = platInfo.GetArchName(); // returns "32 bit" on Windows
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
+	OSSystemIDName = platInfo.GetOperatingSystemIdName();
+	//OSMajorVersion = platInfo.GetOSMajorVersion();
+	//OSMinorVersion = platInfo.GetOSMinorVersion();
+	wxOperatingSystemId sysID;
+	sysID = ::wxGetOsVersion(&OSMajorVersion,&OSMinorVersion);
+	wxMemorySize memSize;
+	wxLongLong MemSizeMB;
+	memSize = ::wxGetFreeMemory();
+	MemSizeMB = memSize / 1048576;
 	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
 
 	//wxSize displaySizeInPixels;
@@ -2047,18 +2058,56 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
+// whm 5Nov10 removed the Adapt It Forum... Help menu item because the Adapt It Talk forum 
+// was never well utilized its functionality was soon to be removed by Google at the end
+// of 2010. 
+//void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
+//{
+//	const wxString userForumURL = _T("http://groups.google.com/group/AdaptIt-Talk");
+//	int flags;
+//	flags = wxBROWSER_NEW_WINDOW;
+//	bool bLaunchOK;
+//	bLaunchOK = ::wxLaunchDefaultBrowser(userForumURL, flags);
+//	if (!bLaunchOK)
+//	{
+//		wxString strMsg;
+//		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the user forum.\nIf you have Internet access, you can try launching your browser\nyourself and go to the Adapt It user forum by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),userForumURL.c_str());
+//		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_WARNING);
+//	}
+//}
+
+// Provide a direct way to report a problem. This is a menu item that can be used
+// to compose a report and sent it from Adapt It either indirectly, going first 
+// to the user's email program, or directly via MAPI email protocols (On Window 
+// systems) or SendMail protocols (on Unix - Linux & Mac systems).
+void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 {
-	const wxString userForumURL = _T("http://groups.google.com/group/AdaptIt-Talk");
-	int flags;
-	flags = wxBROWSER_NEW_WINDOW;
-	bool bLaunchOK;
-	bLaunchOK = ::wxLaunchDefaultBrowser(userForumURL, flags);
-	if (!bLaunchOK)
+	//wxMessageBox(_T("Sorry, the Report a problem... menu item is not yet implemented"));
+	CEmailReportDlg erDlg(this);
+	erDlg.Centre();
+	erDlg.reportType = erDlg.Report_a_problem;
+	if (erDlg.ShowModal() == wxID_OK)
 	{
-		wxString strMsg;
-		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the user forum.\nIf you have Internet access, you can try launching your browser\nyourself and go to the Adapt It user forum by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),userForumURL.c_str());
-		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_WARNING);
+		// Assign any new settings to the App's corresponding members if we
+		// detect any changes made in EmailReportDlg.
+
+	}
+}
+
+// Provide a direct way to give user feedback. This is a menu item that can be 
+// used to compose a report and sent it from Adapt It either indirectly, going 
+// first to the user's email program, or directly via MAPI email protocols (On 
+// Window systems) or SendMail protocols (on Unix - Linux & Mac systems).
+void CMainFrame::OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event))
+{
+	//wxMessageBox(_T("Sorry, the Give ... menu item is not yet implemented"));
+	CEmailReportDlg erDlg(this);
+	erDlg.reportType = erDlg.Give_feedback;
+	if (erDlg.ShowModal() == wxID_OK)
+	{
+		// Assign any new settings to the App's corresponding members if we
+		// detect any changes made in EmailReportDlg.
+
 	}
 }
 
