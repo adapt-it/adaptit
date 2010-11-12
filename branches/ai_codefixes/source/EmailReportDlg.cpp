@@ -3,7 +3,7 @@
 /// \file			EmailReportDlg.cpp
 /// \author			Bill Martin
 /// \date_created	7 November 2010
-/// \date_revised	7 November 2010
+/// \date_revised	11 November 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CEmailReportDlg class. 
@@ -51,7 +51,6 @@
 // event handler table
 BEGIN_EVENT_TABLE(CEmailReportDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEmailReportDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
-	// Samples:
 	EVT_BUTTON(ID_BUTTON_SEND_NOW, CEmailReportDlg::OnBtnSendNow)
 	EVT_BUTTON(ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, CEmailReportDlg::OnBtnSaveReportAsXmlFile)
 	EVT_BUTTON(ID_BUTTON_LOAD_SAVED_REPORT, CEmailReportDlg::OnBtnLoadASavedReport)
@@ -61,14 +60,6 @@ BEGIN_EVENT_TABLE(CEmailReportDlg, AIModalDialog)
 	EVT_TEXT(ID_TEXTCTRL_MY_EMAIL_ADDR, CEmailReportDlg::OnYourEmailAddressEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_SUMMARY_SUBJECT, CEmailReportDlg::OnSubjectSummaryEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_DESCRIPTION_BODY, CEmailReportDlg::OnDescriptionBodyEditBoxChanged)
-	//EVT_MENU(ID_SOME_MENU_ITEM, CEmailReportDlg::OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CEmailReportDlg::OnUpdateDoSomething)
-	//EVT_BUTTON(ID_SOME_BUTTON, CEmailReportDlg::OnDoSomething)
-	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CEmailReportDlg::OnDoSomething)
-	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CEmailReportDlg::DoSomething)
-	//EVT_LISTBOX(ID_SOME_LISTBOX, CEmailReportDlg::DoSomething)
-	//EVT_COMBOBOX(ID_SOME_COMBOBOX, CEmailReportDlg::DoSomething)
-	// ... other menu, button or control events
 END_EVENT_TABLE()
 
 CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
@@ -159,21 +150,6 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 	
 	pButtonSendNow = (wxButton*)FindWindowById(ID_BUTTON_SEND_NOW);
 	wxASSERT(pButtonSendNow != NULL);
-	
-	// use wxValidator for simple dialog data transfer
-	// sample text control initialization below:
-	//wxTextCtrl* pEdit;
-	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
-	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
-	//pEdit->SetBackgroundColour(sysColorBtnFace);
-
-	// sample radio button control initialization below:
-	//wxRadioButton* pRadioB;
-	//pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_BUTTON);
-	//pRadioB->SetValue(TRUE);
-	//pRadioB->SetValidator(wxGenericValidator(&m_bVariable));
-
-	// other attribute initializations
 }
 
 CEmailReportDlg::~CEmailReportDlg() // destructor
@@ -190,6 +166,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	bSubjectHasUnsavedChanges = FALSE;
 	bYouEmailAddrHasUnsavedChanges = FALSE;
 	bDescriptionBodyHasUnsavedChanges = FALSE;
+	bCurrentEmailReportWasLoadedFromFile = FALSE;
 	LoadedFilePathAndName = _T("");
 
 	pTextDeveloperEmails->ChangeValue(pApp->m_aiDeveloperEmailAddresses);

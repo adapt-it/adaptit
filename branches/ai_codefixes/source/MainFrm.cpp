@@ -2082,7 +2082,6 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 // systems) or SendMail protocols (on Unix - Linux & Mac systems).
 void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMessageBox(_T("Sorry, the Report a problem... menu item is not yet implemented"));
 	CEmailReportDlg erDlg(this);
 	erDlg.Centre();
 	erDlg.reportType = erDlg.Report_a_problem;
@@ -2090,7 +2089,6 @@ void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 	{
 		// Assign any new settings to the App's corresponding members if we
 		// detect any changes made in EmailReportDlg.
-
 	}
 }
 
@@ -2100,14 +2098,12 @@ void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 // Window systems) or SendMail protocols (on Unix - Linux & Mac systems).
 void CMainFrame::OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMessageBox(_T("Sorry, the Give ... menu item is not yet implemented"));
 	CEmailReportDlg erDlg(this);
 	erDlg.reportType = erDlg.Give_feedback;
 	if (erDlg.ShowModal() == wxID_OK)
 	{
 		// Assign any new settings to the App's corresponding members if we
 		// detect any changes made in EmailReportDlg.
-
 	}
 }
 

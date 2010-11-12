@@ -3,7 +3,7 @@
 /// \file			EmailReportDlg.h
 /// \author			Bill Martin
 /// \date_created	7 November 2010
-/// \date_revised	7 November 2010
+/// \date_revised	11 November 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CEmailReportDlg class. 
