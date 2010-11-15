@@ -173,6 +173,9 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	wxASSERT(m_pKBEditorNotebook != NULL);
 	m_pStaticSelectATab = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SELECT_A_TAB);
 	wxASSERT(m_pStaticSelectATab != NULL);
+
+	//m_pStaticWhichKB = (wxStaticText*)FindWindowById(ID_STATIC_WHICH_KB);
+	//wxASSERT(m_pStaticWhichKB != NULL);
 }
 
 CKBEditor::~CKBEditor()
@@ -1342,6 +1345,7 @@ void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 										// button enabled
 }
 
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 															   // method of wxWindow
 {
@@ -1444,36 +1448,44 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 
 	if (gbIsGlossing)
 	{
+		// Make it show  "Glosses Knowledge Base" at top right, rather than "Adaptations
+		// Knowledge Base" (Localizable)
+//		wxString glossesKBLabel = _("Glosses Knowledge Base");
+//		m_pStaticWhichKB->SetLabel(glossesKBLabel);
+
+	// BEW 13Nov10, removed to support Bob Eaton's request for glosssing KB to use all maps
         // First, configure the wxNoteBook for Glossing: Remove all but the first tab page
         // and rename that first tab page to "All Gloss Words Or Phrases".
 		// 
 		// wx version note: All pages are added to the wxNotebook in wxDesigner
 		// so we'll simply remove all but first one.
-		int ct;
-		bool removedOK;
-		int totNumPages;
-		totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
+	//	int ct;
+	//	bool removedOK;
+	//	int totNumPages;
+	//	totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
 		// remove page 9 through page 1, leaving page 0 as the only page in the wxNoteBook
-		for (ct = totNumPages-1; ct > 0; ct--)
-		{
-			removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
-		}
-		m_pKBEditorNotebook->Layout();
-		int pgCt;
-		pgCt = m_pKBEditorNotebook->GetPageCount();
-		wxASSERT(pgCt == 1);
+	//	for (ct = totNumPages-1; ct > 0; ct--)
+	//	{
+	//		removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
+	//	}
+	//	m_pKBEditorNotebook->Layout();
+	//	int pgCt;
+	//	pgCt = m_pKBEditorNotebook->GetPageCount();
+	//	wxASSERT(pgCt == 1);
 
 		// fix the titles to be what we want (ANSI strings)
-		m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases")); //title[0].Format(IDS_GLOSSING_TAB);
+	//	m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases"));
         // Hide the static text "Number of Words: Select a Tab according to the number of
         // words in the Source Phrase" while glossing.
-		m_pStaticSelectATab->Hide(); 
+	//	m_pStaticSelectATab->Hide(); 
 
 		// Now, that the wxNoteBook is configured, set m_nCurPage.
 		// When Glossing is active there is always only one tab and its index number is 0.
-		m_nCurPage = 0;
+	//	m_nCurPage = 0;
 	}
-	else if (m_nWordsSelected != -1)
+	//else 
+		
+	if (m_nWordsSelected != -1)
 	{
 		// the m_nCurPage is one less than m_nWordsSelected.
 		m_nCurPage = m_nWordsSelected-1;

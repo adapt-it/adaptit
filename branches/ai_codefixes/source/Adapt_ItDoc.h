@@ -78,8 +78,8 @@ class CAdapt_ItDoc : public wxDocument
 	// creatable from run-time type information. 
 	// MFC uses DECLARE_DYNCREATE(CAdapt_ItDoc)
 
-  // Attributes
-  public:
+	// Attributes
+public:
 	CAdapt_ItDoc(); // moved constructor to public access for wxWidgets 
 					// version (see note above)
 
@@ -127,6 +127,10 @@ protected:
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
+	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, wxChar*& pWdEnd,
+							wxString& punctBefore, wxString& endMkr); // BEW created 11Oct10
+	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
+							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr);
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
@@ -203,18 +207,24 @@ public:
 	int				ParseNumber(wxChar* pChar);
 	int				IndexOf(CSourcePhrase* pSrcPhrase); // BEW added 17Mar09
 	bool			IsVerseMarker(wxChar* pChar, int& nCount);
+	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
+	bool			IsCrossReferenceInternalEndMarker(wxChar* pChar);
+	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar);
 	bool			IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsChapterMarker(wxChar* pChar);
 	bool			IsAmbiguousQuote(wxChar* pChar);
 	bool			IsOpeningQuote(wxChar* pChar);
+	bool			IsStraightQuote(wxChar* pChar);
 	bool			IsClosingQuote(wxChar* pChar);
+	bool			IsClosingCurlyQuote(wxChar* pChar);
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
 	bool			IsMarker(wxChar* pChar);
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
+	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
 	static SPList *LoadSourcePhraseListFromFile(wxString FilePath);
@@ -225,11 +235,31 @@ public:
 	wxString		MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd);
 	wxString		NormalizeToSpaces(wxString str);
 	bool			OpenDocumentInAnotherProject(wxString lpszPathName);
+	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
+								wxString& spacelessSrcPuncts, int len, bool& bExitOnReturn, 
+								bool& bHasPrecedingStraightQuote, wxString& additions,
+								bool bPutInOuterStorage);
+	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
+								wxString& inlineNonBindingEndMkrs, int len, 
+								bool& bInlineBindingEndMkrFound, wxString& endMkr);
+	int				ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int len);
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar *pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 							wxChar *pBuffStart, wxChar *pEnd);
-	int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
+	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
+	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
+	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
+							wxChar* pEnd, // pointer to the null at the end of the string buffer
+							CSourcePhrase* pSrcPhrase, // where we store what we parse
+							wxString& spacelessSrcPuncts, // source punctuation with spaces removed
+							wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+							wxString& inlineNonbindingEndMrks, // fast access string for \wj* \qt* \sls* \tl* \fig*
+							bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
+							// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
+							bool& bIsInlineBindingMkr); // TRUE if pChar is pointing at a beginmarker
+							// from the remaining inline marker set (but excluding \f* and
+							// \x* and any others beginning with \f or \x)
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
 	wxString		RemoveAnyFilterBracketsFromString(wxString str);
@@ -299,7 +329,12 @@ public:
 	wxChar	GetFirstChar(wxString& strText);
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
+  public:
+	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
+										  // (" or ') is encountered preceding the word when
+										  // parsing using TokenizeText()
 
+  private:
 	DECLARE_EVENT_TABLE()
 };
 

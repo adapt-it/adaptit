@@ -190,7 +190,6 @@ public:
 	bool		IsUnstructuredData(SPList* pList);
 	bool		IsWrapMarker(CSourcePhrase* pSrcPhrase);
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
-	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr);
 	void		MakeTargetStringIncludingPunctuation(CSourcePhrase* pSrcPhrase, wxString targetStr);
 	void		MergeWords();
 
@@ -302,7 +301,6 @@ public: // edb 05 March 2010 - set to public (this is called from CRetranslation
 	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
 protected:
-	wxString	GetConvertedPunct(const wxString& rStr);
 	bool		GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum), 
 							int& WXUNUSED(nEndingFreeTransSequNum),int& nStartingBackTransSequNum, 

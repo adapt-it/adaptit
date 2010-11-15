@@ -272,7 +272,7 @@ bool	gbGlossingUsesNavFont = FALSE;
 /// Defaults to FALSE to allow things like 3:sg:Subj or 1.incl to be put into the glossing 
 /// KB 'as is'. When TRUE punctuation is stripped out before saving the gloss in the glossing
 /// KB; or, the stripping is done after the gloss has been saved
-bool	gbRemovePunctuationFromGlosses = FALSE; 
+//bool	gbRemovePunctuationFromGlosses = FALSE; << BEW removed 13Nov10, it's never set TRUE
 
 /// This flag is used to indicate that the text being processed is unstructured, i.e.,
 /// not containing the standard format markers (such as verse and chapter) that would 
@@ -8344,9 +8344,12 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	CCellList::Node* pos = NULL;
 
     // use strOldAdaptation to accumulate any existing adaptations, which will do so
-    // regardless of whether some or all of the srcPhrases are already merged; the strAdapt
-    // accumulation variable used later only accumulates after any unmerges are done, so we
-    // don't use that unless strOldAdaptation is empty
+    // regardless of whether some or all of the srcPhrases are already merged
+    
+    // BEW 13Nov10;  remove strAdapt, it just wastes processor time.   
+    // the strAdapt accumulation variable used later only accumulates after any unmerges
+    // are done, so we don't use that unless strOldAdaptation is empty
+    
 	wxString strOldAdaptation;
 	strOldAdaptation.Empty();
 	gOldConcatStr.Empty();
@@ -8617,6 +8620,33 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+    // BEW 11Oct10, added for docVersion5 support: check for a USFM fixedspace symbol (!$)
+	// in the selection, and abort the merge operation if there is one (while this is
+	// strictly speaking not a docVersion5 issue, doc version 5 parses input data
+	// containing !$ better - and if there is punctuation before or after then that
+	// punctuation is made medial to the word pair, and because we can't distinguish that
+	// punctuation from other just-made-medial punctuation due to the merge, it is best to
+	// forbid the merger in the first place)
+	if (IsFixedSpaceSymbolInSelection(pList))
+	{
+		wxMessageBox(_(
+"Merging is not permitted when the selection contains the USFM fixed space two-character symbol !$.\nTry a retranslation instead."),
+		_T(""), wxICON_EXCLAMATION);
+		pList->Clear();
+		delete pList;
+		pList = (SPList*)NULL;
+		RemoveSelection();
+		if (pApp->m_pTargetBox->GetHandle() != NULL)
+		{
+			pApp->m_pTargetBox->SetFocus();
+			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); 
+		}
+		gbMergeSucceeded = FALSE;
+		Invalidate();
+		GetLayout()->PlaceBox();
+		return;
+	}
+
     // check for a null source phrase in the selection, and abort the merge operation if
     // there is one
 	if (IsNullSrcPhraseInSelection(pList))
@@ -8837,26 +8867,27 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 							pFirstSrcPhrase->m_nSrcWords == 0); // no phrases allowed
 	wxASSERT(nodeSPTemp != NULL); 
 
+	// BEW removed strAdapt 13Nov10
 	// we will try accumulating a default "adaptation" string, if strOldAdaptation is empty,
 	// otherwise use the latter
-	wxString strAdapt;
-	strAdapt.Empty();
-	if (strOldAdaptation.IsEmpty())
-	{
-		if (pFirstSrcPhrase->m_targetStr.IsEmpty())
-		{
-			pApp->m_pTargetBox->m_bAbandonable = TRUE;
-			if (pApp->m_bCopySource)
-				strAdapt = CopySourceKey(pFirstSrcPhrase, pApp->m_bUseConsistentChanges);
-			else
-				; // leave it empty
-		}
-		else
-		{
-			strAdapt = pFirstSrcPhrase->m_targetStr;
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
-		}
-	}
+	//wxString strAdapt;
+	//strAdapt.Empty();
+	//if (strOldAdaptation.IsEmpty())
+	//{
+	//	if (pFirstSrcPhrase->m_targetStr.IsEmpty())
+	//	{
+	//		pApp->m_pTargetBox->m_bAbandonable = TRUE;
+	//		if (pApp->m_bCopySource)
+	//			strAdapt = CopySourceKey(pFirstSrcPhrase, pApp->m_bUseConsistentChanges);
+	//		else
+	//			; // leave it empty
+	//	}
+	//	else
+	//	{
+	//		strAdapt = pFirstSrcPhrase->m_targetStr;
+	//		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+	//	}
+	//}
 
 	// ensure a correct active sequ num when done
 	pApp->m_nActiveSequNum = nSaveSequNum;
@@ -8893,26 +8924,28 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// compose a default adaptation string, as best we can
 		if (strOldAdaptation.IsEmpty())
 		{
-			if (pSrcPhrase->m_adaption.IsEmpty())
-			{
+			// BEW 13Nov10 removed strAdapt support
+			//if (pSrcPhrase->m_adaption.IsEmpty())
+			//{
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
-				if (pApp->m_bCopySource)
-				{
+				
+				//if (pApp->m_bCopySource)
+				//{
 					// don't add these ones which are additional to the first if 
 					// the flag wants suppression
-					if (!bSuppressCopyingExtraSourceWords)
-						strAdapt += _T(" ") + CopySourceKey(pSrcPhrase, 
-													pApp->m_bUseConsistentChanges);
-				}
-				else
-					; // leave it empty
-			}
-			else
-			{
-				strAdapt += _T(" ") + pSrcPhrase->m_adaption;
-				pApp->m_pTargetBox->m_bAbandonable = FALSE;
-				bNoninitialSelectionsHaveTranslation = TRUE;
-			}
+				//	if (!bSuppressCopyingExtraSourceWords)
+				//		strAdapt += _T(" ") + CopySourceKey(pSrcPhrase, 
+				//									pApp->m_bUseConsistentChanges);
+				//}
+				//else
+				//	; // leave it empty
+			//}
+			//else
+			//{
+			//	strAdapt += _T(" ") + pSrcPhrase->m_adaption;
+			//	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			//	bNoninitialSelectionsHaveTranslation = TRUE;
+			//}
 		}
 	} // end of for loop which merges all the non-first to the first in the selection
 
@@ -9022,7 +9055,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (!bSuppressDefaultAdaptation)
 		{
 			if (strOldAdaptation.IsEmpty())
-				pApp->m_targetPhrase = strAdapt;
+				// BEW 13Nov10 removed strAdapt support
+				;//pApp->m_targetPhrase = strAdapt;
 			else
 				pApp->m_targetPhrase = strOldAdaptation;
 		}
@@ -9102,8 +9136,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // interpret the single keypress as an attempt to replace the earlier stuff. We get
     // what we want by setting gbRetainBoxContents since OnChar( ) will test the value on
     // return from MergeWords( ). Two local flags are needed to get this to happen at just
-	// the right times. (TODO. Review if these flags work here as they used to, and if
-	// they need to be retained in the refactored version. Currently, we just assume so.)
+	// the right times.
 	int newLen = pApp->m_targetPhrase.Length();
 	if (newLen > 1 && !bNoninitialSelectionsHaveTranslation)
 		gbRetainBoxContents = TRUE;
@@ -10973,13 +11006,17 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Removes punctuation from the beginning and end of the passed in string, doing it in a
 /// way consistent with the (U)SFM parser; does not try to store the stripped off
-/// punctuation but just returns the punctuation-less string to the call via the pointer
+/// punctuation but just returns the punctuation-less string to the caller via the pointer
 /// passed in
 /// New version coded on 02April05 by BEW
 /// BEW 12Apr10, no changes needed for support of doc version 5
+/// BEW 11Oct10, changed to use the new version of ParseWord() and added support for
+/// stripping from a conjoined pair using !$ fixedspace symbol
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
+	bool bHasFixedSpaceSymbol = IsFixedSpaceSymbolWithin(*pStr);
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pStr->IsEmpty())
 		return;
@@ -10990,50 +11027,81 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	int countRemoved;
 	countRemoved = spacelessPunctsStr.Replace(_T(" "),_T(""));
 
-	// test for no punctuation, if so, then we can return immediately
-	if (FindOneOf(*pStr, spacelessPunctsStr) == -1) 
+	// first handle test of no punctuation where we have conjoined words using !$ fixed
+	// space
+	wxString str = *pStr; // get a convenient local copy
+	int offset = wxNOT_FOUND;
+	wxString word1;
+	wxString word2;
+	offset = str.Find(_T("!$"));
+	if (bHasFixedSpaceSymbol)
 	{
-		// there are no punctuation chars in the string (but there may be spaces),
-		// so the caller can use the string immediately
-		return;
+		// it's a conjoined word pair - so separate into two parts and test each
+		// separately
+		word1 = str.Left(offset);
+		word2 = str.Mid(offset + 2); // exclude "!$" - it's punctuation chars
+		if ((FindOneOf(word1, spacelessPunctsStr) == wxNOT_FOUND) && 
+			(FindOneOf(word2, spacelessPunctsStr) == wxNOT_FOUND))
+		{
+			// there are no punctuation chars in the substrings
+			return;
+		}
+	}
+	else
+	{
+		// not conjoined; test for no punctuation, if so, then we can return immediately
+		word1 = *pStr;
+		word2.Empty();
+		if (FindOneOf(word1, spacelessPunctsStr) == wxNOT_FOUND) 
+		{
+			// there are no punctuation chars in the string (but there may be spaces),
+			// so the caller can use the string immediately
+			return;
+		}
 	}
 
-    // wx version note: Since we require a read-only buffer we use GetData which just
-    // returns a const wxChar* to the data in the string.
-	const wxChar* pChar = (*pStr).GetData();
-	wxChar* ptr = (wxChar*)pChar;
-	wxChar* pBufStart = ptr;
-	wxChar* pEnd = pBufStart + (*pStr).Length(); // points to null
-	wxASSERT(*pEnd == _T('\0')); // whm added
-	wxString strFinal = _T("");  // store accumulated punctuation-less word or phrase
-	wxString precStr = _T("");   // preceding punctuation stripped in the parse
-	wxString follStr = _T("");   // ditto, but for following punctuation
+	wxString strFinal; // accumulate here for returning final result to the caller
+	wxString strFinal2; // for use when !$ is in the passed in string, for stripping 
+						// from word2
+	strFinal2.Empty();
+	bool bIsInlineNonbindingMkr = FALSE;
+	bool bIsInlineBindingMkr = FALSE;
+	const wxChar* pBuffStart = word1.GetData();
+	wxChar* ptr = (wxChar*)pBuffStart;
+	wxChar* pEnd = ptr + word1.Len(); // points to null
+	wxASSERT(*pEnd == _T('\0'));
 	int itemLen = 0;
+	CSourcePhrase* pSrcPhrase = NULL; // temporarily needed to store our data on
+	wxString theWord;
 
+	// the following are for word2 when bHasFixedSpaceSymbol is TRUE
+	const wxChar* pBuffStart2 = word2.GetData();
+	wxChar* ptr2 = (wxChar*)pBuffStart2;
+	wxChar* pEnd2 = ptr2 + word2.Len(); // points to null
+	wxASSERT(*pEnd2 == _T('\0'));
+	CSourcePhrase* pSrcPhrase2 = NULL;
+	wxString theWord2;
+    // do word1 -- it could be a sequence of words with or without punctuation, or the
+    // first word of a conjoined !$ word pair with or without punctuation, or just a single
+    // word with or without some punctuation
 	while (ptr < pEnd)
 	{
-		itemLen = pDoc->ParseWord(ptr, precStr,follStr,spacelessPunctsStr);
+        // we are dealing with target text, but ParseWord() will treat it as source
+        // text; we just have to make the appropriate adjustments after the parse
+		pSrcPhrase = new CSourcePhrase;
 
-		wxString strPunctuatedWord(ptr,itemLen);
-
-		// get the length of the preceding punctuation substring
-		int aLength = precStr.Length();
-		// get the remainder after preceding punctuation is skipped
-		wxString spanned = strPunctuatedWord.Mid(aLength); 
-		ptr += aLength; // point to start of the word proper
-		// reduce itemLen by the size of the preceding punctuation substring
-		itemLen -= aLength; 
-
-		// get the length of the following punctuation substring
-		aLength = follStr.Length();
-		int wordLen = itemLen - aLength;
-		wxASSERT(wordLen >= 0);
-		wxString theWord(ptr,wordLen);
+		// in the next call, because there are no inline markers to worry about,
+		// m_follOuterPunct will always be empty, and any following puncts will only
+		// be in m_follPunct
+		itemLen = pDoc->ParseWord(ptr, pEnd, pSrcPhrase, spacelessPunctsStr,
+					pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
+					bIsInlineNonbindingMkr, bIsInlineBindingMkr);
+		theWord = pSrcPhrase->m_key; 
 
 		// update ptr to point at next part of string to be parsed
 		ptr += itemLen; 
 
-		while (*ptr == _T(' ')) { ptr++; }
+		while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
 
 		if (strFinal.IsEmpty())
 		{
@@ -11043,12 +11111,51 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		{
 			strFinal += _T(" ") + theWord;
 		}
-
-		precStr.Empty();
-		follStr.Empty();
-	}
+		delete pSrcPhrase;
+	} // end of while loop: while (ptr < pEnd)
 
 	*pStr = strFinal; // copy result to caller
+
+	// if there is a conjoined pair, deal with word2 in the loop below and append to *pStr
+	// before the latter is returned to the caller
+	if (bHasFixedSpaceSymbol)
+	{
+		itemLen = 0;
+		while (ptr2 < pEnd2)
+		{
+			// we are dealing with target text, but ParseWord() will treat it as source
+			// text; we just have to make the appropriate adjustments after the parse
+			pSrcPhrase2 = new CSourcePhrase;
+
+			// in the next call, because there are no inline markers to worry about,
+			// m_follOuterPunct will always be empty, and any following puncts will only
+			// be in m_follPunct
+			itemLen = pDoc->ParseWord(ptr2, pEnd2, pSrcPhrase2, spacelessPunctsStr,
+						pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
+						bIsInlineNonbindingMkr, bIsInlineBindingMkr);
+			theWord2 = pSrcPhrase2->m_key; 
+
+			// update ptr to point at next part of string to be parsed
+			ptr2 += itemLen; 
+
+			while (*ptr2 == _T(' ')) { ptr2++; } // skip initial whitespace
+
+			if (strFinal2.IsEmpty())
+			{
+				strFinal2 = theWord2;
+			}
+			else
+			{
+				strFinal2 += _T(" ") + theWord2;
+			}
+			delete pSrcPhrase2;
+		} // end of while loop: while (ptr2 < pEnd2)
+		if (!strFinal2.IsEmpty())
+		{
+			*pStr += _T("!$");
+			*pStr += strFinal2;
+		}
+	}	
 }
 
 // the copy could be from several places, so these are prioritized. First, if the compose
@@ -11981,7 +12088,8 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		temp = pApp->m_targetPhrase;
-		if (!gbIsGlossing || gbRemovePunctuationFromGlosses)
+		// BEW 13Nov10, the flag below is never set TRUE so remove the code which uses it
+		if (!gbIsGlossing) // || gbRemovePunctuationFromGlosses)
 		{
 			RemovePunctuation(GetDocument(),&temp,from_target_text);
 		}
@@ -12202,145 +12310,6 @@ void CAdapt_ItView::DoStartupWizardOnLaunch()
 	OnFileStartupWizard(dummyevent);
 }
 
-// Modified for support of glossing KB as well as adapting KB. The caller must send the
-// correct KB pointer in the first parameter.
-// whm modified 27Apr09 to report errors of punctuation existing in documents discovered 
-// during KB Restore
-// BEW 18Jun10, no changes needed for support of kbVersion 2
-void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	wxASSERT(pApp != NULL);
-	pApp->m_bForceAsk = FALSE;
-	bool bOK;
-	if (gbIsGlossing)
-	{
-		if (!pSrcPhrase->m_bHasGlossingKBEntry)
-		{
-			return; // nothing to be done
-		}
-		pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // has to be false on input to StoreText()
-		bOK = pKB->StoreText(pSrcPhrase,pSrcPhrase->m_gloss,TRUE); // TRUE = support storing empty gloss
-		if (!bOK)
-		{
-			// I don't expect any error here, but just in case ...
-			wxBell();
-			wxASSERT(FALSE);
-		}
-	}
-	else // adapting
-	{
-		if (!pSrcPhrase->m_bRetranslation)
-		{
-				if (pSrcPhrase->m_bNotInKB)
-				{
-                    // BEW changed 2Sep09, as there may have been some adaptations
-                    // "restored" before coming to this location where m_bNotInKB is set
-                    // true, we must ensure any normal adaptations for the relevant
-                    // CTargetUnit are removed, and <Not In KB>
-                    // put in their place - the easy way to do this is to call DoNotInKB()
-                    // with its last parameter set TRUE (that function is elsewhere called
-                    // in the handler for the Save to KB checkbox, namely,
-                    // OnCheckKBSave()); and once this <Not In KB> entry is set up, any
-                    // later identical source text encountered in the span will, when
-                    // StoreText() tries to add it to the KB, will reject it because of the
-                    // <Not In KB> entry already in the KB
-					pKB->DoNotInKB(pSrcPhrase, TRUE);
-					return;
-				}
-			if (!pSrcPhrase->m_bHasKBEntry)
-			{
-				return; // nothing to be done
-			}
-            // BEW added 24Apr09, for a while a bug allowed m_key to have following
-            // punctuation treated as part of the word, allowing punctuation to get into
-            // the adaptation KB's source text, and a different bug allowed punctuation to
-            // get into the KB in some m_adaption members where punctuation was not
-            // stripped out beforehand. This next code block is a "heal it" block which
-            // detects when punctuation has wrongly got into m_key or m_adaption members,
-            // removes it, and presents puncutation-less strings for storage instead; it
-            // also has two tracking booleans, each of which is TRUE whenever the
-            // associated string has been found to have had punctuation removed herein
-			bool bKeyHasPunct = FALSE;
-			bool bAdaptionHasPunct = FALSE;
-			wxString strCurKey = pSrcPhrase->m_key;
-			wxString strCurAdaption = pSrcPhrase->m_adaption;
-			wxString strKey(strCurKey);
-			wxString strAdaption(strCurAdaption);
-			if (!pSrcPhrase->m_bNullSourcePhrase)
-			{
-				// Don't remove "..." (in source phrase only) which represents a 
-				// null source phrase (placeholder)
-				RemovePunctuation(pDoc,&strKey,from_source_text);
-			}
-			if (!pSrcPhrase->m_bNotInKB)
-			{
-				// Don't remove "<Not In KB>" (in target text only)
-				RemovePunctuation(pDoc,&strAdaption,from_target_text);
-			}
-			if (strKey != strCurKey)
-				bKeyHasPunct = TRUE;
-			if (strAdaption != strCurAdaption)
-				bAdaptionHasPunct = TRUE;
-            // Construct an errorStr for a log file, to report where fixes were made. This
-            // errorStr is passed back to the caller DoKBRestore() where log file is
-            // written out to disk.
-			if (bKeyHasPunct || bAdaptionHasPunct)
-			{
-                // initialize the log file's entry here whm note: For each given document
-                // used in the KB Restore where a correction was made, the following string
-                // is added (in the caller) to introduce the change in the log file:
-				//errorStr = _T("During the KB Restore, a correction involving punctuation was made to the KB and the following document:\n   %s\n   Punctuation was removed (see below) which had been wrongly stored by a previous version of Adapt It.");
-				if (bKeyHasPunct)
-				{
-					// compose a substring for log file
-					errorStr += _T("\n      ");
-					errorStr += _T("\"");
-					errorStr += strCurKey;
-					errorStr += _T("\"");
-					errorStr += _T(" was changed to ");
-					errorStr += _T("\"");
-					errorStr += strKey;
-					errorStr += _T("\"");
-				}
-				if (bAdaptionHasPunct)
-				{
-					// extend or begin a substring for log file
-					errorStr += _T("\n      ");
-					errorStr += _T("\"");
-					errorStr += strCurAdaption;
-					errorStr += _T("\"");
-					errorStr += _T(" was changed to ");
-					errorStr += _T("\"");
-					errorStr += strAdaption;
-					errorStr += _T("\"");
-				}
-				// finalize the entry here, and add it to the log file
-				;
-			}
-			// ensure a punctuation-less m_key in the CSourcePhrase instance
-			pSrcPhrase->m_key = strKey;
-			// ensure a punctuation-less m_adaption in the CSourcePhrase instance
-			pSrcPhrase->m_adaption = strAdaption;
-
-			// legacy code follows
-			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-			gbInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement 
-										  // dialogs from showing
-			bool bOK = pKB->StoreText(pSrcPhrase,pSrcPhrase->m_adaption,
-									TRUE); // TRUE = support storing empty adaptation
-			gbInhibitMakeTargetStringCall = FALSE;
-			if (!bOK)
-			{
-				// I don't expect any error here, but just in case ...
-				::wxBell();
-				wxASSERT(FALSE);
-			}
-		}
-	}
-}
-
 void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -12460,32 +12429,35 @@ void CAdapt_ItView::CloseProject()
 // support this new functionality. The flag is automatically reset TRUE once the phrase box
 // moves to a different location by any method.
 // BEW 12Apr10, no changes needed for support of doc version 5
+// BEW 11Oct10, added more members for doc version 5, so changes needed for supporting
+// m_follOuterPunct and USFM fixedspace symbol !$ (which we now handle as a merger of two
+// words) in order to cope with all punctuation possibilities on a !$ bound pair
 void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 	pApp->m_nPlacePunctDlgCallNumber++;
 	int theSequNum = pSrcPhrase->m_nSequNumber;
-    // BEW added 1Jul09, don't do the code in this function if the function has been called
-    // once before at this current active location
+
+    // BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about
+    // to leave a hole which may or may not have had punctuation there; the former
+    // m_targetStr is preserved in gStrSavedTargetStringWithPunctInReviewingMode, and the
+    // test for needing to do this restoration is that the global flag
+    // gbSavedTargetStringWithPunctInReviewingMode is TRUE, and we must clear the flag
+    // before returning
+    // Don't do the next block if the function was called before at same location
 	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
 		  pApp->m_nPlacePunctDlgCallNumber > 1) )
 	{
-
-        // BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is
-        // about to leave a hole which may or may not have had punctuation there; the
-        // former m_targetStr is preserved in the global gStrSavedTargetStringWithPunctInReviewingMode,
-        // and the test for needing to do this restoration is that the global flag
-        // gbSavedTargetStringWithPunctInReviewingMode is TRUE, and we must clear the flag before
-        // returning
 		if (gbSavedTargetStringWithPunctInReviewingMode)
 		{
-            // the flag will only be true when the location was a hole when the box landed
-            // there, so we can rely on m_targetPhrase being empty provided the user has
-            // not decided to edit the document by typing something. So we check for a
-            // still empty m_targetPhrase, and if so we restore m_targetStr to what it was
-            // before and return; but if the use has typed something then we abandon what
-            // we saved and we do a normal pass through the rest of this function
+			// the flag will only be true when the location was a hole when the box
+			// landed there, so we can rely on m_targetPhrase being empty provided the
+			// user has not decided to edit the document by typing something. So we
+			// check for a still empty m_targetPhrase, and if so we restore m_targetStr
+			// to what it was before and return; but if the user has typed something
+			// then we abandon what we saved and we do a normal pass through the rest
+			// of this function
 			if (pApp->m_targetPhrase.IsEmpty())
 			{
 				// it is still empty, so do the restoration etc.
@@ -12499,226 +12471,578 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			gStrSavedTargetStringWithPunctInReviewingMode.Empty();
 			gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 		}
+	}
 
-		wxString str = targetStr; // make a copy
-		wxArrayString remainderList;
-		wxString strCorresp;	// where we build target punctuation strings (from the 
-			// punctuation correspondences pairs) before inserting them into m_targetStr
-		strCorresp.Empty();
-
-        // for auto-capitalization we will attempt to do any needed change to upper case,
-        // no matter what the punctuation behaviour is. If a lookup was done earlier, and a
-        // store not yet done, then the value of the gbMatchedKB_UCentry flag will also be
-        // valid here (if it is TRUE then we don't want a change to upper case done because
-        // the lookup was done with upper case source data - so we take the adaptation or
-        // gloss 'as is')
-
-		// first find out what the key's case status is
-		bool bNoError = TRUE;
-		bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case 
-									  // done if possible
-		if (gbAutoCaps)
+    // BEW added 1Jul09, don't do the code in this function if the function has been called
+    // once before at this current active location
+	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
+		  pApp->m_nPlacePunctDlgCallNumber > 1) )
+	{
+        // BEW 11Oct10, have to handle !$ -- need a separate block for this as it is more
+        // complex, and also need to take m_follOuterPunct into consideration in both
+        // blocks
+		if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 		{
-			bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
-			if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+			// the legacy situation, no !$ fixedspace conjoining...
+
+			wxString str = targetStr; // make a copy
+			wxArrayString remainderList;
+			wxString strCorresp;	// where we build target punctuation strings (from the 
+				// punctuation correspondences pairs) before inserting them into m_targetStr
+			strCorresp.Empty();
+
+            // for auto-capitalization we will attempt to do any needed change to upper
+            // case, no matter what the punctuation behaviour is. If a lookup was done
+            // earlier, and a store not yet done, then the value of the gbMatchedKB_UCentry
+            // flag will also be valid here (if it is TRUE then we don't want a change to
+            // upper case done because the lookup was done with upper case source data - so
+            // we take the adaptation or gloss 'as is')
+
+			// first find out what the key's case status is
+			bool bNoError = TRUE;
+			bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case 
+										  // done if possible
+			if (gbAutoCaps)
 			{
-				bWantChangeToUC = TRUE;
-			}
-		}
-
-        // if it is <Not In KB> then suppress punctuation insertion - there is nothing
-        // supposed to be "there" anyway -- from version 1.4.0 and onwards, by Susanna
-        // Imrie's suggestion, we will allow a non-null adaptation for a <not in kb> entry;
-        // we just won't store it in the kb -- so just go on...
-
-		// we don't worry about internal punctuation in the target if the target is empty
-		// in fact, we don't want any punctuation if the target is empty
-		bool bEmptyTarget = FALSE;
-		if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
-		{
-			// check for any medial punctuation, if there is any, see if it is all in
-			// the targetStr already; if not, ask user for whatever is missing (if he wants
-			// he can then place the extra stuff, or ignore it). We assume that the
-			// phrase is not so long that the same punctuation will occur medially twice, if
-			// it does, our algorithm will not ensure each instance is there; so to be sure, the
-			// user should type what he wants in the Phrase Box in the first place.
-			if (pSrcPhrase->m_bHasInternalPunct)
-			{
-				wxString punct;
-				bool bFoundAll = TRUE;
-				wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might
-																  // contain a phrase or a word
-				int count = pList->GetCount();
-
-				for ( int n = 0; n < count; n++ )
+				bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
+				if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 				{
-					punct = pList->Item(n); // can be several punct characters in the
-												 // stored string
-					wxASSERT(!punct.IsEmpty());
-					strCorresp = GetConvertedPunct(punct); // uses PUNCTPAIRS and TWOPUNCTPAIRS
-														   // for converting
-
-					// the new syntax no longer checks if some are already typed, it just assumes
-					// none are
-					remainderList.Add(strCorresp);//remainderList.AddTail(strCorresp);
-					bFoundAll = FALSE;
-				}
-
-				if (!bFoundAll)
-				{
-                    // put them all in interactively using a dialog (formerly, the dialog
-                    // showed only the ones not typed)
-					gpRemainderList = &remainderList; // set the global so dialog can 
-													  // access it
-					CPlaceInternalPunct dlg(wxGetApp().GetMainFrame());
-					dlg.Centre();
-					dlg.m_pSrcPhrase = pSrcPhrase; // set the dialog's local member
-					dlg.ShowModal(); // display the dialog
-
-					// get the result, and fix the source phrase accordingly
-					str = dlg.m_tgtPhrase; // remember str could be a phrase, and so 
-										   //contain one or more spaces
-					// anything left in the list can be thrown away now
-					gpRemainderList->Clear();
-					gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
-											// destroyed when it goes out of scope
-					strCorresp.Empty();
+					bWantChangeToUC = TRUE;
 				}
 			}
-		}
-		else
-		{
-			bEmptyTarget = TRUE;
-		}
 
-        // BEW addition 23March05, to allow detached punctuation to be reconstructed in the
-        // target text I do it here and not for the internal punctuation case above because
-        // it would make no sense to do the block of code above when the target is empty
-		bool bWantPrevCopy;
-		//int len; // unused
-		int punctLen;
-		if (bEmptyTarget) bEmptyTarget = FALSE;
+			// if it is <Not In KB> then suppress punctuation insertion - there is nothing
+			// supposed to be "there" anyway -- from version 1.4.0 and onwards, by Susanna
+			// Imrie's suggestion, we will allow a non-null adaptation for a <not in kb> entry;
+			// we just won't store it in the kb -- so just go on...
 
-		// BEW added 20 April 2005 to support the use of the new No Punctuation Copy button
-		if (!pApp->m_bCopySourcePunctuation)
-			goto a; // don't restore the TRUE value for this flag at the end of this
-                // function because the function can be called more than once while the
-                // phrase box is unmoved. Do the flag restoration to TRUE in code which
-                // moves the phrase box elsewhere
-
-        // preceding punctuation can be handled silently. If the user typed different
-        // punctuation, then the user's must override the original punctuation. The target
-        // text string might be a phrase and hence contain spaces, but space is a delimiter
-        // in m_punctSet from version 1.3.6 onwards, so we must be careful in the next code
-        // blocks - SpanIncluding() can still be used safely, because there will be
-        // nonpunctuation and nonspace characters prior to any spaces in the phrase; and
-        // similarly when reversed
-		bWantPrevCopy = FALSE;
-		punctLen = 0; // for auto caps support
-		if (!bEmptyTarget)
-		{
-			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			// we don't worry about internal punctuation in the target if the target is empty
+			// in fact, we don't want any punctuation if the target is empty
+			bool bEmptyTarget = FALSE;
+			if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
 			{
-				// span using target lang's punctuation - wxWidgets version 
-				// SpanIncluding() in helpers.h
-				wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
-				if (strInitialPunct.IsEmpty())
+                // check for any medial punctuation, if there is any, see if it is all in
+                // the targetStr already; if not, ask user for whatever is missing (if he
+                // wants he can then place the extra stuff, or ignore it).
+				if (pSrcPhrase->m_bHasInternalPunct)
 				{
-                    // there was no initial punctuation typed, so silently copy original's
-                    // to the target later on (not here, in case it mucks up the check for
-                    // following punct)
-					bWantPrevCopy = TRUE;
-				}
-				else
-				{
-                    // let the punctuation typed by the user stand unchanged, but for auto
-                    // caps ON get the case change done if it is required
-					punctLen = strInitialPunct.Length();
-				}
+					wxString punct;
+					bool bFoundAll = TRUE;
+					wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might
+																	  // contain a phrase or a word
+					int count = pList->GetCount();
 
-				if (bWantChangeToUC)
-				{
-					// check first that the change to upper case is possible
-					wxString noInitialPunctStr = str.Mid(punctLen);
-					bNoError = pApp->GetDocument()->SetCaseParameters(noInitialPunctStr,FALSE);
-					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					for ( int n = 0; n < count; n++ )
 					{
-						// do the change to upper case
-						str.SetChar(punctLen,gcharNonSrcUC);
+						punct = pList->Item(n); // can be several punct characters in the
+													 // stored string
+						wxASSERT(!punct.IsEmpty());
+						strCorresp = GetConvertedPunct(punct); // uses PUNCTPAIRS and TWOPUNCTPAIRS
+															   // for converting
+
+                        // the new syntax no longer checks if some are already typed, it
+                        // just assumes none are
+						remainderList.Add(strCorresp);
+						bFoundAll = FALSE;
+					}
+
+					if (!bFoundAll)
+					{
+						// put them all in interactively using a dialog (formerly, the dialog
+						// showed only the ones not typed)
+						gpRemainderList = &remainderList; // set the global so dialog can 
+														  // access it
+						CPlaceInternalPunct dlg(wxGetApp().GetMainFrame());
+						dlg.Centre();
+						dlg.m_pSrcPhrase = pSrcPhrase; // set the dialog's local member
+						dlg.ShowModal(); // display the dialog
+
+						// get the result, and fix the source phrase accordingly
+						str = dlg.m_tgtPhrase; // remember str could be a phrase, and so 
+											   //contain one or more spaces
+						// anything left in the list can be thrown away now
+						gpRemainderList->Clear();
+						gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
+												// destroyed when it goes out of scope
+						strCorresp.Empty();
 					}
 				}
 			}
-            // if the word or phrase in the source had no preceding punctuation, then
-            // MakeTargetStringIncludingPunctuation will do nothing, so that if the user elects to explicitly
-            // type some preceding punctuation, it will be accepted unconditionally
-
-			// ditto, for following punctuation
-			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			else
 			{
-				wxString reverse = str;
-				reverse = MakeReverse(reverse); // my version of MakeReverse() in helpers.h
+				bEmptyTarget = TRUE;
+			}
 
-				wxString strFollPunct = SpanIncluding(reverse,pApp->m_punctuation[1]);
-				if (strFollPunct.IsEmpty())
+            // BEW addition 23March05, to allow detached punctuation to be reconstructed in
+            // the target text I do it here and not for the internal punctuation case above
+            // because it would make no sense to do the block of code above when the target
+            // is empty
+			bool bWantPrevCopy;
+			int punctLen;
+			if (bEmptyTarget) bEmptyTarget = FALSE;
+
+            // BEW added 20 April 2005 to support the use of the new No Punctuation Copy
+            // button. Don't restore the TRUE value for this flag at the end of this
+            // function because the function can be called more than once while the phrase
+            // box is unmoved. Do the flag restoration to TRUE in code which moves the
+            // phrase box elsewhere
+			if (!pApp->m_bCopySourcePunctuation)
+			{
+				pSrcPhrase->m_targetStr = str;
+			}
+			else
+			{
+                // preceding punctuation can be handled silently. If the user typed
+                // different punctuation, then the user's must override the original
+                // punctuation. The target text string might be a phrase and hence contain
+                // spaces, but space is a delimiter in m_punctSet from version 1.3.6
+                // onwards, so we must be careful in the next code blocks - SpanIncluding()
+                // can still be used safely, because there will be nonpunctuation and
+                // nonspace characters prior to any spaces in the phrase; and similarly
+                // when reversed
+				bWantPrevCopy = FALSE;
+				punctLen = 0; // for auto caps support
+				if (!bEmptyTarget)
 				{
-					// there was no final punctuation typed, so silently copy original's 
-					// to the target
-					wxString tgtFollPunct;
-					tgtFollPunct.Empty();
-					tgtFollPunct = GetConvertedPunct(pSrcPhrase->m_follPunct);
-
-                    // references in the text like 10:27 give this algorithm problems; the
-                    // first time the phrasebox is accessed, :27 gets appended to 10,
-                    // resulting in 10:27 as the target text - correctly; but if the user
-                    // backtracks to that CSourcePhrase instance later on (by any means),
-                    // then MakeTargetStringIncludingPunctuation will be called at least two more times, and
-                    // the next time round the passed in text would be 10:27 to which a
-                    // further :27 gets added, producing 10:27:27 and then the caller would
-                    // call RemovePunctuation( ) which is coded in such a way that this
-                    // "word" would result in 1027 being saved to the KB and the final :27
-                    // retained as following punctuation, and that gets added producing
-                    // 1027:27 - and so it goes on, next we'd get 102727:27, and so on ad
-                    // infinitum. To break this sequence of errors, we need to do a test
-                    // for "following punctuation" strings which have already been added to
-                    // the word, such as "10". So we use the reversed string and also
-                    // reverse tgtFollPunct and check if the latter is the initial string
-                    // already - if so, we assume nothing more needs to be done.
-					wxString reverseFollPunct = tgtFollPunct;
-					reverseFollPunct = MakeReverse(reverseFollPunct);
-					int nFind = reverse.Find(reverseFollPunct);
-					if (nFind == 0)
+					if (!pSrcPhrase->m_precPunct.IsEmpty())
 					{
-                        // we have a situation where it looks like the 'following
-                        // punctuation' has already been added so we'll do nothing
-						;
+						// span using target lang's punctuation - wxWidgets version 
+						// SpanIncluding() in helpers.h
+						wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
+						if (strInitialPunct.IsEmpty())
+						{
+							// there was no initial punctuation typed, so silently copy
+							// original's to the target later on (not here, in case it mucks up
+							// the check for following punct)
+							bWantPrevCopy = TRUE;
+						}
+						else
+						{
+							// let the punctuation typed by the user stand unchanged, but for
+							// auto caps ON get the case change done if it is required
+							punctLen = strInitialPunct.Length();
+						}
+
+						if (bWantChangeToUC)
+						{
+							// check first that the change to upper case is possible
+							wxString noInitialPunctStr = str.Mid(punctLen);
+							bNoError = pApp->GetDocument()->SetCaseParameters(noInitialPunctStr,FALSE);
+							if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+							{
+								// do the change to upper case at the wxChar at [punctLen] index
+								str.SetChar(punctLen,gcharNonSrcUC);
+							}
+						}
+					}
+                    // if the word or phrase in the source had no preceding punctuation,
+                    // then MakeTargetStringIncludingPunctuation will do nothing, so that
+                    // if the user elects to explicitly type some preceding punctuation, it
+                    // will be accepted unconditionally
+
+					// ditto, for following punctuation
+					if (!pSrcPhrase->m_follPunct.IsEmpty())
+					{
+						wxString reverse = str;
+						reverse = MakeReverse(reverse); // see helpers.h
+
+						wxString strFollPunct = SpanIncluding(reverse,pApp->m_punctuation[1]);
+						if (strFollPunct.IsEmpty())
+						{
+							// there was no final punctuation typed, so silently copy
+							// original's to the target; and also copy any in m_follOuterPunct
+							wxString tgtFollPunct;
+							tgtFollPunct.Empty();
+							tgtFollPunct = GetConvertedPunct(pSrcPhrase->m_follPunct);
+							// BEW 11Oct10, added to support m_follOuterPunct
+							if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+							{
+								wxString tgtFollPunctOuter;
+								tgtFollPunctOuter.Empty();
+								tgtFollPunctOuter = 
+									GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
+								tgtFollPunct += tgtFollPunctOuter; // join it together
+							}
+							// references in the text like 10:27 give this algorithm problems;
+							// the first time the phrasebox is accessed, :27 gets appended to
+							// 10, resulting in 10:27 as the target text - correctly; but if
+							// the user backtracks to that CSourcePhrase instance later on (by
+							// any means), then MakeTargetStringIncludingPunctuation will be
+							// called at least two more times, and the next time round the
+							// passed in text would be 10:27 to which a further :27 gets added,
+							// producing 10:27:27 and then the caller would call
+							// RemovePunctuation( ) which is coded in such a way that this
+							// "word" would result in 1027 being saved to the KB and the final
+							// :27 retained as following punctuation, and that gets added
+							// producing 1027:27 - and so it goes on, next we'd get 102727:27,
+							// and so on ad infinitum. To break this sequence of errors, we
+							// need to do a test for "following punctuation" strings which have
+							// already been added to the word, such as "10". So we use the
+							// reversed string and also reverse tgtFollPunct and check if the
+							// latter is the initial string already - if so, we assume nothing
+							// more needs to be done.
+							wxString reverseFollPunct = tgtFollPunct;
+							reverseFollPunct = MakeReverse(reverseFollPunct);
+							int nFind = reverse.Find(reverseFollPunct);
+							if (nFind == 0)
+							{
+								// we have a situation where it looks like the 'following
+								// punctuation' has already been added so we'll do nothing
+								;
+							}
+							else
+							{
+								// looks like it has not been added yet, so do so
+								str += tgtFollPunct;
+							}
+						}
+						else
+						{
+							; // let the punctuation typed by the user stand unchanged
+						}
+					}
+					// if the word or phrase in the source had no following punctuation, then
+					// MakeTargetStringIncludingPunctuation will do nothing, so that if the
+					// user elects to explicitly type some following punctuation, it will be
+					// accepted unconditionally
+
+					// add the preceding punctuation, if any
+					if (bWantPrevCopy)
+					{
+						wxString tgtPrecPunct;
+						tgtPrecPunct.Empty();
+						tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
+						str = tgtPrecPunct + str;
+					}
+				}
+
+				// now add the final form of the target string to the source phrase
+				pSrcPhrase->m_targetStr = str;
+			} // end of else block for test: if (!pApp->m_bCopySourcePunctuation)
+		} // end of TRUE block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
+		else
+		{
+            // BEW 11Oct10, when control enters here, we have a m_srcPhrase like this:
+            // <puncts1>word1<puncts2>!$<puncts3>word2<puncts4> stored as a merger, where
+            // any or all of <punctsi> where i = 1,2,3, or 4 may be empty or contain
+            // punctuation; if <puncts2> is non-empty, it is stored in the first child
+            // pSrcPhrase in m_nSavedWords, in the former's m_follPunct member, ; if
+            // <puncts3> is non-empty, it is stored in the second child pSrcPhrase in
+            // m_nSavedWords, in the former's m_precPunct member.
+			// So, because we have to allow the user to type his own new punctuation to
+			// replace any of these four potential punctuation substrings, we've a lot of
+			// work to do to analyse what is there and what, if anything, the user has
+			// typed different punctuation for, and hence when to copy what is stored to
+			// m_targetStr and when to refrain and let the user's replacement puncts stand
+			// as is.
+
+			// Task 1: parse: to break down the input string into the two parts
+			int offset = wxNOT_FOUND;
+			wxString word1;
+			wxString word2;
+			offset = targetStr.Find(_T("!$"));
+			word1 = targetStr.Left(offset);
+			word2 = targetStr.Mid(offset + 2); // jump to what follows !$ & accept the rest 
+			// word1 and word2 may each have punctuation before or after or both
+
+			// Task2: further parse, break these down until we have the punctuation strings and
+			// the word strings separated
+			wxString word1PrecPunct;
+			wxString word1FollPunct;
+			wxString word2PrecPunct;
+			wxString word2FollPunct;
+			wxString word1Proper;
+			wxString word2Proper;
+			word1PrecPunct = SpanIncluding(word1, pApp->m_punctuation[1]);
+			word2PrecPunct = SpanIncluding(word2, pApp->m_punctuation[1]);
+			wxString reversedWord1 = MakeReverse(word1);
+			wxString reversedWord2 = MakeReverse(word2);
+			word1FollPunct = SpanIncluding(reversedWord1, pApp->m_punctuation[1]);
+			word2FollPunct = SpanIncluding(reversedWord2, pApp->m_punctuation[1]);
+			word1FollPunct = MakeReverse(word1FollPunct); // punct now in natural order
+			word2FollPunct = MakeReverse(word1FollPunct); // ditto
+			int preclen1 = word1PrecPunct.Len();
+			int preclen2 = word2PrecPunct.Len();
+			word1Proper = word1.Mid(preclen1); // may still have following puncts
+			word2Proper = word2.Mid(preclen2); // may still have following puncts
+			word1Proper = MakeReverse(word1Proper); // is reversed
+			word2Proper = MakeReverse(word2Proper); // is reversed
+			int folllen1 = word1FollPunct.Len();
+			int folllen2 = word2FollPunct.Len();
+			word1Proper = word1Proper.Mid(folllen1);
+			word2Proper = word2Proper.Mid(folllen2);
+			word1Proper = MakeReverse(word1Proper); // normal order
+			word2Proper = MakeReverse(word2Proper); // normal order
+			// We now have, for each word, the actual word, preceding and following
+			// punctuation for each, if either or both locations have punctuation, and the
+			// length of any punctuation string or zero if absent. The ParseWord() call in
+			// TokenizeText() has put any punctuation strings both in pSrcPhrase (the
+			// m_precPunct and m_follPunct members) and in the same members, as
+			// appropriate, for the two child pSrcPhrase instances in m_pSavedWords -- in
+			// fact, the ONLY place punctuation preceding !$ is stored is in the
+			// m_follPunct member of the first child pSrcPhrase, and the ONLY place
+			// punctuation following !$ is stored is in the m_precPunctMember of the
+			// second child pSrcPhrase. So we are in a position now to make comparisons
+			// between what we obtained above, and what was stored in the original
+			// document creation parse - hence we can determine when/if the user has typed
+			// different punctuation in the phrasebox, and if he has we just accept it as
+			// typed, if he didn't type any in one of the four possible locations, then we
+			// copy what was originally stored for that location, provided it is
+			// non-empty, and convert it to target language punctuation.
+			if (targetStr.IsEmpty() || offset == wxNOT_FOUND)
+			{
+				// if the phrase box is empty, don't make a "contents" of punctuation
+				// characters, leave it truly empty (& capable of having <no adaptation>
+				// nothing entry if the user does the toolbar button click)
+				word1Proper.Empty();
+				word2Proper.Empty();
+				SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
+				SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
+				CSourcePhrase* pSrcPhrWord1 = pos1->GetData();
+				CSourcePhrase* pSrcPhrWord2 = pos2->GetData();
+				wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
+				pSrcPhrWord1->m_adaption = word1Proper;
+				pSrcPhrWord1->m_targetStr = word1Proper;
+				pSrcPhrWord2->m_adaption = word2Proper;
+				pSrcPhrWord2->m_targetStr = word2Proper;
+				// and the parent should then be empty for m_adaption and m_targetStr
+				pSrcPhrase->m_adaption.Empty();
+				pSrcPhrase->m_targetStr.Empty();
+
+				pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
+				return;
+			}
+
+			// Task 3: do any automatic capitalization. We assume it is only ever going to
+			// be appropriate for the start of the first of the two words; capitals anywhere
+			// else in the conjoined word pair will have to be manually typed if wanted
+			
+			// first find out what the key's case status is
+			bool bNoError = TRUE;
+			bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case 
+										  // done if possible
+			if (gbAutoCaps)
+			{
+				// next call will work fine because !$ is not at the start of m_key
+				bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
+				if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+				{
+					bWantChangeToUC = TRUE;
+				}
+			}
+			if (bWantChangeToUC)
+			{
+				// check first that the change to upper case is possible
+				bNoError = pApp->GetDocument()->SetCaseParameters(word1Proper,FALSE);
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// do the change to upper case 
+					word1Proper.SetChar(0,gcharNonSrcUC);
+				}
+			}
+
+			// Task 4: do the punctuation conversions and any changes the user wants for
+			// the punctuation strings
+			SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
+			SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
+			CSourcePhrase* pSrcPhrWord1 = pos1->GetData();
+			CSourcePhrase* pSrcPhrWord2 = pos2->GetData();
+			wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
+
+			wxString storedPuncts; // a scratch variable
+			wxString parsedPuncts; // a scratch variable
+			wxString finalW1PrecPuncts;
+			wxString finalW1FollPuncts;
+			wxString finalW2PrecPuncts;
+			wxString finalW2FollPuncts;
+
+			// start with the preceding puncts of word1
+			storedPuncts = pSrcPhrWord1->m_precPunct;
+			parsedPuncts = word1PrecPunct;
+			if (!parsedPuncts.IsEmpty())
+			{
+				// the user has typed preceding punctuation for word1, so we use it if it
+				// is different than what is stored
+				if (storedPuncts.IsEmpty())
+				{
+					// there was no preceding punctuation on word1 before, so the user is
+					// adding some, so no comparison is needed, just copy it over & convert
+					parsedPuncts.Trim(FALSE); // trim off any initial whitespace
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					finalW1PrecPuncts = parsedPuncts;
+				}
+				else
+				{
+					// there are stored puncts available in pSrcPhrase & its 2 children
+					storedPuncts.Trim(FALSE);
+					parsedPuncts.Trim(FALSE);
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					storedPuncts = GetConvertedPunct(storedPuncts);
+					if (storedPuncts == parsedPuncts)
+					{
+						finalW1PrecPuncts = storedPuncts; // could assign either string
 					}
 					else
 					{
-						// looks like it has not been added yet, so do so
-						str += tgtFollPunct;
+						// parsed puncts differ from stored puncts
+						finalW1PrecPuncts = parsedPuncts; // use the just-parsed puncts
 					}
+				}
+			}
+			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
+			{
+				// user has not typed any preceding punctuation for word1, and there is
+				// stored preceding punctuation available, so providing copying of the
+				// source is permitted, we'll copy the stored preceding punctuation
+				storedPuncts.Trim(FALSE);
+				storedPuncts = GetConvertedPunct(storedPuncts);
+				finalW1PrecPuncts = storedPuncts;
+			}
+			// this completes handling of preceding punctuation on word1
+
+			// next, following punctuation on word1
+			storedPuncts = pSrcPhrWord1->m_follPunct;
+			parsedPuncts = word1FollPunct;
+			if (!parsedPuncts.IsEmpty())
+			{
+				// the user has typed following punctuation for word1, so we use it if it
+				// is different than what is stored
+				if (storedPuncts.IsEmpty())
+				{
+					// there was no following punctuation on word1 before, so the user is
+					// adding some, so no comparison is needed, just convert & copy it
+					parsedPuncts.Trim(TRUE); // trim off any final whitespace
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					finalW1FollPuncts = parsedPuncts;
 				}
 				else
 				{
-					; // do nothing, let the punctuation typed by the user stand unchanged
+					// there are stored puncts available in pSrcPhrase & its 2 children
+					storedPuncts.Trim(TRUE);
+					parsedPuncts.Trim(TRUE);
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					storedPuncts = GetConvertedPunct(storedPuncts);
+					if (storedPuncts == parsedPuncts)
+					{
+						finalW1FollPuncts = storedPuncts; // could assign either string
+					}
+					else
+					{
+						// parsed puncts differ from stored puncts
+						finalW1FollPuncts = parsedPuncts; // use the just-parsed puncts
+					}
 				}
 			}
-            // if the word or phrase in the source had no following punctuation, then
-            // MakeTargetStringIncludingPunctuation will do nothing, so that if the user elects to explicitly
-            // type some following punctuation, it will be accepted unconditionally
-
-			// add the preceding punctuation, if any
-			if (bWantPrevCopy)
+			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 			{
-				wxString tgtPrecPunct;
-				tgtPrecPunct.Empty();
-				tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
-				str = tgtPrecPunct + str;
+				// user has not typed any following punctuation for word1, and there is
+				// stored following punctuation available, so providing copying of the
+				// source is permitted, we'll copy the stored following punctuation
+				storedPuncts.Trim(TRUE);
+				storedPuncts = GetConvertedPunct(storedPuncts);
+				finalW1FollPuncts = storedPuncts;
 			}
-		}
+			// this completes handling of following punctuation on word1
 
-		// now add the final form of the target string to the source phrase
-a:		pSrcPhrase->m_targetStr = str;
+			// next, handle preceding punctuation on word2
+			storedPuncts = pSrcPhrWord2->m_precPunct;
+			parsedPuncts = word2PrecPunct;
+			if (!parsedPuncts.IsEmpty())
+			{
+				// the user has typed preceding punctuation for word2, so we use it if it
+				// is different than what is stored, and replace the stored puncts with it
+				if (storedPuncts.IsEmpty())
+				{
+					// there was no preceding punctuation on word2 before, so the user is
+					// adding some, so no comparison is needed, just convert & copy it
+					parsedPuncts.Trim(FALSE); // trim off any initial whitespace
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					finalW2PrecPuncts = parsedPuncts;
+				}
+				else
+				{
+					// there are stored puncts available in pSrcPhrase & its 2 children
+					storedPuncts.Trim(FALSE);
+					parsedPuncts.Trim(FALSE);
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					storedPuncts = GetConvertedPunct(storedPuncts);
+					if (storedPuncts == parsedPuncts)
+					{
+						finalW2PrecPuncts = storedPuncts; // could assign either string
+					}
+					else
+					{
+						// parsed puncts differ from stored puncts
+						finalW2PrecPuncts = parsedPuncts; // use the just-parsed puncts
+					}
+				}
+			}
+			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
+			{
+				// user has not typed any preceding punctuation for word2, and there is
+				// stored preceding punctuation available, so providing copying of the
+				// source is permitted, we'll copy the stored preceding punctuation
+				storedPuncts.Trim(FALSE);
+				storedPuncts = GetConvertedPunct(storedPuncts);
+				finalW2PrecPuncts = storedPuncts;
+			}
+			// this completes handling of preceding punctuation on word2
+
+			// finally, handle following punctuation on word2
+			storedPuncts = pSrcPhrWord2->m_follPunct;
+			parsedPuncts = word2FollPunct;
+			if (!parsedPuncts.IsEmpty())
+			{
+				// the user has typed following punctuation for word2, so we use it if it
+				// is different than what is stored
+				if (storedPuncts.IsEmpty())
+				{
+					// there was no following punctuation on word2 before, so the user is
+					// adding some, so no comparison is needed, just convert & copy it
+					parsedPuncts.Trim(TRUE); // trim off any final whitespace
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					finalW2FollPuncts = parsedPuncts;
+				}
+				else
+				{
+					// there are stored puncts available in pSrcPhrase & its 2 children
+					storedPuncts.Trim(TRUE);
+					parsedPuncts.Trim(TRUE);
+					parsedPuncts = GetConvertedPunct(parsedPuncts);
+					storedPuncts = GetConvertedPunct(storedPuncts);
+					if (storedPuncts == parsedPuncts)
+					{
+						finalW2FollPuncts = storedPuncts; // could assign either string
+					}
+					else
+					{
+						// parsed puncts differ from stored puncts
+						finalW2FollPuncts = parsedPuncts; // use the just-parsed puncts
+					}
+				}
+			}
+			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
+			{
+				// user has not typed any following punctuation for word2, and there is
+				// stored following punctuation available, so providing copying of the
+				// source is permitted, we'll copy the stored following punctuation
+				storedPuncts.Trim(TRUE);
+				storedPuncts = GetConvertedPunct(storedPuncts);
+				finalW2FollPuncts = storedPuncts;
+			}
+			// this completes handling of following punctuation on word2
+
+			// Final Task: build the punctuated final string, and assign it to
+			// pSrcPhrase's m_targetStr member
+			wxString str;
+			str += finalW1PrecPuncts + word1Proper + finalW1FollPuncts;
+			str += _T("!$");
+			str += finalW2PrecPuncts + word2Proper + finalW2FollPuncts;
+
+			// now add the final form of the target string to the source phrase
+			pSrcPhrase->m_targetStr = str;
+
+		} // end of else block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 	}
     // store the sequence number on the app class, so that if we reenter while at the same
     // sequence number, the test at the top of the function can detect this and if the
@@ -12729,125 +13053,6 @@ a:		pSrcPhrase->m_targetStr = str;
 	pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 }
 
-// return the target punctuation string corresponding to input rStr parameter which is a
-// source punctuation string this function should work fine without modification, for ANSI
-// or UNICODE (UTF-16) builds
-wxString CAdapt_ItView::GetConvertedPunct(const wxString& rStr)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	wxString s;
-	s.Empty();
-
-	if (rStr.IsEmpty())
-	{
-		return s;
-	}
-
-	wxChar ch;
-	wxChar doubleCh[2];
-	int len = rStr.Length();
-	int l;
-	bool bFoundDouble;
-	int k;
-	int i;
-	bool bFound;
-
-	for (int j = 0; j < len; j++)
-	{
-		// first try two-character source punctuation, if no match, 
-		// then try single-char matching
-		bool bMatchedTwo = FALSE;
-		k = j;
-		++k;
-		if (k >= len)
-			goto a; // no room for a 2-char match
-		doubleCh[0] = rStr.GetChar(j);
-		doubleCh[1] = rStr.GetChar(k);
-		bFoundDouble = FALSE;
-		for (l = 0; l < MAXTWOPUNCTPAIRS; l++)
-		{
-			wxChar srcChar[2];
-			srcChar[0] = pApp->m_twopunctPairs[l].twocharSrc[0];
-			if (srcChar[0] == _T('\0'))
-				goto a; // this is a null entry, so there is nothing to search for
-			srcChar[1] = pApp->m_twopunctPairs[l].twocharSrc[1];
-			if (srcChar[1] == _T('\0'))
-			{
-				if (srcChar[0] == doubleCh[0])
-				{
-					// we have matched, but the user only specified a single src punct
-					bMatchedTwo = TRUE;
-					break;
-				}
-			}
-			else
-			{
-				if (srcChar[0] == doubleCh[0] && srcChar[1] == doubleCh[1])
-				{
-					// we have matched a 2-char punct pair
-					bMatchedTwo = TRUE;
-					break;
-				}
-			}
-		}
-
-		if (bMatchedTwo)
-		{
-			wxChar chMatched[2];
-			chMatched[0] = pApp->m_twopunctPairs[l].twocharTgt[0];
-			if (chMatched[0] == _T('\0'))
-				goto b; // user must want this pair converted to nothing
-			chMatched[1] = pApp->m_twopunctPairs[l].twocharTgt[1];
-			if (chMatched[1] == _T('\0'))
-			{
-				// target punct pair is just a single char, so append it
-				s += chMatched[0];
-			}
-			else
-			{
-				// target punct pair is a pair, so append them both
-				s += chMatched[0];
-				s += chMatched[1];
-			}
-			goto b;
-		}
-
-		// try match a single char source punctuation
-a:		ch = rStr.GetChar(j);
-
-		bFound = FALSE;
-		for (i = 0; i < MAXPUNCTPAIRS; i++)
-		{
-			wxChar srcChar = pApp->m_punctPairs[i].charSrc;
-			if (srcChar == ch)
-			{
-				// matched source char, so get its corresponding target char
-				bFound = TRUE;
-				break;
-			}
-		}
-
-		if (!bFound)
-		{
-			// if not found, copy original character to the converted punct string
-			s += ch;
-		}
-		else
-		{
-			wxChar chMatched = pApp->m_punctPairs[i].charTgt;
-			if (chMatched != (wxChar)0)
-			{
-				s += chMatched;
-			}
-		}
-
-b:		if (bMatchedTwo)
-			j += 1;
-	}
-
-	return s; // if we get here, we got no match, which is an error
-}
 
 void CAdapt_ItView::DoFileSaveKB()
 {
@@ -25850,9 +26055,9 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
         // close as possible
 		if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
 		{
-			if (gbRemovePunctuationFromGlosses)
-				RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
-			// assume no errors
+			// BEW 13Nov10, gbRemovePunctuationFromGlosses is nowhere set TRUE, so remove
+			//if (gbRemovePunctuationFromGlosses)
+			//	RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
 			bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 		}
 
@@ -26113,7 +26318,9 @@ void CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event)
 // the m_pSavedWords list also; we also changed the protocols so that retranslations and
 // placeholders (whether in retranslations or not) are retained, but the adaptations are
 // made into glosses for these. Glossing mode can sustain placeholders entered into the
-// document earlier in a different mode, so this decision does not impinge on robustness   
+// document earlier in a different mode, so this decision does not impinge on robustness 
+// BEW 11Oct10, changed to support extra doc version 5 CSourcePhrase members, and handling
+// of USFM fixedspace marker !$ adequately 
 bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp, 
 			SPList::Node* curPos, SPList::Node* nextPos, CSourcePhrase* pSrcPhrase)
 {
@@ -26217,10 +26424,38 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp
 			// BEW 2July10, all of the legacy code here becomes redundant by the choice to
 			// retain placeholders - so we can comment it out, and just do the required
 			// data transformation, & a StoreText() call to have it go into the glossing KB
-			pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
-			pSrcPhrase->m_adaption.Empty();
-			pSrcPhrase->m_targetStr.Empty();
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+			// 
+			// BEW 11Oct10, we have to handle word1!$word2 conjoining - here is a suitable
+			// place. Such conjoinings are a pseudo merger, so we just transform
+			// m_adaptation into m_gloss for the parent (single) instance, pSrcPhrase, and
+			// similarly for the embedded pair, and do the store to the glossing KB
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
+				pSrcPhrase->m_adaption.Empty();
+				pSrcPhrase->m_targetStr.Empty();
+				pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+
+				SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
+				SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
+				CSourcePhrase* pWd1SP = pos1->GetData();
+				CSourcePhrase* pWd2SP = pos2->GetData();
+				pWd1SP->m_gloss = pWd1SP->m_adaption;
+				pWd1SP->m_adaption.Empty();
+				pWd1SP->m_targetStr.Empty();
+				pWd1SP->m_bHasGlossingKBEntry = FALSE;
+				pWd2SP->m_gloss = pWd1SP->m_adaption;
+				pWd2SP->m_adaption.Empty();
+				pWd2SP->m_targetStr.Empty();
+				pWd2SP->m_bHasGlossingKBEntry = FALSE;
+			}
+			else
+			{
+				pSrcPhrase->m_gloss = pSrcPhrase->m_adaption;
+				pSrcPhrase->m_adaption.Empty();
+				pSrcPhrase->m_targetStr.Empty();
+				pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+			}
             // bSupportNoAdaptationButton is default FALSE in the next call because we
             // assume nobody would, in adaptation mode, have a placeholder inserted only to
             // leave it's adaptation empty, so if it was left empty we assume it was a user

@@ -75,8 +75,6 @@ enum TextType {
 	note
 };
 
-
-
 /// The CSourcePhrase class represents what could be called a "TranslationUnit".
 /// When the input source text is parsed, each word gets stored on one instance
 /// of CSourcePhrase on the heap. Mergers of source text words cause their
@@ -115,7 +113,9 @@ public:
 	bool			m_bFootnote;	// TRUE for the first source phrase in a section of footnote text
 	bool			m_bChapter;		// TRUE if the source phrase is first one in a new chapter
 	bool			m_bVerse;		// TRUE if the source phrase is the first one in a new verse
-	bool			m_bParagraph;   // TRUE if the source phrase is the first one after a \p marker
+	// BEW 8Oct10, repurposed m_bParagraph to be m_bUnused
+	//bool			m_bParagraph;   // TRUE if the source phrase is the first one after a \p marker
+	bool			m_bUnused;   
 	bool			m_bSpecialText; // TRUE if the text is special, such as \id contents, or 
 									// subheading, etc
 	bool			m_bBoundary;	// marks right boundary for selection extension, to prevent spurious
@@ -185,6 +185,18 @@ private:
 	wxString		m_note;
 	wxString		m_collectedBackTrans;
 	wxString		m_filteredInfo;
+	// BEW added 11Oct10, the next five are needed in order to properly handle inline
+	// (character formatting) markers, and the interactions of punctuation and marker
+	// types - in particular to support punctuation which follows inline markers (rather
+	// than assuming that punctuation binds more closely to the word than do endmarkers
+	// and beginmarkers)
+	wxString		m_inlineBindingMarkers;
+	wxString		m_inlineBindingEndMarkers;
+	wxString		m_inlineNonbindingMarkers;
+	wxString		m_inlineNonbindingEndMarkers;
+	wxString		m_follOuterPunct; // store any punctuation after endmarker (inline
+									  // non-binding, or \f* or \x*) here; but puncts
+									  // after inline binding mkr go in m_follPunct
 
 // Operations
 public:
@@ -221,8 +233,9 @@ public:
 									wxArrayString* pFilteredContent,
 									bool bUseSpaceForEmpty = FALSE);
 	wxString GetEndMarkers();
-	bool	 GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
-
+	bool GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
+	//bool GetAllEndMarkersAsArray(wxArrayString* pEndmarkersArray); // ditto, gets not just from
+				// m_endMarkers, but also from the two storage members for inline endmarkers
 	void SetFreeTrans(wxString freeTrans);
 	void SetNote(wxString note);
 	void SetCollectedBackTrans(wxString collectedBackTrans);
@@ -235,6 +248,21 @@ public:
 	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);
 	void SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray);
+
+	//BEW added 11Oct10
+	wxString GetInlineBindingEndMarkers();
+	wxString GetInlineNonbindingEndMarkers();
+	wxString GetInlineBindingMarkers();
+	wxString GetInlineNonbindingMarkers();
+	wxString GetFollowingOuterPunct();
+	void SetInlineBindingMarkers(wxString mkrStr);
+	void SetInlineNonbindingMarkers(wxString mkrStr);
+	void SetInlineBindingEndMarkers(wxString mkrStr);
+	void SetInlineNonbindingEndMarkers(wxString mkrStr);
+	void AppendToInlineBindingMarkers(wxString str);
+	void AppendToInlineBindingEndMarkers(wxString str);
+	void SetFollowingOuterPunct(wxString punct);
+	void AddFollOuterPuncts(wxString outers);
 
 /* uncomment out when we make m_markers a private member
 	wxString GetMarkers();

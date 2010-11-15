@@ -66,7 +66,7 @@ public:
 										 enum DrawFTCaller drawFTCaller);
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
-	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile);
+	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 

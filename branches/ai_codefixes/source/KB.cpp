@@ -36,6 +36,9 @@
 #include <wx/hashmap.h>
 #include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
 #include <wx/progdlg.h> // for wxProgressDialog
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
+
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -62,15 +65,6 @@
 
 IMPLEMENT_DYNAMIC_CLASS(CKB, wxObject) 
 
-// next two are for version 2.0 which includes the option of a 3rd line for glossing
-
-/// This global is defined in Adapt_ItView.cpp.
-extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
-//extern wxString translation;
-//extern int nWordsInPhrase;
-//extern CTargetUnit* pCurTargetUnit;
-//extern wxString curKey;
-
 // globals needed due to moving functions here from mainly the view class
 // next group for auto-capitalization support
 extern bool	gbAutoCaps;
@@ -93,7 +87,7 @@ extern bool bSupportNoAdaptationButton;
 extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbByCopyOnly;
 extern bool gbInhibitMakeTargetStringCall;
-extern bool gbRemovePunctuationFromGlosses;
+//extern bool gbRemovePunctuationFromGlosses; BEW removed 13Nov10
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -219,6 +213,7 @@ CKB::~CKB()
 // the keys have to be wxString copies of the souce CKB's key CStrings), and then use
 // StoreAdaptation to create the new CKB's contents; for glossing, the copy is done only for the
 // first map, and its m_nMaxWords value must always remain equal to 1.
+// BEW 13Nov10 changes for supporting Bob Eaton's request for using all tabs in glossing kb
 void CKB::Copy(const CKB& kb)
 {
 
@@ -226,10 +221,10 @@ void CKB::Copy(const CKB& kb)
 	const CKB* pCopy = &kb;
 	wxASSERT(pCopy);
 
-	//if (gbIsGlossing)
 	if (pCopy->m_bGlossingKB) // BEW changed test 12May10
 	{
-		m_nMaxWords = 1;
+		//m_nMaxWords = 1; removed 13Nov10
+		m_nMaxWords = pCopy->m_nMaxWords;
 		m_sourceLanguageName.Empty(); // don't need these
 		m_targetLanguageName.Empty();
 	}
@@ -299,7 +294,7 @@ void CKB::Copy(const CKB& kb)
 	}
 }
 
-// the "adaptation" parameter will contain an adaptation if gbIsGlossing is FALSE, or if
+// the "adaptation" parameter will contain an adaptation if m_bGlossingKB is FALSE, or if
 // TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will have
 // come from either the adaptation KB or the glossing KB.
 // Returns NULL if no CRefString instance matching the criterion was found
@@ -380,6 +375,7 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 // BEW 12Apr10, no changes needed for support of doc version 5
 // BEW 13May10, moved here from CAdapt_ItView class
 // BEW 18Jun10, no changes needed for support of kbVersion 2
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
 	wxString saveKey;
@@ -474,7 +470,7 @@ a:		iter = pMap->find(keyStr);
 // CRefString with m_translation member identical to valueStr, and returns a pointer to
 // that CRefString instance. If it fails, it returns a null pointer. 
 // (Note: Jan 27 2001 changed so that it returns the pRefString for a <Not In KB> entry).
-// For version 2.0 and later, pKB will point to the glossing KB when gbIsGlossing is TRUE.
+// For version 2.0 and later, pKB will point to the glossing KB when m_bGlossingKB is TRUE.
 // Ammended, July 2003, to support auto capitalization
 // BEW 11May10, moved from CAdapt_ItView class
 // BEW 12May10, changed signature, because from 5.3.0 and onwards, each KB now knows
@@ -483,11 +479,12 @@ a:		iter = pMap->find(keyStr);
 // BEW 21Jun10, no changes needed for support of kbVersion 2, because internally
 // the call of AutoCapsFindRefString() returns NULL if the only match was of a CRefString
 // instance with m_bDeleted set to TRUE
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 {
-	// ensure nSrcWords is 1 if this is a GlossingKB access
-	if (m_bGlossingKB)
-		nSrcWords = 1;
+	// ensure nSrcWords is 1 if this is a GlossingKB access << BEW removed 13Nov10
+	//if (m_bGlossingKB)
+	//	nSrcWords = 1;
 	MapKeyStringToTgtUnit* pMap = this->m_pMap[nSrcWords-1];
 	wxASSERT(pMap != NULL);
 	CTargetUnit* pTgtUnit;	// wx version changed 2nd param of AutoCapsLookup() below to
@@ -507,6 +504,7 @@ CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 // BEW 21Jun10, no changes needed for support of kbVersion 2, because internally
 // the call of AutoCapsFindRefString() returns NULL if the only match was of a CRefString
 // instance with m_bDeleted set to TRUE
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
 {
 	wxASSERT(pTU);
@@ -536,10 +534,10 @@ CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
 /// a copy of its string if it is still wanted), or if it is referenced more than once,
 /// then just decrement the reference count by one, and set the srcPhrase's m_bHasKBEntry
 /// flag to FALSE; also make sure m_bAlwaysAsk is set or cleared as the case may be. For
-/// version 2.0 and onwards we must test gbIsGlossing in order to set the KB pointer to
+/// version 2.0 and onwards we must test m_bGlossingKB in order to set the KB pointer to
 /// either the adaption KB or the glossing KB; and the caller must supply the appropriate
 /// first and last parameters (ie. a pRefString from the glossing KB and nWordsInPhrase set
-/// to 1 when gbIsGlossing is TRUE)
+/// to 1 when m_bGlossingKB is TRUE)
 /// Ammended, July 2003, to support auto capitalization
 /// BEW changed 05July2006 to fix a long-standing error where the m_bHasKBEntry flag, or
 /// the m_bHasGlossingKBEntry flag, was not cleared when the phrase box lands at a location
@@ -556,15 +554,19 @@ CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
 /// BEW changed 12May10, to use private member boolean m_bGlossingKB for tests
 /// BEW 8Jun10, updated for kbVersion 2 support (legacy code kept, commented out, in case
 /// at a future date we want to use it for a 'clear kb' [of deleted entries] capability)
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase)
 {
 	if (m_bGlossingKB)
 	{
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		nWordsInPhrase = 1; // ensure correct value for a glossing KB
+		nWordsInPhrase = nWordsInPhrase; // to prevent compiler warning (BEW 13Nov10)
+		//nWordsInPhrase = 1; // ensure correct value for a glossing KB << BEW removed 13Nov10
 	}
 	else
+	{
 		pSrcPhrase->m_bHasKBEntry = FALSE;
+	}
 	if (!m_bGlossingKB && pSrcPhrase->m_bNotInKB)
 	{
 		// this block can only be entered when the adaption KB is in use
@@ -609,7 +611,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 	{
         // more than one reference to it, so just decrement & remove the srcPhrase's
         // knowledge of it, this does not affect the count of how many translations there
-        // are, so m_bAlwaysAsk is unaffected. Version 2 has to test gbIsGlossing and set
+        // are, so m_bAlwaysAsk is unaffected. Version 2 has to test m_bGlossingKB and set
         // the relevant flag to FALSE.
 		if (!(m_pApp->GetRetranslation()->GetIsRetranslationCurrent()))
 		{
@@ -673,7 +675,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		}
 
         // this reference string is only referenced once, so remove it entirely from KB or
-        // from the glossing KB, depending on gbIsGlossing flag's value
+        // from the glossing KB, depending on m_bGlossingKB flag's value
 		CTargetUnit* pTU = pRefString->m_pTgtUnit; // point to the owning targetUnit
 		wxASSERT(pTU != NULL);
 		int nTranslations = pTU->m_pTranslations->GetCount();
@@ -686,41 +688,6 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			// kbv2 code retains the entry in the map, but sets m_bDeleted flag and deletion datetime
 			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
 			pRefString->m_bDeleted = TRUE;
-			/* The legacy code
-			// we are removing the only CRefString in the owning targetUnit, so the latter must
-			// go as well
-			delete pRefString;
-			pRefString = (CRefString*)NULL;
-			// since we deleted pRefString, TranslationsList::Clear() will remove the map entry
-			pTU->m_pTranslations->Clear();
-			delete pTU; // delete its instance from the heap
-			pTU = (CTargetUnit*)NULL;
-
-			MapKeyStringToTgtUnit* pMap = m_pMap[nWordsInPhrase - 1];
-			int bRemoved = 0;
-			if (gbAutoCaps)
-			{
-                // try removing the lower case one first, this is the most likely one that
-                // was found by GetRefString( ) in the caller
-				bRemoved = pMap->erase(s1); // also remove it from the map
-			}
-			if (bRemoved == 0)
-			{
-				// have a second shot using the unmodified string s
-				bRemoved = pMap->erase(s); // also remove it from the map
-			}
-			wxASSERT(bRemoved == 1);
-            // the above algorith will handle all possibilites except one; if earlier auto
-            // caps is ON, and the user stores an entry with source text starting with
-            // upper case, (which will be changed to lower case for the storage), and then
-            // later on s/he turns auto caps OFF, then the entry would not be found by the
-            // above line: bRemoved = pMap->erase(s); and then the wxASSERT would trip; however,
-            // we are saved from this happening because the pRefString passed in is provided
-            // by a prior GetRefString( ) call in the caller, and that would not find the
-            // pRefString, and as a consequence it would return NULL, and so the in this
-            // block of RemoveRefString( ) the removal would not be asked for; so the
-            // wxASSERT would not trip.
-            */
 		}
 		else
 		{
@@ -732,14 +699,6 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			// kbv2 code retains the entry in the map, but sets m_bDeleted flag and deletion datetime
 			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
 			pRefString->m_bDeleted = TRUE;
-			/* legacy code - DO NOT DELETE IT
-			TranslationsList::Node* pos = pTU->m_pTranslations->Find(pRefString);
-			wxASSERT(pos != NULL); // it must be in the list somewhere
-			pTU->m_pTranslations->DeleteNode(pos); // remove that refString from the list
-												   // in the CTargetUnit instance
-			delete pRefString; // delete it from the heap
-			pRefString = (CRefString*)NULL;
-			*/
 		}
 
 		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
@@ -757,6 +716,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 // caller. bIsSrc parameter is TRUE by default.
 // BEW 12Apr10, no changes needed for support of docVersion 5
 // BEW 18Jun10, no changes needed for support of kbVersion 2
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 {
 	bool bNoError = TRUE;
@@ -804,6 +764,7 @@ a:	return str;
 // depending on the value of the private member m_bGlossingKB, when TRUE, m_gloss is used,
 // when FALSE, m_adaption is used.
 // BEW 17Jun10, no changes needed for support of kbVersion 2
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhrase, 
 								enum UseForLookup useThis)
 {
@@ -812,17 +773,22 @@ void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhras
 	{
 		if (useThis == useTargetPhraseForLookup)
 		{
-			pRefStr = GetRefString(1, pSrcPhrase->m_key, targetPhrase);
+			//pRefStr = GetRefString(1, pSrcPhrase->m_key, targetPhrase);
+			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
 		}
 		else // useThis has the value useGlossOrAdaptationForLookup
 		{
-			pRefStr = GetRefString(1, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
+			//pRefStr = GetRefString(1, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
+			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
 		}
 		// ensure correct flag value
 		if (pRefStr == NULL && pSrcPhrase->m_bHasGlossingKBEntry)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // must be FALSE for a successful lookup on return
 		if (pRefStr != NULL)
-			RemoveRefString(pRefStr, pSrcPhrase, 1);
+		{
+			//RemoveRefString(pRefStr, pSrcPhrase, 1);
+			RemoveRefString(pRefStr, pSrcPhrase, pSrcPhrase->m_nSrcWords);
+		}
 	}
 	else // it is an adapting KB 
 	{
@@ -838,7 +804,9 @@ void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhras
 		if (pRefStr == NULL && pSrcPhrase->m_bHasKBEntry)
 			pSrcPhrase->m_bHasKBEntry = FALSE; // must be FALSE for a successful lookup on return
 		if (pRefStr != NULL)
+		{
 			RemoveRefString(pRefStr, pSrcPhrase, pSrcPhrase->m_nSrcWords);
+		}
 	}
 }
 
@@ -847,6 +815,7 @@ void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhras
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 13May10, moved here from CPhraseBox class
 // BEW 21Jun10, no changes needed for support of kbVersion 2
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 bool CKB::FindMatchInKB(int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 {
 	MapKeyStringToTgtUnit* pMap = m_pMap[numWords-1];
@@ -862,16 +831,17 @@ bool CKB::FindMatchInKB(int numWords, wxString keyStr, CTargetUnit *&pTargetUnit
 
 // Modified to work for either glossing or adapting KBs
 // BEW 21Jun10, changes needed for supporting kbVersion 2's m_bDeleted flag
+// BEW 13Nov10, changed by Bob Eaton's request, for glossing KB to use all maps
 bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 {
 	CTargetUnit* pTgtUnit = 0;
 
 	// is there a targetunit for this key in the KB?
 	bool bFound;
-	if (m_bGlossingKB)
+	//if (m_bGlossingKB)
 		// only check first map
-		bFound = FindMatchInKB(1,key,pTgtUnit); 
-	else // is adapting
+	//	bFound = FindMatchInKB(1,key,pTgtUnit); 
+	//else // is adapting
 		bFound = FindMatchInKB(nWords,key,pTgtUnit);
 	if (!bFound)
 		return FALSE;
@@ -904,6 +874,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 // xml parse of a LIFT file being imported
 // BEW 8Jun10, added markers and code for support of kbVersion 2 data additions, and for
 // support of both LIFT import and \lx &\ge -based SFM KB import
+// BEW 13Nov10 changes for supporting Bob Eaton's request for using all tabs in glossing kb
 void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
 	//CSourcePhrase* pSrcPhrase = new CSourcePhrase;
@@ -961,7 +932,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		// as well as to the adapting one), and to use the second param in the call below,
 		// because kbv2 CKB class has a member bool m_bGlossingKB which knows whether it
 		// is a glossingKB or not - and passing that to XML.cpp permits us to avoid using
-		// the "extern bool gbIsGlossing" declaration in the global namespace there
+		// a global
 		bool bReadOK;
 		if (m_bGlossingKB)
 		{
@@ -1042,7 +1013,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 					nWordCount = TrimAndCountWordsInString(key);
 
 					// test we can store it in this KB
-					if (!m_bGlossingKB && (nWordCount > MAX_WORDS))
+					//if (!m_bGlossingKB && (nWordCount > MAX_WORDS)) // BEW removed 13Nov10
+					if (nWordCount > MAX_WORDS)
 					{
 						// error condition for this entry - so ignore it
 						key.Empty();
@@ -1059,11 +1031,14 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 					// define the map to be used, the default is currently
 					// the first in the CKB instance, which is correct for a glossingKB
 					// but may be wrong for an adaptingKB
-					numWords = 1;
-					if (!m_bGlossingKB)
+					// BEW changed 13Nov10
+					//numWords = 1;
+					numWords = nWordCount;
+					//if (!m_bGlossingKB)
+					if (numWords > 1)
 					{
-						// it's an adaptingKB, so set pMap correctly
-						numWords = TrimAndCountWordsInString(key);
+						// set pMap correctly
+						//numWords = TrimAndCountWordsInString(key);
 						pMap = m_pMap[numWords - 1]; // for this record we lookup and store in this map
 					}
 
@@ -1102,8 +1077,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 						{
                             // there is no CTargetUnit pointer instance in the map for the
                             // given key, so fill out the pRefStr and store pTU in the map
-							// set the pointer to the owning CTargetUnit, and add it to the m_translations
-							// member
+                            // set the pointer to the owning CTargetUnit, and add it to the
+                            // m_translations member
 							pTU = new CTargetUnit;
 							pRefStr = new CRefString; // default constructor doesn't set 
 										// CRefStringMetadata members, we will do them
@@ -1328,6 +1303,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	//m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 }
 
+// BEW 13Nov10 no changes for all tabs glossing kb
 bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 {
 	if (rLine.IsEmpty())
@@ -1351,6 +1327,7 @@ bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 // BEW 21Jun10, changed for support of kbVersion 2's m_bDeleted flag; any matches of 
 // <Not In KB> are deemed to be non-matches if the storing CRefString instance has its
 // m_bDeleted flag set to TRUE 
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 {
 	// determine if it is an <Not In KB> entry in the KB
@@ -1408,6 +1385,7 @@ bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 // whm modified 3May10 to add LIFT format XML export. 
 // BEW 13May10 moved it here from CAdapt_ItView class
 // BEW 9Jun10, added markers and code for support of kbVersion 2 data additions
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 {
 	wxASSERT(pFile != NULL);
@@ -1565,9 +1543,11 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	CTargetUnit* pTU_sim = 0;
 	for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
 	{
-		if (m_bGlossingKB && numWords_sim > 1)
-			continue; // when glossing we want to consider only the first map, the others
-					  // are all empty
+		// BEW 13Nov10, commented out to support Bob Eaton request for all glossing KB
+		// maps to be usable
+		//if (m_bGlossingKB && numWords_sim > 1)
+		//	continue; // when glossing we want to consider only the first map, the others
+		//			  // are all empty
 		if (m_pMap[numWords_sim-1]->size() == 0) 
 			continue;
 		else
@@ -1632,9 +1612,10 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	CRefString* pRefStr;
 	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
 	{
-		if (m_bGlossingKB && numWords > 1)
-			continue; // when glossing we want to consider only the first map, the others
-					  // are all empty
+		// BEW 13Nov10, removed, to support Bob Eaton's request
+		//if (m_bGlossingKB && numWords > 1)
+		//	continue; // when glossing we want to consider only the first map, the others
+		//			  // are all empty
 		if (m_pMap[numWords-1]->size() == 0) 
 			continue;
 		else
@@ -2017,10 +1998,10 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 // looks up the knowledge base to find if there is an entry in the map with index
 // nSrcWords-1, for the key keyStr, and returns the CTargetUnit pointer it finds. If it
 // fails, it returns a null pointer.
-// version 2.0 and onwards supports glossing, so for glossing mode it is the caller's
-// responsibility to ensure that nSrcWords has the value 1 only.
+// version 2.0 and onwards supports glossing too
 // BEW 13May10, moved here from CAdapt_ItView and removed pKB param from signature
 // BEW 21Jun10: no changes needed for support of kbVersion 2
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 {
 	MapKeyStringToTgtUnit* pMap = m_pMap[nSrcWords-1];
@@ -2044,6 +2025,7 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 // source text key at that location. The other function which calls DoNotInKB() is the
 // call of RedoStorage().
 // BEW 18Jun10, changes made for supporting kbVersion 2
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 {
 	if (bChoice)
@@ -2142,6 +2124,7 @@ bool CKB::IsThisAGlossingKB() { return m_bGlossingKB; }
 /// a call to the App's GetForceAskList() function), and insures that the appropriate
 /// target unit's m_bAlwaysAsk member is set to TRUE.
 /// BEW 21Jun10, no changes needed for support of kbVersion 2
+/// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
 void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 {
@@ -2194,6 +2177,9 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 14May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
 // BEW 4Jun10, updated to support kbVersion 2
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps,
+// including calling IsFixedSpaceSymbolWithin() to force !$ conjoinings to be stored in
+// map 1 rather than map 2.
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -2252,8 +2238,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			}
 		}
 		pSrcPhrase->m_gloss = s;
-		if (gbRemovePunctuationFromGlosses)
-			m_pApp->GetView()->RemovePunctuation(m_pApp->GetDocument(),&pSrcPhrase->m_gloss,from_target_text);
+		// BEW 13Nov10, the flag below is never set TRUE so remove this bit of code
+		//if (gbRemovePunctuationFromGlosses)
+		//	m_pApp->GetView()->RemovePunctuation(m_pApp->GetDocument(),&pSrcPhrase->m_gloss,from_target_text);
 	}
 	else
 	{
@@ -2282,10 +2269,24 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	}
 	else // adapting or glossing
 	{
-		if (m_bGlossingKB)
-			nMapIndex = 0;
-		else
-			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
+		// BEW changed, 13Nov10, to support Bob Eaton's request for a 10map glossing KB
+		//if (m_bGlossingKB)
+		//{
+			//nMapIndex = 0;
+		//	nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
+		//}
+		//else
+		//{
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				nMapIndex = 0;
+			}
+			else
+			{
+				nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+			}
+			//nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
+		//}
 	}
 	// if there is a CTargetUnit associated with the current key, then get it; if not,
 	// create one and add it to the appropriate map
@@ -2293,10 +2294,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
     // if we have too many source words, then we cannot save to the KB, so detect this and
     // warn the user that it will not be put in the KB, then return TRUE since all is
     // otherwise okay; this check need be done only when adapting
-	if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
+	//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS) << BEW removed 13Nov10
+	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
 	{
 		pSrcPhrase->m_bNotInKB = TRUE;
-		pSrcPhrase->m_bHasKBEntry = FALSE;
+		if (m_bGlossingKB)
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		else
+			pSrcPhrase->m_bHasKBEntry = FALSE;
 		wxMessageBox(_(
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
 		, _T(""), wxICON_INFORMATION);
@@ -2340,16 +2345,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 
 		(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit instance in the map
 		// update the maxWords limit
-		if (m_bGlossingKB)
-		{
-			m_nMaxWords = 1; // always 1 when glossing (ensures glossing 
-				// ignores maps with indices from 1 to 9; all is in 1st map only)
-		}
-		else
-		{
+		// BEW changed 13Nov10 to support Bob Eaton's request for 10map glossing KB
+		//if (m_bGlossingKB)
+		//{
+		//	m_nMaxWords = 1; // always 1 when glossing (ensures glossing 
+		//		// ignores maps with indices from 1 to 9; all is in 1st map only)
+		//}
+		//else
+		//{
 			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
 				m_nMaxWords = pSrcPhrase->m_nSrcWords;
-		}
+		//}
 	}
 	else // do next block when the map is not empty
 	{
@@ -2383,15 +2389,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 
 			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit instance in the map 
 			// update the maxWords limit
-			if (m_bGlossingKB)
-			{
-				m_nMaxWords = 1; // for glossing it is always 1
-			}
-			else
-			{
+			// BEW changed 13Nov10 to support Bob Eaton's request for 10map glossing KB
+			//if (m_bGlossingKB)
+			//{
+			//	m_nMaxWords = 1; // for glossing it is always 1
+			//}
+			//else
+			//{
 				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
 					m_nMaxWords = pSrcPhrase->m_nSrcWords;
-			}
+			//}
 		}
 		else // we found one
 		{
@@ -2530,20 +2537,24 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // adaptation> empty entry in the KB, a button "<no adaptation>" has been provided on the
 // control bar. Click it before moving the phrase box to cause an empty adaptation to be
 // stored in the KB for the source text at the current active location. version 2.0 and
-// onward tests gbIsGlossing for storing to the appropriate KB, etc. For adaptation, on
+// onward tests m_bGlossingKB for storing to the appropriate KB, etc. For adaptation, on
 // input the tgtPhrase parameter should have the text with punctuation removed, so this is
 // typically done in the caller with a call to RemovePunctuation( ). For versions prior to
 // 4.1.0, in order to support the user overriding the stored punctuation for the source
-// text, a call to MakeTargetStringIncludingPunctuation( ) is done in the caller, and then RemovePunctuation(
-// ) is called in the caller, so a second call of MakeTargetStringIncludingPunctuation( ) within StoreText( )
-// is not required in this circumstance - in this case, a global boolean
-// gbInhibitMakeTargetStringCall is used to jump the call within StoreText( ). For 4.1.0 and later,
+// text, a call to MakeTargetStringIncludingPunctuation( ) is done in the caller, and then
+// RemovePunctuation() is called in the caller, so a second call of
+// MakeTargetStringIncludingPunctuation( ) within StoreText( ) is not required in this
+// circumstance - in this case, a global boolean gbInhibitMakeTargetStringCall is used to
+// jump the call within StoreText( ). For 4.1.0 and later,
 // MakeTargetStringIncludingPunctuation() is not now called. See below.
 // 
 // Ammended, July 2003, for Auto-Capitalization support
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 13May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
 // BEW 4Jun10, updated to support kbVersion 2
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+// including calling IsFixedSpaceSymbolWithin() to force !$ conjoinings to be stored in
+// map 1 rather than map 2.
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -2608,14 +2619,27 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		wxString strNot = _T("<Not In KB>");
 		// rest of this block's code is a simplification of code from later in StoreText()
 		int nMapIndex;
-		if (m_bGlossingKB)
-			nMapIndex = 0; // always an index of zero when glossing
-		else
-			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+		// BEW 13Nov10 support Bob Eaton's request that glossing KB uses all maps
+//		if (m_bGlossingKB)
+//		{
+			//nMapIndex = 0; // always an index of zero when glossing 
+//			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+//		}
+//		else
+//		{
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				nMapIndex = 0;
+			}
+			else
+			{
+				nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+			}
+//		}
 
-        // if we have too many source words, then we cannot save to the KB, so beep - this
-        // is unlikely to be the case when Bob's modification is being used.
-		if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
+        // if we have too many source words, then we cannot save to the KB, so beep
+		//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
+		if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
 		{
 			::wxBell();
 			return TRUE;
@@ -2813,11 +2837,20 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // if there is a CTargetUnit associated with the current key, then get it; if not,
     // create one and add it to the appropriate map; we start by computing which map we
     // need to store to
+    // BEW 13Nov10, changed to support Bob Eaton's request for a ten map glossing KB
 	int nMapIndex;
-	if (m_bGlossingKB)
-		nMapIndex = 0; // always an index of zero when glossing
+	//if (m_bGlossingKB)
+	//	nMapIndex = 0; // always an index of zero when glossing
+	//else
+	if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+	{
+		nMapIndex = 0;
+	}
 	else
+	{
 		nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+	}
+		//nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
 
     // if we have too many source words, then we cannot save to the KB, so detect this and
     // warn the user that it will not be put in the KB, then return TRUE since all is
@@ -2826,10 +2859,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // retranslation, we allow updating of the m_gloss attribute, and we won't change any
     // of the retranslation supporting flags; so it is therefore possible for
     // m_bRetranslation to be TRUE, and also for m_bHasGlossingKBEntry to be TRUE.
-	if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
+    
+    // BEW 13Nov10, changed to support Bob Eaton's request for a ten map glossing KB
+	//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
+	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
 	{
 		pSrcPhrase->m_bNotInKB = FALSE;
-		pSrcPhrase->m_bHasKBEntry = FALSE;
+		if (m_bGlossingKB)
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		else
+			pSrcPhrase->m_bHasKBEntry = FALSE;
 		wxMessageBox(_(
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
 		_T(""),wxICON_INFORMATION);
@@ -2895,8 +2934,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 													 // an entry in the glossing KB
 			(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map
 
-			// update the maxWords limit - for glossing it is always set to 1
-			m_nMaxWords = 1;
+			// update the maxWords limit,  BEW changed 13Nov10
+			//m_nMaxWords = 1;
+			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+				m_nMaxWords = pSrcPhrase->m_nSrcWords;
 		}
 		else
 		{
@@ -2989,8 +3030,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 				(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in 
 						// the map with appropr. index (key may have been made lc)
-				// update the maxWords limit - for glossing it is always set to 1
-				m_nMaxWords = 1;
+				// update the maxWords limit, BEW changed 13Nov10
+				//m_nMaxWords = 1;
+				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+					m_nMaxWords = pSrcPhrase->m_nSrcWords;
 			}
 			else
 			{
@@ -3165,6 +3208,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 /// as many as we can, which will reduce the amount of manual setting of the flags in the
 /// KB editor after a KB restore is done.
 /// BEW 14May10, moved to here from CAdapt_ItApp class
+/// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
 void CKB::GetForceAskList(KPlusCList* pKeys)
 // get a list of the keys which have a unique translation and for which the CTargetUnit
@@ -3246,6 +3290,7 @@ void CKB::GetForceAskList(KPlusCList* pKeys)
 /// their own line, as these will be always present; the other two can be on the next line
 /// as they often will not be present. We'll not make an attribute for any of these
 /// strings if they are empty - defaults will handle these when the xml is parsed back in.
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
 CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 {
@@ -3541,6 +3586,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 /// The inappropriate docVersion attribute will become kbVersion
 /// We add a glossingKB attibute to store the m_bGlossingKB boolean value as "1" (TRUE) or
 /// as "0" (FALSE). CTargetUnit has no changes, so the <TU> tag's attributes are unchanged
+/// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
 void CKB::DoKBSaveAsXML(wxFile& f)
 {
@@ -3568,14 +3614,15 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	
 	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
 	int maxWords;
-	if (m_bGlossingKB)
-	{
-		maxWords = 1; // GlossingKB uses only one map
-	}
-	else
-	{
+	// BEW changed 13Nov10, to support Bob Eaton's request
+	///if (m_bGlossingKB)
+	//{
+	///	maxWords = 1; // GlossingKB uses only one map
+	//}
+	//else
+	//{
 		maxWords = (int)MAX_WORDS;
-	}
+	//}
 
 	
 	// Now, start building the fixed strings.
@@ -3639,7 +3686,18 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	aStr += numStr;
 	if (m_bGlossingKB)
 	{
-		aStr += "\" max=\"1";
+		// BEW changed 13Nov10
+		//aStr += "\" max=\"1";
+		aStr += "\" max=\"";
+		intStr.Empty(); // needs to start empty, otherwise << will 
+						// append the string value of the int
+		intStr << m_nMaxWords;
+#ifdef _UNICODE
+		numStr = m_pApp->Convert16to8(intStr);
+#else
+		numStr = intStr;
+#endif
+		aStr += numStr;
 		aStr += "\" glossingKB=\"1";
 	}
 	else
@@ -3767,6 +3825,7 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 21Jun10, moved to CKB class and signature simplified
 // BEW 21Jun10, no changes needed for support of kbVersion 2
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKB::Fix_NotInKB_WronglyEditedOut(CPile* pCurPile)
 {
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -3814,5 +3873,348 @@ void CKB::Fix_NotInKB_WronglyEditedOut(CPile* pCurPile)
 	pView->MakeTargetStringIncludingPunctuation(pSP, m_pApp->m_targetPhrase);
 }
 
+// Modified for support of glossing KB as well as adapting KB. The caller must send the
+// correct KB pointer in the first parameter.
+// whm modified 27Apr09 to report errors of punctuation existing in documents discovered 
+// during KB Restore
+// BEW 18Jun10, no changes needed for support of kbVersion 2
+// BEW 11Oct10, checked for extra doc version 5 marker storage members & m_follOuterPunct
+// member, but no changes needed, however changes are needed in StoreText() which it calls
+// BEW 15Nov10, moved from view class to CKB class, and removed pKB from signature, as the
+// this pointer will point either to the glossing KB or the adaptations KB
+void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
+{
+	wxASSERT(m_pApp != NULL);
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	CAdapt_ItView* pView = m_pApp->GetView();
+	m_pApp->m_bForceAsk = FALSE;
+	bool bOK;
+	if (m_bGlossingKB)
+	{
+		if (!pSrcPhrase->m_bHasGlossingKBEntry)
+		{
+			return; // nothing to be done
+		}
+		pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // has to be false on input to StoreText()
+		bOK = StoreText(pSrcPhrase,pSrcPhrase->m_gloss,TRUE); // TRUE = support storing empty gloss
+		if (!bOK)
+		{
+			// I don't expect any error here, but just in case ...
+			wxBell();
+			wxASSERT(FALSE);
+		}
+	}
+	else // adapting
+	{
+		if (!pSrcPhrase->m_bRetranslation)
+		{
+				if (pSrcPhrase->m_bNotInKB)
+				{
+                    // BEW changed 2Sep09, as there may have been some adaptations
+                    // "restored" before coming to this location where m_bNotInKB is set
+                    // true, we must ensure any normal adaptations for the relevant
+                    // CTargetUnit are removed, and <Not In KB>
+                    // put in their place - the easy way to do this is to call DoNotInKB()
+                    // with its last parameter set TRUE (that function is elsewhere called
+                    // in the handler for the Save to KB checkbox, namely,
+                    // OnCheckKBSave()); and once this <Not In KB> entry is set up, any
+                    // later identical source text encountered in the span will, when
+                    // StoreText() tries to add it to the KB, will reject it because of the
+                    // <Not In KB> entry already in the KB
+					DoNotInKB(pSrcPhrase, TRUE);
+					return;
+				}
+			if (!pSrcPhrase->m_bHasKBEntry)
+			{
+				return; // nothing to be done
+			}
+            // BEW added 24Apr09, for a while a bug allowed m_key to have following
+            // punctuation treated as part of the word, allowing punctuation to get into
+            // the adaptation KB's source text, and a different bug allowed punctuation to
+            // get into the KB in some m_adaption members where punctuation was not
+            // stripped out beforehand. This next code block is a "heal it" block which
+            // detects when punctuation has wrongly got into m_key or m_adaption members,
+            // removes it, and presents puncutation-less strings for storage instead; it
+            // also has two tracking booleans, each of which is TRUE whenever the
+            // associated string has been found to have had punctuation removed herein
+			bool bKeyHasPunct = FALSE;
+			bool bAdaptionHasPunct = FALSE;
+			wxString strCurKey = pSrcPhrase->m_key;
+			wxString strCurAdaption = pSrcPhrase->m_adaption;
+			wxString strKey(strCurKey);
+			wxString strAdaption(strCurAdaption);
+			if (!pSrcPhrase->m_bNullSourcePhrase)
+			{
+				// Don't remove "..." (in source phrase only) which represents a 
+				// null source phrase (placeholder)
+				pView->RemovePunctuation(pDoc,&strKey,from_source_text);
+			}
+			if (!pSrcPhrase->m_bNotInKB)
+			{
+				// Don't remove "<Not In KB>" (in target text only)
+				pView->RemovePunctuation(pDoc,&strAdaption,from_target_text);
+			}
+			if (strKey != strCurKey)
+				bKeyHasPunct = TRUE;
+			if (strAdaption != strCurAdaption)
+				bAdaptionHasPunct = TRUE;
+            // Construct an errorStr for a log file, to report where fixes were made. This
+            // errorStr is passed back to the caller DoKBRestore() where log file is
+            // written out to disk.
+			if (bKeyHasPunct || bAdaptionHasPunct)
+			{
+                // initialize the log file's entry here whm note: For each given document
+                // used in the KB Restore where a correction was made, the following string
+                // is added (in the caller) to introduce the change in the log file:
+				//errorStr = _T("During the KB Restore, a correction involving punctuation was made to the KB and the following document:\n   %s\n   Punctuation was removed (see below) which had been wrongly stored by a previous version of Adapt It.");
+				if (bKeyHasPunct)
+				{
+					// compose a substring for log file
+					errorStr += _T("\n      ");
+					errorStr += _T("\"");
+					errorStr += strCurKey;
+					errorStr += _T("\"");
+					errorStr += _T(" was changed to ");
+					errorStr += _T("\"");
+					errorStr += strKey;
+					errorStr += _T("\"");
+				}
+				if (bAdaptionHasPunct)
+				{
+					// extend or begin a substring for log file
+					errorStr += _T("\n      ");
+					errorStr += _T("\"");
+					errorStr += strCurAdaption;
+					errorStr += _T("\"");
+					errorStr += _T(" was changed to ");
+					errorStr += _T("\"");
+					errorStr += strAdaption;
+					errorStr += _T("\"");
+				}
+				// finalize the entry here, and add it to the log file
+				;
+			}
+			// ensure a punctuation-less m_key in the CSourcePhrase instance
+			pSrcPhrase->m_key = strKey;
+			// ensure a punctuation-less m_adaption in the CSourcePhrase instance
+			pSrcPhrase->m_adaption = strAdaption;
+
+			// legacy code follows
+			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
+			gbInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement 
+												  // dialogs from showing
+			bool bOK = StoreText(pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE = 
+													// support storing empty adaptation
+			gbInhibitMakeTargetStringCall = FALSE;
+			if (!bOK)
+			{
+				// I don't expect any error here, but just in case ...
+				::wxBell();
+				wxASSERT(FALSE);
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pKB               -> pointer to the affected KB
+/// \param      nCount            <- the count of files in the folder being processed
+/// \param      nTotal            <- the total source phrase instances in the doc 
+///                                  being processed
+/// \param      nCumulativeTotal  <- the accumulation of the nTotal values over all 
+///                                  documents processed so far
+/// \remarks
+/// Called from: the App's OnFileRestoreKb(). 
+/// Iterates over the document files of a project, opens them and uses the data stored
+/// within them to regererate new Knowledge Base file(s) from those documents.
+/// This function assumes that the current directory will have already been set correctly
+/// before being called. Modified to support restoration of either the glossing KB, or the
+/// adaptation KB - which one gets the restoration depends on the gbIsGlossing flag's
+/// value. Allows for the possibility that Bible book folders may be in the Adaptations
+/// folder.
+/// BEW 15Nov10, moved from app class to CKB class (It's caller is app's OnFileRestoreKb()
+/// which cannot be moved to CKB as CKB is based on wxObject and so cannot intercept
+/// events. If we were to base it on wxEvtHandler instead, we could then do so... not a
+/// big deal either as wxEvtHandler is based on wxObject; & we'd need to add the class to
+/// the event stack -- see near the end of app's OnInit() function for where this is done
+/// with CPlaceholder, etc)
+////////////////////////////////////////////////////////////////////////////////////////
+void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
+{
+	wxArrayString* pList = &m_pApp->m_acceptedFilesList;
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	CAdapt_ItView* pView = m_pApp->GetView();
+	wxASSERT(pDoc);
+	wxASSERT(pView);
+
+	// variables below added by whm 27Apr09 for reporting errors in docs used for KB
+	// restore 
+	bool bAnyDocChanged;
+	bAnyDocChanged = FALSE;
+	wxArrayString errors; // for use by KBRestoreErrorLog file
+	wxArrayString docIntros; // for use by KBRestoreErrorLog file
+	wxString errorStr;
+	wxString logName = _T("KBRestoreErrorLog.txt");
+	
+    // The error is not likely to have happend much, and the document text itself was not
+    // changed, so an English message in the log file should suffice.
+    errors.Clear();
+	wxDateTime theTime = wxDateTime::Now();
+	wxString dateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
+    wxString logFileTime;
+	logFileTime = logFileTime.Format(_T("This is the %s file - created %s."),logName.c_str(),dateTime.c_str());
+	errors.Add(logFileTime);
+	errors.Add(_T("\n\nDuring the KB Restore operation, punctuation errors were found and corrected in the KB,"));
+	errors.Add(_T("\nand changes were made to the punctuation stored in one or more documents used to restore the KB."));
+	errors.Add(_T("\nPlease Note the Following:")); 
+	errors.Add(_T("\n* You should no longer notice any punctuation in KB entries when viewed with the KB Editor.")); 
+	errors.Add(_T("\n* With punctuation purged from the KB Adapt It should handle punctuation in your documents as you expect.")); 
+	errors.Add(_T("\n* You may wish to open the document(s) below in Adapt It and check the punctuation for the items listed.")); 
+	errors.Add(_T("\n\n   In the following document(s) punctuation was removed from non-punctuation fields (see below):")); 
+	// iterate over the document files
+	int i;
+	for (i=0; i < nCount; i++)
+	{
+		wxString newName = pList->Item(i);
+		wxASSERT(!newName.IsEmpty());
+
+		bool bOK;
+		bOK = pDoc->OnOpenDocument(newName);
+        // The docview sample has a routine called SetFileName() that it uses to override
+        // the automatic associations of file name/path of a doc with a view. The
+        // wxDocument member that holds the file name/path is m_documentFile. I've put the
+        // SetFileName() routine in the Doc so we can do this like MFC has it.
+		pDoc->SetFilename(newName,TRUE); // here TRUE means "notify the views" whereas
+									// in the MFC version TRUE meant "add to MRU list"
+		
+		// Prepare an intro string for this document in case it has errors.
+		errors.Add(_T("\n   ----------------------------------------"));
+		// which had been wrongly stored there by a previous version of Adapt
+		wxString docStr;
+		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
+		errors.Add(docStr);
+
+		nTotal = m_pApp->m_pSourcePhrases->GetCount();
+		wxASSERT(nTotal > 0);
+		nCumulativeTotal += nTotal;
+
+		// put up a progress indicator
+		wxString progMsg = _("%s  - %d of %d Total words and phrases");
+		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
+		wxProgressDialog progDlg(_("Restoring the Knowledge Base"),
+								msgDisplayed,
+								nTotal,    // range
+								(wxWindow*)m_pApp->GetMainFrame(),   // parent
+								//wxPD_CAN_ABORT |
+								//wxPD_CAN_SKIP |
+								wxPD_APP_MODAL |
+								wxPD_AUTO_HIDE //| -- try this as well
+								//wxPD_ELAPSED_TIME |
+								//wxPD_ESTIMATED_TIME |
+								//wxPD_REMAINING_TIME
+								//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+								);
+		SPList* pPhrases = m_pApp->m_pSourcePhrases;
+		SPList::Node* pos1 = pPhrases->GetFirst();
+		int counter = 0;
+		bool bThisDocChanged = FALSE;
+		while (pos1 != NULL)
+		{
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pos1 = pos1->GetNext();
+			counter++;
+
+			// update the glossing or adapting KB for this source phrase
+			RedoStorage(pSrcPhrase,errorStr);
+			if (!errorStr.IsEmpty())
+			{
+				// an error was detected (punctuation in non-punctuation field of doc)
+				bThisDocChanged = TRUE;
+				errors.Add(errorStr);
+				errorStr.Empty(); // for next iteration
+			}
+
+			// update the progress bar every 20th iteration
+			if (counter % 1000 == 0) //if (20 * (counter / 20) == counter)
+			{
+				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
+				progDlg.Update(counter,msgDisplayed);
+			}
+		}
+		// whm added 27Apr09 to save any changes made by RedoStorage above
+		if (bThisDocChanged)
+		{
+			bAnyDocChanged = TRUE;
+			// Save the current document before proceeding
+			wxCommandEvent evt;
+			pDoc->OnFileSave(evt);
+		}
+		else
+		{
+			errors.Add(_T("\n      * No changes were made in this file! *"));
+		}
+
+		pView->ClobberDocument();
+
+		// delete the buffer containing the filed-in source text
+		if (m_pApp->m_pBuffer != NULL)
+		{
+			delete m_pApp->m_pBuffer;
+			m_pApp->m_pBuffer = (wxString*)NULL;
+		}
+
+        // wx version note: Since the progress dialog is modeless we do not need to destroy
+        // or otherwise end its modeless state; it will be destroyed when DoKBRestore goes
+        // out of scope
+
+		// save the KB now that we have finished this document file (FALSE = no backup wanted)
+		bool bSavedOK;
+		if (m_bGlossingKB)
+			bSavedOK = m_pApp->SaveGlossingKB(FALSE);
+		else
+			bSavedOK = m_pApp->SaveKB(FALSE);
+		if (!bSavedOK)
+		{
+			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
+							_T(""), wxICON_INFORMATION);
+		}
+		
+		// remove the progress indicator window
+		progDlg.Destroy();
+	}
+	
+	if (bAnyDocChanged)
+	{
+	
+		wxLogNull logNo; // avoid spurious messages from the system
+
+		// The wxArrayString errors contains all the text to be written to the log file
+		errors.Add(_T("\n\nEnd of log."));
+		// Write out errors to external log file.
+		bool bOK;
+		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath);
+        // Note: Since we want a text file output, we'll use wxTextOutputStream which
+        // writes text files as a stream on DOS, Windows, Macintosh and Unix in their
+        // native formats (concerning their line endings)
+		wxFileOutputStream output(logName);
+		wxTextOutputStream cout(output);
+
+		// Write out the contents of the errors array dumping it to the wxTextOutputStream
+		int ct;
+		for (ct = 0; ct < (int)errors.GetCount(); ct++)
+		{
+            // The wxArrayString errors contains the boiler text composed above plus the
+            // individual errorStr strings received from RedoStorage()
+			cout << errors.Item(ct);
+		}
+		wxString msg;
+		msg = msg.Format(_(
+"Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),
+		logName.c_str());
+		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
+	}
+	errors.Clear(); // clear the array
+}
 
 

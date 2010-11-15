@@ -450,7 +450,7 @@ extern bool gbExcludeCurrentProject;
 extern bool gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbRemovePunctuationFromGlosses;
+//extern bool gbRemovePunctuationFromGlosses; << BEW removed 13Nov10, it's nowhere set TRUE
 
 /// This global is defined in Adapt_ItView.cpp.
 extern int gnSelectionLine;
@@ -10810,6 +10810,18 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+    // BEW 11Oct10, we need this fast-access string for improving punctuation support when
+	// inline markers are in the immediate context (since endmarkers for inline markers
+	// should be handled within ParseWord(), we'll have two strings
+	m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* ");
+	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig ");
+	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh ");
+
+	//wxString s = _T("*f\\ *x\\");
+	//const wxChar* pBuf = s.GetData();
+	//int itemLen = ParseMarker(pBuf); // <- testing the one in helpers.cpp, it returns 2, not 3, 
+									 // for *f\ (the reversed \f* marker), so it needs fixing
+
 	m_pUsfm2Oxes = NULL; // BEW added 2Sep10
 	m_bOxesExportInProgress = FALSE;
 
@@ -11374,7 +11386,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbEnableGlossing = FALSE;
 	gbIsGlossing = FALSE;
 	gbGlossingUsesNavFont = FALSE;
-	gbRemovePunctuationFromGlosses = FALSE;
+	//gbRemovePunctuationFromGlosses = FALSE; << BEW removed 13Nov10, it's nowhere set TRUE
 	gnSelectionLine = -1;
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
@@ -15208,6 +15220,11 @@ int ii = 1;
 //wxString aPath = _T("C:\\Card1\\Hezdocxml");
 //bool bIsLoadable = IsLoadableFile(aPath);
 //bIsLoadable = bIsLoadable;
+
+//wxString testStr =  _T("“ ‘First?! second, third’: ” fourth?");
+//wxString testStr = _T("“ ‘First?;!$second’: ”"); // test fixedSpace symbol
+//GetView()->RemovePunctuation(GetDocument(),&testStr,1);
+
 
 m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been created,
 		// has at least one file in it, then the app auto-configures to not show the user
@@ -20168,7 +20185,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 		// there is at least one document, so do the restore
-		DoKBRestore(pKB, nCount, nTotal, nCumulativeTotal);
+		pKB->DoKBRestore(nCount, nTotal, nCumulativeTotal);
 	}
 	else
 	{
@@ -20335,7 +20352,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 						// There are files to be processed. TRUE parameter suppresses the statistics
 						// dialog 
-						DoKBRestore(pKB, nCount, nTotal, nCumulativeTotal);
+						pKB->DoKBRestore(nCount, nTotal, nCumulativeTotal);
                         
 						//bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
 						// BEW altered 19Mar2010, because the reopening of finder by the
@@ -20831,200 +20848,6 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 	return TRUE;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      pKB               -> pointer to the affected KB
-/// \param      nCount            <- the count of files in the folder being processed
-/// \param      nTotal            <- the total source phrase instances in the doc 
-///                                  being processed
-/// \param      nCumulativeTotal  <- the accumulation of the nTotal values over all 
-///                                  documents processed so far
-/// \remarks
-/// Called from: the App's OnFileRestoreKb(). 
-/// Iterates over the document files of a project, opens them and uses the data stored
-/// within them to regererate new Knowledge Base file(s) from those documents.
-/// This function assumes that the current directory will have already been set correctly
-/// before being called. Modified to support restoration of either the glossing KB, or the
-/// adaptation KB - which one gets the restoration depends on the gbIsGlossing flag's
-/// value. Allows for the possibility that Bible book folders may be in the Adaptations
-/// folder.
-////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulativeTotal)
-{
-	wxArrayString* pList = &m_acceptedFilesList;
-	CAdapt_ItDoc* pDoc = GetDocument();
-	CAdapt_ItView* pView = GetView();
-	wxASSERT(pDoc);
-	wxASSERT(pView);
-
-	// variables below added by whm 27Apr09 for reporting errors in docs used for KB
-	// restore 
-	bool bAnyDocChanged;
-	bAnyDocChanged = FALSE;
-	wxArrayString errors; // for use by KBRestoreErrorLog file
-	wxArrayString docIntros; // for use by KBRestoreErrorLog file
-	wxString errorStr;
-	wxString logName = _T("KBRestoreErrorLog.txt");
-	
-    // The error is not likely to have happend much, and the document text itself was not
-    // changed, so an English message in the log file should suffice.
-    errors.Clear();
-	wxDateTime theTime = wxDateTime::Now();
-	wxString dateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
-    wxString logFileTime;
-	logFileTime = logFileTime.Format(_T("This is the %s file - created %s."),logName.c_str(),dateTime.c_str());
-	errors.Add(logFileTime);
-	errors.Add(_T("\n\nDuring the KB Restore operation, punctuation errors were found and corrected in the KB,"));
-	errors.Add(_T("\nand changes were made to the punctuation stored in one or more documents used to restore the KB."));
-	errors.Add(_T("\nPlease Note the Following:")); 
-	errors.Add(_T("\n* You should no longer notice any punctuation in KB entries when viewed with the KB Editor.")); 
-	errors.Add(_T("\n* With punctuation purged from the KB Adapt It should handle punctuation in your documents as you expect.")); 
-	errors.Add(_T("\n* You may wish to open the document(s) below in Adapt It and check the punctuation for the items listed.")); 
-	errors.Add(_T("\n\n   In the following document(s) punctuation was removed from non-punctuation fields (see below):")); 
-	// iterate over the document files
-	int i;
-	for (i=0; i < nCount; i++)
-	{
-		wxString newName = pList->Item(i);
-		wxASSERT(!newName.IsEmpty());
-
-		bool bOK;
-		bOK = pDoc->OnOpenDocument(newName);
-        // The docview sample has a routine called SetFileName() that it uses to override
-        // the automatic associations of file name/path of a doc with a view. The
-        // wxDocument member that holds the file name/path is m_documentFile. I've put the
-        // SetFileName() routine in the Doc so we can do this like MFC has it.
-		pDoc->SetFilename(newName,TRUE); // here TRUE means "notify the views" whereas
-									// in the MFC version TRUE meant "add to MRU list"
-		
-		// Prepare an intro string for this document in case it has errors.
-		errors.Add(_T("\n   ----------------------------------------"));
-		// which had been wrongly stored there by a previous version of Adapt
-		wxString docStr;
-		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
-		errors.Add(docStr);
-
-		nTotal = m_pSourcePhrases->GetCount();
-		wxASSERT(nTotal > 0);
-		nCumulativeTotal += nTotal;
-
-		// put up a progress indicator
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
-		wxProgressDialog progDlg(_("Restoring the Knowledge Base"),
-								msgDisplayed,
-								nTotal,    // range
-								GetMainFrame(),   // parent
-								//wxPD_CAN_ABORT |
-								//wxPD_CAN_SKIP |
-								wxPD_APP_MODAL |
-								wxPD_AUTO_HIDE //| -- try this as well
-								//wxPD_ELAPSED_TIME |
-								//wxPD_ESTIMATED_TIME |
-								//wxPD_REMAINING_TIME
-								//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-								);
-		SPList* pPhrases = m_pSourcePhrases;
-		SPList::Node* pos1 = pPhrases->GetFirst();
-		int counter = 0;
-		bool bThisDocChanged = FALSE;
-		while (pos1 != NULL)
-		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
-			pos1 = pos1->GetNext();
-			counter++;
-
-			// update the glossing or adapting KB for this source phrase
-			pView->RedoStorage(pKB,pSrcPhrase,errorStr);
-			if (!errorStr.IsEmpty())
-			{
-				// an error was detected (punctuation in non-punctuation field of doc)
-				bThisDocChanged = TRUE;
-				errors.Add(errorStr);
-				errorStr.Empty(); // for next iteration
-			}
-
-			// update the progress bar every 20th iteration
-			if (counter % 1000 == 0) //if (20 * (counter / 20) == counter)
-			{
-				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
-				progDlg.Update(counter,msgDisplayed);
-			}
-		}
-		// whm added 27Apr09 to save any changes made by RedoStorage above
-		if (bThisDocChanged)
-		{
-			bAnyDocChanged = TRUE;
-			// Save the current document before proceeding
-			wxCommandEvent evt;
-			pDoc->OnFileSave(evt);
-		}
-		else
-		{
-			errors.Add(_T("\n      * No changes were made in this file! *"));
-		}
-
-		GetView()->ClobberDocument();
-
-		// delete the buffer containing the filed-in source text
-		if (m_pBuffer != NULL)
-		{
-			delete m_pBuffer;
-			m_pBuffer = (wxString*)NULL;
-		}
-
-        // wx version note: Since the progress dialog is modeless we do not need to destroy
-        // or otherwise end its modeless state; it will be destroyed when DoKBRestore goes
-        // out of scope
-
-		// save the KB now that we have finished this document file (FALSE = no backup wanted)
-		bool bSavedOK;
-		if (gbIsGlossing)
-			bSavedOK = SaveGlossingKB(FALSE);
-		else
-			bSavedOK = SaveKB(FALSE);
-		if (!bSavedOK)
-		{
-			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
-							_T(""), wxICON_INFORMATION);
-		}
-		
-		// remove the progress indicator window
-		progDlg.Destroy();
-	}
-	
-	if (bAnyDocChanged)
-	{
-	
-		wxLogNull logNo; // avoid spurious messages from the system
-
-		// The wxArrayString errors contains all the text to be written to the log file
-		errors.Add(_T("\n\nEnd of log."));
-		// Write out errors to external log file.
-		bool bOK;
-		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
-        // Note: Since we want a text file output, we'll use wxTextOutputStream which
-        // writes text files as a stream on DOS, Windows, Macintosh and Unix in their
-        // native formats (concerning their line endings)
-		wxFileOutputStream output(logName);
-		wxTextOutputStream cout(output);
-
-		// Write out the contents of the errors array dumping it to the wxTextOutputStream
-		int ct;
-		for (ct = 0; ct < (int)errors.GetCount(); ct++)
-		{
-            // The wxArrayString errors contains the boiler text composed above plus the
-            // individual errorStr strings received from RedoStorage()
-			cout << errors.Item(ct);
-		}
-		wxString msg;
-		msg = msg.Format(_(
-"Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),
-		logName.c_str());
-		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
-	}
-	errors.Clear(); // clear the array
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -26698,13 +26521,15 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 /// - which then causes a dialog to open for the user to navigate to the source project to
 /// be used for the transformations. Note: the source project's doc files and kbs are NOT
 /// changed in any way in this transformation process. Then when the dialog is dismissed
-/// the transformations are done. The target target project's KB is cleared out, so the
-/// user should not try to do any work in it prior to setting the transformation process
-/// into effect.
+/// the transformations are done. 
+/// The target target project's KB and glossingKB are exported to temporary files before
+/// the transforms are done, and then after they are finished, they are imported
+/// automatically back to the KBs - so if there are adaptations or glosses initially in the
+/// being-transformed project, they won't be lost.
 /// Note 2: The both source and target projects will be, and must be, within the one work
 /// folder. It is not possible to perform this transformation across work folders on
 /// different machines, nor between two work folders on the same machine. (BEW 11Sep09)
-/// BEW 2July10, updated for support of kbVersion 2
+/// BEW 2July10, updated for support of kbVersion 2, and preserving KB contents too
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AccessOtherAdaptionProject()
 {
@@ -26926,8 +26751,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
         // the other KB is now in memory, so we can scan its contents and transfer them to
         // the current project's glossing KB; remember, null src phrases must not be
-        // transferred, nor <Not In KB> entries, and all maps are squished into the one map
-        // in the glossing KB (code pinched from DoKBIntegrityCheck() and then modified)
+        // transferred, nor <Not In KB> entries
 		int nMaxIndex = pOtherKB->m_nMaxWords - 1; // index of highest map having content
 		MapKeyStringToTgtUnit* pMap = (MapKeyStringToTgtUnit*)NULL;
 		CTargetUnit* pTgtUnit = (CTargetUnit*)NULL;
@@ -26972,11 +26796,11 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 						continue; // skip any in which every CRefString is deleted
 
                     // if we get to here, then we may have a target unit which has to be
-                    // associated with the key and go into the glossing KB's first map -
-                    // but one which just has a non-deleted "<Not In KB>" adaptation will
-                    // need to be ignored - so check for that and if found then delete the
-					// new CTargetUnit and iterate; otherwise, accept all the contents
-					// that remain unremoved
+                    // associated with the key and go into the glossing KB's same numbered
+                    // map - but one which just has a non-deleted "<Not In KB>" adaptation
+                    // will need to be ignored - so check for that and if found then delete
+                    // the new CTargetUnit and iterate; otherwise, accept all the contents
+                    // that remain unremoved
 					CTargetUnit* pGlossingTgtUnit = new CTargetUnit; // create an empty one
 					wxASSERT(pGlossingTgtUnit != NULL);
 					pGlossingTgtUnit->Copy(*pTgtUnit); // copy it (a copy constructor does not
@@ -27004,8 +26828,11 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 					}
 
 					wxASSERT(pGlossingTgtUnit->CountNonDeletedRefStringInstances() >= 1);
-					(*m_pGlossingKB->m_pMap[0])[key] = pGlossingTgtUnit; // put it into the map
-					m_pGlossingKB->m_nMaxWords = 1; // always is 1 for the glossing KB
+					(*m_pGlossingKB->m_pMap[index])[key] = pGlossingTgtUnit; // put it into the map
+
+					//m_pGlossingKB->m_nMaxWords = 1; // always is 1 for the glossing KB
+					m_pGlossingKB->m_nMaxWords = nMaxIndex; // BEW 13Nov10, glossing KB uses all maps now
+					
 				} // end block for scanning all associations stored in the current map
 			} // end block for processing a map with contents
 		} // end for loop for processing all maps
@@ -27027,7 +26854,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 				_T(""), wxICON_INFORMATION);
 //		}
 
-		// delete the other project's KB from the heap
+			// delete the other project's copied KB from the heap (the original is still safe
+			// on disk)
 		pDoc->EraseKB(pOtherKB); 
 
 		// store the filled glossing KB on disk; leave it open since the user may want to
@@ -27278,6 +27106,9 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 /// document filenames and skip the transform process for any such matches (which protects
 /// against inadventent data loss because the user may have done some adapting work in the
 /// target project since the last transformation process)
+/// BEW 11Oct10, no changes for additions to doc version 5 (but the
+/// TransformSourcePhraseAdaptationsToGlosses() function has some - to support !$ particularly)
+/// BEW 13Nov10 no changes for supporting Bob Eaton's request that glossing KB use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList, 
 											  CAdapt_ItDoc* pDoc,

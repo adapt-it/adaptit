@@ -7774,7 +7774,7 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item44 = new wxStaticBox( parent, -1, _("Report handling:") );
     wxStaticBoxSizer *item43 = new wxStaticBoxSizer( item44, wxVERTICAL );
 
-    wxButton *item45 = new wxButton( parent, ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, _("Save report as text file"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item45 = new wxButton( parent, ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, _("Save report as text file (xml)"), wxDefaultPosition, wxDefaultSize, 0 );
     item45->SetToolTip( _("Click to save this report on your computer, if desired, before sending it as email") );
     item43->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 

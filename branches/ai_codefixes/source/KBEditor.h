@@ -54,6 +54,7 @@ public:
 	wxTextCtrl*		m_pEditSearches;
 	wxComboBox*		m_pComboOldSearches; // BEW added 22Jan10
 	wxStaticText*	m_pStaticCount;
+	wxStaticText*	m_pStaticWhichKB; // BEW added 13Nov10
 	wxListBox*		m_pListBoxExistingTranslations;
 	wxListBox*		m_pListBoxKeys;
 	wxNotebook*		m_pKBEditorNotebook;

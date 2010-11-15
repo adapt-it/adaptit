@@ -70,6 +70,11 @@ enum ExportType
 */
 
 // main export functions:
+wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
+wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
+					 bool& bAddedSomething, bool bIncludeNote,
+					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine); // BEW created 11Oct10
+wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
 void		DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion); // BEW created 6Aug09
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
@@ -103,7 +108,7 @@ void		ChangeCustomMarkersToParatextPrivates(wxString& buffer);
 bool		DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, 
 											   wxChar* pPosAfterMkr, wxString& spacelessPuncts);
 int			GetWordCount(wxString& str, wxArrayString* pStrList);
-void		FormatMarkerBufferForOutput(wxString& str);
+void		FormatMarkerBufferForOutput(wxString& str, enum ExportType expType);
 void		FormatUnstructuredTextBufferForOutput(wxString& str, bool bRTFOutput);
 int			ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar, 
 							enum ParseError& parseError);
@@ -118,6 +123,12 @@ bool		ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxStrin
 							enum ParseError& parseError, enum CallerType& callerType, 
 							wxString suppliedCaller, bool bSuffixFreeTransToFootnoteBody, 
 							wxString& freeAssocStr);
+wxString	GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
+							SPList* pSrcPhrases, wxString filteredInfo_NoXRef,
+							wxString collBackTransStr, wxString freeTransStr,
+							wxString noteStr);
+wxString	GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr, 
+							wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers);
 wxString	GetStyleNumberStrFromRTFTagStr(wxString tagStr, int& startPos, int& endPos); // whm added 18Oct05
 bool		MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup); // whm added 18Nov05
 wxString	GetANSIorUnicodeRTFCharsFromString(wxString inStr);

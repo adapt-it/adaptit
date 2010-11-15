@@ -896,8 +896,10 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 }
 
 // BEW 17Feb10 updated to support doc version 5 (no changes were needed)
+// BEW 11Oct10, made a small change, but the essentials were already okay, it already
+// copies the punctuated m_srcPhrase string into m_targetStr
 void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransList,
-															int nStartSequNum,int nNewCount,int nCount,int& nFinish)
+						int nStartSequNum,int nNewCount,int nCount,int& nFinish)
 {
 	// BEW refactored 16Apr09
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -906,8 +908,8 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 	for (int j=0; j<nFinish; j++)
 	{
 		nSequNum++;
-		CPile* pPile = m_pView->GetPile(nSequNum); // needed, because the InsertNullSourcePhrase()
-		// clobbered ptrs and so did a RecalcLayout()
+		CPile* pPile = m_pView->GetPile(nSequNum); // needed, because the
+						// we did a RecalcLayout() in the caller beforehand
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pPile->GetSrcPhrase(); // update this one
 		
 		if (j == 0)
@@ -947,15 +949,26 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 			
 			// BEW added 13Mar09 for refactored layout
 			pDoc->ResetPartnerPileWidth(pSrcPhrase); // resets width and marks the
-			// owning strip invalid
+													 // owning strip invalid
 		}
 		
-        // if nNewCount was less than nCount, we must clear any old punctuation off the
-        // unused source phrases at the end of the selection (we will leave markers
-        // untouched) so that the typed punctuation effectively overrides that on the
-        // source
+        // if nNewCount was less than nCount, we must clear any old m_targetStr and
+        // m_adaption test off of the unused source phrases at the end of the selection (we
+		// will leave markers untouched) -- MakeTargetStringIncludingPunctuation() does
+		// not get called for setting up m_targetStr when we are in a retranslation
 		if (j >= nNewCount)
 		{
+			// BEW 11Oct10, added next two tests to remove content from m_adaption and
+			// m_targetStr when it's beyond the end of where the new translation ends
+			// (this might get done in the caller, but here is probably better)
+			if (!pSrcPhrase->m_adaption.IsEmpty())
+			{
+				pSrcPhrase->m_adaption.Empty();
+			}
+			if (!pSrcPhrase->m_targetStr.IsEmpty())
+			{
+				pSrcPhrase->m_targetStr.Empty();
+			}
 			pDoc->ResetPartnerPileWidth(pSrcPhrase);
 		}
 	}
@@ -1548,7 +1561,6 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	
 	if (gbIsGlossing)
 	{
-		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
 					 _T(""), wxICON_INFORMATION);
@@ -1582,7 +1594,6 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	
 	if (nCount == (int)m_pApp->m_pSourcePhrases->GetCount())
 	{
-		//IDS_RETRANS_NOT_ALL_OF_DOC
 		wxMessageBox(_(
 					   "Sorry, for a retranslation your selection must not include all the document contents - otherwise there would be no possible place for the phrase box afterwards. Shorten the selection then try again."),
 					 _T(""),wxICON_INFORMATION);
@@ -1596,24 +1607,23 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	pStartingPile = pPile; 
 	pSrcPhrase = pPile->GetSrcPhrase();
 	
-	int nSaveSequNum = pSrcPhrase->m_nSequNumber; // save its sequ number, everything depends
-	// on this - its the first in the sublist list
-    // get a list of the selected CSourcePhrase instances (some might not be minimal ones
-    // so if this is the case we must later restore them to minimal ones, and some might be
-    // placeholders, so these must be later eliminated after their text, if any, is
-    // preserved & any punctuation transferred) and also accumulate the words in the source
-    // and target text into string variables
+	int nSaveSequNum = pSrcPhrase->m_nSequNumber; // save its sequ number, everything
+        // depends on this - its the first in the sublist list get a list of the selected
+        // CSourcePhrase instances (some might not be minimal ones so if this is the case
+        // we must later restore them to minimal ones, and some might be placeholders, so
+        // these must be later eliminated after their text, if any, is preserved & any
+        // punctuation transferred) and also accumulate the words in the source and target
+        // text into string variables
 	GetSelectedSourcePhraseInstances(pList, strSource, strAdapt);
 	
-	// check that the selection is text of a single type - if it isn't, then tell the user and
-	// abandon the operation
+    // check that the selection is text of a single type - if it isn't, then tell the user
+    // and abandon the operation
 	bool bConstType = IsConstantType(pList);
 	if (!bConstType)
 	{
-		// IDS_TYPE_CHANGE_ERR
 		wxMessageBox(_(
-					   "Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."),
-					 _T(""), wxICON_EXCLAMATION);
+"Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."),
+		_T(""), wxICON_EXCLAMATION);
 		m_pView->RemoveSelection();
 		delete pList;
 		pList = (SPList*)NULL;
@@ -1628,10 +1638,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // if there is one
 	if (IsRetranslationInSelection(pList))
 	{
-		// IDS_NO_RETRANSLATION_IN_SEL
 		wxMessageBox(_(
-					   "Sorry, but this operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."),
-					 _T(""), wxICON_EXCLAMATION);
+"Sorry, but this operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."),
+		_T(""), wxICON_EXCLAMATION);
 		pList->Clear();
 		delete pList;
 		pList = (SPList*)NULL;
@@ -1686,10 +1695,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		// the active location is not within the retranslation section, so update before
 		// throwing it all out
-		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
+		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),
+														m_pApp->m_targetPhrase);
 		m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 		gbInhibitMakeTargetStringCall = TRUE;
-		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
+		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
+											m_pApp->m_targetPhrase);
 		gbInhibitMakeTargetStringCall = FALSE;
 		if (!bOK)
 		{
@@ -1703,7 +1714,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
             // layout from that point on; mark it invalid as well as the current one
 			int nFormerStrip = m_pApp->m_pActivePile->GetStripIndex();
 			pDoc->ResetPartnerPileWidth(m_pApp->m_pActivePile->GetSrcPhrase()); // & mark 
-			// the active strip invalid
+															// the active strip invalid
 			int nCurStripIndex = pStartingPile->GetStripIndex();
 			if (nCurStripIndex != nFormerStrip)
 			{
@@ -1711,7 +1722,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 				CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
 				CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 				pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase,TRUE); // TRUE is 
-				// bNoActiveLocationCalculation
+												// bNoActiveLocationCalculation
 			}
 		}
 	}
@@ -1735,12 +1746,37 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	if (nSaveActiveSequNum > nEndSequNum)
 		bActiveLocAfterSelection = TRUE;
 	
-	// check for any null source phrases in the selection, and delete any found from both the
-	// temporary list (pList), and from the original source phrases list on the app (see above)
+    // check for any null source phrases in the selection, and delete any found from both
+    // the temporary list (pList), and from the original source phrases list on the app
+	// (see above). The outer loop removes only the next placeholder found in pList, so we
+	// need a loop to get rid of them all. The Untransfer... call only needs to do its job
+	// once, so we use a flag to make that happen
+	bool bDoneAlready = FALSE;
 	while (IsNullSrcPhraseInSelection(pList))
 	{
-		m_pApp->GetPlaceholder()->RemoveNullSrcPhraseFromLists(pList, pSrcPhrases, nCount, nEndSequNum,
-									 bActiveLocAfterSelection, nSaveActiveSequNum);
+		// BEW 11Oct10, RemoveNullSrcPhraseFromLists() does not call RemoveNullSrcPhrase()
+		// and so it's smarts re marker and punctuation transfer are not used here - we
+		// would only get away with this (ie. without losing some punct or marker data) here if
+		// the user were to do his retranslations on selections which don't contain
+		// placeholders. So I've coded a function to undo previous transfers which can be
+		// called first, in a loop, and then all will be well for the subsequent removal(s)
+		if (bDoneAlready == FALSE)
+		{
+			SPList::Node* pos = pList->GetFirst();
+			CSourcePhrase* pSP = NULL;
+			while (pos != NULL)
+			{
+				pSP = pos->GetData();
+				if (pSP->m_bNullSourcePhrase)
+				{
+					m_pApp->GetPlaceholder()->UntransferTransferredMarkersAndPuncts(pSrcPhrases, pSP);
+				}
+				pos = pos->GetNext();
+			}
+			bDoneAlready = TRUE;
+		}
+		m_pApp->GetPlaceholder()->RemoveNullSrcPhraseFromLists(pList, pSrcPhrases, nCount,
+							nEndSequNum, bActiveLocAfterSelection, nSaveActiveSequNum);
 	}
 	
     // at this point pList does not contain any null source phrases, and we have
@@ -1837,10 +1873,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		// tokenization operation
 		
         // tokenize the retranslation into a list of new CSourcePhrase instances on the
-        // heap (they are incomplete - only m_key and m_nSequNumber are set); nSaveSequNum
-        // is the absolute sequence number for first source phrase in the sublist - it is
-        // used to define the starting sequence number to be stored on the first element of
-        // the sublist, and higher numbers on succeeding ones
+        // heap (they are incomplete - only m_srcPhrase, m_key, m_nSequNumber and
+        // punctuation are set -- the user is unlikely to have typed any markers in his
+        // retranslation); nSaveSequNum is the absolute sequence number for first source
+        // phrase in the sublist - it is used to define the starting sequence number to be
+        // stored on the first element of the sublist, and higher numbers on succeeding
+        // ones
 		nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
 		
 		// augment the active sequ num if it lay after the selection
@@ -1849,12 +1887,15 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		else
 		{
 			// augment it also if the active location lay within the selection
-			// and null source phrases were inserted
+            // (BEW 11Oct10, I dunno why I long ago put this extra text here, if nNewCount
+            // exceeds nCount, the augmentation won't put the new active sn value into the
+            // 'safe' area beyond the retranslation anyway - I'll leave it though as the
+            // later call to set the active location safely will take care of things)
 			if (bActiveLocWithinSelection && nNewCount > nCount)
 				nSaveActiveSequNum += nNewCount - nCount;
 		}
 		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; // ensure any call to 
-		// InsertNullSrcPhrase() will work right
+									// InsertNullSrcPhrase() will work right
 		
         // we must have a valid layout, so we have to recalculate it before we go any
         // further, because if preceding code unmerged formerly merged phrases, or if null
@@ -1873,10 +1914,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		pStartingPile = m_pView->GetPile(nSaveSequNum);
 		wxASSERT(pStartingPile != NULL);
 		
-		// determine if we need extra null source phrases inserted, 
-		// and insert them if we do
-		PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,
-									  nNewCount,nCount);
+        // determine if we need extra null source phrases inserted, and insert them if we
+        // do; nNewCount is how many we end up with, nCount is the retranslation span's
+        // srcphrase instance count after unmergers and placeholder removal was done
+		PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,nNewCount,nCount);
+
+		// **** Legacy comment -- don't delete, it documents how me need to make changes ****
         // copy the retranslation's words, one per source phrase, to the constituted
         // sequence of source phrases (including any null ones) which are to display it;
         // but ignore any markers and punctuation if they were encountered when the
@@ -1884,6 +1927,41 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
         // settings in the document are preserved. Export will get the possibly new
         // punctuation settings by copying m_targetStr, so we do not need to alter
         // m_precPunct and m_follPunct on the document's CSourcePhrase instances.
+        // 
+		// *** New comment, 11Oct10, for support of new doc version 5 storage members,
+		// m_follOuterPunct and the four inline markers' wxString members.
+		// The legacy approach above fails to handle good punctuation handling because we
+		// need to support punctuation following endmarkers as well as before them. In the
+		// retranslation, we ask the user to type punctuation where it needs to be - that
+		// won't be in the same places as in the source text of the selection; but the
+		// punctuation typed will be parsed by TokenizeTextString() above into only two
+		// members, m_precPunct and m_follPunct, so m_follOuterPunct will be ignored. And
+		// since it is assured that the user won't type markers when doing the
+		// retranslation we then have the problem of how to get the markers into the right
+		// places when an SFM export of the target text is asked for. Our solution to this
+		// dilemma is the following:
+		// (1) When exporting pSrcPhrase instances NOT in a retranslation, the punctuation
+		// and markers are reconstituted from the pSrcPhrase members by algorithm.
+		// (2) When exporting pSrcPhrase instances in a retranslation, the m_targetStr
+		// member is taken "as is" and the pSrcPhrase members for storing puncts (those
+		// will be source text puncts, and not in the right places anyway) will be
+		// ignored, and so what is on m_targetStr is used - just as the user typed it in
+		// the retranslation. The code for building the output SFM target text will have
+		// worked out which markers are "medial" to the retranslation, and will present
+		// those to the user in a placement dialog - so he then can place each marker in
+		// the place where he deems it should be - in this way, he can re-establish, say,
+		// an inline endmarker between two consecutive 'following' punctuation characters.
+		// 
+        // The implication of the above rules for export determine how I need to refactor
+        // the BuildRetranslationSourcePhraseInstances() function. Now it has to generate
+        // the correct m_srcPhrase (ie. with punctuation in its proper place), and store
+        // that m_srcPhrase value in the current pSrcPhrase's m_targetStr member. Any
+        // markers, even if the user typed some, are just to be ignored - at export time
+        // he'll get the chance to place them appropriately - they will be collected as
+        // 'medial markers' from the m_pSourcePhrase instances' involved in the
+        // retranslation's span. Hence, we can leave the source text punctuations in the
+        // pSrcPhrase instances in m_pSourcePhrases untouched, except for changing the
+        // m_targetStr value as explained in the previous sentence.
 		int nFinish = -1; // it gets set to a correct value in the following call
 		BuildRetranslationSourcePhraseInstances(pRetransList,nSaveSequNum,nNewCount,
 												nCount,nFinish);
@@ -1911,8 +1989,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			// legacy behaviour
 			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
 												  // PlacePhraseBox()
-			bool bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
-														 m_pApp->m_nActiveSequNum,nFinish);
+			bool bSetSafely = m_pView->SetActivePilePointerSafely(
+				m_pApp,pSrcPhrases,nSaveActiveSequNum, m_pApp->m_nActiveSequNum,nFinish);
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
@@ -1920,8 +1998,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			{
 				// IDS_ALL_RETRANSLATIONS
 				wxMessageBox(_(
-							   "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."),
-							 _T(""), wxICON_EXCLAMATION);
+"Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."),
+				_T(""), wxICON_EXCLAMATION);
                 // BEW changed 19Mar09 for refactored layout, to comment out & so allow the
                 // phrase box to be shown at the last pile of the document whether there's
                 // a retranslation there or not, if no other safe location is found
@@ -1969,8 +2047,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
 												  // PlacePhraseBox()
 			bool bSetSafely;
-			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
-													m_pApp->m_nActiveSequNum,nFinish);
+			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,
+							nSaveActiveSequNum, m_pApp->m_nActiveSequNum,nFinish);
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
@@ -1997,17 +2075,17 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		// insert the original (saved) source phrases after the nEndSequNum one
 		InsertSublistAfter(pSrcPhrases,pSaveList,nEndSequNum);
 		
-		// now remove the unwanted ones - be careful, some of these single-word ones will point
-		// to memory that any merged source phrases in the saved list will point to in their
-		// m_pSavedWords sublists, so don't delete the memory in the latter sublists,
-		// just remove the pointers!
-		RemoveUnwantedSourcePhraseInstancesInRestoredList(pSrcPhrases,nCurCount,nSaveSequNum,
-														  pSaveList);
+        // now remove the unwanted ones - be careful, some of these single-word ones will
+        // point to memory that any merged source phrases in the saved list will point to
+        // in their m_pSavedWords sublists, so don't delete the memory in the latter
+        // sublists, just remove the pointers!
+		RemoveUnwantedSourcePhraseInstancesInRestoredList(pSrcPhrases,nCurCount,
+														nSaveSequNum, pSaveList);
 		
 		// we can assume nExtras is either 0 or positive
 		if (nSaveActiveSequNum > nSaveSequNum + nOldCount - 1)
-			nSaveActiveSequNum -= nExtras; // decrement only if it lay after the original
-		// selection
+			nSaveActiveSequNum -= nExtras; // decrement only if it lay after
+										   // the original selection
 		
 		// renumber the sequence numbers
 		m_pView->UpdateSequNumbers(0);
@@ -2070,7 +2148,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	}
 	else
 	{
-		if (pSrcPhrase->m_targetStr.IsEmpty() && !pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB)
+		if (pSrcPhrase->m_targetStr.IsEmpty() && 
+			!pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB)
 		{
 			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
 			RestoreTargetBoxText(pSrcPhrase,str3); // for getting a suitable m_targetStr contents

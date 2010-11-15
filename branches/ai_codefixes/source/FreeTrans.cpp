@@ -1111,6 +1111,8 @@ void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 /// member!
 /// BEW 19Feb10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 25Oct10, changed to use Trim() - since pSrcPhrase->m_targetStr is typically passed
+/// in, the algorithm needs no change for support of additional members of CSourcePhrase
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, 
 											wxString& punctSet)
@@ -1118,8 +1120,7 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 	// beware, phrase can sometimes have a final space following punctuation - so first
 	// remove trailing spaces
 	phrase = MakeReverse(phrase);
-	while (phrase.GetChar(0) == _T(' ')) // remove (now initial) spaces, if any
-		phrase.Remove(0,1); // need second param of 1 otherwise will truncate
+	phrase.Trim(FALSE); // trim from the start to remove (now initial) spaces, if any
 	wxString endingPuncts;
 	if (phrase.IsEmpty())
 	{
@@ -1146,6 +1147,10 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 ///                         is returned, that passed in pile will be excluded from the
 ///                         current free translation section being delimited, and scanning
 ///                         will stop)
+/// \param bAtFollowingPile <- FALSE if pThisPile is the one to halt at (ie. it is not in the
+///                            section). But that won't work for \f*, \fe* or \x* storage 
+///                            locations - for those, return TRUE here, and the caller will
+///                            know that that pile is to be included in the section.
 /// \remarks
 /// We don't want a situation, such as in introductory material at the start of a book
 /// where there are no verses defined, and perhaps limited or no punctuation as well, for
@@ -1164,9 +1169,13 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 /// BEW modified 19Feb10, for support of doc version 5. New version does not have endmarkers in
 /// m_markers any more, but in m_endMarkers (and only endmarkers there, else it is empty)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 11Oct10, fixes a failure, for doc version 5, of the sectioning to halt a section
+/// starting within a footnote between the CSourcePhrase storing \f* and the one follows.
+/// (Before the fix, the instance with \f* was excluded from the section.)
 /////////////////////////////////////////////////////////////////////////////////
-bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
+bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFollowingPile)
 {
+	bAtFollowingPile = FALSE; // default value
 	USFMAnalysis* pAnalysis = NULL;
 	wxString bareMkr;
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -1187,7 +1196,7 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
 
 	// handle any endmarker - it causes a halt unless it has TextType
 	// of none, or is an endmarker for embedded markers in a footnote or cross
-	// reference section
+	// reference section, or endnote
 	int mkrLen = 0;
 	wxString ftnoteMkr = _T("\\f");
 	wxString xrefMkr = _T("\\x");
@@ -1205,7 +1214,10 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
 
 			// is it \f* or \x* ? (or if PngOnly is current, \F or \fe ?)
 			if (mkr == ftnoteMkr + _T('*'))
-				return TRUE; // halt scanning
+			{
+				bAtFollowingPile = TRUE;
+				return TRUE; // halt scanning at next location
+			}
 			if (mkr == xrefMkr + _T('*'))
 				return TRUE;
 			if (m_pApp->gCurrentSfmSet == UsfmOnly && 
@@ -1746,6 +1758,10 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 ///	IsFreeTranslationEndDueToMarker() called internally has extensive changes for
 ///	doc version 5)
 ///	BEW 9July10, no changes needed for support of kbVersion 2
+///	BEW 11Oct10, extra changes for doc version 5 required no changes here, but a bug was
+///	found - the section definition within a footnote span would not include the final
+///	CSourcePhrase on which the \f* was stored. This required a change in 
+///	IsFreeTranslationEndDueToMarker()	
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
@@ -1910,12 +1926,27 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			}
 			// BEW 19Feb10, IsFreeTranslationEndDueToMarker() modified to support
 			// doc version 5 
-			if (IsFreeTranslationEndDueToMarker(pNextPile))
-				break; // halt scanning, we've bumped into a SF marker which is 
-                       // significant enough for us to consider that something quite
-                       // different follows, or a filtered section starts at pNextPile
-                       // - and that too indicates potential major change in the text
-                       // at the next pile
+			bool bHaltAtFollowingPile = FALSE;
+			bool bIsItThisPile = IsFreeTranslationEndDueToMarker(pNextPile, bHaltAtFollowingPile);
+			if (bIsItThisPile)
+			{
+				if (!bHaltAtFollowingPile)
+				{
+					break; // halt scanning, we've bumped into a SF marker which is 
+						   // significant enough for us to consider that something quite
+                           // different follows, or a filtered section starts at pNextPile
+                           // - and that too indicates potential major change in the text
+                           // at the next pile
+				}
+				else
+				{
+					// we need to go one pile further - it exists because pNextPile is it
+					wordcount += pNextPile->GetSrcPhrase()->m_nSrcWords;
+					bHaltAtFollowingPile = TRUE;
+					m_pCurFreeTransSectionPileArray->Add(pNextPile);
+					break;
+				}
+            }
 			// determine if we can start testing for the end of the section
 			// BEW 28Apr06, we are now counting words, so use to MIN_FREE_TRANS_WORDS, 
 			// & still = 5 (See AdaptitConstants.h)
@@ -1958,7 +1989,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			// not enough piles to permit section to end, or end criteria not yet
 			// satisfied, so keep iterating
 			pile = m_pView->GetNextPile(pile);
-		}
+		} // end of loop block for test: while (pile != NULL)
 
         // Other calculations re strip and rects and composing default ft text -- all based
         // on the array as filled out by the above loop - these calculations should be done
@@ -3006,10 +3037,25 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
                     //     existing free translation somehow managed to span a text type
                     //     boundary, in which case we would continue scanning back until we
                     //     found the first pile of that existing free translation.
-					
-					if (IsFreeTranslationEndDueToMarker(pPrevPile))
+					// BEW added extra bool param, to fix bug, 11Oct10
+					bool bHaltAtFollowingPile = FALSE;
+					bool bIsItThePrevPile = IsFreeTranslationEndDueToMarker(pPrevPile,
+															bHaltAtFollowingPile);
+					if (bIsItThePrevPile)
 					{
-						break;
+						if (!bHaltAtFollowingPile)
+						{
+							break;
+						}
+						else
+						{
+							// we only enter here if we've located a CSourcePhrase storing
+							// either \f* or \fe* or \x* - in which case the halt location
+							// is after it - which is the current active location. We
+							// would want that previous location to be within a previous
+							// section, so don't halt, set scanning continue.
+							;
+						}
 					}
 					if (pPrevPile->GetSrcPhrase()->m_bStartFreeTrans)
 					{
@@ -3044,7 +3090,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
                     // establishing the beginning of a free translation segment.
 					pPrevPile = pPile;
 				}
-			}
+			} // end of else block for test: if (pPrevPile->GetSrcPhrase()->m_bEndFreeTrans)
 
 			wxASSERT(pPrevPile != NULL);
 			if (gbVerticalEditInProgress)
@@ -3401,14 +3447,30 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
         // punctuation that initially established the length of the segment, we allow
         // the user to lengthen beyond that punctuation, but we never allow lengthening
         // past the start of an existing free translation.
-		if (IsFreeTranslationEndDueToMarker(pPile))
+        bool bHaltAtFollowingPile = FALSE;
+		bool bIsItThisPile = IsFreeTranslationEndDueToMarker(pPile, bHaltAtFollowingPile);
+		if (bIsItThisPile)
 		{
-            // markers or filtered stuff must end the section (for example, we can't
-            // allow the possibility of unfiltering producing new content within a free
-            // translation section)
-			//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
-			event.Enable(FALSE);
-			return;
+			if (!bHaltAtFollowingPile)
+			{
+                // markers or filtered stuff must end the section (for example, we can't
+                // allow the possibility of unfiltering producing new content within a free
+                // translation section)
+				//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
+				event.Enable(FALSE);
+				return;
+			}
+			else
+			{
+				// this is tricky -  we get here only if pPile has a CSourcePhrase which
+				// stores one of \f* or \fe* or \x*, and after that is the location where
+				// a section must end. Since we want this location to be included in the
+				// footnote or endnote or crossReference, since pPile is after the current
+				// end of the section, then this CSourcePhrase must not be in the section
+				// and should be. If my anlysis is correct, we should enable the button.
+				event.Enable(TRUE);
+				return;
+			}
 		}
 		// also, we can't lengthen if there is a defined section following
 		if (pPile->GetSrcPhrase()->m_bStartFreeTrans)

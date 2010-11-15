@@ -124,10 +124,12 @@ public:
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
+	void			RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr); // BEW 15Nov10 moved from view
 	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
 	void			RestoreForceAskSettings(KPlusCList* pKeys);
 	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
 	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
+	void			DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal);
 
 	// accessors for private members
 	int				GetCurrentKBVersion();

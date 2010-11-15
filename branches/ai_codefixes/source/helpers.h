@@ -119,8 +119,13 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep);
 
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
+// the following is an overload for using in a parser
+wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10
+
 
 wxString SpanExcluding(wxString inputStr, wxString charSet);
+// the following is an overload for using in a parser
+wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10
 
 wxString MakeReverse(wxString inputStr);
 
@@ -147,6 +152,8 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWid
 // end of whm's additions
  
 // 2010 additions by BEW
+
+wxString GetConvertedPunct(const wxString& rStr); // moved from view class to here 11Oct10
 
 // next three for use in the AdminMoveOrCopy class, the handler for Administrator
 // menu item Move Or Copy Folders Or Files
@@ -183,26 +190,47 @@ void EmptyMarkersAndFilteredStrings(
 								  wxString& noteStr,
 								  wxString& collBackTransStr,
 								  wxString& filteredInfoStr); 
+bool GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
+wxString GetLastMarker(wxString markers);
 bool IsWhiteSpace(const wxChar *pChar);
 int ParseWhiteSpace(const wxChar *pChar); // returns a length (num chars of whitespace)
 int ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)
 // Any strings in pPossiblesArray not already in pBaseStrArray, append them to
 // pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
-bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray);
+// BEW 11Oct10, added bool bExcludeDuplicates parameter, default FALSE; the default now is
+// to accept all the contents of the pPossiblesArray without testing if a duplicate is
+// being stored; if the flag is TRUE, then only the strings not already in pBaseStrArray
+// are accepted
+bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray,
+						  bool bExcludeDuplicates = FALSE);
 bool HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
-wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, bool bCountInTargetText);
-
+wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
+									  bool bCountInTargetText, bool bIncludeNote = TRUE);
+wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr);
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr);
+wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
+				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
+				wxString& filteredInfoStr);
 wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
+wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
+					 bool& bAddedSomething); // like ExportFunctions.cpp's
+					// AppendSrcPhraseBeginningInfo(), except it doesn't try to access
+					// filtered information, nor the m_markers member; because this
+					// function is used in FromMergerMakeSstr() which accesses those
+					// members externally to such a call as this
 
 bool	 IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);
 bool	 IsNullSrcPhraseInSelection(SPList* pList);
 bool	 IsRetranslationInSelection(SPList* pList);
+bool	 IsFixedSpaceSymbolInSelection(SPList* pList);
+bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
+bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
+void	 SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& othersFilteredStr);
 
 // uuid support
 wxString GetUuid();

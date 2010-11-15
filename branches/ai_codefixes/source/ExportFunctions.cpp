@@ -299,7 +299,7 @@ void DoExportAsOxes(int versionNum)
 	target = RemoveCollectedBacktranslations(target);
 
 	// format for text oriented output
-	FormatMarkerBufferForOutput(target);
+	FormatMarkerBufferForOutput(target, targetTextExport);
 	
 	target = pDoc->RemoveMultipleSpaces(target);
 
@@ -670,7 +670,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output
-		FormatMarkerBufferForOutput(source);
+		FormatMarkerBufferForOutput(source, sourceTextExport);
 		
 		source = pDoc->RemoveMultipleSpaces(source);
 
@@ -694,7 +694,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		glosses = ApplyOutputFilterToText(glosses, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output
-		FormatMarkerBufferForOutput(glosses);
+		FormatMarkerBufferForOutput(glosses, glossesTextExport);
 		
 		glosses = pDoc->RemoveMultipleSpaces(glosses);
 
@@ -718,7 +718,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		freeTrans = ApplyOutputFilterToText(freeTrans, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output
-		FormatMarkerBufferForOutput(freeTrans);
+		FormatMarkerBufferForOutput(freeTrans, freeTransTextExport);
 		
 		freeTrans = pDoc->RemoveMultipleSpaces(freeTrans);
 
@@ -743,7 +743,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		target =  ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output
-		FormatMarkerBufferForOutput(target);
+		FormatMarkerBufferForOutput(target, targetTextExport);
 		
 		target = pDoc->RemoveMultipleSpaces(target);
 		
@@ -9015,7 +9015,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			//
 			precPunct.Empty();
 			follPunct.Empty();
-			itemLen = pDoc->ParseWord(ptr, precPunct,follPunct,spaceless);
+// ***TODO*** temporarily disabled 11Oct10			itemLen = pDoc->ParseWord(ptr, precPunct,follPunct,spaceless);
 
 			// make the word into a wxString
 			VernacText = wxString(ptr,itemLen);
@@ -9822,7 +9822,7 @@ bool ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString
 			spaceless.Replace(_T(" "),_T("")); // don't have any spaces in the string of source text punctuation characters
 			precPunct.Empty();
 			follPunct.Empty();
-			fnItemLen = pDoc->ParseWord(fnptr, precPunct, follPunct, spaceless);
+// ***TODO*** temporarily disabled 11Oct10			fnItemLen = pDoc->ParseWord(fnptr, precPunct, follPunct, spaceless);
 			// make the word into a wxString
 			VernacText = wxString(fnptr,fnItemLen);
 			fnptr += fnItemLen; // point past the word
@@ -9894,7 +9894,7 @@ bool ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString
 			spaceless.Replace(_T(" "),_T("")); // don't have any spaces in the string of source text punctuation characters
 			precPunct.Empty();
 			follPunct.Empty();
-			fnItemLen = pDoc->ParseWord(fnptr, precPunct, follPunct, spaceless);
+// ***TODO*** temporarily disabled 11Oct10			fnItemLen = pDoc->ParseWord(fnptr, precPunct, follPunct, spaceless);
 			fnptr += fnItemLen; // point past the word
 			// we don't make the word into wxString here, just ignore it
 
@@ -10517,7 +10517,7 @@ fnb: while (fnptr < pfnEnd)
 			// must be a word within destination text
 			precPunct.Empty();
 			follPunct.Empty();
-			fnItemLen = pDoc->ParseWord(fnptr, precPunct, follPunct, spaceless);
+// ***TODO*** temporarily disabled 11Oct10			fnItemLen = pDoc->ParseWord(fnptr, precPunct, follPunct, spaceless);
 			// make the word into a wxString
 			VernacText = wxString(fnptr,fnItemLen);
 
@@ -13486,6 +13486,299 @@ wxString GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 	return styleNumStr;
 }
 
+// A useful utility which takes the filtered information (whether notes is to be included
+// or not is specifiable) and then in m_markers, then in m_inlineNonbindingMarkers,
+// m_precPunct, and m_inlineBindingEndMarkers, in that order, and any of such which is
+// non-empty is appended, with delimiting spaces where appropriate (to comply with good
+// USFM markup standards) to the passed in appendHere string, which is then returned to the
+// caller. Where this is sometimes used, we may have to delay the placements in the
+// caller, and so bAddedSomething is returned so the caller knows to temporarily store the
+// results for later on placement. bIncludeNote should be set TRUE to have a note included
+// in the gathering of filtered info from pSrcPhrase, FALSE to have note information not
+// gathered and hence not returned in the string to the caller along with the rest.
+// bDoCountForFreeTrans specifies whether or not work counting for free trans |@ nnn @|
+// word count is to be done, using m_targetStr or m_srcPhrase as the case may be for next
+// param. bCountInTargetTextLine specifies which line to count the words in, and hence
+// whether to do it with m_srcPhrase (use FALSE) or m_targetStr (use TRUE).
+// Beware, \x ...\x* cross reference information goes after any m_markers content, but
+// other filtered information, if present, goes before it; so we must look for xref stuff
+// and locate it properly in the string for output.
+wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
+					 bool& bAddedSomething, bool bIncludeNote,
+					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine)
+{
+    bAddedSomething = FALSE;
+	bAddedSomething = HasFilteredInfo(pSrcPhrase);
+	wxString xrefStr; xrefStr.Empty();
+	wxString otherFiltered; otherFiltered.Empty();
+	wxString temp;
+	wxString mMarkers;
+	wxString aSpace = _T(' ');
+
+	// In next call, 1st FALSE means 'count words from src text line' (but
+    // this is only used if reconstructing a free translation with wrapping
+    // \free and \free* markers) internally; TRUE means 'do the word
+    // count', final FALSE is for bIncludeNote
+    if (bAddedSomething)
+	{
+		// entry here means there is something filtered to be collected (includes custom
+		// ai stuff, such as free trans, note if requested, collected back trans, as well
+		// as the standard filtered stuff in m_filteredInfo)
+		temp = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans, 
+												bCountInTargetTextLine, bIncludeNote);
+		SeparateOutCrossRefInfo(temp, xrefStr, otherFiltered);
+	}
+	if (!pSrcPhrase->m_markers.IsEmpty())
+	{
+		mMarkers = pSrcPhrase->m_markers;
+		bAddedSomething = TRUE;
+	}
+	// get the above stuff into proper USFM order, xrefs must go after m_markers content
+	if (bAddedSomething)
+	{
+		if (!xrefStr.IsEmpty())
+		{
+			if (!otherFiltered.IsEmpty())
+			{
+				appendHere = otherFiltered;
+			}
+			appendHere.Trim();
+			appendHere += aSpace;
+			if (!mMarkers.IsEmpty())
+			{
+				appendHere += mMarkers;
+			}
+			appendHere.Trim();
+			appendHere += aSpace;
+			appendHere += xrefStr;
+		}
+		else
+		{
+			// there is no cross reference info
+			if (!otherFiltered.IsEmpty())
+			{
+				appendHere = otherFiltered;
+			}
+			appendHere.Trim();
+			appendHere += aSpace;
+			if (!mMarkers.IsEmpty())
+			{
+				appendHere += mMarkers;
+			}
+		}
+	}
+
+	if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+	{
+		appendHere += pSrcPhrase->GetInlineNonbindingMarkers();
+		bAddedSomething = TRUE;
+	}
+	if (!pSrcPhrase->m_precPunct.IsEmpty())
+	{
+		wxString puncts = pSrcPhrase->m_precPunct;
+		puncts.Trim(); // ensure no bogus space can follow the preceding puncts
+		appendHere += puncts;
+		bAddedSomething = TRUE;
+	}
+	if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+	{
+		wxString binders = pSrcPhrase->GetInlineBindingMarkers();
+		binders.Trim(FALSE); // ensure no bogus space precedings an 
+							 // inline binding beginmarker
+		appendHere += binders;
+		bAddedSomething = TRUE;
+	}
+	return appendHere;
+}
+
+// A useful utility which takes the information in m_markers m_inlineBindingMarkers,
+// m_precPunct, m_endMarkers, m_follOuterPunct, and m_inlineNonbindingEndMarkers, in that
+// order, and any of such which is non-empty is appended, with no spaces added anywhere (to
+// comply with good USFM markup standards) to the passed in appendHere string, which is
+// then returned to the caller.
+wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase)
+{
+	if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+	{
+		appendHere += pSrcPhrase->GetInlineBindingEndMarkers();
+	}
+	if (!pSrcPhrase->m_follPunct.IsEmpty())
+	{
+		appendHere += pSrcPhrase->m_follPunct;
+	}
+	if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+	{
+		appendHere += pSrcPhrase->GetEndMarkers();
+	}
+	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+	{
+		appendHere += pSrcPhrase->GetFollowingOuterPunct();
+	}
+	if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+	{
+		appendHere += pSrcPhrase->GetInlineNonbindingEndMarkers();
+	}
+	return appendHere;
+}
+
+// BEW created 11Oct10
+wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr,
+	wxString markersStr, wxString xrefStr,
+	bool bAttachFilteredInfo, bool bAttach_m_markers)
+{
+	wxString markersPrefix = prefixStr;
+	wxString aSpace = _T(' ');
+	if (!markersStr.IsEmpty())
+	{
+		if (bAttach_m_markers)
+		{
+			// any content in m_markers is to be in the returned source text string
+			if (!markersStr.IsEmpty())
+			{
+				markersPrefix.Trim();
+				markersPrefix += aSpace + markersStr;
+			}
+			if (!xrefStr.IsEmpty()  && bAttachFilteredInfo)
+			{
+				// a xref follows a verse number, so make sure there is an intervening
+				// space
+				markersPrefix.Trim();
+				markersPrefix += aSpace + xrefStr;
+			}
+		}
+		else
+		{
+			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
+			{
+				markersPrefix.Trim();
+				markersPrefix += aSpace + xrefStr;
+			}
+		} // end of else block for test: if (bAttach_m_markers)
+	}
+	else
+	{
+		// m_markers is empty, so just put in any xref info if there is any
+		if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
+		{
+			markersPrefix.Trim();
+			markersPrefix += aSpace + xrefStr;
+		}
+	}
+	return markersPrefix;
+}
+
+// BEW created 11Oct10
+wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
+	SPList* pSrcPhrases, wxString filteredInfo_NoXRef, wxString collBackTransStr,
+	wxString freeTransStr, wxString noteStr)
+{
+	wxString markersPrefix; markersPrefix.Empty();
+	wxString aSpace = _T(' ');
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
+
+	if (!filteredInfo_NoXRef.IsEmpty())
+	{
+		// this data has any markers and endmarkers already 'in place'
+		markersPrefix.Trim();
+		if (!filteredInfo_NoXRef.IsEmpty())
+		{
+			markersPrefix = filteredInfo_NoXRef;
+		}
+	}
+	if (!collBackTransStr.IsEmpty())
+	{
+		// add the marker too
+		markersPrefix.Trim();
+		markersPrefix += backTransMkr;
+		markersPrefix += aSpace + collBackTransStr;
+	}
+	if (!freeTransStr.IsEmpty() || pSrcPhrase->m_bStartFreeTrans)
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + freeMkr;
+
+		// BEW addition 06Oct05; a \free .... \free* section pertains to a
+		// certain number of consecutive sourcephrases starting at this one if
+		// m_markers contains the \free marker, but the knowledge of how many
+		// sourcephrases is marked in the latter instances by which ones have
+		// the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+		// just export the filtered free translation content we will lose all
+		// information about its extent in the document. So we have to compute
+		// how many target words are involved in the section, and store that
+		// count in the exported file -- and the obvious place to do it is
+		// after the \free marker and its following space. We will store it as
+		// follows: |@nnnn@|<space> so that we can search for the number and
+		// find it quickly and remove it if we later import the exported file
+		// into a project as source text.
+		// (Note: the following call has to do its word counting in the SPList,
+		// because only there is the filtered information, if any, still hidden
+		// and therefore unable to mess up the word count.)
+		int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+				pSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+		// construct an easily findable unique string containing the number
+		wxString entry = _T("|@");
+		entry << nWordCount; // converts int to string automatically
+		entry << _T("@| ");
+		// append it after a delimiting space
+		markersPrefix += aSpace + entry;
+		if (freeTransStr.IsEmpty())
+		{
+			// we must support empty free translation sections
+			markersPrefix += aSpace + freeEndMkr;
+		}
+		else
+		{
+			// now the free translation string itself & endmarker
+			markersPrefix += aSpace + freeTransStr;
+			markersPrefix += freeEndMkr; // don't need space too
+		}
+	}
+	// notes being after free trans means that OXES parsing is easier, as all notes -
+	// including one at the free translation anchor point, then become 'embedded' in the
+	// sacred text - though the one at the anchor point is 'embedded' at the start of the
+	// sacred  text, it's not stretching things to far to consider it embedded like any
+	// others in that section of text
+	if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote)
+	{
+		if (gpApp->m_bOxesExportInProgress)
+		{
+			// 'numberOfChars' is not the number of characters in the note itself, but
+			// rather the number of characters in the words of the adaptation phrase in the
+			// m_targetStr member of this merged CSourcePhrase (oxes needs this info)
+			int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
+			wxString numStr;
+			numStr = numStr.Format(_T("%d"),numberOfChars);
+			numStr = _T("@#") + numStr;
+			numStr += _T(':'); // divider
+			numStr += pSrcPhrase->m_targetStr;
+			numStr += _T("#@");
+			noteStr = numStr + noteStr;
+			// the oxes parser must detect this @#nnn#@ substring and remove it, convert
+			// it to int, and use it to count the phrase's length to which the note applies
+			// so that the endOffset in the relevant NoteDetails struct can be set
+			// correctly, and put the word after the colon into its wordsInSpan member
+		}
+		markersPrefix.Trim();
+		markersPrefix += aSpace + noteMkr;
+		if (noteStr.IsEmpty())
+		{
+			// we don't yet support empty notes elsewhere in the app, but we'll do so here
+			markersPrefix += aSpace + noteEndMkr;
+		}
+		else
+		{
+			markersPrefix += aSpace + noteStr;
+			markersPrefix += noteEndMkr; // don't need space too
+		}
+	}
+	return markersPrefix;
+}
+
+
 // This function takes the m_srcPhrase members from CSourcePhrase instances, along with
 // filtered information (in m_filteredInfo) and any free translations, collected back
 // translations and notes (the last three types we consider 'filtered' for compatibility
@@ -13522,22 +13815,31 @@ wxString GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 // opted to instead relegate that whole chore to a separate function unique to the wx
 // version called FormatMarkerBufferForOutput().
 // BEW 7Apr10, updated for support of doc version 5 (changes were needed)
+// BEW 11Oct10, additional docVersion 5 changes. Read the comments at top of this document
+// for more information. The presence of placeholders is a complication, because the these
+// can carry moved information from a neighbouring CSourcePhrase. Handling placeholders
+// with such moved information requires that we "hold over" various types of moved
+// information from off of the placeholder until the first non-placeholder is encountered,
+// and the amalgamate it to what is in that one. Fortunately, moved info is only on the
+// first if there are a string of placeholders not in a retranslation, or on the last if
+// there are a string of placeholders in a retranslation or not in a retranslation. The
+// ones which are not first or last can then be ignored, as they carry only ... in the
+// source text, and that we want to ignore.
 int RebuildSourceText(wxString& source)
 {
 	wxString str; // local wxString in which to build the source text substrings
-
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	// compose the output data & write it out, phrase by phrase,
 	// restoring standard format markers as appropriate
 	SPList* pList = gpApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
 
-	// As we traverse the list of CSourcePhrase instances, the special things we must be
-	// careful of are 
-    // 1. null source phrase placeholders (we ignore these, but we don't ignore any
-    // m_markers, m_endMarkers, m_freeTrans, m_collectedBackTrans, m_note, m_filteredInfo,
-    // m_precPunt, m_follPunct, content which has been moved to them by the user doing a
+    // As we traverse the list of CSourcePhrase instances, the special things we must be
+    // careful of are 1. null source phrase placeholders (we ignore these, but we don't
+    // ignore any m_markers, m_endMarkers, m_freeTrans, m_collectedBackTrans, m_note,
+    // m_filteredInfo, m_precPunt, m_follPunct, and, since 11Oct10, m_follOuterPunct, &
+    // inline beginmarkers or endmarkers of binding or non-binding type which are now also
+    // in doc version 5 content, which has been moved to them by the user doing a
     // Placeholder insertion where markers or punctuation is located),
 	// 2. retranslations (we can ignore the fact these instances belong to a retranslation),
     // 3. mergers (these give us a headache - we have to look at the stored list of
@@ -13559,7 +13861,7 @@ int RebuildSourceText(wxString& source)
     // original CSourcePhrase instances in the m_pSavedWords array in the merged
     // sourcephrase we must examine all those originals in that sublist - but the first
     // must be given special treatment.
-    SPList::Node* pos = pList->GetFirst(); //POSITION pos = pList->GetHeadPosition();
+    SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	source.Empty();
 	wxString tempStr;
@@ -13571,16 +13873,86 @@ int RebuildSourceText(wxString& source)
     // content would get lost from the source text export. So now we check for moved
     // markers, store them temporarily, and then make sure they are relocated
     // appropriately. Also, a local wxString to hold the markers pending placement at the
-    // correct location. (We don't need to bother with punctuation movement in the context
-    // of placeholder insertion because it is already handled by our choice of using the
-    // m_srcPhrase member - which has it still attached.) And a further one to hold any endmarkers
+    // correct location. 
+    // Legacy comment: (We don't need to bother with punctuation movement in the context of
+    // placeholder insertion because it is already handled by our choice of using the
+    // m_srcPhrase member - which has it still attached.) And a further one to hold any
+    // endmarkers
+    // BEW 11Oct10, unfortunately that legacy comment no longer holds true. There might be
+    // binding beginmarkers between preceding punctuation and the source text word, and/or
+    // binding endmarkers between the word and following punctuation. There may also be
+    // outer punctuation. So if we tried to just separate m_srcPhrase into preceding
+    // puncts, the word, following puncts, in order to be able to replace binding marker or
+    // endmarker or both, we'd still not get following outer punctuation handled properly
+    // that way. So we have to build up the word not from m_srcPhrase, but from m_key,
+    // using the ordering protocols for doc version 5's document model. This enables us to
+    // avoid using a placement dialog for the problem of endmarker insertion before outer
+    // punctuation. The ramification, however, is that we have to both checking for, store
+    // and 'delay' placement of preceding puncts and final puncts on a placeholder, as well
+    // as the new storage strings for inline markers, as well as m_markers and m_endMarkers
+    // content as before -- so a lot more local storage strings for holding over data will
+    // be needed.
     bool bMarkersOnPlaceholder = FALSE;
-	wxString strPlaceholderMarkers;
-	wxString strPlaceholderEndMarkers;
+	wxString strPlaceholderMarkers; // for m_markers content
+	wxString strPlaceholderEndMarkers; // for m_endMarkers content
 	wxString aSpace = _T(" ");
     // Note, placing the above information is tricky. We have to delay markers relocation
     // until the first non-placeholder CSourcePhrase instance has been fully dealt with,
-    // because that is the CSourcePhrase instance on to which they are to be moved.
+	// because that is the CSourcePhrase instance on to which they are to be moved...
+    // BEW 11Oct10, except that for a retranslation with appended placeholders the last
+    // placeholder may have moved information that has to be replaced (appended) to the end
+    // of the information on the last non-placeholder within the retranslation. We can
+    // handle all the possibilities if we just provide enough storage locations for
+    // ending-stuff versus beginning-stuff, and follow the following protocols:
+	// (1) get the beginning or ending (moved) info off of the placeholder, it will be one
+	// or the other type, not both.
+    // (2) First, append ending-stuff to the end of the source text output string so far
+    // built up: in the following order: binding endmarker, following puncts, m_endMarkers
+    // content, outer punctuation, non-binding endmarker. If any such was stored, skip 3.
+    // because 3 won't be needed. Clear all the hold-over storage locations.
+	// (3) If beginning-stuff, any or all of it, is non-empty, then set a flag
+	// bMarkersOnPlaceholder will do the job nicely, even if there are no markers
+	// involved, and keep this information until the next non-placeholder is encountered.
+	// When it is, append to the output source text string so far built up, the held over
+	// information in the following order (not all may be non-empty of course):
+	// m_markers content, non-binding beginmarker, preceding punctuation, binding
+	// beginmarker. Then do the call of FromSingleMakeStr() or FromMergerMakeStr()
+	// depending on whether or not the non-placeholder is not, or is, a merger. The
+	// information just placed won't also be on the pSrcPhrase, or pMergedSrcPhrase passed
+	// in to the respective function, so just output the Sstr and append it to whatever is
+	// at the end of the so far built up output source text string.
+	// 
+	// The above protocol does not lend itself to pulling the info off of a placeholder
+	// within a function, but rather directly in RebuildSourceText() itself. So the
+	// additional local variables are created here, adding to those just above.
+	// Ending-stuff storage ones: (for information moved forward to be ending on the 
+	// placeholder)
+	// I've commented these out, because I can place the information immediately without
+	// temporarily storing it in a local string variable -- see a little further down
+	//wxString strPlaceholderBindingEndMkrs;
+	//wxString strPlaceholderNonbindingEndMkrs;
+	//wxString strPlaceholderFollPuncts;
+	//wxString strPlaceholderFollOuterPunct;
+	// The above strPlaceholderEndMarkers also belongs to the above ending set
+	// 
+	// Beginning-stuff storage ones: (for information moved backwards to be at the beginning
+	// on the placeholder)
+	wxString strCollectedBeginnings; // <<-- use this one when its okay to get the lot as 1 string
+	// I may not need the next 4, the above strCollectedBeginnings may suffice
+	//wxString strPlaceholderBindingMkrs;
+	//wxString strPlaceholderNonbindingMkrs;
+	//wxString strPlaceholderPrecPuncts;
+	//wxString strPlaceholderFilteredInfo; // for m_filteredInfo, freetrans, collbacktrans
+										 // but not notes because in docV5 we don't move
+										 // a note to or from the placeholder
+	// The above strPlaceholderMarkers also belongs to the above beginning set
+	// 
+    // In case you are wondering... All these shenanigans are not required for target text
+    // export for the following reason. The placeholder's m_targetStr will have one or more
+    // target text words in it which are vital to the meaning expressed. So, as far as the
+    // export code is concerned, it must treat the placeholder just like any
+    // non-placeholder - whether or not it has had information moved to it. That's why the
+    // RebuildTargetText() function doesn't need all this extra apparatus.
 
 	bool bHasFilteredMaterial = FALSE;
 	while (pos != NULL)
@@ -13591,171 +13963,169 @@ int RebuildSourceText(wxString& source)
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
 
-		// BEW added to following block 16Jan09, for handling relocated markers on placeholders
+		// BEW added to following block 16Jan09, for handling relocated markers on 
+		// placeholders
 		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
-            // markers placement from a preceding placeholder may be pending but there may be a
-            // second or other placeholder following, which must delay their relocation until a
-            // non-placeholder CSourcePhrase is encountered. So if the bMarkersOnPlaceholder flag
-            // is TRUE, just have this placeholder ignored without the population of the local
-            // wxString variable
+            // markers placement from a preceding placeholder may be pending but there may
+            // be a second or other placeholder following, which must delay their
+            // relocation until a non-placeholder CSourcePhrase is encountered. So if the
+            // bMarkersOnPlaceholder flag is TRUE, just have this placeholder ignored
+            // without the populatiing of any of the local wxString variables above
  			if (!bMarkersOnPlaceholder)
 			{
                 // markers placement from a preceding placeholder is not pending, so from
                 // this placeholder gather any filtered information, and m_markers and
-                // endmarkers - and set the flag
-				if (bHasFilteredMaterial)
-				{
-					// in next call, FALSE means 'count words from src text line' (but
-					// this is only used if reconstructing a free translation with
-					// wrapping \free and \free* markers) internally; TRUE means 'do the
-					// word count'
-					strPlaceholderMarkers = GetFilteredStuffAsUnfiltered(pSrcPhrase, TRUE, FALSE);
-					bMarkersOnPlaceholder = TRUE;
-				}
-				if (!pSrcPhrase->m_markers.IsEmpty())
-				{
-					if (strPlaceholderMarkers.IsEmpty())
-					{
-						strPlaceholderMarkers = pSrcPhrase->m_markers;
-					}
-					else
-					{
-						strPlaceholderMarkers += aSpace + pSrcPhrase->m_markers;
-					}
-					bMarkersOnPlaceholder = TRUE;
-				}
-				if (!pSrcPhrase->GetEndMarkers().IsEmpty())
-				{
-					// while I've provided for storing any endmarkers on the placeholder,
-					// the only circumstance I can think of where this may be relevant is
-					// endmarkers earlier transferred to the end of a long retranslation
-					// which was padded with final placeholders; so I guess the think to
-					// do is to 'place' any non-zero content in this string at the end of
-					// the source string, once a non-placeholder is encountered, and then
-					// clear the strPlaceholderEndMarkers string -- we'd have to do this
-					// much further below
-					strPlaceholderEndMarkers = pSrcPhrase->GetEndMarkers();
-					bMarkersOnPlaceholder = TRUE;
-				}
-			}
+				// endmarkers - and set the flag if there are some from a right
+				// association, but if there are some from a left association (ie.
+				// ending-stuff as discussed above), then don't set the flag but instead
+				// append the relevant material directly to source parameter.
+				
+				// deal with any ending-stuff first, as it's immediately placeable; do it
+				// in the order in which it must be appended to the accumulating str variable
+				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase);
+
+				// now deal with the beginning-stuff, which isn't immediately placeable:
+				// 2nd, 3rd & 4th booleans as follows:
+				// bool bIncludeNote is FALSE
+				// bool bDoCountForFreeTrans is TRUE
+				// bool bCountInTargetTextLine is FALSE
+				strCollectedBeginnings = AppendSrcPhraseBeginningInfo(strCollectedBeginnings,
+								pSrcPhrase, bMarkersOnPlaceholder, FALSE, TRUE, FALSE);
+                // if bMarkersOnPlaceholder returns TRUE from the above call, it means that
+                // there was earlier right association of the placeholder and it then
+                // picked up by transfer from the following non-placeholder CSourcePhrase
+                // instance, some information which preceded the source text word, maybe
+                // punctuation, maybe marker(s) maybe filtered info (to be restored to the
+                // output of the export), or may all of such stuff. This stuff has to be
+                // held over until the loop "sees" the next CSourcePhrase instance, it is
+                // almost certainly the next one, since there's no need for the user to
+                // manually insert two placeholders in sequence.
+				
+			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
+
+			// If bMarkersOnPlaceholder was set TRUE on the last iteration, then if a
+			// second placeholder follows the first one, control will jump to here and the
+			// loop will thus iterate over this and any subsequent placeholders, ignoring
+			// them, until a non-placeholder is encountered - in which case control goes
+			// to the test below.
 			continue; // ignore the rest of the current placeholder's information
-		}
-		else if (pSrcPhrase->m_nSrcWords > 1)
+		} // end of TRUE block for test: if (pSrcPhrase->m_bNullSourcePhrase)
+		else if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 		{
-			// it's a merged sourcephrase, so look at the sublist instead -- except that
-			// filtered information must be reclaimed first from the merged sourcephrase
-			// itself (mergers across filtered info are not permitted), and the first
-			// sourcephrase in the sublist can contribute only its m_srcPhrase text string,
-			// but subsequent ones in the sublist must have their m_markers member examined
-			// and its contents restored to the exported information.
+            // BEW 11Oct10, updated these two comments to comply with new info being dealt
+			// with. It's a merged sourcephrase, (but not a pseudo-merged conjoined word
+			// pair joined with USFM !$ markup) so look at the sublist instead -- except
+            // that pre-first-word info must be reclaimed first from the merged
+            // sourcephrase itself (mergers across filtered info are not permitted), and
+            // the first sourcephrase in the sublist can contribute only its m_key text
+            // string, but subsequent ones in the sublist must have pre-word and post-word
+            // members examined and such information appended to the exported information
+            // at the appropriate places.
 			// 
-			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
-			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
-			// must be placed now on this CSourcePhrase instance (which will not itself
-			// have its m_markers member having content because its former content is now
-			// what we are attempting to replace by relocation from the preceding placeholder.
+            // BEW added more on 17Jan09: if pre-word info was moved to a preceding
+            // placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
+            // must be placed now on this CSourcePhrase instance (which will not itself
+            // have its pre-word info stored on itself because its former content is now
+            // what we are attempting to replace by relocation from the preceding
+            // placeholder.
 			if (bMarkersOnPlaceholder)
 			{
-				// pSrcPhrase here is not a placeholder, so if any endmarkers on a
-				// preceding placeholder are stored ready for placement, they must be
-				// handled immediately before pSrcPhrase's information is dealt with
-				if (bMarkersOnPlaceholder && !strPlaceholderEndMarkers.IsEmpty())
+                // pSrcPhrase here is not a placeholder, so filtered material and any
+                // m_markers content that got moved to a preceding placeholder, and now
+                // pending for placement, should be dealt with now
+				if (!strCollectedBeginnings.IsEmpty())
 				{
-					tempStr += strPlaceholderEndMarkers;
-					strPlaceholderEndMarkers.Empty();
+					// append any pre-word information earlier moved to a preceding 
+					// placeholder when it was right-associated
+					str += strCollectedBeginnings;
+					strCollectedBeginnings.Empty();
 				}
-
-				// filtered material and any m_markers content that got moved to a
-				// preceding placeholder, and now pending for placement, should be dealt
-				// with now (if we do something here, the above endmarker placement won't
-				// have happened, and vise versa - it will be one or the other)
-				if (bMarkersOnPlaceholder && !strPlaceholderMarkers.IsEmpty())
-				{
-					// relocate any non-endmarkers earlier moved to a preceding placeholder
-					if (tempStr.IsEmpty())
-					{
-						tempStr = strPlaceholderMarkers;
-					}
-					else
-					{
-						tempStr += aSpace + strPlaceholderMarkers;
-					}
-					strPlaceholderMarkers.Empty(); // ready for next encounter of a placeholder
-				}
-				// placeholder information transfer is done, so the flag can be cleared
-				bMarkersOnPlaceholder = FALSE; // clear to default FALSE value
-
-				source.Trim();
-				source << aSpace << tempStr;
+				// placeholder information is handled, so the flag can be cleared
+				bMarkersOnPlaceholder = FALSE;
+				// don't add a space, any needed will be already in place in the data
+				// obtained from strCollectedBeginnings just above, and if the last data
+				// was preceding punctuation for the word, a space inserted here would be
+				// a disaster
 			}
-			tempStr.Empty();
-			// next, deal with pSrcPhrase itself - if it has filtered information, we need
+
+			// next, deal with pSrcPhrase itself - if it has filtered information, etc, we need
 			// a function to aggregate such stuff and return it as a string, so use the
 			// helpers.cpp function FromMergerMakeSstr(), but first deal with any stored
 			// filtered information, and m_markers content (which is never filtered),
-			// before handling the accumulation of material from the merged CSourcePhrase
+			// before handling the accumulation of material from the merged CSourcePhrase;
+			// because we don't gather those info tyhpes in the above function
+			wxString xrefStr;
+			wxString otherFiltered;
 			if (bHasFilteredMaterial)
 			{
 				// get the filtered stuff, FALSE means that any word-counting required by
 				// getting a free translation and its span, the counting will be done in
 				// the source text words, not the target text ones; TRUE means 'do the
-				// word count'
+				// word count'; and 4th param, bIncludeNote which is default TRUE, here
+				// will take its default value because this pSrcPhrase isn't a
+				// placeholder, and so there may be a note here filtered away.
 				tempStr = GetFilteredStuffAsUnfiltered(pSrcPhrase, TRUE, FALSE);
-				// now append any m_markers content (such as verse marker, verse number, etc)
+				// separate out the cross reference info & markers
+				SeparateOutCrossRefInfo(tempStr, xrefStr, otherFiltered);
+				// any filtered info (other than cross reference) goes first
+				if (!otherFiltered.IsEmpty())
+					str << otherFiltered;
+				tempStr.Empty();
+				str.Trim();
+				// handle m_markers, we delay xrefStr placement as it depends on what is
+				// within the m_markers member
 				if (!pSrcPhrase->m_markers.IsEmpty())
 				{
-					if (tempStr.IsEmpty())
+					tempStr = pSrcPhrase->m_markers;
+                    // BEW changed 2Jun06, to prevent unwanted space insertion before \f,
+					// \fe or \x, so we do it adding a space before tempStr provided one
+					// of those markers is not at the start of tempStr
+					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
+					if (!xrefStr.IsEmpty())
 					{
-						tempStr = pSrcPhrase->m_markers;
+						// markers must precede cross reference info
+						str += tempStr;
+						str += xrefStr;
+						xrefStr.Empty();
 					}
 					else
 					{
-						tempStr += aSpace + pSrcPhrase->m_markers;
+						// xrefString is empty
+						str += tempStr;
 					}
-				}
-				str << tempStr;
-				tempStr.Empty();
-
-                // BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe
-                // or \x, so we do it by refraining to do any space insertion at the start
-                // of str when it starts with one of these markers
-				wxString wholeMkr;
-				bool bStartsWithMarker = FALSE;
-				if (str.GetChar(0) == gSFescapechar)
-				{
-					wholeMkr = pDoc->GetWholeMarker(str);
-					bStartsWithMarker = TRUE;
+					tempStr.Empty();
 				}
 				else
 				{
-					wholeMkr.Empty();
-				}
-				if (bStartsWithMarker)
-				{
-					if (pSrcPhrase->m_nSequNumber != 0 &&
-						(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") && wholeMkr != _T("\\x")))
+					// m_markers is empty, but we still have to place xrefStr if it is
+					// non-empty
+					if (!xrefStr.IsEmpty())
 					{
-						// add an initial space if one is not already there, and it is not started
-						// by a marker for which we want no space insertion
-						if (str.GetChar(0) != _T(' '))
-						{
-							str = _T(" ") + str;
-						}
+						str += xrefStr;
+						xrefStr.Empty();
 					}
 				}
-				else
-				{
-					// add an initial space if one is not already there
-					if (str.GetChar(0) != _T(' '))
-					{
-						str = _T(" ") + str;
-					}
-				}
-				source += str;
+				str.Trim();
+				str << aSpace; // end it with a space
+				source << str;
 			} // end of TRUE block for test: if (bHasFilteredMaterial)
-			str.Empty();
+			else
+			{
+				// handle m_markers
+				if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					tempStr = pSrcPhrase->m_markers;
+                    // BEW changed 2Jun06, to prevent unwanted space insertion before \f,
+					// \fe or \x, so we do it adding a space before tempStr provided one
+					// of those markers is not at the start of tempStr
+					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
+					str += tempStr;
+					tempStr.Empty();
+				}
+				source << str;
+			} // end of else block for test: if (bHasFilteredMaterial)
 			// reconstitute the source text from the merger originals
 			str = FromMergerMakeSstr(pSrcPhrase);
 			// append it to source
@@ -13765,124 +14135,64 @@ int RebuildSourceText(wxString& source)
 		}
 		else
 		{
-			// it's a single word sourcephrase, so handle it....
+			// it's a single word sourcephrase, or a !$ conjoinded word pair, 
+			// so handle it....
 
 			// handle any stnd format markers first
 			// 
-			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
-			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
-			// must be placed now on this CSourcePhrase instance (which will not itself
-			// have its m_markers member having content because its former content is now
-			// what we are attempting to replace by relocation from the preceding placeholder.
+            // BEW added more on 17Jan09: if m_markers content was moved to a preceding
+            // placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
+            // must be placed now on this CSourcePhrase instance (which will not itself
+            // have its m_markers member having content because its former content is now
+            // what we are attempting to replace by relocation from the preceding
+            // placeholder.
 			str.Empty();
 			if (!pSrcPhrase->m_bNullSourcePhrase && bMarkersOnPlaceholder)
 			{
-				// pSrcPhrase here is not a placeholder, so if any endmarkers on a
-				// preceding placeholder are stored ready for placement, they must be
-				// handled immediately before pSrcPhrase's information is dealt with
-				if (bMarkersOnPlaceholder && !strPlaceholderEndMarkers.IsEmpty())
+               // pSrcPhrase here is not a placeholder, so filtered material and any
+                // m_markers content that got moved to a preceding placeholder, and now
+                // pending for placement, should be dealt with now
+				if (!strCollectedBeginnings.IsEmpty())
 				{
-					tempStr += strPlaceholderEndMarkers;
-					strPlaceholderEndMarkers.Empty();
+					// append any pre-word information earlier moved to a preceding 
+					// placeholder when it was right-associated
+					str += strCollectedBeginnings;
+					strCollectedBeginnings.Empty();
 				}
-
-				// filtered material and any m_markers content that got moved to a
-				// preceding placeholder, and now pending for placement, should be dealt
-				// with now (if we do something here, the above endmarker placement won't
-				// have happened, and vise versa - it will be one or the other)
-				if (bMarkersOnPlaceholder && !strPlaceholderMarkers.IsEmpty())
-				{
-					// relocate any non-endmarkers earlier moved to a preceding placeholder
-					if (tempStr.IsEmpty())
-					{
-						tempStr = strPlaceholderMarkers;
-					}
-					else
-					{
-						tempStr += aSpace + strPlaceholderMarkers;
-					}
-					strPlaceholderMarkers.Empty(); // ready for next encounter of a placeholder
-				}
-				// placeholder information transfer is done, so the flag can be cleared
-				bMarkersOnPlaceholder = FALSE; // clear to default FALSE value
-
-				source.Trim();
-				source << aSpace << tempStr;
+				// placeholder information is handled, so the flag can be cleared
+				bMarkersOnPlaceholder = FALSE;
+				// don't add a space, any needed will be already in place in the data
+				// obtained from strCollectedBeginnings just above, and if the last data
+				// was preceding punctuation for the word, a space inserted here would be
+				// a disaster
 			}
 			tempStr.Empty();
-			// next, deal with pSrcPhrase itself - if it has filtered information, we need
-			// a function to aggregate such stuff and return it as a string, so use the
-			// helpers.cpp function FromMergerMakeSstr(), but first deal with any stored
-			// filtered information, and m_markers content (which is never filtered),
-			// before handling the accumulation of material from the merged CSourcePhrase
-			if (bHasFilteredMaterial)
-			{
-				// get the filtered stuff, FALSE means that any word-counting required by
-				// getting a free translation and its span, the counting will be done in
-				// the source text words, not the target text ones, TRUE means 'do the
-				// word count'
-				tempStr = GetFilteredStuffAsUnfiltered(pSrcPhrase, TRUE, FALSE);
-			}
-			// now append any m_markers content (such as verse marker, verse number, etc)
-			if (!pSrcPhrase->m_markers.IsEmpty())
-			{
-				if (tempStr.IsEmpty())
-				{
-					tempStr = pSrcPhrase->m_markers;
-				}
-				else
-				{
-					tempStr += aSpace + pSrcPhrase->m_markers;
-				}
-			}
-			str << tempStr;
-			tempStr.Empty();
 
-            // BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe
-            // or \x, so we do it by refraining to do any space insertion at the start
-            // of str when it starts with one of these markers
-			wxString wholeMkr;
-			bool bStartsWithMarker = FALSE;
-			if (str.GetChar(0) == gSFescapechar)
-			{
-				wholeMkr = pDoc->GetWholeMarker(str);
-				bStartsWithMarker = TRUE;
-			}
-			else
-			{
-				wholeMkr.Empty();
-			}
-			if (bStartsWithMarker)
-			{
-				if (pSrcPhrase->m_nSequNumber != 0 &&
-					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") && wholeMkr != _T("\\x")))
-				{
-					// add an initial space if one is not already there, and it is not started
-					// by a marker for which we want no space insertion
-					if (str.GetChar(0) != _T(' '))
-					{
-						str = _T(" ") + str;
-					}
-				}
-			}
-			else
-			{
-				// add an initial space if one is not already there
-				if (str.GetChar(0) != _T(' '))
-				{
-					str = _T(" ") + str;
-				}
-			}
-			source += str;
+			source << str;
 			str.Empty();
 
-			// now append the m_srcPhrase contents, and then any endmarkers stored on this instance
-			source.Trim();
-			source << aSpace << pSrcPhrase->m_srcPhrase;
-			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+
+			// add stuff, before and after the word, such as binding mkrs, puncts,
+			// non-binding markers, endmarkers, outer punct, as needed
+			wxString xrefStr;
+			wxString mMarkersStr;
+			wxString otherFiltered;
+			bool bAttachFiltered;
+			if (bHasFilteredMaterial)
 			{
-				source << pSrcPhrase->GetEndMarkers();
+				bAttachFiltered = TRUE;
 			}
+			else
+			{
+				bAttachFiltered = FALSE;
+			}
+			bool bAttach_m_markers = TRUE;
+			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
+									mMarkersStr, xrefStr, otherFiltered);
+
+			source.Trim();
+			source << aSpace << str;
+			str.Empty();
 		}
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
@@ -13894,6 +14204,46 @@ int RebuildSourceText(wxString& source)
 	return source.Len();
 }
 
+// BEW 11Oct10, removed \x from the test, because \x occurs after \v and verse number in
+// USFM documentation, and so there should be a preceding space
+wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	wxString wholeMkr;
+	bool bStartsWithMarker = FALSE;
+	if (str.GetChar(0) == gSFescapechar)
+	{
+		wholeMkr = pDoc->GetWholeMarker(str);
+		bStartsWithMarker = TRUE;
+	}
+	else
+	{
+		wholeMkr.Empty();
+	}
+	if (bStartsWithMarker)
+	{
+		if (pSrcPhrase->m_nSequNumber != 0 &&
+			(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe")))
+			//(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") && wholeMkr != _T("\\x")))
+		{
+			// add an initial space if one is not already there, and it is not started
+			// by a marker for which we want no space insertion
+			if (str.GetChar(0) != _T(' '))
+			{
+				str = _T(" ") + str;
+			}
+		}
+	}
+	else
+	{
+		// add an initial space if one is not already there
+		if (str.GetChar(0) != _T(' '))
+		{
+			str = _T(" ") + str;
+		}
+	}
+	return str;
+}
 
 // This function takes the m_markers and m_gloss members from CSourcePhrase instances, and
 // builds the glosses as if they were connected text (in whatever edited state it happens
@@ -13989,6 +14339,18 @@ int RebuildGlossesText(wxString& glosses)
     // correct location; similarly another for endmarkers. Moved filtered markers we ignore
     // if they are free translations, notes or collected back translations, but we harvest
     // the rest.
+    // BEW 11Oct10: changed to better support doc version 5.
+	// (1) It is inappropriate to restored filtered information into a glosses export. The
+	// filtered info cannot have any glosses, and so what business does it have in this
+	// kind of export? None. So I've removed it.
+	// (2) DocV5 has a richer marker storage model, and adds m_follOuterPunct member to
+	// CSourcePhrase. Glossing doesn't strip or replace punctuation, so m_follOuterPunct
+	// is irrelevant. Markers are relevant, but not all. The only inline markers which are
+	// relevant to glossing export are those for footnotes, endnotes and crossReferences
+	// (providing those info types are not filtered.) All other inline markers, those I'm
+	// calling binding markers, and non-binding markers, should be ignored. So glossing
+	// only replaces markers found in m_markers and m_endMarkers (which means the recent
+	// addition of extra string members for storing those inline types can be ignored here).
     bool bMarkersOnPlaceholder = FALSE;
 	wxString strPlaceholderMarkers;
 	wxString strPlaceholderEndMarkers;
@@ -14021,6 +14383,7 @@ int RebuildGlossesText(wxString& glosses)
                 // markers placement from a preceding placeholder is not pending, so from
                 // this placeholder gather any m_markers and m_endMarkers information - and
                 // set the flag
+                /* BEW removed 11Oct10
  				if (bHasFilteredMaterial)
 				{
 					strPlaceholderMarkers = pSrcPhrase->GetFilteredInfo();
@@ -14054,7 +14417,8 @@ int RebuildGlossesText(wxString& glosses)
 						strPlaceholderEndMarkers = pSrcPhrase->GetEndMarkers();
 						bMarkersOnPlaceholder = TRUE;
 					}
-				}
+				} // end of TRUE block for test: if (bHasFilteredMaterial)
+				*/
 			}
 			continue; // ignore the rest of the current placeholder's information
 		}
@@ -14072,6 +14436,7 @@ int RebuildGlossesText(wxString& glosses)
 			// must be placed now on this CSourcePhrase instance (which will not itself
 			// have its m_markers member having content because its former content is now
 			// what we are attempting to replace by relocation from the preceding placeholder.
+			/* BEW removed 11Oct10
 			tempStr.Empty();
 			if (bMarkersOnPlaceholder)
 			{
@@ -14106,7 +14471,8 @@ int RebuildGlossesText(wxString& glosses)
 
 				glosses.Trim();
 				glosses << aSpace << tempStr;
-			}
+			} // end of TRUE block for test: if (bMarkersOnPlaceholder)
+			*/
 			tempStr.Empty();
 
             // BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe
@@ -14161,15 +14527,20 @@ int RebuildGlossesText(wxString& glosses)
 			}
 			else
 			{
-				// when no phrase internal markers to be placed, just append any filtered
-				// info, then any m_markers content, then the gloss, and endmarkers will
-				// be handled later below
+                // Legacy comment: when no phrase internal markers to be placed, just
+                // append any filtered info, then any m_markers content, then the gloss,
+                // and endmarkers will be handled later below
+                // New comment: when no phrase internal markers to be placed, just append
+                // any m_markers content, then the gloss, and endmarkers will be handled
+                // later below
+				/* BEW removed 11Oct10
 				if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 				{
 					wxString filteredStuff = pSrcPhrase->GetFilteredInfo();
 					filteredStuff = pDoc->RemoveAnyFilterBracketsFromString(filteredStuff);
 					str << filteredStuff;
 				}
+				*/
 				if (!pSrcPhrase->m_markers.IsEmpty())
 				{
 					str.Trim();
@@ -14284,6 +14655,7 @@ int RebuildGlossesText(wxString& glosses)
 			glosses += str;
 			str.Empty();
 
+			/* BEW removed 11Oct10
 			// add any m_filteredInfo content with filter bracket markers removed
 			if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 			{
@@ -14291,6 +14663,7 @@ int RebuildGlossesText(wxString& glosses)
 				filteredStuff = pDoc->RemoveAnyFilterBracketsFromString(filteredStuff);
 				str << filteredStuff;
 			}
+			*/
 			// add any m_markers content
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
@@ -14364,7 +14737,7 @@ int RebuildFreeTransText(wxString& freeTrans)
 {
 	wxString str; // local wxString in which to build the freeTrans text substrings
 
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	SPList* pList = gpApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
@@ -14423,6 +14796,10 @@ int RebuildFreeTransText(wxString& freeTrans)
     // appropriately. Also, a local wxString to hold the markers pending placement at the
     // correct location. Moved filtered markers we ignore if they are notes or collected
     // back translations, but we harvest the rest.
+	// BEW 11Oct10, removed exporting of other filtered info along with the free
+	// translation; that is, we no longer unfilter things like filtered cross references,
+	// etc, in order to place it within the free translation - that was madness and I
+	// never should have done it in the first place.
     bool bMarkersOnPlaceholder = FALSE;
 	wxString strPlaceholderMarkers;
 	wxString strPlaceholderEndMarkers;
@@ -14442,7 +14819,9 @@ int RebuildFreeTransText(wxString& freeTrans)
 
 		// BEW added to following block 16Jan09, for handling relocated markers on
 		// placeholders 
-		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
+		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase); // let it be calculated, but
+								// if it is TRUE then I'll use that to comment out the
+								// relevant code blocks (BEW 11Oct10)
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
             // markers placement from a preceding placeholder may be pending but there may
@@ -14457,6 +14836,7 @@ int RebuildFreeTransText(wxString& freeTrans)
                 // set the flag
  				if (bHasFilteredMaterial)
 				{
+					/* BEW removed 11Oct10
 					strPlaceholderMarkers = pSrcPhrase->GetFilteredInfo();
 					if (!strPlaceholderMarkers.IsEmpty())
 					{
@@ -14488,6 +14868,7 @@ int RebuildFreeTransText(wxString& freeTrans)
 						strPlaceholderEndMarkers = pSrcPhrase->GetEndMarkers();
 						bMarkersOnPlaceholder = TRUE;
 					}
+				*/
 				}
 			}
 			continue; // ignore the rest of the current placeholder's information
@@ -14541,14 +14922,16 @@ int RebuildFreeTransText(wxString& freeTrans)
 			}
 			tempStr.Empty();
            
-            // append any filtered info, then any m_markers content, then the free
-            // translation (if non-empty), and endmarkers will be handled later below
+            // append any m_markers content, then the free translation (if non-empty), and
+            // endmarkers will be handled later below
+            /* BEW removed 11Oct10
 			if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 			{
 				wxString filteredStuff = pSrcPhrase->GetFilteredInfo();
 				filteredStuff = pDoc->RemoveAnyFilterBracketsFromString(filteredStuff);
 				str << filteredStuff;
 			}
+			*/
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
 				str.Trim();
@@ -14599,6 +14982,12 @@ int RebuildFreeTransText(wxString& freeTrans)
 /// and that kills the RTF production code. \w is of TextType none, and so all markers of
 /// that type should be omitted from a free translation export (i.e. remove markers for
 /// things like bolding, glossary markers, wordlist markers, italics markers, and so forth)
+/// BEW changed 11Oct10, to better support doc version 5, and to fix some unwanted
+/// behaviour. Not all markers we want to exclude are of TextType none - unfortunately
+/// that lets the inner footnote or cross reference markers like \fk \fv \fq etc \xo etc
+/// to remain in the output. I'll add code to remove them too. We'll keep \f and \f* as
+/// these delineate a footnote, similarly \x and \x*, also \fe and \fe*, but anything
+/// between these will be removed.
 ///////////////////////////////////////////////////////////////////////////////////////////////
 void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 {
@@ -14667,9 +15056,43 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 			}
 
 			// is it a marker of the type we want to remove?
+			bool bSatifiesAdditionalRemovalTests = FALSE; // BEW added 11Oct10
 			USFMAnalysis* pUSFMStruct = pDoc->LookupSFM(bareMkr);
-			bIsMkrOfTypeToRemove = pUSFMStruct->textType == theTextType ? TRUE : FALSE;
+			// BEW added 12N0v10 - protect against it being an unknown marker (as then
+			// pUSFMStruct will be returned as NULL)
+			if (pUSFMStruct == NULL)
+			{
+				bIsMkrOfTypeToRemove = FALSE; // we don't remove unknown marker types
+			}
+			else
+			{
+				bIsMkrOfTypeToRemove = pUSFMStruct->textType == theTextType ? TRUE : FALSE;
+
+				// BEW 11Oct10, additional brute force tests, a little inneficiency here
+				// won't be noticed.
+				wxString mkrPlusSpace = gSFescapechar; 
+				mkrPlusSpace += bareMkr + _T(' ');
+				if ((gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
+					(gpApp->m_inlineNonbindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
+					(bareMkr == _T("fr") || bareMkr == _T("fk") || bareMkr == _T("fqa") ||
+					 bareMkr == _T("fq") || bareMkr == _T("fl") || bareMkr == _T("fp") ||
+					 bareMkr == _T("fv") || bareMkr == _T("ft") || bareMkr == _T("fdc") ||
+					 bareMkr == _T("fm") || bareMkr == _T("xot") || bareMkr == _T("xk") ||
+					 bareMkr == _T("xq") || bareMkr == _T("xt") || bareMkr == _T("xo") ||
+					 bareMkr == _T("xnt") || bareMkr == _T("xdc")) )
+				{
+					bSatifiesAdditionalRemovalTests = TRUE; 
+				}
+			}
+			bool bRemovedIt = FALSE;
 			if (bIsMkrOfTypeToRemove)
+			{
+				// don't copy it across, just put pOld pointing at first character after
+				// it
+				pOld += itemLen;
+				bRemovedIt = TRUE;
+			}
+			else if (!bRemovedIt && bSatifiesAdditionalRemovalTests)
 			{
 				// don't copy it across, just put pOld pointing at first character after
 				// it
@@ -14717,6 +15140,11 @@ int RebuildTargetText(wxString& target)
 		if (pSrcPhrase->m_bRetranslation)
 		{
 			// in the following call, str gets assigned internal markers
+			// Note: we pass in savePos, and in the function we loop over all the
+			// retranslation's CSourcePhrase instances, and when the internal loop exits
+			// we then, still within the function, call the Placement dialog for any
+			// medial markers needing placement, and then set savePos to be the Node*
+			// immediately after the retranslation, or NULL if at end of doc
 			pos = DoPlacementOfMarkersInRetranslation(savePos,pList,str); 
 		}
 		else
@@ -14727,10 +15155,13 @@ int RebuildTargetText(wxString& target)
             // handle any stnd format markers, including internal ones -- most stnd format
             // markers can be handled silently. Place the phrase initial ones silently,
             // then if there are any phrase medial ones we need to internally use a dialog
-            // to place those; distinguist mergers from single CSourcePhrase instances, the
+            // to place those; distinguish mergers from single CSourcePhrase instances, the
             // former needs more complex code - and encapsulate the processing in a
-            // function for each, for doc version 5
-			if (pSrcPhrase->m_nSrcWords > 1)
+            // function for each, for doc version 5;
+			// BEW 11Oct10, both FromMergerMakeTstr() and FromSingleMakeTstr need changes
+			// to handle the 4 extra wxString members for inline marker storage, and for
+			// m_follOuterPunct support.
+			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
 				// this pSrcPhrase stores a merger
 				str = FromMergerMakeTstr(pSrcPhrase, str);
@@ -14738,7 +15169,8 @@ int RebuildTargetText(wxString& target)
 			else
 			{
 				// this pSrcPhrase stores a single CSourcePhrase instance for a single
-				// target text word (which could be the empty string)
+				// target text word (which could be the empty string); or a pair of words
+				// with USFM fixed space symbol !$ conjoining them
 				str = FromSingleMakeTstr(pSrcPhrase, str);
 			}
 		}
@@ -15092,8 +15524,12 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 // spaces at end of lines before eol, whereas the MFC version left them on text lines, but
 // removed them at the ends of markers that have no associated text. There is no
 // detrimental effects either way.
-void FormatMarkerBufferForOutput(wxString& text)
+void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 {
+	// remove any whitespace from the beginning of the string, and end
+	text = text.Trim(FALSE);
+	text = text.Trim();
+
 	// FormatMarkerBufferForOutput assumes the complete text to be output as a text file is
 	// present in str. It adds end-of-line characters before all standard format markers except
 	// for those which have the inLine attribute. It is not possible to completely reconstruct
@@ -15105,8 +15541,11 @@ void FormatMarkerBufferForOutput(wxString& text)
 	// 2. Non-end markers generally get eol char(s) inserted preceding them if they do NOT have the
 	//    inLine="1" attribute in AI_USFM.xml.
 	// 3. Markers which are not preceded by eol char(s) are preceded by a space, except for the
-	//    following which in which no space is preceding them:
-	//       \f, \fe, \x
+	//    following which in which no space is preceding them: \f, \fe; however, if there is
+	//    punctuation preceding the marker, no space should be inserted (it would detach
+	//    the punctuation from the word which follows - if the marker is one which binds
+	//    closely to the word, such as one of the character formatting markers --- those
+	//    in the 'special set' of USFM
 	// See also notes below.
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	int curMkrPos = 0;
@@ -15130,11 +15569,25 @@ void FormatMarkerBufferForOutput(wxString& text)
 
 	wxString wholeMkr;
 	wholeMkr.Empty();
-	// get a spaceless array of the source language's punctuation characters
-	wxString spacelessPuncts = gpApp->m_punctuation[0]; // 0 for source language, 1 for target language
+	// BEW 11Oct10, changed signature so as to match the punctuation used to the export
+	// type - formerly a target text export was using source language's punctuation.
+	// 
+	// Get a spaceless array of the appropriate language's punctuation characters
+	wxString spacelessPuncts;
+	if (expType == sourceTextExport)
+	{
+		spacelessPuncts = gpApp->m_punctuation[0]; // 0 for source language,
+	}
+	else
+	{
+		// we'll assume the target language's punctuation should also be used for exports
+		// of gloss text, and free translation, at least until someone complains
+		spacelessPuncts = gpApp->m_punctuation[1]; // 1 for target language
+	}
 	while (spacelessPuncts.Find(_T(' ')) != -1)
 	{
-		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1); // used in DetachedNonQuotePunctuationFollows() below
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1); 
+		// used in DetachedNonQuotePunctuationFollows() below
 	}
 	int lenEolStr = wxStrlen_(gpApp->m_eolStr);
 	bool bDetachedNonquotePunctuationFollows = FALSE;
@@ -15163,50 +15616,45 @@ void FormatMarkerBufferForOutput(wxString& text)
 			// spacing before or after them for properly formatted output. These
 			// specific markers include:
 			//    chapter markers \c n (no space after the number)
-			//    end markers: always make sure there is a space before end markers
-			//      "    "     when followed by any non-quote punctuation (tuck punct left adjacent to end marker)
+			//    end markers: never a space before end markers
+			//      (tuck puncts left to be adjacent to end marker)
 			// All other markers encountered get end-of-line chars inserted before 
 			// them except for the following situations:
-			//    All markers get eol char(s) added if gbSfmOnlyAfterNewlines is TRUE
 			//    Don't add eol char(s) if the marker is at beginning of buffer
-			//    Don't add eol char(s) if the marker is an inline marker (defined in AI_USFM.xml)
-			//
+			//    Don't add eol char(s) if the marker is an inline marker 
+			//    (defined in AI_USFM.xml)
 			if (pDoc->IsEndMarker(pOld,pEnd))
 			{
-				// wholeMkr is an end marker.
-				// The MFC version insures there is always a space before an end marker, regardless of
-				// what the original text had, so check for a preceeding space, and add one in the new
-				// buffer if there isn't one.
-				if (pOld > pBufStart && *(pOld -1) != _T(' '))
-				{
-					// add a space before the end marker in the new buffer
-					*pNew = _T(' ');
-					pNew++; // advance past the added space
-				}
-
-				// it is an endmarker, so after wholeMkr might be a place where white space
-				// should be removed so as to tuck up following detached non-quote punctuation
-				// to the end of the endmarker
+                // wholeMkr is an end marker, so after wholeMkr is a place where
+                // white space should be removed so as to tuck up following detached
+                // non-quote punctuation to the end of the endmarker
+                // BEW 11Oct10, if docVersion 5 is coded right, this next test should never
+                // require any tucking up, our code should never have a space after the
+                // endmarker. Period. But no harm to keep this as it would correct a the
+                // situation if a bogus space somehow crept in.
 				wholeMkr = MakeReverse(wholeMkr);
 				wxChar* pPosAfterMkr = pOld;
-				pPosAfterMkr += wholeMkr.Length(); // make curMkrPos be at next char after endmarker
-				bDetachedNonquotePunctuationFollows =
-								DetachedNonQuotePunctuationFollows(pOld,pEnd,pPosAfterMkr,spacelessPuncts);
+				pPosAfterMkr += wholeMkr.Length(); // make curMkrPos be at next 
+												   // char after endmarker
+				bDetachedNonquotePunctuationFollows = DetachedNonQuotePunctuationFollows(
+												pOld,pEnd,pPosAfterMkr,spacelessPuncts);
 				// parse the end marker
 				itemLen = pDoc->ParseMarker(pOld);
 				for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
 				{
 					*pNew++ = *pOld++;
 				}
-				// parse through any white space; but if bDetachedNonquotePunctuationFollows is 
-				// true, do not add the white space to the new buffer to effect the tuck with
-				// any following detached non-quote punctuation.
+				curMkrPos = (int)(pOld - pBufStart); // update value
+                // parse through any white space; but if bDetachedNonquotePunctuationFollows
+                // is true, do not add the white space to the new buffer to effect the tuck
+                // with any following detached non-quote punctuation.
 				itemLen = pDoc->ParseWhiteSpace(pOld);
 				if (bDetachedNonquotePunctuationFollows)
 				{
 					for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
 						pOld++;
 				}
+				curMkrPos = (int)(pOld - pBufStart); // update value
 			}
 			else
 			{
@@ -15235,10 +15683,11 @@ void FormatMarkerBufferForOutput(wxString& text)
 						{
 							if (gpApp->PngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 								IsWrapMarker = TRUE;
-							// whm ammended 23Nov07 to consider PngOnly footnote end markers \fe and \F
-							// as inline markers (even if they are not marked so in AI_USFM.xml), so they
-							// won't get a new line inserted before them, and be formatted as other inline
-							// markers.
+                            // whm ammended 23Nov07 to consider PngOnly footnote end
+                            // markers \fe and \F as inline markers (even if they are not
+                            // marked so in AI_USFM.xml), so they won't get a new line
+                            // inserted before them, and be formatted as other inline
+                            // markers.
 							if (gpApp->PngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1
 								|| wholeMkr + _T(' ') == _T("\\fe ") || wholeMkr + _T(' ') == _T("\\F "))
 								IsInLineMarker = TRUE;
@@ -15260,78 +15709,88 @@ void FormatMarkerBufferForOutput(wxString& text)
 								IsInLineMarker = TRUE;
 						}
 					}
-					// insert any eol char(s) needed for current marker here. In this block the marker
-					// cannot be an end marker, nor located at the beginning of the file. We will always
-					// add eol unless the marker's attribute is inLine.
+                    // insert any eol char(s) needed for current marker here. In this block
+                    // the marker cannot be an end marker, nor located at the beginning of
+                    // the file. We will always add eol unless the marker's attribute is
+                    // inLine.
 					if (!IsInLineMarker)
 					{
-						// BEW 8Jun10, removed support for checkbox "Recognise standard format
-						// markers only following newlines"
-						//if (gbSfmOnlyAfterNewlines)
-						//{
-							// Backslashes initiate markers only after new lines.
-							// Don't add eol char(s) unless there is already a preceding
-							// space or tab.
-							// TODO: Get clarification of this from Bruce ???
-						//	if (*(pOld-1) == _T(' ') || *(pOld-1) == _T('\t'))
-						//	{
-								// insert the eol char(s) into the new buffer
-						//		int cteol;
-						//		for (cteol = 0; cteol < lenEolStr; cteol++)
-						//		{
-						//			*pNew = gpApp->m_eolStr.GetChar(cteol);
-						//			pNew++;
-						//		}
-						//	}
-						//}
-						//else
-						//{
-							// Backslashes may initiate markers anywhere in the file - after new lines,
-							// or in the midst of text lines.
-							// when inserting eolStr, if preceding char is a space, first remove that
-							// space so there won't be any spaces dangling at ends of lines preceding
-							// the newly inserted eol char(s).
-							// I'll remove any spaces that managed to creep in, as they are not needed.
-							int cteol;
-							// now add the eol char(s) to the new buffer
-							for (cteol = 0; cteol < lenEolStr; cteol++)
-							{
-								*pNew = gpApp->m_eolStr.GetChar(cteol);
-								pNew++;
-							}
-						//}
-					}
-					else if (IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) != _T(' '))
-					{
-						// The marker is inline and there is a space preceding the marker. We want to
-						// preserve the preceding space, unless the marker is
-						// The following block does what FixInLineMarkers did. It insures that there
-						// is a space separating non-end inLine markers from what preceeds, providing
-						// the inLine marker is not the first thing in the file, and providing the
-						// inLine marker is not a footnote \f, endnote \fe, or crossref \x.
-						if (wholeMkr != _T("\\f") 
-							&& wholeMkr != _T("\\fe") 
-							&& wholeMkr != _T("\\x"))
+                        // Backslashes may initiate markers anywhere in the file - after
+                        // new lines, or in the midst of text lines. when inserting eolStr,
+                        // if preceding char is a space, first remove that space so there
+                        // won't be any spaces dangling at ends of lines preceding the
+                        // newly inserted eol char(s). I'll remove any spaces that managed
+                        // to creep in, as they are not needed.
+                        while (*(pNew-1) == _T(' '))
 						{
-							*pNew = _T(' ');
+							--pNew;
+						}
+						// now add the eol char(s) to the new buffer, lenEolStr is 2 for
+						// windows, 1 for mac or linux
+						int cteol;
+						for (cteol = 0; cteol < lenEolStr; cteol++)
+						{
+							*pNew = gpApp->m_eolStr.GetChar(cteol);
 							pNew++;
 						}
 					}
+					else if (IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) != _T(' '))
+					{
+                        // The marker is inline and there is no space preceding the marker.
+                        // We want to have a preceding space, (but not if punctuation
+                        // precedes, and not if an endmarker precedes) unless the marker is
+                        // \f or \fe. The following ensures that there is a space
+                        // separating non-end inLine markers from what preceeds, providing
+                        // the inLine marker is not the first thing in the file, and
+                        // providing the inLine marker is not a footnote \f, or endnote
+                        // \fe, and providing punctuation is not preceding the space.
+                        // BEW 11Oct10, needed to remove \x from the test, because in
+                        // proper USFM markup style, \x follows a verse marker and its
+                        // trailing space, so we don't want \x to prevent putting on in if
+                        // it is absent
+                        if (spacelessPuncts.Find(text.GetChar(curMkrPos-1)) == wxNOT_FOUND &&
+							text.GetChar(curMkrPos-1) != _T('*'))
+						{
+							// only do this attempt at space insertion prior to the marker
+							// provided that the character preceding the marker is not one
+							// of the punctuation characters
+							if (wholeMkr != _T("\\f") 
+								&& wholeMkr != _T("\\fe"))
+							{
+								// only insert the space provided the marker is not \f or \fe
+								*pNew = _T(' ');
+								pNew++;
+							}
+						}
+					}
+					else if ((IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) == _T(' '))
+						&& (wholeMkr == _T("\\f") || wholeMkr == _T("\\fe"))
+						&& (*(pOld-2) != _T('0') || *(pOld-2) != _T('1') || *(pOld-2) != _T('2') || 
+							*(pOld-2) != _T('3') || *(pOld-2) != _T('4') || *(pOld-2) != _T('5') || 
+							*(pOld-2) != _T('6') || *(pOld-2) != _T('7') || *(pOld-2) != _T('8') || 
+							*(pOld-2) != _T('9')) )
+					{
+						// a space crept in preceding \f or \fe, so back up over it,
+						// provided what precedes the space is not a digit (eg. verse number)
+						pNew--;
+					}
 				}
-				// The above sub-blocks have added any necessary end-of-line char(s) and/or spaces.
-				// Now we parse the marker, copying it from pOld to pNew
+                // The above sub-blocks have added any necessary end-of-line char(s) and/or
+                // spaces. Now we parse the marker, copying it from pOld to pNew
 				itemLen = pDoc->ParseMarker(pOld);
 				for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
 				{
 					*pNew++ = *pOld++;
 				}
+				curMkrPos = (int)(pOld - pBufStart); // update value
 			}
-		} // end of if IsMarker
+		} // end of if (IsMarker  )
 		else
 		{
 			// Process the non-marker text.
 			// just copy whatever we are pointing at and then advance
 			*pNew++ = *pOld++;
+			curMkrPos = (int)(pOld - pBufStart); // update value
 		}
 	} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 	*pNew = (wxChar)0; // terminate the new buffer string with null char
@@ -15489,8 +15948,8 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 	wxString phrase;
 	CSourcePhrase* pSrcPhrase;
 	pSrcPhrase = (CSourcePhrase*)anchorPos->GetData();
-	// if the anchor location is also the end of the free translation section, we look
-	// only at this one CSourcePhrase instance which stores it
+    // if the anchor location is also the end of the free translation section, we look only
+    // at this one CSourcePhrase instance which stores it
 	if (pSrcPhrase->m_bEndFreeTrans)
 	{
 		if (bCountInTargetText)
@@ -15498,16 +15957,18 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 			phrase = pSrcPhrase->m_targetStr;
 			if (phrase.IsEmpty())
 				return 0;
-			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want a word list returned
+			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want 
+														 // a word list returned
 		}
 		else
 		{
 			return pSrcPhrase->m_nSrcWords;
 		}
 	}
-	// if we get to here, then the anchor location's pSrcPhrase is not the one and only sourcephrase in
-	// the current section of free translation, so process all sourcephrases in the section, but count
-	// only those which are not placeholders because those won't be in a source text export
+    // if we get to here, then the anchor location's pSrcPhrase is not the one and only
+    // sourcephrase in the current section of free translation, so process all
+    // sourcephrases in the section, but count only those which are not placeholders
+    // because those won't be in a source text export
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -15519,17 +15980,20 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 			phrase = pSrcPhrase->m_targetStr;
 			if (phrase.IsEmpty())
 				goto a;
-			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want a word list returned
+			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want 
+														 // a word list returned
 		}
 		else
 		{
-			// do the counting using the phrase or word in m_srcPhrase members (but not placeholders) --
-			// actually we will just use the m_nSrcWords member, since this has the count already
+            // do the counting using the phrase or word in m_srcPhrase members (but not
+            // placeholders) -- actually we will just use the m_nSrcWords member, since
+            // this has the count already
 			if (!pSrcPhrase->m_bNullSourcePhrase)
 				countFromPhrase = pSrcPhrase->m_nSrcWords;
 		}
 		nCount += countFromPhrase;
-		countFromPhrase = 0; // BEW added 8Apr10, otherwise the previous value is added when at a placeholder
+		countFromPhrase = 0; // BEW added 8Apr10, otherwise the previous value is added 
+							 // when at a placeholder
 
 		// if we are at the m_bEndFreeTrans == TRUE location then break out
 a:		if (pSrcPhrase->m_bEndFreeTrans)
@@ -15553,8 +16017,60 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // BEW 1Apr10, completely rewritten, with elimination of 5 globals, and encapsulation of
 // the dialog for placement, which needs to be called if there were medial markers in the
 // retranslation, and supporting doc version 5
-SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
-				wxString& Tstr)
+// 
+// BEW 11Oct10, more changes for doc version 5 to support m_follOuterPunct & inline
+// markers
+// 
+// NOTE****************** there are comments in OnButtonRetranslation() before the call of
+// BuildRetranslationSourcePhraseInstances() which explain the protocols to be used for
+// supporting export of retranslation data & they impinge on what happens below.
+// 
+// Here is the text of that comment: do not delete it
+// 
+// **** Legacy comment -- don't delete, it documents how me need to make changes ****
+// copy the retranslation's words, one per source phrase, to the constituted sequence of
+// source phrases (including any null ones) which are to display it; but ignore any markers
+// and punctuation if they were encountered when the retranslation was parsed, so that the
+// original source text's punctuation settings in the document are preserved. Export will
+// get the possibly new punctuation settings by copying m_targetStr, so we do not need to
+// alter m_precPunct and m_follPunct on the document's CSourcePhrase instances.
+// 
+// *** New comment, 11Oct10, for support of new doc version 5 storage members,
+// m_follOuterPunct and the four inline markers' wxString members. The legacy approach
+// above fails to handle good punctuation handling because we need to support punctuation
+// following endmarkers as well as before them. In the retranslation, we ask the user to
+// type punctuation where it needs to be - that won't be in the same places as in the
+// source text of the selection; but the punctuation typed will be parsed by
+// TokenizeTextString() above into only two members, m_precPunct and m_follPunct, so
+// m_follOuterPunct will be ignored. And since it is assured that the user won't type
+// markers when doing the retranslation we then have the problem of how to get the markers
+// into the right places when an SFM export of the target text is asked for. Our solution
+// to this dilemma is the following:
+// (1) When exporting pSrcPhrase instances NOT in a retranslation, the punctuation and
+// markers are reconstituted from the pSrcPhrase members by algorithm.
+// (2) When exporting pSrcPhrase instances in a retranslation, the m_targetStr member is
+// taken "as is" and the pSrcPhrase members for storing puncts (those will be source text
+// puncts, and not in the right places anyway) will be ignored, and so what is on
+// m_targetStr is used - just as the user typed it in the retranslation. The code for
+// building the output SFM target text will work out which markers are "medial" to
+// the retranslation, and will present those to the user in a placement dialog - so he then
+// can place each marker in the place where he deems it should be - in this way, he can
+// re-establish, say, an inline endmarker between two consecutive 'following' punctuation
+// characters.
+// 
+// The implication of the above rules for export determine how I need to refactor
+// the BuildRetranslationSourcePhraseInstances() function. Now it has to generate
+// the correct m_srcPhrase (ie. with punctuation in its proper place), and store
+// that m_srcPhrase value in the current pSrcPhrase's m_targetStr member. Any
+// markers, even if the user typed some, are just to be ignored - at export time
+// he'll get the chance to place them appropriately - they will be collected as
+// 'medial markers' from the m_pSourcePhrase instances' involved in the
+// retranslation's span. Hence, we can leave the source text punctuations in the
+// pSrcPhrase instances in m_pSourcePhrases untouched, except for changing the
+// m_targetStr value as explained in the previous sentence. 
+// BEW 11Oct10, changed for support of additional docV5 storage in CSourcePhrase
+SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
+									SPList* pSrcPhrases, wxString& Tstr)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList::Node* pos = firstPos;
@@ -15599,12 +16115,14 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 	wxString filteredInfoStr;
 	wxString unfilteredStr; // any unfiltered medial stuff which has to be shown in the
 							// Place... dialog can be accumulated in this local string on
-							// a per-pSrcPhrase basis (empty on each iteration)
+							// a per-pSrcPhrase basis (emptied prior to each iteration)
 	// loop over each CSourcePhrase instance in the retranslation
 	bool bFirst = TRUE;
+	wxString nBEMkrs; // for non-binding endmarkers
+	wxString bEMkrs; // for binding endmarkers
 	while (pos != 0)
 	{
-		savePos = pos;
+		savePos = pos; // savePos is what we return to the caller
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		// break out of the loop if we reach the end of the retranslation, or if we reach
@@ -15621,7 +16139,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 											collBackTransStr, filteredInfoStr);
 			// get the other string information we want, putting it in the scratch strings
 			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
-							freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
+							freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
 			// remove any filter bracketing markers if filteredInfoStr has content
 			if (!filteredInfoStr.IsEmpty())
 			{
@@ -15639,7 +16157,12 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				// prefix string, as we'll not show that stuff in the Place... dialog;
 				// likewise for free translation, or a note, or collected back translation
 				// on the first CSourcePhrase instance; and any content in m_markers -
-				// this, if present, must come last; remove LHS whitespace when done
+				// this, if present, must come after all that, then, 
+				// 11Oct10 additions, if m_inlineNonbindingMarkers has content, it is
+				// added, (but m_inlinBindingMarkers content is added to the placement
+				// list as it helps for the user to see all such & handle matched
+				// beginmarker & endmarker pairs the same way)
+				// remove LHS whitespace when done
 				if (!collBackTransStr.IsEmpty())
 				{
 					// add the marker too
@@ -15713,7 +16236,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				{
 					// this data has any markers and endmarkers already 'in place'
 					markersPrefix.Trim();
-					markersPrefix += aSpace + filteredInfoStr;
+					markersPrefix += filteredInfoStr;
 				}
 				markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 
@@ -15724,11 +16247,20 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 					// contain a marker for which there is a later 'medial' matching
 					// endmarker which has to be placed by the Place... dialog, so it
 					// helps to be able to see what the matching marker is and where it
-					// is; this stuff will be the first, if it exists, in Sstr, Tstr, Gstr
+					// is; this stuff will be the first, if it exists, in Sstr, Tstr
+					// (except for any markersPrefix material which will precede it, but
+					// we attach that at the very end of the function, if its non-empty)
 					Sstr = markersStr;
 					Tstr = markersStr;
-					//Gstr = markersStr; // unused, fortunately, & retranslations don't apply
-									   // when glossing anyway
+				}	
+
+				// USFM examples from UBS illustrate non-binding begin markers follow
+				// begin markers that get stored in m_markers, so do this block first
+				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				{
+					// we store these markers with a delimiting space, so its already in place
+					Sstr += pSrcPhrase->GetInlineNonbindingMarkers();
+					Tstr += pSrcPhrase->GetInlineNonbindingMarkers();
 				}
 
 				// any endmarkers on the first CSourcePhrase are therefore "medial", and
@@ -15738,53 +16270,152 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				// the retraslation is one word only and so it has m_bBeginRetranslation
 				// and m_bEndRetranslation both set; note: the position of the endmarkers
 				// is determinate for the Sstr accumulation, so we place them here for
-				// that - but only for CSourcePhrase instances other than then end one, as
+				// that - but only for CSourcePhrase instances other than the end one, as
 				// we handle case of endmarkers at the very end lower down in the code
 				// after the loop ends
+				// BEW 11Oct10 addition; inline markers have to be taken into account,
+				// both non-binding and binding; we'll place an initial binding one via
+				// the placement dialog as it will have an endmarker medial somewhere
+				// almost certainly, so it's best to see both in the dialog
 				bool bNonFinalEndmarkers = FALSE;
+				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
+					// there should always be a final space in m_inlineBindingMarkers, 
+					// and we'll ensure it
+					iBMkrs.Trim(FALSE);
+					iBMkrs.Trim();
+					iBMkrs += aSpace;
+					markersToPlaceArray.Add(iBMkrs);
+					bHasInternalMarkers = TRUE;
+				}
+				if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				{
+					bEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+                    // there should never be a final space in m_inlineBindingMarkers, and
+                    // we'll ensure it (& such markers don't exist in the PNG 1998 SFM
+                    // standard)
+					bEMkrs.Trim(FALSE);
+					bEMkrs.Trim();
+					markersToPlaceArray.Add(bEMkrs);
+					bHasInternalMarkers = TRUE;
+					bNonFinalEndmarkers = TRUE;
+				}
+				else
+				{
+					bEMkrs.Empty();
+				}
 				if (!endMarkersStr.IsEmpty())
 				{
-					// we've endmarkers we have to deal with
-					if (pSrcPhrase->m_bBeginRetranslation ||
-						(pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation))
+                    // we've endmarkers we have to deal with 
+					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
 					{
 						// these endmarkers become medial, so append to the list for
 						// showing in the dialog; but place them at their known location in
-						// Sstr and Gstr
+						// Sstr further below
 						markersToPlaceArray.Add(endMarkersStr);
 						bHasInternalMarkers = TRUE;
 						bNonFinalEndmarkers = TRUE;
 					}
 					else
 					{
-                        // we've a one-CSourcePhrase-only retranslation with endmarkers at
-                        // its end... so we can place these automatically (don't need to
-                        // use the Place... dialog)
+                        // we've a one-instance retranslation with endmarkers at its end...
+                        // so we can place these automatically (don't need to use the
+                        // Place... dialog) (we are dealing with the first instance of a
+                        // retranslation remember)
 						bFinalEndmarkers = TRUE; // use this below to do the final append
 						finalSuffixStr = endMarkersStr;
 					}
 				}
+				else
+				{
+					endMarkersStr.Empty();
+				}
+				if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				{
+					nBEMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+					nBEMkrs.Trim(FALSE);
+					nBEMkrs.Trim();
+					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
+					{
+						// these are medial
+						markersToPlaceArray.Add(nBEMkrs);
+						bHasInternalMarkers = TRUE;
+						bNonFinalEndmarkers = TRUE;
+					}
+					else
+					{
+                        // we've a one-instance retranslation with inline nonbinding
+                        // endmarkers at its end... so we can place these automatically
+                        // (don't need to use the Place... dialog) (we are dealing with the
+                        // first instance of a retranslation remember)
+						bFinalEndmarkers = TRUE; // use this below to do the final append
+												 // of any nBEMkrs content
+					}
+				}
+				else
+				{
+					nBEMkrs.Empty();
+				}
 
 				Tstr += pSrcPhrase->m_targetStr;
-				Sstr += pSrcPhrase->m_srcPhrase;
+
+                // BEW 11Oct10, the legacy way to handle Sstr (needed for showing in the
+                // placement dialog) was to just use m_strPhrase; but now that we have
+                // inline markers (binding and non-binding possibilities), we have to
+                // rebuild the inner part of Sstr here - that is, preceding puncts followed
+                // by any inline binding markers followed by m_key followed by any inline
+                // binding endmarkers followed by punctuation in m_follPunct. That much is
+                // needed first. Then after that, any m_follOuterPunct will need to be
+                // dealt with for Sstr, but not Tstr - the latter will have it (or what the
+                // user typed) already in place and marker placement within the punctuation
+                // string may be required in the Place... dialog; build inner part in s
+				//Sstr += pSrcPhrase->m_srcPhrase; <<-- legacy code
+				wxString s = pSrcPhrase->m_key;
+				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
+					// there should always be a final space in m_inlineBindingMarkers, 
+					// and we'll ensure it
+					iBMkrs.Trim(FALSE);
+					iBMkrs.Trim();
+					iBMkrs += aSpace;
+					s = iBMkrs + s;
+				}
+				if (!bEMkrs.IsEmpty())
+				{
+					s += bEMkrs; // it was set further above
+				}
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					s = pSrcPhrase->m_precPunct + s;
+				}
+				if (!pSrcPhrase->m_follPunct.IsEmpty())
+				{
+					s += pSrcPhrase->m_follPunct;
+				}
+				// Sstr may already have had markers and inline nonbinding mkr in it
+				if (!s.IsEmpty())
+				{
+					Sstr.Trim();
+					Sstr << aSpace << s;
+				}
+				// add the data which is determinate for position for the source text, Sstr
 				if (bNonFinalEndmarkers)
 				{
 					Sstr += endMarkersStr;
+					// m_follOuterPunct should only have content if there was preceding
+					// content in m_endMarkers; so add any outer puncts next
+					if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+					{
+						Sstr += pSrcPhrase->GetFollowingOuterPunct();
+					}
+					// finally, and inline non-binding endmarkers, like \qt*, \wj* etc
+					if (!nBEMkrs.IsEmpty())
+					{
+						Sstr += nBEMkrs;
+					}
 				}
-				//Gstr += pSrcPhrase->m_gloss;	// added for Interlinear RTF output (but unused)
-				//if (bNonFinalEndmarkers)
-				//{
-				//	Gstr += endMarkersStr;
-				//}
-				// Nstr is added for Interlinear RTF output (but unused)
-				//if (!pSrcPhrase->m_chapterVerse.IsEmpty())
-				//	Nstr = pSrcPhrase->m_chapterVerse;
-				//if (Nstr.IsEmpty())
-				//	Nstr = retranstr; 
-				//else
-				//	Nstr += aSpace + retranstr;
-				//if (!pSrcPhrase->m_inform.IsEmpty())
-				//	Nstr += aSpace + pSrcPhrase->m_inform;
 			} // end TRUE block for test: if (bFirst)
 			else
 			{
@@ -15794,17 +16425,22 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				// CSourcePhrase instances, as we collect the Tstr, etc within the loop...
 				unfilteredStr.Empty(); // empty our scratch string
                 
-				// BEW added revised comment 31MAR10: if there is medial filtered info
-				// (and there might be because it is legal to select over filtered info
-				// and create a retranslation - the medial filtered stuff that results give no
-				// problems, will be considered to be at the same CSourcePhrase for each
-				// of src text, adaptation text, and gloss text, and so won't be presented
-				// as placeable in the dialog, but will be seen there which would allow
-				// the user to manually shift its location if he wants. Info in m_markers,
-				// however, is relocatable and so its markers (and any content following)
-				// will be listed in the Place... dialog's list, and is placeable - but it
-				// doesn't have to have its location resolved until export time - which is
-				// why we only need to worry about it in this present function
+                // BEW added revised comment 31MAR10: if there is medial filtered info (and
+                // there might be because it is legal to select over filtered info and
+                // create a retranslation - the medial filtered stuff that results gives no
+                // problems except when doing an export. It will be considered to be at the
+                // same CSourcePhrase for each of src text, adaptation text, and gloss
+                // text, and so won't be presented as placeable in the dialog, but will be
+                // shown in the text in the dialog which would allow the user to manually
+                // shift its location if he wants. Info in m_markers, however, is
+                // relocatable and so its markers (and any content following) will be
+                // listed in the Place... dialog's list, and is placeable - but it doesn't
+                // have to have its location resolved until export time - which is why we
+                // only need to worry about it in this present function
+                // 
+				// BEW 11Oct10, additions to the code below to support m_follOuterPunct
+				// and the inline markers from the 4 extra wxString members added to
+				// CSourcePhrase in order to fully support USFM markup standards
 				if (!collBackTransStr.IsEmpty())
 				{
 					// add the marker too
@@ -15840,8 +16476,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 					if (gpApp->m_bOxesExportInProgress)
 					{
 						// 'numberOfChars' is not the number of characters in the note itself, but
-						// rather the number of characters in the words of the adaptation phrase in the
-						// m_targetStr member of this merged CSourcePhrase (oxes needs this info)
+						// rather the number of characters in the word(s) of the adaptation phrase in the
+						// m_targetStr member of this CSourcePhrase (oxes needs this info)
 						int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
 						wxString numStr;
 						numStr = numStr.Format(_T("%d"),numberOfChars);
@@ -15866,6 +16502,16 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 				}
  				unfilteredStr.Trim(FALSE); // finally, remove any LHS whitespace
            
+				// insert any non-empty unfiltered material "in place" in the strings
+				// which the user will see (source & target)
+				if (!unfilteredStr.IsEmpty())
+				{
+					Tstr.Trim();
+					Tstr << aSpace << unfilteredStr;
+					Sstr.Trim();
+					Sstr << aSpace << unfilteredStr;
+				}
+
 				// m_markers material, however, belongs in the list for later placement in
 				// Tstr, but for Sstr we must place it automatically because its position
 				// is determinate and not subject to relocation in the placement dialog
@@ -15876,88 +16522,213 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 					Sstr += markersStr; 
 				}
 
+				// USFM examples from UBS illustrate non-binding begin markers follow
+				// begin markers that get stored in m_markers, place it in Sstr, but add
+				// to the list for Tstr
+				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				{
+					// we store these markers with a delimiting space, so its already in place
+					Sstr += pSrcPhrase->GetInlineNonbindingMarkers();
+					bHasInternalMarkers = TRUE;
+					markersToPlaceArray.Add(pSrcPhrase->GetInlineNonbindingMarkers());
+				}
+
+				// at this point we can't add any more to Sstr until we've rebuilt the
+				// word and its punctation and any inline binding markers & endmarkers below
+				
+				// inline binding beginmarker(s) are medial, so add them to Tstr
+				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
+					// there should always be a final space in m_inlineBindingMarkers, 
+					// and we'll ensure it
+					iBMkrs.Trim(FALSE);
+					iBMkrs.Trim();
+					iBMkrs += aSpace;
+					markersToPlaceArray.Add(iBMkrs);
+					bHasInternalMarkers = TRUE;
+				}
+
+				bool bNonFinalEndmarkers = FALSE;
+				// if we are at m_bEndRetranslation == TRUE, we could automatically place
+				// an inline binding endmarker, but if there were following punctuation on
+				// the word, it wouldn't be possible without further analysis we'd want to
+				// avoid, so we'll just add any such to the list and let the user Place them
+				if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				{
+					bEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+                    // there should never be a final space in m_inlineBindingMarkers, and
+                    // we'll ensure it (& such markers don't exist in the PNG 1998 SFM
+                    // standard)
+					bEMkrs.Trim(FALSE);
+					bEMkrs.Trim();
+					markersToPlaceArray.Add(bEMkrs);
+					bHasInternalMarkers = TRUE;
+					bNonFinalEndmarkers = TRUE;
+				}
+				else
+				{
+					bEMkrs.Empty();
+				}				
 				// any m_endMarkers material will either be medial and so need to be put 
 				// in the list, or final (if this is the last CSourcePhrase of the
 				// retranslation, that is, if m_bEndRetranslation is TRUE)
-				bool bNonFinalEndmarkers = FALSE;
 				if (!endMarkersStr.IsEmpty())
 				{
-					// we've endmarkers we have to deal with
+                    // we've endmarkers we have to deal with 
 					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
 					{
 						// these endmarkers become medial, so append to the list for
-						// showing in the dialog
+						// showing in the dialog; but place them at their known location in
+						// Sstr further below
 						markersToPlaceArray.Add(endMarkersStr);
 						bHasInternalMarkers = TRUE;
 						bNonFinalEndmarkers = TRUE;
 					}
 					else
 					{
-                        // the endmarkers are at the end of the retranslation so we can
-                        // place these automatically (don't need to use the Place...
-                        // dialog)
+                        // we've a retranslation with endmarkers at its end...
+                        // so we can place these automatically (don't need to use the
+                        // Place... dialog) (we are dealing with the first instance of a
+                        // retranslation remember)
 						bFinalEndmarkers = TRUE; // use this below to do the final append
-						finalSuffixStr = endMarkersStr;
+						finalSuffixStr = endMarkersStr; // for use by Sstr
+
+						// for Tstr though, we'll still have to place the endmarker
+						// material because there could be non-empty outer following
+						// punctuation and so we can't assume endMarkersStr will be last
+						markersToPlaceArray.Add(endMarkersStr);
+						bHasInternalMarkers = TRUE;
+						bNonFinalEndmarkers = TRUE;
 					}
 				}
-
-				// insert any non-empty unfiltered material "in place" in the strings
-				// which the user will see (source & target, but we'll do so also in the
-				// gloss one too, even though it is currently unused
-				//bool bMedialsOnThisOne = FALSE;
-				if (!unfilteredStr.IsEmpty())
+				else
 				{
-					Tstr << aSpace << unfilteredStr;
-					Sstr << aSpace << unfilteredStr;
-					//Gstr << aSpace << unfilteredStr;
-					//bMedialsOnThisOne = TRUE;
+					endMarkersStr.Empty();
+				}
+				if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				{
+					nBEMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+					nBEMkrs.Trim(FALSE);
+					nBEMkrs.Trim();
+					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
+					{
+						// these are medial
+						markersToPlaceArray.Add(nBEMkrs);
+						bHasInternalMarkers = TRUE;
+						bNonFinalEndmarkers = TRUE;
+					}
+					else
+					{
+                        // we've a one-instance retranslation with inline nonbinding
+                        // endmarkers at its end... so we can place these automatically
+                        // (don't need to use the Place... dialog) (we are dealing with the
+                        // first instance of a retranslation remember)
+						bFinalEndmarkers = TRUE; // use this below to do the final append
+												 // of any nBEMkrs content, for Sstr
+
+                        // for Tstr though, we'll still have to place the inline nonbinding
+                        // endmarker, probably we could assume it will be last, but by
+                        // having the user place it we ensure it ends up where it should
+						markersToPlaceArray.Add(endMarkersStr);
+						bHasInternalMarkers = TRUE;
+						bNonFinalEndmarkers = TRUE;
+					}
+				}
+				else
+				{
+					nBEMkrs.Empty();
 				}
 
                 // add the sourcephrase's target text word or phrase, if it is not an empty
-                // string; likewise for the source text word or phrase
+				// string; likewise for the source text word or phrase, except that we
+				// must have built it from m_key in order to get markers placed correctly,
+				// see above
 				if (!pSrcPhrase->m_targetStr.IsEmpty())
+				{
+					Tstr.Trim();
 					Tstr << aSpace << pSrcPhrase->m_targetStr;
-				if (!pSrcPhrase->m_srcPhrase.IsEmpty())
-					Sstr << aSpace << pSrcPhrase->m_srcPhrase;
-				// add any needed endmarkers
+				}
+				// now build up the inner part of the source text word(s)
+				wxString s = pSrcPhrase->m_key;
+				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
+					// there should always be a final space in m_inlineBindingMarkers, 
+					// and we'll ensure it
+					iBMkrs.Trim(FALSE);
+					iBMkrs.Trim();
+					iBMkrs += aSpace;
+					s = iBMkrs + s;
+				}
+				if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				{
+					wxString iBEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+                    // there should never be a final space in m_inlineBindingMarkers, and
+                    // we'll ensure it (& such markers don't exist in the PNG 1998 SFM
+                    // standard)
+					iBEMkrs.Trim(FALSE);
+					iBEMkrs.Trim();
+					s += iBEMkrs;
+				}
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					s = pSrcPhrase->m_precPunct + s;
+				}
+				if (!pSrcPhrase->m_follPunct.IsEmpty())
+				{
+					s += pSrcPhrase->m_follPunct;
+				}
+				if (!s.IsEmpty())
+				{
+					Sstr.Trim();
+					Sstr << aSpace << s;
+				}
+
+				// add any needed endmarkers and other final stuff for Sstr, that
+				// corresponds to the stuff added to the string array for placement into
+				// Tstr
 				if (bNonFinalEndmarkers)
 				{
-					Sstr << endMarkersStr;
+					if (!endMarkersStr.IsEmpty())
+					{
+						Sstr << endMarkersStr;
+					}
+					// m_follOuterPunct should only have content if there was preceding
+					// content in m_endMarkers; so add any outer puncts next
+					if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+					{
+						Sstr += pSrcPhrase->GetFollowingOuterPunct();
+					}
+					// finally, and inline non-binding endmarkers, like \qt*, \wj* etc
+					if (!nBEMkrs.IsEmpty())
+					{
+						Sstr += nBEMkrs;
+					}
 				}
-				// below added for Interlinear RTF output
-				//if (!pSrcPhrase->m_gloss.IsEmpty())
-				//	Gstr << aSpace << pSrcPhrase->m_gloss;
-				//if (bNonFinalEndmarkers)
-				//{
-				//	Gstr << endMarkersStr;
-				//}
-                // BEWARE - faulty logic below: I've protected the flaw to some extent by
-                // wrapping the additions to Nstr with a test for bMedialsOnThisOne (that
-                // is, additions from this particular pSrcPhrase as we scan through the
-                // retranslation) but nevertheless, if the test is TRUE then extra material
-                // from medial information would end up appended to anything (possibly
-                // nothing) already put in Nstr at the first CSourcePhrase - and such a
-                // concatenation is not likely to be very helpful in an interlinear RTF
-                // tabled display - it might push a cell of the table to be very wide and
-                // the one affected may be the wrong one anyway. Fortunately, Bill never
-                // got to use the Nstr constructed here, so at the moment this problem can
-                // remain uncorrected
-				//if (bMedialsOnThisOne)
-				//{
-				//	if (!pSrcPhrase->m_chapterVerse.IsEmpty())
-				//		Nstr << aSpace << pSrcPhrase->m_chapterVerse;
-				//	if (!pSrcPhrase->m_inform.IsEmpty())
-				//		Nstr << aSpace << pSrcPhrase->m_inform;
-				//}
 			}
-		} // end of else block for testing we aren't at the end or start of another
+		} // end of else block for testing that we aren't at the end or start of another
 
-		// finally, add any final endmarkers (but not, of course, to nav text)
-		if (bFinalEndmarkers)
+		// finally, add any final endmarkers, when m_bEndRetranslation is TRUE, but only
+		// for Sstr, because for Tstr any endmarkers may need the Placement dialog, since
+		// there could be final punctuation and some of it may be outer punctuation
+		if (bFinalEndmarkers && pSrcPhrase->m_bEndRetranslation)
 		{
-			Tstr += finalSuffixStr;
-			Sstr += finalSuffixStr;
-			//Gstr += finalSuffixStr;
+			if (!finalSuffixStr.IsEmpty())
+			{
+				Sstr += finalSuffixStr;
+			}
+			// m_follOuterPunct should only have content if there was preceding
+			// content in m_endMarkers; so add any outer puncts next
+			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+			{
+				Sstr += pSrcPhrase->GetFollowingOuterPunct();
+			}
+			// finally, and inline non-binding endmarkers, like \qt*, \wj* etc
+			if (!nBEMkrs.IsEmpty())
+			{
+				Sstr += nBEMkrs;
+			}
 		}
 
         // if we got to the end of the file, pos will now be null, so we have to check and
@@ -15987,25 +16758,24 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList*
 		// get the post-placement resulting string
 		Tstr = dlg.GetPostPlacementString();
 
-		// BEW added test, 07Oct05
-		if (Tstr[0] != _T(' '))
-		{
-			// need to add an initial space if there is not one there already
-			Tstr = _T(" ") + Tstr;
-		}
-	}
+		// remove initial and final whitespace
+		Tstr.Trim(FALSE);
+		Tstr.Trim();
+	} // end of TRUE block for test: if (bHasInternalMarkers)
 
 	// now add the prefix string material not shown in the Place... dialog, 
 	// if it is not empty
 	if (!markersPrefix.IsEmpty())
 	{
+		markersPrefix.Trim(FALSE);
 		markersPrefix.Trim();
-		markersPrefix += aSpace; // ensure a final space
+		markersPrefix += aSpace; // ensure a trailing space
 		Tstr = markersPrefix + Tstr;
-		//Sstr = markersPrefix + Sstr;
-		//Gstr = markersPrefix + Gstr;
 	}
+	markersToPlaceArray.Clear();
 
+	// the caller will add a delimiting space where needed, so we can refrain from trying
+	// to assume what the caller wants and return the string with ends Trim()-ed
 	return savePos; // return position of first srcPhrase after retranslation, or null
 }
 

@@ -79,6 +79,7 @@ CPlaceInternalMarkers::CPlaceInternalMarkers(wxWindow* parent) // dialog constru
 	// **** explanation of the reason                                     ****
 	
 	// make the fonts show user's desired point size in the dialog
+	pEditDisabled = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC);
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pEditDisabled, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
@@ -124,63 +125,103 @@ void CPlaceInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
-		wxMessageBox(_("List box error when getting the current selection, place manually instead"), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_("List box error when getting the current selection, place manually instead"),
+		_T(""), wxICON_EXCLAMATION);
 		return; // whm added
 	}
 
 	int nSel;
 	nSel = pListBox->GetSelection();
-	//if (nSel == -1) // LB_ERR
-	//{
-	//	wxMessageBox(_("List box error when getting the current selection, place manually instead"), _T(""), wxICON_EXCLAMATION);
-	//}
+	// Note: m_markers is NOT pSrcPhrase's m_markers, but simply a member string variable
+	// of the CPlaceInternalMarkers class
 	m_markers = pListBox->GetString(nSel);
-
 
 	// get the selection for the CEdit - we are interested in the starting
 	// position of the selection
-	wxString str;
+	wxString aSpace = _T(' ');
+	wxString emptyStr; emptyStr.Empty();
 	long nStartChar;
 	long nEndChar;
+	pEditTarget->GetSelection(&nStartChar,&nEndChar);
+	// BEW 11Oct10, if the user selected, we'll assume he wants the selection removed - so
+	// check and do so here. After doing so, we want nStartChar == nEndChar as that is to
+	// be the starting location for the checks to be made (see below)
+	if (nStartChar < nEndChar)
+	{
+		pEditTarget->Replace(nStartChar, nEndChar, m_markers);
+		pEditTarget->GetSelection(&nStartChar,&nEndChar);
+	}
+	// nStartChar and nEndChar will how be at the same location
 	int len;
+	wxString str;
 	str = pEditTarget->GetValue(); 
 	// Note: Under wxTextCtrl set for multiline contents, the lines are separated by Unix-style \n
 	// characters, even under Windows (where they would be separated by \r\n sequences under MFC).
 	len = str.Length();
-	pEditTarget->GetSelection(&nStartChar,&nEndChar);
 	const wxChar* pBuff = str.GetData(); // assume it won't fail
 	wxChar* pBufStart = (wxChar*)pBuff;
 	wxChar* pEnd;
 	pEnd = pBufStart + len; // whm added
 	wxASSERT(*pEnd == _T('\0'));
 	wxChar* ptr = pBufStart;
+	ptr += nStartChar; // point at the wxChar that the nStartChar offset points at
 
-	// find a suitable place to put the marker(s) - if user clicked on a
-	// word, put it at end of preceding word, if contiguous to space, then
-	// preceding spaces (and reduce spaces to one)
-
-	ptr += nStartChar;
-	// whm Note: If m_tgtPhrase is not preceded by a space the following loop
-	// could become infinite, so I've recoded it below to be safe.
-	while (ptr > pBufStart && *ptr != _T(' '))
+    // Legacy protocol: find a suitable place to put the marker(s) - if user clicked on a
+    // word, put it at end of preceding word, if contiguous to space, then preceding spaces
+    // (and reduce spaces to one)
+    // BEW 11Oct10, with the advent of USFM and endmarkers, and we don't support a space
+    // following an endmarker, and differences between marker types in relation to
+    // punctuation (ie. binding versus non-binding versus normal markers) the legacy
+    // protocols won't work. For instance, if inserting \k (keyword) marker, it must go
+    // following any opening punctuation on the word, so we don't want to have to do
+    // parsing of the text in order to be able to place an inline binding marker correctly.
+    // The solution is to place the markers exactly where the click was done, or where the
+    // selection was removed. If fine motor skills are not sufficient to get that right,
+    // manual editing in the control is possible for the user to correct his mistake.
+	bool bIsEndmarker = FALSE;
+	if (m_markers.Find(_T('*')) != wxNOT_FOUND)
 	{
-		ptr--;
+		bIsEndmarker = TRUE;
 	}
-	if (*ptr == _T(' '))
+	if (gpApp->gCurrentSfmSet == PngOnly && (m_markers.Find(_T("\\fe")) != wxNOT_FOUND ||
+		m_markers.Find(_T("\\F")) != wxNOT_FOUND))
 	{
-		nStartChar = (int)(ptr - pBufStart);
-		nEndChar = nStartChar + 1;
+		bIsEndmarker = TRUE;
+	}
+	// if m_markers has a begin marker it should have been stored with a trailing space,
+	// check, and if there is no space, then add one
+	wxString reverse = MakeReverse(m_markers);
+	if (reverse[0] != _T(' '))
+	{
+		m_markers += aSpace;
+	}
+	// ensure endmarker(s) don't have a trailing space
+	if (bIsEndmarker)
+		m_markers.Trim();
+
+	// do the placement -- first correcting for a misplaced click...
+	// There are two likely errors, brought about by the user not realizing that an
+	// endmarker should not follow a space, or a beginmarker must have a space following.
+	// In the former situation, we check if a space precedes ptr, and if so, move ptr
+	// leftwards until any leftwards spaces lie to the rigth, then we insert. In the case
+	// of a beginmarker, if there is a space following then we move ptr rightwards until
+	// there are no more spaces to the right, then we insert.
+	if (bIsEndmarker)
+	{
+		while (ptr > pBufStart && *(ptr - 1) == _T(' '))
+		{
+			ptr--;
+		}
 	}
 	else
 	{
-		nEndChar = nStartChar; // if something is wrong, just insert at
-							   // start of the selection
+		while (ptr < pEnd && *ptr == _T(' '))
+		{
+			ptr++;
+		}
 	}
-	pEditTarget->SetSelection(nStartChar,nEndChar);
-	// insure m_markers is padded with a space on each end
-	m_markers.Trim(FALSE); // trim left end
-	m_markers.Trim(TRUE); // trim right end
-	m_markers = _T(' ') + m_markers + _T(' ');
+	nStartChar = (long)(ptr - pBufStart);
+	nEndChar = nStartChar;
 	pEditTarget->Replace(nStartChar, nEndChar, m_markers);
 
 	// remove the top item from the list box (ie. the selected item)

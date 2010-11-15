@@ -57,10 +57,12 @@ const UInt32 hasInternalMarkersMask		= 131072; // position 18
 const UInt32 hasInternalPunctMask		= 262144; // position 19
 const UInt32 footnoteMask				= 524288; // position 20
 const UInt32 footnoteEndMask			= 1048576; // position 21
-const UInt32 paragraphMask				= 2097152; // position 22
+// BEW 8Oct10, repurposed m_bParagraph, so need different name for mask
+//const UInt32 paragraphMask			= 2097152; // position 22
+const UInt32 unusedMask					= 2097152; // position 22
 
 /*
-// whm note: I've moved the following constants to Adapt_It.cpp
+// whm note: I've moved the following constants to Adapt_It.h
 // for Adapt It document output as XML, and parsing of elements
 const char adaptitdoc[] = "AdaptItDoc";
 const char settings[] = "Settings";
@@ -308,7 +310,7 @@ bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB));
 // endmarkers for non-filtered info being at the start of m_markers on the next
 // CSourcePhrase instance, to dedicated storage in doc version 5, for each info type, and
 // endmarkers stored on the CSourcePhrase instance where they logically belong
-void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded);
+void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bool bIsEmbedded);
 
 // convert from doc version 5's various filtered content storage members, back to the
 // legacy doc version 4 storage regime, where filtered info and endmarkers (for
@@ -317,7 +319,8 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, boo
 // because this function will modify the content in each deep copied instance in order that
 // the old legacy doc version 4 xml construction code will correctly build the legacy
 // document xml format, without corrupting the original doc version 5 storage regime.
-void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr);
+void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr,
+				wxString* pInlineNonBindingEndMkrs, wxString* pInlineBindingEndMkrs);
 
 // return a docversion 4 m_markers wxString with the docversion 5 filter storage members'
 // contents rewrapped with \~FILTER and \FILTER* bracketing markers, but leave addition of
@@ -329,14 +332,18 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 // use this function within FromDocVersion4ToDocVersion5() to transfer endmarkers from the
 // m_markers string for docVersion 4 CSourcePhrase instances, to CSourcePhrase instances as
 // in docVersion 5.
-bool TransferEndMarkers(wxString& markers, CSourcePhrase* pLastSrcPhrase);
+bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers, 
+						CSourcePhrase* pLastSrcPhrase, bool& bDeleteWhenDone);
 
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
 // use this function within FromDocVersion5ToDocVersion4()to transfer endmarkers from the
 // CSourcePhrase instances as in docVersion 5, back to the start of the m_markers member
 // of the next CSourcePhrase instances, as is the way it was for docVersion 4. (Save As...
 // command, when saving to legacy doc format, needs to use this)
-bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNextSrcPhrase);
+//bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNextSrcPhrase);
+// BEW 11Oct10, a different one is needed, I never used the above one
+void TransferEndmarkersToStartOfMarkersStrForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmkrs,
+					wxString& inlineNonbindingEndMkrs, wxString& inlineBindingEndMkrs);
 
 // next function used in FromDocVersion4ToDocVersion5(), returns whatever any content
 // which should be put in m_filteredInfo (already wrapped with filter bracket markers)
@@ -353,6 +360,25 @@ wxString RemoveOuterWrappers(wxString wrappedStr);
 // it has one) and does not process further than just the first such section
 void ParseMarkersAndContent(wxString& str, wxString& mkr, wxString& content, wxString& endMkr);
 
+// the passed in markers string has whatever is left from m_markers after endmarkers and
+// filtered info has been removed, and so it may contain inline beginmarkers which need
+// to be extract and put in their own storage in pSrcPhrase; pSrcPhrase is the instance
+// from which markers string was obtained in the caller; whatever remains in markers after
+// the inline markers are removed is returned to the caller  (which will then assign it to
+// pSrcPhrase's m_markers member, overwriting the previous content there)
+wxString ExtractAndStoreInlineMarkersDocV4To5(wxString markers, CSourcePhrase* pSrcPhrase);
+
+// Complex USFM parsed by the doc version 4 parser produces orphaned (empty) CSourcePhrase
+// instances which carry punctuation and an inline binding marker or an inline nbinding
+// endmarker. This function attempts to find this and remove them, restoring their data on
+// the CSourcePhrase appropriate (the one immediately ahead, or immediately behind,
+// depending on what is stored). Note, detached following punctuation will typically have
+// been stored in m_precPunct of the orphan, so analysis of m_precPunct is needed, as also
+// is analysis of what is in m_markers.
+void MurderTheDocV4Orphans(SPList* pSrcPhraseList);
+
+void MakeFixedSpaceTranslation(CSourcePhrase* pWord1SPh, CSourcePhrase* pWord2SPh, 
+							   wxString& adaption, wxString& targetStr);
 
 #endif // XML_h
 

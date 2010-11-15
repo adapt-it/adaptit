@@ -1702,6 +1702,7 @@ bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView)
 // m_pSrcPhrase member of pNewPile
 // BEW 13Apr10, a small change needed for support of doc version 5
 // BEW 21Jun10, updated for support of kbVersion 2
+// BEW 13Nov10, changed by Bob Eaton's request, for glossing KB to use all maps
 bool CPhraseBox::LookAhead(CPile* pNewPile)
 {
 	// refactored 25Mar09 (old code is at end of file)
@@ -1758,13 +1759,16 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	}
 		
 	// check these phrases, longest first, attempting to find a match in the KB
+	// BEW 13Nov10, changed by Bob Eaton's request, for glossing KB to use all maps
 	CKB* pKB;
 	int nCurLongest; // index of the map which is highest having content, maps at higher index
 					 // values currently have no content
 	if (gbIsGlossing)
 	{
 		pKB = pApp->m_pGlossingKB;
-		nCurLongest = 1; // the caller should ensure this, but doing it explicitly here is
+		nCurLongest = pKB->m_nMaxWords; // no matches are possible for phrases longer 
+										// than nCurLongest when adapting
+		//nCurLongest = 1; // the caller should ensure this, but doing it explicitly here is
 						 // some extra insurance to keep matching within the only map that exists
 						 // when the glossing KB is in use
 	}
@@ -4963,6 +4967,7 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	CTargetUnit* pTargetUnit = (CTargetUnit*)NULL;
 	int index = 0;
 	bool bFound = FALSE;
+	// index is always 0 in this function, so lookup is only in the first map
 	bFound = pKB->FindMatchInKB(index + 1, phrases[index], pTargetUnit);
 
 	// if no match was found, we return immediately with a return value of FALSE

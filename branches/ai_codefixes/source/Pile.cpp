@@ -603,11 +603,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 		//////////////////// Draw Green Wedge etc ////////////////////////////////
 		
-		// next stuff is for the green wedge - it should be shown at the left or the right
-		// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather
-		// than using the nav text's directionality
-		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
-			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
+        // next stuff is for the green wedge - it should be shown at the left or the right
+        // of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively),
+        // rather than using the nav text's directionality
+		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter 
 			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
 			|| bHasFilterMarker)
 		{

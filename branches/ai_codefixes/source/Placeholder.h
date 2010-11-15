@@ -46,10 +46,11 @@ class CPlaceholder : public wxEvtHandler
 							bool				bRestoreTargetBox = TRUE,
 							bool				bForRetranslation = FALSE,
 							bool bInsertBefore = TRUE);
-		CSourcePhrase*	ReDoInsertNullSrcPhrase(
-							SPList*				pList,
-							SPList::Node*&		insertPos,
-							bool				bForRetranslation = FALSE);
+		// BEW 11Oct10, next is no longer called anywhere, so commented out
+		//CSourcePhrase*	ReDoInsertNullSrcPhrase(
+		//					SPList*				pList,
+		//					SPList::Node*&		insertPos,
+		//					bool				bForRetranslation = FALSE);
 		void		RemoveNullSourcePhrase(
 							CPile*				pInsertLocPile, 
 							const				int nCount);
@@ -59,6 +60,10 @@ class CPlaceholder : public wxEvtHandler
 							int&				nEndSequNum,
 							bool				bActiveLocAfterSelection,
 							int&				nSaveActiveSequNum);
+		// BEW added 11Oct10 for better support of docV5 within OnButtonRetranslation()
+		void		UntransferTransferredMarkersAndPuncts(
+							SPList*				pSrcPhraseList,
+							CSourcePhrase*		pSrcPhrase);
 	private:
 
 		// a utility for setting or clearing the bFollowingMarkers boolean (although

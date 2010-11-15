@@ -307,7 +307,8 @@ const char xml_m[] = "m"; // m_markers
 const char xml_mp[] = "mp"; // some medial punctuation
 /// Attribute name used in Adapt It XML documents
 const char xml_mm[] = "mm"; // one or more medial markers (no filtered stuff)
-// new ones, Feb 2010, for doc version = 5
+
+// new ones, Feb 2010 and 11Oct10, for doc version = 5
 /// Attribute name used in Adapt It XML documents
 const char xml_em[] = "em"; // m_endMarkers
 /// Attribute name used in Adapt It XML documents
@@ -318,6 +319,16 @@ const char xml_no[] = "no"; // m_note
 const char xml_bt[] = "bt"; // m_collectedBackTrans
 /// Attribute name used in Adapt It XML documents
 const char xml_fi[] = "fi"; // m_filteredInfo
+/// Attribute name used in Adapt It XML documents
+const char xml_fop[] = "fop"; // m_follOuterPunct
+/// Attribute name used in Adapt It XML documents
+const char xml_iBM[] = "iBM"; // m_inlineBindingMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_iBEM[] = "iBEM"; // m_inlineBindingEndMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_iNM[] = "iNM"; // m_inlineNonbindingMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_iNEM[] = "iNEM"; // m_inlineNonbindingEndMarkers
 
 // tag & attribute names for KB i/o
 
@@ -2616,6 +2627,13 @@ public:
                 // means of Edit Preferences Filter tab or by means of the Start Working...
                 // wizard Filter page.
 
+	wxString m_inlineNonbindingMarkers; // BEW 11Oct10, the begin and end markers which are
+				// inline, but which do not bind more closely than punctuation
+				// (these are \wj \qt \sls \tl \fig; and their endmarkers are a separate
+				// wxString member -- see next line)
+	wxString m_inlineNonbindingEndMarkers;
+	wxString m_inlineBindingMarkers; // beginmarkers, needed for docV4 to docV5 conversions
+
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is 
 				// being viewed in the ViewFilteredMaterial dialog
 	
@@ -2753,7 +2771,6 @@ public:
 protected:
 
 	void	AddWedgePunctPair(wxChar wedge);
-	void	DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulativeTotal);
 	bool	DoTransformationsToGlosses(wxArrayString& tgtDocsList, CAdapt_ItDoc* pDoc,
 				wxString& folderPath, wxString& bookFolderName, bool bSuppressStatistics = FALSE);
 	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
