@@ -4728,6 +4728,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnUpdateFileRestoreKb)
 	EVT_MENU(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnFileChangeFolder)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
+	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
+	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
 	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)// renamed to 
 	    //OnMRUFile and moved to CMainFrame
 
@@ -34315,6 +34317,183 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 		return;
 	}
 	event.Enable(TRUE); 
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the appropriate KB is not in a ready state this
+/// handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
+/// enables the "Export Knowledge Base..." item on the File menu.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnUpdateFileExportKb(wxUpdateUIEvent& event)
+{
+	if ((!gbIsGlossing && m_pKB != NULL) || (gbIsGlossing && m_pGlossingKB != NULL))
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
+
+void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
+{
+	//CAdapt_ItDoc* pDoc;
+	//CPhraseBox* pBox;
+	//CAdapt_ItView* pView;
+	//GetBasePointers(pDoc,pView,pBox); // this is 'safe' when no doc is open
+
+	// get a pointer to either the glossing KB or the adaptation one
+	CKB* pKB;
+	if (gbIsGlossing)
+		pKB = m_pGlossingKB;
+	else
+		pKB = m_pKB;
+	wxASSERT(pKB != NULL);
+
+    // get an output filename and put up file dialog make the working directory the
+    // "<Project Name>" one if no previous export path was defined, else make it the stored
+    // last export path for the kb
+	bool bOK = TRUE;
+	if (m_kbExportPath.IsEmpty())
+		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
+	else
+		bOK = ::wxSetWorkingDirectory(m_kbExportPath);
+
+	// the above may have failed, so if so use m_curProjectPath as the folder
+	// so we can proceed to the file dialog safely
+	if (!bOK)
+	{
+		m_kbExportPath = m_curProjectPath;
+		bOK = ::wxSetWorkingDirectory(m_kbExportPath); // this should work, since
+												// m_curProjectPath can hardly be wrong!
+		if (!bOK)
+		{
+			bOK = ::wxSetWorkingDirectory(m_kbExportPath = _T("C:"));
+			if (!bOK)
+			{
+				// we should never get a failure for the above, 
+				// so just an English message will do
+				wxMessageBox(_T(
+				"OnFileExportKb() failed, the export has been aborted"),
+				_T(""),wxICON_WARNING);
+				return;
+			}
+		}
+	}
+
+	// Set up default export file names
+    // whm Note: In the App's SetupDirectories() function the m_curProjectName is
+    // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"), 
+    // so the "to" and "adaptations" parts are non-localized, i.e., we can depend on them
+    // being constant in project names. All KB exports use a default name based on
+    // m_curProjectName without " adaptations" part
+	wxString dictFilename;
+	dictFilename = m_curProjectName;
+	dictFilename = MakeReverse(dictFilename);
+	int offset = dictFilename.Find(_T(" "));
+	dictFilename = dictFilename.Mid(offset); // remove "adaptations" or Tok Pisin equivalent
+	dictFilename = MakeReverse(dictFilename);
+	// The base dictFilename is now in the form of "x to y"
+
+	wxString glossStr;
+	wxString defaultKBLiftExportFileName;
+	wxString extToBeUsed;
+	wxString tempStr;
+
+	// use the .lift extension as default
+	extToBeUsed = _T(".lift"); // the extension is not localizable
+	if (gbIsGlossing)
+	{
+		glossStr = _("Glossing");
+		// no space added here to glossStr since we don't add 
+		// "dictionary records" to this one
+		dictFilename += glossStr; // ensure the glossing KB 
+								  // export has its own filename
+	}
+	else
+	{
+		dictFilename.Trim(TRUE); // trim any white space from right end
+	}
+	dictFilename = dictFilename + _T("%s");
+	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .lift 
+													// as the default export extension
+	wxString defaultDir;
+	if (m_kbExportPath.IsEmpty())
+	{
+		defaultDir = m_curProjectPath;
+	}
+	else
+	{
+		defaultDir = m_kbExportPath;
+	}
+
+	// get a file dialog
+	wxString filter;
+	filter = _("XML LIFT export (*.lift)|*.lift|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+	wxFileDialog fileDlg(
+		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+		_("Filename For KB Export"),
+		defaultDir,	// empty string causes it to use the current working directory (set above)
+		dictFilename,	// default filename
+		filter,
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+	fileDlg.Centre();
+
+	// make the dialog visible
+	if (fileDlg.ShowModal() != wxID_OK)
+		return; // user cancelled
+
+	// update m_kbExportPath
+	wxString exportPath = fileDlg.GetPath();
+	wxString name = fileDlg.GetFilename();
+	int nameLen = name.Length();
+	int pathLen = exportPath.Length();
+	wxASSERT(nameLen > 0 && pathLen > 0);
+	m_kbExportPath = exportPath.Left(pathLen - nameLen - 1);
+
+	// get the user's desired path and file name
+	wxString dicPath = fileDlg.GetPath(); 
+	int filterIndex;
+	filterIndex = fileDlg.GetFilterIndex();
+
+	if (filterIndex == KBExportSaveAsSFM_TXT)
+	{
+        // in SFM exports, add the " dictionary records" suffix to the base name of the
+        // export file, if the user has not already made that part of the name.
+		wxString path, fname, ext;
+		wxFileName::SplitPath(dicPath, &path, &fname, &ext);
+		if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+		{
+			dicPath = path + PathSeparator + fname + _T(" ") + 
+						_("dictionary records") + _T(".") + ext;
+		}
+	}
+	wxFile f;
+	if( !f.Open( dicPath, wxFile::write))
+	{
+		wxMessageBox(_("Unable to open knowledge base export file."),
+		_T(""), wxICON_WARNING);
+		return; // return since it is not a fatal error
+	}
+
+	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, 
+	{										   //i.e., first item in drop down list
+		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
+	}
+	else
+	{
+        // the user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields)
+        // (*.txt)" or "All Files (*.*)" which we assume would be same as "SFM plain text
+        // export..."
+		pKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+	}
+
+	// close the file
+	f.Close();
 }
 
 #ifdef __WXDEBUG__

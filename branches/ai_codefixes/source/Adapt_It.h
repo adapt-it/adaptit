@@ -2724,6 +2724,8 @@ public:
 
 	void OnFileNew(wxCommandEvent& event);
 
+	void OnFileExportKb(wxCommandEvent& WXUNUSED(event)); // moved from view class 16Nov10
+	void OnUpdateFileExportKb(wxUpdateUIEvent& event); // moved from view class 16Nov10
 	void OnFileRestoreKb(wxCommandEvent& WXUNUSED(event));
 	void OnFileBackupKb(wxCommandEvent& WXUNUSED(event));
 	void OnToolsDefineCC(wxCommandEvent& WXUNUSED(event));

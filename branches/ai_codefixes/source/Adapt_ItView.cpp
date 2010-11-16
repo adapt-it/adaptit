@@ -921,8 +921,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_EXPORT_GLOSSES, CAdapt_ItView::OnUpdateExportGlossesAsText)
 	EVT_MENU(ID_EXPORT_FREE_TRANS, CAdapt_ItView::OnExportFreeTranslations)
 	EVT_UPDATE_UI(ID_EXPORT_FREE_TRANS, CAdapt_ItView::OnUpdateExportFreeTranslations)
-	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItView::OnFileExportKb)
-	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItView::OnUpdateFileExportKb)
 	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
 	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
 	EVT_MENU(ID_EXPORT_OXES, CAdapt_ItView::OnExportOXES)
@@ -18767,186 +18765,6 @@ void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNex
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu
-///                        is about to be displayed
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-/// and before the menu is displayed. If the appropriate KB is not in a ready state this
-/// handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
-/// enables the "Export Knowledge Base..." item on the File menu.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateFileExportKb(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	if ((!gbIsGlossing && pApp->m_pKB != NULL) || 
-		(gbIsGlossing && pApp->m_pGlossingKB != NULL))
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-
-void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	wxASSERT(pApp != NULL);
-	CAdapt_ItDoc* pDoc;
-	CPhraseBox* pBox;
-	CAdapt_ItView* pView;
-	pApp->GetBasePointers(pDoc,pView,pBox); // this is 'safe' when no doc is open
-
-	// get a pointer to either the glossing KB or the adaptation one
-	CKB* pKB;
-	if (gbIsGlossing)
-		pKB = pApp->m_pGlossingKB;
-	else
-		pKB = pApp->m_pKB;
-	wxASSERT(pKB != NULL);
-
-    // get an output filename and put up file dialog make the working directory the
-    // "<Project Name>" one if no previous export path was defined, else make it the stored
-    // last export path for the kb
-	bool bOK = TRUE;
-	if (pApp->m_kbExportPath.IsEmpty())
-		bOK = ::wxSetWorkingDirectory(pApp->m_curProjectPath);
-	else
-		bOK = ::wxSetWorkingDirectory(pApp->m_kbExportPath);
-
-	// the above may have failed, so if so use m_curProjectPath as the folder
-	// so we can proceed to the file dialog safely
-	if (!bOK)
-	{
-		pApp->m_kbExportPath = pApp->m_curProjectPath;
-		bOK = ::wxSetWorkingDirectory(pApp->m_kbExportPath); // this should work, since
-												// m_curProjectPath can hardly be wrong!
-		if (!bOK)
-		{
-			bOK = ::wxSetWorkingDirectory(pApp->m_kbExportPath = _T("C:"));
-			if (!bOK)
-			{
-				// we should never get a failure for the above, 
-				// so just an English message will do
-				wxMessageBox(_T(
-				"OnFileExportKb() failed, the export has been aborted"),
-				_T(""),wxICON_WARNING);
-				return;
-			}
-		}
-	}
-
-	// Set up default export file names
-	// whm Note: In the App's SetupDirectories() function the m_curProjectName is constructed as:
-	// m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"), so the "to" and "adaptations"
-	// parts are non-localized, i.e., we can depend on them being constant in project names. 
-	// All KB exports use a default name based on m_curProjectName without " adaptations" part
-	wxString dictFilename;
-	dictFilename = pApp->m_curProjectName;
-	dictFilename = MakeReverse(dictFilename);
-	int offset = dictFilename.Find(_T(" "));
-	dictFilename = dictFilename.Mid(offset); // remove "adaptations" or Tok Pisin equivalent
-	dictFilename = MakeReverse(dictFilename);
-	// The base dictFilename is now in the form of "x to y"
-
-	wxString glossStr;
-	wxString defaultKBLiftExportFileName;
-	wxString extToBeUsed;
-	wxString tempStr;
-
-	// use the .lift extension as default
-	extToBeUsed = _T(".lift"); // the extension is not localizable
-	if (gbIsGlossing)
-	{
-		glossStr = _("Glossing");
-		// no space added here to glossStr since we don't add "dictionary records" to this one
-		dictFilename += glossStr; // ensure the glossing KB export has its own filename
-	}
-	else
-	{
-		dictFilename.Trim(TRUE); // trim any white space from right end
-	}
-	//dictFilename += _T(" ");
-	//dictFilename += _("dictionary records");
-	dictFilename = dictFilename + _T("%s");
-	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .lift as the default export extension
-	
-	wxString defaultDir;
-	if (pApp->m_kbExportPath.IsEmpty())
-	{
-		defaultDir = pApp->m_curProjectPath;
-	}
-	else
-	{
-		defaultDir = pApp->m_kbExportPath;
-	}
-
-	// get a file dialog
-	wxString filter;
-	//MFC app IDS_KB_EXPORT_FILTER
-	filter = _("XML LIFT export (*.lift)|*.lift|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Filename For KB Export"),
-		defaultDir,	// empty string causes it to use the current working directory (set above)
-		dictFilename,	// default filename
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
-	fileDlg.Centre();
-
-	// make the dialog visible
-	if (fileDlg.ShowModal() != wxID_OK)
-		return; // user cancelled
-
-	// update m_kbExportPath
-	wxString exportPath = fileDlg.GetPath();
-	wxString name = fileDlg.GetFilename();
-	int nameLen = name.Length();
-	int pathLen = exportPath.Length();
-	wxASSERT(nameLen > 0 && pathLen > 0);
-	pApp->m_kbExportPath = exportPath.Left(pathLen - nameLen - 1);
-
-	// get the user's desired path and file name
-	wxString dicPath = fileDlg.GetPath(); 
-	int filterIndex;
-	filterIndex = fileDlg.GetFilterIndex();
-
-	if (filterIndex == KBExportSaveAsSFM_TXT)
-	{
-		// in SFM exports, add the " dictionary records" suffix to the base name of the export file,
-		// if the user has not already made that part of the name.
-		wxString path, fname, ext;
-		wxFileName::SplitPath(dicPath, &path, &fname, &ext);
-		if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
-		{
-			dicPath = path + pApp->PathSeparator + fname + _T(" ") + _("dictionary records") + _T(".") + ext;
-		}
-	}
-
-	wxFile f;
-	if( !f.Open( dicPath, wxFile::write))
-	{
-		wxMessageBox(_("Unable to open knowledge base export file."),
-		_T(""), wxICON_WARNING);
-		return; // return since it is not a fatal error
-	}
-
-	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, i.e., first item in drop down list
-	{
-		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
-	}
-	else
-	{
-		// the  user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields) (*.txt)"
-		// or "All Files (*.*)" which we assume would be same as "SFM plain text export..."
-		pKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
-	}
-
-	// close the file
-	f.Close();
-}
-
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -22789,8 +22607,19 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	}
 
 	// we now have the nSequNum at which we want to restore the box, so do it
-	translation.Empty();
-	pApp->m_targetPhrase.Empty();
+	bool bOldIsOK = TRUE;
+	if (nSequNum == pRec->nSaveActiveSequNum)
+	{
+		// the old location is still good, use it
+		translation = pRec->oldPhraseBoxText;
+		pApp->m_targetPhrase = translation;
+	}
+	else
+	{
+		translation.Empty();
+		pApp->m_targetPhrase.Empty();
+		bOldIsOK = FALSE;
+	}
 
 	// now set up the phrase box
 	pApp->m_nActiveSequNum = nSequNum; // needed, as a test for m_nActiveSequNum
@@ -22798,32 +22627,36 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 				// here and it is -1
 	pApp->m_pActivePile = GetPile(nSequNum);
 	bool bFoundSomething = FALSE;
-	if (!pRec->bGlossingModeOnEntry)
+	if (!bOldIsOK)
 	{
-		if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-			bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-		if (bFoundSomething)
+		if (!pRec->bGlossingModeOnEntry)
 		{
-			pApp->m_targetPhrase = translation;
+			if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
+				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
+			if (bFoundSomething)
+			{
+				pApp->m_targetPhrase = translation;
+			}
+			else
+			{
+				translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+				pApp->m_targetPhrase = translation;
+			}
 		}
 		else
 		{
-			translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-			pApp->m_targetPhrase = translation;
-		}
-	}
-	else
-	{
-		if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
-			bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-		if (bFoundSomething)
-		{
-			pApp->m_targetPhrase = translation;
-		}
-		else
-		{
-			translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-			pApp->m_targetPhrase = translation;
+			// it was glossing mode on entry
+			if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
+				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
+			if (bFoundSomething)
+			{
+				pApp->m_targetPhrase = translation;
+			}
+			else
+			{
+				translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+				pApp->m_targetPhrase = translation;
+			}
 		}
 	}
 	CLayout* pLayout = GetLayout();
@@ -24426,6 +24259,11 @@ bailout:	pAdaptList->Clear();
 	else
 	{
 		bUserCancelled = TRUE;
+
+		// old phrase box location should be valid, so put value back
+		pApp->m_targetPhrase = pRec->oldPhraseBoxText;
+		pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+		pApp->m_pTargetBox->SetSelection(-1,-1); // select it all
 	}
 
 	// delay cancel cleanup to here, as the restoration of the view needed 
@@ -24983,8 +24821,7 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 // use the following when placing the phrase box in vertical editing moode's steps
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
-void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), 
-												   int nSequNum)
+void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
@@ -25017,6 +24854,15 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec),
         // by whatever is adaptation or gloss if user switched modes, and if there is no
         // such string yet, then do LookUpSrcWord() and if there is an entry in the KB, use
         // that, else leave empty
+     
+	// BEW added 16Nov10, one final thing we can do is test if the saved initial active
+	// sequ number is the same as that passed in, if so, then reset the phrase box to the
+	// stored string in pRec
+	if (nSequNum == pRec->nSaveActiveSequNum)
+	{
+		translation = pRec->oldPhraseBoxText;
+		pApp->m_targetPhrase = translation;
+	}
 	CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);

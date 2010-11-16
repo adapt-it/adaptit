@@ -194,7 +194,7 @@ public:
 	void		MergeWords();
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
-	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);	
+	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNum);	
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
@@ -418,8 +418,6 @@ protected:
 	void OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event);
 	void OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateFileExportKb(wxUpdateUIEvent& event);
-	void OnFileExportKb(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateShowTgt(wxUpdateUIEvent& event);
 	void OnUpdateShowAll(wxUpdateUIEvent& event);
 	void OnUpdateEditUndo(wxUpdateUIEvent& event);
