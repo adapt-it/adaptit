@@ -174,8 +174,8 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_pStaticSelectATab = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SELECT_A_TAB);
 	wxASSERT(m_pStaticSelectATab != NULL);
 
-	//m_pStaticWhichKB = (wxStaticText*)FindWindowById(ID_STATIC_WHICH_KB);
-	//wxASSERT(m_pStaticWhichKB != NULL);
+	m_pStaticWhichKB = (wxStaticText*)FindWindowById(ID_STATIC_WHICH_KB);
+	wxASSERT(m_pStaticWhichKB != NULL);
 }
 
 CKBEditor::~CKBEditor()
@@ -1450,8 +1450,8 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	{
 		// Make it show  "Glosses Knowledge Base" at top right, rather than "Adaptations
 		// Knowledge Base" (Localizable)
-//		wxString glossesKBLabel = _("Glosses Knowledge Base");
-//		m_pStaticWhichKB->SetLabel(glossesKBLabel);
+		wxString glossesKBLabel = _("Glosses Knowledge Base");
+		m_pStaticWhichKB->SetLabel(glossesKBLabel);
 
 	// BEW 13Nov10, removed to support Bob Eaton's request for glosssing KB to use all maps
         // First, configure the wxNoteBook for Glossing: Remove all but the first tab page

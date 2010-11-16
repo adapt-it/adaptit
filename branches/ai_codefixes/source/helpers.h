@@ -266,5 +266,6 @@ bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders);
 void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwanted,
 								   bool bSorted, enum ExtensionAction extAction);
 void ChangeParatextPrivatesToCustomMarkers(wxString& buffer);
+wxString RemoveCustomFilteredInfoFrom(wxString str); // BEW 11Oct10, removes \free, \note, \bt info
 
 #endif	// helpers_h

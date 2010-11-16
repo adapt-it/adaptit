@@ -3386,6 +3386,93 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 	return str;
 }
 
+// Pass in a string which could have \free .... \free* content, and / or \note ... \note*
+// content and / or \bt .... (this will end when next marker follows, or string end)
+// information, and send the leftovers back to the caller
+// Note: we assume the filtered info we want to remove is only present once per marker
+// type. If this is a false assumption, the user will see the additional bits in the Edit
+// Source Text dialog. (Not likely to happen though.)
+// BEW created 11Oct10 as a helper for OnEditSourceText()
+wxString RemoveCustomFilteredInfoFrom(wxString str)
+{
+	int offset = wxNOT_FOUND;
+	wxString startStr; startStr.Empty();
+	wxString mkr;
+	int length = 0;
+	wxString backslash = _T("\\");
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
+	offset = str.Find(_T("\\bt ")); // only look for our own \bt markers, other \bt-based
+									// ones are to be retained
+	if (offset != wxNOT_FOUND)
+	{
+		// it's ours, remove it and the collected back trans info
+		startStr = str.Left(offset);
+		str = str.Mid(offset); // \bt starts at start of str now
+		mkr = pDoc->GetWholeMarker(str);
+		length = mkr.Len();
+		str = str.Mid(length); // get past the marker
+		//length = str.Len();
+		offset = str.Find(backslash);
+		if (offset == wxNOT_FOUND)
+		{
+			// the whole string is a collected back translation 
+			str.Empty();
+			return str;
+		}
+		else
+		{
+			str = str.Mid(offset); // keep from the backslash onwards
+		}
+	}
+	if (!startStr.IsEmpty())
+	{
+		str = startStr + str;
+	}
+	// collected back translation info has been removed, next remove any free 
+	// translation info
+	startStr.Empty();
+	offset = str.Find(_T("\\free"));
+	if (offset != wxNOT_FOUND)
+	{
+		// it's ours, remove it and the free trans info
+		startStr = str.Left(offset);
+		str = str.Mid(offset); // \free starts at start of str now
+		mkr = pDoc->GetWholeMarker(str);
+		length = mkr.Len();
+		str = str.Mid(length); // get past the \free marker
+		// find where the \free* endmarker is
+		offset = str.Find(_T("\\free*"));
+		wxASSERT(offset != wxNOT_FOUND);
+		str = str.Mid(offset + 6); // 6 is sizeof(\free*)
+	}
+	if (!startStr.IsEmpty())
+	{
+		str = startStr + str;
+	}
+	// finally, remove any note
+	startStr.Empty();
+	offset = str.Find(_T("\\note"));
+	if (offset != wxNOT_FOUND)
+	{
+		// it's ours, remove it and the free trans info
+		startStr = str.Left(offset);
+		str = str.Mid(offset); // \note starts at start of str now
+		mkr = pDoc->GetWholeMarker(str);
+		length = mkr.Len();
+		str = str.Mid(length); // get past the \free marker
+		// find where the \free* endmarker is
+		offset = str.Find(_T("\\note*"));
+		wxASSERT(offset != wxNOT_FOUND);
+		str = str.Mid(offset + 6); // 6 is sizeof(\note*)
+	}
+	if (!startStr.IsEmpty())
+	{
+		str = startStr + str;
+	}
+	return str;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return                     the modified value of Tstr
 /// \param  pSingleSrcPhrase -> a single CSourcePhrase instance which therefore cannot have

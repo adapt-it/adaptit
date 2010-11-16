@@ -56,10 +56,16 @@ class CPlaceholder : public wxEvtHandler
 							const				int nCount);
 		void		RemoveNullSrcPhraseFromLists(
 							SPList*&			pList,
-							SPList*&			pSrcPhrases,int& nCount,
+							SPList*&			pSrcPhrases,
+							int&				nCount,
 							int&				nEndSequNum,
 							bool				bActiveLocAfterSelection,
 							int&				nSaveActiveSequNum);
+		bool		RemovePlaceholdersFromSublist(SPList*& pSublist);
+		bool		NeedsTransferBackwards(CSourcePhrase* pPlaceholderSrcPhrase);
+		bool		NeedsTransferForwards(CSourcePhrase* pPlaceholderSrcPhrase);
+		bool		IsPlaceholderInSublist(SPList* pSublist);
+
 		// BEW added 11Oct10 for better support of docV5 within OnButtonRetranslation()
 		void		UntransferTransferredMarkersAndPuncts(
 							SPList*				pSrcPhraseList,

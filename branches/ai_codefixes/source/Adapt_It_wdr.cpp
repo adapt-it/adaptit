@@ -4195,70 +4195,79 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_STATIC_TEXT_SELECT_A_TAB, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxNotebook *item5 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_TEXT_SELECT_A_TAB, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item3->Add( 160, 14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_STATIC_WHICH_KB, _("Adaptations Knowledge Base"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxNotebook *item7 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
 #if !wxCHECK_VERSION(2,5,2)
-    wxNotebookSizer *item4 = new wxNotebookSizer( item5 );
+    wxNotebookSizer *item6 = new wxNotebookSizer( item7 );
 #else
-    wxWindow *item4 = item5;
+    wxWindow *item6 = item7;
 #endif
 
-    wxPanel *item6 = new wxPanel( item5, -1 );
-    KBEditorPanelFunc( item6, FALSE );
-    item5->AddPage( item6, _("1 Word") );
-
-    wxPanel *item7 = new wxPanel( item5, -1 );
-    KBEditorPanelFunc( item7, FALSE );
-    item5->AddPage( item7, _("2 Words") );
-
-    wxPanel *item8 = new wxPanel( item5, -1 );
+    wxPanel *item8 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item8, FALSE );
-    item5->AddPage( item8, _("3 Words") );
+    item7->AddPage( item8, _("1 Word") );
 
-    wxPanel *item9 = new wxPanel( item5, -1 );
+    wxPanel *item9 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item9, FALSE );
-    item5->AddPage( item9, _("4 Words") );
+    item7->AddPage( item9, _("2 Words") );
 
-    wxPanel *item10 = new wxPanel( item5, -1 );
+    wxPanel *item10 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item10, FALSE );
-    item5->AddPage( item10, _("5 Words") );
+    item7->AddPage( item10, _("3 Words") );
 
-    wxPanel *item11 = new wxPanel( item5, -1 );
+    wxPanel *item11 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item11, FALSE );
-    item5->AddPage( item11, _("6 Words") );
+    item7->AddPage( item11, _("4 Words") );
 
-    wxPanel *item12 = new wxPanel( item5, -1 );
+    wxPanel *item12 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item12, FALSE );
-    item5->AddPage( item12, _("7 Words") );
+    item7->AddPage( item12, _("5 Words") );
 
-    wxPanel *item13 = new wxPanel( item5, -1 );
+    wxPanel *item13 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item13, FALSE );
-    item5->AddPage( item13, _("8 Words") );
+    item7->AddPage( item13, _("6 Words") );
 
-    wxPanel *item14 = new wxPanel( item5, -1 );
+    wxPanel *item14 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item14, FALSE );
-    item5->AddPage( item14, _("9 Words") );
+    item7->AddPage( item14, _("7 Words") );
 
-    wxPanel *item15 = new wxPanel( item5, -1 );
+    wxPanel *item15 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item15, FALSE );
-    item5->AddPage( item15, _("10 Words") );
+    item7->AddPage( item15, _("8 Words") );
 
-    item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxPanel *item16 = new wxPanel( item7, -1 );
+    KBEditorPanelFunc( item16, FALSE );
+    item7->AddPage( item16, _("9 Words") );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxPanel *item17 = new wxPanel( item7, -1 );
+    KBEditorPanelFunc( item17, FALSE );
+    item7->AddPage( item17, _("10 Words") );
 
-    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetDefault();
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    item16->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item19 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetDefault();
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item20 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item2->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 

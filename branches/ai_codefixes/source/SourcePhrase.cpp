@@ -400,8 +400,8 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 // of CSourcePhrase produced with the copy constructor or operator=
 // Usage: for example: 
 // CSourcePhrase oldSP; ....more application code defining oldSP contents....
-// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); // uses operator=
-//			pNewSP.DeepCopy(); // *pNewSP is now a deep copy of oldSP
+// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); <<-- this uses operator=
+// then do:		pNewSP.DeepCopy(); <<-- *pNewSP is now a deep copy of oldSP
 // What DeepCopy() does is take the list of pointers to CSourcePhrase which
 // are in the m_pSavedWords SPList, for each of them it defines a new
 // CSourcePhrase instance using operator= which duplicates everything (including

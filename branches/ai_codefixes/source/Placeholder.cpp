@@ -1429,6 +1429,53 @@ CSourcePhrase* CPlaceholder::ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*
 	return pSrcPhrase;
 }
 */
+bool CPlaceholder::NeedsTransferBackwards(CSourcePhrase* pPlaceholderSrcPhrase)
+{
+	if (!pPlaceholderSrcPhrase->m_bNullSourcePhrase)
+		return FALSE; // it's not a placeholder
+	if (!pPlaceholderSrcPhrase->m_follPunct.IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->GetEndMarkers().IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		return TRUE;
+	return FALSE;
+}
+
+bool CPlaceholder::NeedsTransferForwards(CSourcePhrase* pPlaceholderSrcPhrase)
+{
+	if (!pPlaceholderSrcPhrase->m_bNullSourcePhrase)
+		return FALSE; // it's not a placeholder
+	if (!pPlaceholderSrcPhrase->m_precPunct.IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->m_markers.IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+		return TRUE;
+	if (!pPlaceholderSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+		return TRUE;
+	return FALSE;
+}
+
+bool CPlaceholder::IsPlaceholderInSublist(SPList* pSublist)
+{
+	if (pSublist->IsEmpty())
+		return FALSE;
+	CSourcePhrase* pSP = NULL;
+	SPList::Node* pos = pSublist->GetFirst();
+	while (pos != NULL)
+	{
+		pSP = pos->GetData();
+		pos = pos->GetNext();
+		if (pSP->m_bNullSourcePhrase)
+			return TRUE;
+	}
+	return FALSE;
+}
 
 // BEW added 11Oct10 for better support of docV5 within OnButtonRetranslation()
 // params -- we untransfer the transfers etc, before we permit a further function to
@@ -1571,6 +1618,54 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 	} // end of TRUE block for test: if (pSrcPhraseFollowing != NULL)
 }
 
+// It's the caller's responsibility to ensure that any placeholders in pSublist, if they
+// require information transfer to undo a previous left or right association, are not at
+// the whichever end of the list would prevent that from happening.
+// Called from ScanSpanDoingSourceTextReconstruction() which is in turn called from 
+// OnEditSourceText()
+// BEW created 11Oct10
+bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
+{
+	SPList::Node* pos = pSublist->GetFirst();
+	SPList::Node* savePos = NULL;
+	if (pos == NULL)
+		return FALSE; // something's wrong, make the caller abort the operation
+	CSourcePhrase* pSrcPhrase = NULL;
+	bool bHasPlaceholders = FALSE;
+	// the first loop just does the untransfers that are needed; because the caller
+	// ensures we don't have to do transfers to non-existing pSrcPhrase instances at
+	// either end, the loop is uncomplicated
+	while (pos != NULL)
+	{
+		pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bNullSourcePhrase)
+		{
+			bHasPlaceholders = TRUE;
+			UntransferTransferredMarkersAndPuncts(pSublist, pSrcPhrase);
+		}
+	} // end of while loop
+	// now loop again, removing the placeholders, in reverse order, if any exist in the
+	// sublist 
+	if (bHasPlaceholders)
+	{
+		pos = pSublist->GetLast();
+		while (pos != NULL)
+		{
+			savePos = pos;
+			pSrcPhrase = pos->GetData();
+			pos = pos->GetPrevious();
+			if (pSrcPhrase->m_bNullSourcePhrase)
+			{
+				m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
+				pSublist->DeleteNode(savePos);
+			}
+		}
+	}
+	return TRUE;
+}
+
+
 // BEW 18Feb10 updated for doc version 5 support (added code to restore endmarkers that
 // were moved to the placeholder when it was inserted, ie. moved from the preceding
 // CSourcePhrase instance)
@@ -1588,8 +1683,8 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	int nStartingSequNum	= pPile->GetSrcPhrase()->m_nSequNumber;
 	SPList* pList			= m_pApp->m_pSourcePhrases;
 	SPList::Node* removePos = pList->Item(nStartingSequNum); // the position at
+													// which we will do the removal
 	wxString emptyStr = _T("");
-														// which we will do the removal
 	SPList::Node* savePos = removePos; // we will alter removePos & need to restore it
 	wxASSERT(removePos != NULL);
 	int nActiveSequNum = m_pApp->m_nActiveSequNum; // save, so we can restore later on, 

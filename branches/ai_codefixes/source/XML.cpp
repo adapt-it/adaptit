@@ -4612,7 +4612,9 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		const wxChar* ptr2 = rev.GetData(); // the gFSescapechar will cause premature exit of ParseMarker()
 							 // so allow for this below
 		length = ParseMarker(ptr2);
-		length++; // count the back slash (i.e. gFSescapechar)
+		// BEW removed next line, 16Nov10, because I previously recoded ParseMarker() so
+		// that it would do the length adjustment within it when backslash was encountered
+		//length++; // count the back slash (i.e. gFSescapechar)
 		wxString reversedEndMkr(rev,length);
 		endMkr = MakeReverse(reversedEndMkr);
 		rev = rev.Mid(length);

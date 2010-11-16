@@ -19734,6 +19734,8 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 /// user.
 /// BEW checked 18Feb10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 11Oct10, added a check for placeholders at either end, if needing data transfer,
+/// then the selection has to be extended to ensure the transfer can be done
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSN,
 												  int& nEndingSN, bool& bIsExtended)
@@ -19859,11 +19861,13 @@ bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nSta
     // test for this pile being within a(nother) retranslation, and if it is, we must
     // extend rightwards to the end of that retranslation & end there; otherwise, we are
     // done
+    bool bGotAnEnd = FALSE;
 	if (!pSrcPhrase->m_bRetranslation)
 	{
-		// no extending is needed, so return
+		// no extending is needed for this reason
 		nEndingSN = nIteratorSN;
-		return TRUE; // no errors
+		//return TRUE; // no errors
+		bGotAnEnd = TRUE;
 	}
 	else
 	{
@@ -19879,10 +19883,54 @@ bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nSta
 				// we don't extend any further, the whole retranslation is in 
 				// the span we've now identified
 				nEndingSN = nIteratorSN;
-				return TRUE; // no errors
+				//return TRUE; // no errors
+				bGotAnEnd = TRUE;
+				break;
+			}
+		} // end of while loop
+	}
+	if (bGotAnEnd)
+	{
+		// We have got an end of the span, at least as far as extension due to
+		// retranslation is concerned; or there was no extension and we are at the user's
+		// last selected pile. We now have to protect our code from there being a
+		// placeholder at the start or end of the span, and data transfer is needed to a
+		// CSourcePhrase instance which is, so far, still outside the span - we can't do
+		// the transfers needed unless we pull the needed CSourcePhrase into the span too.
+		// So this protection is what we guarantee in this block - it may require
+		// extending one instance to the left, or to the right, or both, depending on where the
+		// placeholders are and whether or not they have data needing to be transferred.
+		SPList::Node* posSpanStart = pSrcPhrases->Item(nStartingSN);
+		SPList::Node* posSpanEnd = pSrcPhrases->Item(nEndingSN);
+		CSourcePhrase* pSrcPhrase_AtStart = posSpanStart->GetData();
+		CSourcePhrase* pSrcPhrase_AtEnd = posSpanEnd->GetData();
+		CPlaceholder* pPH = pApp->GetPlaceholder();
+		if (pSrcPhrase_AtStart->m_bNullSourcePhrase)
+		{
+			if (pPH->NeedsTransferBackwards(pSrcPhrase_AtStart))
+			{
+				// extend one instance to left (right, if RTL reading order), but both are
+				// handled here as a decrease by one in the nStartingSN value (if the
+				// transfer is needed, we can be certain there is a CSourcePhrase instance
+				// in existence with that m_nSequNumber value)
+				nStartingSN--;
 			}
 		}
+		// now, check the other end, to see if protection is needed there
+		if (pSrcPhrase_AtEnd->m_bNullSourcePhrase)
+		{
+			if (pPH->NeedsTransferForwards(pSrcPhrase_AtEnd))
+			{
+				// extend one instance to right (left, if RTL reading order), but both are
+				// handled here as an increase by one in the nEndingSN value (if the
+				// transfer is needed, we can be certain there is a CSourcePhrase instance
+				// in existence with that m_nSequNumber value)
+				nEndingSN++;
+			}
+		}
+		return TRUE;
 	}
+
 	// if we get here, we've reached the document end, so set nEndingSN and return
 	nEndingSN = nIteratorSN;
 	return TRUE; // no errors
@@ -21597,11 +21645,20 @@ bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 /// 5May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 23Mar10 updated for support of doc version 5 (some changes were needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 11Oct10, extensively changed, to use the protocols built into FromMergerMakeStr()
+/// and FromSingleMakeSstr(), and also to handle placeholders within the span better (the
+/// old code just ignored them, but if info had been transferred to the placeholder that
+/// would be inadequate, a better solution is (after having collected the old adaptations
+/// and glosses - which has been done by the time this function is called) to get the span
+/// deep copied into a sublist, and remove the placeholders in the sublist (this undoes
+/// any info transfers), and then collect strSource from the non-placeholder instances
+/// which remain. That's what we do.
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, 
 									EditRecord* pRec, int nStartingSN, int nEndingSN, 
 									wxString& strSource)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nThisSN;
 	SPList::Node* pos = pSrcPhrases->GetFirst();
@@ -21621,83 +21678,160 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 		return FALSE;
 	}
 
-    // scan over the list, and test for pRscPhrase pointers within the editable span; for
-    // those, we collect the source text with its punctuation (if any), and precede it with
-	// the contents of any non-empty m_filteredInfo member, and then the contents of any
-	// non-empty m_markers member, and follow it with any non-empty m_endMarkers member
+    // Legacy comment: scan over the list, and test for pSrcPhrase pointers within the
+    // editable span; for those, we collect the source text with its punctuation (if any),
+    // and precede it with the contents of any non-empty m_filteredInfo member, and then
+    // the contents of any non-empty m_markers member, and follow it with any non-empty
+    // m_endMarkers member 
+
+	// BEW 11Oct10, doc version 5 additions add m_follOuterPunct, and storage for inline
+	// binding and non-binding markers - these are not handled by the legacy protocol
+	// described above, and also cross references are not handled right in the above way
+	// either (they follow m_markers stuff, not preceded it, if unfiltered & placed in the
+	// text stream). So, instead of modifying the code below, a better approach is to use
+	// the export functions FromMergerMakeSstr() and FromSingleMakeStr(), which have all
+	// the correct protocols for marker placement built in.
+	
+	// create the sublist, make deep copies (ignore returned bool from the
+	// DeepCopy...() call)
+	SPList myList;
+	SPList* pSublist = &myList;
 	while (pos != NULL)
 	{
-		// get the CSourcePhrase at the the current POSITION, updating pos value
+		// get the CSourcePhrase at the the current Node, updating pos value
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
 		nThisSN = pSrcPhrase->m_nSequNumber;
-
 		if (nThisSN >= nStartingSN && nThisSN <= nEndingSN)
 		{
-            // any sequence number meeting that condition lies within the editablel span,
+            // any sequence number meeting that condition lies within 
+            // the editable span,
+			CSourcePhrase* pSP = new CSourcePhrase(*pSrcPhrase);
+			pSP->DeepCopy();
+			pSublist->Append(pSP);
+		}
+	}
+	wxASSERT(pSublist->GetCount() > 0);
+
+	// untransfer transferred info from any placeholders and then remove them from the
+	// sublist
+	bool AllsWell = pApp->GetPlaceholder()->RemovePlaceholdersFromSublist(pSublist);
+	if (!AllsWell)
+	{
+		// oops, something went wrong - about the Edit Source Text operation
+		pApp->GetDocument()->DeleteSourcePhrases(pSublist, FALSE); // don't leak memory
+		return FALSE;
+	}
+
+	wxString srcStr; // collect in this
+	// Next three needed for the calls, but we don't use them, because the information is
+	// already placed in the returned string with markers where they need to be etc. The
+	// two booleans we pass in as TRUE, meaning "attach any filtered info to the returned
+	// string" and "attach any m_markers content to the returned string".
+	wxString unused_mMarkers; // any m_markers content
+	wxString unused_xRef;	// any \x .... \x* content (only that, or empty string)
+	wxString unused_filtdInfo; // any content from m_filteredInfo, with \x ... \x* removed
+	int length = 0;
+	pos = pSublist->GetFirst(); // re-initialize pos to start of sublist
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		nThisSN = pSrcPhrase->m_nSequNumber;
+		if (nThisSN >= nStartingSN && nThisSN <= nEndingSN)
+		{
+            // any sequence number meeting that condition lies within the editable span,
             // so collect from it...
-
-            // do the source text reconstrution; any material in m_markers must come first,
-            // and we do consider m_markers if the CSourcePhrase instance is a
-			// placeholder one because inserted placeholders might store marker info; and
-			// any info in m_endMarkers must come last
-				
-			// first, any filtered information has to be put first; leave the \~FILTER and
-			// \~FILTER* wrapper markers in place, because a subsequent call in the caller
-			// to RemoveFilterWrappersButLeaveContent() will remove them from the returned
-			// reconstructed source text string
-			if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
+			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
-				// the one or more bits of filtered info must occur before m_markers content
-				strSource = pSrcPhrase->GetFilteredInfo();
-
-				// now clear the member, otherwise we'd end up with duplicates
-				wxString emptyStr; emptyStr.Empty();
-				pSrcPhrase->SetFilteredInfo(emptyStr);
+				// it's a genuine merger
+				srcStr = FromMergerMakeSstr(pSrcPhrase);
 			}
-			// put the markers next
-			wxString markers = pSrcPhrase->m_markers;
-			if (!markers.IsEmpty())
+			else
 			{
-				// there is remaining marker information, so append it
-				if (strSource.IsEmpty())
+				srcStr = FromSingleMakeSstr(pSrcPhrase, TRUE, TRUE, unused_mMarkers, 
+											unused_xRef, unused_filtdInfo);
+			}
+			// figure out how to concatenate the substrings - after an endmarker (we'll
+			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and
+			// even if we did we'd just assume \fe or \F were not endmarkers and put a
+			// space after them for concatenation, and that would comply with what the old
+			// markup standard used to so anyway, so we are safe) For USFM endmarker,
+			// we'll not put a space after it unless the to-be-concatenated string does
+			// not belong with a backslash (ie. if punctuation or a word starts it, then
+			// we'd want an intervening space)
+			strSource.Trim(); // remove any space from its end
+			length = strSource.Len();
+			if (length == 0)
+			{
+				strSource = srcStr;
+			}
+			else if (strSource[length-1] != _T('*'))
+			{
+				// no endmarker at its end
+				if (srcStr[0] == gSFescapechar)
 				{
-					strSource = markers;
+					// srcStr starts with an SF marker - it's safe then to tuck it up to
+					// whatever precedes without any intervening space, but it will be 
+					// more readable with a space, and this is a context where we won't
+					// have punctuation & filtering interacting, so add the space
+					strSource += _T(" ") + srcStr;
 				}
 				else
 				{
-					strSource += markers;
+					// srcStr doesn't start with a marker, so we'll need to insert a space
+					// provided strSource is not empty
+					if (strSource.IsEmpty())
+					{
+						strSource = srcStr;
+					}
+					else
+					{
+						strSource += _T(" ") + srcStr;
+					}
 				}
 			}
-            // always collect the m_srcPhrase member (which has any punctuation), and
-            // append a following space each time; but only provided we are not at a
-            // placeholder
-			if (!pSrcPhrase->m_bNullSourcePhrase)
+			else
 			{
-				if (strSource.IsEmpty())
+				// there's an endmarker at its end - we'll add a space only if srcStr does
+				// not begin with an SF marker
+				if (srcStr[0] == gSFescapechar)
 				{
-					strSource = pSrcPhrase->m_srcPhrase;
+					// srcStr begins with a marker so we can tuck it up to the end of strSource
+					strSource += srcStr;
 				}
 				else
 				{
-					strSource.Trim(); // remove white space from right end
-					strSource = strSource + _T(" ") + pSrcPhrase->m_srcPhrase;
+					// no marker at the start of srcStr, so a space would help readability (though
+					// otherwise unnecessary)
+					strSource += _T(" ") + srcStr;
 				}
 			}
-			// append any endmarkers
-			wxString endMarkers = pSrcPhrase->GetEndMarkers();
-			if (!endMarkers.IsEmpty())
-			{
-				strSource += endMarkers;
-			}
-
-			if (nThisSN >= nEndingSN)
-			{
-				// we are at the end of the editable span, so break out of the loop
-				break;
-			}
+			srcStr.Empty();
 		} // end of block for TRUE result from test of sequence number
 	} // end of loop
+
+	// Don't leak memory. In the next call, FALSE is bDoPartnerPileDeletionAlso; calls
+	// DeleteSingleSrcPhrase() on each instance in pSublist
+	pApp->GetDocument()->DeleteSourcePhrases(pSublist, FALSE);
+	myList.Clear();
+
+	// finally, the above code will have included any notes, free translations and
+	// collected back translations, so we must remove them; permit only 3 iterations of
+	// the following loop
+	wxString oldStr = strSource;
+	wxString newStr = RemoveCustomFilteredInfoFrom(strSource);
+	int count = 0;
+	while (newStr != oldStr && count < 3)
+	{
+		// if they changed, repeat, until no more removals are done, or 3 iterations,
+		// whichever comes first
+		oldStr = newStr;
+		newStr = RemoveCustomFilteredInfoFrom(oldStr);
+		count++;
+	}
+	strSource = newStr;
 	return TRUE;
 }
 
@@ -22889,6 +23023,10 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
     // are returned), returning TRUE if there was no error, FALSE there was an error. The
     // bWasExtended BOOL parameter returns TRUE if extension and either or both ends was
     // done, FALSE if no extension was required
+	// BEW 11Oct10, added internally to ExtendEditSourceTextSelection() to handle when
+	// there may be, at either or both ends, a placeholder with information to be
+	// transferred to a neighbour before it gets deleted (we extend the selection one more
+	// in either direction if necessary)
 	bool bWasExtended;
 	bool bNoErrors = ExtendEditSourceTextSelection(pSrcPhrases, pRec->nStartingSequNum, 
 													pRec->nEndingSequNum, bWasExtended);
@@ -22950,6 +23088,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			goto exit;
 		}
 	}
+
     // the cancelSpan_SrcPhraseList is always co-extensive with the modifications span, so
     // deep copy the one just delineated; we don't ever expect this to fail
 	DeepCopySublist2Sublist(&pRec->cancelSpan_SrcPhraseList, 
