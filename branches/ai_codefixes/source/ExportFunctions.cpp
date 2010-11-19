@@ -8682,8 +8682,8 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								// remove the \par from the style string here because we don't want to
 								// insert a paragraph at closing of a character style, just propagate the
 								// previous non-boxed paragraph style
-								int nbPos = lastNBParaStyle.Find(_T("\\par"));;
-								lastNBParaStyle.Remove(nbPos, 4);
+								int nbPos = lastNBParaStyle.Find(_T("\\par ")); // whm 18Nov10 added space to find string; previously was "\\par"
+								lastNBParaStyle.Remove(nbPos, 5);
 								CountTotalCurlyBraces(lastNBParaStyle,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastNBParaStyle))
 									return;
@@ -8986,7 +8986,30 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				ptr += itemLen;	// advance pointer past the marker
 
 				itemLen = pDoc->ParseWhiteSpace(ptr); // parse white space following the marker
-				// Omit output of white space here
+				// Omit output of white space here when there is punctuation following the whitespace, 
+				// otherwise include the white space in the output
+				if (Marker.Find(_T('*')) == (int)Marker.Length()-1 && ptr + itemLen + 1 < pEnd && spaceless.Find(*(ptr + itemLen + 1)) == wxNOT_FOUND)
+				{
+					// We just processed an end marker, and the first char past whitespace is not a
+					//  punctuation char, so output the whitespace. This is needed following character end markers.
+					// white space here usually would be part of vernacular so use EncodingSrcOrTgt
+					// but don't output \n new lines
+					WhiteSpace.Replace(_T("\n"),_T(" "));
+					WhiteSpace.Replace(_T("\r"),_T(" "));
+					while (WhiteSpace.Find(_T("  ")) != -1)
+					{
+						WhiteSpace.Remove(WhiteSpace.Find(_T("  ")),1);
+					}
+					WhiteSpace = wxString(ptr,itemLen);//testing only
+					if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
+						return;
+				}
+				else
+				{
+					// the first char past whitespace is a punctuation char, so don't output the
+					// whitespace.
+					;
+				}
 				ptr += itemLen;	// point past it
 
 				goto b;	// check if another marker follows
