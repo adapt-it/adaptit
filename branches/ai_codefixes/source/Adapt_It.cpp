@@ -10089,6 +10089,16 @@ wxString CAdapt_ItApp::InsertEntities(wxString str)
 	return str;
 }
 
+void CAdapt_ItApp::LogUserAction(wxString msg)
+{
+	wxASSERT(m_userLogFile != NULL);
+	wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+	wxString timeStr;
+	timeStr = theTime.Format();
+	m_userLogFile->Write(timeStr+_T(':')+msg+m_eolStr);
+	m_userLogFile->Flush();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
 ///             m_pConfig info
@@ -11005,6 +11015,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_userProfileFileWorkFolderPath = _T(""); // whm added 7Sep10
 	m_emailReportFolderPathOnly = _T(""); // whm added 8Nov10
 	m_usageLogFilePathAndName = _T(""); // whm added 8Nov10
+	m_userLogFile = (wxFile*)NULL; // whm added 12Nov10
 	m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
 
 	// The following use the _T() macro as they shouldn't be translated/localized
@@ -14172,6 +14183,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString AIemailReportFolderPathOnly;
 	wxString AIusageLogFolderPath;
 	wxString AIpackedDocumentFolderPathOnly;
+	wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
+	if (strUserID.IsEmpty())
+	{
+		// we must supply a default if nothing was returned
+		strUserID = _T("unknownUser");
+	}
 	if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
 	{
 		#ifdef Output_Default_Style_Strings
@@ -14181,7 +14198,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#endif
 		AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 		AIemailReportFolderPathOnly = m_customWorkFolderPath;
-		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UsageLog.txt");
+		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
 		AIpackedDocumentFolderPathOnly = m_customWorkFolderPath;
 	}
 	else
@@ -14193,14 +14210,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#endif
 		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 		AIemailReportFolderPathOnly = m_workFolderPath;
-		AIusageLogFolderPath = m_workFolderPath + PathSeparator + _T("AI_UsageLog.txt");
+		AIusageLogFolderPath = m_workFolderPath + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
 		AIpackedDocumentFolderPathOnly = m_workFolderPath;
 	}
 
 	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
 	m_emailReportFolderPathOnly = AIemailReportFolderPathOnly; // whm added 8Nov10
-	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
 	m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
+	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
+	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
@@ -14211,7 +14229,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // which is safer than hard coding the path to a predetermined setup location.
 	wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
 	bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
-	
+	LogUserAction(__T("Program startup"));
+
 	wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
 	// Does AI_UserProfiles.xml exist in the work folder
 	bool bWorkFolderUserProfilesFileExists = wxFileExists(m_userProfileFileWorkFolderPath);
@@ -15680,6 +15699,13 @@ int CAdapt_ItApp::OnExit(void)
 	
 	DestroyMenuStructure(m_pAI_MenuStructure);
 	
+	if (m_userLogFile != NULL)
+	{
+		LogUserAction(_T("AppShutDown"));
+		m_userLogFile->Close();
+		delete m_userLogFile;
+	}
+
 	int aTot;
 	aTot = m_pRemovedMenuItemArray->GetCount();
 	if (aTot == 0L)

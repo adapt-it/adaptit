@@ -42,10 +42,6 @@ source) text itself. The old order was 2,4,3,1, which did not conform
 well to USFM expected ordering. Creating an adaptation document from 
 one of these exports gives the same result as before - nothing is 
 different.
-* On the languages page of the Start Working... wizard, the checkbox
-"Recognise standard format markers only following newlines" has been 
-removed, because the code for this feature has been broken now for 
-several years, and appears to be no longer needed.
 * The knowledge base has been upgraded to version 2. It now stores
 the datetime for creation of an entry, modification of an entry, and
 deletion of an entry; also, a field for who created the entry. 

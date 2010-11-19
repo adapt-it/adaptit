@@ -2244,6 +2244,7 @@ public:
 	wxString	m_userProfileFileWorkFolderPath; // whm added 7Sep10
 	wxString	m_emailReportFolderPathOnly; // whm added 8Nov10
 	wxString	m_usageLogFilePathAndName; // whm added 8Nov10
+	wxFile*		m_userLogFile; // whm added 12Nov10 the wxFile descriptor used with m_usageLogFilePathAndName
 	wxString	m_packedDocumentFilePathOnly; // whm added 8Nov10
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
@@ -2861,6 +2862,7 @@ public:
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
+	void	LogUserAction(wxString msg);
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
