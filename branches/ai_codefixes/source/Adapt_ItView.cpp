@@ -8,13 +8,11 @@
 /// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
 /// \description	This is the implementation file for the CAdapt_ItView class. 
-/// The CAdapt_ItView class is the most
-/// complex class in the application. It controls every aspect of how the
-/// data is presented to the user, and most aspects of the user interface.
-/// The data for the view is held entirely in memory and is kept logically
-/// separate from and independent of the document class's persistent data
-/// structures. This schema is an implementation of the document/view
-/// framework.
+/// The CAdapt_ItView class is the most complex class in the application. It controls every
+/// aspect of how the data is presented to the user, and most aspects of the user
+/// interface. The data for the view is held entirely in memory and is kept logically
+/// separate from and independent of the document class's persistent data structures. This
+/// schema is an implementation of the document/view framework.
 /// \derivation		The CAdapt_ItView class is derived from wxView.
 /////////////////////////////////////////////////////////////////////////////////
 

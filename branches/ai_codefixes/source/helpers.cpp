@@ -5850,4 +5850,83 @@ void ChangeParatextPrivatesToCustomMarkers(wxString& buffer)
 	count = buffer.Replace(oldBt,newBt);
 }
 
+// BEW 11Oct10, get arrays containing src & tgt puncts added, and another two for puncts removed
+void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
+			 wxString& srcPunctsAfter, wxString& tgtPunctsAfter,
+			 wxArrayInt*& pSrcPunctsRemovedArray, wxArrayInt*& pSrcPunctsAddedArray,
+			 wxArrayInt*& pTgtPunctsRemovedArray, wxArrayInt*& pTgtPunctsAddedArray)
+{
+	// analyse the source language punctuation characters; first the removals (we ignore
+	// pairs, it's sufficient to take each single non-null punct character). Any src punt
+	// from the 'before' set which is not in the 'after' set, is a removed src punct wxChar
+	size_t srcLen = srcPunctsBefore.Len();
+	size_t i;
+	wxChar chr;
+	pSrcPunctsRemovedArray->Clear();
+	for (i = 0; i < srcLen; i++)
+	{
+		chr = srcPunctsBefore[i];
+		if (chr == _T(' '))
+			// if we have a delimiting space, just iterate
+			continue;
+		if (srcPunctsAfter.Find(chr) == wxNOT_FOUND)
+		{
+			// this one is missing, so store it in the removals array
+			pSrcPunctsRemovedArray->Add((size_t)chr);
+		}
+	}
+	// now the src puncts additions, for these, anything in srcPunctsAfter which is not in
+	// srcPunctsBefore, is a wxChar added, to add it to the pSrcPunctsAddedArray
+	srcLen = srcPunctsAfter.Len();
+	pSrcPunctsAddedArray->Clear();
+	for (i = 0; i < srcLen; i++)
+	{
+		chr = srcPunctsAfter[i];
+		if (chr == _T(' '))
+			// if we have a delimiting space, just iterate
+			continue;
+		if (srcPunctsBefore.Find(chr) == wxNOT_FOUND)
+		{
+			// this one is missing, so store it in the additions array
+			pSrcPunctsAddedArray->Add((size_t)chr);
+		}
+	}
+	// Now do the same, but for tgt punctuation removals and additions
+	pTgtPunctsRemovedArray->Clear();
+	size_t tgtLen = tgtPunctsBefore.Len();
+	for (i = 0; i < tgtLen; i++)
+	{
+		chr = tgtPunctsBefore[i];
+		if (chr == _T(' '))
+			// if we have a delimiting space, just iterate
+			continue;
+		if (tgtPunctsAfter.Find(chr) == wxNOT_FOUND)
+		{
+			// this one is missing, so store it in the removals array
+			pTgtPunctsRemovedArray->Add((size_t)chr);
+		}
+	}
+	// now the tgt puncts additions, for these, anything in tgtPunctsAfter which is not in
+	// tgtPunctsBefore, is a wxChar added, to add it to the pTgtPunctsAddedArray
+	tgtLen = tgtPunctsAfter.Len();
+	pTgtPunctsAddedArray->Clear();
+	for (i = 0; i < tgtLen; i++)
+	{
+		chr = tgtPunctsAfter[i];
+		if (chr == _T(' '))
+			// if we have a delimiting space, just iterate
+			continue;
+		if (tgtPunctsBefore.Find(chr) == wxNOT_FOUND)
+		{
+			// this one is missing, so store it in the additions array
+			pTgtPunctsAddedArray->Add((size_t)chr);
+		}
+	}
+}
+
+
+
+
+
+
 

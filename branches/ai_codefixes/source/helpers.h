@@ -267,5 +267,10 @@ void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwa
 								   bool bSorted, enum ExtensionAction extAction);
 void ChangeParatextPrivatesToCustomMarkers(wxString& buffer);
 wxString RemoveCustomFilteredInfoFrom(wxString str); // BEW 11Oct10, removes \free, \note, \bt info
+// BEW 11Oct10, get arrays containing src & tgt puncts added, and another two for puncts removed
+void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
+			 wxString& srcPunctsAfter, wxString& tgtPunctsAfter,
+			 wxArrayInt*& pSrcPunctsRemovedArray, wxArrayInt*& pSrcPunctsAddedArray,
+			 wxArrayInt*& pTgtPunctsRemovedArray, wxArrayInt*& pTgtPunctsAddedArray);
 
 #endif	// helpers_h

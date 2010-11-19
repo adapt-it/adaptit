@@ -2707,6 +2707,14 @@ public:
 
 	public:
 
+	// arrays for storing (size_t)wxChar for when the user uses the Punctuation tab of
+	// Preferences to change the project's punctuation settings, either source or
+	// target or both
+	wxArrayInt srcPunctsRemovedArray;
+	wxArrayInt srcPunctsAddedArray;
+	wxArrayInt tgtPunctsRemovedArray;
+	wxArrayInt tgtPunctsAddedArray;
+
 	// Oxes export support
 	Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap	
 
