@@ -80,6 +80,11 @@ void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
 							  wxString exportName, wxString& Buffer);
 void		DoExportAsOxes(int versionNum); // BEW created 2Sep10
+	
+// The following ParseWordRTF() function is the same as the legacy ParseWord() function in the Doc before
+// Bruce rewrote it for doc v 5 purposes. I've renamed it to ParseWordRTF and reclaimed it here for RTF output
+// purposes.
+int			ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 
 // below are supporting functions for the above main export functions:
 int			RebuildSourceText(wxString& srcText);
