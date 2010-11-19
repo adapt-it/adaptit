@@ -11973,6 +11973,7 @@ wxString CAdapt_ItView::DoGuess(const wxString& str, bool& bIsGuess)
 		bIsGuess = bGuessReturned;
 		tempStr = pszGuess;
 	}
+	free (pszGuess);
 	return tempStr;
 }
 
