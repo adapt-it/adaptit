@@ -46,6 +46,7 @@
 #include "PlaceRetranslationInternalMarkers.h"
 #include "WaitDlg.h"
 #include "Usfm2Oxes.h"
+#include "Stack.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -4358,7 +4359,17 @@ void DoExportInterlinearRTF()
 		//wxString m_informStr = _T("");
 		//wxString partAfterInformStr = _T("");
 
-		if (!pSrcPhrase->m_markers.IsEmpty() || pSrcPhrase->m_bBoundary)
+		// whm 19Nov10 modified outer test to add the specific tests within the block
+		// since docV5 has moved stuff out of m_markers, in particular the "fn end"
+		// can happen in m_inform when m_markers is empty.
+		if (!pSrcPhrase->m_markers.IsEmpty()
+			|| !pSrcPhrase->m_chapterVerse.IsEmpty()
+			|| !pSrcPhrase->m_inform.IsEmpty()
+			|| pSrcPhrase->m_bBeginRetranslation
+			|| pSrcPhrase->m_bEndRetranslation
+			|| pSrcPhrase->m_bFootnoteEnd
+			|| bHasInputFilteredMaterial
+			|| pSrcPhrase->m_bBoundary)
 		{
 			// construct the Nav text string for top row
 			// modified 23Nov05 to put ch:vs first in the NavStr
@@ -4368,6 +4379,22 @@ void DoExportInterlinearRTF()
 					NavStr = pSrcPhrase->m_chapterVerse;
 				else
 					NavStr += _T(" ") + pSrcPhrase->m_chapterVerse;
+			}
+			if (pSrcPhrase->m_bFootnoteEnd)
+			{
+				// whm 19Nov10 added hack here to show "end fn" in interlinear navtext cell 
+				// as is done on main window display by my hack in CPile::DrawNavTextInfoAndIcons.
+				// The more proper way would probably be to actually add this "end fn" text to
+				// the m_inform member when pSrcPhrase->m_bFootnoteEnd is set in parsing.
+				if (NavStr.IsEmpty())
+				{
+					NavStr +=  _("end fn"); // localizable
+				}
+				else
+				{
+					NavStr += _T(" ");
+					NavStr += _("end fn"); // localizable
+				}
 			}
 			if (!pSrcPhrase->m_inform.IsEmpty())
 			{
@@ -6080,6 +6107,13 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	// formatting
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
+	CStack charStack; // whm added 19Nov10
+	CStack* pCharStack = &charStack;
+	//CStack paraStack; // whm added 19Nov10
+	//CStack* pParaStack = &paraStack;
+	static char emptyStr[32];
+	memset(emptyStr,0,32); // fill string with nulls
+
 	int nOpeningBraces = 0; // these two used to verify matched pairs of opening and closing curly braces
 	int nClosingBraces = 0; // " " " "
 
@@ -6940,6 +6974,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	strLen = ClearBuffer();		// clear the View's working buffer & set length of its string to zero
 	wxString LastStyle = _T("");
 	wxString LastParaStyle = _T("");
+	wxString LastCharacterStyle = _T("");
 	wxString LastNonBoxParaStyle = _T("");
 
 	wxFontEncoding EncodingSrcOrTgt;
@@ -6964,6 +6999,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	bool bLastParagraphWasBoxed = FALSE;
 	bool bProcessingEndlessCharMarker = FALSE;
 	bool bProcessingCharacterStyle = FALSE;
+	//wxString lastCharacterStyleTags = _T("");
 	bool bHitMarker = FALSE;
 	bool bHitBTHaltingMkr = FALSE;
 	bool bHitFreeHaltingMkr = FALSE;
@@ -7114,6 +7150,40 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						return;
+					
+					Item sfm;
+					pCharStack->Pop(sfm); // pop an "unknown" character style marker
+					// Check if the stack has another character style marker in it.
+					// If so, we need to reset the character style to propagate that
+					// character style after the current one has closed.
+					if (pCharStack->IsEmpty())
+					{
+						bProcessingCharacterStyle = FALSE;
+					}
+					else
+					{
+						// There is another character style marker in the stack
+						// so we need to propagate that character style
+						Item sfm2;
+						pCharStack->Pop(sfm2);
+						wxString sfmMkr = wxString::FromAscii(sfm2);
+						rtfIter = rtfTagsMap.find(sfmMkr);
+						if (rtfIter != rtfTagsMap.end())
+						{
+							// We found an associated value for Marker in map.
+							// We need only output the previous char style tags here without any 
+							// opening curly brace. 
+							
+							pCharStack->Push(Marker.char_str()); // push it back on the stack
+
+							// RTF tags use gpApp->m_systemEncoding
+							wxString mkrTags = (wxString)rtfIter->second;
+							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+								return;
+						}
+					}
+
 				}
 
 				// Note: bUnknownMarker status for the current Marker will be set again below
@@ -7573,6 +7643,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					{
 						if (bProcessingCharacterStyle)
 						{
+							pCharStack->Push(Marker.char_str()); // push an "unknown" character style marker
 							// we need to start the character style group with an opening brace
 							MiscRTF = _T('{');
 							// RTF tags use gpApp->m_systemEncoding
@@ -8376,6 +8447,8 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 								return;
+							
+							pCharStack->Push(Marker.char_str()); // push a TABLE (\th... or \tc...) character style marker
 						}
 						// RTF tags use gpApp->m_systemEncoding
 						wxString mkrTags = (wxString)rtfIter->second;
@@ -8689,11 +8762,43 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 									return;
 							}
 						}
-						// TODO: Need to account for embedded character styles here and not set the 
-						// bProcessingCharacterStyle to FALSE unless the stack of embedded character 
-						// styles has popped down to zero. This is to account for situations like the
-						// following: \v 2 Then Jesus said, \wj "I am the \k light\k* of the world."\wj*
-						// where \k...\k* is embedded within the \wj...\wj* character styles.
+
+						Item sfm1;
+						pCharStack->Pop(sfm1); // pop a character style END marker
+						// Check if the stack has another character style marker in it.
+						// If not, we can set the bProcessingCharacterStyle flag to FALSE.
+						// If so, we need to reset the character style to propagate that
+						// character style after the current one has closed.
+						if (pCharStack->IsEmpty())
+						{
+							bProcessingCharacterStyle = FALSE;
+						}
+						else
+						{
+							// There is another character style marker in the stack
+							// so we need to propagate that character style
+							Item sfm2;
+							pCharStack->Pop(sfm2);
+							wxString sfmMkr = wxString::FromAscii(sfm2);
+							rtfIter = rtfTagsMap.find(sfmMkr);
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// We found an associated value for Marker in map.
+								// We need only output the previous char style tags here without any 
+								// opening curly brace. 
+								
+								pCharStack->Push(Marker.char_str()); // push it back on the stack
+
+								// RTF tags use gpApp->m_systemEncoding
+								wxString mkrTags = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+									return;
+							}
+						}
+						
+						// Marker is either not a character style or is the same style as the last style
+						// marker encountered. 
 						bProcessingCharacterStyle = FALSE; // we've finished processing the char style group
 					}
 				}
@@ -8935,6 +9040,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						&& !bLastParagraphWasBoxed
 						)
 					{
+						// Most of the "non-problem" paragraph style markers go through here.
 						// The marker was a non-boxed paragraph seen just before the current marker,
 						// and no small break paragraph has intervened.
 						// Output the \par paragraph mark.
@@ -8946,8 +9052,8 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					}
 					else
 					{
-						// There was a different style just prior to this marker, or
-						// the marker is a non-paragraph style, or there was an intervening
+						// Most of the "non-problem" character style markers go through here.
+						// The marker is a non-paragraph style, or there was an intervening
 						// small paragraph - in any case we need to output the full complement
 						// of RTF indoc tags for this style.
 						rtfIter = rtfTagsMap.find(Marker);
@@ -8962,6 +9068,8 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 									return;
+								
+								pCharStack->Push(Marker.char_str()); // push a character style marker
 							}
 							// RTF tags use gpApp->m_systemEncoding
 							wxString mkrTags = (wxString)rtfIter->second;
@@ -8980,6 +9088,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						LastParaStyle = Marker;
 						LastNonBoxParaStyle = Marker;
 					}
+					else
+					{
+						LastCharacterStyle = Marker;
+					}
 
 				} // end of else - process all other non-special treatment markers
 
@@ -8987,20 +9099,22 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 
 				itemLen = pDoc->ParseWhiteSpace(ptr); // parse white space following the marker
 				// Omit output of white space here when there is punctuation following the whitespace, 
-				// otherwise include the white space in the output
+				// otherwise include the white space in the output, but only for whitespace following
+				// end markers.
 				if (Marker.Find(_T('*')) == (int)Marker.Length()-1 && ptr + itemLen + 1 < pEnd && spaceless.Find(*(ptr + itemLen + 1)) == wxNOT_FOUND)
 				{
 					// We just processed an end marker, and the first char past whitespace is not a
-					//  punctuation char, so output the whitespace. This is needed following character end markers.
+					// punctuation char, so output the whitespace. This is needed following character 
+					// end markers.
 					// white space here usually would be part of vernacular so use EncodingSrcOrTgt
 					// but don't output \n new lines
+					WhiteSpace = wxString(ptr,itemLen);//testing only
 					WhiteSpace.Replace(_T("\n"),_T(" "));
 					WhiteSpace.Replace(_T("\r"),_T(" "));
 					while (WhiteSpace.Find(_T("  ")) != -1)
 					{
 						WhiteSpace.Remove(WhiteSpace.Find(_T("  ")),1);
 					}
-					WhiteSpace = wxString(ptr,itemLen);//testing only
 					if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
 						return;
 				}
@@ -9156,6 +9270,47 @@ d: // exit point for if ptr == pEnd
 		CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly braces added here
 		if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 			return;
+		
+		Item sfm;
+		pCharStack->Pop(sfm); // pop a character style marker
+		// Check if the stack has another character style marker in it.
+		// If so, we need to reset the character style to propagate that
+		// character style after the current one has closed.
+		if (pCharStack->IsEmpty())
+		{
+			bProcessingCharacterStyle = FALSE;
+		}
+		else
+		{
+			// There is another character style marker in the stack
+			// so we need to propagate that character style
+			Item sfm2;
+			pCharStack->Pop(sfm2);
+			wxString sfmMkr = wxString::FromAscii(sfm2);
+			rtfIter = rtfTagsMap.find(sfmMkr);
+			if (rtfIter != rtfTagsMap.end())
+			{
+				// we found an associated value for Marker in map
+				// non-paragraph style strings need to start with an opening brace {
+				// TESTING!! First we try outputting just the previous char style tags
+				// without an opening curly brace. If we have to uncomment the code
+				// below, we also will need to add closing braces at the Push() point
+				// where the previous char style was "interrupted" by the current one
+				//MiscRTF = _T("{");
+				//// RTF tags use gpApp->m_systemEncoding
+				//CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
+				//if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+				//	return;
+				
+				pCharStack->Push(Marker.char_str()); // push it back on the stack
+
+				// RTF tags use gpApp->m_systemEncoding
+				wxString mkrTags = (wxString)rtfIter->second;
+				CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+					return;
+			}
+		}
 	}
 	//if (bProcessingTable)
 	//{

@@ -35,7 +35,7 @@
     #pragma interface "Stack.h"
 #endif
 
-typedef char Item[32]; // we'll store 32 char  arrays, each of
+typedef char  Item[32]; // we'll store 32 char  arrays, each of
 					   // which is an xml element tag
 
 // the following typedefs allow my Palm OS integer types to be used unchanged
