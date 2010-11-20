@@ -14229,7 +14229,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // which is safer than hard coding the path to a predetermined setup location.
 	wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
 	bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
-	LogUserAction(__T("Program startup"));
+	LogUserAction(_T("Program startup"));
 
 	wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
 	// Does AI_UserProfiles.xml exist in the work folder
