@@ -7529,83 +7529,86 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     item3->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item5 = new wxButton( parent, ID_BUTTON_GUESS_HIGHLIGHT_COLOR, _("Choose Guess Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->SetToolTip( _("Choose the background color used in the phrase box whenever its text comes from the guesser") );
-    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item5 = new wxButton( parent, ID_BUTTON_GUESS_COLOR, wxT(""), wxDefaultPosition, wxSize(20,-1), wxNO_BORDER );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item6 = new wxButton( parent, ID_BUTTON_GUESS_HIGHLIGHT_COLOR, _("Choose Guess Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Choose the background color used in the phrase box whenever its text comes from the guesser") );
+    item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticLine *item6 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Guessing level:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Guessing level:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxSlider *item8 = new wxSlider( parent, ID_SLIDER_GUESSER, 50, 0, 100, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_AUTOTICKS|wxSL_LABELS );
-    item8->SetToolTip( _("Set the guess level (0 is no guessing, 50 is conservative guessing, 100 is wild guessing)") );
-    item1->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxSlider *item9 = new wxSlider( parent, ID_SLIDER_GUESSER, 50, 0, 100, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_AUTOTICKS|wxSL_LABELS );
+    item9->SetToolTip( _("Set the guess level (0 is no guessing, 50 is conservative guessing, 100 is wild guessing)") );
+    item1->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("< Fewer guesses (good and bad)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Zero is no guessing; closer to 50 is conservative guessing") );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("< Fewer guesses (good and bad)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Zero is no guessing; closer to 50 is conservative guessing") );
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
+    item10->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("More guesses (good and bad) >"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("Close to 50 is conservative guessing; 100 is wild guessing") );
-    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("More guesses (good and bad) >"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Close to 50 is conservative guessing; 100 is wild guessing") );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticLine *item12 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxCheckBox *item13 = new wxCheckBox( parent, ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT, _("Allow Guesser to operate on unchanged Consistent Changes output"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("If Consistent Changes is also active checking this box allows the Guesser to Guess whenever Consistent Changes has made no changes") );
-    item1->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT, _("Allow Guesser to operate on unchanged Consistent Changes output"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("If Consistent Changes is also active checking this box allows the Guesser to Guess whenever Consistent Changes has made no changes") );
+    item1->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticLine *item14 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item15 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Number of Correspondences in Adaptations Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Number of Correspondences in Adaptations Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item15->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    item16->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Number of Correspondences in Glossing Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Number of Correspondences in Glossing Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item18->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    item19->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_STATIC_NUM_CORRESP_GLOSSING_GUESSER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT_STATIC_NUM_CORRESP_GLOSSING_GUESSER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticLine *item21 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item22 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item23 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetDefault();
-    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item24 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetDefault();
+    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item25 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

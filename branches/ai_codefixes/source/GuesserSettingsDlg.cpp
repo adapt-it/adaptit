@@ -48,8 +48,8 @@
 BEGIN_EVENT_TABLE(CGuesserSettingsDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CGuesserSettingsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(ID_BUTTON_GUESS_HIGHLIGHT_COLOR, CGuesserSettingsDlg::OnChooseGuessHighlightColor)
+	EVT_BUTTON(wxID_OK, CGuesserSettingsDlg::OnOK)
 	// Samples:
-	//EVT_BUTTON(wxID_OK, CGuesserSettingsDlg::OnOK)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CGuesserSettingsDlg::OnDoSomething)
 	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CGuesserSettingsDlg::OnUpdateDoSomething)
 	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CGuesserSettingsDlg::OnDoSomething)
@@ -91,6 +91,9 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	pStaticTextNumCorInGlossingGuesser = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_NUM_CORRESP_GLOSSING_GUESSER);
 	wxASSERT(pStaticTextNumCorInGlossingGuesser != NULL);
 
+	pBtnGuessColorDisplay = (wxButton*)FindWindowById(ID_BUTTON_GUESS_COLOR);
+	wxASSERT(pBtnGuessColorDisplay != NULL);
+
 	//wxTextCtrl* pEdit;
 	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
 	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
@@ -131,6 +134,7 @@ void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	nCGStr << nCorrespondencesLoadedInGlossingGuesser;
 	pStaticTextNumCorInAdaptationsGuesser->SetLabel(nCAStr);
 	pStaticTextNumCorInGlossingGuesser->SetLabel(nCGStr);
+	pBtnGuessColorDisplay->SetBackgroundColour(pApp->m_GuessHighlightColor);
 
 }
 
@@ -148,6 +152,7 @@ void CGuesserSettingsDlg::OnChooseGuessHighlightColor(wxCommandEvent& WXUNUSED(e
 	{
 		colorData = colorDlg.GetColourData();
 		tempGuessHighlightColor  = colorData.GetColour();
+		pBtnGuessColorDisplay->SetBackgroundColour(tempGuessHighlightColor);
 	}	
 }
 
@@ -168,7 +173,10 @@ void CGuesserSettingsDlg::OnOK(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// Set the App's member values in the caller (View) after comparing them with the 
 	// corresponding class values (for detecting changes made in this class).
-	pApp->m_GuessHighlightColor = tempGuessHighlightColor;
+	pApp->m_GuessHighlightColor = tempGuessHighlightColor; // saved in basic config file
+	pApp->m_nGuessingLevel = nGuessingLevel; // saved in project config file
+	pApp->m_bAllowGuesseronUnchangedCCOutput = bAllowCConUnchangedGuesserOutput; // saved in project config file
+	pApp->m_bUseAdaptationsGuesser = bUseAdaptationsGuesser; // saved in project config file
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 

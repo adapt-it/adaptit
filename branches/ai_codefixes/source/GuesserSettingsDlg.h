@@ -31,6 +31,7 @@ public:
 	wxCheckBox* pAllowCCtoOperateOnUnchangedOutput;
 	wxStaticText* pStaticTextNumCorInAdaptationsGuesser;
 	wxStaticText* pStaticTextNumCorInGlossingGuesser;
+	wxButton* pBtnGuessColorDisplay;
 	bool bUseAdaptationsGuesser;
 	int nGuessingLevel;
 	int nCorrespondencesLoadedInAdaptationsGuesser;

@@ -3368,7 +3368,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
 			DoDelay(); // defined in Helpers.cpp (m_nCurDelay is in tick units)
 		}
-		bool bSuccessfulInsertAndMove = pBox->OnePass(pView);
+		bool bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is the only place OnePass() is called
 		if (bSuccessfulInsertAndMove)
 		{
 			//return TRUE; // enable next iteration

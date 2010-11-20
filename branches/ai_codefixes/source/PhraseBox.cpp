@@ -4288,6 +4288,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("8. End of OnePass"));
 	#endif
+
+	// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
+	// because PlaceBox() is called first via the MoveToNextPile() call near the beginning
+	// of this function, then again in the line above - twice while control flow is going
+	// through this function in the normal course of auto-insert adaptations.
+	pApp->m_bIsGuess = FALSE;
+	
 	return TRUE; // all was okay
 }
 

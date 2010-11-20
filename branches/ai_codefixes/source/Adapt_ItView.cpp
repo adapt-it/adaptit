@@ -5129,16 +5129,19 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		// enable clicks and editing to be done in the phrase box
 		// (do also in OnAdvancedFreeTranslationMode())
 		pApp->m_pTargetBox->SetEditable(TRUE);
-		if (pApp->m_bIsGuess)
-		{
-			pApp->m_pTargetBox->SetBackgroundColour(pApp->m_GuessHighlightColor);
-			// immediately set clear the m_bIsGuess flag
-			pApp->m_bIsGuess = FALSE;
-		}
-		else
-		{
-			pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
-		}
+		// whm 20Nov10 commented out Guesser color change - here is not the 
+		// place to set the phrasebox color - it gets overwritten in a later 
+		// call in pLayout->PlaceBox().
+		//if (pApp->m_bIsGuess)
+		//{
+		//	pApp->m_pTargetBox->SetBackgroundColour(pApp->m_GuessHighlightColor);
+		//	// immediately set clear the m_bIsGuess flag
+		//	pApp->m_bIsGuess = FALSE;
+		//}
+		//else
+		//{
+		pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
+		//}
 	}
 }
 

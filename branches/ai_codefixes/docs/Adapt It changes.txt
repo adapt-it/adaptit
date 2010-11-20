@@ -215,6 +215,8 @@ software tool.
 when a project is open but no document in that project is open. 
 Previously the user had to open a document to access the 
 Preferences dialog.
+* The USFM tab and Filtering tab in the Preferences dialog has
+been combined into a single tab.
 * Prior to version 6.0.0 a few user settings (the File menu's file 
 history and interface language choice) were stored in the Windows 
 registry. Now these settings are stored in an external file called 
@@ -226,7 +228,10 @@ statistical so it suggests guesses only after a knowledge base has
 sufficient data in it to make relatively accurate guesses. The 
 Guesser is ON by default but can be turned off or its settings 
 adjusted easily by clicking on the new toolbar icon to the right 
-of the Print toolbar icon.
+of the Print toolbar icon. When a guess has been placed in the 
+phrase box the background color of the phrase box turns to an 
+orange color (the color can be changed in the Guesser Settings
+dialog).
 * Adapt It now uses a new logo and set of icons for a more 
 contemporary look on all platforms.
 

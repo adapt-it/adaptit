@@ -873,6 +873,28 @@ void CLayout::PlaceBox()
 			else
 				m_pApp->m_pTargetBox->m_textColor = GetTgtColor();
 		}
+	
+		// whm added 20Nov10 setting of target box background color for when the Guesser
+		// has provided a guess. Default m_GuessHighlightColor color is orange.
+		if (m_pApp->m_bIsGuess)
+		{
+			m_pApp->m_pTargetBox->SetBackgroundColour(m_pApp->m_GuessHighlightColor);
+			// Note: PlaceBox() is called twice in the process of executing PhraseBox's
+			// OnePass() function (one via a MoveToNextPile call and once later in OnePass. 
+			// If we reset the m_pApp->m_bIsGuess flag to FALSE here in PlaceBox()
+			// the second call of PlaceBox() from OnePass will reset the background color 
+			// to white in the else block below because the else block below would then 
+			// be exectuted on the second call. Instead of resetting m_bIsGuess here, 
+			// I've reset it at the end of the OnePass() function.
+			//m_pApp->m_bIsGuess = FALSE;
+		}
+		else
+		{
+			// normal background color in target box is white
+			m_pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
+		}
+
+		
 		// handle the dirty flag
 		if (bSetModify)
 		{
