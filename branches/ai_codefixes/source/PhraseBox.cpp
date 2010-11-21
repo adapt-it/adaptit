@@ -4606,7 +4606,8 @@ d:		SetFocus();
 	{
 		// user pressed the Esc key. If a Guess is current in the phrasebox we
 		// will remove the Guess-highlight background color and the guess, and
-		// restore the normal copied source word to the phrasebox.
+		// restore the normal copied source word to the phrasebox. We also reset
+		// the App's m_bIsGuess flag to FALSE.
 		if (this->GetBackgroundColour() == pApp->m_GuessHighlightColor)
 		{
 			// get the pSrcPhrase at this active location
@@ -4639,6 +4640,7 @@ d:		SetFocus();
 			}
 			this->ChangeValue(str);
 			this->SetBackgroundColour(wxColour(255,255,255)); // white;
+			pApp->m_bIsGuess = FALSE;
 		}
 	}
 	else if (!gbIsGlossing && pApp->m_bTransliterationMode && event.GetKeyCode() == WXK_RETURN)

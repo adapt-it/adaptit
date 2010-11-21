@@ -2137,23 +2137,26 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item28->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item30 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    wxPanel *item30 = new wxPanel( parent, ID_PANEL_AUTO_INSERT_COLOR, wxDefaultPosition, wxSize(20,20), 0 );
     item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item31 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    item28->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item31, 0, wxGROW|wxALL, 0 );
+    item4->Add( item32, 0, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item33->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item34 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
+    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
@@ -7529,7 +7532,7 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     item3->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item5 = new wxButton( parent, ID_BUTTON_GUESS_COLOR, wxT(""), wxDefaultPosition, wxSize(20,-1), wxNO_BORDER );
+    wxPanel *item5 = new wxPanel( parent, ID_PANEL_GUESS_COLOR_DISPLAY, wxDefaultPosition, wxSize(20,20), 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item6 = new wxButton( parent, ID_BUTTON_GUESS_HIGHLIGHT_COLOR, _("Choose Guess Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );

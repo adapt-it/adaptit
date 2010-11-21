@@ -91,8 +91,8 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	pStaticTextNumCorInGlossingGuesser = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_NUM_CORRESP_GLOSSING_GUESSER);
 	wxASSERT(pStaticTextNumCorInGlossingGuesser != NULL);
 
-	pBtnGuessColorDisplay = (wxButton*)FindWindowById(ID_BUTTON_GUESS_COLOR);
-	wxASSERT(pBtnGuessColorDisplay != NULL);
+	pPanelGuessColorDisplay = (wxPanel*)FindWindowById(ID_PANEL_GUESS_COLOR_DISPLAY);
+	wxASSERT(pPanelGuessColorDisplay != NULL);
 
 	//wxTextCtrl* pEdit;
 	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
@@ -134,8 +134,8 @@ void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	nCGStr << nCorrespondencesLoadedInGlossingGuesser;
 	pStaticTextNumCorInAdaptationsGuesser->SetLabel(nCAStr);
 	pStaticTextNumCorInGlossingGuesser->SetLabel(nCGStr);
-	pBtnGuessColorDisplay->SetBackgroundColour(pApp->m_GuessHighlightColor);
-
+	pPanelGuessColorDisplay->SetBackgroundColour(pApp->m_GuessHighlightColor);
+	pPanelGuessColorDisplay->Refresh();
 }
 
 // event handling functions
@@ -152,7 +152,8 @@ void CGuesserSettingsDlg::OnChooseGuessHighlightColor(wxCommandEvent& WXUNUSED(e
 	{
 		colorData = colorDlg.GetColourData();
 		tempGuessHighlightColor  = colorData.GetColour();
-		pBtnGuessColorDisplay->SetBackgroundColour(tempGuessHighlightColor);
+		pPanelGuessColorDisplay->SetBackgroundColour(tempGuessHighlightColor);
+		pPanelGuessColorDisplay->Refresh();
 	}	
 }
 

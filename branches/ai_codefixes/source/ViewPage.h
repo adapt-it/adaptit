@@ -59,6 +59,7 @@ public:
 	//wxCheckBox* m_pCheckSupressLast;
 	wxCheckBox* m_pCheckWelcomeVisible;
 	wxCheckBox* m_pCheckHighlightAutoInsertedTrans;
+	wxPanel* m_pPanelAutoInsertColor;
 	wxCheckBox* m_pCheckShowAdminMenu;
 	int		tempMaxToDisplay;
 	int		tempPrecCntxt;
