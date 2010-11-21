@@ -3369,6 +3369,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			DoDelay(); // defined in Helpers.cpp (m_nCurDelay is in tick units)
 		}
 		bool bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is the only place OnePass() is called
+		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
+		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
+		// of OnePass, then again near the end of OnePass - twice in the normal course of 
+		// auto-insert adaptations.
+		pApp->m_bIsGuess = FALSE;
 		if (bSuccessfulInsertAndMove)
 		{
 			//return TRUE; // enable next iteration

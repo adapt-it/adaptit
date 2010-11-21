@@ -3142,6 +3142,13 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 //#ifdef __WXDEBUG__
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
 //#endif
+	
+	// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
+	// because PlaceBox() is called first via the MoveToNextPile() call near the beginning
+	// of OnePass, then again near the end of OnePass - twice in the normal course of 
+	// auto-insert adaptations.
+	pApp->m_bIsGuess = FALSE;
+	
 	Invalidate();
 	pLayout->PlaceBox();
 }

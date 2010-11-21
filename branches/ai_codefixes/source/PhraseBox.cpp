@@ -270,6 +270,9 @@ extern int		gnOldSequNum;
 extern bool		gbMergeSucceeded;
 wxString		gSaveTargetPhrase = _T(""); // used by the SHIFT+END shortcut for unmerging 
 											// a phrase
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
+									// the project config file establishes the FALSE value instead)
 
 
 
@@ -4293,7 +4296,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	// because PlaceBox() is called first via the MoveToNextPile() call near the beginning
 	// of this function, then again in the line above - twice while control flow is going
 	// through this function in the normal course of auto-insert adaptations.
-	pApp->m_bIsGuess = FALSE;
+	//pApp->m_bIsGuess = FALSE;
 	
 	return TRUE; // all was okay
 }
@@ -4598,6 +4601,45 @@ d:		SetFocus();
 		pView->GetVisibleStrips(nCurrentStrip,nLastStrip);
 		nScrollCount = nLastStrip - nCurrentStrip;
 		goto b;
+	}
+	else if (event.GetKeyCode() == WXK_ESCAPE)
+	{
+		// user pressed the Esc key. If a Guess is current in the phrasebox we
+		// will remove the Guess-highlight background color and the guess, and
+		// restore the normal copied source word to the phrasebox.
+		if (this->GetBackgroundColour() == pApp->m_GuessHighlightColor)
+		{
+			// get the pSrcPhrase at this active location
+			CSourcePhrase* pSrcPhrase;
+			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxString str = pSrcPhrase->m_key;
+
+			if (!gbLegacySourceTextCopy)
+			{
+				// the user wants smart copying done to the phrase box when the active location
+				// landed on does not have any existing adaptation (in adapting mode), or, gloss
+				// (in glossing mode). In the former case, it tries to copy a gloss to the box
+				// if a gloss is available, otherwise source text used instead; in the latter case
+				// it tries to copy an adaptation as the default gloss, if an adaptation is
+				// available, otherwise source text is used instead
+				if (gbIsGlossing)
+				{
+					if (!pSrcPhrase->m_adaption.IsEmpty())
+					{
+						str = pSrcPhrase->m_adaption;
+					}
+				}
+				else
+				{
+					if (!pSrcPhrase->m_gloss.IsEmpty())
+					{
+						str = pSrcPhrase->m_gloss;
+					}
+				}
+			}
+			this->ChangeValue(str);
+			this->SetBackgroundColour(wxColour(255,255,255)); // white;
+		}
 	}
 	else if (!gbIsGlossing && pApp->m_bTransliterationMode && event.GetKeyCode() == WXK_RETURN)
 	{
