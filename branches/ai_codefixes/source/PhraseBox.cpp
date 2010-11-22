@@ -4602,47 +4602,52 @@ d:		SetFocus();
 		nScrollCount = nLastStrip - nCurrentStrip;
 		goto b;
 	}
-	else if (event.GetKeyCode() == WXK_ESCAPE)
-	{
-		// user pressed the Esc key. If a Guess is current in the phrasebox we
-		// will remove the Guess-highlight background color and the guess, and
-		// restore the normal copied source word to the phrasebox. We also reset
-		// the App's m_bIsGuess flag to FALSE.
-		if (this->GetBackgroundColour() == pApp->m_GuessHighlightColor)
-		{
-			// get the pSrcPhrase at this active location
-			CSourcePhrase* pSrcPhrase;
-			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxString str = pSrcPhrase->m_key;
+	// Note: The handling of Esc (WXK_ESCAPE) is done in OnKeyDown with a return before
+	// calling Skip(). That is the only way I found to prevent the system beep from
+	// occurring when hitting the Esc key to restore a Guess to the normal copy to the
+	// phrase box.
+	//else if (event.GetKeyCode() == WXK_ESCAPE)
+	//{
+	//	// user pressed the Esc key. If a Guess is current in the phrasebox we
+	//	// will remove the Guess-highlight background color and the guess, and
+	//	// restore the normal copied source word to the phrasebox. We also reset
+	//	// the App's m_bIsGuess flag to FALSE.
+	//	if (this->GetBackgroundColour() == pApp->m_GuessHighlightColor)
+	//	{
+	//		// get the pSrcPhrase at this active location
+	//		CSourcePhrase* pSrcPhrase;
+	//		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	//		wxString str = pSrcPhrase->m_key;
 
-			if (!gbLegacySourceTextCopy)
-			{
-				// the user wants smart copying done to the phrase box when the active location
-				// landed on does not have any existing adaptation (in adapting mode), or, gloss
-				// (in glossing mode). In the former case, it tries to copy a gloss to the box
-				// if a gloss is available, otherwise source text used instead; in the latter case
-				// it tries to copy an adaptation as the default gloss, if an adaptation is
-				// available, otherwise source text is used instead
-				if (gbIsGlossing)
-				{
-					if (!pSrcPhrase->m_adaption.IsEmpty())
-					{
-						str = pSrcPhrase->m_adaption;
-					}
-				}
-				else
-				{
-					if (!pSrcPhrase->m_gloss.IsEmpty())
-					{
-						str = pSrcPhrase->m_gloss;
-					}
-				}
-			}
-			this->ChangeValue(str);
-			this->SetBackgroundColour(wxColour(255,255,255)); // white;
-			pApp->m_bIsGuess = FALSE;
-		}
-	}
+	//		if (!gbLegacySourceTextCopy)
+	//		{
+	//			// the user wants smart copying done to the phrase box when the active location
+	//			// landed on does not have any existing adaptation (in adapting mode), or, gloss
+	//			// (in glossing mode). In the former case, it tries to copy a gloss to the box
+	//			// if a gloss is available, otherwise source text used instead; in the latter case
+	//			// it tries to copy an adaptation as the default gloss, if an adaptation is
+	//			// available, otherwise source text is used instead
+	//			if (gbIsGlossing)
+	//			{
+	//				if (!pSrcPhrase->m_adaption.IsEmpty())
+	//				{
+	//					str = pSrcPhrase->m_adaption;
+	//				}
+	//			}
+	//			else
+	//			{
+	//				if (!pSrcPhrase->m_gloss.IsEmpty())
+	//				{
+	//					str = pSrcPhrase->m_gloss;
+	//				}
+	//			}
+	//		}
+	//		this->ChangeValue(str);
+	//		this->SetBackgroundColour(wxColour(255,255,255)); // white;
+	//		pApp->m_bIsGuess = FALSE;
+	//		return; // return here so the system won't beep
+	//	}
+	//}
 	else if (!gbIsGlossing && pApp->m_bTransliterationMode && event.GetKeyCode() == WXK_RETURN)
 	{
         // CTRL + ENTER is a JumpForward() to do transliteration; bleed this possibility
@@ -4751,6 +4756,48 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			wxString s;
 			s = GetValue();
 			pApp->m_targetPhrase = s; // otherwise, deletions using <DEL> key are not recorded
+		}
+	}
+	else if (event.GetKeyCode() == WXK_ESCAPE)
+	{
+		// user pressed the Esc key. If a Guess is current in the phrasebox we
+		// will remove the Guess-highlight background color and the guess, and
+		// restore the normal copied source word to the phrasebox. We also reset
+		// the App's m_bIsGuess flag to FALSE.
+		if (this->GetBackgroundColour() == pApp->m_GuessHighlightColor)
+		{
+			// get the pSrcPhrase at this active location
+			CSourcePhrase* pSrcPhrase;
+			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxString str = pSrcPhrase->m_key;
+
+			if (!gbLegacySourceTextCopy)
+			{
+				// the user wants smart copying done to the phrase box when the active location
+				// landed on does not have any existing adaptation (in adapting mode), or, gloss
+				// (in glossing mode). In the former case, it tries to copy a gloss to the box
+				// if a gloss is available, otherwise source text used instead; in the latter case
+				// it tries to copy an adaptation as the default gloss, if an adaptation is
+				// available, otherwise source text is used instead
+				if (gbIsGlossing)
+				{
+					if (!pSrcPhrase->m_adaption.IsEmpty())
+					{
+						str = pSrcPhrase->m_adaption;
+					}
+				}
+				else
+				{
+					if (!pSrcPhrase->m_gloss.IsEmpty())
+					{
+						str = pSrcPhrase->m_gloss;
+					}
+				}
+			}
+			this->ChangeValue(str);
+			this->SetBackgroundColour(wxColour(255,255,255)); // white;
+			pApp->m_bIsGuess = FALSE;
+			return;
 		}
 	}
 	event.Skip(); // allow processing of the keystroke event to continue
