@@ -171,13 +171,9 @@ void CGuesserSettingsDlg::OnChooseGuessHighlightColor(wxCommandEvent& WXUNUSED(e
 // if the dialog is modeless.
 void CGuesserSettingsDlg::OnOK(wxCommandEvent& event) 
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	// Set the App's member values in the caller (View) after comparing them with the 
-	// corresponding class values (for detecting changes made in this class).
-	pApp->m_GuessHighlightColor = tempGuessHighlightColor; // saved in basic config file
-	pApp->m_nGuessingLevel = nGuessingLevel; // saved in project config file
-	pApp->m_bAllowGuesseronUnchangedCCOutput = bAllowCConUnchangedGuesserOutput; // saved in project config file
-	pApp->m_bUseAdaptationsGuesser = bUseAdaptationsGuesser; // saved in project config file
+	// Note: The App's member values are updated in CAdapt_ItView::OnButtonGuesserSettings()
+	// and LoadGuesser() called if necessary, by comparing this local class' values with 
+	// those on the App (for detecting changes made in this dialog class).
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
