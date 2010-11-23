@@ -15243,7 +15243,7 @@ int ii = 1;
 //bIsLoadable = bIsLoadable;
 
 //wxString testStr =  _T("“ ‘First?! second, third’: ” fourth?");
-//wxString testStr = _T("“ ‘First?;!$second’: ”"); // test fixedSpace symbol
+//wxString testStr = _T("“ ‘First?;~second’: ”"); // test fixedSpace symbol
 //GetView()->RemovePunctuation(GetDocument(),&testStr,1);
 
 
@@ -27135,7 +27135,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 /// against inadventent data loss because the user may have done some adapting work in the
 /// target project since the last transformation process)
 /// BEW 11Oct10, no changes for additions to doc version 5 (but the
-/// TransformSourcePhraseAdaptationsToGlosses() function has some - to support !$ particularly)
+/// TransformSourcePhraseAdaptationsToGlosses() function has some changes - to support
+/// fixedspace symbol ~ particularly)
 /// BEW 13Nov10 no changes for supporting Bob Eaton's request that glossing KB use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList, 

@@ -2469,9 +2469,9 @@ public:
 	// whm added 19Jan05 AI_USFM.xml file processing and USFM and Filtering
 	bool		m_bUsingDefaultUsfmStyles;
 
-	// flag for skipping USFM fixed space "!$" 2-character sequence when parsing
-	// source text (if TRUE, then skip, if FALSE then don't check for its presence)
-	// used in the ParseWord() function in the document class
+    // flag for skipping USFM fixed space "~" (tilde) when parsing source text (if TRUE,
+    // then skip, if FALSE then don't check for its presence) used in the ParseWord()
+    // function in the document class
 	bool		m_bChangeFixedSpaceToRegularSpace;
 
 	UserProfiles* m_pUserProfiles; // a struct on the heap that contains the profileVersion,

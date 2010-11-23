@@ -1373,7 +1373,7 @@ wxSizer *DocPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item18 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, _("&Change USFM fixed space markers (!$) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item18 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, _("&Change USFM fixed space markers (~) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
     item17->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -7483,7 +7483,7 @@ wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item28->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM, _("&Change USFM fixed space markers (!$) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM, _("&Change USFM fixed space markers (~) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
     item29->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
     item28->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
