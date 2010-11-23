@@ -78,10 +78,6 @@ CComposeBarEditBox::~CComposeBarEditBox() // destructor
 // event handling functions
 void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 {
-// GDLC 2010-03-27 pView no longer used
-//	CAdapt_ItView* pView = gpApp->GetView();
-//	wxASSERT(pView != NULL);
-
 	// intercept the Enter key and make it call the OnAdvanceButton() handler
 	if (event.GetKeyCode() == WXK_RETURN)
 	{

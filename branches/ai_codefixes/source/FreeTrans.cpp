@@ -1142,15 +1142,20 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 ///                     should halt forward scanning for determining the end of the current
 ///                     section to be free translated; FALSE otherwise
 ///
-///	\param pNextPile	->	pointer to the pile which is one position further along in the 
-///                         list than where control happens to be in the caller (so if TRUE
-///                         is returned, that passed in pile will be excluded from the
-///                         current free translation section being delimited, and scanning
-///                         will stop)
+///	\param pThisPile ->	pointer to the pile which is being examined as a candidate for
+///	                    being the past the end of the currently-being-defined section; it
+///	                    is typically one CSourcePhrase instance beyond the 'current' one
+///	                    in the caller. Even so, in some circumstances the end of the section
+///	                    may be the instance following pThisPile - see below. (If TRUE
+///                     is returned, the passed in pile will be excluded from the current
+///                     free translation section being delimited, and scanning will stop,
+///                     but the halt instance is made the next one when bAtFollowingPile 
+///                     is returned as TRUE, see the description for that param below.)
 /// \param bAtFollowingPile <- FALSE if pThisPile is the one to halt at (ie. it is not in the
 ///                            section). But that won't work for \f*, \fe* or \x* storage 
 ///                            locations - for those, return TRUE here, and the caller will
-///                            know that that pile is to be included in the section.
+///                            know that that pile is to be included in the section, that is,
+///                            to make the halt location be after the pile storing \f* etc.
 /// \remarks
 /// We don't want a situation, such as in introductory material at the start of a book
 /// where there are no verses defined, and perhaps limited or no punctuation as well, for
@@ -1165,13 +1170,13 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 /// or \F) or \x* on the 'next' sourcephrase passed in. BEW changed 22Dec07: a filtered
 /// Note can be anywhere, and we don't want these to needlessly halt section delineation,
 /// so we'll ignore \note and \note* as well.
-/// 
-/// BEW modified 19Feb10, for support of doc version 5. New version does not have endmarkers in
-/// m_markers any more, but in m_endMarkers (and only endmarkers there, else it is empty)
+/// BEW modified 19Feb10, for support of doc version 5. New version does not have endmarkers
+/// in m_markers any more, but in m_endMarkers (and only endmarkers there, else it is empty)
 /// BEW 9July10, no changes needed for support of kbVersion 2
 /// BEW 11Oct10, fixes a failure, for doc version 5, of the sectioning to halt a section
 /// starting within a footnote between the CSourcePhrase storing \f* and the one follows.
-/// (Before the fix, the instance with \f* was excluded from the section.)
+/// (Before the fix, the instance with \f* was excluded from the section. The fix required
+/// the introduction of the 2nd param, bAtFollowingPile.)
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFollowingPile)
 {
@@ -1196,7 +1201,9 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 
 	// handle any endmarker - it causes a halt unless it has TextType
 	// of none, or is an endmarker for embedded markers in a footnote or cross
-	// reference section, or endnote
+	// reference section, or endnote. The halt, however, must be at the CSourcePhrase
+	// which follows the one which stores the endmarker - that is, the endmarker's
+	// CSourcePhrase instance is the LAST instance in that-being-defined section
 	int mkrLen = 0;
 	wxString ftnoteMkr = _T("\\f");
 	wxString xrefMkr = _T("\\x");
@@ -1219,14 +1226,20 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 				return TRUE; // halt scanning at next location
 			}
 			if (mkr == xrefMkr + _T('*'))
+			{
+				bAtFollowingPile = TRUE;
 				return TRUE;
-			if (m_pApp->gCurrentSfmSet == UsfmOnly && 
-					(mkr == endnoteMkr + _T('*')))
+			}
+			if (m_pApp->gCurrentSfmSet == UsfmOnly && (mkr == endnoteMkr + _T('*')))
+			{
+				bAtFollowingPile = TRUE;
 				return TRUE;
-			if (m_pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || 
-					mkr == _T("\\F")))
+			}
+			if (m_pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || mkr == _T("\\F")))
+			{
+				bAtFollowingPile = TRUE;
 				return TRUE;
-
+			}
 			// find out if it is an embedded marker with TextType of none
 			// - we don't halt for these
 			mkrLen = mkr.Length();
@@ -1250,12 +1263,16 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 				continue; // must be \xr*, \xt*, \xo*, etc - so don't halt
 
 			// halt for any other endmarker
+			bAtFollowingPile = TRUE;
 			return TRUE;
 		}
 	}
 
 	// now deal with the m_markers member's content - look for halt-causing markers (it's
-	// sufficient to find just the first, and make our decision from that one)
+	// sufficient to find just the first, and make our decision from that one). For these,
+	// bAtFollowingPile is always returned FALSE, since the CSourcePhrase carrying any
+	// halting begin-marker will always lie outside the end of the currently-being-defined
+	// section
 	if (!markers.IsEmpty())
 	{
 		// some kind of non-endmarker(s) is/are present so check it/them out
@@ -1275,7 +1292,7 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 		// - so we'll halt now unless the marker is one like \k , or 
 		// \it , or \sc , or \bd etc - these have TextType none
 		bufLen = markers.Length();
-		pBuff = markers.GetData(); //GetWriteBuf(bufLen + 1);
+		pBuff = markers.GetData();
 		pBufStart = (wxChar*)pBuff;
 		wxChar* pEnd;
 		pEnd = pBufStart + bufLen; // whm added
@@ -1291,7 +1308,7 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 
 		// if it's an embedded marker in a footnote or cross reference section,
 		// then these don't halt scanning
-		wxString mkr = _T("\\") + bareMkr; // this is genuine backslash not PathSeparator
+		wxString mkr = _T("\\") + bareMkr;
 		mkrLen = mkr.Length();
 		int nFound = mkr.Find(ftnoteMkr); // if true, \f is contained within mkr
 		if (nFound >= 0 && mkrLen > 2)
@@ -1887,20 +1904,22 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		if (!tempStr.IsEmpty())
 			bEditBoxHasText = TRUE;
 
-        // at the current section we collect the layout information in globals, so that we
-        // can delay committal to the section's extent until the user has made whatever
-        // manual adjustments (with Compose Bar butons or clicking the phrase box elsewhere
-        // or selecting or combinations of any of those) and the clicks Advance or Next>
-        // of <Prev -- since it is at that point that the globals in the affected
-        // pSrcPhrase instances will get set - (free translations not at the current
-        // location will use those globals to set up for writing the free translation text
-        // to the main window)
+        // at the current section we collect the layout information in a private array
+        // member of the FreeTrans class, so that we can delay committal to the section's
+        // extent until the user has made whatever manual adjustments (with Compose Bar
+        // butons or clicking the phrase box elsewhere or selecting or combinations of any
+        // of those) and the clicks Advance or Next> of <Prev -- since it is at that point
+        // that the free translation-related flags in the affected pSrcPhrase instances
+        // will get set (by a StoreFreeTranslation() call, passing in the enum value
+        // remove_editbox_contents) - (& free translations not at the current location will
+        // use those flags set at an earlier call to set up for writing and colouring the
+        // free translation text's background in the main window)
 		int wordcount = 0;
 		CPile* pNextPile;
 		while (pile != NULL)
 		{
 			CSourcePhrase* pSrcPhrase;
-			// store this pile in the global array
+			// store this pile in the private array
 			m_pCurFreeTransSectionPileArray->Add(pile);
 
 #ifdef __WXDEBUG__
