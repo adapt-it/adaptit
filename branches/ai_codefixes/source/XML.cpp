@@ -6456,7 +6456,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 	wxString mkr;
 	wxString mkr2;
 	wxString aSpace = _T(' ');
-	wxString FixedSpace = _T("!$");
+	wxString FixedSpace = _T("~");
 
 	wxString word1PrecPunct;
 	wxString word1FollPunct;
@@ -6506,7 +6506,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
             // inline binding beginmarker would also do the same thing. DocV4 makes an
             // orphaned preceding CSourcePhrase of either scenario, storing the inline
             // non-binding beginmarker and the following punctuation - both of these belong
-            // on the CSourcePhrase following this orphan, and the binding beginmakrer on
+            // on the CSourcePhrase following this orphan, and the binding beginmarker on
             // the following instance has to be taken out of m_markers and put in
 			// m_inlineBindingMarkers. Note, FromDocVersion4ToDocVersion5() will have put
 			// an inline non-binding marker into pSrcPhrase->m_inlineNonbindingMarker if
@@ -6627,16 +6627,16 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty())
 
 
-		// Next deal with USFM fixed-space conjoining with !$. DocV4 treated
+		// Next deal with USFM fixed-space conjoining with ~. DocV4 treated legacy
 		// word!$word as a unit (but didn't make it a pseudo-merger as DocV5 does),
-		// and docV5 handles that fine, as it does
-        // <punct1>word<punct2>!$<punct3>word<punc4> provided neither of punct2 and
+		// and docV5 handles the newer ~ conjoining fine, as it does
+        // <punct1>word<punct2>~<punct3>word<punc4> provided neither of punct2 and
         // punct3, if present, contain a space. When either or both have a space,
         // however, docV4 separates the conjoined pair into two CSourcePhrases. It is
         // these that we have to fix here. We won't deal with the most complex case,
         // that is, when punct2 and punct3 BOTH contain a space (such as doublequote
         // and singlequote separated by a space, in each) because I consider the
-        // likelihood of two embedded quotations being joined by !$ in the scripture to
+        // likelihood of two embedded quotations being joined by ~ in the scripture to
         // be zero - words which are candidates for such conjoining are not likely to
         // lie at the beginning or end of major syntactic units and so come together.
         // (If we did handle this, the bits would be scattered across 3 consecutive
@@ -6648,6 +6648,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		// in the m_key member. Word two then has m_srcPhrase beginning with the
 		// after-space part of the punct3 punctuation. And docV4 parses over any punct2 
 		// content, it is considered as internal to word1.
+		// (For the newer ~ marker, ~ would be at the end of word1.)
 		// (b) When punct2 has a space, the ! of the !$ symbol gets interpretted by
 		// the docV4 parser as preceding punctuation on the second word. So the first
 		// word has the punct2 punctuation up to the !$, on it correctly as
@@ -6656,6 +6657,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		// let's assume so to keep this discussion simpler), & where word2 will be 
 		// either $<punct3>word (when punct 3 is non-empty) or $word (when punct3 is
 		// empty).
+		// (For the newer ~ marker, word2 would start with ~ I think)
 		// (c) When we have: <punct1>word<punct2>!$<punct3>word<punc4>, where any or all
 		// of the <punct> substrings may be empty, or contain punctuation, and <punct2>
 		// and <punct3> do not either contain a space, the doc version 4 parser parses the
@@ -6664,6 +6666,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		// reconstruct the single CSourcePhrase to be a pseudo-merger, with two
 		// CSourcePhrase embedded instances in its m_pSavedWords member, and set all the
 		// members of the latter to be what they should be.
+		// (For the newer ~ marker, I think the same would happen - ~ would be internal)
 		// 
 		// Diagnosis: we have situation (a) if !$ is at the end of m_key;
 		// we have situation (b) if ! is in the second CSourcePhrase's m_precPunct
@@ -6830,17 +6833,14 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
                 // appropriate places on the embedded pSP instances
                 	
 				wxString str = pSrcPhrase->m_key; // we have to dissect this to get
-						// from it any punctuation before !$, any punctuation after
-						// !$, and word1 and word2
+						// from it any punctuation before ~, any punctuation after ~,
+						// and word1 and word2
 				word1 = SpanExcluding(str, gpApp->m_punctuation[0]);
 				int len = word1.Len();
 				str = str.Mid(len);
 				word1FollPunct = SpanIncluding(str, gpApp->m_punctuation[0]);
-				// the above line will have included the ! from the !$ symbol at the end,
-				// so we must remove it
 				len = word1FollPunct.Len();
-				word1FollPunct = word1FollPunct.Left(len-1);
-				str = str.Mid(len+1); // str now has the material following !$
+				str = str.Mid(len+1); // str now has the material following ~
 				word2PrecPunct = SpanIncluding(str, gpApp->m_punctuation[0]);
 				len = word2PrecPunct.Len();
 				str = str.Mid(len);
@@ -6865,9 +6865,9 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
                 // m_targetStr from the converted src text punctuation. (If the user
                 // wants custom puncts typed by himself, he can edit the doc at this
                 // point manually later.
-				wxString tgtAdaption = pSrcPhrase->m_adaption; // this probably has !$ in
+				wxString tgtAdaption = pSrcPhrase->m_adaption; // this probably has ~ in
                     // it; but if he typed different word1 and word2 adaptations, then the
-                    // resulting m_adaption will be word1<p1>!$<p2>word2 where <p1>
+                    // resulting m_adaption will be word1<p1>~<p2>word2 where <p1>
                     // and <p2> are any medial punctuation he may have typed (or one of
                     // both of these could be empty) and word1 and word2 will differ from
                     // the source text ones, and if there was a source text copy done,
@@ -7116,10 +7116,10 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 
 // return nothing
 // pWord1SPh   ->  pointer to the first reconstructed embedded CSourcePhrase of a docv4 
-//                 badly parsed !$ conjoining (pWord1SPh has correct members, including punct)
+//                 badly parsed ~ conjoining (pWord1SPh has correct members, including punct)
 // pWord2SPh   ->  pointer to the second reconstructed embedded CSourcePhrase of a docv4 
-//                 badly parsed !$ conjoining (pWord2SPh has correct members, including punct)
-// adaption    <-  the "word1!$word2" adaptation which is to go to the KB (eventually)
+//                 badly parsed ~ conjoining (pWord2SPh has correct members, including punct)
+// adaption    <-  the "word1~word2" adaptation which is to go to the KB (eventually)
 // targetStr   <-  the m_targetStr reconstructed conjoined string, it may have punctuation
 //                 before and/or after the first word, and also before and/or after the
 //                 second word
@@ -7131,14 +7131,14 @@ void MakeFixedSpaceTranslation(CSourcePhrase* pWord1SPh, CSourcePhrase* pWord2SP
 	wxString second = pWord2SPh->m_adaption;
 	if (first.IsEmpty() && second.IsEmpty())
 		return; // the user didn't adapt this part of the document yet
-	adaption = first + _T("!$") + second;
+	adaption = first + _T("~") + second;
 
 	wxString convertedPunct = pWord1SPh->m_precPunct;
 	convertedPunct = GetConvertedPunct(convertedPunct);
 	targetStr = convertedPunct + first;
 	convertedPunct = pWord1SPh->m_follPunct;	
 	convertedPunct = GetConvertedPunct(convertedPunct);
-	targetStr += convertedPunct + _T("!$");	
+	targetStr += convertedPunct + _T("~");	
 	convertedPunct = pWord2SPh->m_precPunct;	
 	convertedPunct = GetConvertedPunct(convertedPunct);
 	targetStr += convertedPunct + second;

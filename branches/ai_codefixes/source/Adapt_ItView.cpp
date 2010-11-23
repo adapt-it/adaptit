@@ -8626,17 +8626,17 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-    // BEW 11Oct10, added for docVersion5 support: check for a USFM fixedspace symbol (!$)
+    // BEW 11Oct10, added for docVersion5 support: check for a USFM fixedspace symbol (~)
 	// in the selection, and abort the merge operation if there is one (while this is
 	// strictly speaking not a docVersion5 issue, doc version 5 parses input data
-	// containing !$ better - and if there is punctuation before or after then that
+	// containing ~ better - and if there is punctuation before or after then that
 	// punctuation is made medial to the word pair, and because we can't distinguish that
 	// punctuation from other just-made-medial punctuation due to the merge, it is best to
 	// forbid the merger in the first place)
 	if (IsFixedSpaceSymbolInSelection(pList))
 	{
 		wxMessageBox(_(
-"Merging is not permitted when the selection contains the USFM fixed space two-character symbol !$.\nTry a retranslation instead."),
+"Merging is not permitted when the selection contains ~ which is the USFM fixed space marker.\nTry a retranslation instead."),
 		_T(""), wxICON_EXCLAMATION);
 		pList->Clear();
 		delete pList;
@@ -11017,7 +11017,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /// New version coded on 02April05 by BEW
 /// BEW 12Apr10, no changes needed for support of doc version 5
 /// BEW 11Oct10, changed to use the new version of ParseWord() and added support for
-/// stripping from a conjoined pair using !$ fixedspace symbol
+/// stripping from a conjoined pair using ~ fixedspace symbol
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
@@ -11033,19 +11033,19 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	int countRemoved;
 	countRemoved = spacelessPunctsStr.Replace(_T(" "),_T(""));
 
-	// first handle test of no punctuation where we have conjoined words using !$ fixed
+	// first handle test of no punctuation where we have conjoined words using ~ fixed
 	// space
 	wxString str = *pStr; // get a convenient local copy
 	int offset = wxNOT_FOUND;
 	wxString word1;
 	wxString word2;
-	offset = str.Find(_T("!$"));
+	offset = str.Find(_T('~'));
 	if (bHasFixedSpaceSymbol)
 	{
 		// it's a conjoined word pair - so separate into two parts and test each
 		// separately
 		word1 = str.Left(offset);
-		word2 = str.Mid(offset + 2); // exclude "!$" - it's punctuation chars
+		word2 = str.Mid(offset + 1); // exclude ~ from the tests below
 		if ((FindOneOf(word1, spacelessPunctsStr) == wxNOT_FOUND) && 
 			(FindOneOf(word2, spacelessPunctsStr) == wxNOT_FOUND))
 		{
@@ -11067,7 +11067,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	}
 
 	wxString strFinal; // accumulate here for returning final result to the caller
-	wxString strFinal2; // for use when !$ is in the passed in string, for stripping 
+	wxString strFinal2; // for use when ~ is in the passed in string, for stripping 
 						// from word2
 	strFinal2.Empty();
 	bool bIsInlineNonbindingMkr = FALSE;
@@ -11088,12 +11088,13 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 	CSourcePhrase* pSrcPhrase2 = NULL;
 	wxString theWord2;
     // do word1 -- it could be a sequence of words with or without punctuation, or the
-    // first word of a conjoined !$ word pair with or without punctuation, or just a single
+    // first word of a conjoined ~ word pair with or without punctuation, or just a single
     // word with or without some punctuation
 	while (ptr < pEnd)
 	{
         // we are dealing with target text, but ParseWord() will treat it as source
-        // text; we just have to make the appropriate adjustments after the parse
+		// text; we just have to make the appropriate adjustments after the parse. We use
+		// the appropriate punctuation string though.
 		pSrcPhrase = new CSourcePhrase;
 
 		// in the next call, because there are no inline markers to worry about,
@@ -11158,7 +11159,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		} // end of while loop: while (ptr2 < pEnd2)
 		if (!strFinal2.IsEmpty())
 		{
-			*pStr += _T("!$");
+			*pStr += _T('~');
 			*pStr += strFinal2;
 		}
 	}	
@@ -12437,8 +12438,8 @@ void CAdapt_ItView::CloseProject()
 // moves to a different location by any method.
 // BEW 12Apr10, no changes needed for support of doc version 5
 // BEW 11Oct10, added more members for doc version 5, so changes needed for supporting
-// m_follOuterPunct and USFM fixedspace symbol !$ (which we now handle as a merger of two
-// words) in order to cope with all punctuation possibilities on a !$ bound pair
+// m_follOuterPunct and USFM fixedspace symbol ~ (which we now handle as a merger of two
+// words) in order to cope with all punctuation possibilities on a ~ bound pair
 void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -12485,12 +12486,12 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
 		  pApp->m_nPlacePunctDlgCallNumber > 1) )
 	{
-        // BEW 11Oct10, have to handle !$ -- need a separate block for this as it is more
+        // BEW 11Oct10, have to handle ~ -- need a separate block for this as it is more
         // complex, and also need to take m_follOuterPunct into consideration in both
         // blocks
 		if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 		{
-			// the legacy situation, no !$ fixedspace conjoining...
+			// the legacy situation, no ~ fixedspace conjoining...
 
 			wxString str = targetStr; // make a copy
 			wxArrayString remainderList;
@@ -12730,7 +12731,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		else
 		{
             // BEW 11Oct10, when control enters here, we have a m_srcPhrase like this:
-            // <puncts1>word1<puncts2>!$<puncts3>word2<puncts4> stored as a merger, where
+            // <puncts1>word1<puncts2>~<puncts3>word2<puncts4> stored as a merger, where
             // any or all of <punctsi> where i = 1,2,3, or 4 may be empty or contain
             // punctuation; if <puncts2> is non-empty, it is stored in the first child
             // pSrcPhrase in m_nSavedWords, in the former's m_follPunct member, ; if
@@ -12747,9 +12748,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			int offset = wxNOT_FOUND;
 			wxString word1;
 			wxString word2;
-			offset = targetStr.Find(_T("!$"));
+			offset = targetStr.Find(_T('~'));
 			word1 = targetStr.Left(offset);
-			word2 = targetStr.Mid(offset + 2); // jump to what follows !$ & accept the rest 
+			word2 = targetStr.Mid(offset + 1); // jump to what follows ~ & accept the rest 
 			// word1 and word2 may each have punctuation before or after or both
 
 			// Task2: further parse, break these down until we have the punctuation strings and
@@ -12786,9 +12787,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			// TokenizeText() has put any punctuation strings both in pSrcPhrase (the
 			// m_precPunct and m_follPunct members) and in the same members, as
 			// appropriate, for the two child pSrcPhrase instances in m_pSavedWords -- in
-			// fact, the ONLY place punctuation preceding !$ is stored is in the
+			// fact, the ONLY place punctuation preceding ~ is stored is in the
 			// m_follPunct member of the first child pSrcPhrase, and the ONLY place
-			// punctuation following !$ is stored is in the m_precPunctMember of the
+			// punctuation following ~ is stored is in the m_precPunctMember of the
 			// second child pSrcPhrase. So we are in a position now to make comparisons
 			// between what we obtained above, and what was stored in the original
 			// document creation parse - hence we can determine when/if the user has typed
@@ -12830,7 +12831,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 										  // done if possible
 			if (gbAutoCaps)
 			{
-				// next call will work fine because !$ is not at the start of m_key
+				// next call will work fine because ~ is not at the start of m_key
 				bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
 				if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 				{
@@ -13043,7 +13044,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			// pSrcPhrase's m_targetStr member
 			wxString str;
 			str += finalW1PrecPuncts + word1Proper + finalW1FollPuncts;
-			str += _T("!$");
+			str += _T('~');
 			str += finalW2PrecPuncts + word2Proper + finalW2FollPuncts;
 
 			// now add the final form of the target string to the source phrase
@@ -26314,7 +26315,7 @@ void CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event)
 // made into glosses for these. Glossing mode can sustain placeholders entered into the
 // document earlier in a different mode, so this decision does not impinge on robustness 
 // BEW 11Oct10, changed to support extra doc version 5 CSourcePhrase members, and handling
-// of USFM fixedspace marker !$ adequately 
+// of USFM fixedspace marker ~ adequately 
 bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp, 
 			SPList::Node* curPos, SPList::Node* nextPos, CSourcePhrase* pSrcPhrase)
 {
@@ -26419,7 +26420,7 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp
 			// retain placeholders - so we can comment it out, and just do the required
 			// data transformation, & a StoreText() call to have it go into the glossing KB
 			// 
-			// BEW 11Oct10, we have to handle word1!$word2 conjoining - here is a suitable
+			// BEW 11Oct10, we have to handle word1~word2 conjoining - here is a suitable
 			// place. Such conjoinings are a pseudo merger, so we just transform
 			// m_adaptation into m_gloss for the parent (single) instance, pSrcPhrase, and
 			// similarly for the embedded pair, and do the store to the glossing KB
@@ -26457,143 +26458,6 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp
 			pApp->m_pGlossingKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss); 
 			return FALSE;
 
-			/* legacy code
-			SPList::Node* prevPos = curPos; 
-			CSourcePhrase* pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
-			prevPos = prevPos->GetPrevious();
-			bool bSomethingWasMoved = FALSE;
-			if (prevPos != NULL)
-			{
-				// previous POSITION value is valid, so get its pointer
-				pPrevSrcPhrase = (CSourcePhrase*)prevPos->GetData();
-
-				// BEW additions 30Aug05 for version 3
-				if (pSrcPhrase->m_bEndFreeTrans)
-				{
-					// the placeholder was previously left-associated to the end of
-					// a free translation section, so move the flag back where it was
-					pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
-					bSomethingWasMoved = TRUE;
-				}
-				// end of 30Aug05 additions
-				if (!pSrcPhrase->m_follPunct.IsEmpty())
-				{
-					// punctuation was moved to this source phrase, so move it back
-					pPrevSrcPhrase->m_follPunct = pSrcPhrase->m_follPunct;
-					bSomethingWasMoved = TRUE;
-				}
-				if (pSrcPhrase->m_bFootnoteEnd)
-				{
-					// at a footnote end, so move the end marker to previous srcphrase
-					pPrevSrcPhrase->m_bFootnoteEnd = TRUE;
-					bSomethingWasMoved = TRUE;
-				}
-				if (pPrevSrcPhrase->m_bBoundary)
-				{
-					// boundary was moved, so move it back
-					pPrevSrcPhrase->m_bBoundary = TRUE;
-					bSomethingWasMoved = TRUE;
-				}
-				if (bSomethingWasMoved)
-					return TRUE; // remove this null src phrase now
-			}
-			else
-			{
-                // no previous srcPhrase exists, so nothing could have been moved from it
-                // so check out the rightwards association possibilites to see if any
-                // previous punctuation was moved leftwards to this null source phrase
-				;
-			}
-
-			// check for leftwards move of punctuation
-			if (nextPos == NULL)
-			{
-                // at the end of the document, so no possibility of a rightwards
-                // association so get rid of this null source phrase now
-				return TRUE;
-			}
-			else
-			{
-				CSourcePhrase* pNextSrcPhrase = (CSourcePhrase*)nextPos->GetData();
-				wxASSERT(pNextSrcPhrase);
-                // BEW addition 05Jan06 to handle any note moved to the placeholder by a
-                // previous right association - the note (and any other m_markers content)
-                // must be moved back the following sourcephrase instance
-				if (pSrcPhrase->m_bHasNote)
-				{
-					pNextSrcPhrase->m_bHasNote = TRUE;
-                    // we can concatenate without bothering to add an intervening space
-                    // because m_markers always should end in a space
-					pNextSrcPhrase->m_markers += pSrcPhrase->m_markers;
-                    // the above order change is deliberate; after the earlier left
-                    // transfer of m_markers to the placeholder, the user may have put a
-                    // note or back translation or free translation on the sourcephrase
-                    // instance following the placeholder; the above order will move any
-                    // such additions to the front of m_markers, which is a benign order
-                    // change as Adapt It won't care; but if the earlier m_markers before
-                    // being moved to the left had unfiltered markers, these will be at its
-                    // end and they define the subsequent TextType and so need to remain at
-                    // the end, so changing the order as above will ensure that any such
-                    // remain at the end of the m_markers string
-				}
-				if (!pSrcPhrase->m_precPunct.IsEmpty())
-				{
-					// punctuation was moved here, so move it back
-					pNextSrcPhrase->m_precPunct = pSrcPhrase->m_precPunct;
-				}
-				if (!pSrcPhrase->m_markers.IsEmpty())
-				{
-					// markers were moved, so move them back
-					pNextSrcPhrase->m_markers = pSrcPhrase->m_markers;
-				}
-				if (pSrcPhrase->m_bFootnote)
-				{
-                    // we are at the start of a footnote, so the src phrase to the right
-                    // must be where the footnote marker was copied from and the flag moved
-                    // from (markers will be fixed by previous block, just do the flag now)
-					pNextSrcPhrase->m_bFootnote = TRUE;
-				}
-				if (pSrcPhrase->m_bFirstOfType)
-				{
-					pNextSrcPhrase->m_bFirstOfType = TRUE;
-				}
-				// BEW additions 30Aug05 for version 3
-				if (pSrcPhrase->m_bStartFreeTrans)
-				{
-					pNextSrcPhrase->m_bStartFreeTrans = TRUE;
-				}
-				if (!pSrcPhrase->m_inform.IsEmpty())
-				{
-					pNextSrcPhrase->m_inform = pSrcPhrase->m_inform;
-				}
-				if (!pSrcPhrase->m_chapterVerse.IsEmpty())
-				{
-					pNextSrcPhrase->m_chapterVerse = pSrcPhrase->m_chapterVerse;
-				}
-				if (pSrcPhrase->m_bVerse)
-				{
-					pNextSrcPhrase->m_bVerse = pSrcPhrase->m_bVerse;
-				}
-				if (pSrcPhrase->m_bChapter)
-				{
-					pNextSrcPhrase->m_bChapter = pSrcPhrase->m_bChapter;
-				}
-				if (pSrcPhrase->m_bVerse)
-				{
-					pNextSrcPhrase->m_bVerse = pSrcPhrase->m_bVerse;
-				}
-				if (pSrcPhrase->m_bParagraph)
-				{
-					pNextSrcPhrase->m_bParagraph = pSrcPhrase->m_bParagraph;
-				}
-				if (pSrcPhrase->m_bSpecialText)
-				{
-					pNextSrcPhrase->m_bSpecialText = pSrcPhrase->m_bSpecialText;
-				}
-				// end 30Aug05 additions
-			}
-			return TRUE; // needs to be removed
-			*/
 		} // end block for null source phrase not a part of a retranslation
 	} // end block for null source phrases
 

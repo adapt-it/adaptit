@@ -2178,7 +2178,7 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 14May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
 // BEW 4Jun10, updated to support kbVersion 2
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps,
-// including calling IsFixedSpaceSymbolWithin() to force !$ conjoinings to be stored in
+// including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
 // map 1 rather than map 2.
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
@@ -2553,7 +2553,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // BEW 13May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
 // BEW 4Jun10, updated to support kbVersion 2
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-// including calling IsFixedSpaceSymbolWithin() to force !$ conjoinings to be stored in
+// including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
 // map 1 rather than map 2.
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {

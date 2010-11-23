@@ -1024,7 +1024,7 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 }
 
 // overload version (slightly different behaviour if charSet is empty), and with the
-// additional property that encountering !$ (the USFM fixed space marker) unilaterally
+// additional property that encountering ~ (the USFM fixed space marker) unilaterally
 // halts the scan, as also does encounterning a backslash
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 {
@@ -1035,7 +1035,7 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
     // is empty, the only way to stop it other than at pEnd (which could be thousands of
     // characters ahead) would be to stop at some default character type - we'll assume
     // whitespace for that job, or a backslash, as these are the likely useful default
-    // halters for our type of data (ie. USFM markup). Pointing at !$ always halts the
+    // halters for our type of data (ie. USFM markup). Pointing at ~ always halts the
     // scan.
 	wxString span = _T("");
 	if (ptr == pEnd)
@@ -1045,8 +1045,7 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 		// charSet is empty, so use white space and backslash as scan terminator
 		while (ptr < pEnd)
 		{
-			if (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != gSFescapechar
-					&& wxStrncmp(ptr,_T("!$"),2) != 0)
+			if (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('~'))
 				span += *ptr++;
 			else
 				return span;
@@ -1057,7 +1056,7 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	{
 		while (ptr < pEnd)
 		{
-			if (charSet.Find(*ptr) != wxNOT_FOUND && wxStrncmp(ptr,_T("!$"),2) != 0)
+			if (charSet.Find(*ptr) != wxNOT_FOUND && *ptr != _T('~'))
 				span += *ptr++;
 			else
 				return span;
@@ -1094,7 +1093,7 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 }
 
 // overload version (slightly different behaviour if charSet is empty) and with the
-// additional property that encountering !$ (the USFM fixed space marker) unilaterally
+// additional property that encountering ~ (the USFM fixed space marker) unilaterally
 // halts the scan, as does encountering a backslash
 wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 {
@@ -1104,14 +1103,13 @@ wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
     // buffer are not returned. This overload is useful in our USFM parsing functionality.
     // Note: charSet may be an empty string. If this is the case, we parse until whitespace
     // or pEnd is reached, whichever is first. (space is in charSet, if the latter is
-    // non-empty) !$ always halts the scan; so does backslash
+    // non-empty) ~ always halts the scan; so does backslash
 	wxString span = _T("");
 	if (charSet.Len() == 0)
 	{
 		while (ptr < pEnd)
 		{
-			if (!IsWhiteSpace(ptr) && wxStrncmp(ptr,_T("!$"),2) != 0  
-					&& *ptr != gSFescapechar)
+			if (!IsWhiteSpace(ptr) && *ptr != _T('~') && *ptr != gSFescapechar)
 				span += *ptr++;
 			else
 				return span;
@@ -1122,8 +1120,7 @@ wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	{
 		while (ptr < pEnd)
 		{
-			if (charSet.Find(*ptr) == wxNOT_FOUND && wxStrncmp(ptr,_T("!$"),2) != 0 
-					&& *ptr != gSFescapechar)
+			if (charSet.Find(*ptr) == wxNOT_FOUND && *ptr != _T('~') && *ptr != gSFescapechar)
 				span += *ptr++;
 			else
 				return span;
@@ -2238,7 +2235,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxASSERT(pMergedSrcPhrase->m_pSavedWords->GetCount() > 1); // must be a genuine merger
-	// and the caller tests that it is not word1!$word2 conjoined by fixed space -
+	// and the caller tests that it is not word1~word2 conjoined by fixed space -
 	// the latter is stored as a pseudo merger, and is handled within FromSingleMakeTstr()
 	SPList* pSrcPhraseSublist = pMergedSrcPhrase->m_pSavedWords;
 	SPList::Node* pos = pSrcPhraseSublist->GetFirst();
@@ -3477,7 +3474,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// \return                     the modified value of Tstr
 /// \param  pSingleSrcPhrase -> a single CSourcePhrase instance which therefore cannot have
 ///                             a non-empty m_pMedialMarkers member; so no placement dialog
-///                             will need to be called (but pseudo-merger !$ fixed space
+///                             will need to be called (but pseudo-merger ~ fixed-space
 ///                             wordpair will need special treatment)
 /// \param  Tstr             -> the string into which there might need to be
 ///                             placed m_markers and m_endmarkers material, and then
@@ -3497,7 +3494,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// @#nnn:word#@
 /// BEW 11Oct10, extensively refactored so as to deal with the richer document model, v5,
 /// in which there is m_follOuterPunct, and four wxString members for inline markers and
-/// endmarkers, binding versus non-binding; plus also handle conjoining with !$ USFM fixed
+/// endmarkers, binding versus non-binding; plus also handle conjoining with ~ USFM fixed
 /// space symbol (we treat this as a unit, but stucturally it is a merger of 2
 /// CSourcePhrase instances)
 /// Tstr, as passed in, is pSingleSrcPhrase's m_targetStr member, so it may have
@@ -3519,7 +3516,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// Case (2) allows for the possibility that the user may select to type outer punctuation
 /// as a 'correction' to the lack of it in the source text load, and then will need the
 /// placement dialog to open to allow him to locate the endmarker preceding it.
-/// Also, when there is !$ conjoining, we now fully support inline binding marker and
+/// Also, when there is ~ conjoining, we now fully support inline binding marker and
 /// endmarker on either or both words of the conjoined pair.
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
@@ -3530,7 +3527,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 	bool bIsAmbiguousForEndmarkerPlacement = FALSE;
 
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
-	// space symbol !$
+	// space symbol ~
 	bool bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase);
 	bool bBindingMkrsToReplace = FALSE;
 	wxString rebuiltTstr; rebuiltTstr.Empty();
@@ -3557,9 +3554,9 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 				!pSPWord2->GetInlineBindingMarkers().IsEmpty() )
 		{
 			bBindingMkrsToReplace = TRUE;
-			// we assume that !$ conjoining will NEVER precede a \f* or \fe* endmarker,
-			// and therefore no ambiguity for following puncts, whether outer or not, will
-			// ever arise (if it does, we don't support it)
+            // we assume that ~ conjoining will NEVER precede a \f* or \fe* endmarker, and
+            // therefore no ambiguity for following puncts, that is, whether outer or not,
+            // will ever arise (if it does, we don't support it)
 			rebuiltTstr = RebuildFixedSpaceTstr(pSingleSrcPhrase); // use it below
 		}
 	}
@@ -3651,7 +3648,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 	wxArrayString markersToPlaceArray;
 	wxString endMkrsToPlace; endMkrsToPlace.Empty();
 	wxString nonbindingEndMkrsToPlace; nonbindingEndMkrsToPlace.Empty();
-	wxString theSymbol = _T("!$");
+	wxString theSymbol = _T("~");
 	CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
 	wxString tgtStr;
 	wxString initialPuncts;
@@ -3665,10 +3662,10 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 	}
 	else
 	{
-		// build Tstr: use this block when there is no conjoining with USFM fixed space !$
+		// build Tstr: use this block when there is no conjoining with USFM fixed space ~
 		// marker, or when there is but there are no "medial" inline binding marker or
-		// endmarker involved (i.e. none to the left of the !$ marker and right of word1,
-		// nor none to the right of !$ marker and left of word2)
+		// endmarker involved (i.e. none to the left of the ~ marker and right of word1,
+		// nor none to the right of ~ marker and left of word2)
 		initialPuncts = SpanIncluding(Tstr,gpApp->m_punctuation[1]); // space is in m_punctuation
 		wxString reversed = MakeReverse(Tstr);
 		finalPuncts = SpanIncluding(reversed,gpApp->m_punctuation[1]); // ditto
@@ -3814,7 +3811,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 
 // BEW created 11Oct10, for support of improved doc version 5 functionality. 
 // Used in the FromSingleMakeTstr() function, when there are inline binding markes within
-// the conjoining with USFM fixed space marker !$ joining a pair of words.
+// the conjoining with USFM fixed space marker ~ joining a pair of words.
 wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 {
 	// this function is called only when there are inline binding marker and/or endmarker
@@ -3838,7 +3835,7 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	SPList::Node* posSecond = pSingleSrcPhrase->m_pSavedWords->GetLast();
 	pSPWord1 = posFirst->GetData();
 	pSPWord2 = posSecond->GetData();
-	wxString FixedSpace = _T("!$");
+	wxString FixedSpace = _T("~");
 
 	const wxChar* pBuf = tgtStr.GetData();
 	wxChar* ptr = (wxChar*)pBuf;
@@ -3856,8 +3853,8 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	word1FollPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]); 
 	length = word1FollPunct.Len();
 	ptr += length;
-	wxASSERT(*ptr == _T('!') && *(ptr + 1) == _T('$'));
-	ptr += 2; // jump !$
+	wxASSERT(*ptr == _T('~'));
+	ptr += 1; // jump ~
 	// next, get preceding puncts from word2
 	word2PrecPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]); 
 	length = word2PrecPunct.Len();
@@ -3882,7 +3879,7 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 		tgtStr += pSPWord1->GetInlineBindingEndMarkers();
 	if (!word1FollPunct.IsEmpty())
 		tgtStr += word1FollPunct;
-	tgtStr += FixedSpace; // !$
+	tgtStr += FixedSpace; // ~
 	if (!word2PrecPunct.IsEmpty())
 		tgtStr += word2PrecPunct;
 	if (!pSPWord2->GetInlineBindingMarkers().IsEmpty())
@@ -3940,7 +3937,7 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 
 // return      The recomposed source text string, including punctuation and markers, but
 //             the which members are included is controlled by booleans passed in
-// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a !$ conjoined pair
+// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
 // bAttachFilteredInfo     ->  if TRUE, cross reference and other filtered info, if present
 //                             are returned in the recomposed source text string (note,
 //                             cross reference is returned after m_markers material, if
@@ -3966,7 +3963,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
-	// space symbol !$  ?
+	// space symbol ~  ?
 	bool bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase);
 	wxString Sstr;
 	// Clear next three ready for returning what we find to caller (caller may use any or
@@ -4033,21 +4030,19 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	markersPrefix.Trim();
 	markersPrefix << aSpace;
 
-	// BEW 11Oct10, for !$ conjoining, we assume that between the two conjoined words will
-	// only be !$ plus or minus following punctuation on the first, plus or minus
-	// preceding punctuation on the second. That is, we assume there are no inline binding
-	// markers on either word (if there were, a begin marker or endmarker would end up
-	// contiguous to !$ and we assume that would never happen and don't even test for it).
-	// However for pair-initial and pair final locations, we assume that there can be the
-	// full complement of punctuation and markers, and we'll allow an inline binding
-	// marker / endmarker pair provided that the first word has the beginmarker, and the
-	// second word has the endmarker.
+    // BEW 11Oct10, for ~ conjoining, we assume that between the two conjoined words will
+    // only be ~ plus or minus following punctuation on the first, plus or minus preceding
+    // punctuation on the second; but we also allow inline binding markers on either word.
+    // For pair-initial and pair final locations, we assume that there can be the full
+    // complement of punctuation and markers also, and we'll allow an inline binding marker
+    // / endmarker provided that the first word has a beginmarker, and the second word has
+    // an endmarker (but not necessarily a matching pair).
 	// The task now, whether for conjoined pairs or a normal single source text word, is to 
 	// build up a srcStr which has (1) punctuation (2) inline binding mrk & endmkr if
 	// present, and the key (the building is more complex for a conjoined pair, but is
 	// still determinate so no user help is needed in this step). After we have srcStr, we
 	// can then proceed to test for and add other markers and any m_follOuterPunct content.
-	wxString theSymbol = _T("!$");
+	wxString theSymbol = _T("~");
 	CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
 	wxString srcStr = pSP->m_key;
 	if (bIsFixedSpaceConjoined)
@@ -4119,7 +4114,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		srcStr += pSP->m_follPunct;
 	}
 	// we have now got the srcStr base that we need, now do the rest - which is the same
-	// whether we have a word pair !$ conjoined or not
+	// whether we have a word pair ~ conjoined or not
 	Sstr = srcStr;
 
 	// check for inline non-binding marker, it follows \v etc, and so comes next as we
@@ -4401,7 +4396,7 @@ bool IsRetranslationInSelection(SPList* pList)
 // BEW 11Oct10, for support of doc version 5
 bool IsFixedSpaceSymbolInSelection(SPList* pList)
 {
-	wxString theSymbol = _T("!$"); // USFM fixedspace symbol
+	//wxString theSymbol = _T("~"); // USFM fixedspace symbol
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node* pos = pList->GetFirst();
 	if (pos == NULL)
@@ -4419,7 +4414,7 @@ bool IsFixedSpaceSymbolInSelection(SPList* pList)
 // BEW 11Oct10, for support of doc version 5
 bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 {
-	wxString theSymbol = _T("!$"); // USFM fixedspace symbol
+	wxString theSymbol = _T("~"); // USFM fixedspace symbol
 	if (pSrcPhrase == NULL)
 	{
 		return FALSE; // there isn't an instance
@@ -4434,7 +4429,7 @@ bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
 
 bool IsFixedSpaceSymbolWithin(wxString& str)
 {
-	wxString theSymbol = _T("!$"); // USFM fixedspace symbol
+	wxString theSymbol = _T("~"); // USFM fixedspace symbol
 	if (str.IsEmpty())
 		return FALSE;
 	if (str.Find(theSymbol) != wxNOT_FOUND)
@@ -4443,8 +4438,6 @@ bool IsFixedSpaceSymbolWithin(wxString& str)
 	}
 	return FALSE;
 }
-
-
 
 // uuid support
 wxString GetUuid()

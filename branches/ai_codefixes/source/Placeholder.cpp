@@ -386,7 +386,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 // BEW 11Oct10, more docVersion 5 changes, addition of m_follOuterPunct, and the four
 // wxString members for storage of inline binding & non-binding begin- and end-markers;
 // also prevent left association or right association if the CSourcePhrase being
-// associated to has a USFM fixed space marker !$ conjoining two words (our doc model does
+// associated to has a USFM fixed space marker ~ conjoining two words (our doc model does
 // not support moving markers or puncts to/from such an instance)
 void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 										   CPile* pInsertLocPile,const int nCount,
@@ -755,11 +755,11 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 			if (bAssociatingRightwards)
 			{
 				// BEW 11Oct10, warn right association is not permitted when a word pair
-				// joined by USFM !$ fixed space follows
+				// joined by USFM ~ fixed space follows
 				if (IsFixedSpaceSymbolWithin(pSrcPhraseInsLoc))
 				{
 					wxMessageBox(_(
-"Two words joined with fixed-space marker ( !$ ) follow the placeholder.\nForwards association is not possible when this happens."),
+"Two words are joined with fixed-space marker ( ~ ) following the placeholder.\nForwards association is not possible when this happens."),
 _T("Warning: Unacceptable Forwards Association"),wxICON_WARNING);
 						goto m; // make no further adjustments, just jump to the 
 								// RecalcLayout() call near the end
@@ -865,11 +865,11 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_WARNING);
 			else // next block for Left-Association effects
 			{
 				// BEW 11Oct10, warn left association is not permitted when a word pair
-				// joined by USFM !$ fixed space precedes
+				// joined by USFM ~ fixed space precedes
 				if (IsFixedSpaceSymbolWithin(pPrevSrcPhrase))
 				{
 					wxMessageBox(_(
-"Two words joined with fixed-space marker ( !$ ) precede the placeholder.\nBackwards association is not possible when this happens."),
+"Two words are joined with fixed-space marker ( ~ ) preceding the placeholder.\nBackwards association is not possible when this happens."),
 _T("Warning: Unacceptable Backwards Association"),wxICON_WARNING);
 						goto m; // make no further adjustments, just jump to the 
 								// RecalcLayout() call near the end
@@ -1326,15 +1326,15 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 // inserted into the document. The things to check are 1. begin-markers, 2. free
 // translation, 3. collected back translation, 4. any filtered information, 5. an inline
 // non-binding marker, 6. an inline binding marker; and as soon as we get a TRUE value for
-// any check we return immediately, return FALSE if 1. the pSrcPhrase has !$ conjoining, or
+// any check we return immediately, return FALSE if 1. the pSrcPhrase has ~ conjoining, or
 // 2. there are no candidates; also there is no  compelling reason to transfer a note forward 
 // - so ignore it
 // BEW 11Oct10 updated for adding tests for the new inline marker stores, for docV5
 // BEW 11Oct10 updated to prevent right association if the instance to the right is a word
-// pair conjoined with USFM fixed space marker !$
+// pair conjoined with USFM fixed space marker ~
 bool CPlaceholder::IsRightAssociationTransferPossible(CSourcePhrase* pSrcPhrase)
 {
-	// prevent right association when !$ is in the CSourcePhrase instance
+	// prevent right association when ~ is in the CSourcePhrase instance
 	if (IsFixedSpaceSymbolWithin(pSrcPhrase))
 		return FALSE;
 	wxString s = pSrcPhrase->m_markers;

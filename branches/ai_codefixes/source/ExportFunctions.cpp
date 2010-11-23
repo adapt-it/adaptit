@@ -14208,7 +14208,7 @@ int RebuildSourceText(wxString& source)
 		{
             // BEW 11Oct10, updated these two comments to comply with new info being dealt
 			// with. It's a merged sourcephrase, (but not a pseudo-merged conjoined word
-			// pair joined with USFM !$ markup) so look at the sublist instead -- except
+			// pair joined with USFM ~ markup) so look at the sublist instead -- except
             // that pre-first-word info must be reclaimed first from the merged
             // sourcephrase itself (mergers across filtered info are not permitted), and
             // the first sourcephrase in the sublist can contribute only its m_key text
@@ -14327,7 +14327,7 @@ int RebuildSourceText(wxString& source)
 		}
 		else
 		{
-			// it's a single word sourcephrase, or a !$ conjoinded word pair, 
+			// it's a single word sourcephrase, or a ~ conjoinded word pair, 
 			// so handle it....
 
 			// handle any stnd format markers first
@@ -15362,7 +15362,7 @@ int RebuildTargetText(wxString& target)
 			{
 				// this pSrcPhrase stores a single CSourcePhrase instance for a single
 				// target text word (which could be the empty string); or a pair of words
-				// with USFM fixed space symbol !$ conjoining them
+				// with USFM fixed space symbol ~ conjoining them
 				str = FromSingleMakeTstr(pSrcPhrase, str);
 			}
 		}
@@ -17250,18 +17250,18 @@ int ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 			}
 		}
 
-        // advance over the next character, or if the user wants USFM fixed space !$
-        // sequence retained as a conjoiner, then check for it and advance instead by two
+        // advance over the next character, or if the user wants USFM fixed space ~
+        // sequence retained as a conjoiner, then check for it and advance by one
         // if such a sequence is at ptr; but if the gbSfmOnlyAfterNewlines flag is TRUE and
         // we are pointing at a backslash, then parse over it too (ie. don't interpret it
         // as the beginning of a valid SFM)
 		if (*ptr != gSFescapechar)
 		{
 			// we are not pointing at a backslash...
-			if (!gpApp->m_bChangeFixedSpaceToRegularSpace && wxStrncmp(ptr,_T("!$"),2) == 0)
+			if (!gpApp->m_bChangeFixedSpaceToRegularSpace && *ptr == _T('~'))
 			{
-				ptr += 2;
-				len += 2;
+				ptr += 1;
+				len += 1;
 			}
 			else
 			{
