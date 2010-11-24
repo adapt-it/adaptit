@@ -4796,6 +4796,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			}
 			this->ChangeValue(str);
 			this->SetBackgroundColour(wxColour(255,255,255)); // white;
+			this->m_bAbandonable = TRUE;
 			pApp->m_bIsGuess = FALSE;
 			return;
 		}

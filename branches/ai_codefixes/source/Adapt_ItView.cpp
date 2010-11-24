@@ -19100,6 +19100,8 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 		}
 		pApp->m_bUseAdaptationsGuesser = gsDlg.bUseAdaptationsGuesser;
 		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
+		pApp->m_GuessHighlightColor = gsDlg.tempGuessHighlightColor;
+
 		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowCConUnchangedGuesserOutput;
 	}
 }

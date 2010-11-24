@@ -16185,7 +16185,7 @@ void CAdapt_ItApp::InitializeFonts()
 	m_specialTextColor = wxColour(255,0,0); // red "255" - whm added
 	m_reTranslnTextColor = wxColour(160,80,0); // mid brown "32896" - whm added
 	m_AutoInsertionsHighlightColor = wxColour(203,151,255); // solid light purple "16750539"
-	m_GuessHighlightColor = wxColour(255,128,0); // orange background for Guess - whm added 1Nov10
+	m_GuessHighlightColor = wxColour(255,180,128); //wxColour(255,128,0); // pastel orange background for Guess - whm added 1Nov10
 	m_freeTransTextColor = wxColour(100,0,100); // dark purple - fixed not user selectable
 
 	// color used for read-only text controls displaying static text info button face color
