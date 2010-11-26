@@ -12804,15 +12804,18 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// nothing entry if the user does the toolbar button click)
 				word1Proper.Empty();
 				word2Proper.Empty();
-				SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
-				SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
-				CSourcePhrase* pSrcPhrWord1 = pos1->GetData();
-				CSourcePhrase* pSrcPhrWord2 = pos2->GetData();
-				wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
-				pSrcPhrWord1->m_adaption = word1Proper;
-				pSrcPhrWord1->m_targetStr = word1Proper;
-				pSrcPhrWord2->m_adaption = word2Proper;
-				pSrcPhrWord2->m_targetStr = word2Proper;
+				if (!pSrcPhrase->m_pSavedWords->IsEmpty())
+				{
+					SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
+					SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
+					CSourcePhrase* pSrcPhrWord1 = pos1->GetData();
+					CSourcePhrase* pSrcPhrWord2 = pos2->GetData();
+					wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
+					pSrcPhrWord1->m_adaption = word1Proper;
+					pSrcPhrWord1->m_targetStr = word1Proper;
+					pSrcPhrWord2->m_adaption = word2Proper;
+					pSrcPhrWord2->m_targetStr = word2Proper;
+				}
 				// and the parent should then be empty for m_adaption and m_targetStr
 				pSrcPhrase->m_adaption.Empty();
 				pSrcPhrase->m_targetStr.Empty();
@@ -12851,204 +12854,217 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 
 			// Task 4: do the punctuation conversions and any changes the user wants for
 			// the punctuation strings
-			SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
-			SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
-			CSourcePhrase* pSrcPhrWord1 = pos1->GetData();
-			CSourcePhrase* pSrcPhrWord2 = pos2->GetData();
-			wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
-
-			wxString storedPuncts; // a scratch variable
-			wxString parsedPuncts; // a scratch variable
-			wxString finalW1PrecPuncts;
-			wxString finalW1FollPuncts;
-			wxString finalW2PrecPuncts;
-			wxString finalW2FollPuncts;
-
-			// start with the preceding puncts of word1
-			storedPuncts = pSrcPhrWord1->m_precPunct;
-			parsedPuncts = word1PrecPunct;
-			if (!parsedPuncts.IsEmpty())
+			if (!pSrcPhrase->m_pSavedWords->IsEmpty())
 			{
-				// the user has typed preceding punctuation for word1, so we use it if it
-				// is different than what is stored
-				if (storedPuncts.IsEmpty())
+				// we can do the following only if there are child CSourcePhrase instances
+				// stored in the m_pSavedWords member; if there aren't any (eg. as when
+				// processing a document parsed for doc version 4) just use the passed in
+				// targetStr value 'as is'
+				SPList::Node* pos1 = pSrcPhrase->m_pSavedWords->GetFirst();
+				SPList::Node* pos2 = pSrcPhrase->m_pSavedWords->GetLast();
+				CSourcePhrase* pSrcPhrWord1 = pos1->GetData();
+				CSourcePhrase* pSrcPhrWord2 = pos2->GetData();
+				wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
+
+				wxString storedPuncts; // a scratch variable
+				wxString parsedPuncts; // a scratch variable
+				wxString finalW1PrecPuncts;
+				wxString finalW1FollPuncts;
+				wxString finalW2PrecPuncts;
+				wxString finalW2FollPuncts;
+
+				// start with the preceding puncts of word1
+				storedPuncts = pSrcPhrWord1->m_precPunct;
+				parsedPuncts = word1PrecPunct;
+				if (!parsedPuncts.IsEmpty())
 				{
-					// there was no preceding punctuation on word1 before, so the user is
-					// adding some, so no comparison is needed, just copy it over & convert
-					parsedPuncts.Trim(FALSE); // trim off any initial whitespace
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
-					finalW1PrecPuncts = parsedPuncts;
+					// the user has typed preceding punctuation for word1, so we use it if it
+					// is different than what is stored
+					if (storedPuncts.IsEmpty())
+					{
+						// there was no preceding punctuation on word1 before, so the user is
+						// adding some, so no comparison is needed, just copy it over & convert
+						parsedPuncts.Trim(FALSE); // trim off any initial whitespace
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						finalW1PrecPuncts = parsedPuncts;
+					}
+					else
+					{
+						// there are stored puncts available in pSrcPhrase & its 2 children
+						storedPuncts.Trim(FALSE);
+						parsedPuncts.Trim(FALSE);
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						storedPuncts = GetConvertedPunct(storedPuncts);
+						if (storedPuncts == parsedPuncts)
+						{
+							finalW1PrecPuncts = storedPuncts; // could assign either string
+						}
+						else
+						{
+							// parsed puncts differ from stored puncts
+							finalW1PrecPuncts = parsedPuncts; // use the just-parsed puncts
+						}
+					}
 				}
-				else
+				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
-					// there are stored puncts available in pSrcPhrase & its 2 children
+					// user has not typed any preceding punctuation for word1, and there is
+					// stored preceding punctuation available, so providing copying of the
+					// source is permitted, we'll copy the stored preceding punctuation
 					storedPuncts.Trim(FALSE);
-					parsedPuncts.Trim(FALSE);
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
 					storedPuncts = GetConvertedPunct(storedPuncts);
-					if (storedPuncts == parsedPuncts)
+					finalW1PrecPuncts = storedPuncts;
+				}
+				// this completes handling of preceding punctuation on word1
+
+				// next, following punctuation on word1
+				storedPuncts = pSrcPhrWord1->m_follPunct;
+				parsedPuncts = word1FollPunct;
+				if (!parsedPuncts.IsEmpty())
+				{
+					// the user has typed following punctuation for word1, so we use it if it
+					// is different than what is stored
+					if (storedPuncts.IsEmpty())
 					{
-						finalW1PrecPuncts = storedPuncts; // could assign either string
+						// there was no following punctuation on word1 before, so the user is
+						// adding some, so no comparison is needed, just convert & copy it
+						parsedPuncts.Trim(TRUE); // trim off any final whitespace
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						finalW1FollPuncts = parsedPuncts;
 					}
 					else
 					{
-						// parsed puncts differ from stored puncts
-						finalW1PrecPuncts = parsedPuncts; // use the just-parsed puncts
+						// there are stored puncts available in pSrcPhrase & its 2 children
+						storedPuncts.Trim(TRUE);
+						parsedPuncts.Trim(TRUE);
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						storedPuncts = GetConvertedPunct(storedPuncts);
+						if (storedPuncts == parsedPuncts)
+						{
+							finalW1FollPuncts = storedPuncts; // could assign either string
+						}
+						else
+						{
+							// parsed puncts differ from stored puncts
+							finalW1FollPuncts = parsedPuncts; // use the just-parsed puncts
+						}
 					}
 				}
-			}
-			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
-			{
-				// user has not typed any preceding punctuation for word1, and there is
-				// stored preceding punctuation available, so providing copying of the
-				// source is permitted, we'll copy the stored preceding punctuation
-				storedPuncts.Trim(FALSE);
-				storedPuncts = GetConvertedPunct(storedPuncts);
-				finalW1PrecPuncts = storedPuncts;
-			}
-			// this completes handling of preceding punctuation on word1
-
-			// next, following punctuation on word1
-			storedPuncts = pSrcPhrWord1->m_follPunct;
-			parsedPuncts = word1FollPunct;
-			if (!parsedPuncts.IsEmpty())
-			{
-				// the user has typed following punctuation for word1, so we use it if it
-				// is different than what is stored
-				if (storedPuncts.IsEmpty())
+				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
-					// there was no following punctuation on word1 before, so the user is
-					// adding some, so no comparison is needed, just convert & copy it
-					parsedPuncts.Trim(TRUE); // trim off any final whitespace
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
-					finalW1FollPuncts = parsedPuncts;
-				}
-				else
-				{
-					// there are stored puncts available in pSrcPhrase & its 2 children
+					// user has not typed any following punctuation for word1, and there is
+					// stored following punctuation available, so providing copying of the
+					// source is permitted, we'll copy the stored following punctuation
 					storedPuncts.Trim(TRUE);
-					parsedPuncts.Trim(TRUE);
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
 					storedPuncts = GetConvertedPunct(storedPuncts);
-					if (storedPuncts == parsedPuncts)
+					finalW1FollPuncts = storedPuncts;
+				}
+				// this completes handling of following punctuation on word1
+
+				// next, handle preceding punctuation on word2
+				storedPuncts = pSrcPhrWord2->m_precPunct;
+				parsedPuncts = word2PrecPunct;
+				if (!parsedPuncts.IsEmpty())
+				{
+					// the user has typed preceding punctuation for word2, so we use it if it
+					// is different than what is stored, and replace the stored puncts with it
+					if (storedPuncts.IsEmpty())
 					{
-						finalW1FollPuncts = storedPuncts; // could assign either string
+						// there was no preceding punctuation on word2 before, so the user is
+						// adding some, so no comparison is needed, just convert & copy it
+						parsedPuncts.Trim(FALSE); // trim off any initial whitespace
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						finalW2PrecPuncts = parsedPuncts;
 					}
 					else
 					{
-						// parsed puncts differ from stored puncts
-						finalW1FollPuncts = parsedPuncts; // use the just-parsed puncts
+						// there are stored puncts available in pSrcPhrase & its 2 children
+						storedPuncts.Trim(FALSE);
+						parsedPuncts.Trim(FALSE);
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						storedPuncts = GetConvertedPunct(storedPuncts);
+						if (storedPuncts == parsedPuncts)
+						{
+							finalW2PrecPuncts = storedPuncts; // could assign either string
+						}
+						else
+						{
+							// parsed puncts differ from stored puncts
+							finalW2PrecPuncts = parsedPuncts; // use the just-parsed puncts
+						}
 					}
 				}
-			}
-			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
-			{
-				// user has not typed any following punctuation for word1, and there is
-				// stored following punctuation available, so providing copying of the
-				// source is permitted, we'll copy the stored following punctuation
-				storedPuncts.Trim(TRUE);
-				storedPuncts = GetConvertedPunct(storedPuncts);
-				finalW1FollPuncts = storedPuncts;
-			}
-			// this completes handling of following punctuation on word1
-
-			// next, handle preceding punctuation on word2
-			storedPuncts = pSrcPhrWord2->m_precPunct;
-			parsedPuncts = word2PrecPunct;
-			if (!parsedPuncts.IsEmpty())
-			{
-				// the user has typed preceding punctuation for word2, so we use it if it
-				// is different than what is stored, and replace the stored puncts with it
-				if (storedPuncts.IsEmpty())
+				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
-					// there was no preceding punctuation on word2 before, so the user is
-					// adding some, so no comparison is needed, just convert & copy it
-					parsedPuncts.Trim(FALSE); // trim off any initial whitespace
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
-					finalW2PrecPuncts = parsedPuncts;
-				}
-				else
-				{
-					// there are stored puncts available in pSrcPhrase & its 2 children
+					// user has not typed any preceding punctuation for word2, and there is
+					// stored preceding punctuation available, so providing copying of the
+					// source is permitted, we'll copy the stored preceding punctuation
 					storedPuncts.Trim(FALSE);
-					parsedPuncts.Trim(FALSE);
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
 					storedPuncts = GetConvertedPunct(storedPuncts);
-					if (storedPuncts == parsedPuncts)
+					finalW2PrecPuncts = storedPuncts;
+				}
+				// this completes handling of preceding punctuation on word2
+
+				// finally, handle following punctuation on word2
+				storedPuncts = pSrcPhrWord2->m_follPunct;
+				parsedPuncts = word2FollPunct;
+				if (!parsedPuncts.IsEmpty())
+				{
+					// the user has typed following punctuation for word2, so we use it if it
+					// is different than what is stored
+					if (storedPuncts.IsEmpty())
 					{
-						finalW2PrecPuncts = storedPuncts; // could assign either string
+						// there was no following punctuation on word2 before, so the user is
+						// adding some, so no comparison is needed, just convert & copy it
+						parsedPuncts.Trim(TRUE); // trim off any final whitespace
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						finalW2FollPuncts = parsedPuncts;
 					}
 					else
 					{
-						// parsed puncts differ from stored puncts
-						finalW2PrecPuncts = parsedPuncts; // use the just-parsed puncts
+						// there are stored puncts available in pSrcPhrase & its 2 children
+						storedPuncts.Trim(TRUE);
+						parsedPuncts.Trim(TRUE);
+						parsedPuncts = GetConvertedPunct(parsedPuncts);
+						storedPuncts = GetConvertedPunct(storedPuncts);
+						if (storedPuncts == parsedPuncts)
+						{
+							finalW2FollPuncts = storedPuncts; // could assign either string
+						}
+						else
+						{
+							// parsed puncts differ from stored puncts
+							finalW2FollPuncts = parsedPuncts; // use the just-parsed puncts
+						}
 					}
 				}
-			}
-			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
-			{
-				// user has not typed any preceding punctuation for word2, and there is
-				// stored preceding punctuation available, so providing copying of the
-				// source is permitted, we'll copy the stored preceding punctuation
-				storedPuncts.Trim(FALSE);
-				storedPuncts = GetConvertedPunct(storedPuncts);
-				finalW2PrecPuncts = storedPuncts;
-			}
-			// this completes handling of preceding punctuation on word2
-
-			// finally, handle following punctuation on word2
-			storedPuncts = pSrcPhrWord2->m_follPunct;
-			parsedPuncts = word2FollPunct;
-			if (!parsedPuncts.IsEmpty())
-			{
-				// the user has typed following punctuation for word2, so we use it if it
-				// is different than what is stored
-				if (storedPuncts.IsEmpty())
+				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
-					// there was no following punctuation on word2 before, so the user is
-					// adding some, so no comparison is needed, just convert & copy it
-					parsedPuncts.Trim(TRUE); // trim off any final whitespace
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
-					finalW2FollPuncts = parsedPuncts;
-				}
-				else
-				{
-					// there are stored puncts available in pSrcPhrase & its 2 children
+					// user has not typed any following punctuation for word2, and there is
+					// stored following punctuation available, so providing copying of the
+					// source is permitted, we'll copy the stored following punctuation
 					storedPuncts.Trim(TRUE);
-					parsedPuncts.Trim(TRUE);
-					parsedPuncts = GetConvertedPunct(parsedPuncts);
 					storedPuncts = GetConvertedPunct(storedPuncts);
-					if (storedPuncts == parsedPuncts)
-					{
-						finalW2FollPuncts = storedPuncts; // could assign either string
-					}
-					else
-					{
-						// parsed puncts differ from stored puncts
-						finalW2FollPuncts = parsedPuncts; // use the just-parsed puncts
-					}
+					finalW2FollPuncts = storedPuncts;
 				}
+				// this completes handling of following punctuation on word2
+
+				// Final Task: build the punctuated final string, and assign it to
+				// pSrcPhrase's m_targetStr member
+				wxString str;
+				str += finalW1PrecPuncts + word1Proper + finalW1FollPuncts;
+				str += _T('~');
+				str += finalW2PrecPuncts + word2Proper + finalW2FollPuncts;
+
+				// now add the final form of the target string to the source phrase
+				pSrcPhrase->m_targetStr = str;
+
 			}
-			else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
+			else
 			{
-				// user has not typed any following punctuation for word2, and there is
-				// stored following punctuation available, so providing copying of the
-				// source is permitted, we'll copy the stored following punctuation
-				storedPuncts.Trim(TRUE);
-				storedPuncts = GetConvertedPunct(storedPuncts);
-				finalW2FollPuncts = storedPuncts;
+				// best we can do in this circumstance is just use targetStr 'as is'
+				pSrcPhrase->m_targetStr = targetStr;
 			}
-			// this completes handling of following punctuation on word2
-
-			// Final Task: build the punctuated final string, and assign it to
-			// pSrcPhrase's m_targetStr member
-			wxString str;
-			str += finalW1PrecPuncts + word1Proper + finalW1FollPuncts;
-			str += _T('~');
-			str += finalW2PrecPuncts + word2Proper + finalW2FollPuncts;
-
-			// now add the final form of the target string to the source phrase
-			pSrcPhrase->m_targetStr = str;
 
 		} // end of else block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 	}

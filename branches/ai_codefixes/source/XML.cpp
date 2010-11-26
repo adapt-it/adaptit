@@ -72,6 +72,8 @@
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
+extern TextType gPropagationType; // needed for the MurderDocV4Orphans() function
+extern bool gbPropagationNeeded; // ditto
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern const wxChar* filterMkr; // defined in the Doc
 extern const wxChar* filterMkrEnd; // defined in the Doc
@@ -6442,21 +6444,32 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 // for any such in the string members for storing them, rather than in m_markers. The
 // FromDocVersion4ToDocVersion5() function handles these markers satisfactorily, it's only
 // when they occur with punctuation that there is the possibility of orphans arising in
-// doc version 4, so it's those we are trying to fix here
+// doc version 4, so it's those we are trying to fix here.
+// To make things work right, we have to have two loops in sequence. The first loop will
+// kill orphans by sticking their data where it belongs and deleting the orphan
+// CSourcePhrase instance. Then we have to traverse all the list of CSourcePhrases again,
+// this time coalescing any ~ conjoinings that are still unjoined.
+// At the end DoMarkerHousekeeping() is called over the whole document, because the murder
+// process will have removed CSourcePhrase instances, and it may be required that the n:m
+// chapter:verse number(s) be reconstituted somewhere, and also m_inform contents.
+// BEW created 11Oct10
 void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	CAdapt_ItView* pView = gpApp->GetView();
 	SPList* pList = pSrcPhraseList;
 	wxASSERT(pSrcPhraseList != NULL);
 	SPList::Node* pos = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
 	SPList::Node* savePos = NULL;
+	SPList::Node* savePrevPos = NULL;
 	CSourcePhrase* pPrevSrcPhrase = NULL;
 	CSourcePhrase* pFollSrcPhrase = NULL;
 	wxString mkr;
 	wxString mkr2;
 	wxString aSpace = _T(' ');
 	wxString FixedSpace = _T("~");
+	wxString emptyStr = _T("");
 
 	wxString word1PrecPunct;
 	wxString word1FollPunct;
@@ -6483,7 +6496,10 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		savePos = pos;
 		pos = pos->GetPrevious(); // returns NULL if doesn't exist
 		if (pos != NULL)
+		{
 			pPrevSrcPhrase = pos->GetData();
+			savePrevPos = pos;
+		}
 		else 
 			pPrevSrcPhrase = NULL;
 		pos = savePos;
@@ -6496,6 +6512,15 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 //			wxLogDebug(_T("Sequ Num =  %d   m_srcPhrase:  %s    Total =  %d"),pSrcPhrase->m_nSequNumber,
 //				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhraseList->GetCount());
 //#endif
+		/*
+		if (pSrcPhrase != NULL)
+		{
+			if (pSrcPhrase->m_nSequNumber == 4) //_T("was"))
+			{
+				int i = 9;
+			}
+		}
+		*/
 		// test the data & do fixes
 		if (pSrcPhrase->m_key.IsEmpty())
 		{
@@ -6550,9 +6575,19 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 							bDeleteCurrentWhenDone = TRUE;
 						}
 					}
+					// we must also transfer m_markers to pFollSrcPhrase whenever it is non-empty
+					if (!pSrcPhrase->m_markers.IsEmpty())
+					{
+						pFollSrcPhrase->m_markers = pSrcPhrase->m_markers + pFollSrcPhrase->m_markers;
+						pFollSrcPhrase->m_markers.Trim();
+						pFollSrcPhrase->m_markers += aSpace; // it must end with a single space
+
+						bDeleteCurrentWhenDone = TRUE;
+					}
 				} // end of TRUE block for test: if (!mkr.IsEmpty())
 				else
 				{
+					// there is no marker in pSrcPhrase's m_markers member
 					mkr = pDoc->GetWholeMarker(pSrcPhrase->GetInlineNonbindingMarkers());
 					if (!mkr.IsEmpty())
 					{
@@ -6623,447 +6658,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 				} // end of else block for test: if (!mkr.IsEmpty())
 			} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() 
 			  // && pFollSrcPhrase != NULL)
-			  
 		} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty())
-
-
-		// Next deal with USFM fixed-space conjoining with ~. DocV4 treated legacy
-		// word!$word as a unit (but didn't make it a pseudo-merger as DocV5 does),
-		// and docV5 handles the newer ~ conjoining fine, as it does
-        // <punct1>word<punct2>~<punct3>word<punc4> provided neither of punct2 and
-        // punct3, if present, contain a space. When either or both have a space,
-        // however, docV4 separates the conjoined pair into two CSourcePhrases. It is
-        // these that we have to fix here. We won't deal with the most complex case,
-        // that is, when punct2 and punct3 BOTH contain a space (such as doublequote
-        // and singlequote separated by a space, in each) because I consider the
-        // likelihood of two embedded quotations being joined by ~ in the scripture to
-        // be zero - words which are candidates for such conjoining are not likely to
-        // lie at the beginning or end of major syntactic units and so come together.
-        // (If we did handle this, the bits would be scattered across 3 consecutive
-        // CSourcePhrase instances!) I will, however, handle the cases when punct2 has
-        // a space, or punct3 has a space. The docV4 parser does the following:
-        // (a) When punct3 has a space, the first CSourcePhrase of the pair has the !$
-		// symbol internally in m_srcPhrase, immediately prior to the part of punct3's
-		// punctuation that gets parsed as part of the first word, and so it is final
-		// in the m_key member. Word two then has m_srcPhrase beginning with the
-		// after-space part of the punct3 punctuation. And docV4 parses over any punct2 
-		// content, it is considered as internal to word1.
-		// (For the newer ~ marker, ~ would be at the end of word1.)
-		// (b) When punct2 has a space, the ! of the !$ symbol gets interpretted by
-		// the docV4 parser as preceding punctuation on the second word. So the first
-		// word has the punct2 punctuation up to the !$, on it correctly as
-		// following punctuation; while word two will have m_srcPhrase in the form:
-		// <punct!>word2,punct4>  where punct4 punctuation may be zero of course -
-		// let's assume so to keep this discussion simpler), & where word2 will be 
-		// either $<punct3>word (when punct 3 is non-empty) or $word (when punct3 is
-		// empty).
-		// (For the newer ~ marker, word2 would start with ~ I think)
-		// (c) When we have: <punct1>word<punct2>!$<punct3>word<punc4>, where any or all
-		// of the <punct> substrings may be empty, or contain punctuation, and <punct2>
-		// and <punct3> do not either contain a space, the doc version 4 parser parses the
-		// substring word<punct2>!$<punct3>word as m_key, and only strips off <punct1> and
-		// <punct4>, if either or both have content. What we have to do here is
-		// reconstruct the single CSourcePhrase to be a pseudo-merger, with two
-		// CSourcePhrase embedded instances in its m_pSavedWords member, and set all the
-		// members of the latter to be what they should be.
-		// (For the newer ~ marker, I think the same would happen - ~ would be internal)
-		// 
-		// Diagnosis: we have situation (a) if !$ is at the end of m_key;
-		// we have situation (b) if ! is in the second CSourcePhrase's m_precPunct
-		// member as the only content within it, and m_key starts with $; we have the
-		// situation (c) if the current pSrcPhrase has a m_key containing !$, AND EITHER the
-		// punctuation substrings either or both sides of !$ have no space, OR there
-		// are no punctuation substrings either side of !$. Clearly, we'll need a bit of
-		// processing code to do all these tests. The rest, however, is straightforward.
-		// 
-		// Whichever is the case, for document version 5, we have to also create
-		// embedded CSourcePhrase instances in the conjoined instance's m_pSavedWords
-		// list in order to carry the medial punctuation.
-		int offset = pSrcPhrase->m_key.Find(FixedSpace);
-		int keylen = pSrcPhrase->m_key.Len();
-		if (offset != wxNOT_FOUND && offset == keylen-2)
-		{
-			// We have situation (a) above. We'll make pSrcPhrase into the new
-			// conjoined singleton CSourcePhrase instance, and we'll remove
-			// pFollSrcPhrase once we've extracted its data and moved it to
-			// pSrcPhrase.
-			// Do the easy stuff first, the beginning and ending stuff
-			adaption.Empty(); targetStr.Empty();
-			pSPWord1Embedded = new CSourcePhrase;
-			pSPWord2Embedded = new CSourcePhrase;
-			word1PrecPunct = pSrcPhrase->m_precPunct;
-			pSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
-			pSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
-			pSPWord1Embedded->m_precPunct = word1PrecPunct;
-			wxASSERT(pFollSrcPhrase != NULL); // it must exist, can't be otherwise
-			word2FollPunct = pFollSrcPhrase->m_follPunct;
-			pSPWord2Embedded->m_follPunct = word2FollPunct;
-
-			bool bHasInlineNonbindingMarker = FALSE;
-			wxString nonBindingMkr;
-			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
-			{
-				bHasInlineNonbindingMarker = TRUE;
-				nonBindingMkr = pSrcPhrase->GetInlineNonbindingMarkers();
-				pSPWord1Embedded->SetInlineNonbindingMarkers(nonBindingMkr);
-			}
-			// we assume non-binding markers won't ever occur between the conjoined pair
-			bool bHasInlineNonbindingEndMarker = FALSE;
-			wxString nonBindingEndMkr;
-			if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
-			{
-				bHasInlineNonbindingEndMarker = TRUE;
-				nonBindingEndMkr = pFollSrcPhrase->GetInlineNonbindingEndMarkers();
-				pSPWord2Embedded->SetInlineNonbindingEndMarkers(nonBindingEndMkr);
-				pSrcPhrase->SetInlineNonbindingEndMarkers(nonBindingEndMkr); // pSrcPhrase
-				    // will now need to carry it, because pFollSrcPhrase will be deleted
-			}
-
-            // now the medial 'tricky' stuff. Get word1 plus following puncts, and
-            // word2's preceding punctuation, then construct word1 and its following
-            // puncts as separate strings, finally, copy all to the appropriate places
-            // on the embedded pSP instances
-			word1 = pSrcPhrase->m_key.Left(offset); // this could have following puncts on it
-			int offset2 = pSrcPhrase->m_srcPhrase.Find(FixedSpace);
-			wxASSERT(offset2 != wxNOT_FOUND);
-			// get the punctuation which is on first word, after the !$ symbol -- it's
-			// actually the first part of word2's preceding punctuation
-			word2PrecPunct = pSrcPhrase->m_srcPhrase.Mid(offset2 + 2);
-			// add the space which got lost in the parse
-			word2PrecPunct += aSpace;
-			// grab the rest of word2's preceding punctuation, and add to the above
-			word2PrecPunct += pFollSrcPhrase->m_precPunct;
-			// word2 is easy to get, it's the following CSourcePhrase's m_key
-			word2 = pFollSrcPhrase->m_key;
-			// to get word1's following punctuation, it's all of any punctuation which
-			// lies at the end of the above word1 variable; we'll need our source text
-			// punctuation string to get it.
-			wxString storeWord1 = word1;
-			word1 = SpanExcluding(word1,gpApp->m_punctuation[0]); // all until any src punct reached
-			int len = word1.Len();
-			word1FollPunct = storeWord1.Mid(len); // may be empty
-
-			// We now have all the bits. Put them on the embedded CSourcePhrase
-			// instances, and on pSrcPhrase too.
-			pSPWord1Embedded->m_key = word1;
-			pSPWord1Embedded->m_follPunct = word1FollPunct;
-			pSPWord1Embedded->m_srcPhrase = pSPWord1Embedded->m_precPunct + word1;
-			pSPWord1Embedded->m_srcPhrase += pSPWord1Embedded->m_follPunct;
-			// now, do for second embedded CSourcePhrase
-			pSPWord2Embedded->m_precPunct = word2PrecPunct;
-			pSPWord2Embedded->m_key = word2;
-			pSPWord2Embedded->m_srcPhrase = pSPWord2Embedded->m_precPunct + word2;
-			pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_follPunct;
-
-            // If the user "adapted" these ill-formed two CSourcePhrase instances, he
-            // could have typed anything, including punctuation. We'll pass the
-            // m_adaption string for each of the two instances to the
-            // MakeFixedSpaceTranslation() function below, and let it recreate a
-            // m_targetStr from the converted src text punctuation. (If the user wants
-            // custom puncts typed by himself, he can edit the doc at this point
-            // manually later.
-            wxString tgtAdaption = pSrcPhrase->m_adaption; // this could have !$ in
-			// it if the user didn't type something and just accepted the source
-			// text copy, so ensure !$ is removed before we use it
-			int offset3 = wxNOT_FOUND;
-			if ((offset3 = tgtAdaption.Find(FixedSpace)) != wxNOT_FOUND)
-			{
-				tgtAdaption = tgtAdaption.Remove(offset3,2);
-			}
-            pSPWord1Embedded->m_adaption = tgtAdaption;
-			pSPWord2Embedded->m_adaption = pFollSrcPhrase->m_adaption;
-			pSPWord1Embedded->m_targetStr = pSPWord1Embedded->m_adaption;
-			pSPWord2Embedded->m_targetStr = pSPWord2Embedded->m_adaption;
-
-			// make the correct m_srcPhrase and m_key strings for pSrcPhrase
-			pSrcPhrase->m_key = word1 + FixedSpace + word2;
-			pSrcPhrase->m_srcPhrase = word1PrecPunct + word1 + word1FollPunct + FixedSpace;
-			pSrcPhrase->m_srcPhrase += word2PrecPunct + word2 + word2FollPunct;
-
-			// Make the m_adaption and m_targetStr members for pSrcPhrase
-            MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, 
-										adaption, targetStr);
-			pSrcPhrase->m_adaption = adaption;
-			pSrcPhrase->m_targetStr = targetStr;
-			pSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
-
-			bDeleteFollowingWhenDone = TRUE;
-
-		} // end of TRUE block for test: if (offset != wxNOT_FOUND && offset == keylen-2)
-		else
-		{
-			// test for situation (c) here
-			if (offset != wxNOT_FOUND && (offset + 2) < keylen )
-			{
-				// We have situation (c) above, there is more content after !$ in m_key;
-				// we don't have to delete anything, just build pSrcPhrase differently and
-				// add the content to m_pSavedWords
-				adaption.Empty(); targetStr.Empty();
-				pSPWord1Embedded = new CSourcePhrase;
-				pSPWord2Embedded = new CSourcePhrase;
-				word1PrecPunct = pSrcPhrase->m_precPunct;
-				word2FollPunct = pSrcPhrase->m_follPunct;
-				pSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
-				pSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
-				pSPWord1Embedded->m_precPunct = word1PrecPunct;
-				pSPWord2Embedded->m_follPunct = word2FollPunct;
-
-				bool bHasInlineNonbindingMarker = FALSE;
-				wxString nonBindingMkr;
-				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
-				{
-					bHasInlineNonbindingMarker = TRUE;
-					nonBindingMkr = pSrcPhrase->GetInlineNonbindingMarkers();
-					pSPWord1Embedded->SetInlineNonbindingMarkers(nonBindingMkr);
-				}
-				// we assume non-binding markers won't ever occur between the 
-				// conjoined pair
-				bool bHasInlineNonbindingEndMarker = FALSE;
-				wxString nonBindingEndMkr;
-				if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
-				{
-					bHasInlineNonbindingEndMarker = TRUE;
-					nonBindingEndMkr = pSrcPhrase->GetInlineNonbindingEndMarkers();
-					pSPWord2Embedded->SetInlineNonbindingEndMarkers(nonBindingEndMkr);
-				}			
-				
-                // now the medial 'tricky' stuff. Get word1 plus following puncts, and
-                // word2's preceding punctuation, then construct word1 and its
-                // following puncts as separate strings, finally, copy all to the
-                // appropriate places on the embedded pSP instances
-                	
-				wxString str = pSrcPhrase->m_key; // we have to dissect this to get
-						// from it any punctuation before ~, any punctuation after ~,
-						// and word1 and word2
-				word1 = SpanExcluding(str, gpApp->m_punctuation[0]);
-				int len = word1.Len();
-				str = str.Mid(len);
-				word1FollPunct = SpanIncluding(str, gpApp->m_punctuation[0]);
-				len = word1FollPunct.Len();
-				str = str.Mid(len+1); // str now has the material following ~
-				word2PrecPunct = SpanIncluding(str, gpApp->m_punctuation[0]);
-				len = word2PrecPunct.Len();
-				str = str.Mid(len);
-				word2 = str;
-				
-				// We now have all the bits. Put them on the embedded CSourcePhrase
-				// instances, and on pSrcPhrase too.
-				pSPWord1Embedded->m_key = word1;
-				pSPWord1Embedded->m_follPunct = word1FollPunct;
-				pSPWord1Embedded->m_srcPhrase = pSPWord1Embedded->m_precPunct + word1;
-				pSPWord1Embedded->m_srcPhrase += pSPWord1Embedded->m_follPunct;
-				// now, do for second embedded CSourcePhrase
-				pSPWord2Embedded->m_precPunct = word2PrecPunct;
-				pSPWord2Embedded->m_key = word2;
-				pSPWord2Embedded->m_srcPhrase = pSPWord2Embedded->m_precPunct + word2;
-				pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_follPunct;
-
-                // If the user "adapted" these ill-formed two CSourcePhrase instances,
-                // he could have typed anything, including punctuation. We'll pass the
-                // m_adaption string for each of the two instances to the
-                // MakeFixedSpaceTranslation() function below, and let it recreate a
-                // m_targetStr from the converted src text punctuation. (If the user
-                // wants custom puncts typed by himself, he can edit the doc at this
-                // point manually later.
-				wxString tgtAdaption = pSrcPhrase->m_adaption; // this probably has ~ in
-                    // it; but if he typed different word1 and word2 adaptations, then the
-                    // resulting m_adaption will be word1<p1>~<p2>word2 where <p1>
-                    // and <p2> are any medial punctuation he may have typed (or one of
-                    // both of these could be empty) and word1 and word2 will differ from
-                    // the source text ones, and if there was a source text copy done,
-                    // <p1> and <p2> will be as in the source text, with the same word1 and
-                    // word2. So what we do here is going to have to be tricky.
-				// I think the thing to do is to parse in from each end, to get the
-				// possibly unique word1 and word2 adapted strings. Then we'll assume the
-				// converted source text punctuation will be used in the same places (the
-				// user can fix this by a manual edit later if he wishes)
-				if (tgtAdaption.IsEmpty())
-				{
-					pSPWord1Embedded->m_adaption.Empty();
-					pSPWord2Embedded->m_adaption.Empty();
-					pSPWord1Embedded->m_targetStr.Empty();
-					pSPWord2Embedded->m_targetStr.Empty();
-				}
-				else
-				{
-					// we'll have to assume a punctuation set - take the source language one
-					wxString firstWord = SpanExcluding(tgtAdaption, gpApp->m_punctuation[0]);
-					pSPWord1Embedded->m_adaption = firstWord;
-
-					len = firstWord.Len();
-					tgtAdaption = tgtAdaption.Mid(len); // the remainder
-					wxString reversed = MakeReverse(tgtAdaption);
-					wxString secondWord = SpanExcluding(reversed, gpApp->m_punctuation[0]);
-					// the preceding can will either stop at punctuation which was
-					// preceding word2, or it will go over the $ of the reversed "!$" and
-					// so include the $ character at the end of the scanned substring, so
-					// test for this and remove it if present
-					if (secondWord.IsEmpty())
-					{
-						pSPWord2Embedded->m_adaption.Empty();
-					}
-					else
-					{
-						secondWord = MakeReverse(secondWord);
-						if (secondWord[0] == _T('$'))
-						{
-							secondWord = secondWord.Mid(1);
-						}
-						pSPWord2Embedded->m_adaption = secondWord;
-					}
-				}
-                // complete the m_adaption and m_targetStr (a copy of the former) for
-                // the two embedded CSourcePhrase instances
-				pSPWord1Embedded->m_targetStr = pSPWord1Embedded->m_adaption;
-				pSPWord2Embedded->m_targetStr = pSPWord2Embedded->m_adaption;
-
-				// make the correct m_srcPhrase and m_key strings for pPrevSrcPhrase
-				pSrcPhrase->m_key = word1 + FixedSpace + word2;
-				pSrcPhrase->m_srcPhrase = word1PrecPunct + word1 + word1FollPunct + FixedSpace;
-				pSrcPhrase->m_srcPhrase += word2PrecPunct + word2 + word2FollPunct;
-
-				// Make the m_adaption and m_targetStr members for pSrcPhrase
-				MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, 
-											adaption, targetStr);
-				pSrcPhrase->m_adaption = adaption;
-				pSrcPhrase->m_targetStr = targetStr;
-				pSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
-			} // end of TRUE block for test: if (offset != wxNOT_FOUND && (offset + 2) < keylen )
-			else
-			{
-                // finally, deal with !$ bad parses of type (b) as defined above - these
-                // will have m_srcPhrase on the second word starting with !$.
-				offset = pSrcPhrase->m_srcPhrase.Find(FixedSpace);
-				if (offset != wxNOT_FOUND && offset == 0)
-				{
-                    // We have situation (b) above. We'll make pPrevSrcPhrase into the new
-                    // conjoined singleton CSourcePhrase instance, and we'll remove
-                    // pSrcPhrase once we've extracted its data and moved it to
-                    // pPrevSrcPhrase (the latter must exist, we don't need to test)
-					// Do the easy stuff first, the beginning and ending stuff
-					adaption.Empty(); targetStr.Empty();
-					pSPWord1Embedded = new CSourcePhrase;
-					pSPWord2Embedded = new CSourcePhrase;
-					word1PrecPunct = pPrevSrcPhrase->m_precPunct; // it's intact already
-					pPrevSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
-					pPrevSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
-					pSPWord1Embedded->m_precPunct = word1PrecPunct;
-					wxASSERT(pPrevSrcPhrase != NULL); // it must exist, can't be otherwise
-					word1FollPunct = pPrevSrcPhrase->m_follPunct;
-					word2FollPunct = pSrcPhrase->m_follPunct;
-					pSPWord2Embedded->m_follPunct = word2FollPunct;
-
-					bool bHasInlineNonbindingMarker = FALSE;
-					wxString nonBindingMkr;
-					if (!pPrevSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
-					{
-						bHasInlineNonbindingMarker = TRUE;
-						nonBindingMkr = pPrevSrcPhrase->GetInlineNonbindingMarkers();
-						pSPWord1Embedded->SetInlineNonbindingMarkers(nonBindingMkr);
-					}
-					// we assume non-binding markers won't ever occur between the 
-					// conjoined pair
-					bool bHasInlineNonbindingEndMarker = FALSE;
-					wxString nonBindingEndMkr;
-					if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
-					{
-						bHasInlineNonbindingEndMarker = TRUE;
-						nonBindingEndMkr = pSrcPhrase->GetInlineNonbindingEndMarkers();
-						pSPWord2Embedded->SetInlineNonbindingEndMarkers(nonBindingEndMkr);
-						pPrevSrcPhrase->SetInlineNonbindingEndMarkers(nonBindingEndMkr); // pPrevSrcPhrase
-							// will now need to carry it, because pSrcPhrase will be deleted
-					}			
-					
-                    // now the medial 'tricky' stuff. Get word1 plus following puncts, and
-                    // word2's preceding punctuation, then construct word1 and its
-                    // following puncts as separate strings, finally, copy all to the
-                    // appropriate places on the embedded pSP instances
-					word1 = pPrevSrcPhrase->m_key;
-                    // word2 with any preceding punctuation is easy, just remove the
-                    // initial $ character from m_key
-					word2 = pSrcPhrase->m_key.Mid(1);
-                    // to get the punctuation on word2, we'll have to scan over any initial
-                    // punctuation
-					word2PrecPunct = SpanIncluding(word2,gpApp->m_punctuation[0]); // src puncts set
-					int precLen = word2PrecPunct.Len();
-					// now we can get word2 itself
-					word2 = word2.Mid(precLen);
-
-					// We now have all the bits. Put them on the embedded CSourcePhrase
-					// instances, and on pSrcPhrase too.
-					pSPWord1Embedded->m_key = word1;
-					pSPWord1Embedded->m_follPunct = word1FollPunct;
-					pSPWord1Embedded->m_srcPhrase = pSPWord1Embedded->m_precPunct + word1;
-					pSPWord1Embedded->m_srcPhrase += pSPWord1Embedded->m_follPunct;
-					// now, do for second embedded CSourcePhrase
-					pSPWord2Embedded->m_precPunct = word2PrecPunct;
-					pSPWord2Embedded->m_key = word2;
-					pSPWord2Embedded->m_srcPhrase = pSPWord2Embedded->m_precPunct + word2;
-					pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_follPunct;
-
-                    // If the user "adapted" these ill-formed two CSourcePhrase instances,
-                    // he could have typed anything, including punctuation. We'll pass the
-                    // m_adaption string for each of the two instances to the
-                    // MakeFixedSpaceTranslation() function below, and let it recreate a
-                    // m_targetStr from the converted src text punctuation. (If the user
-                    // wants custom puncts typed by himself, he can edit the doc at this
-                    // point manually later.
-					wxString tgtAdaption = pSrcPhrase->m_adaption; // this could have $ in
-                            // it if the user didn't type something and just accepted the
-                            // source text copy, or he may have typed ! before the $, so
-                            // ensure !$ is removed before we use it
-					int offset3 = wxNOT_FOUND;
-					if ((offset3 = tgtAdaption.Find(FixedSpace)) != wxNOT_FOUND)
-					{
-						tgtAdaption = tgtAdaption.Remove(offset3,2);
-					}
-					if (tgtAdaption[0] == _T('$'))
-					{
-						tgtAdaption = tgtAdaption.Mid(1);
-					}
-                    // there might be some preceding punctuation on tgtAdaptation, so check
-                    // and remove it - remove any initial src language puncts, then any
-                    // initial tgt language puncts to make sure we cope with whatever may
-                    // have happened
-					wxString chuckPuncts = SpanIncluding(tgtAdaption, gpApp->m_punctuation[0]); // src set
-					precLen = chuckPuncts.Len(); 
-					if (precLen > 0)
-						tgtAdaption = tgtAdaption.Mid(precLen);
-					chuckPuncts = SpanIncluding(tgtAdaption, gpApp->m_punctuation[1]); // tgt set
-					precLen = chuckPuncts.Len(); 
-					if (precLen > 0)
-						tgtAdaption = tgtAdaption.Mid(precLen);
-
-                    // complete the m_adaption and m_targetStr (a copy of the former) for
-                    // the two embedded CSourcePhrase instances
-					pSPWord1Embedded->m_adaption = pPrevSrcPhrase->m_adaption;
-					pSPWord2Embedded->m_adaption = tgtAdaption;
-					pSPWord1Embedded->m_targetStr = pSPWord1Embedded->m_adaption;
-					pSPWord2Embedded->m_targetStr = pSPWord2Embedded->m_adaption;
-
-					// make the correct m_srcPhrase and m_key strings for pPrevSrcPhrase
-					pPrevSrcPhrase->m_key = word1 + FixedSpace + word2;
-					pPrevSrcPhrase->m_srcPhrase = word1PrecPunct + word1 + word1FollPunct + FixedSpace;
-					pPrevSrcPhrase->m_srcPhrase += word2PrecPunct + word2 + word2FollPunct;
-
-					// Make the m_adaption and m_targetStr members for pSrcPhrase
-					MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, 
-												adaption, targetStr);
-					pPrevSrcPhrase->m_adaption = adaption;
-					pPrevSrcPhrase->m_targetStr = targetStr;
-					pPrevSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
-
-					bDeleteCurrentWhenDone = TRUE;
-
-				} // end of TRUE block for test: if (offset != wxNOT_FOUND && offset == keylen-2)
-			} // end of else block for test: if (offset != wxNOT_FOUND && (offset + 2) < keylen)
-
-		}  // end of else block for test: if (offset != wxNOT_FOUND && offset == keylen-2)
-
-        // The final !$ situation is when there is no splitting of the conjoined pair, so
-        // that the one CSourcePhrase has a key of word1!$word2, or there could be medial
-        // punctuation before or after the !$ or in both locations, but none of the medial
-        // punctuation has any space.
 
 		if (bDeleteFollowingWhenDone)
 		{
@@ -7078,9 +6673,15 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 				// when deleting the Node which is ahead of where pSrcPhrase was stored,
 				// the pos value which was left pointing at this Node now points at freed
 				// memory, so we have to reset pos. savePos, where pSrcPhrase (the current
-				// location) was stored is still value, so use that
+				// location) was stored is still valid, so use that
 				pos = savePos;
-				pos = pos->GetNext();
+				if (!bDeleteCurrentWhenDone)
+				{
+					// don't advance pos to beyond the deleted one if we still need
+					// to remove the current one - leave it where it is now, back on
+					// the current one
+					pos = pos->GetNext();
+				}
 			}
 		}
 		if (bDeletePreviousWhenDone)
@@ -7104,6 +6705,734 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 				pDoc->UpdateSequNumbers(0,NULL);
 			}
+			if (bDeleteFollowingWhenDone)
+			{
+				// if we have just deleted the 'following' one, and now we've also
+				// deleted the former current one, two have gone - so the only valid
+				// iterator value left to which we can reset pos is savePrevPos
+				pos = savePrevPos;
+				// now advance from there
+				pos = pos->GetNext();
+			}
+		}
+
+		// restore the booleans to their default values before iterating
+		bDeleteCurrentWhenDone = FALSE;
+		bDeletePreviousWhenDone = FALSE;
+		bDeleteFollowingWhenDone = FALSE;
+	} // end of first loop: while (pos != NULL)
+	pDoc->UpdateSequNumbers(0,NULL); // must do this to ensure sequential numbering
+
+
+	// Now start over, with a loop to handle ~ conjoinings
+	pSPWord1Embedded = NULL;
+	pSPWord2Embedded = NULL;
+
+	bDeleteCurrentWhenDone = FALSE;
+	bDeletePreviousWhenDone = FALSE;
+	bDeleteFollowingWhenDone = FALSE;
+
+	pos = pList->GetFirst();
+	// scan the whole document, doing any needed ~ conjoinings
+	while (pos != NULL)
+	{
+		// obtain current, previous and next CSourcePhrase instances (at doc start,
+		// previous will be NULL, at doc end next will be NULL)
+		pSrcPhrase = pos->GetData();
+		savePos = pos;
+		pos = pos->GetPrevious(); // returns NULL if doesn't exist
+		if (pos != NULL)
+		{
+			pPrevSrcPhrase = pos->GetData();
+			savePrevPos = pos;
+		}
+		else 
+			pPrevSrcPhrase = NULL;
+		pos = savePos;
+		pos = pos->GetNext();
+		if (pos != NULL)
+			pFollSrcPhrase = pos->GetData();
+		else
+			pFollSrcPhrase = NULL;
+//#ifdef __WXDEBUG__
+//			wxLogDebug(_T("Sequ Num =  %d   m_srcPhrase:  %s    Total =  %d"),pSrcPhrase->m_nSequNumber,
+//				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhraseList->GetCount());
+//#endif
+
+		// Deal with USFM fixed-space conjoining with ~ symbol (a tilde). DocV4 knew
+		// nothing about ~ used as a fixed-space (at that time the symbol was !$). ~ is
+		// not a punctuation symbol so a DocV4 parse creates a lot of bogus sequential
+		// CSourcePhrase instances. Consider the possibilities for:
+		// <punct1><mkr1>word1<endmkr1><punct2>~<punct3><mkr2>word2<endmkr2><punc4>
+		//  
+		// Case (a): The FromDocVersion4ToDOcVersion5() function goes part
+		// way towards fixing things, but it doesn't create any pseudo-merger; it does,
+		// however, do a good job of getting inline binding marker and endmarker where
+		// they should be, and can correctly combine some orphans with just punctuation
+		// characters; reducing possibly up to 6 CSourcePhrase instances to 3, where the
+		// middle one carries the ~ fixedspace marker; this is what happens whether or not
+		// binding marker and endmarker are present. So with or without punctuation, and
+		// whether or not the punctuation contains detached quotes, we still end up with 3
+		// consecutive instances where the ~ is on the middle one. These we can fix, we'll
+        // combine the middle and following one to the previous one, then delete the middle
+        // and following. So, we get 3 CSourcePhrase instances in a row if there are
+        // binding markers and/or punctuation with space, or both, either side of the ~.
+		// 
+		// Case (b): If marker or punctuation with a space are not present on one of the
+		// words, we get a sequence of two CSourcePhrase instances. The ~ will be at the
+		// end of word1 if <punct2> and <endmkr1> are empty, and either <mkr2> is non-empty
+		// or <punct3> contains an internal space. ~ will be at the start of word2 if
+		// <punct3> and <mkr2> are empty, and either <endmkr1) is non-empty or <punct2>
+		// contains an internal space.
+		// 
+        // Case (c): Anything not covered by the above... we get just one CSourcePhrase
+        // instance. If <punct2> is non-empty but has no internal space, or is empty;
+        // <mkr1> and its endmarker are empty, <mkr2> and its endmarker are empty, <punct3>
+        // is empty, or non-empty but with no internal space, then the CSourcePhrase wilol
+        // have the ~ within it, and any punctuation either side will be present within the
+        // composite word, in place. This is the simplest situation to deal with.
+		int offset = pSrcPhrase->m_key.Find(FixedSpace);
+		int keylen = pSrcPhrase->m_key.Len();
+		// We deal here with case (a) above. Because of the internal space in the
+		// punctuation and or marker presence, the middle CSourcePhrase always has just a
+		// single ~ as the only content for its m_key member. This is a sufficient
+		// condition for a 3-instance sequence that we have to deal with.
+		if (offset == 0 && keylen == 1)
+		{
+			adaption.Empty(); targetStr.Empty();
+			pSPWord1Embedded = new CSourcePhrase;
+			pSPWord2Embedded = new CSourcePhrase;
+			word1PrecPunct = pPrevSrcPhrase->m_precPunct; // it's intact already
+			pPrevSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
+			pPrevSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
+			pSPWord1Embedded->m_precPunct = word1PrecPunct;
+			wxASSERT(pPrevSrcPhrase != NULL); // it must exist, can't be otherwise
+			// any m_follPunct on pPrevSrcPhrase has to be moved to pSPWord1Embedded's
+			// m_follPunct member, and deleted from the parent
+			word1FollPunct = pPrevSrcPhrase->m_follPunct;
+			pPrevSrcPhrase->m_follPunct = emptyStr;
+			// check for non-empty preceding punctuation on the instance with the ~
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				if (word1FollPunct.IsEmpty())
+				{
+					// pPrevSrcPhrase->m_follPunct is empty, this block should 
+					// occasionally be entered
+					word1FollPunct = pSrcPhrase->m_precPunct;
+					if (!word1FollPunct.IsEmpty())
+						pSPWord1Embedded->m_follPunct = word1FollPunct;
+
+                    // put the m_precPunct back on pPrevSrcPhrase as following punct at the
+                    // end of m_srcPhrase
+					pPrevSrcPhrase->m_srcPhrase += word1FollPunct;
+					// set m_srcPhrase for the first embedded instance
+					pSPWord1Embedded->m_srcPhrase = pPrevSrcPhrase->m_srcPhrase;
+				}
+				else
+				{
+                    // pPrevSrcPhrase->m_follPunct is not empty, we can be certain a space
+                    // is needed between them, but probably this block won't ever be
+                    // entered because pPrevSrcPhrase won't have any content in m_follPunct
+                    // & so word1FollPunct will get to the above test empty
+					word1FollPunct = word1FollPunct + aSpace + pSrcPhrase->m_precPunct;
+					pSPWord1Embedded->m_follPunct = word1FollPunct;
+
+                    // put the m_precPunct back on pPrevSrcPhrase as following punct at the
+                    // end of m_srcPhrase
+					pPrevSrcPhrase->m_srcPhrase += aSpace + pSrcPhrase->m_precPunct;
+					// and in the embedded instance
+					pSPWord1Embedded->m_srcPhrase = pPrevSrcPhrase->m_srcPhrase + aSpace +
+														pSrcPhrase->m_precPunct;
+				}
+			}
+			else
+			{
+				// pSrcPhrase->m_precPunct is empty, so all the following puncts for the
+				// embedded instance are on pPrevSrcPhrase
+				pSPWord1Embedded->m_follPunct = word1FollPunct;
+				pSPWord1Embedded->m_srcPhrase = pPrevSrcPhrase->m_srcPhrase;
+			}
+
+			// we now can set the embedded first embedded instances's m_key, etc, members
+			pSPWord1Embedded->m_key = pPrevSrcPhrase->m_key;
+
+			// for m_adaption and m_targetStr, just use the pPrevSrcPhrase's m_adaption contents
+			pSPWord1Embedded->m_adaption = pPrevSrcPhrase->m_adaption;
+			pSPWord1Embedded->m_targetStr = pPrevSrcPhrase->m_adaption;
+
+			// pSrcPhrase will have no inline marker or endmarker, so now we can add the ~
+			// where it is required (m_targetStr is handled later by the call of
+			// MakeFixedSpaceTranslation() at the end of this block)
+			pPrevSrcPhrase->m_srcPhrase += FixedSpace;
+			pPrevSrcPhrase->m_key += FixedSpace;
+
+			// we store any inline binding marker and endmarker only on the embedded
+			// instance, so check for them and move them if present
+			if (!pPrevSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			{
+				pSPWord1Embedded->SetInlineBindingMarkers(pPrevSrcPhrase->GetInlineBindingMarkers());
+				pPrevSrcPhrase->SetInlineBindingMarkers(emptyStr);
+			}
+			if (!pPrevSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				pSPWord1Embedded->SetInlineBindingEndMarkers(pPrevSrcPhrase->GetInlineBindingEndMarkers());
+				pPrevSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+			}
+
+			// pSrcPhrase may also have m_follPunct with content, so this has to go to
+			// pSPWord2Embedded, and then we are done with pSrcPhrase and the rest will
+			// come from pFollSrcPhrase
+			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			{
+				word2PrecPunct = pSrcPhrase->m_follPunct; // word2 is here only temporarily
+						// pertaining to pSrcPhrase, in what is below, it pertains to
+						// pFollSrcPhrase which is where most of the word2 data is
+			}
+
+			// Now deal with pFollSrcPhrase, and bear in mind that more of word2PrecPunct
+			// may be in its m_precPunct member - and if that is the case, not all of the
+			// preceding punctuation will be on pFollSrcPhrase's m_srcPhrase member, so we
+			// have to check and update that too; but first move over any markers to the
+			// 2nd embedded srcPhrase
+			if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			{
+				pSPWord2Embedded->SetInlineBindingMarkers(pFollSrcPhrase->GetInlineBindingMarkers());
+				pFollSrcPhrase->SetInlineBindingMarkers(emptyStr);
+			}
+			if (!pFollSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				pSPWord2Embedded->SetInlineBindingEndMarkers(pFollSrcPhrase->GetInlineBindingEndMarkers());
+				pFollSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+			}
+			
+			// now the punctuation stuff, as mentioned above
+			if (!word2PrecPunct.IsEmpty())
+			{
+				if (!pFollSrcPhrase->m_precPunct.IsEmpty())
+				{
+					// when word2PrecPunct and pFollSrcPhrase->m_precPunct are both
+					// non-empty, then it means that there was detached punctuation
+					// originally, and so we have to restore a space between them
+					wxString temp1 = aSpace + pFollSrcPhrase->m_precPunct;
+					wxString temp2 = word2PrecPunct + aSpace;
+					// first, fix m_srcPhrase on the parent (the parent is pPrevSrcPhrase)
+					// because we'll delete pSrcPhrase and pFollSrcPhrase later on (note:
+					// m_targetStr will be computed by MakeFixedSpaceTranslation() below)
+					pPrevSrcPhrase->m_srcPhrase += temp2 + pFollSrcPhrase->m_srcPhrase; // m_srcPhrase is finished
+					pPrevSrcPhrase->m_key += pFollSrcPhrase->m_key; // m_key is finished
+
+					// now prepare what pSPWord2Embedded requires
+					word2PrecPunct += temp1;
+					pSPWord2Embedded->m_precPunct = word2PrecPunct;
+
+					// and its m_srcPhrase and m_key members
+					pSPWord2Embedded->m_srcPhrase = word2PrecPunct + pFollSrcPhrase->m_key;
+					pSPWord2Embedded->m_key = pFollSrcPhrase->m_key;
+				}
+				else
+				{
+					// don't expect control to ever enter here, but I've provided correct
+					// code for what to do if it ever happens
+					pPrevSrcPhrase->m_srcPhrase += word2PrecPunct + pFollSrcPhrase->m_srcPhrase; // m_srcPhrase is finished
+					pPrevSrcPhrase->m_key += pFollSrcPhrase->m_key; // m_key is finished
+
+					// now prepare what pSPWord2Embedded requires
+					pSPWord2Embedded->m_precPunct = word2PrecPunct;
+
+					// and its m_srcPhrase and m_key members
+					pSPWord2Embedded->m_srcPhrase = word2PrecPunct + pFollSrcPhrase->m_srcPhrase;
+					pSPWord2Embedded->m_key = pFollSrcPhrase->m_key;
+				}
+			}
+			else
+			{
+                // word2PrecPunct is empty, so whatever punct is in pFollSrcPhrase's
+                // m_precPunct member, that is the totality of word2's preceding
+				// punctuation, and pFollSrcPhrase->m_srcPhrase will have already whatever
+				// preceding punctuation it's ever going to have
+				pSPWord2Embedded->m_precPunct = pFollSrcPhrase->m_precPunct;
+
+				// complete m_srcPhrase and m_key members
+				pPrevSrcPhrase->m_srcPhrase += pFollSrcPhrase->m_srcPhrase;
+				pPrevSrcPhrase->m_key += pFollSrcPhrase->m_key;
+
+				// and its m_srcPhrase and m_key members
+				pSPWord2Embedded->m_srcPhrase = pFollSrcPhrase->m_srcPhrase;
+				pSPWord2Embedded->m_key = pFollSrcPhrase->m_key;
+			}
+			// now deal with pFollSrcPhrase's following punctuation - it's got to be
+			// copied to pSPWord2Embedded's m_follPunct member, and also to
+			// pPrevSrcPhrase's m_follPunct member (the latter was cleared above,
+			// anticipating this latter possibility)
+			if (!pFollSrcPhrase->m_follPunct.IsEmpty())
+			{
+				pSPWord2Embedded->m_follPunct = pFollSrcPhrase->m_follPunct;
+				pPrevSrcPhrase->m_follPunct = pFollSrcPhrase->m_follPunct;
+				pSPWord2Embedded->m_srcPhrase += pFollSrcPhrase->m_follPunct;
+			}
+
+			// set the 2nd embedded instances m_targetStr and m_adaption to whatever is in
+			// pFollSrcPhrase->m_adaption
+			pSPWord2Embedded->m_adaption = pFollSrcPhrase->m_adaption;
+			pSPWord2Embedded->m_targetStr = pFollSrcPhrase->m_adaption;
+
+            // finally, just in case pFollSrcPhrase also stores an inline non-binding
+            // endmarker, check, and if so move it to pPrevSrcPhrase and to word2's
+            // embedded instance; likewise if pPrevSrcPhrase has an inline non-binding
+            // beginmarker, add it to word1's embedded instance
+			if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				pPrevSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+				pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+
+			}
+			if (!pPrevSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			{
+				pSPWord1Embedded->SetInlineNonbindingMarkers(pPrevSrcPhrase->GetInlineNonbindingMarkers());
+			}
+
+			// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
+			// adaption and targetStr parameters
+			MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, adaption, targetStr);
+			pPrevSrcPhrase->m_adaption = adaption;
+			pPrevSrcPhrase->m_targetStr = targetStr;
+			pPrevSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
+
+			bDeleteCurrentWhenDone = TRUE;
+			bDeleteFollowingWhenDone = TRUE;
+		}
+
+        // Case (b): next block is for where the fixedspace marker ~ will be at the end of
+		// word1 or at the start of word2. I'm assuming that if there is a non-empty
+		// m_markers member, it would only be on the first of the conjoined pair --
+		// because it is inconceivable that someone would want to conjoin across a verse
+		// break or similar major marker location. (If it were to happen, we'd need to
+		// transfer m_markers content from the second to the parent, etc.)
+		int keylen2 = 0;
+		int offset2 = 0;
+        // for maximum robustness, don't assume bOnFirst FALSE means bOnSecond will be
+        // TRUE, instead require each to be set TRUE only provided ~ is found
+		bool bOnFirst = FALSE;
+		bool bOnSecond = FALSE;
+		offset = pSrcPhrase->m_key.Find(FixedSpace);
+		keylen = pSrcPhrase->m_key.Len();
+		if (offset != wxNOT_FOUND)
+			bOnFirst = TRUE;
+		if (pFollSrcPhrase != NULL)
+		{
+			offset2 = pFollSrcPhrase->m_key.Find(FixedSpace);
+			keylen2 = pFollSrcPhrase->m_key.Len();
+			if (offset2 != wxNOT_FOUND)
+				bOnSecond = TRUE;
+		}
+		if ((offset > 0 && keylen > 1 && bOnFirst && (offset == keylen - 1)) ||
+			(offset2 == 0 && keylen2 > 1 && bOnSecond))
+		{
+			adaption.Empty(); targetStr.Empty();
+			pSPWord1Embedded = new CSourcePhrase;
+			pSPWord2Embedded = new CSourcePhrase;
+			if (bOnFirst)
+			{
+				// This scenario happens when there is an internal space on the preceding
+				// punctuation of the second word, resulting in that punctuation string
+				// being split between the end of the first word and the start of the
+				// second word. We accumulate data from the second instance to the first,
+				// and delete the second instance (ie. delete pFollSrcPhrase)
+				pSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
+				pSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
+
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					pSPWord1Embedded->m_precPunct = pSrcPhrase->m_precPunct;
+				}
+				// there won't be binding marker or endmarker on the first word (if there
+				// were, there would be a sequence of 3 instances to consider, not 2), but
+				// there can be such markers on the second word
+				
+				// the ~ will be on the end of the first word's m_key member
+				int offset3 = pSrcPhrase->m_key.Find(_T('~'));
+				wxASSERT(pSrcPhrase->m_key.Len() - 1 == (size_t)offset3);
+				word1 = pSrcPhrase->m_key.Left(offset3); // check for puncts
+				wxString noPunctsWord1 = word1;
+				pView->RemovePunctuation(pDoc, &noPunctsWord1, 0); // param 0 for src language punctuation
+				bool bNoPunctsOnMSrcPhrase = noPunctsWord1 == word1;
+				word2 = pFollSrcPhrase->m_key;
+				// move the wrongly located punctuation character to prec punct of 2nd word
+				// and then clear the pSrcPhrase's m_follPunct to empty
+				word2PrecPunct = pSrcPhrase->m_follPunct + aSpace + pFollSrcPhrase->m_precPunct;
+				pSrcPhrase->m_follPunct.Empty();
+
+				// move any inline binding marker and endmarker on the second word to the
+				// embedded sourcephrase
+				if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					pSPWord2Embedded->SetInlineBindingMarkers(pFollSrcPhrase->GetInlineBindingMarkers());
+					pFollSrcPhrase->SetInlineBindingMarkers(emptyStr);
+				}
+				if (!pFollSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				{
+					pSPWord2Embedded->SetInlineBindingEndMarkers(pFollSrcPhrase->GetInlineBindingEndMarkers());
+					pFollSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+				}
+				
+				// construct the m_srcPhrase and m_key strings
+				pSrcPhrase->m_srcPhrase += aSpace + pFollSrcPhrase->m_srcPhrase;
+				pSrcPhrase->m_key += pFollSrcPhrase->m_key;
+                // for the m_targetStr and m_adaption members, use pSrcPhrase->m_adaption
+                // and pFollSrcPhrase->m_adaption, and rely on the function call later to
+                // punctuation placement and convertion to target language punctuation
+                wxString adaptationStr = pSrcPhrase->m_adaption; // could have ~ at its
+												// end as well as embedded puncts before
+												// that, so check it out
+				offset3 = adaptationStr.Find(_T('~'));
+				if (offset3 != wxNOT_FOUND)
+				{
+					adaptationStr = adaptationStr.Left(offset3);
+					// now remove any target language punctuation
+					pView->RemovePunctuation(pDoc, &adaptationStr, 1); // 1 param means 
+													// 'use target language punctuation'
+				}
+				pSPWord1Embedded->m_adaption = adaptationStr;
+				pSPWord1Embedded->m_targetStr = pSPWord1Embedded->m_precPunct;
+				pSPWord1Embedded->m_targetStr += adaptationStr;
+				// delay adding following puncts until we are sure there are some or not
+				// at the end of the next bit of code
+
+				// now fill the rest of pSPWord1Embedded's data members as appropriate
+				word1FollPunct.Empty();
+				offset3 = word1.Find(noPunctsWord1);
+				wxASSERT(offset3 != wxNOT_FOUND);
+				if (!bNoPunctsOnMSrcPhrase)
+				{
+					word1FollPunct = word1.Mid(offset3);
+				}
+				if (word1FollPunct.IsEmpty())
+				{
+					pSPWord1Embedded->m_srcPhrase = pSrcPhrase->m_precPunct;
+					pSPWord1Embedded->m_srcPhrase += word1;
+				}
+				else
+				{
+					pSPWord1Embedded->m_srcPhrase = pSPWord1Embedded->m_precPunct;
+					pSPWord1Embedded->m_srcPhrase += noPunctsWord1;
+					pSPWord1Embedded->m_srcPhrase += word1FollPunct;	
+					pSPWord1Embedded->m_follPunct = word1FollPunct;
+				}
+				pSPWord1Embedded->m_key = noPunctsWord1;
+				// add any word1 following punct if we've uncovered some previously
+				// internal
+				pSPWord1Embedded->m_targetStr += word1FollPunct;	
+
+				// there aren't any inline binding markers on pSrcPhrase, so now do the
+				// data filling for pSPWord2Embedded
+				pSPWord2Embedded->m_precPunct = word2PrecPunct;
+				pSPWord2Embedded->m_follPunct = pFollSrcPhrase->m_follPunct;
+				pSPWord2Embedded->m_key = pFollSrcPhrase->m_key;
+				pSPWord2Embedded->m_srcPhrase = pSPWord2Embedded->m_precPunct;
+				pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_key;
+				pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_follPunct;
+
+				pSPWord2Embedded->m_adaption = pFollSrcPhrase->m_adaption;
+				pSPWord2Embedded->m_targetStr = pFollSrcPhrase->m_adaption;
+
+				// finally, just in case pFollSrcPhrase also stores an inline non-binding
+				// endmarker, check, and if so move it to pSrcPhrase and to word2's
+				// embedded instance; likewise if pSrcPhrase has an inline non-binding
+				// beginmarker, add it to word1's embedded instance
+				if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				{
+					pSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+
+				}
+				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				{
+					pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+				}
+
+				// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
+				// adaption and targetStr parameters
+				MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, adaption, targetStr);
+				pSrcPhrase->m_adaption = adaption;
+				pSrcPhrase->m_targetStr = targetStr;
+				pSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
+
+				bDeleteFollowingWhenDone = TRUE;
+			}
+
+			if (bOnSecond)
+			{
+                // This scenario happens when there is an internal space on the following
+                // punctuation of the first word, resulting (ultimately, after orphan
+                // elimination) in that punctuation string being rebuilt on the end of the
+                // first word, but the ~ then ends up at the start of the second word. We
+                // accumulate data from the second instance to the first, and delete the
+                // second instance (ie. delete pFollSrcPhrase). The first word can have 
+                // inline binding marker and endmarker too, or may not have.
+				pSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
+				pSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
+
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					pSPWord1Embedded->m_precPunct = pSrcPhrase->m_precPunct;
+				}
+				if (!pSrcPhrase->m_follPunct.IsEmpty())
+				{
+					pSPWord1Embedded->m_follPunct = pSrcPhrase->m_follPunct;
+				}
+				// there won't be binding marker or endmarker on the second word (if there
+				// were, there would be a sequence of 3 instances to consider, not 2), but
+				// there can be such markers on the first word
+				
+				// move any inline binding marker and endmarker on the first word to the
+				// first embedded sourcephrase
+				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				{
+					pSPWord1Embedded->SetInlineBindingMarkers(pSrcPhrase->GetInlineBindingMarkers());
+					pSrcPhrase->SetInlineBindingMarkers(emptyStr);
+				}
+				if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				{
+					pSPWord1Embedded->SetInlineBindingEndMarkers(pSrcPhrase->GetInlineBindingEndMarkers());
+					pSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+				}
+				// set the m_key and m_srcPhrase members for pSPWord1Embedded, likewise
+				// m_adaption and m_targetStr
+				word1 = pSrcPhrase->m_key;
+				pSPWord1Embedded->m_key = word1;
+				pSPWord1Embedded->m_srcPhrase = pSrcPhrase->m_srcPhrase;
+				pSPWord1Embedded->m_adaption = pSrcPhrase->m_adaption;
+				pSPWord1Embedded->m_targetStr = pSrcPhrase->m_targetStr;
+				
+				// the ~ will be at the start of the second sourcephrase's m_key member
+				int offset3 = pFollSrcPhrase->m_key.Find(_T('~'));
+				wxASSERT(offset3 == 0);
+				word2 = pFollSrcPhrase->m_key.Mid(offset3 + 1); // check for word-internal puncts
+				wxString noPunctsWord2 = word2;
+				pView->RemovePunctuation(pDoc, &noPunctsWord2, 0); // param 0 for src language punctuation
+				bool bNoPunctsOnMSrcPhrase = noPunctsWord2 == word2;
+                // move any internal and now exposed preceding punctuation character to
+                // prec punct of 2nd word and then
+ 				word2PrecPunct.Empty();
+				if (!bNoPunctsOnMSrcPhrase)
+				{
+					offset3 = word2.Find(noPunctsWord2);
+					if (offset3 > 0)
+					{
+						// there is some preceding punctuation now exposed, so get it
+						word2PrecPunct = word2.Left(offset3);
+						// noPunctsWord2 has the punctuation-less m_key value for 2nd
+						// embedded sourcephrase
+					}
+				}
+				word2 = noPunctsWord2;
+				pSPWord2Embedded->m_key = word2;
+				if (word2PrecPunct.IsEmpty())
+				{
+					pSPWord2Embedded->m_precPunct = word2PrecPunct;
+				}
+				if (!pFollSrcPhrase->m_follPunct.IsEmpty())
+				{
+					pSPWord2Embedded->m_follPunct = pFollSrcPhrase->m_follPunct;
+				}
+				pSPWord2Embedded->m_srcPhrase = pSPWord2Embedded->m_precPunct;
+				pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_key;
+				pSPWord2Embedded->m_srcPhrase += pSPWord2Embedded->m_follPunct;
+
+				// get rebuilt, corrected, m_srcPhrase, m_key, m_adaption & m_targetStr
+				// for the parent instance
+				pSrcPhrase->m_srcPhrase += pFollSrcPhrase->m_srcPhrase;
+				pSrcPhrase->m_key += _T("~") + word2;
+				offset3 = pFollSrcPhrase->m_adaption.Find(_T('~'));
+				if (offset3 != wxNOT_FOUND)
+				{
+					pSPWord2Embedded->m_adaption = pFollSrcPhrase->m_adaption.Mid(1);
+				}
+				else
+				{
+					pSPWord2Embedded->m_adaption = pFollSrcPhrase->m_adaption;
+				}
+				pSPWord2Embedded->m_targetStr = pSPWord2Embedded->m_precPunct;
+				pSPWord2Embedded->m_targetStr += pSPWord2Embedded->m_adaption;
+				pSPWord2Embedded->m_targetStr += pSPWord2Embedded->m_follPunct;
+
+				// finally, just in case pFollSrcPhrase also stores an inline non-binding
+				// endmarker, check, and if so move it to pSrcPhrase and to word2's
+				// embedded instance; likewise if pSrcPhrase has an inline non-binding
+				// beginmarker, add it to word1's embedded instance
+				if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				{
+					pSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+
+				}
+				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				{
+					pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+				}
+
+				// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
+				// adaption and targetStr parameters
+				MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, adaption, targetStr);
+				pSrcPhrase->m_adaption = adaption;
+				pSrcPhrase->m_targetStr = targetStr;
+				pSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
+
+				bDeleteFollowingWhenDone = TRUE;
+			}
+		}
+		else if (offset > 0 && keylen > offset + 1)
+		{
+			// the ~ is internal, we've only one CSourcePhrase we need deal with, and
+			// there could be punctuation (without spaces) either or both sides of the ~,
+			// as well as at the start or end of the whole.
+			wxString str = pSrcPhrase->m_key;
+			size_t offset4 = str.Find(FixedSpace);
+			wxString wd1 = str.Left(offset4); // may have punctuation before or after or both
+			wxString wd2 = str.Mid(offset4 + 1); // may have punctuation before or after or both
+
+			adaption.Empty(); targetStr.Empty();
+			pSPWord1Embedded = new CSourcePhrase;
+			pSPWord2Embedded = new CSourcePhrase;
+			pSrcPhrase->m_pSavedWords->Append(pSPWord1Embedded);
+			pSrcPhrase->m_pSavedWords->Append(pSPWord2Embedded);
+
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				pSPWord1Embedded->m_precPunct = pSrcPhrase->m_precPunct;
+			}
+			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			{
+				pSPWord2Embedded->m_follPunct = pSrcPhrase->m_follPunct;
+			}
+			// there won't be binding marker or endmarker on either word (if there
+			// were, there would be a sequence of CSourcePhrase instances to consider)
+
+			// parse to break out the following punctuation on the first word,
+			// and the first word itself
+			word1 = SpanExcluding(wd1, gpApp->m_punctuation[0]);
+			int length = word1.Len();
+			pSPWord1Embedded->m_follPunct = wd1.Mid(length);
+
+			// parse to break out the preceding punctuation on the second word,
+			// and the second word itself
+			pSPWord2Embedded->m_precPunct = SpanIncluding(wd2, gpApp->m_punctuation[0]);
+			length = pSPWord2Embedded->m_precPunct.Len();
+			word2 = wd2.Mid(length);
+
+			// build the parent's m_key
+			pSrcPhrase->m_key = word1 + FixedSpace;
+			pSrcPhrase->m_key += word2;
+
+			// get parent's m_adaption content calculated
+			wxString adaptation1;	adaptation1.Empty();
+			wxString adaptation2;	adaptation2.Empty();
+			offset4 = pSrcPhrase->m_adaption.Find(FixedSpace);
+			if (offset4 == wxNOT_FOUND)
+			{
+				// we have only the first word present
+				adaptation1 = pSrcPhrase->m_adaption;
+				pView->RemovePunctuation(pDoc,&adaptation1,1); // 1 means 'target punctuation'
+				pSPWord1Embedded->m_adaption = adaptation1;
+				pSrcPhrase->m_adaption = adaptation1;
+			}
+			else
+			{
+				// both words are present
+				adaptation1 = pSrcPhrase->m_adaption.Left(offset4);
+				adaptation2 = pSrcPhrase->m_adaption.Mid(offset4 + 1);
+				pView->RemovePunctuation(pDoc,&adaptation1,1);
+				pView->RemovePunctuation(pDoc,&adaptation2,1);
+				pSPWord1Embedded->m_adaption = adaptation1;
+				pSPWord2Embedded->m_adaption = adaptation2;
+			}
+
+			pSPWord1Embedded->m_targetStr = pSPWord1Embedded->m_precPunct;
+			pSPWord1Embedded->m_targetStr += pSPWord1Embedded->m_adaption;
+			pSPWord1Embedded->m_targetStr += pSPWord1Embedded->m_follPunct;
+
+			pSPWord2Embedded->m_targetStr = pSPWord2Embedded->m_precPunct;
+			pSPWord2Embedded->m_targetStr += pSPWord2Embedded->m_adaption;
+			pSPWord2Embedded->m_targetStr += pSPWord2Embedded->m_follPunct;
+
+            // finally, just in case pSrcPhrase also stores an inline non-binding
+            // endmarker, check, and if so move it to word2's embedded instance; likewise
+            // if pSrcPhrase has an inline non-binding beginmarker, add it to word1's
+            // embedded instance
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				pSPWord2Embedded->SetInlineNonbindingEndMarkers(pSrcPhrase->GetInlineNonbindingEndMarkers());
+				pSrcPhrase->SetInlineNonbindingEndMarkers(emptyStr);
+
+			}
+			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			{
+				pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+				pSrcPhrase->SetInlineNonbindingMarkers(emptyStr);
+			}
+
+			// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
+			// adaption and targetStr parameters
+			MakeFixedSpaceTranslation(pSPWord1Embedded, pSPWord2Embedded, adaption, targetStr);
+			pSrcPhrase->m_adaption = adaption;
+			pSrcPhrase->m_targetStr = targetStr;
+			pSrcPhrase->m_nSrcWords = 2; // we treat it as a pseudo-merger
+		}
+
+		if (bDeleteFollowingWhenDone)
+		{
+			// FALSE means "don't try delete a partner pile" (there isn't one yet)
+			SPList::Node* pos2 = pSrcPhraseList->Find(pFollSrcPhrase);
+			if (pos2 != NULL)
+			{
+				pSrcPhraseList->DeleteNode(pos2);
+				pDoc->DeleteSingleSrcPhrase(pFollSrcPhrase, FALSE);
+				pDoc->UpdateSequNumbers(0,NULL);
+				
+				// when deleting the Node which is ahead of where pSrcPhrase was stored,
+				// the pos value which was left pointing at this Node now points at freed
+				// memory, so we have to reset pos. savePos, where pSrcPhrase (the current
+				// location) was stored is still valid, so use that
+				pos = savePos;
+				if (!bDeleteCurrentWhenDone)
+				{
+					// don't advance pos to beyond the deleted one if we still need
+					// to remove the current one - leave it where it is now, back on
+					// the current one
+					pos = pos->GetNext();
+				}
+			}
+		}
+		if (bDeletePreviousWhenDone)
+		{
+			// FALSE means "don't try delete a partner pile" (there isn't one yet)
+			SPList::Node* pos2 = pSrcPhraseList->Find(pPrevSrcPhrase);
+			if (pos2 != NULL)
+			{
+				pSrcPhraseList->DeleteNode(pos2);
+				pDoc->DeleteSingleSrcPhrase(pPrevSrcPhrase, FALSE);
+				pDoc->UpdateSequNumbers(0,NULL);
+			}
+		}
+		if (bDeleteCurrentWhenDone)
+		{
+			// FALSE means "don't try delete a partner pile" (there isn't one yet)
+			SPList::Node* pos2 = pSrcPhraseList->Find(pSrcPhrase);
+			if (pos2 != NULL)
+			{
+				pSrcPhraseList->DeleteNode(pos2);
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
+				pDoc->UpdateSequNumbers(0,NULL);
+			}
+			if (bDeleteFollowingWhenDone)
+			{
+				// if we have just deleted the 'following' one, and now we've also
+				// deleted the former current one, two have gone - so the only valid
+				// iterator value left to which we can reset pos is savePrevPos
+				pos = savePrevPos;
+				// now advance from there
+				pos = pos->GetNext();
+			}
 		}
 
 		// restore the booleans to their default values before iterating
@@ -7112,6 +7441,13 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		bDeleteFollowingWhenDone = FALSE;
 	} // end of loop: while (pos != NULL)
 	pDoc->UpdateSequNumbers(0,NULL); // must do this to ensure sequential numbering
+
+	// update navigation text
+	gPropagationType = verse; // default at start of a document
+	gbPropagationNeeded = FALSE;
+	int docSrcPhraseCount = gpApp->m_pSourcePhrases->size();
+	pDoc->DoMarkerHousekeeping(gpApp->m_pSourcePhrases, docSrcPhraseCount, gPropagationType, 
+							gbPropagationNeeded);
 }
 
 // return nothing

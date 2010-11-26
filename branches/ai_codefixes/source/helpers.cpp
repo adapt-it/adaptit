@@ -1171,6 +1171,7 @@ wxString GetLastMarker(wxString markers)
 			offset = FindFromPos(markers, backslash, offset + 1);
 		}
 		mkr = markers.Mid(lastOffset);
+		mkr = gpApp->GetDocument()->GetWholeMarker(mkr);
 		return mkr;
 	}
 }

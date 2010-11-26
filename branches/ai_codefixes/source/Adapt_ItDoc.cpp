@@ -12662,7 +12662,8 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///												is encountered, otherwise FALSE (no propagation 
 ///												needed)
 /// \remarks
-/// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and OnEditSourceText()
+/// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and OnEditSourceText(),
+/// and also from XML's MurderTheDocV4Orphans()
 /// There are two uses for this function:
 ///   (1) To do navigation text, special text colouring, and TextType value cleanup 
 ///         after the user has edited the source text - which potentially allows the user
