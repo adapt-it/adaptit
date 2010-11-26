@@ -13688,13 +13688,14 @@ wxString GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 // results for later on placement. bIncludeNote should be set TRUE to have a note included
 // in the gathering of filtered info from pSrcPhrase, FALSE to have note information not
 // gathered and hence not returned in the string to the caller along with the rest.
-// bDoCountForFreeTrans specifies whether or not work counting for free trans |@ nnn @|
+// bDoCountForFreeTrans specifies whether or not word counting for free trans |@ nnn @|
 // word count is to be done, using m_targetStr or m_srcPhrase as the case may be for next
 // param. bCountInTargetTextLine specifies which line to count the words in, and hence
 // whether to do it with m_srcPhrase (use FALSE) or m_targetStr (use TRUE).
 // Beware, \x ...\x* cross reference information goes after any m_markers content, but
 // other filtered information, if present, goes before it; so we must look for xref stuff
 // and locate it properly in the string for output.
+// BEW created 11Oct10
 wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
 					 bool& bAddedSomething, bool bIncludeNote,
 					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine)
@@ -13862,7 +13863,7 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr,
 // BEW created 11Oct10
 wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 	SPList* pSrcPhrases, wxString filteredInfo_NoXRef, wxString collBackTransStr,
-	wxString freeTransStr, wxString noteStr)
+	wxString freeTransStr, wxString noteStr, bool bDoCount, bool bCountInTargetText)
 {
 	wxString markersPrefix; markersPrefix.Empty();
 	wxString aSpace = _T(' ');
@@ -13893,30 +13894,32 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 		markersPrefix.Trim();
 		markersPrefix += aSpace + freeMkr;
 
-		// BEW addition 06Oct05; a \free .... \free* section pertains to a
-		// certain number of consecutive sourcephrases starting at this one if
-		// m_markers contains the \free marker, but the knowledge of how many
-		// sourcephrases is marked in the latter instances by which ones have
-		// the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
-		// just export the filtered free translation content we will lose all
-		// information about its extent in the document. So we have to compute
-		// how many target words are involved in the section, and store that
-		// count in the exported file -- and the obvious place to do it is
-		// after the \free marker and its following space. We will store it as
-		// follows: |@nnnn@|<space> so that we can search for the number and
-		// find it quickly and remove it if we later import the exported file
-		// into a project as source text.
-		// (Note: the following call has to do its word counting in the SPList,
-		// because only there is the filtered information, if any, still hidden
-		// and therefore unable to mess up the word count.)
-		int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
-				pSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
-		// construct an easily findable unique string containing the number
-		wxString entry = _T("|@");
-		entry << nWordCount; // converts int to string automatically
-		entry << _T("@| ");
-		// append it after a delimiting space
-		markersPrefix += aSpace + entry;
+		if (bDoCount)
+		{
+            // BEW addition 06Oct05; a \free .... \free* section pertains to a certain
+            // number of consecutive sourcephrases starting at this one if m_markers
+            // contains the \free marker, but the knowledge of how many sourcephrases is
+            // marked in the latter instances by which ones have the m_bStartFreeTrans ==
+            // TRUE and m_bEndFreeTrans == TRUE, and if we just export the filtered free
+            // translation content we will lose all information about its extent in the
+            // document. So we have to compute how many target words are involved in the
+            // section, and store that count in the exported file -- and the obvious place
+            // to do it is after the \free marker and its following space. We will store it
+            // as follows: |@nnnn@|<space> so that we can search for the number and find it
+            // quickly and remove it if we later import the exported file into a project as
+            // source text.
+            // (Note: the following call has to do its word counting in the SPList, because
+            // only there is the filtered information, if any, still hidden and therefore
+            // unable to mess up the word count.)
+			int nWordCount = CountWordsInFreeTranslationSection(bCountInTargetText,pSrcPhrases,
+					pSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+			// construct an easily findable unique string containing the number
+			wxString entry = _T("|@");
+			entry << nWordCount; // converts int to string automatically
+			entry << _T("@| ");
+			// append it after a delimiting space
+			markersPrefix += aSpace + entry;
+		}
 		if (freeTransStr.IsEmpty())
 		{
 			// we must support empty free translation sections
@@ -14152,6 +14155,14 @@ int RebuildSourceText(wxString& source)
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 
+#ifdef __WXDEBUG__
+		if (pSrcPhrase->m_nSequNumber >= 1297)
+		{
+			int i = 0;
+			i = i;
+		}
+#endif
+
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
 
@@ -14379,8 +14390,10 @@ int RebuildSourceText(wxString& source)
 				bAttachFiltered = FALSE;
 			}
 			bool bAttach_m_markers = TRUE;
+			// in next call, bCount is TRUE, bCountInTargetText is FALSE (counting
+			// words in the source text of the free translation section, if any)
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
-									mMarkersStr, xrefStr, otherFiltered);
+									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
 
 			source.Trim();
 			source << aSpace << str;
@@ -15355,15 +15368,19 @@ int RebuildTargetText(wxString& target)
 			// m_follOuterPunct support.
 			if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 			{
-				// this pSrcPhrase stores a merger
-				str = FromMergerMakeTstr(pSrcPhrase, str);
+				// this pSrcPhrase stores a merger; first TRUE is bDoCount (of words
+				// in the free translation section, if any such section), and second TRUE
+				// is bCountInTargetText
+				str = FromMergerMakeTstr(pSrcPhrase, str, TRUE, TRUE);
 			}
 			else
 			{
-				// this pSrcPhrase stores a single CSourcePhrase instance for a single
-				// target text word (which could be the empty string); or a pair of words
-				// with USFM fixed space symbol ~ conjoining them
-				str = FromSingleMakeTstr(pSrcPhrase, str);
+                // this pSrcPhrase stores a single CSourcePhrase instance for a single
+                // target text word (which could be the empty string); or a pair of words
+                // with USFM fixed space symbol ~ conjoining them; first TRUE is bDoCount
+                // (of words in the free translation section, if any such section), and
+                // second TRUE is bCountInTargetText
+				str = FromSingleMakeTstr(pSrcPhrase, str, TRUE, TRUE);
 			}
 		}
 
@@ -16645,7 +16662,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					unfilteredStr.Trim();
 					unfilteredStr += aSpace + freeMkr;
 
-                    // see comments in TRUE block above for what is happening here
+					// see comments in TRUE block above for what is happening here
 					int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
 							pSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
 					wxString entry = _T("|@");
@@ -16653,7 +16670,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					entry << _T("@| ");
 					// append it after a delimiting space
 					unfilteredStr += aSpace + entry;
-
+					
 					// now the free translation string itself & endmarker
 					unfilteredStr += aSpace + freeTransStr;
 					unfilteredStr += freeEndMkr; // don't need space too

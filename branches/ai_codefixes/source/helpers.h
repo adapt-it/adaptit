@@ -209,11 +209,13 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAd
 wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 									  bool bCountInTargetText, bool bIncludeNote = TRUE);
 wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase); // BEW created 11Oct10
-wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr);
-wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr);
+wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
+							bool bCountInTargetText);
+wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
+							bool bCountInTargetText);
 wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
-				wxString& filteredInfoStr);
+				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText);
 wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 

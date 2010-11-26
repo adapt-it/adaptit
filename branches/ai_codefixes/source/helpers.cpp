@@ -471,6 +471,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	{
 		count++;
 	}
+	(*pRev).UngetWriteBuf();
 	if (count == 0)
 		return length;
 	else
@@ -496,6 +497,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	{
 		count++;
 	}
+	str.UngetWriteBuf();
 	if (count == 0)
 		return 0;
 	else
@@ -2204,6 +2206,9 @@ void EmptyMarkersAndFilteredStrings(
 ///                             markers and endmarkers, possibly a placement dialog
 ///                             invoked on it as well; it's pMergedSrcPhrase->m_targetStr
 ///                             from the caller
+/// \param  bDoCount        ->  whether or not to do a word count of the free trans section
+/// \param  bCountInTargetText -> do the count using target text words if TRUE, else
+///                             source test words
 /// \remarks
 /// This function is used in the preparation of source text data (Sstr), and editable data
 /// (Tstr), and if necessary it will call the PlaceInternalMarkers class to place medial
@@ -2231,7 +2236,8 @@ void EmptyMarkersAndFilteredStrings(
 /// in which there is m_follOuterPunct, and four wxString members for inline markers and
 /// endmarkers, binding versus non-binding
 /////////////////////////////////////////////////////////////////////////////////////////
-wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
+wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
+							bool bCountInTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
@@ -2323,8 +2329,8 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 	// the one below to GetUnfilteredCrossRefsAndMMarkers()
 	markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pMergedSrcPhrase,
 							pSrcPhrases, otherFiltered, collBackTransStr,
-							freeTransStr, noteStr); // m_markers and xrefStr handled in
-													// a separate function, later below
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
+								// and xrefStr handled in a separate function, later below
 	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 	// make sure it ends with a space
 	markersPrefix.Trim();
@@ -2339,7 +2345,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 	// and if there is content in xrefStr (and bAttachFilteredInfo is TRUE) then put that
 	// content after the markersStr (ie. m_markers) content; delay placement until later
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
-												bAttachFilteredInfo, bAttach_m_markers);
+						bAttachFilteredInfo, bAttach_m_markers);
 	// for Sstr, which we only show to the user so he/she has the source to guide what is
 	// done in the target by manual editing in the placement dialog, we don't include any
 	// of the filtered info, so just put markersStr into Sstr
@@ -3520,7 +3526,8 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// Also, when there is ~ conjoining, we now fully support inline binding marker and
 /// endmarker on either or both words of the conjoined pair.
 /////////////////////////////////////////////////////////////////////////////////////////
-wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
+wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
+							bool bCountInTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
@@ -3620,8 +3627,8 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 	// the one below to GetUnfilteredCrossRefsAndMMarkers()
 	markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
 							pSrcPhrases, otherFiltered, collBackTransStr,
-							freeTransStr, noteStr); // m_markers and xrefStr handled in
-													// a separate function, later below
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers 
+								// and xrefStr handled in a separate function, later below
 	
 	// BEW 11Oct10, the initial stuff is now more complex, so we can no longer insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
@@ -3780,7 +3787,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 		bool bAttachFiltered = FALSE;
 		bool bAttach_m_markers = TRUE;
 		wxString Sstr = FromSingleMakeSstr(pSingleSrcPhrase, bAttachFiltered,
-			bAttach_m_markers, mMarkersStr, xrefStr, otherFiltered); // need Sstr for the dialog
+			bAttach_m_markers, mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE); // need Sstr for the dialog
 
 		CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
 
@@ -3890,6 +3897,7 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 		tgtStr += pSPWord2->GetInlineBindingEndMarkers();
 	if (!word2FollPunct.IsEmpty())
 		tgtStr += word2FollPunct;
+	tgtStr.UngetWriteBuf();
 	return tgtStr;
 }
 
@@ -3958,7 +3966,7 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 // BEW created 11Oct10 for support of additions to doc version 5 for better USFM support
 wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
-				wxString& filteredInfoStr)
+				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
@@ -4016,8 +4024,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		// is other filtered info, it precedes m_markers info; remove LHS whitespace when done
 		markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
 							pSrcPhrases, filteredInfoStr, collBackTransStr,
-							freeTransStr, noteStr); // m_markers and xrefStr handled in
-													// a separate function, later below
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers 
+								// and xrefStr are handled in a separate function, later below
 		 
 	} // end of TRUE block for test: if (bAttachFilteredInfo)
 	else

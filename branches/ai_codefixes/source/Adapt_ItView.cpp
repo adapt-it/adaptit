@@ -21596,8 +21596,11 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			}
 			else
 			{
+				// FALSE and FALSE is bDoCount and bCountInTargetText; we are not
+				// interested in the wordcounting because any free translations have been
+				// removed already when this function is called from OnEditSourceText()
 				srcStr = FromSingleMakeSstr(pSrcPhrase, TRUE, TRUE, unused_mMarkers, 
-											unused_xRef, unused_filtdInfo);
+											unused_xRef, unused_filtdInfo, FALSE, FALSE);
 			}
 			// figure out how to concatenate the substrings - after an endmarker (we'll
 			// assume USFM, it's unlikely we'll have to bother with PNG 1998 SFM now, and

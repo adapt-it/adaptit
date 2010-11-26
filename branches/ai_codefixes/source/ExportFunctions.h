@@ -131,7 +131,7 @@ bool		ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxStrin
 wxString	GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 							SPList* pSrcPhrases, wxString filteredInfo_NoXRef,
 							wxString collBackTransStr, wxString freeTransStr,
-							wxString noteStr);
+							wxString noteStr, bool bDoCount, bool bCountInTargetText);
 wxString	GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr, 
 							wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers);
 wxString	GetStyleNumberStrFromRTFTagStr(wxString tagStr, int& startPos, int& endPos); // whm added 18Oct05
