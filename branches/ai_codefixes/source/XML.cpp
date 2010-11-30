@@ -4609,7 +4609,7 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		str = MakeReverse(rev); // restore normal order, the result is the 'content' string
 		content = str;
 		//str.UngetWriteBuf(); <- produces a malloc() crash; don't use this function after
-		//doing a normal string operation on the variable whose buffer was obtained
+		//doing a GetData() string operation on the variable whose buffer was obtained
 		return;
 	}
 	else
@@ -4628,7 +4628,8 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		rev.Trim(FALSE); // trim any now-initial whitespace
 		content = MakeReverse(rev);
 	}
-	//str.UngetWriteBuf(); <- dangerous, see above
+	//str.UngetWriteBuf(); <- dangerous, see above. don't use this function after
+	//doing a GetData() string operation on the variable whose buffer was obtained
 }
 
 /**************************************************************************************

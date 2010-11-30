@@ -471,7 +471,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	{
 		count++;
 	}
-	(*pRev).UngetWriteBuf();
+	//(*pRev).UngetWriteBuf(); // whm 30Nov10 only call UngetWriteBuf() after a GetWriteBuf() call, not a GetData() call
 	if (count == 0)
 		return length;
 	else
@@ -497,7 +497,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	{
 		count++;
 	}
-	str.UngetWriteBuf();
+	//str.UngetWriteBuf(); // whm 30Nov10 only call UngetWriteBuf() after a GetWriteBuf() call, not a GetData() call
 	if (count == 0)
 		return 0;
 	else
@@ -3897,7 +3897,7 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 		tgtStr += pSPWord2->GetInlineBindingEndMarkers();
 	if (!word2FollPunct.IsEmpty())
 		tgtStr += word2FollPunct;
-	tgtStr.UngetWriteBuf();
+	//tgtStr.UngetWriteBuf(); // whm 30Nov10 only call UngetWriteBuf() after a GetWriteBuf() call, not a GetData() call
 	return tgtStr;
 }
 
