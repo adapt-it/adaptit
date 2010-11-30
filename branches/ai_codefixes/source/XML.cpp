@@ -3910,7 +3910,6 @@ wxString ExtractAndStoreInlineMarkersDocV4To5(wxString markers, CSourcePhrase* p
 		}
 	}
 	collectStr.Trim(FALSE); // trim at start of string
-	markers.UngetWriteBuf();
 	return collectStr;
 }
 
@@ -4479,7 +4478,6 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 			// isn't a marker of any kind, so break out of loop
 			break;
 		}
-		markers.UngetWriteBuf();
 	} while (TRUE);
 	return bTransferred;
 }
@@ -4610,7 +4608,8 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		rev.Trim(FALSE); // trim any initial white space
 		str = MakeReverse(rev); // restore normal order, the result is the 'content' string
 		content = str;
-		str.UngetWriteBuf();
+		//str.UngetWriteBuf(); <- produces a malloc() crash; don't use this function after
+		//doing a normal string operation on the variable whose buffer was obtained
 		return;
 	}
 	else
@@ -4629,7 +4628,7 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		rev.Trim(FALSE); // trim any now-initial whitespace
 		content = MakeReverse(rev);
 	}
-	str.UngetWriteBuf();
+	//str.UngetWriteBuf(); <- dangerous, see above
 }
 
 /**************************************************************************************

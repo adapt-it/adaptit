@@ -292,6 +292,9 @@ from a document containing an unknown SFM marker (e.g. \y )
 * Free translating within a footnote, cross reference or endnote, the
 automatically generated end of the section stopped one word short of 
 the actual end of the footnote, cross reference or endnote contents.
+* In free translation mode, clicking on a different section, the phrase 
+box would show the source text word rather than the adaptation word
+(or phrase) at the clicked section's anchor location.
 
 ----------------------------------------------
 Version 5.2.3 update 29September2010:

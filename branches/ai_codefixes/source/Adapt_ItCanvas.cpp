@@ -1573,8 +1573,9 @@ t:	if (pCell == NULL)
 
 					// BEW added 8Apr10, the global wxString translation has to be given
 					// the value for the phrase box at the new location, otherwise the
-					// last location's string will wrongly be put there
-					translation = pCell->GetPile()->GetSrcPhrase()->m_key;
+					// last location's string will wrongly be put there; we get the value
+					// from the m_adaption member of that CSourcePhrase instance
+					translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 
 					// the PlacePhraseBox() call calls CLayout::RecalcLayout()
 					pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
