@@ -4225,6 +4225,7 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 // (transfer of inline binding and non-binding begin markers is done in the caller, as
 // these will be at the end of m_markers for docVersion4, so they are handled after any
 // filtered data is transferred in the caller)
+// BEW 2Dec10 prevent deletion of orphans if m_precPunct contains [ or m_follPunct contains ]
 bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers, 
 						CSourcePhrase* pLastSrcPhrase, bool& bDeleteWhenDone)
 {
@@ -4316,24 +4317,32 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 							// because this orphan only gets created in docV4 if there is
 							// punctuation following \f* or \fe* or \x*, and punctuation
 							// after any of those, is, by definition, outer punctuation
-							wxString follPuncts; // accumulate here
-							if (!pSrcPhrase->m_precPunct.IsEmpty())
+							// BEW 2Dec10 prevent deletion of orphans if m_precPunct
+							// contains [ or m_follPunct contains ]
+							if (pSrcPhrase->m_precPunct.Find(_T('[')) == wxNOT_FOUND &&
+								pSrcPhrase->m_follPunct.Find(_T(']')) == wxNOT_FOUND)
 							{
-								wxString puncts = pSrcPhrase->m_precPunct;
-								// update the two members the user sees
-								pLastSrcPhrase->m_srcPhrase += puncts;
-								pLastSrcPhrase->m_targetStr += puncts;
-								// update the storage
-								if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+								// do this only provided [ is not in m_precPunct and ] is
+								// not in m_follPunct
+								wxString follPuncts; // accumulate here
+								if (!pSrcPhrase->m_precPunct.IsEmpty())
 								{
-									pLastSrcPhrase->SetFollowingOuterPunct(puncts);
+									wxString puncts = pSrcPhrase->m_precPunct;
+									// update the two members the user sees
+									pLastSrcPhrase->m_srcPhrase += puncts;
+									pLastSrcPhrase->m_targetStr += puncts;
+									// update the storage
+									if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									{
+										pLastSrcPhrase->SetFollowingOuterPunct(puncts);
+									}
+									else
+									{
+										pLastSrcPhrase->AddFollOuterPuncts(puncts);
+									}
 								}
-								else
-								{
-									pLastSrcPhrase->AddFollOuterPuncts(puncts);
-								}
+								bDeleteWhenDone = TRUE;
 							}
-							bDeleteWhenDone = TRUE;
 						}
 					}
 					else if (gpApp->m_inlineNonbindingEndMarkers.Find(marker) != wxNOT_FOUND)
@@ -4354,24 +4363,32 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						{
 							// it's an orphan, any punctuation in m_precPunct belongs
 							// instead in pLastSrcPhrase's m_follPunct member
-							wxString follPuncts; // accumulate here
-							if (!pSrcPhrase->m_precPunct.IsEmpty())
+							// BEW 2Dec10 prevent deletion of orphans if m_precPunct
+							// contains [ or m_follPunct contains ]
+							if (pSrcPhrase->m_precPunct.Find(_T('[')) == wxNOT_FOUND &&
+								pSrcPhrase->m_follPunct.Find(_T(']')) == wxNOT_FOUND)
 							{
-								wxString puncts = pSrcPhrase->m_precPunct;
-								// update the two members the user sees
-								pLastSrcPhrase->m_srcPhrase += puncts;
-								pLastSrcPhrase->m_targetStr += puncts;
-								// update the storage
-								if (pLastSrcPhrase->m_follPunct.IsEmpty())
+								// do this only provided [ is not in m_precPunct and ] is
+								// not in m_follPunct
+								wxString follPuncts; // accumulate here
+								if (!pSrcPhrase->m_precPunct.IsEmpty())
 								{
-									pLastSrcPhrase->m_follPunct = puncts;
+									wxString puncts = pSrcPhrase->m_precPunct;
+									// update the two members the user sees
+									pLastSrcPhrase->m_srcPhrase += puncts;
+									pLastSrcPhrase->m_targetStr += puncts;
+									// update the storage
+									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									{
+										pLastSrcPhrase->m_follPunct = puncts;
+									}
+									else
+									{
+										pLastSrcPhrase->m_follPunct += puncts;
+									}
 								}
-								else
-								{
-									pLastSrcPhrase->m_follPunct += puncts;
-								}
+								bDeleteWhenDone = TRUE;
 							}
-							bDeleteWhenDone = TRUE;
 						}
 					}
 					else
@@ -4398,74 +4415,82 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 							// instead in pLastSrcPhrase's m_follPunct member, if the
 							// latter is empty; if not empty, put it instead in
 							// m_follOuterPunct member
-							wxString follPuncts; // accumulate here
-							wxString follOuterPuncts; // accumulate here
-							if (!pSrcPhrase->m_precPunct.IsEmpty())
+							// BEW 2Dec10 prevent deletion of orphans if m_precPunct
+							// contains [ or m_follPunct contains ]
+							if (pSrcPhrase->m_precPunct.Find(_T('[')) == wxNOT_FOUND &&
+								pSrcPhrase->m_follPunct.Find(_T(']')) == wxNOT_FOUND)
 							{
-								wxString puncts = pSrcPhrase->m_precPunct;
-								if (pLastSrcPhrase->m_follPunct.IsEmpty())
+								// do this only provided [ is not in m_precPunct and ] is
+								// not in m_follPunct
+								wxString follPuncts; // accumulate here
+								wxString follOuterPuncts; // accumulate here
+								if (!pSrcPhrase->m_precPunct.IsEmpty())
 								{
-									follPuncts = puncts;
+									wxString puncts = pSrcPhrase->m_precPunct;
+									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									{
+										follPuncts = puncts;
+									}
+									else
+									{
+										// not empty, we take this as indicating it's outer puncts
+										follOuterPuncts += puncts;
+									}
 								}
-								else
+								// if there is also content in pSrcPhrase->m_follPunct, it can
+								// only be because there was detatched following punctuation -
+								// and it will have been stored without its preceding space, so
+								// put back the space and transfer as immediately above
+								if (!pSrcPhrase->m_follPunct.IsEmpty())
 								{
-									// not empty, we take this as indicating it's outer puncts
-									follOuterPuncts += puncts;
+									wxString puncts = pSrcPhrase->m_follPunct;
+									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									{
+										//pLastSrcPhrase->m_follPunct = puncts;
+										follPuncts += _T(' ');
+										follPuncts += puncts;
+									}
+									else
+									{
+										// not empty, we take this as indicating it's outer puncts
+										follOuterPuncts += _T(' ');
+										follOuterPuncts += puncts;
+									}
 								}
+								if (!follPuncts.IsEmpty())
+								{
+									// update the two members the user sees
+									pLastSrcPhrase->m_srcPhrase += follPuncts;
+									pLastSrcPhrase->m_targetStr += follPuncts;
+									// update the storage
+									if (pLastSrcPhrase->m_follPunct.IsEmpty())
+									{
+										pLastSrcPhrase->m_follPunct = follPuncts;
+									}
+									else
+									{
+										pLastSrcPhrase->m_follPunct += follPuncts;
+									}
+								}
+								if (!follOuterPuncts.IsEmpty())
+								{
+									// update the two members the user sees
+									pLastSrcPhrase->m_srcPhrase += follOuterPuncts;
+									pLastSrcPhrase->m_targetStr += follOuterPuncts;
+									// update the storage
+									if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									{
+										pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+									}
+									else
+									{
+										wxString oldpuncts = pLastSrcPhrase->GetFollowingOuterPunct();
+										follOuterPuncts = oldpuncts + follOuterPuncts;
+										pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+									}
+								}
+								bDeleteWhenDone = TRUE;
 							}
-                            // if there is also content in pSrcPhrase->m_follPunct, it can
-                            // only be because there was detatched following punctuation -
-                            // and it will have been stored without its preceding space, so
-                            // put back the space and transfer as immediately above
-							if (!pSrcPhrase->m_follPunct.IsEmpty())
-							{
-								wxString puncts = pSrcPhrase->m_follPunct;
-								if (pLastSrcPhrase->m_follPunct.IsEmpty())
-								{
-									//pLastSrcPhrase->m_follPunct = puncts;
-									follPuncts += _T(' ');
-									follPuncts += puncts;
-								}
-								else
-								{
-									// not empty, we take this as indicating it's outer puncts
-									follOuterPuncts += _T(' ');
-									follOuterPuncts += puncts;
-								}
-							}
-							if (!follPuncts.IsEmpty())
-							{
-								// update the two members the user sees
-								pLastSrcPhrase->m_srcPhrase += follPuncts;
-								pLastSrcPhrase->m_targetStr += follPuncts;
-								// update the storage
-								if (pLastSrcPhrase->m_follPunct.IsEmpty())
-								{
-									pLastSrcPhrase->m_follPunct = follPuncts;
-								}
-								else
-								{
-									pLastSrcPhrase->m_follPunct += follPuncts;
-								}
-							}
-							if (!follOuterPuncts.IsEmpty())
-							{
-								// update the two members the user sees
-								pLastSrcPhrase->m_srcPhrase += follOuterPuncts;
-								pLastSrcPhrase->m_targetStr += follOuterPuncts;
-								// update the storage
-								if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
-								{
-									pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
-								}
-								else
-								{
-									wxString oldpuncts = pLastSrcPhrase->GetFollowingOuterPunct();
-									follOuterPuncts = oldpuncts + follOuterPuncts;
-									pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
-								}
-							}
-							bDeleteWhenDone = TRUE;
 						}
 					}
 				}
@@ -6453,6 +6478,7 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 // process will have removed CSourcePhrase instances, and it may be required that the n:m
 // chapter:verse number(s) be reconstituted somewhere, and also m_inform contents.
 // BEW created 11Oct10
+// BEW modified 2Dec10 to support keeping orphans with [ and ] brackets
 void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -6524,75 +6550,30 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 		// test the data & do fixes
 		if (pSrcPhrase->m_key.IsEmpty())
 		{
-			// it's an orphan, deal with it
-			
-            // First, deal with an inline non-binding beginmarker followed by punctuation
-            // followed by an inline binding beginmarker. Ordinary marker, punctuation then
-            // inline binding beginmarker would also do the same thing. DocV4 makes an
-            // orphaned preceding CSourcePhrase of either scenario, storing the inline
-            // non-binding beginmarker and the following punctuation - both of these belong
-            // on the CSourcePhrase following this orphan, and the binding beginmarker on
-            // the following instance has to be taken out of m_markers and put in
-			// m_inlineBindingMarkers. Note, FromDocVersion4ToDocVersion5() will have put
-			// an inline non-binding marker into pSrcPhrase->m_inlineNonbindingMarker if
-			// pSrcPhrase had that marker in its m_markers member; and the pFollSrcPhrase
-			// will have had the inline binding beginmarker from its m_markers member
-			// moved to the m_inlineBindingMarkers member.
-			if (pSrcPhrase->m_key.IsEmpty() && pFollSrcPhrase != NULL)
+			// it's an orphan, deal with it, but only if m_precPunct does not contain [
+			// and m_follPunct does not contain ], these ones we keep as orphans
+			if (pSrcPhrase->m_precPunct.Find(_T('[')) == wxNOT_FOUND &&
+				pSrcPhrase->m_follPunct.Find(_T(']')) == wxNOT_FOUND)
 			{
-				mkr = GetLastMarker(pSrcPhrase->m_markers);
-				if (!mkr.IsEmpty())
+				// First, deal with an inline non-binding beginmarker followed by punctuation
+				// followed by an inline binding beginmarker. Ordinary marker, punctuation then
+				// inline binding beginmarker would also do the same thing. DocV4 makes an
+				// orphaned preceding CSourcePhrase of either scenario, storing the inline
+				// non-binding beginmarker and the following punctuation - both of these belong
+				// on the CSourcePhrase following this orphan, and the binding beginmarker on
+				// the following instance has to be taken out of m_markers and put in
+				// m_inlineBindingMarkers. Note, FromDocVersion4ToDocVersion5() will have put
+				// an inline non-binding marker into pSrcPhrase->m_inlineNonbindingMarker if
+				// pSrcPhrase had that marker in its m_markers member; and the pFollSrcPhrase
+				// will have had the inline binding beginmarker from its m_markers member
+				// moved to the m_inlineBindingMarkers member.
+				if (pSrcPhrase->m_key.IsEmpty() && pFollSrcPhrase != NULL)
 				{
-                    // next condition is that m_inlineBindingMarkers on the pFollSrcPhrase
-                    // starts with the inline binding beginmarker
-					mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
-					wxString mkrPlusSpace = mkr2 + aSpace;
-					if (pDoc->IsMarker(&mkr2[0]) && 
-						gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
-					{
-						wxString precPuncts = pSrcPhrase->m_precPunct;
-						if (!precPuncts.IsEmpty())
-						{
-							// all the conditions are satisfied, so do the adjustments; if
-							// pFollSrcPhrase is a merger, copy the adjustments to the
-							// relevant members of the first instance in its m_pSavedWords
-							// list as well
-							// There should not be any m_precPunct content on
-							// pFollSrcPhrase so we can just copy the puncts across
-							pFollSrcPhrase->m_precPunct = precPuncts;
-							// show the user too
-							pFollSrcPhrase->m_srcPhrase = precPuncts + pFollSrcPhrase->m_srcPhrase;
-							pFollSrcPhrase->m_targetStr = precPuncts + pFollSrcPhrase->m_targetStr;
-
-							// now handle a merger, if pFollSrcPhrase is one
-							if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
-							{
-								// it's a merger
-								SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
-								CSourcePhrase* pOriginalSPh = pos->GetData();
-								pOriginalSPh->m_precPunct = precPuncts;
-							}
-							bDeleteCurrentWhenDone = TRUE;
-						}
-					}
-					// we must also transfer m_markers to pFollSrcPhrase whenever it is non-empty
-					if (!pSrcPhrase->m_markers.IsEmpty())
-					{
-						pFollSrcPhrase->m_markers = pSrcPhrase->m_markers + pFollSrcPhrase->m_markers;
-						pFollSrcPhrase->m_markers.Trim();
-						pFollSrcPhrase->m_markers += aSpace; // it must end with a single space
-
-						bDeleteCurrentWhenDone = TRUE;
-					}
-				} // end of TRUE block for test: if (!mkr.IsEmpty())
-				else
-				{
-					// there is no marker in pSrcPhrase's m_markers member
-					mkr = pDoc->GetWholeMarker(pSrcPhrase->GetInlineNonbindingMarkers());
+					mkr = GetLastMarker(pSrcPhrase->m_markers);
 					if (!mkr.IsEmpty())
 					{
-						// next condition is that m_markers on the pFollSrcPhrase starts with
-						// the inline binding beginmarker
+						// next condition is that m_inlineBindingMarkers on the pFollSrcPhrase
+						// starts with the inline binding beginmarker
 						mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
 						wxString mkrPlusSpace = mkr2 + aSpace;
 						if (pDoc->IsMarker(&mkr2[0]) && 
@@ -6623,41 +6604,91 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 								bDeleteCurrentWhenDone = TRUE;
 							}
 						}
+						// we must also transfer m_markers to pFollSrcPhrase whenever it is non-empty
+						if (!pSrcPhrase->m_markers.IsEmpty())
+						{
+							pFollSrcPhrase->m_markers = pSrcPhrase->m_markers + pFollSrcPhrase->m_markers;
+							pFollSrcPhrase->m_markers.Trim();
+							pFollSrcPhrase->m_markers += aSpace; // it must end with a single space
+
+							bDeleteCurrentWhenDone = TRUE;
+						}
 					} // end of TRUE block for test: if (!mkr.IsEmpty())
 					else
 					{
-						// Also, preceding punctuation followed by an inline binding
-						// beginmarker will generate a preceding orphan, so test for this
-						// and fix it that has happened (the inline binding beginmarker
-						// will have been already shifted to m_inlineBindingMarkers() member)
-						if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+						// there is no marker in pSrcPhrase's m_markers member
+						mkr = pDoc->GetWholeMarker(pSrcPhrase->GetInlineNonbindingMarkers());
+						if (!mkr.IsEmpty())
 						{
-							// the conditions are met if pSrcPhrase->m_precPunct has content
-							wxString precPuncts = pSrcPhrase->m_precPunct;
-							if (!precPuncts.IsEmpty())
+							// next condition is that m_markers on the pFollSrcPhrase starts with
+							// the inline binding beginmarker
+							mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
+							wxString mkrPlusSpace = mkr2 + aSpace;
+							if (pDoc->IsMarker(&mkr2[0]) && 
+								gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
 							{
-								// There should not be any m_precPunct content on
-								// pFollSrcPhrase so we can just copy the puncts across
-								pFollSrcPhrase->m_precPunct = precPuncts;
-								// show the user too
-								pFollSrcPhrase->m_srcPhrase = precPuncts + pFollSrcPhrase->m_srcPhrase;
-								pFollSrcPhrase->m_targetStr = precPuncts + pFollSrcPhrase->m_targetStr;
-
-								// now handle a merger, if pFollSrcPhrase is one
-								if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
+								wxString precPuncts = pSrcPhrase->m_precPunct;
+								if (!precPuncts.IsEmpty())
 								{
-									// it's a merger
-									SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
-									CSourcePhrase* pOriginalSPh = pos->GetData();
-									pOriginalSPh->m_precPunct = precPuncts;
+									// all the conditions are satisfied, so do the adjustments; if
+									// pFollSrcPhrase is a merger, copy the adjustments to the
+									// relevant members of the first instance in its m_pSavedWords
+									// list as well
+									// There should not be any m_precPunct content on
+									// pFollSrcPhrase so we can just copy the puncts across
+									pFollSrcPhrase->m_precPunct = precPuncts;
+									// show the user too
+									pFollSrcPhrase->m_srcPhrase = precPuncts + pFollSrcPhrase->m_srcPhrase;
+									pFollSrcPhrase->m_targetStr = precPuncts + pFollSrcPhrase->m_targetStr;
+
+									// now handle a merger, if pFollSrcPhrase is one
+									if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
+									{
+										// it's a merger
+										SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
+										CSourcePhrase* pOriginalSPh = pos->GetData();
+										pOriginalSPh->m_precPunct = precPuncts;
+									}
+									bDeleteCurrentWhenDone = TRUE;
 								}
-								bDeleteCurrentWhenDone = TRUE;
 							}
-						}
+						} // end of TRUE block for test: if (!mkr.IsEmpty())
+						else
+						{
+							// Also, preceding punctuation followed by an inline binding
+							// beginmarker will generate a preceding orphan, so test for this
+							// and fix it that has happened (the inline binding beginmarker
+							// will have been already shifted to m_inlineBindingMarkers() member)
+							if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+							{
+								// the conditions are met if pSrcPhrase->m_precPunct has content
+								wxString precPuncts = pSrcPhrase->m_precPunct;
+								if (!precPuncts.IsEmpty())
+								{
+									// There should not be any m_precPunct content on
+									// pFollSrcPhrase so we can just copy the puncts across
+									pFollSrcPhrase->m_precPunct = precPuncts;
+									// show the user too
+									pFollSrcPhrase->m_srcPhrase = precPuncts + pFollSrcPhrase->m_srcPhrase;
+									pFollSrcPhrase->m_targetStr = precPuncts + pFollSrcPhrase->m_targetStr;
+
+									// now handle a merger, if pFollSrcPhrase is one
+									if (pFollSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pFollSrcPhrase))
+									{
+										// it's a merger
+										SPList::Node* pos = pFollSrcPhrase->m_pSavedWords->GetFirst();
+										CSourcePhrase* pOriginalSPh = pos->GetData();
+										pOriginalSPh->m_precPunct = precPuncts;
+									}
+									bDeleteCurrentWhenDone = TRUE;
+								}
+							}
+						} // end of else block for test: if (!mkr.IsEmpty())
 					} // end of else block for test: if (!mkr.IsEmpty())
-				} // end of else block for test: if (!mkr.IsEmpty())
-			} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() 
-			  // && pFollSrcPhrase != NULL)
+				} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() 
+				  // && pFollSrcPhrase != NULL)
+			} // end of TRUE block for test: if (pSrcPhrase->m_precPunct.Find(_T('[')) == wxNOT_FOUND &&
+			  // pSrcPhrase->m_follPunct.Find(_T(']')) == wxNOT_FOUND)
 		} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty())
 
 		if (bDeleteFollowingWhenDone)

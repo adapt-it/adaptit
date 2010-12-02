@@ -11761,6 +11761,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		bHitMarker = FALSE;
 
+		//if (pSrcPhrase->m_nSequNumber >= 0)
+		//{
+			// debug from here
+		//	pSrcPhrase->m_nSequNumber = pSrcPhrase->m_nSequNumber;
+		//}
 		if (IsWhiteSpace(ptr))
 		{
             // advance pointer past the white space (inter-word spaces should be thrown
@@ -11776,7 +11781,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// space(s) is in the input data). We do the above whether or not [ and ] are
 		// specified as punctuation characters or not. They will be considered to be
 		// punctuation characters for this delimitation purpose even if not listed in the
-		// sets of source and target punctuation characters.
+		// sets of source and target punctuation characters. (Further below, if [ follows
+		// such things as \v 33 then the accumulated m_markers text has to be stored on
+		// an orphaned CSourcePhrase carrying the [ bracket.)
 		if (*ptr == _T('[') || *ptr == _T(']'))
 		{
 			if (*ptr == _T('['))
@@ -12263,6 +12270,42 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// that an ordinary marker will occur between the inline one and the word proper,
 		// so we can safely hand off to ParseWord() knowing the inner loop above is
 		// finished for this particular pSrcPhrase.)
+		// (3) ptr is pointing at a [ opening bracket which needs to be stored on the
+		// current pSrcPhrase (in its m_precPunct member, along with any following space
+		// if one is present in the input file after the [ bracket) along with any
+		// m_markers content already accumulated - we must do that before parsing further
+		// because 'further' would then belong to the next CSourcePhrase instance
+		
+		// bleed out the ptr pointing at [ bracket situation
+		if (*ptr == _T('['))
+		{
+			pSrcPhrase->m_precPunct = *ptr;
+			pSrcPhrase->m_srcPhrase = *ptr;
+			ptr++;
+			if (IsWhiteSpace(ptr))
+			{
+				// also store a following single space, if there was some white space
+				// following (this is so that SFM export will reproduce the space)
+				pSrcPhrase->m_precPunct += _T(" ");
+				ptr++;
+			}
+			if (!tokBuffer.IsEmpty())
+			{
+				pSrcPhrase->m_markers = tokBuffer;
+				tokBuffer.Empty();
+			}
+			// store the pointer in the SPList (in order of occurrence in text)
+			if (pSrcPhrase != NULL)
+			{
+				pList->Append(pSrcPhrase);
+			}
+
+			// make this one be the "last" one for next time through
+			pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
+			continue;
+		}
+		// not pointing at [ so do the parsing of the word - including puncts and inline
+		// markers
 		itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts,
 							pApp->m_inlineNonbindingMarkers,
 							pApp->m_inlineNonbindingEndMarkers,
