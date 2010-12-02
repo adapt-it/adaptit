@@ -12667,9 +12667,29 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							{
 								wxString tgtFollPunctOuter;
 								tgtFollPunctOuter.Empty();
-								tgtFollPunctOuter = 
-									GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
+								tgtFollPunctOuter = GetConvertedPunct(pSrcPhrase->GetFollowingOuterPunct());
 								tgtFollPunct += tgtFollPunctOuter; // join it together
+								// put a space between consecutive curly quotes
+								size_t length = tgtFollPunct.Len();
+								size_t index;
+								CAdapt_ItDoc* pDoc = pApp->GetDocument();
+								for (index = 0; index < length - 1; index++)
+								{
+
+									wxChar aChar = tgtFollPunct[index];
+									wxChar nxtChar = tgtFollPunct[index + 1];
+									if (pDoc->IsClosingQuote(&aChar) && pDoc->IsClosingQuote(&nxtChar))
+									{
+										// this handles not just curly endquotes, but
+										// straights as well
+										wxString leftStr = tgtFollPunct.Left(index + 1);
+										wxString rightStr = tgtFollPunct.Mid(index + 1);
+										leftStr += _T(" ");
+										tgtFollPunct = leftStr + rightStr;
+										length = tgtFollPunct.Len();
+										index += 1;
+									}
+								}
 							}
 							// references in the text like 10:27 give this algorithm problems;
 							// the first time the phrasebox is accessed, :27 gets appended to

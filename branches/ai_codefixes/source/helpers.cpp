@@ -471,7 +471,6 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	{
 		count++;
 	}
-	//(*pRev).UngetWriteBuf(); // whm 30Nov10 only call UngetWriteBuf() after a GetWriteBuf() call, not a GetData() call
 	if (count == 0)
 		return length;
 	else
@@ -497,7 +496,6 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	{
 		count++;
 	}
-	//str.UngetWriteBuf(); // whm 30Nov10 only call UngetWriteBuf() after a GetWriteBuf() call, not a GetData() call
 	if (count == 0)
 		return 0;
 	else
@@ -1027,7 +1025,8 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 
 // overload version (slightly different behaviour if charSet is empty), and with the
 // additional property that encountering ~ (the USFM fixed space marker) unilaterally
-// halts the scan, as also does encounterning a backslash
+// halts the scan, as also does encounterning a backslash, and as also does coming to a
+// closing bracket character, ]
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 {
     // returns a substring that contains characters in the string that are in charSet,
@@ -1047,7 +1046,7 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 		// charSet is empty, so use white space and backslash as scan terminator
 		while (ptr < pEnd)
 		{
-			if (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('~'))
+			if (!IsWhiteSpace(ptr) && *ptr != _T(']') && *ptr != gSFescapechar && *ptr != _T('~'))
 				span += *ptr++;
 			else
 				return span;
@@ -1058,7 +1057,7 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	{
 		while (ptr < pEnd)
 		{
-			if (charSet.Find(*ptr) != wxNOT_FOUND && *ptr != _T('~'))
+			if (charSet.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']') && *ptr != _T('~'))
 				span += *ptr++;
 			else
 				return span;
@@ -3897,7 +3896,6 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 		tgtStr += pSPWord2->GetInlineBindingEndMarkers();
 	if (!word2FollPunct.IsEmpty())
 		tgtStr += word2FollPunct;
-	//tgtStr.UngetWriteBuf(); // whm 30Nov10 only call UngetWriteBuf() after a GetWriteBuf() call, not a GetData() call
 	return tgtStr;
 }
 
@@ -4199,7 +4197,7 @@ int ParseWhiteSpace(const wxChar *pChar)
 // BEW 11Oct10, modified the algorithm because when parsing *f\ it returns incorrect 2
 // rather than correct 3; the solution I adopted is to look at what pChar points at on
 // input, if at a backslash, then the test can include *; if at * we assume the marker is
-// reversed and add 1 to what Bill's original code came up with 
+// reversed and add 1 to what Bill's original code came up with; ] is also a halt location
 int ParseMarker(const wxChar *pChar)
 {
 	// this algorithm differs from the one in CAdapt_ItDoc class by not having the code to
@@ -4235,7 +4233,7 @@ int ParseMarker(const wxChar *pChar)
 		wxASSERT(*pChar == gSFescapechar);
 		ptr++; // get past the initial backslash
 		len++;
-		while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0'))
+		while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0') && *ptr != _T(']'))
 		{
 			if (*ptr == _T('*'))
 			{

@@ -7568,13 +7568,14 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
     // TODO: add a wxChar* pEnd parameter so that tests for the end of the buffer can be
     // made to prevent any such problems. The addition of the test for null seems to work
     // for the time being.
+    // whm ammended 7June06 to halt if another marker is encountered before whitespace
+    // BEW ammended 11Oct10 to halt if a closing bracket ] follows the (end)marker
 	int len = 0;
 	wxChar* ptr = pChar; // was wchar_t
 	wxChar* pBegin = ptr;
 	while (!IsWhiteSpace(ptr) && *ptr != _T('\0')) // whm added test for *ptr != _T('\0') 24Nov07
 	{
-		if (ptr != pBegin && *ptr == gSFescapechar) // whm ammended 7June06 to halt if another marker is
-													// encountered before whitespace
+		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']'))) 
 			break; 
 		ptr++;
 		len++;
@@ -7888,21 +7889,21 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// substrings may be present. The caller needs to know if it has to handle the word about
 /// to be parsed as a conjoined pair, or not. To find this out, a copy of ptr must scan
 /// forward parsing over the word, any following inline binding endmarker, any final
-/// punctuation (which could have a space between quote symbols) in order to get to
-/// the place where the ~ would be - if indeed there is one. If it gets past all that
-/// stuff and there is no ~ present, but rather a space or other marker or another word,
-/// we return FALSE - we won't then have a ~ conjoining pair; but if ~ is there, we do
-/// have such a pair and we return TRUE. We pass in references to the start and end
-/// locations for the word, etc, so that the useful info we learn as we parse does not
-/// have to be reparsed in the caller. If TRUE is returned, another function in the caller
-/// will be called in order to complete the delimitation of the conjoined word pair, as
-/// far as the final character of the second word. The ptr value returned must be, if ~
-/// was detected, following the character ~. If FALSE is returned, we've a normal
-/// word parsing, and the caller will only use the pWdEnd value - resetting the caller's
-/// ptr variable to that location, since the caller can successfully parse on from that
-/// point (this would mean throwing information away about following punctuation, but that
-/// is a small matter because the latter is low frequency in the text, and the caller will
-/// reparse that information quickly anyway).
+/// punctuation (which could have a space between quote symbols) in order to get to the
+/// place where the ~ would be - if indeed there is one. If it gets past all that stuff and
+/// there is no ~ present, but rather a space or ] or other marker or another word, we
+/// return FALSE - we won't then have a ~ conjoining pair; but if ~ is there, we do have
+/// such a pair and we return TRUE. We pass in references to the start and end locations
+/// for the word, etc, so that the useful info we learn as we parse does not have to be
+/// reparsed in the caller. If TRUE is returned, another function in the caller will be
+/// called in order to complete the delimitation of the conjoined word pair, as far as the
+/// final character of the second word. The ptr value returned must be, if ~ was detected,
+/// following the character ~. If FALSE is returned, we've a normal word parsing, and the
+/// caller will only use the pWdEnd value - resetting the caller's ptr variable to that
+/// location, since the caller can successfully parse on from that point (this would mean
+/// throwing information away about following punctuation, but that is a small matter
+/// because the latter is low frequency in the text, and the caller will reparse that
+/// information quickly anyway).
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
@@ -7919,6 +7920,8 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	int ignoredSpaceLen = 0;
 	// scan across the word; our punctuation set used herein is the source language's one,
 	// and this overloaded version of SpanExcluding() always halts if it comes to ~
+	// (if ] is in any substring of punctuation here, we'll parse over it; that is, we
+	// don't ask of SpanExcluding() that it pay particular attention to ] nor halt at a ] )
 	wxString word = SpanExcluding(p, pEnd, gpApp->m_punctuation[0]);
 	length = word.Len();
 	p = p + length;
@@ -7926,10 +7929,10 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	if (p < pEnd)
 	{
         // there is more in the caller's buffer, so attempt to parse over a potential
-        // inline binding endmarker, then any following punctuation [- the test of the
+        // inline binding endmarker, then any following punctuation {- the test of the
         // punctuation yields TRUE when the *p is a space, since spaces are in the test
         // string along with puncuation characters; and this overloaded version of
-        // SpanExcluding() always halts if it comes to ~ ]. Do so until we come to either
+        // SpanExcluding() always halts if it comes to ~ }. Do so until we come to either
 		// ~ or a halt without finding ~. (If there is any whitespace before an inline
 		// binding endmarker, we'll parse over it but not return it in any of the string
 		// parameters of the signature.
@@ -8007,21 +8010,44 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 				return FALSE;
 			}
 		}
+        // continue parsing, next check at the possibility that a ] bracket follows - if
+        // so, we are done parsing and must return with ptr pointing at the ] character
+        // (which will be the pWdEnd value if we didn't parse over an endmarker, since
+        // we've not yet begun parsing any following punctuation; but if we did, then we
+        // need to return with a smaller value for ptr than p, namely where pWdEnd is)
+		if (*p == _T(']'))
+		{
+			ptr = pWdEnd;
+			return FALSE; // we don't have ~ conjoining either; and len value is correct
+		}
+
 		// continue parsing, next check out the possibility of word-final punctuation
 		// characters, and beware there may be detached closing quote, and so we can't
 		// assume there won't be a space within the punctuation string (if there is a
-		// punctuation string, that is)   
+		// punctuation string, that is)
+		// SpanIncluding() will need to halt if a ] character is found, if we are to
+		// support [ and ] bracketing as Paratext does. Since we may parse over some
+		// punctuation before coming to a ] symbol, if we find ] then we'll return with
+		// ptr pointing pWdEnd instead of at ], and let the caller's following punctuation
+		// parsing re-encounter the ] which terminates ParseWord().
 		punctBefore = SpanIncluding(p, pEnd, gpApp->m_punctuation[0]);
-		length = punctBefore.Len();
-		if (length > 0)
+		// bleed out the possibility that ] was encountered, if so return ptr with value pWdEnd
+		if (*p == _T(']'))
 		{
-			p = p + length;
+			ptr = pWdEnd;
+			return FALSE; // we don't have ~ conjoining either, len value is correct
 		}
-		// we've stopped because either we have come to ~, or to an endmarker, or to the
-		// next word in the data buffer, or to the end of the buffer
+		length = punctBefore.Len();
+        // we've stopped because either we have come to ~, or to an endmarker, or to the
+        // next word in the data buffer, or to the end of the buffer
 		if (*p == _T('~'))
 		{
-			// We are pointing at a ~ marker. Set ptr to point after it, & return TRUE
+			// We are pointing at a ~ marker. Set ptr to point after it, & set the
+			// len value, and return TRUE
+			if (length > 0)
+			{
+				p = p + length;
+			}
 			ptr = p + 1;
 		}
 		else
@@ -8214,6 +8240,16 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// words separately, and punctuation on each where it should be. To restore the conjoining
 /// would require selecting the two words and doing an "Edit Source Text" operation to
 /// restore ~ to its place between them.
+/// We also support [ and ] brackets delimiting material considered possibly
+/// non-canonical. The parent, TokenizeText(), handles [, but we must handle ] within
+/// ParseWord(). If ] is encountered (but we don't check within ~ conjoined pairs because
+/// it is not a reasonable assumption that ] would occur between such a conjoining) then
+/// we must immediately halt parsing, as that wordform and markers and puncts, etc, is
+/// then deemed finished, so that on return to TokenizeText() ptr will be pointing at the
+/// ] character, and then the latter function will do the parse of the closing ] symbol -
+/// assigning it to an orphan CSourcePhrase, storing it in its m_follPunct member. This
+/// protocol for handling ] works the same way regardless of whether or not the ]
+/// character is designated a punctuation character - we treat it as if it was, even if not.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 							wxChar* pEnd,
@@ -8455,12 +8491,34 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
                 // parse across as many as there are, and the obligatory white space
                 // following each - normalizing \n or \r to a space at the same time
 				pUsfmAnalysis = LookupSFM(ptr);
-				wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+				if (pUsfmAnalysis == NULL)
+				{
+					// must not be an unknown marker, tell the user to fix the input data
+					// and try again
+					wxString wholeMkr2 = GetWholeMarker(ptr);
+					wxString msgStr;
+					msgStr = msgStr.Format(
+_("Adapt It does not recognise this marker: %s which is in the input file.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
+					wholeMkr2.c_str());
+					wxMessageBox(msgStr, _T(""), wxICON_ERROR);
+					abort();
+					return 0;
+				}
 				bareMkr = emptyStr;
 				bareMkr = pUsfmAnalysis->marker;
 				wholeMkr = gSFescapechar + bareMkr;
 				wholeMkrPlusSpace = wholeMkr + aSpace;
-				wxASSERT(pUsfmAnalysis->inLine == TRUE);
+				if (pUsfmAnalysis->inLine == FALSE)
+				{
+					// it's not an inline marker, so abort
+					wxString msgStr;
+					msgStr = msgStr.Format(
+_("This marker: %s  follows punctuation but is not an inline marker.\nIt is not one of the USFM Special Text and Character Styles markers.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
+					wholeMkr.c_str());
+					wxMessageBox(msgStr, _T(""), wxICON_ERROR);
+					abort();
+					return 0;
+				}
 				itemLen = wholeMkr.Len();
 
 				// store the whole marker, and a following space
@@ -8503,8 +8561,9 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
     // or more of the latter to be medial provided the punctuation character sequence
     // doesn't terminate at a backslash or whitespace. The intention of this section of the
     // parser is to get ptr to point at the first character following the end of the word -
-    // which could be punctuation, whitespace, or an inline binding endmarker - a later
-    // section of this word parser function will deal with those post-word possibilities.
+    // which could be punctuation, whitespace, or an inline binding endmarker, or a ]
+    // bracket - a later section of this word parser function will deal with those
+    // post-word possibilities.
 	wxChar* pPunctStart = NULL;
 	wxChar* pPunctEnd = NULL;
 	bool bStartedPunctParse = FALSE;
@@ -8545,12 +8604,39 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	else
 	{
 		// it's not ~ conjoined words, so the word parsing loop begins instead, and ptr
-		// will be pointing at the first character past the end of the word
+		// will be pointing at the first character past the end of the word (which could
+		// be following punctuation for the word), or at a ] if there was no following
+		// punctuation for the word, or at buffer end
 		int nChangeInLenValue = ptr - savePtr;
 		len += nChangeInLenValue;
+		// we might have come to a closing bracket, ], and if so we must parse no further
+		// but sign off on the current CSourcePhrase, and return to the caller so that
+		// its ptr value will point at the ] symbol.
+		if (*ptr == _T(']'))
+		{
+			// following punctuation won't be present if we exited with ptr pointing at a
+			// ] character, so just set pSrcPhrase members accordingly and return len value
+			wxString theWord(pWordProper,nChangeInLenValue);
+			pSrcPhrase->m_key = theWord;
+			// now m_srcPhrase except for ending punctuation - of which there is none present
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+			}
+			pSrcPhrase->m_srcPhrase += theWord;
+			return len;
+		}
+		pEndWordProper = ptr;
+		// Note, we may still have exited IsFixedSpaceAhead() because we came to a ]
+		// bracket, but having parsed one or more following punctuation characters first.
+		// In this case we returned with ptr pointing at word end (i.e. the start of the
+		// following punctuation), so we must parse forward again, below, over those
+		// punctuation characters a second time to get to the ] character which determines
+		// our return point - so that's why we keep looking for present of ] below
 		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
 		{
-			// check if we are pointing at a punctuation character
+			// check if we are pointing at a punctuation character (it can't be a ]
+			// character because we've bled out that possibility in the preceding block)
 			if ((nFound = spacelessSrcPuncts.Find(*ptr)) != wxNOT_FOUND)
 			{
 				// we found a punctuation character - it could be medial, or word final, so we
@@ -8578,16 +8664,40 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// word or a punctuation character
 			ptr++;
 			len++;
-
+			
+			// check for a closing bracket
+			if (*ptr == _T(']'))
+			{
+				// We may be past some following punctuation and have come to a ] bracket
+				// - this must terminate parsing, so a word-medial ] character will split
+				// the word into two parts - which probably is the correct behaviour to
+				// support, since ] within the body of a word seems crazy. So check for ]
+				// and if we are pointing at it, we must terminate the parse, set
+				// pSrcPhrase members not yet set, and return len so that the caller's ptr
+				// is pointing at the ] bracket.
+				size_t punctSpan = (size_t)(ptr - pEndWordProper);
+				wxString follPuncts(pEndWordProper,punctSpan);
+				pSrcPhrase->m_follPunct = follPuncts;
+				wxString theWord(pWordProper,nChangeInLenValue);
+				pSrcPhrase->m_key = theWord;
+				// now m_srcPhrase except for ending punctuation - of which there is none present
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+				}
+				pSrcPhrase->m_srcPhrase += theWord;
+				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+				return len;
+			}
 			// are we at the end of word-medial punctuation? (but not at buffer end)
 			if (bStartedPunctParse && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar)
 				&& (nFound = spacelessSrcPuncts.Find(*ptr)) == wxNOT_FOUND &&
 				!IsEnd(ptr))
 			{
-				// Punctuation parsing had started, we are not pointing at a white space
-				// nor a backslash, nor at a punctuation character - so we must be pointing
-				// at a character of the word we are parsing... hence the punctuation span
-				// was word-internal, so we forget about it
+                // Punctuation parsing had started, we are not pointing at a white space
+                // nor a backslash, nor at a punctuation character (nor ]) - so we
+                // must be pointing at a character of the word we are parsing... hence the
+                // punctuation span was word-internal, so we forget about it
 				bStartedPunctParse = FALSE;
 				pPunctStart = NULL;
 				pPunctEnd = NULL;
@@ -8806,7 +8916,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// Before we check for markers, we can get to this point having parsed a word which
 	// has a space following it. There could be detached punctuation now, which belongs to
 	// the start of the next word to be parsed, so before we assume we are dealing with
-	// endmarkers for the current word, check this out and return if so.
+	// endmarkers for the current word, check this out and return if so. Check for ] too.
+	if (*ptr == _T(']'))
+	{
+		return len;
+	}
 	if (bThrewAwayWhiteSpaceAfterWord)
 	{
 		// the most likely thing is that we've halted at punctuation or begin marker for
@@ -8825,24 +8939,24 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
                 // some languages can have opening punctuation other than quotes, so if it
                 // is other punctuation characters, the situation is ambiguous. Our
                 // solution is to look ahead for the first char past the puncts, if that is
-                // an endmarker we'll keep the punctuation as following puncts for the
-                // current pSrcPhrase, but any other option - we'll just return without
-                // advancing over the puncts.
+                // an endmarker or a ] closing bracket we'll keep the punctuation as
+                // following puncts for the current pSrcPhrase, but any other option -
+                // we'll just return without advancing over the puncts.
 				if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
 				{
 					// it's some sort of nonquote punctuation (IsOpeningQuote() call above
 					// returns true even if straight quote or double quote is matched)
 					wxChar* ptr2 = ptr;
 					int countThem = 0;
-					while (spacelessSrcPuncts.Find(*ptr2) != wxNOT_FOUND)
+					while (spacelessSrcPuncts.Find(*ptr2) != wxNOT_FOUND && *ptr2 != _T(']'))
 					{
 						ptr2++;
 						countThem++;
 					}
-					if (IsEndMarker(ptr2, pEnd))
+					if (IsEndMarker(ptr2, pEnd) || *ptr2 == _T(']'))
 					{
 						// we'll treat is as following puncts for our current pSrcPhrase
-						// and parse on...
+						// and return if we came to ], otherwise parse on...
 						wxString finalPuncts(ptr, countThem);
 						pSrcPhrase->m_follPunct += finalPuncts;
 						pSrcPhrase->m_srcPhrase += finalPuncts;
@@ -8854,6 +8968,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 						}
 						len += countThem;
 						ptr += countThem;
+						if (*ptr == _T(']'))
+						{
+							return len;
+						}
 						// let processing continue within this call of ParseWord()
 					}
 					else
@@ -8875,7 +8993,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
     // over these and store them in m_inlineBindingEndMarkers if so. Any punctuation
     // between such can be thrown away. Alternatively, there may be endmarkers internal to
     // a footnote, endnote or crossReference which are to be parsed over, and stored in
-    // m_endMarkers. Handle these possibilities.
+	// m_endMarkers. Handle these possibilities. A ] bracket may follow the former, check
+	// and if so, return with ptr pointing at it.
     bool bInlineBindingEndMkrFound = FALSE;
 	if (IsEndMarker(ptr, pEnd))
 	{
@@ -8907,6 +9026,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					// in the m_endMarkers member
 					pSrcPhrWord2->AddEndMarker(endMarker);
 				}
+			}
+			// check for ] marker, if we are pointing at it, update len and return
+			if (*ptr == _T(']'))
+			{
+				return len;
 			}
 			// if we found one, there might be a bogus space following it which is
 			// entirely unneeded and should be omitted, because any whitespace after an
@@ -8953,7 +9077,14 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			nWhiteSpaceSpan++;
 			pWhiteSpaceEnds = ptr;
 		}
-		// delay our decision about what to do with this whitespace
+		// delay our decision about what to do with this whitespace, but if we halted at ]
+		// then return and throw away this whitespace, but return updated len value so
+		// that caller's ptr will be pointing at the ] bracket
+		if (*ptr == _T(']'))
+		{
+			len += nWhiteSpaceSpan;
+			return len;
+		}
 	}
 	bool bGotSomeMorePuncts = FALSE; // set TRUE if we find some more in the next bit
 
@@ -8964,11 +9095,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	int nMorePunctsSpan = 0;
     // Note, if parsing of the 'following' punctuation was not commenced in the main loop
     // above -- as will be the case when bMatchedFixedSpaceSymbol is TRUE - as the main
-    // loop is then exitted and expects punct parsing to completed later on, it is here
+    // loop is then exited and expects punct parsing to completed later on, it is here
     // that that punctuation first gets a chance to be parsed. The algorithm here was no
     // designed around supporting ~ conjoining's needs, and so if we parse punctuation
     // following the second word of such a conjoining in the following block, we'll
-    // need,once the parsing of the puncts halts, a test for bMatchedFixedSpaceSymbol ==
+    // need, once the parsing of the puncts halts, a test for bMatchedFixedSpaceSymbol ==
     // TRUE in order to assign the matched final punctuation to the pSrcPhrase->m_follPunct
     // member, and to the same member in pSrcPhrWord2 - otherwise the ParseWord() function
     // will end without doing these assignments
@@ -8978,18 +9109,21 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// as preceding punctuation for it, or to the current word as final punctuation if
 		// an endmarker follows - so collect the punctuation but delay our decision about
 		// what to do with it until we can work out later if an endmarker follows or not.
+		// But if we halt at a ] bracket, any punctuation parsed over is deemed to belong
+		// to the current word being parsed.
 		nMorePunctsSpan = 1;
 		ptr++;
 		pMorePunctsEnd = ptr;
 		bGotSomeMorePuncts = TRUE;
-		while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd)
+		while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd && *ptr != _T(']'))
 		{
 			nMorePunctsSpan++;
 			ptr++;
 			pMorePunctsEnd = ptr;
 		}
-		// if we got to the buffer end, accept the punctuation, store and return
-		if (ptr == pEnd)
+		// if we got to the buffer end, accept the punctuation, store and return; likewise
+		// if we got to a ] bracket
+		if (ptr == pEnd || *ptr == _T(']'))
 		{
 			wxString moreFinalPuncts(pMorePunctsStart,nMorePunctsSpan);
 			pSrcPhrase->m_follPunct += moreFinalPuncts;
@@ -9001,6 +9135,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
 			}
 			len += nMorePunctsSpan;
+			if (nWhiteSpaceSpan > 0)
+				len += nWhiteSpaceSpan;
 			return len;
 		}
         // we could now be pointing at white space, and there may be detached endquotes we
@@ -9129,12 +9265,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// endmarker too. So the same delay tactics apply as we did earlier
 		// ******   end note about protocol change   ********
 		
-		if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+		if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
 		{
 			// there is at least one, parse over as many as their are until non-punct
 			// character is found, store the result in m_follOuterPunct
 			wxString outerPuncts; outerPuncts.Empty();
-			while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+			while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
 			{
 				outerPuncts += *ptr;
 				ptr++;
@@ -9148,7 +9284,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				pSrcPhrWord2->m_srcPhrase += outerPuncts;
 			}
 		}
-
+		if (*ptr == _T(']'))
+		{
+			// we must return
+			return len;
+		}
 		// now handle the possibility of more (outer) detached punctuation characters,
 		// before a further endmarker....
 		bool bPutInOuterStorage = TRUE;
@@ -9197,6 +9337,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				ptr += length;
 			}
 		}
+		// IsEndMarker() knows to halt at ] so if that happened, ptr and len will be such
+		// that the caller's ptr will point at the ] bracket character
 		return len;
 	}
 	else if (IsMarker(ptr))
@@ -9222,6 +9364,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				// are such, and m_follOuterPunct has punctuation in it, we will assume
 				// that always it belongs between any such pair, and no spaces are to go
 				// in the export text there.
+				// BEW 2Dec10 -- having written the above, I don't intend to ever
+				// implement this in exports until someone complains. I think the
+				// possibility that there would be following punctuation in such an
+				// environment would be zero. It would be a USFM markup error if it were
+				// so. 
 				//             ********* END PROTOCOL NOTE ***********
                 // So, having entered this block, now we know that any of the 'more
                 // punctuation' from earlier one where we delayed our decision, if there is
@@ -9262,19 +9409,40 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				}
 				len += itsLen;
 				ptr += itsLen;
-
+				// check for ptr pointing at ] bracket, return if it is
+				if (*ptr == _T(']'))
+				{
+					return len;
+				}
 				// as noted above, check for additional punctuation, but no spaces must be
 				// before it; and after it, that's the end unless there is another inline
 				// non-binding endmarker, and if so then after that is the end!
 				wxChar* pLastPunctsStart = ptr;
 				wxChar* pLastPunctsEnd = ptr;
 				int nCountLastPuncts = 0;
-				while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd)
+				while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd
+						&& *ptr != _T(']'))
 				{
 					nCountLastPuncts++;
 					ptr++;
 					pLastPunctsEnd = ptr;
 				}
+				// if the halt was because we came to a ] bracket, accumulate the
+				// punctuation and return
+				if (*ptr == _T(']'))
+				{
+					if (nCountLastPuncts > 0)
+					{
+						wxString lastPuncts(pLastPunctsStart,nCountLastPuncts);
+						wxString outers = pSrcPhrase->GetFollowingOuterPunct();
+						outers += lastPuncts;
+						pSrcPhrase->SetFollowingOuterPunct(outers);
+						pSrcPhrase->m_srcPhrase += lastPuncts; // update m_srcPhrase for the view
+						len += nCountLastPuncts; // ptr is already at this location
+					}
+					return len;
+				}
+				// not pointing at ] bracket, so check... did we get to a second endmarker?
 				if (IsEndMarker(ptr, pEnd))
 				{
 					wxString wholeMkr = GetWholeMarker(ptr);
@@ -9449,7 +9617,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 // pSrcPhrase     <->  where we are storing information parsed, here it is final
 //                     punctuation to be appended to its m_follPunct member
 // len             ->  the len value before ptr is advanced in this internal scan
-// bExitOnReturn  <-   return TRUE if ParseWord() should be exitted on return 
+// bExitOnReturn  <-   return TRUE if ParseWord() should be exited on return 
 // bHasPrecedingStraightQuote <-> default is FALSE, the boolean passed in is stored
 //                                on the CAdapt_ItDoc class with public access; and
 //                                is set TRUE if a straight quote (" or ') is detected
@@ -9469,7 +9637,9 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 // Called after a sequence of word-final punctuation ends at space - there could be
 // additional detached endquotes, single or double - this function collects these, stores
 // them appropriately in pSrcPhrase, and advances len and ptr to the end of the material
-// parsed over.                 
+// parsed over.
+// BEW created 11Oct10
+// BEW 2Dec10 added ] character as cause to return, ptr should be pointing at it on return                
 int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					CSourcePhrase*& pSrcPhrase, wxString& spacelessSrcPuncts, 
 					int len, bool& bExitOnReturn, bool& bHasPrecedingStraightQuote,
@@ -9483,7 +9653,8 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 								// set this pointer to the location after the 
 								// acceptable quote character, but we won't update
 								// it if we come to a straightquote character 
-	while (!IsEnd(ptr) && (IsWhiteSpace(ptr) || IsClosingQuote(ptr)) && !IsMarker(ptr))
+	while (!IsEnd(ptr) && (IsWhiteSpace(ptr) || IsClosingQuote(ptr)) && !IsMarker(ptr)
+			&& *ptr != _T(']'))
 	{
 		if (IsClosingQuote(ptr))
 		{
@@ -9501,10 +9672,10 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 		ptr++;
 		pPunctEnd = ptr;
 	}
-    // on exit of the loop we are either at buffer end, or backslash of a marker, or some
-    // character which is not whitespace nor a closing quote (IsClosingQuote() also tests
-	// for a straightquote or doublequote, so IsCLosingCurlyQuote() was also used as it
-	// does not test for straight ones)
+	// on exit of the loop we are either at buffer end, or backslash of a marker, or a ]
+    // closing bracket, or some character which is not whitespace nor a closing quote
+    // (IsClosingQuote() also tests for a straightquote or doublequote, so
+    // IsCLosingCurlyQuote() was also used as it does not test for straight ones)
     if (bFoundClosingQuote)
 	{
 		// we matched something more than just whitespace and the something is
@@ -9631,7 +9802,9 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					// Possibly it could be other punctuation ptr is pointing at, and if
 					// it is so without any spaces, then we should accept it as belonging
 					// to the end of the current final punctuation - so accumulate it
-					// until space or non-puncts are encountered.
+					// until space or non-puncts are encountered. But check for ] first,
+					// if pointing at that, (it's defaulted as punctuation) don't
+					// accumulate it but return instead
 					wxString finalPunct(pPunctStart,counter);
 					if (bPutInOuterStorage)
 					{
@@ -9644,8 +9817,17 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					pSrcPhrase->m_srcPhrase += finalPunct;
 					additions += finalPunct; 
 					len += counter;
-
-					while (ptr < pEnd && (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND))
+					// are we pointing at ] bracket?
+					if (*ptr == _T(']'))
+					{
+						// we must return
+						bExitOnReturn = TRUE;
+						return len;
+					}
+					// else, accumulate any more puncts until space or non-punct or a
+					// ] bracket is reached
+					while (ptr < pEnd && (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+						&& *ptr != _T(']'))
 					{
 						wxString aPunct = *ptr;
 						if (bPutInOuterStorage)
@@ -9667,19 +9849,19 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			} // end of TRUE block for test: if (pLocation_OK > pPunctStart)
 			else
 			{
-				// pLocation_OK has not advanced from pPunctStart where we started this
-				// parse, so we didn't find any curly endquotes; so count all the punct and
-				// whitespace parsed over as belonging to a later word -- and ptr is
-				// not pointing at an endmarker, so we must be done & can return after
-				// we finish off the pSrcPhrase members; however, if
-				// bHasPrecedingStraightQuote is TRUE, then we assume that only straight
-				// quotes were in the parse and that they should be included as following
-				// punctuation for the current word. This might be a faulty decsion if
-				// some belong to the current word and some to the following word yet to
-				// be parsed, but our code can't reasonably be made smart enough to decide
-				// where to make the division - and so we'll just hope that that situation
-				// won't ever occur.
-				if (bHasPrecedingStraightQuote)
+                // pLocation_OK has not advanced from pPunctStart where we started this
+                // parse, so we didn't find any curly endquotes; so count all the punct and
+                // whitespace parsed over as belonging to a later word -- and ptr is not
+                // pointing at an endmarker, but if might be pointing at ] closing bracket,
+                // so either way we must be done & can return after we finish off the
+                // pSrcPhrase members; however, if bHasPrecedingStraightQuote is TRUE, then
+                // we assume that only straight quotes were in the parse and that they
+                // should be included as following punctuation for the current word. This
+                // might be a faulty decsion if some belong to the current word and some to
+                // the following word yet to be parsed, but our code can't reasonably be
+                // made smart enough to decide where to make the division - and so we'll
+                // just hope that that situation won't ever occur.
+				if (bHasPrecedingStraightQuote || *ptr == _T(']'))
 				{
 					// take the lot
 					if (counter > 0)
@@ -9737,6 +9919,27 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			// nothing extra, so return, but continue parsing in ParseWord() on return
 			ptr = pPunctStart; // restore ptr to location where we started from 
 			bExitOnReturn = FALSE;
+			return len;
+		}
+	}
+	else if (*ptr == _T(']'))
+	{
+		// accept everything up to that point
+		if (counter > 0)
+		{
+			wxString finalPunct(pPunctStart,counter);
+			if (bPutInOuterStorage)
+			{
+				pSrcPhrase->AddFollOuterPuncts(finalPunct);
+			}
+			else
+			{
+				pSrcPhrase->m_follPunct += finalPunct;
+			}
+			pSrcPhrase->m_srcPhrase += finalPunct;
+			additions += finalPunct;
+			len += counter;
+			bExitOnReturn = TRUE;
 			return len;
 		}
 	}
@@ -10612,6 +10815,7 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar, wxChar* pBufStart)
 /// FormatMarkerBufferForOutput(), DoExportInterlinearRTF(), ProcessAndWriteDestinationText().
 /// Determines if the marker at pChar is a USFM end marker (ends with an asterisk). 
 /// BEW added to it, 11Feb10, to handle SFM endmarkers \F or \fe for 'footnote end'
+/// BEw added 11Oct10, support for halting at ] bracket
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -10622,6 +10826,7 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 	// 2. ptr points to a space (return FALSE)
 	// 3. ptr points to another marker (return FALSE)
 	// 4. ptr points to a * (return TRUE)
+	// 5. ptr points to a ]
 	
 	// First, handle the PngOnly special case of \fe or \F footnote end markers
 	if (gpApp->gCurrentSfmSet == PngOnly)
@@ -10640,7 +10845,7 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 		ptr++;
 		if (*ptr == _T('*'))
 			return TRUE;
-		else if (*ptr == _T(' ') || *ptr == gSFescapechar)
+		else if (*ptr == _T(' ') || *ptr == gSFescapechar || *ptr == _T(']'))
 			return FALSE;
 	}
 	return FALSE;
@@ -11562,6 +11767,67 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
             // away, they have no useful role once tokenization has taken place)
 			itemLen = ParseWhiteSpace(ptr);
 			ptr += itemLen; 
+		}
+		// BEW 11Oct10 we need to support [ and ] brackets as markers indicating 'this is
+		// disputed material', and so we will do so by storing [ and ] on their own
+		// CSourcPhrase 'orphan' instances (ie. m_key and m_srcPhrase will be empty), with
+		// [ stored in m_precPunct (and follow it with space(s) only if space()s is in the
+		// data), and store ] in m_follPunct (and include preceding space(s) only if
+		// space(s) is in the input data). We do the above whether or not [ and ] are
+		// specified as punctuation characters or not. They will be considered to be
+		// punctuation characters for this delimitation purpose even if not listed in the
+		// sets of source and target punctuation characters.
+		if (*ptr == _T('[') || *ptr == _T(']'))
+		{
+			if (*ptr == _T('['))
+			{
+				// we've come to an opening bracket, [
+				pSrcPhrase->m_precPunct = *ptr; // store it here, whether punctuation or not
+				if (IsWhiteSpace(ptr + 1))
+				{
+					// store a following space as well, but just one - any other white
+					// space we'll ignore
+					pSrcPhrase->m_precPunct += _T(" ");
+					ptr += 2; // point past the [ and the first of the following white
+							  // space chars
+				}
+				else
+				{
+					ptr++; // point past the [
+				}
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct; // need this for the [ 
+						// bracket (and its following space if we stored one) to be visible
+				if (pSrcPhrase != NULL)
+				{
+					// put this completed orphan pSrcPhrase into the list
+					pList->Append(pSrcPhrase);
+				}
+				// make this one become the 'last one' of the next iteration
+				pLastSrcPhrase = pSrcPhrase;
+				continue; // iterate
+			}
+			else
+			{
+				// must be a closing bracket,  ]
+				pSrcPhrase->m_follPunct = *ptr; // store it here, whether punctuation or not
+				if (IsWhiteSpace(ptr - 1)) // we can assume ] is not at the start of the input file
+				{
+					// store a preceding space as well, but just one - any other white
+					// space we'll ignore
+					pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
+				}
+				ptr++; // point past the ]
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ] 
+						// bracket (and its preceding space if we stored one) to be visible
+				if (pSrcPhrase != NULL)
+				{
+					// put this completed orphan pSrcPhrase into the list
+					pList->Append(pSrcPhrase);
+				}
+				// make this one become the 'last one' of the next iteration
+				pLastSrcPhrase = pSrcPhrase;
+				continue; // iterate
+			}
 		}
 
 		// are we at the end of the text?
