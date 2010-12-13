@@ -87,7 +87,7 @@ void		DoExportAsOxes(int versionNum); // BEW created 2Sep10
 int			ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 
 // below are supporting functions for the above main export functions:
-int			RebuildSourceText(wxString& srcText);
+int			RebuildSourceText(wxString& srcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
 int			RebuildTargetText(wxString& target);
 int			RebuildGlossesText(wxString& glossText);
 int			RebuildFreeTransText(wxString& freeTransText);
@@ -106,6 +106,14 @@ bool		IsEndnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredEndnotes = F
 bool		IsFreeTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsNoteInDoc(CSourcePhrase* pSrcPhrase);
+// BEW added next 13Dec10 to support export from documents which, in the original input
+// file, did not have any SFMs. (AI puts \p where each newline is, and these need to be
+// removed on export.) I wrote these then found out that FormatUnstructuredTextBufferForOutput()
+// was written for this purpose and wasn't working because it was not returning the
+// modified data, so once I fixed that, it works (with a bit of an additional tweak) and
+// so these can be commented out
+//bool		IsDocWithParagraphMarkersOnly(SPList* pSrcPhrasesList);
+//wxString	RemoveParagraphMarkersOnly(wxString& str);
 
 // BEW 26Aug10, added for Paratext \z feature support
 void		ChangeCustomMarkersToParatextPrivates(wxString& buffer);

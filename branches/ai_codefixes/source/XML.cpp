@@ -4639,17 +4639,52 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 	{
 		// there is an endmarker - what lies before it is the reversed characters of that
 		// endmarker 
-		const wxChar* ptr2 = rev.GetData(); // the gFSescapechar will cause premature exit of ParseMarker()
-							 // so allow for this below
+		const wxChar* ptr2 = rev.GetData(); // the gFSescapechar will cause premature
+										// exit of ParseMarker() so allow for this below
 		length = ParseMarker(ptr2);
 		// BEW removed next line, 16Nov10, because I previously recoded ParseMarker() so
 		// that it would do the length adjustment within it when backslash was encountered
 		//length++; // count the back slash (i.e. gFSescapechar)
-		wxString reversedEndMkr(rev,length);
-		endMkr = MakeReverse(reversedEndMkr);
-		rev = rev.Mid(length);
-		rev.Trim(FALSE); // trim any now-initial whitespace
-		content = MakeReverse(rev);
+		// BEW 8Dec10, I've changed ParseMarker() above to return 0 if the expectations
+		// internally within it are not met, and a return of 0 will be equivalent to
+		// assuming there was, in fact, no endmarker at the end of the string (that is,
+		// initial at the start of the reversed string), and so we should just treat the
+		// original string as not having an endmarker -- and coded accordingly in what
+		// follows - as I've been too easily getting ParseMarker() to fail for certain
+		// complex markup scenarios, it's a rather fragile function which I've tried to
+		// make safer; and also handle a final \fe or \F for the PngOnly sfm set.
+		if (length == 0)
+		{
+			// we assume no endmarker; just set content and trim both ends
+			endMkr.Empty();
+			content = MakeReverse(rev);
+			content.Trim();
+			content.Trim(FALSE);
+		}
+		else
+		{
+			if (gpApp->gCurrentSfmSet == PngOnly)
+			{
+				// only the length for either " ef\" or " F\" will have been returned,
+				// with the space included in the length count
+				wxString reversedEndMkr(rev,length);
+				endMkr = MakeReverse(reversedEndMkr); // includes the space (probably
+							// a wise thing to do for supporting PngOnly, as every marker
+							// had to be followed by a space, even endmarkers - so doing
+							// may help our code elsewhere not to break)
+				rev = rev.Mid(length);
+				rev.Trim(FALSE); // trim any now-initial whitespace
+				content = MakeReverse(rev);
+			}
+			else
+			{
+				wxString reversedEndMkr(rev,length);
+				endMkr = MakeReverse(reversedEndMkr);
+				rev = rev.Mid(length);
+				rev.Trim(FALSE); // trim any now-initial whitespace
+				content = MakeReverse(rev);
+			}
+		}
 	}
 }
 

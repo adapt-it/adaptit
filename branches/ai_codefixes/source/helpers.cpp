@@ -2234,10 +2234,26 @@ void EmptyMarkersAndFilteredStrings(
 /// BEW 11Oct10, extensively refactored so as to deal with the richer document model, v5,
 /// in which there is m_follOuterPunct, and four wxString members for inline markers and
 /// endmarkers, binding versus non-binding
+/// BEW 13Dec10, added support for [ and ] brackets. When Tstr passed in contains just [
+/// or ] we return Tstr immediately. (No word counting is done, because in exports in a
+/// later function which the caller calls we join the brackets to the text which they
+/// bracket and so they don't contribute to the word count)
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText)
 {
+	// to support [ and ] brackets which, if they occur, are the only content, bleed this
+	// possibility out here, because the code below is not designed to support such a
+	// situation
+	if (Tstr == _T("["))
+	{
+		return Tstr;
+	}
+	if (Tstr == _T("]"))
+	{
+		return Tstr;
+	}
+
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxASSERT(pMergedSrcPhrase->m_pSavedWords->GetCount() > 1); // must be a genuine merger
@@ -3524,10 +3540,26 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// placement dialog to open to allow him to locate the endmarker preceding it.
 /// Also, when there is ~ conjoining, we now fully support inline binding marker and
 /// endmarker on either or both words of the conjoined pair.
+/// BEW 13Dec10, added support for [ and ] brackets. When Tstr passed in contains just [
+/// or ] we return Tstr immediately. (No word counting is done, because in exports in a
+/// later function which the caller calls we join the brackets to the text which they
+/// bracket and so they don't contribute to the word count)
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
 							bool bCountInTargetText)
 {
+	// to support [ and ] brackets which, if they occur, are the only content, bleed this
+	// possibility out here, because the code below is not designed to support such a
+	// situation
+	if (Tstr == _T("["))
+	{
+		return Tstr;
+	}
+	if (Tstr == _T("]"))
+	{
+		return Tstr;
+	}
+
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	bool bHasOuterFollPunct = FALSE;
@@ -3673,10 +3705,21 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// marker, or when there is but there are no "medial" inline binding marker or
 		// endmarker involved (i.e. none to the left of the ~ marker and right of word1,
 		// nor none to the right of ~ marker and left of word2)
+		int itsLength = Tstr.Len();
 		initialPuncts = SpanIncluding(Tstr,gpApp->m_punctuation[1]); // space is in m_punctuation
-		wxString reversed = MakeReverse(Tstr);
-		finalPuncts = SpanIncluding(reversed,gpApp->m_punctuation[1]); // ditto
 		int initialsLen = initialPuncts.Len();
+		int lenNonInitials = itsLength - initialsLen; // this could result in zero
+		wxString reversed = MakeReverse(Tstr); // if itsLength was 1, and no puncts, this will equal Tstr
+		if (lenNonInitials > 1)
+		{
+			// needs to be 2 or more for there to be the possibility of at least one
+			// character of following punctuation
+			finalPuncts = SpanIncluding(reversed, gpApp->m_punctuation[1]); // space is in m_punctuation
+		}
+		else
+		{
+			finalPuncts.Empty(); // can't possibly be any following punctuation
+		}
 		int finalsLen = finalPuncts.Len();
 		if (initialsLen == 0)
 		{
@@ -3707,13 +3750,19 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		}
 		if (!finalPuncts.IsEmpty() && !pSP->GetEndMarkers().IsEmpty())
 		{
-			bIsAmbiguousForEndmarkerPlacement = FALSE;
+			if (finalsLen > 1)
+			{
+				bIsAmbiguousForEndmarkerPlacement = TRUE;
+			}
 			endMkrsToPlace = pSP->GetEndMarkers();
 			markersToPlaceArray.Add(endMkrsToPlace);
 		}
 		if (!finalPuncts.IsEmpty() && !pSP->GetInlineNonbindingEndMarkers().IsEmpty())
 		{
-			bIsAmbiguousForEndmarkerPlacement = FALSE;
+			if (finalsLen > 1)
+			{
+				bIsAmbiguousForEndmarkerPlacement = TRUE;
+			}
 			nonbindingEndMkrsToPlace = pSP->GetInlineNonbindingEndMarkers();
 			markersToPlaceArray.Add(nonbindingEndMkrsToPlace);
 		}
@@ -4061,7 +4110,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		int offset = srcStr.Find(theSymbol);
 		wxASSERT(offset != wxNOT_FOUND);
 		wrd1 = srcStr.Left(offset);
-		wrd2 = srcStr.Mid(offset + 2);
+		wrd2 = srcStr.Mid(offset + 1);
 		SPList* pSrcPhrases = pSP->m_pSavedWords;
 		SPList::Node* posFirst = pSrcPhrases->GetFirst();
 		SPList::Node* posLast = pSrcPhrases->GetLast();
@@ -4095,7 +4144,9 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		{
 			wrd2 = pWord2->m_precPunct + wrd2;
 		}
-		// form the composite
+		// form the composite, after making sure no spurious spaces are in the substrings
+		wrd1 = wrd1.Trim(); // trim white space from the end of wrd1
+		wrd2 = wrd2.Trim(FALSE); // trim white space from the start of wrd2
 		srcStr = wrd1 + theSymbol + wrd2;
 	}
 	else
@@ -4198,12 +4249,27 @@ int ParseWhiteSpace(const wxChar *pChar)
 // rather than correct 3; the solution I adopted is to look at what pChar points at on
 // input, if at a backslash, then the test can include *; if at * we assume the marker is
 // reversed and add 1 to what Bill's original code came up with; ] is also a halt location
+// BEW 8Dec10 -- kept getting failures because when a reversed string was passed in it
+// often didn't match with the original assumption that * would be at its start. So I've
+// tried to make it smarter, and if the situation is really indeterminate, return a value
+// of zero.
 int ParseMarker(const wxChar *pChar)
 {
 	// this algorithm differs from the one in CAdapt_ItDoc class by not having the code to
 	// break immediately after an asterisk; we don't want the latter because this function
 	// will be used to parse over a reversed string, and a reversed endmarker will have an
 	// initial asterisk and we don't want to halt the loop there
+	
+	// BEW 8Dec10, it just isn't safe to assume that if the unreversed input didn't
+	// have a * at the end of the string buffer, then it must be an unreversed string
+	// that was input and that backslash starts it. If the SFM set is PngOnly, there
+	// could be a final \fe or \F with a space following, and reversing that would
+	// mean that space starts the string. Or there could be embedded binding markers and
+	// finding an endmarker may find one of those and it won't be at the string end
+	// necessarily, etc etc. I'm very uncomfortable with this function, and eventually I
+	// think we need to remove it and use different code to do what we need in the 4
+	// places it currently is called (once in helpers.cpp and 3 times in xml.cpp). For
+	// now, I'll try make it safer - we may just manage to get away with it
 	int len = 0;
 	wxChar* ptr = (wxChar*)pChar;
 	wxChar* pBegin = ptr;
@@ -4230,19 +4296,47 @@ int ParseMarker(const wxChar *pChar)
 		// let's hope the caller really gets it right its an SF marker here, because we
 		// don't return 0 if it isn't - I'll add an assert to maybe catch the problem
 		// during development
-		wxASSERT(*pChar == gSFescapechar);
-		ptr++; // get past the initial backslash
-		len++;
-		while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0') && *ptr != _T(']'))
+		//wxASSERT(*pChar == gSFescapechar);
+		// Our first check needs to be for an initial backslash, it that succeeds, we've
+		// an unreversed string passed in and we can just parse the marker that starts it.
+		// If we don't have an initial marker, we've got a mess we have to do something
+		// with. We won't really know - this uncertainty in knowing whether it was
+		// reversed or not calls for a change - perhaps pass in a boolean which tells us
+		// whether or not the input string was reversed.
+		if (*pChar == gSFescapechar)
 		{
-			if (*ptr == _T('*'))
-			{
-				// we must count the asterisk too
-				len++;
-				break;
-			}
-			ptr++;
+			ptr++; // get past the initial backslash
 			len++;
+			while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0') && *ptr != _T(']'))
+			{
+				if (*ptr == _T('*'))
+				{
+					// we must count the asterisk too
+					len++;
+					break;
+				}
+				ptr++;
+				len++;
+			}
+		}
+		else // neither expectation has been met
+		{
+			// Connundrum. What do we assume here? We'll assume a reversed string, as that
+			// is more likely to have got us here. I'll check for an initial space, and if
+			// so, assume its a PngOnly SFM endmarker, and just parse to the backslash (it
+			// must be either "<space>F\...." or "<space>ef\...." we are dealing with -
+			// anything else isn't kosher for the PngOnly set of markers.
+			if (gpApp->gCurrentSfmSet == PngOnly && *pBegin == _T(' '))
+			{
+				if (*(pBegin + 1) == _T('F') && *(pBegin + 2) == gSFescapechar)
+					return 3; // include the delimiting space in the marker string
+				if (*(pBegin + 1) == _T('e') && *(pBegin + 2) == _T('f') && *(pBegin + 3) == gSFescapechar) 
+					return 4;
+			}
+			// if not a reversed "\fe " or reversed "\F ", what else might we be dealing
+			// with? Dunno. We'll just assume there's no actual endmarker, and return a
+			// length of 0 and let the caller deal with it
+			return 0;
 		}
 	}
 	return len;

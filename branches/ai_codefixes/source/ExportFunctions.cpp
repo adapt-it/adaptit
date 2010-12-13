@@ -678,6 +678,15 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(source,bRTFOutput);
 
+		// do the check for a document with only paragraph markers (not needed, I fixed
+		// FormatUnstructuredTextBufferForOutput() instead)
+		//if (IsDocWithParagraphMarkersOnly(gpApp->m_pSourcePhrases))
+		//{
+			// input data had no SFMs, AI will have inserted possibly many \p markers,
+			// these have to now be removed
+		//	source = RemoveParagraphMarkersOnly(source);
+		//}
+
 		if (bRTFOutput)
 		{
 			DoExportTextToRTF(sourceTextExport, exportPath, name, source);
@@ -750,6 +759,15 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(target,bRTFOutput);
+
+		// do the check for a document with only paragraph markers (not needed, I fixed
+		// FormatUnstructuredTextBufferForOutput() instead)
+		//if (IsDocWithParagraphMarkersOnly(gpApp->m_pSourcePhrases))
+		//{
+			// input data had no SFMs, AI will have inserted possibly many \p markers,
+			// these have to now be removed
+		//	target = RemoveParagraphMarkersOnly(target);
+		//}
 
 		if (bRTFOutput)
 		{
@@ -14020,13 +14038,26 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // there are a string of placeholders in a retranslation or not in a retranslation. The
 // ones which are not first or last can then be ignored, as they carry only ... in the
 // source text, and that we want to ignore.
-int RebuildSourceText(wxString& source)
+// BEW 7Dec10, added 2nd param, pList, which defaults to NULL; so that by explicitly
+// supplying the list pointer, it can rebuild the source text from any SPList (I want this
+// capability so that it can be used in the marker filtering mechanism, when the user
+// changes a marker from being unfiltered, to filtered, using Preferences)
+int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
 	wxString str; // local wxString in which to build the source text substrings
 
 	// compose the output data & write it out, phrase by phrase,
 	// restoring standard format markers as appropriate
-	SPList* pList = gpApp->m_pSourcePhrases;
+	SPList* pList = NULL;
+	if (pUseThisList == NULL)
+	{
+		pList = gpApp->m_pSourcePhrases;
+	}
+	else
+	{
+		pList = pUseThisList;
+		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
+	}
 	wxASSERT(pList != NULL);
 
     // As we traverse the list of CSourcePhrase instances, the special things we must be
@@ -14156,11 +14187,10 @@ int RebuildSourceText(wxString& source)
 		pos = pos->GetNext();
 
 #ifdef __WXDEBUG__
-		if (pSrcPhrase->m_nSequNumber >= 1297)
-		{
-			int i = 0;
-			i = i;
-		}
+//		if (pSrcPhrase->m_nSequNumber >= 1297)
+//		{
+//			wxString strSrcPhrase = pSrcPhrase->m_srcPhrase;
+//		}
 #endif
 
 		wxASSERT(pSrcPhrase != 0);
@@ -14396,12 +14426,24 @@ int RebuildSourceText(wxString& source)
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
 
 			source.Trim();
-			source << aSpace << str;
+			// if we return ']' bracket, we don't want a preceding space
+			if (str[0] == _T(']'))
+			{
+				source << str;
+			}
+			else if (!source.IsEmpty() && source[source.Len() - 1] == _T('['))
+			{
+				// in this circumstance we don't want an intervening space
+				source << str;
+			}
+			else
+			{
+				source << aSpace << str;
+			}
 			str.Empty();
 		}
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
-	// ensure a final space
 	source.Trim();
 	source << aSpace;
 
@@ -15326,8 +15368,9 @@ int RebuildTargetText(wxString& target)
 	SPList* pList = gpApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
 
-	wxChar fwdslash = _T('/');	// a placeholder for newline (CString doesn't count newlines)
-	wxChar newline = _T('\n');	// before returning we replace forward slash placeholders
+	wxString aSpace = _T(' ');
+	//wxChar fwdslash = _T('/');	// a placeholder for newline (CString doesn't count newlines)
+	//wxChar newline = _T('\n');	// before returning we replace forward slash placeholders
 								// with newlines
 
 	wxString targetstr; // accumulate the target text here
@@ -15384,7 +15427,17 @@ int RebuildTargetText(wxString& target)
 			}
 		}
 
-        // BEW added 30May07, The retranslation text's block can present us with a str with
+ 		// handle when str contains only [ or ], we join [ to what follows, and ] to what
+		// precedes, so we don't want space after [ and no space before ]; here, deal with
+		// the case of str containing ]
+		bool bPlacedAlready = FALSE;
+		if (str[0] == _T(']'))
+		{
+			targetstr.Trim(); // remove any final space before appending ]
+			targetstr << str;
+			bPlacedAlready = TRUE;
+		}
+       // BEW added 30May07, The retranslation text's block can present us with a str with
         // no initial space, and targetstr may not end with a space, so we have to check
         // for no space and add one if needed; but the check is only wanted if targetstr
         // has something in it and str is not empty.
@@ -15393,13 +15446,30 @@ int RebuildTargetText(wxString& target)
             if (targetstr[targetstr.Length() - 1] != _T(' ') && str[0] != _T(' '))
                 targetstr += _T(' ');
         }
+		// after the above, targetstr will end with space, if it is not empty
 
-		// acccumulate the export text in the local CString's buffer 
-		// using each str of the output
-		targetstr += str;
+		// handle when str contains only [, we don't want space after [ 
+		if (!targetstr.IsEmpty() && targetstr[targetstr.Len() - 2] == _T('['))
+		{
+			// in this circumstance we don't want the space which follows [
+			targetstr.Trim();
+			str.Trim(FALSE); // remove any initial whitespace
+			targetstr << str;
+		}
+		else
+		{
+			if (!bPlacedAlready)
+			{
+				targetstr << str << aSpace;
+			}
+		}
 	}// end of while (pos != NULL)
 
 	int textLen = targetstr.Length(); // get the length before we change fwdslash to newlines
+	target = targetstr; // return all the text in one long CString
+	return textLen;
+
+	/* we don't do this forward slash insertion any more
 
 	// insertion of newlines cannot be done safely more than once using CString function calls,
 	// since the counts are clobbered because CString ignores any already present; so we have
@@ -15438,7 +15508,143 @@ int RebuildTargetText(wxString& target)
 
 	// update length
 	return textLen = target.Length();
+	*/
 }// end of RebuildTargetText
+
+/* BEW 13Dec10: remove these commented out functions later, if no use for them by the time 6.0.0 is ready to ship
+// support removal of \p markers temporarily inserted, when doc has no SFMs
+bool IsDocWithParagraphMarkersOnly(SPList* pSrcPhrasesList)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	if (pSrcPhrasesList->IsEmpty())
+		return FALSE;
+	// we scan only until we find some marker other than \p
+	bool bFoundParagraphMarker = FALSE; // use this to prevent unneeded 
+										// finds after the first
+	SPList::Node* pos = NULL;
+	pos = pSrcPhrasesList->GetFirst();
+	int offset = wxNOT_FOUND;
+	int offset2 = wxNOT_FOUND;
+	while (pos != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		wxString markers = pSrcPhrase->m_markers;
+		if (!markers.IsEmpty())
+		{
+			offset = markers.Find(_T("\\p"));
+			if (offset != wxNOT_FOUND)
+			{
+				wxString beforeStr;
+				beforeStr = markers.Left(offset);
+				if (!beforeStr.IsEmpty())
+				{
+					// if there is a backslash in beforeStr, we assume some other marker
+					// than \p is present in beforeStr, and so return FALSE; otherwise,
+					// test for markers in afterStr after the \p marker
+					offset2 = beforeStr.Find(gSFescapechar);
+					if (offset2 != wxNOT_FOUND)
+					{
+						return FALSE;
+					}
+				}
+				// beware, afterStr can contain more than one \p marker, because AI puts
+				// one such in for each newline - so a few blank lines in the original
+				// file will result in m_markers like this "\p \p \p \p " and so we have
+				// to bleed these out, until we are left with an afterStr with some other
+				// marker, or with no marker
+				wxString afterStr;
+				afterStr = markers.Mid(offset);
+				wxString wholeMkr = pDoc->GetWholeMarker(afterStr);
+				if (wholeMkr == _T("\\p"))
+				{
+					bFoundParagraphMarker = TRUE;
+				}
+				if (bFoundParagraphMarker)
+				{
+					// remove \p from afterStr and then test for other markers present; do
+					// the removal of \p repeatedly if there are more than one in sequence
+					afterStr = afterStr.Mid(2);
+					if (!afterStr.IsEmpty())
+					{
+						// if there is a backslash in afterStr, we assume some other marker
+						// than \p is present, and so return FALSE; otherwise, keep scanning
+retry:					offset2 = afterStr.Find(gSFescapechar);
+						if (offset2 != wxNOT_FOUND)
+						{
+							// if it is a \p marker, then shorten afterStr and retest
+							if (afterStr[offset2 + 1] == _T('p'))
+							{
+								// it's a \p marker too, so shorten the string & retry
+								afterStr = afterStr.Mid(offset2 + 2);
+								goto retry;
+							}
+							else
+							{
+								// it's some other marker, so return FALSE
+								return FALSE;
+							}
+						}
+					}
+				}
+				else
+				{
+					// there is no \p marker in m_markers nor any marker beginning with \p, 
+					// so check for a backslash there -- if there is, we've some other
+					// marker present and so can return FALSE; if not, keep scanning
+					offset2 = markers.Find(gSFescapechar);
+					if (offset2 != wxNOT_FOUND)
+					{
+						return FALSE;
+					}
+				}
+			} // end of TRUE block for test: if (offset != wxNOT_FOUND)
+		} // end of TRUE block for test: if (!markers.IsEmpty())
+	}
+	// we got through the whole document without finding a marker other than \p
+	if (!bFoundParagraphMarker)
+	{
+        // we didn't find a \p marker either -- treat this the same as if there were other
+        // markers, return FALSE, because we don't want the caller to try remove \p markers
+		return FALSE;
+	}
+	return TRUE; // didn't find any other markers than \p
+}
+
+// str is the output from an export function, such as a source or target text SFM export,
+// or even a glosses or free translation export; if the input from which the doc was
+// created had no SFMs, then the export will have just \p markers - these need to be
+// removed and this function will do it; the \p-less string is returned
+wxString RemoveParagraphMarkersOnly(wxString& str)
+{
+	wxString s;
+	size_t len = str.Len();
+	const wxChar* pBuffer = str.GetData(); // read only
+	const wxChar* pEnd = pBuffer + len;
+	wxChar* ptr = (wxChar*)pBuffer; // our iterator
+	wxChar* aux = ptr; // auxiliary pointer, to delimit start of a text span
+	while (ptr < pEnd)
+	{
+		if (*ptr == gSFescapechar && *(ptr + 1) == _T('p'))
+		{
+			// we've matched a \p sequence, so send everything from aux up to where ptr is
+			// pointing, to the string s
+			wxString aSpan(aux, ptr);
+			if (!aSpan.IsEmpty())
+			{
+				s += aSpan;
+			}
+			ptr += 2; // advance over \p
+			aux = ptr; // mark the start of the next span
+		}
+		else
+		{
+			ptr++;
+		}
+	}
+	return s;
+}
+*/
 
 // BEW 26Aug10, added ChangeCustomMarkersToParatextPrivates() in order to support the USFM
 // 2.3 new feature, where a \z prefix is supplied to 3rd party developers for custom
@@ -15832,6 +16038,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 			//    Don't add eol char(s) if the marker is at beginning of buffer
 			//    Don't add eol char(s) if the marker is an inline marker 
 			//    (defined in AI_USFM.xml)
+			//    Don't added eol char(s) if a [ bracket precedes
 			if (pDoc->IsEndMarker(pOld,pEnd))
 			{
                 // wholeMkr is an end marker, so after wholeMkr is a place where
@@ -15921,26 +16128,48 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
                     // insert any eol char(s) needed for current marker here. In this block
                     // the marker cannot be an end marker, nor located at the beginning of
                     // the file. We will always add eol unless the marker's attribute is
-                    // inLine.
+					// inLine; but if a [ precedes the marker, we'll tuck the marker up
+					// against the [  and put the eol char(s) preceding the [ bracket
 					if (!IsInLineMarker)
 					{
-                        // Backslashes may initiate markers anywhere in the file - after
-                        // new lines, or in the midst of text lines. when inserting eolStr,
-                        // if preceding char is a space, first remove that space so there
-                        // won't be any spaces dangling at ends of lines preceding the
-                        // newly inserted eol char(s). I'll remove any spaces that managed
-                        // to creep in, as they are not needed.
-                        while (*(pNew-1) == _T(' '))
+						if (*(pOld - 1) == _T('['))
 						{
+							// remove the [ we've already added to the new buffer
 							--pNew;
-						}
-						// now add the eol char(s) to the new buffer, lenEolStr is 2 for
-						// windows, 1 for mac or linux
-						int cteol;
-						for (cteol = 0; cteol < lenEolStr; cteol++)
-						{
-							*pNew = gpApp->m_eolStr.GetChar(cteol);
+							// now add the eol char(s) to the new buffer, lenEolStr is 2 for
+							// windows, 1 for mac or linux
+							int cteol;
+							for (cteol = 0; cteol < lenEolStr; cteol++)
+							{
+								*pNew = gpApp->m_eolStr.GetChar(cteol);
+								pNew++;
+							}
+							// put the [ bracket back after the eol char(s)
+							*pNew = _T('[');
 							pNew++;
+							// now the marker will be immediately following the [ bracket
+
+						}
+						else
+						{
+							// Backslashes may initiate markers anywhere in the file - after
+							// new lines, or in the midst of text lines. when inserting eolStr,
+							// if preceding char is a space, first remove that space so there
+							// won't be any spaces dangling at ends of lines preceding the
+							// newly inserted eol char(s). I'll remove any spaces that managed
+							// to creep in, as they are not needed.
+							while (*(pNew-1) == _T(' '))
+							{
+								--pNew;
+							}
+							// now add the eol char(s) to the new buffer, lenEolStr is 2 for
+							// windows, 1 for mac or linux
+							int cteol;
+							for (cteol = 0; cteol < lenEolStr; cteol++)
+							{
+								*pNew = gpApp->m_eolStr.GetChar(cteol);
+								pNew++;
+							}
 						}
 					}
 					else if (IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) != _T(' '))
@@ -15948,21 +16177,23 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
                         // The marker is inline and there is no space preceding the marker.
                         // We want to have a preceding space, (but not if punctuation
                         // precedes, and not if an endmarker precedes) unless the marker is
-                        // \f or \fe. The following ensures that there is a space
-                        // separating non-end inLine markers from what preceeds, providing
-                        // the inLine marker is not the first thing in the file, and
-                        // providing the inLine marker is not a footnote \f, or endnote
-                        // \fe, and providing punctuation is not preceding the space.
+                        // \f or \fe, and not if fixed space ~ precedes. The following
+                        // ensures that there is a space separating non-end inLine markers
+                        // from what preceeds, providing the inLine marker is not the first
+                        // thing in the file, and providing the inLine marker is not a
+                        // footnote \f, or endnote \fe, and providing punctuation is not
+                        // preceding the space.
                         // BEW 11Oct10, needed to remove \x from the test, because in
                         // proper USFM markup style, \x follows a verse marker and its
                         // trailing space, so we don't want \x to prevent putting on in if
                         // it is absent
                         if (spacelessPuncts.Find(text.GetChar(curMkrPos-1)) == wxNOT_FOUND &&
+							text.GetChar(curMkrPos-1) != _T('~') &&
 							text.GetChar(curMkrPos-1) != _T('*'))
 						{
 							// only do this attempt at space insertion prior to the marker
 							// provided that the character preceding the marker is not one
-							// of the punctuation characters
+							// of the punctuation characters nor ~
 							if (wholeMkr != _T("\\f") 
 								&& wholeMkr != _T("\\fe"))
 							{
@@ -16095,6 +16326,21 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 							pOld += itemLen;
 							itemLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += itemLen;
+
+							// BEW added 13Dec10, since blank lines in the original file
+							// turn up as additional \p markers in m_markers, any
+							// additional \p after the first should be returned again to
+							// being newlines
+							while (*pOld == gSFescapechar && *(pOld + 1) == _T('p'))
+							{
+								// found another \p marker
+								*pNew++ = _T('\n');
+								pOld += 2;
+								while (*pOld == _T(' '))
+								{
+									pOld++;
+								}
+							}
 						}
 						else
 						{
@@ -16118,6 +16364,7 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 	*pNew = (wxChar)0; // add a null at the end of the string in pBuff2
 
 	text2.UngetWriteBuf();
+	text = text2; // return the modified data
 }
 
 // BEW added 06Oct05 for support of free translation propagation across an export of the target text

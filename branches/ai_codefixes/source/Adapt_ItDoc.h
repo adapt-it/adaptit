@@ -125,7 +125,8 @@ protected:
 	bool			IsPreviousTextTypeWanted(wxChar* pChar,USFMAnalysis* pAnalysis);
 	void			GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap, wxString str); // used in SetupForSFMSetChange
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
-	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
+	//bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
+	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, wxChar*& pWdEnd,
 							wxString& punctBefore, wxString& endMkr); // BEW created 11Oct10
@@ -202,6 +203,7 @@ public:
 											wxString & unkMkrsStr,
 											enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
+	bool			HasMatchingEndMarker(wxString& mkr, CSourcePhrase* pSrcPhrase);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar *pChar);
 	int				ParseNumber(wxChar* pChar);
@@ -210,6 +212,7 @@ public:
 	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
 	bool			IsCrossReferenceInternalEndMarker(wxChar* pChar);
 	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar);
+	//bool			IsFootnoteOrCrossReferenceEndMarker(wxString str); //overload, str must start with endmarker
 	bool			IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsChapterMarker(wxChar* pChar);

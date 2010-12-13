@@ -1239,6 +1239,11 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
 	{
 		int sequNumAtEnd = gpApp->GetMaxIndex();
+		if (sequNumAtEnd == -1)
+		{
+			// no document is open, so don't need to so any reconstitutions
+			return;
+		}
 		gpApp->m_pActivePile = gpApp->GetDocument()->GetPile(sequNumAtEnd);
 		gpApp->m_nActiveSequNum = sequNumAtEnd;
 		wxString boxValue;

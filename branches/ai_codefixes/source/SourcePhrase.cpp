@@ -54,6 +54,7 @@ extern const wxChar* filterMkr;
 extern const wxChar* filterMkrEnd;
 const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
+extern wxChar gSFescapechar;
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -2033,25 +2034,104 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 	wxString info = m_filteredInfo;
 	offsetToStart = info.Find(filterMkr);
 	offsetToEnd = info.Find(filterMkrEnd);
-	while (offsetToStart != wxNOT_FOUND && offsetToStart != wxNOT_FOUND && !info.IsEmpty())
+	while (offsetToStart != wxNOT_FOUND && offsetToEnd != wxNOT_FOUND && !info.IsEmpty())
 	{
 		offsetToStart += filterMkrLen + 1; // point at USFM or SFM, +1 is for its 
 										   // trailing space
-        // a wrapping \~FILTER* endmarker always has a preceding space, so use Trim() to
-        // get rid of it
+        // a wrapping \~FILTER* endmarker may have a preceding space, so use Trim() to
+		// get rid of it; and also use Trim(FALSE) to remove any initial space just in
+		// case there was more than one space after the \~FILTER marker
 		int length = offsetToEnd - offsetToStart;
 		wxString markersAndContent = info.Mid(offsetToStart,length);
+		markersAndContent.Trim(FALSE); // trim at left hand end
 		markersAndContent.Trim(); // trim at right hand end
 
 		// we now have a string of the form:
         // \somemarker some textual content \somemarker* (endmarker may be absent, or \F,
         // or \fe, or a USFM marker of the type \xxx* and the space before the endmarker
-        // may not be present)
- 
+        // is not likely to be present, but could be)
+        
         // Before extracting the markers and content from markersAndContent, shorten the
         // original string's copy (i.e. info) to prepare for the next extraction
 		info = info.Mid(offsetToEnd + filterMkrEndLen);
 
+		// BEW added 8Dec10, a markup "?error?" (it's not really an error, but it is sure
+		// incompatible with filtering of things like footnotes when punctuation follows
+		// the final \f* marker - which is a legal USFM markup scenario) is that we can
+		// come here with having had \~FILTER \f <footnote text content here, etc>
+		// \f*<punct>\~FILTER*, so that after removal of the filter brackets and trimming
+		// of the ends, we have content which ends with .... \f*<punct> where <punct> is
+		// one or more characters of punctuation. This defeats the internal algorithm
+		// within the ParseMarkersAndContent() call below -- it will do a reversal and
+		// look for an endmarker which it expects, if present, to be at the reversed
+		// string's start - and so expects the first character to be * (if that isn't the
+		// case, it assumes the input was not reversed and expects an initial backslash
+		// which won't be there - and the assert trips, and in the release build, who
+		// knows what corruption will happen from then on). What to do?
+        // We don't want to abandon the punctuation following \f*, so we move it to be
+        // preceding the \f*. That is a reasonable temporary solution - it makes the
+        // ParseMarkersAndContent() call below robust. It should happen seldom though -
+        // only when filtering out something where punctuation is both sides of \f* or \fe*
+        // or \x*, and how often will that happen?!) So, the next bit of code is a kludge
+        // to make the data safe for the call lower down.
+		bool bCheckFurther = FALSE;
+		int fullLen = 0;
+		int lastMkrLen = 0;
+		wxString firstMkr;
+		int offset = wxNOT_FOUND;
+		int offset2 = wxNOT_FOUND;
+		offset = markersAndContent.Find(gSFescapechar); // there has to always be a beginmarker
+		wxASSERT(offset != wxNOT_FOUND);
+		wxString lastMkr = GetLastMarker(markersAndContent); // we may have just found the
+													// first and only marker, so beware
+		offset2 = markersAndContent.Find(lastMkr); // it will certainly find a marker
+		if (offset == offset2)
+		{
+			// first and last markers are one and the same, so there is no endmarker, and
+			// we need go no further with this kludge code
+		}
+		else
+		{
+			// there is at least one marker beyond the first
+			 bCheckFurther = TRUE;
+			 lastMkrLen = lastMkr.Len();
+			if (gpApp->gCurrentSfmSet == PngOnly)
+			{
+				// the only possible endmarkers are \fe or \F, both are footnote endmarker
+				// alternatives
+				if (lastMkr == _T("\\fe") || lastMkr == _T("\\F"))
+				{
+					fullLen = markersAndContent.Len();
+					if (offset2 + lastMkrLen < fullLen)
+					{
+						// there is some content after lastMkr that we want to move to be
+						// before it - do it here
+						wxString firstBit = markersAndContent.Left(offset2);
+						wxString theRest = markersAndContent.Mid(offset2);
+						wxString liesBeyond = theRest.Mid(lastMkrLen); // move this stuff
+						liesBeyond.Trim(FALSE); // don't want the space which must follow \fe or \F
+						markersAndContent = firstBit + liesBeyond + lastMkr; 
+						markersAndContent += _T(' '); // the \F or \fe needs a following space
+					}
+				}
+			}
+			else // assume UsfmOnly
+			{
+				if (lastMkr[lastMkrLen - 1] == _T('*'))
+				{
+					// its a USFM endmarker, so look for content beyond it, and move it to
+					// precede the endmarker if there is any
+					wxString firstBit = markersAndContent.Left(offset2);
+					wxString theRest = markersAndContent.Mid(offset2);
+					wxString liesBeyond = theRest.Mid(lastMkrLen); // move this stuff
+					liesBeyond.Trim(); // don't want final space (shouldn't be any anyway)
+					markersAndContent = firstBit + liesBeyond + lastMkr; // now it's safe
+				}
+				// if it's not *, then assume the marker was within the string and ignore
+				// it, we don't have an endmarker at the end
+			}
+		}
+ 
 		// Now process markersAndContent to extract the marker and endmarker, and the
 		// content string, adding them to the respective arrays; the ParseMarkersAndContent()
 		// function handles initial marker and end marker, whether SFM set or USFM set,
@@ -2233,6 +2313,8 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 // into an empty string; default is not to attempt the change (ie. assume the array will
 // have only an empty endmarker string rather than a placeholding space; it is the 
 // View Filtered Information dialog which uses a placeholding space)
+// BEW changed 7Dec10, to rectify a logic error which resulted in endmarker and \~FILTER*
+// not being added to the end of the content string
 void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
 					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
 					bool bChangeSpaceToEmpty)
@@ -2268,24 +2350,33 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
         // manually. However, we are a decade or more from the last use of the old 1998 PNG
         // SFM marker set, everyone uses USFM these days, so we won't bother to do anything
         // smart here to handle such a contingency within our code.
-        if (bChangeSpaceToEmpty)
-		{
-			// caller wants a space changed to the empty string
-			if (pFilteredEndMarkers->Item(index) == aSpace)
-			{
-				// this content string takes no endMarker (but a delimiting space after
-				// the content string is probably a good idea)
-				theRest << aSpace << filterMkrEnd;
-			}
-		}
-		else if (pFilteredEndMarkers->Item(index).IsEmpty())
+		if (pFilteredEndMarkers->Item(index).IsEmpty())
 		{
 			// this content string takes no endMarker (add a delimiting space though)
 			theRest << aSpace << filterMkrEnd;
 		}
 		else
 		{
-			theRest << pFilteredEndMarkers->Item(index) << aSpace << filterMkrEnd;
+			// there is something, it could be an endmarker, or a placeholding space
+			if (pFilteredEndMarkers->Item(index) == aSpace)
+			{
+				// this content string takes no endMarker (but a delimiting space after
+				// the content string is probably a good idea)
+				if (bChangeSpaceToEmpty)
+				{
+					theRest << filterMkrEnd;
+				}
+				else
+				{
+					theRest << aSpace << filterMkrEnd;
+				}
+			}
+			else
+			{
+				// this content string takes an endMarker and there is one ready for
+				// appending
+				theRest << pFilteredEndMarkers->Item(index) << aSpace << filterMkrEnd;
+			}
 		}
 		markersAndContent += theRest;
 		AddToFilteredInfo(markersAndContent);
