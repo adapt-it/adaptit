@@ -3948,6 +3948,245 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	return tgtStr;
 }
 
+// if FALSE is returned, examine *pbIsEither value, if TRUE then the outcome was
+// indeterminate (either set could be selected meaningfully), if FALSE, then PNG 1998 SFM
+// set is indicated
+bool IsUsfmDocument(SPList* pList, bool* pbIsEither)
+{
+	// by passing in the list, we could call this on a subrange, or call several times on
+	// several subranges, etc; but normally we'll just make a single call on the
+	// m_pSourcePhrases list and rely on the subranges set up herein (providing there are
+	// enough instances, if not, we test every instance in the document)
+	*pbIsEither = FALSE; // initialize, assuming the result will not be indeterminate
+	int pngCount = 0;
+	int usfmCount = 0;
+	size_t endRange[] = {333, 667, 1000}; // to initialize, some may be changed below
+	size_t startRange[] = {0, 330, 1000}; // to initialize, some may be changed below
+	size_t maxIndex = pList->GetCount() - 1;
+	bool bThreeRanges = TRUE;
+	if (maxIndex < 1000)
+	{
+		bThreeRanges = FALSE;
+	}
+	SPList::Node* pos = pList->GetFirst();
+	// set up the ranges, based on doc size (as number of CSourcePhrase instances)
+	size_t rangeIndex;
+	size_t rangeEndIndex;
+	if (bThreeRanges)
+	{
+		size_t aDivision = maxIndex / 3;
+		endRange[0] = wxMin(330,aDivision);
+		startRange[1] = aDivision;
+		startRange[2] = startRange[1] + aDivision;
+		endRange[1] = wxMin(startRange[1] + 330, startRange[2] - 1);
+		endRange[2] = wxMin(startRange[2] + 330, maxIndex);
+		rangeEndIndex = 2;
+	}
+	else
+	{
+		endRange[0] = maxIndex;
+		rangeEndIndex = 0;
+	}
+	for (rangeIndex = 0; rangeIndex <= rangeEndIndex; rangeIndex++)
+	{
+		size_t start = startRange[rangeIndex];
+		size_t end = endRange[rangeIndex];
+		size_t index = 0;
+		for (index = start; index <= end; index++)
+		{
+			pos = pList->Item(index);
+			CSourcePhrase* pSrcPhrase = pos->GetData();
+
+			// count indicators of USFM
+			size_t usfmIndicators = EvaluateMarkerSetForIndicatorCount(pSrcPhrase, UsfmOnly);
+			usfmCount += usfmIndicators;
+			// count indicators of PNG SFM 1998 marker set
+			size_t pngIndicators = EvaluateMarkerSetForIndicatorCount(pSrcPhrase, PngOnly);
+			pngCount += pngIndicators;
+		}
+	}
+
+	// do the logic for working out which set it used for the markup, or which set
+	// dominates if there is ambiguity
+	if ((usfmCount == 0 && pngCount == 0) || (usfmCount == pngCount && usfmCount > 0))
+	{
+		// we have no diagnostics for either set, or we have some but equal counts from
+		// each set (that means that either set would be okay, but the user should default
+		// to USFM always unless there is a clear indication of dominance of PNG 1998 SFM
+		// set in the document's data)
+		*pbIsEither = TRUE;
+		return FALSE;
+	}
+	if (pngCount > usfmCount)
+	{
+        // the 1998 PNG SFM set is the winner (there are very few clear indicators of PNG
+        // SFM set (it's common markers are also markers within USFM), but USFM has LOTS of
+        // unique indicators, so for PNG set to have a higher count is a huge indicator
+        // that it is PNG 1998 SFM set that is the document's markup standard)
+		*pbIsEither = FALSE;
+		return FALSE;
+	}
+	// if we've not returned yet, then USFM is the winner	
+	*pbIsEither = FALSE;
+	return TRUE;
+}
+
+// this function does the grunt work for the bool IsUsfmDocument() function above
+size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet set)
+{
+	size_t count = 0;
+	// These arrays are cleared each time passed in to GetSFMarkersAsArray()
+	wxArrayString endMkrsArray; endMkrsArray.Clear(); 
+	wxArrayString beginMkrsArray; beginMkrsArray.Clear();
+	bool bNoProblems = TRUE;
+	wxString aSpace = _T(" ");
+	wxString str; // a scratch string in which to store string returned from an access function
+	wxString mkr;
+	wxString mkrPlusSpace; // use this for testing the fast access strings defined on 
+						   // the app (see start of OnInit())
+	size_t index;
+	size_t arrayCount;
+	switch (set)
+	{
+	case PngOnly:
+		// test for indicators that the sfm set is the 1998 PNG SFM set, count any found
+		{
+			if (!pSrcPhrase->m_markers.IsEmpty())
+			{
+				bNoProblems = GetSFMarkersAsArray(pSrcPhrase->m_markers, beginMkrsArray);
+			}
+			if (bNoProblems)
+			{
+				arrayCount = beginMkrsArray.GetCount();
+				if (arrayCount > 0)
+				{
+					for (index = 0; index < arrayCount; index++)
+					{
+						mkr = beginMkrsArray.Item(index);
+						if (mkr != _T("\\f") && mkr != _T("\\x") && mkr != _T("\\fe"))
+						{
+							// those markers are in both SFM sets, so we are interested
+							// only in markers which are not one of those
+							mkrPlusSpace = mkr + aSpace;
+							if (gpApp->m_pngIndicatorMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
+							{
+								// it's one of the diagnostic markers for PNG 1998 SFM set
+								count++;
+							}
+						}
+					}
+				}
+			}
+			str = pSrcPhrase->GetEndMarkers();
+			if (!str.IsEmpty())
+			{
+				bNoProblems = GetSFMarkersAsArray(str, endMkrsArray);
+			}
+			if (bNoProblems)
+			{
+				// the only endmarkers in PNG 1998 SFM set are \F and \fe, they are
+				// aliases for each other, being footnote end markers
+				arrayCount = endMkrsArray.GetCount();
+				if (arrayCount > 0)
+				{
+					for (index = 0; index < arrayCount; index++)
+					{
+						mkr = endMkrsArray.Item(index);
+						if (mkr == _T("\\F") || mkr == _T("\\fe"))
+						{
+							// it's a diagnostic marker for PNG 1998 SFM set
+							count++;
+						}
+					}
+				}
+			}
+		}
+		break;
+	default:
+	case UsfmOnly:
+		// test for indicators that the sfm set is USFM, count any found
+		{
+			// for USFM, Adapt It stores \f and \x and \fe in m_markers, and \f* and \x*
+			// and \fe* in m_endMarkers; hence any content in any of the inline marker or
+			// endmarker string members of CSourcePhrase won't be one of those, and will
+			// constitute an indicator of USFM (we'll not bother to check for more than
+			// one marker in such members, although two or more are possible though unlikely)
+			// Also, since the inline markers come in marker/endmarker pairs, it is
+			// sufficient to just test for the endmarkers - then the counts won't be
+			// hugely inflated compared to the png sfm set's counts
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				count++;
+			}
+			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				count++;
+			}
+			// test for some diagnostic beginmarkers
+			if (!pSrcPhrase->m_markers.IsEmpty())
+			{
+				bNoProblems = GetSFMarkersAsArray(pSrcPhrase->m_markers, beginMkrsArray);
+			}
+			if (bNoProblems)
+			{
+				arrayCount = beginMkrsArray.GetCount();
+				if (arrayCount > 0)
+				{
+					for (index = 0; index < arrayCount; index++)
+					{
+						mkr = beginMkrsArray.Item(index);
+						if (mkr != _T("\\f") && mkr != _T("\\x") && mkr != _T("\\fe"))
+						{
+							// those markers are in both SFM sets, so we are interested
+							// only in markers which are not one of those
+							mkrPlusSpace = mkr + aSpace;
+							if (gpApp->m_usfmIndicatorMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
+							{
+								// it's one of the diagnostic markers for USFM set
+								count++;
+							}
+						}
+					}
+				}
+			}
+			// test for endmarkers with an asterisk, including \f* \x* and/or \fe* - these
+			// are only in USFM, as are any other markers which end with asterisk (we are
+			// looking in m_endMarkers, as we've already tested the inline endmarker
+			// storage above)
+			str = pSrcPhrase->GetEndMarkers();
+			if (!str.IsEmpty())
+			{
+				bNoProblems = GetSFMarkersAsArray(str, endMkrsArray);
+			}
+			if (bNoProblems)
+			{
+				// the only endmarkers in PNG 1998 SFM set are \F and \fe, they are
+				// aliases for each other, being footnote end markers
+				arrayCount = endMkrsArray.GetCount();
+				if (arrayCount > 0)
+				{
+					for (index = 0; index < arrayCount; index++)
+					{
+						mkr = endMkrsArray.Item(index);
+						if (mkr == _T("\\f*") || mkr == _T("\\fe*") || mkr == _T("\\x*"))
+						{
+							// it's a diagnostic marker for USFM set
+							count++;
+						}
+						else if (mkr[mkr.Len() - 1] == _T('*'))
+						{
+							// it ends with an asterisk, so it's diagnostic of USFM
+							count++;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+	return count;
+}
+
 // returns nothing
 // param   inStr       ->  a string of extracted filtered information (with \!FILTER and 
 //                         \~FILTER* filter bracketing markers all removed)

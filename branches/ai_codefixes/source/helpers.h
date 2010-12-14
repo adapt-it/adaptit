@@ -113,6 +113,11 @@ bool IsAnsiLetterOrDigit(wxChar c);
 
 bool IsValidFileName(wxString s);
 
+bool IsUsfmDocument(SPList* pList, bool* pbIsEither); // if FALSE is returned, examine *pbIsEither
+	// value, if TRUE then the outcome was indeterminate (either set could be selected meaningfully),
+	// if FALSE, then PNG 1998 SFM set is indicated
+size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet set);
+
 wxString StripPath(wxString FullPath);
 
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep);

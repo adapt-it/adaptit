@@ -10828,6 +10828,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* ");
 	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig ");
 	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh ");
+	m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
+	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\pp \\@ \\div \\tis \\cap \\di \\F \fe \\pt \\ps \\sz \\bn \\tir ");
 
 	//wxString s = _T("*f\\ *x\\");
 	//const wxChar* pBuf = s.GetData();

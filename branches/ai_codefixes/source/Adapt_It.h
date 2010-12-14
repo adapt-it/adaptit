@@ -2634,6 +2634,8 @@ public:
 				// wxString member -- see next line)
 	wxString m_inlineNonbindingEndMarkers;
 	wxString m_inlineBindingMarkers; // beginmarkers, needed for docV4 to docV5 conversions
+	wxString m_usfmIndicatorMarkers; // some common beginmarkers found only in USFM
+	wxString m_pngIndicatorMarkers; // some common beginmarkers found only in PNG SFM 1998 set
 
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is 
 				// being viewed in the ViewFilteredMaterial dialog
