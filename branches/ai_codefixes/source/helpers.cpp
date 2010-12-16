@@ -1026,7 +1026,7 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 // overload version (slightly different behaviour if charSet is empty), and with the
 // additional property that encountering ~ (the USFM fixed space marker) unilaterally
 // halts the scan, as also does encounterning a backslash, and as also does coming to a
-// closing bracket character, ]
+// closing bracket character, ], or a carriage return or linefeed
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 {
     // returns a substring that contains characters in the string that are in charSet,
@@ -1057,7 +1057,8 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	{
 		while (ptr < pEnd)
 		{
-			if (charSet.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']') && *ptr != _T('~'))
+			if (charSet.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']') && *ptr != _T('~')
+				&& *ptr != _T('\n') && *ptr != _T('\r'))
 				span += *ptr++;
 			else
 				return span;
@@ -1095,7 +1096,7 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 
 // overload version (slightly different behaviour if charSet is empty) and with the
 // additional property that encountering ~ (the USFM fixed space marker) unilaterally
-// halts the scan, as does encountering a backslash
+// halts the scan, as does encountering a backslash or a carriage return or linefeed
 wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 {
     // Extracts and returns all characters from the passed in ptr location, and preceding
@@ -1121,7 +1122,8 @@ wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	{
 		while (ptr < pEnd)
 		{
-			if (charSet.Find(*ptr) == wxNOT_FOUND && *ptr != _T('~') && *ptr != gSFescapechar)
+			if (charSet.Find(*ptr) == wxNOT_FOUND && *ptr != _T('~') && *ptr != gSFescapechar
+				&& *ptr != _T('\n') && *ptr != _T('\r'))
 				span += *ptr++;
 			else
 				return span;

@@ -11217,10 +11217,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pMappedObjectPointers = new wxArrayPtrVoid;// array of all pointers to USFMAnalysis
 											// structs on the heap - for ease of 
 											// deletion in the app destructor
-	gCurrentSfmSet = UsfmOnly;	// may be set to PngOnly if, in reading the
-								// project config file, if there is no UseUSFMarkerSet
-								// setting defined there (i.e., the project was created
-								// prior to Version 3.x)
+	gCurrentSfmSet = UsfmOnly;	// A code block at the end of GetProjectSettingsConfiguration()
+			// will check if there was a project config file line for storing the project's
+			// last in-operation SFM set (either UsfmOnly, PngOnly, or UsfmAndPng), if the
+			// line is not present then at code block forces the set to be PngOnly -- because
+			// that means that the project was created prior to Version 3.x. If that line is
+			// present however, the code block is not entered, and the project setting is just
+			// taken from whatever the config file stores there - the value is then put in the
+			// app member variable, gProjectSfmSetForConfig.
+
 	gProjectSfmSetForConfig = UsfmOnly;	// Retains any value set in the project config file
                                 // unless user explicitly changes it in Edit Preferences
                                 // USFM and Filtering tab or the Start Working... wizard

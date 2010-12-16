@@ -1767,12 +1767,90 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 
 void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 {
+	wxString newSet = GetSetNameStr(UsfmOnly); // BEW 14Dec10, use this rather than a literal
 	tempSfmSetAfterEditProj = UsfmOnly;
 	bProjectSfmSetChanged = TRUE;
 	bDocSfmSetChanged = TRUE; // the doc sfm set changes when the project sfm set changes
 	if (pStartWorkingWizard == NULL)
 	{
 		// We're in Edit Preferences.
+		
+        // BEW added 11Oct10, to prevent SFM set change to UsfmOnly if the document is
+        // marked up for the PNG 1998 SFM set; allow it if no doc is open, but warn user of
+        // the need for SFM set and the project's documents internal markup to match
+		if (gpApp->m_pSourcePhrases->IsEmpty())
+		{
+			// a document is not open - we must allow any change at this point, but
+			// warn the user of the danger of a bad choice & allow Cancel
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			wxString msg2;
+			msg2 = msg2.Format(_(
+"There is no currently open document.\nTherefore changing to the %s is allowed.\nHowever, only do so if you are confident that the input files for creating documents for this project are marked up with the marker set you are now choosing.\n Cancel if you are unsure."),
+			newSet.c_str());
+			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+			if (nResult == wxCANCEL)
+			{
+				if (currentSet == PngOnly)
+				{
+					pRadioPngOnlyProj->SetValue(TRUE);
+					pRadioUsfmAndPngProj->SetValue(FALSE);
+					pRadioUsfmOnlyProj->SetValue(FALSE);
+				}
+				else if (currentSet == UsfmAndPng)
+				{
+					pRadioPngOnlyProj->SetValue(FALSE);
+					pRadioUsfmAndPngProj->SetValue(TRUE);
+					pRadioUsfmOnlyProj->SetValue(FALSE);
+				}
+				bProjectSfmSetChanged = FALSE;
+				bDocSfmSetChanged = FALSE;
+				return;
+			}
+			// if control has not returned, the set change will be made
+		}
+		else
+		{
+			// there is a document defined
+			bool bItsIndeterminate = FALSE;
+			bool bItsUSFM = IsUsfmDocument(gpApp->m_pSourcePhrases, &bItsIndeterminate);
+            // If the document's markup scheme is not USFM (it's most likely then PNG 1998
+            // SFM set), and it's' not the case that there are no markers diagnostic of one
+            // of the sets (which would make it okay to effect the set change), then
+            // changing to Ubs's USfM set should be prevented
+			if (!bItsUSFM && !bItsIndeterminate)
+			{
+				SfmSet currentSet = gpApp->gCurrentSfmSet;
+				bDocSfmSetChanged = FALSE;
+				bProjectSfmSetChanged = FALSE;
+				wxString docSet = GetSetNameStr(PngOnly); // BEW 14Dec10, use this rather than a literal
+				wxString msg2;
+				msg2 = msg2.Format(_(
+"The currently open document is marked up with markers from the %s.\nChanging to the %s is unlikely to be helpful.\n(This may result in a badly formed document, and similarly for other documents in this project which are marked up the same way.)"),
+				docSet.c_str(), newSet.c_str());
+				wxMessageBox(msg2, _T(""), wxICON_WARNING);
+				// restore the radio button to what it was before the click
+				if (currentSet == PngOnly)
+				{
+					pRadioPngOnlyProj->SetValue(TRUE);
+					pRadioUsfmAndPngProj->SetValue(FALSE);
+					pRadioUsfmOnlyProj->SetValue(FALSE);
+				}
+				else if (currentSet == UsfmAndPng)
+				{
+					pRadioPngOnlyProj->SetValue(FALSE);
+					pRadioUsfmAndPngProj->SetValue(TRUE);
+					pRadioUsfmOnlyProj->SetValue(FALSE);
+				}
+				return;
+			}
+            // if the document markup is USFM, then changing to UsfmOnly or UsfmAndPng is
+            // okay, that's also true if the result of the test was indeterminate (it's
+            // indeterminate when the the markers in the doc, such as they are, are in both
+            // marker sets and there are no footnotes endnotes or cross references -- in
+            // that case, it wouldn't matter what marker set is used because the formatting
+            // would be correct), so let processing continue
+		}
+
 		// Call the usfm filter page's SetupFilterPageArrays to update the filter page's arrays
 		// with the new sfm set (UsfmOnly).
 		// Note: The last NULL parameter is necessary because we cannot get a DC for the

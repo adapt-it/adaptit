@@ -979,6 +979,18 @@ bool CAdapt_ItDoc::OnNewDocument()
 			OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
 	#endif
 	#endif
+			// BEW 16Dec10, added needed code to set gCurrentSfmSet to the current value
+			// of the project's SfmSet. This code has been lacking from version 3 onwards
+			// to 5.2.3 at least
+			if (gpApp->gCurrentSfmSet != gpApp->gProjectSfmSetForConfig)
+			{
+				// the project's setting is not the same as the current setting for the
+				// doc (the latter is either UsfmOnly if the app has just been launched,
+				// as that is the default; or if there was some previous doc open, it has
+				// the same value as that previous doc had)
+				gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
+			}
+
 			// parse the input file
 			int nHowMany;
 			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
@@ -7449,25 +7461,49 @@ bool CAdapt_ItDoc::IsAmbiguousQuote(wxChar* pChar)
 	return FALSE;
 }
 
+// BEW 15Dec10, changes needed to handle PNG 1998 marker set's \fe and \F
 bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
 {
-	wxString fnoteEnd = _T("\\f*");
-	wxString endnoteEnd = _T("\\fe*");
-	wxString crossRefEnd = _T("\\x*");
-	wxString endmarkers = pSrcPhrase->GetEndMarkers();
-	if (endmarkers.IsEmpty())
-		return FALSE;
-	if (endmarkers.Find(fnoteEnd) != wxNOT_FOUND)
+	if (gpApp->gCurrentSfmSet == PngOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
 	{
-		return TRUE;
+		// in the PNG 1998 set, there is no marker for endnotes, and cross references were
+		// not included in the standard but inserted manually from a separate file, and so
+		// there is no \x nor any endmarker for a cross reference either; there were only
+		// two marker synonyms for ending a footnote, \fe or \F
+		wxString fnoteEnd1 = _T("\\fe");
+		wxString fnoteEnd2 = _T("\\F");
+		wxString endmarkers = pSrcPhrase->GetEndMarkers();
+		if (endmarkers.IsEmpty())
+			return FALSE;
+		if (endmarkers.Find(fnoteEnd1) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (endmarkers.Find(fnoteEnd2) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
 	}
-	else if (endmarkers.Find(endnoteEnd) != wxNOT_FOUND)
+	else
 	{
-		return TRUE;
-	}
-	else if (endmarkers.Find(crossRefEnd) != wxNOT_FOUND)
-	{
-		return TRUE;
+		wxString fnoteEnd = _T("\\f*");
+		wxString endnoteEnd = _T("\\fe*");
+		wxString crossRefEnd = _T("\\x*");
+		wxString endmarkers = pSrcPhrase->GetEndMarkers();
+		if (endmarkers.IsEmpty())
+			return FALSE;
+		if (endmarkers.Find(fnoteEnd) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (endmarkers.Find(endnoteEnd) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (endmarkers.Find(crossRefEnd) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
@@ -7595,6 +7631,15 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	// and this overloaded version of SpanExcluding() always halts if it comes to ~
 	// (if ] is in any substring of punctuation here, we'll parse over it; that is, we
 	// don't ask of SpanExcluding() that it pay particular attention to ] nor halt at a ] )
+	// 
+	// NOTE: SpanExcluding() and SpanIncluding() halt at space or puncts, but not at <CR>
+	// nor <LF>, and so the following call will include the carriage return linefeed pair
+	// if the word does not end in punctuation - and that would carry the CR+LF into the
+	// xml output of the doc, etc, if we don't check for and remove these unwanted white
+	// space characters here. (I don't think these versions of the Span...() functions
+	// would ever be wanted for parsing over line ends, so I'll put \r and \n into the
+	// halt conditions of these two functions - that will fix the problem here without
+	// extra code being needed)
 	wxString word = SpanExcluding(p, pEnd, gpApp->m_punctuation[0]);
 	length = word.Len();
 	p = p + length;
@@ -8664,7 +8709,30 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				}
 				else
 				{
-					// the only safe thing is to return now
+					// if we enter here, the usual scenario is that a word doesn't have
+					// any following punctuation and we've just parsed over white space -
+					// we could return now, except that it wouldn't be apppropriate to do
+					// so if what we are pointing at is an endmarker which ends a TextType
+					// (such as a footnote, endnote or crossReference in USFM, or a
+					// footnote in PNG 1998 SFM set). The code for detecting the endmarker
+					// in the caller uses that detection to end the TextType for the
+					// earlier stuff, change to the next TextType, or if there's no begin
+					// marker present, reinstore 'verse' and m_bSpecialText = FALSE for
+					// the CSourcePhrase instances which will follow. So we must check for
+					// the endmarker here (we care only about m_endMarkers content here,
+					// because only what's in that member can disrupt the TextType
+					// propagating in order to start a new value thereafter) and make sure
+					// it gets stored before we return
+					wxString theEndMarker;
+					theEndMarker.Empty();
+					if (IsEndMarkerRequiringStorageBeforeReturning(ptr, &theEndMarker))
+					{
+						int aLength = theEndMarker.Len();
+						ptr += aLength;
+						len += aLength;
+						// get the marker stored
+						pSrcPhrase->AddEndMarker(theEndMarker);
+					}
 					return len;
 				}
 			}
@@ -9206,6 +9274,64 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		}
 	} // end TRUE block for test: if (bNotEither)
 	return len;
+}
+
+/// returns     TRUE if the marker is \f* or \fe* or \x* for USFM set, or if PNG 1998 set
+///             is current, if the marker is \F or \fe
+/// ptr        ->  the scanning pointer for the parse
+/// pWholeMkr  <-  ptr to the endmarker string, empty if there is no marker at ptr
+/// Called when ptr has possibly reached an endmarker following parsing of the word (and
+/// possibly some following whitespace, the case when there was following puncts and ptr
+/// points past them will be handled somewhere else probably). The intention of this function
+/// is to alert the caller that any endmarker which should be stored in m_endMarkers and which
+/// is currently being pointed at by ptr, must be flagged as present (so the caller can
+/// then get it stored in m_endMarkers before returning from the caller to TokenizeText().
+/// This function is very specific to making the ParseWord() parser work properly, so is
+/// private in the document class. It the sfm set is PNG 1998 one, and the marker is \fe,
+/// elsewhere in the app we default to assuming \fe is a USFM marker, since it is in both
+/// sets with different meaning. Here we have a problem, if the set is the combined
+/// UsfmAndPng, because it could then be a footnote endmarker of PNG 1998 set, or an
+/// endnote beginmarker of the USFM set - and either could occur in the context where the
+/// parser's ptr is currently at, so that's no help. So we'll require the set to be
+/// explicitly PngOnly before we interpret it as the former. If it's UsfmAndPng, we'll
+/// interpret it as the latter - and it that gives a false parse, then too bad. People
+/// should be using only Usfm by now anyway!
+bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr)
+{
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		if (*ptr == gSFescapechar)
+		{
+			(*pWholeMkr) = GetWholeMarker(ptr);
+			if (*pWholeMkr != _T("\\fe") && *pWholeMkr != _T("\\F"))
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			(*pWholeMkr).Empty();
+			return FALSE;
+		}
+	}
+	else
+	{
+		// it's either USFM set or UsfmAndPng set --  treat both as if USFM
+		if (*ptr == gSFescapechar)
+		{
+			(*pWholeMkr) = GetWholeMarker(ptr);
+			if (*pWholeMkr != _T("\\f*") && *pWholeMkr != _T("\\fe*") && *pWholeMkr != _T("\\x*"))
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			(*pWholeMkr).Empty();
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 // returns     the updated value of len, agreeing with where ptr is on return

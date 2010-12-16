@@ -323,6 +323,7 @@ public:
 	bool	m_bLegacyDocVersionForSaveAs;
 	bool	m_bDocRenameRequestedForSaveAs;
 	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
+	bool	IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
 	void	DoConsistencyCheck(CAdapt_ItApp* pApp);	// the legacy function 
