@@ -10829,7 +10829,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig ");
 	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh ");
 	m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
-	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\pp \\@ \\div \\tis \\cap \\di \\F \fe \\pt \\ps \\sz \\bn \\tir ");
+	// whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
+	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
+	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
 
 	//wxString s = _T("*f\\ *x\\");
 	//const wxChar* pBuf = s.GetData();

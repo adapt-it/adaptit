@@ -441,6 +441,7 @@ const char reportattachmentpackeddocument[] = "ReportAttachmentPackedDocument";
 const char emailfrom[] = "emailFrom";
 const char emailto[] = "emailTo";
 const char emailsubject[] = "emailSubject";
+const char emailsendersname[] = "emailsendersname";
 const char usagelogfilepathname[] = "usageLogFilePathName";
 const char packeddocumentfilepathname[] = "packedDocumentFilePathName";
 
@@ -1076,6 +1077,7 @@ struct EmailReportData
 	wxString toAddress;
 	wxString subjectSummary;
 	wxString emailBody;
+	wxString sendersName;
 	wxString usageLogFilePathName;
 	wxString packedDocumentFilePathName;
 };
