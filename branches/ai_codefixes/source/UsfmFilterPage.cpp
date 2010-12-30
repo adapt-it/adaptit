@@ -1284,9 +1284,10 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 	//
 	wxString msg, newSet;
 	// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-	// Warning: You just made changes to the document's inventory of filter markers in the Filtering page
-	// \nwhere the %1 was in effect. If you make this change the document will use
-	// \nthe Filtering page's settings for the %2. Do you want to make this change?
+    // Warning: You just made changes to the document's inventory of filter markers in the
+    // Filtering page \nwhere the %1 was in effect. If you make this change the document
+    // will use \nthe Filtering page's settings for the %2. Do you want to make this
+    // change?
 	newSet = _("USFM version 2.0 Marker Set"); //IDS_USFM_SET_ABBR
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
@@ -1303,10 +1304,10 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 		}
 		// update tempSfmSetAfterEditDoc with the new sfm set
 		tempSfmSetAfterEditDoc = UsfmOnly;
-		// Call the usfm filter page's SetupFilterPageArrays to update the filter page's arrays
-		// with the new sfm set. Since a new sfm set also means the usfm filter page's 
-		// tempFilterMarkersAfterEditDoc has markers from the previous sfm set, we
-		// need to use the UsfmFilterMarkersStr on the App for building our marker arrays.
+        // Call the usfm filter page's SetupFilterPageArrays to update the filter page's
+        // arrays with the new sfm set. Since a new sfm set also means the usfm filter
+        // page's tempFilterMarkersAfterEditDoc has markers from the previous sfm set, we
+        // need to use the UsfmFilterMarkersStr on the App for building our marker arrays.
 		// Note: The last NULL parameter is necessary because we cannot get a DC for the
 		// list control because the usfm filter page may not exist yet. It doesn't matter, we
 		// only need to fill the arrays here, not display them. All of the arrays will be
@@ -1320,7 +1321,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 			&m_userCanSetFilterFlagsDoc);
 
 #ifdef __WXDEBUG__
-	gpApp->ShowFilterMarkers(10); // location 10
+	//gpApp->ShowFilterMarkers(10); // location 10
 #endif
 
 #ifdef _Trace_UnknownMarkers
@@ -1335,17 +1336,18 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 				&m_userCanSetFilterFlagsDoc);
  
 #ifdef __WXDEBUG__
-	gpApp->ShowFilterMarkers(17); // location 17
+//	gpApp->ShowFilterMarkers(17); // location 17
 #endif
 
-		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
-		// are populated with data based on a different sfm set, so, in order to be able to use them to
-		// test for "before edit/after edit" changes, we need to initialize them again. The 
-		// pFilterFlagsDocBeforeEdit can be copied from the pFilterFlagsDoc array.
-		// The tempFilterMarkersBeforeEditDoc is assigned the string of filter markers using 
-		// GetFilterMkrStrFromFilterArrays, which gets a filter marker string composed from the current
-		// arrays (which will include any unknown filter markers because of the AddUnknownMarkersToDocArrays
-		// call above).
+        // At this point the m_filterFlagsDocBeforeEdit CUIntArray and the
+        // tempFilterMarkersBeforeEditDoc are populated with data based on a different sfm
+        // set, so, in order to be able to use them to test for "before edit/after edit"
+        // changes, we need to initialize them again. The pFilterFlagsDocBeforeEdit can be
+        // copied from the pFilterFlagsDoc array. The tempFilterMarkersBeforeEditDoc is
+        // assigned the string of filter markers using GetFilterMkrStrFromFilterArrays,
+        // which gets a filter marker string composed from the current arrays (which will
+        // include any unknown filter markers because of the AddUnknownMarkersToDocArrays
+        // call above).
 		int ct;
 		pFilterFlagsDocBeforeEdit->Clear();
 		for (ct = 0; ct < (int)pFilterFlagsDoc->GetCount(); ct++)
@@ -1363,7 +1365,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 		LoadDocSFMListBox(LoadInitialDefaults);
 
 #ifdef __WXDEBUG__
-	gpApp->ShowFilterMarkers(18); // location 18
+	//gpApp->ShowFilterMarkers(18); // location 18
 #endif
 
 	}
@@ -1391,7 +1393,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 			&m_userCanSetFilterFlagsDoc);
 
 #ifdef __WXDEBUG__
-	gpApp->ShowFilterMarkers(11); // location 11
+	//gpApp->ShowFilterMarkers(11); // location 11
 #endif
 
 		// From the wizard no doc is loaded so there are no unknown markers to add to the Doc's 
@@ -1402,7 +1404,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 				&m_userCanSetFilterFlagsDoc);
 
 #ifdef __WXDEBUG__
-	gpApp->ShowFilterMarkers(19); // location 19
+	//gpApp->ShowFilterMarkers(19); // location 19
 #endif
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
@@ -1427,7 +1429,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 		tempFilterMarkersAfterEditDoc = tempFilterMarkersBeforeEditDoc;
 
 #ifdef __WXDEBUG__
-	gpApp->ShowFilterMarkers(20); // location 20
+	//gpApp->ShowFilterMarkers(20); // location 20
 #endif
 
 	}
@@ -1448,9 +1450,10 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 	// in effect there in the Filtering page.
 	wxString msg, newSet;
 	// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-	// Warning: You just made changes to the document's inventory of filter markers in the Filtering page
-	// \nwhere the %1 was in effect. If you make this change the document will use
-	// \nthe Filtering page's settings for the %2. Do you want to make this change?
+    // Warning: You just made changes to the document's inventory of filter markers in the
+    // Filtering page \nwhere the %1 was in effect. If you make this change the document
+    // will use \nthe Filtering page's settings for the %2. Do you want to make this
+    // change?
 	newSet = GetSetNameStr(PngOnly); // BEW 14Dec10, use this rather than a literal
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
