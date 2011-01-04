@@ -63,7 +63,7 @@ BEGIN_EVENT_TABLE(CEmailReportDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _(""),
+	: AIModalDialog(parent, -1, _("Send Report to Adapt It Developers"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
