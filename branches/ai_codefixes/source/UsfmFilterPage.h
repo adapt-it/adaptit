@@ -64,6 +64,10 @@ public:
 									// set this before calling DoModal()
 	bool bDocSfmSetChanged; // for the Doc sfm set Undo button enabling
 	bool bProjectSfmSetChanged; // for the Project sfm set Undo button enabling
+	bool bWarningShownAlready; // set TRUE when project setting's warning is all
+			// that was wanted, because the forced change of the document's setting
+			// as well does not require a repeat of the warning, so this flag allows
+			// for suppressing the second showing of the warning
 
 	wxCheckListBox* pListBoxSFMsDoc; // initialized to point to above in constructor
 

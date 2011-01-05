@@ -158,14 +158,14 @@ void CUsfmFilterPageCommon::DoSetDataAndPointers()
 	// by comparing tempSfmSetBeforeEditProj with the Project (config) sfm set after edit
 	tempSfmSetBeforeEditProj = gpApp->gProjectSfmSetForConfig;
 	// start tempSfmSetAfterEditProj with the value of the global Project set before edit
-	tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj;
+	tempSfmSetAfterEditProj = gpApp->gProjectSfmSetForConfig;
 
 	bSFMsetChanged = FALSE; // accessed by filterPage to see if sfm set was changed
 
 	bDocSfmSetChanged = FALSE; // the Doc sfm set Undo button starts disabled
 	bProjectSfmSetChanged = FALSE; // the Project sfm set Undo button starts disabled
 	bOnInitDlgHasExecuted = FALSE;
-
+	bWarningShownAlready = FALSE; // flag for duplicated warning suppression starts OFF
 }
 
 void CUsfmFilterPageCommon::DoInit()
@@ -1292,6 +1292,69 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
 	{
+		// BEW added 11Oct10, to prevent SFM set change to UsfmOnly if the document is
+		// marked up for PngOnly (i.e. the PNG 1998 SFM set)
+		if (gpApp->m_pSourcePhrases->IsEmpty())
+		{
+			// the document is not yet defined - don't allow any change at this point
+			// (this block can't be entered, as Bill has made the radio buttons for the
+			// document's set be disabled when no doc is open; but we'll keep the code for
+			// this block for safety's sake)
+			wxBell();
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == PngOnly)
+			{
+				pRadioPngOnly->SetValue(TRUE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(TRUE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+						// to the value it had before the button click
+			return;
+		}
+		else
+		{
+			// there is a document defined
+			bool bItsIndeterminate = FALSE;
+			bool bItsUSFM = IsUsfmDocument(gpApp->m_pSourcePhrases, &bItsIndeterminate);
+			if (!bItsUSFM && !bItsIndeterminate)
+			{
+				SfmSet currentSet = gpApp->gCurrentSfmSet;
+				bDocSfmSetChanged = FALSE;
+				wxString msg2;
+				msg2 = msg2.Format(_(
+"The currently open document is marked up using the PNG 1998 Marker Set.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
+				newSet.c_str());
+				wxMessageBox(msg2, _T(""), wxICON_WARNING);
+				// restore the radio button to what it was before the click
+				if (currentSet == PngOnly)
+				{
+					pRadioPngOnly->SetValue(TRUE);
+					pRadioUsfmAndPng->SetValue(FALSE);
+					pRadioUsfmOnly->SetValue(FALSE);
+				}
+				else if (currentSet == UsfmAndPng)
+				{
+					pRadioPngOnly->SetValue(FALSE);
+					pRadioUsfmAndPng->SetValue(TRUE);
+					pRadioUsfmOnly->SetValue(FALSE);
+				}
+				tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+						// to the value it had before the button click
+				return;
+			}
+            // if it's not PngOnly, then changing to UsfmOnly or UsfmAndPng is okay, that's
+            // also true when the result was indeterminate (FALSE is returned for bItsUSFM
+            // in that case too), so let processing continue
+		}
+
 		if (bDocFilterMarkersChanged)
 		{
 			// Show the mismatch warning messages
@@ -1458,6 +1521,17 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
 	{
+		if (bDocFilterMarkersChanged)
+		{
+			// Show the mismatch warning messages
+			msg = msg.Format(msgWarningMadeChanges.c_str(), 
+				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
+				newSet.c_str());
+			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
+			if (nResult == wxCANCEL)
+				return;
+		}
+
 		// BEW added 11Oct10, to prevent SFM set change to PngOnly if the document is
 		// marked up for USFM
 		if (gpApp->m_pSourcePhrases->IsEmpty())
@@ -1480,6 +1554,9 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 				pRadioUsfmAndPng->SetValue(TRUE);
 				pRadioUsfmOnly->SetValue(FALSE);
 			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+						// to the value it had before the button click
 			return;
 		}
 		else
@@ -1509,17 +1586,18 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 					pRadioUsfmAndPng->SetValue(TRUE);
 					pRadioUsfmOnly->SetValue(FALSE);
 				}
+				tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+						// to the value it had before the button click
 				return;
 			}
             // if it's not USFM, then changing to PngOnly or UsfmAndPng is okay, that's
             // also true when the result was indeterminate (FALSE is returned for bItsUSFM
             // in that case too), so let processing continue
 		}
-
+/*
 		if (bDocFilterMarkersChanged)
 		{
 			// Show the mismatch warning messages
-			// IDS_WARNING_JUST_CHANGED_FILT_MKRS
 			msg = msg.Format(msgWarningMadeChanges.c_str(), 
 				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
 				newSet.c_str());
@@ -1527,6 +1605,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 			if (nResult == wxCANCEL)
 				return;
 		}
+*/
 		tempSfmSetAfterEditDoc = PngOnly;
 		// Call the usfm filter page's SetupFilterPageArrays to update the filter page's arrays
 		// with the new sfm set.
@@ -1642,14 +1721,99 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 	// warn the user that the change will activate the UsfmAndPng filter settings
 	// in effect there in the Filtering page.
 	wxString msg, newSet;
-	// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-	// Warning: You just made changes to the document's inventory of filter markers in the Filtering page
-	// \nwhere the %1 was in effect. If you make this change the document will use
-	// \nthe Filtering page's settings for the %2. Do you want to make this change?
-	newSet = _("USFM 2.0 and PNG 1998 Marker Sets"); //.Format(IDS_BOTH_SETS_ABBR);
+	newSet = GetSetNameStr(UsfmAndPng); // BEW 14Dec10, use this rather than a literal
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
 	{
+		// We are in Preferences...
+
+        // BEW added 11Oct10, to warn about the dangers when choosing the combined marker
+        // sets. Changing to the combined sets is always allowed. When the test for Usfm
+        // being the current markup scheme in a document is indeterminate (i.e.
+        // bItsIndeterminate is TRUE), the user should see no warning because in the latter
+        // scenario we know for sure that there is no \fe marker in the data and this is
+        // the only marker incompatible between sets (because it is "footnote end" in the
+        // PngOnly set, but "endnote beginning" in UsfmOnly set, and so getting it wrong
+        // when present will definitely cause a malformed document parse - the app assumes
+        // its USFM endnote begin-marker when both sets are chosen combined). If
+        // bItsIndeterminate is FALSE, then it is one of the PngOnly or UsfmOnly sets in
+        // the document markup, and so changing to the combined sets is hazardous (because
+        // there may be a \fe in the data) -- in that case we must warn the user of the
+        // hazard. When no document is open there is no way to know anything about \fe or
+        // indeterminate-ness, so again we should warn the user of the potential for a
+        // malformed document, for same reason
+        bool bGiveAWarning = FALSE;
+		SfmSet currentSet = gpApp->gCurrentSfmSet;
+		if (gpApp->m_pSourcePhrases->IsEmpty())
+		{
+			// the document is not yet defined - allow the change but give a warning
+			// (this block can't be entered, as Bill has made the radio buttons for the
+			// document's set be disabled when no doc is open; but we'll keep the code for
+			// this block for safety's sake)
+			bGiveAWarning = TRUE;
+		}
+		bool bItsIndeterminate = TRUE; // use TRUE as the default, because if it stays
+									   // TRUE then no message needs to be shown & the
+									   // set change can just go ahead
+		if (!gpApp->m_pSourcePhrases->IsEmpty())
+		{
+			// there is a document defined
+			bool bItsUSFM = IsUsfmDocument(gpApp->m_pSourcePhrases, &bItsIndeterminate);
+			bItsUSFM = bItsUSFM; // added to avoid a compiler warning
+			// we care here only about the function's bItsIndeterminate return value
+		}		
+		if ((!bItsIndeterminate || bGiveAWarning) && !bWarningShownAlready)
+		{
+            // do the warning (which allows cancellation) only when the current document's
+            // set is determinate (ie. unique markers from PngOnly set, or unique markers
+            // from USFM set), or when there is no document open
+			// Note: we have to put a test here also for the warning message already
+			// having been shown because the project setting was similarly changed and the
+			// message shown at that time - we need an additional boolean flag in the
+			// UsfmFilterPage.h class definition to handle this
+			wxString msg2;
+			if (bGiveAWarning)
+			{
+				// no document is open -- a different message is required
+				msg2 = msg2.Format(_(
+"A document is not open.\nChanging to the %s is allowed.\nHowever, it is risky. If it contains an \\fe marker, this marker is interpretted differently in each marker set. In the USFM marker set it indicates an endnote follows. In the PNG 1998 marker set it indicates a footnote precedes.\nAdapt It will assume it marks an endnote; but if this assumption is wrong, a slightly malformed (but adaptable) document will result."),
+				newSet.c_str());
+			}
+			else
+			{
+				// a document is open, and it's determinate that it is PngOnly or UsfmOnly
+				msg2 = msg2.Format(_(
+"The open document contains markers unique to either the USFM marker set, or unique to the PNG 1998 marker set.\nChanging to the %s is allowed.\nHowever, it is risky. If it contains an \\fe marker, this marker is interpretted differently in each marker set. In the USFM marker set it indicates an endnote follows. In the PNG 1998 marker set it indicates a footnote precedes.\nAdapt It will assume it marks an endnote; but if this assumption is wrong, a slightly malformed (but adaptable) document will result."),
+				newSet.c_str());
+			}
+			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+			if (nResult == wxCANCEL)
+			{
+				if (currentSet == UsfmOnly)
+				{
+					pRadioPngOnly->SetValue(FALSE);
+					pRadioUsfmAndPng->SetValue(FALSE);
+					pRadioUsfmOnly->SetValue(TRUE);
+				}
+				else if (currentSet == PngOnly)
+				{
+					pRadioPngOnly->SetValue(TRUE);
+					pRadioUsfmAndPng->SetValue(FALSE);
+					pRadioUsfmOnly->SetValue(FALSE);
+				}
+				bDocSfmSetChanged = FALSE;
+				bWarningShownAlready = FALSE; // restore default value
+				tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+						// to the value it had before the button click
+				return;
+			}
+            // if control gets to here, we've got to let the change of set happen, but when
+            // the potential for \fe interpretation conflict is real, we've at least warned
+            // the user & if a mess results because he went ahead and shouldn't have, too
+            // bad
+		}
+		bWarningShownAlready = FALSE; // restore default value
+
 		if (bDocFilterMarkersChanged)
 		{
 			// Show the mismatch warning messages
@@ -1807,6 +1971,14 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 				}
 				bProjectSfmSetChanged = FALSE;
 				bDocSfmSetChanged = FALSE;
+                // clicking the button will have put UsfmOnly into tempSfmSetAfterEditProj
+                // and this will be wrongly assigned to gProjectSfmSetForConf in the OnOK()
+                // function of the Prefs page (if the user clicks OK button rather than
+                // Cancel there), which would result in the cancel done here not having any
+                // effect, as UsfmOnly would then still be the new set value - so we must
+                // restore the value that tempSfmSetAfterEditProj had before the click,
+                // which is the value still in tempSfmSetBeforeEditProj
+				tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; 
 				return;
 			}
 			// if control has not returned, the set change will be made
@@ -1844,6 +2016,14 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 					pRadioUsfmAndPngProj->SetValue(TRUE);
 					pRadioUsfmOnlyProj->SetValue(FALSE);
 				}
+                // clicking the button will have put UsfmOnly into tempSfmSetAfterEditProj
+                // and this will be wrongly assigned to gProjectSfmSetForConf in the OnOK()
+                // function of the Prefs page (if the user clicks OK button rather than
+                // Cancel there), which would result in the cancel done here not having any
+                // effect, as UsfmOnly would then still be the new set value - so we must
+                // restore the value that tempSfmSetAfterEditProj had before the click,
+                // which is the value still in tempSfmSetBeforeEditProj
+				tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; 
 				return;
 			}
             // if the document markup is USFM, then changing to UsfmOnly or UsfmAndPng is
@@ -2024,6 +2204,14 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 				}
 				bProjectSfmSetChanged = FALSE;
 				bDocSfmSetChanged = FALSE;
+                // clicking the button will have put PngOnly into tempSfmSetAfterEditProj
+                // and this will be wrongly assigned to gProjectSfmSetForConf in the OnOK()
+                // function of the Prefs page (if the user clicks OK button rather than
+                // Cancel there), which would result in the cancel done here not having any
+                // effect, as PngOnly would then still be the new set value - so we must
+                // restore the value that tempSfmSetAfterEditProj had before the click,
+                // which is the value still in tempSfmSetBeforeEditProj
+				tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; 
 				return;
 			}
 			// if control has not returned, the set change will be made
@@ -2056,6 +2244,14 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 					pRadioUsfmAndPngProj->SetValue(TRUE);
 					pRadioUsfmOnlyProj->SetValue(FALSE);
 				}
+                // clicking the button will have put PngOnly into tempSfmSetAfterEditProj
+                // and this will be wrongly assigned to gProjectSfmSetForConf in the OnOK()
+                // function of the Prefs page (if the user clicks OK button rather than
+                // Cancel there), which would result in the cancel done here not having any
+                // effect, as PngOnly would then still be the new set value - so we must
+                // restore the value that tempSfmSetAfterEditProj had before the click,
+                // which is the value still in tempSfmSetBeforeEditProj
+				tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; 
 				return;
 			}
             // if it's not USFM, then changing to PngOnly or UsfmAndPng is okay, that's
@@ -2175,12 +2371,106 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 
 void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& event)
 {
+	wxString newSet = GetSetNameStr(UsfmAndPng); // BEW 14Dec10, use this rather than a literal
 	tempSfmSetAfterEditProj = UsfmAndPng;
 	bProjectSfmSetChanged = TRUE;
 	bDocSfmSetChanged = TRUE; // the doc sfm set changes when the project sfm set changes
 	if (pStartWorkingWizard == NULL)
 	{
-		// We're in Edit Preferences.
+		// We are in Preferences...
+
+        // BEW added 11Oct10, to warn about the dangers when choosing the combined marker
+        // sets. Changing to the combined sets is always allowed. When the test for Usfm
+        // being the current markup scheme in a document is indeterminate (i.e.
+        // bItsIndeterminate is TRUE), the user should see no warning because in the latter
+        // scenario we know for sure that there is no \fe marker in the data and this is
+        // the only marker incompatible between sets (because it is "footnote end" in the
+        // PngOnly set, but "endnote beginning" in UsfmOnly set, and so getting it wrong
+        // when present will definitely cause a malformed document parse - the app assumes
+        // its USFM endnote begin-marker when both sets are chosen combined). If
+        // bItsIndeterminate is FALSE, then it is one of the PngOnly or UsfmOnly sets in
+        // the document markup, and so changing to the combined sets is hazardous (because
+        // there may be a \fe in the data) -- in that case we must warn the user of the
+        // hazard. When no document is open there is no way to know anything about \fe or
+        // indeterminate-ness, so again we should warn the user of the potential for a
+        // malformed document, for same reason
+        bool bGiveAWarning = FALSE;
+		SfmSet currentSet = gpApp->gCurrentSfmSet;
+		if (gpApp->m_pSourcePhrases->IsEmpty())
+		{
+			// the document is not yet defined - allow the change but give a warning
+			// (this block can't be entered, as Bill has made the radio buttons for the
+			// document's set be disabled when no doc is open; but we'll keep the code for
+			// this block for safety's sake)
+			bGiveAWarning = TRUE;
+		}
+		bool bItsIndeterminate = TRUE; // use TRUE as the default, because if it stays
+									   // TRUE then no message needs to be shown & the
+									   // set change can just go ahead
+		if (!gpApp->m_pSourcePhrases->IsEmpty())
+		{
+			// there is a document defined
+			bool bItsUSFM = IsUsfmDocument(gpApp->m_pSourcePhrases, &bItsIndeterminate);
+			bItsUSFM = bItsUSFM; // added to avoid a compiler warning
+			// we care here only about the function's bItsIndeterminate return value
+		}		
+		if (!bItsIndeterminate || bGiveAWarning)
+		{
+            // do the warning (which allows cancellation) only when the current document's
+            // set is determinate (ie. unique markers from PngOnly set, or unique markers
+            // from USFM set), or when there is no document open
+			wxString msg2;
+			if (bGiveAWarning)
+			{
+				// no document is open -- a different message is required
+				msg2 = msg2.Format(_(
+"A document is not open.\nChanging to the %s is allowed.\nHowever, it is risky for this document and for any new ones created with the changed setting. If a document contains an \\fe marker, this marker is interpretted differently in each marker set. In the USFM marker set it indicates an endnote follows. In the PNG 1998 marker set it indicates a footnote precedes.\nAdapt It will assume it marks an endnote; but if this assumption is wrong, a slightly malformed (but adaptable) document will result."),
+				newSet.c_str());
+			}
+			else
+			{
+				// a document is open, and it's determinate that it is PngOnly or UsfmOnly
+				msg2 = msg2.Format(_(
+"The open document contains markers unique to either the USFM marker set, or unique to the PNG 1998 marker set.\nChanging to the %s is allowed.\nHowever, it is risky for this document and for any new ones created with the changed setting. If a document contains an \\fe marker, this marker is interpretted differently in each marker set. In the USFM marker set it indicates an endnote follows. In the PNG 1998 marker set it indicates a footnote precedes.\nAdapt It will assume it marks an endnote; but if this assumption is wrong, a slightly malformed (but adaptable) document will result."),
+				newSet.c_str());
+			}
+			int nResult = wxMessageBox(msg2, _T(""), wxOK | wxCANCEL);
+			if (nResult == wxCANCEL)
+			{
+				if (currentSet == UsfmOnly)
+				{
+					pRadioPngOnlyProj->SetValue(FALSE);
+					pRadioUsfmAndPngProj->SetValue(FALSE);
+					pRadioUsfmOnlyProj->SetValue(TRUE);
+				}
+				else if (currentSet == PngOnly)
+				{
+					pRadioPngOnlyProj->SetValue(TRUE);
+					pRadioUsfmAndPngProj->SetValue(FALSE);
+					pRadioUsfmOnlyProj->SetValue(FALSE);
+				}
+				bProjectSfmSetChanged = FALSE;
+				bDocSfmSetChanged = FALSE;
+                // clicking the button will have put UsfmAndPng into tempSfmSetAfterEditProj
+                // and this will be wrongly assigned to gProjectSfmSetForConf in the OnOK()
+                // function of the Prefs page (if the user clicks OK button rather than
+                // Cancel there), which would result in the cancel done here not having any
+                // effect, as UsfmAndPng would then still be the new set value - so we must
+                // restore the value that tempSfmSetAfterEditProj had before the click,
+                // which is the value still in tempSfmSetBeforeEditProj
+				tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; 
+				return;
+			}
+			
+            // if control gets to here, we've got to let the change of set happen, but when
+            // the potential for \fe interpretation conflict is real, we've at least warned
+            // the user & if a mess results because he went ahead and shouldn't have, too
+            // bad
+            bWarningShownAlready = TRUE; // suppress warning in the change of setting for
+									// the current doc (becaused user hasn't cancelled
+									// doing the change here in the project level's handler)
+		}
+
 		// Call the usfm filter page's SetupFilterPageArrays to update the filter page's arrays
 		// with the new sfm set (UsfmAndPng).
 		// Note: The last NULL parameter is necessary because we cannot get a DC for the
