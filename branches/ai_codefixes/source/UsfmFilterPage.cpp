@@ -83,8 +83,9 @@ extern CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs; // set the App's pointer to
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage; // need this ???
 
-// need this ???
-wxString msgWarningMadeChanges = _("Warning: You just made changes to the document's inventory of filter markers in the Filtering page\nwhere the %s was in effect. If you make this change the document will use\nthe Filtering page's settings for the %s. Do you want to make this change?");
+// need this ??? No (BEW 5Jan11)
+//wxString msgWarningMadeChanges = _("Warning: You just made changes to the document's inventory of filter markers in the Filtering page\nwhere the %s was in effect. If you make this change the document will use\nthe Filtering page's settings for the %s. Do you want to make this change?");
+wxString msgCannotFilterAndChangeSFMset = _("Trying to change the standard format marker set at the same time as trying to change the marker filtering settings is illegal.\nFinish one type of change then return to the same page to do the other.");
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar;
@@ -1292,6 +1293,51 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
 	{
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == PngOnly)
+			{
+				pRadioPngOnly->SetValue(TRUE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(TRUE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+									// to the value it had before the button click
+			return;
+		}
+
 		// BEW added 11Oct10, to prevent SFM set change to UsfmOnly if the document is
 		// marked up for PngOnly (i.e. the PNG 1998 SFM set)
 		if (gpApp->m_pSourcePhrases->IsEmpty())
@@ -1300,7 +1346,6 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 			// (this block can't be entered, as Bill has made the radio buttons for the
 			// document's set be disabled when no doc is open; but we'll keep the code for
 			// this block for safety's sake)
-			wxBell();
 			SfmSet currentSet = gpApp->gCurrentSfmSet;
 			if (currentSet == PngOnly)
 			{
@@ -1355,16 +1400,6 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
             // in that case too), so let processing continue
 		}
 
-		if (bDocFilterMarkersChanged)
-		{
-			// Show the mismatch warning messages
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			if (nResult == wxCANCEL)
-				return;
-		}
 		// update tempSfmSetAfterEditDoc with the new sfm set
 		tempSfmSetAfterEditDoc = UsfmOnly;
         // Call the usfm filter page's SetupFilterPageArrays to update the filter page's
@@ -1436,15 +1471,49 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 	{
 		if (bDocFilterMarkersChanged)
 		{
-			// Show the mismatch warning messages
-			// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL); //MB_OKCANCEL
-			if (nResult == wxCANCEL) // IDCANCEL
-				return;
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == PngOnly)
+			{
+				pRadioPngOnly->SetValue(TRUE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(TRUE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+									// to the value it had before the button click
+			return;
 		}
+
 		// update the tempSfmSetAfterEditDoc with the new sfm set
 		tempSfmSetAfterEditDoc = UsfmOnly;
 		// See note above before SetupFilterPageArrays call.
@@ -1521,15 +1590,56 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
 	{
+		// we are in Preferences...
+		
 		if (bDocFilterMarkersChanged)
 		{
-			// Show the mismatch warning messages
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			if (nResult == wxCANCEL)
-				return;
+            // BEW 11Oct10 (actually 5Jan2011). Changed to prevent the user from trying to
+            // change filter settings and the SFM set at the one time. This was a
+            // potentially damaging; it wasn't enough to warn the user, because he couldn't
+            // be expected to know the implications of the proceed versus cancel choices.
+            // The OnOK() function will attempt SFM set change first, then attempt
+            // filtering changes. What I'm doing now is to provide some checking for
+            // attempts to do both jobs at the one time - these checks will be at two
+            // places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+            // NOTE: VisStudio DEBUGGER BUG -- if a break point is put in this function, on
+            // exit the handler keeps being reentered (the event is not consumed) - at
+            // least four times before an OK or Cancel click gets 'seen'; remove the
+            // breakpoint and all is well!
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(TRUE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(TRUE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+									// to the value it had before the button click
+			return;
 		}
 
 		// BEW added 11Oct10, to prevent SFM set change to PngOnly if the document is
@@ -1556,7 +1666,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 			}
 			bDocSfmSetChanged = FALSE;
 			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
-						// to the value it had before the button click
+									// to the value it had before the button click
 			return;
 		}
 		else
@@ -1594,18 +1704,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
             // also true when the result was indeterminate (FALSE is returned for bItsUSFM
             // in that case too), so let processing continue
 		}
-/*
-		if (bDocFilterMarkersChanged)
-		{
-			// Show the mismatch warning messages
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			if (nResult == wxCANCEL)
-				return;
-		}
-*/
+
 		tempSfmSetAfterEditDoc = PngOnly;
 		// Call the usfm filter page's SetupFilterPageArrays to update the filter page's arrays
 		// with the new sfm set.
@@ -1660,14 +1759,47 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 	{
 		if (bDocFilterMarkersChanged)
 		{
-			// Show the mismatch warning messages
-			// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL); //MB_OKCANCEL
-			if (nResult == wxCANCEL)
-				return;
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(TRUE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(TRUE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+									// to the value it had before the button click
+			return;
 		}
 		tempSfmSetAfterEditDoc = PngOnly;
 		// See note above.
@@ -1725,7 +1857,52 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 	bDocSfmSetChanged = TRUE;
 	if (pStartWorkingWizard == NULL)
 	{
-		// We are in Preferences...
+		// We are in Preferences
+
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(TRUE);
+			}
+			else if (currentSet == PngOnly)
+			{
+				pRadioPngOnly->SetValue(TRUE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+									// to the value it had before the button click
+			return;
+		}
 
         // BEW added 11Oct10, to warn about the dangers when choosing the combined marker
         // sets. Changing to the combined sets is always allowed. When the test for Usfm
@@ -1814,17 +1991,6 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 		}
 		bWarningShownAlready = FALSE; // restore default value
 
-		if (bDocFilterMarkersChanged)
-		{
-			// Show the mismatch warning messages
-			// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			if (nResult == wxCANCEL)
-				return;
-		}
 		tempSfmSetAfterEditDoc = UsfmAndPng;
 		// Call the usfm filter page's SetupFilterPageArrays to update the filter page's arrays
 		// with the new sfm set.
@@ -1878,15 +2044,49 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 	{
 		if (bDocFilterMarkersChanged)
 		{
-			// Show the mismatch warning messages
-			// IDS_WARNING_JUST_CHANGED_FILT_MKRS
-			msg = msg.Format(msgWarningMadeChanges.c_str(), 
-				GetSetNameStr(tempSfmSetAfterEditDoc).c_str(),
-				newSet.c_str());
-			int nResult = wxMessageBox(msg, _T(""), wxOK | wxCANCEL); //MB_OKCANCEL
-			if (nResult == wxCANCEL) // IDCANCEL
-				return;
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnly->SetValue(FALSE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(TRUE);
+			}
+			else if (currentSet == PngOnly)
+			{
+				pRadioPngOnly->SetValue(TRUE);
+				pRadioUsfmAndPng->SetValue(FALSE);
+				pRadioUsfmOnly->SetValue(FALSE);
+			}
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditDoc = tempSfmSetBeforeEditDoc; // restore this also
+									// to the value it had before the button click
+			return;
 		}
+
 		tempSfmSetAfterEditDoc = UsfmAndPng;
 		// See note above.
 		SetupFilterPageArrays(gpApp->GetCurSfmMap(tempSfmSetAfterEditDoc),
@@ -1940,8 +2140,54 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 	bDocSfmSetChanged = TRUE; // the doc sfm set changes when the project sfm set changes
 	if (pStartWorkingWizard == NULL)
 	{
-		// We're in Edit Preferences.
+		// We're in Preferences
 		
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == PngOnly)
+			{
+				pRadioPngOnlyProj->SetValue(TRUE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(TRUE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			bProjectSfmSetChanged = FALSE;
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; // restore this also
+									// to the value it had before the button click
+			return;
+		}
+
         // BEW added 11Oct10, to prevent SFM set change to UsfmOnly if the document is
         // marked up for the PNG 1998 SFM set; allow it if no doc is open, but warn user of
         // the need for SFM set and the project's documents internal markup to match
@@ -2106,6 +2352,52 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 		// We're using the wizard.
 		// See notes above.
 
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == PngOnly)
+			{
+				pRadioPngOnlyProj->SetValue(TRUE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(TRUE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			bProjectSfmSetChanged = FALSE;
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; // restore this also
+									// to the value it had before the button click
+			return;
+		}
+
 		// In the wizard we force the Doc sfm set setting to follow the Proj sfm set setting. It is
 		// "forced" because the Doc's buttons are disabled and are thus not user changeable.
 		tempSfmSetAfterEditDoc = tempSfmSetAfterEditProj;
@@ -2173,8 +2465,54 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 	bDocSfmSetChanged = TRUE; // the doc sfm set changes when the project sfm set changes
 	if (pStartWorkingWizard == NULL)
 	{
-		// We're in Edit Preferences.
+		// We're in Preferences
 		
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(TRUE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(TRUE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			bProjectSfmSetChanged = FALSE;
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; // restore this also
+									// to the value it had before the button click
+			return;
+		}
+
 		// BEW added 11Oct10, to prevent SFM set change to PngOnly if the document is
 		// marked up for USFM; allow it if no doc is open, but warn user of the need for
 		// SFM set and the project's documents internal markup to match
@@ -2323,6 +2661,52 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 		// We're using the wizard.
 		// See notes above.
 
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(TRUE);
+			}
+			else if (currentSet == UsfmAndPng)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(TRUE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			bProjectSfmSetChanged = FALSE;
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; // restore this also
+									// to the value it had before the button click
+			return;
+		}
+
 		// In the wizard we force the Doc sfm set setting to follow the Proj sfm set setting
 		tempSfmSetAfterEditDoc = tempSfmSetAfterEditProj;
 
@@ -2377,7 +2761,53 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
 	bDocSfmSetChanged = TRUE; // the doc sfm set changes when the project sfm set changes
 	if (pStartWorkingWizard == NULL)
 	{
-		// We are in Preferences...
+		// We are in Preferences
+
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(TRUE);
+			}
+			else if (currentSet == PngOnly)
+			{
+				pRadioPngOnlyProj->SetValue(TRUE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			bProjectSfmSetChanged = FALSE;
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; // restore this also
+									// to the value it had before the button click
+			return;
+		}
 
         // BEW added 11Oct10, to warn about the dangers when choosing the combined marker
         // sets. Changing to the combined sets is always allowed. When the test for Usfm
@@ -2535,6 +2965,52 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
 	{
 		// We're using the wizard.
 		// See notes above.
+
+		if (bDocFilterMarkersChanged)
+		{
+			// BEW 5Jan2011. Changed to prevent the user from trying to change filter
+            // settings and the SFM set at the one time. This was a potentially damaging;
+            // it wasn't enough to warn the user, because he couldn't be expected to know
+            // the implications of the proceed versus cancel choices. The OnOK() function
+            // will attempt SFM set change first, then attempt filtering changes. What I'm
+            // doing now is to provide some checking for attempts to do both jobs at the
+            // one time - these checks will be at two places:
+            // (1) in the DoBnClickedRadioUse...() functions as here (there are 6 of these)
+            // - we check for bDocFilterMarkersChanged set TRUE and if so, we bail out of
+            // the attempt to change the SFM set, and tell user to get the filter changes
+            // done first, then come back into Preferences to get his wanted set change
+			// done (it might be rejected though if the doc is found not to have markup in
+			// the targetted SFM set -- see the code further below) 
+            // (2) in OnOK() we check for the same flag being TRUE AND also one or both of
+            // the flags bProjectSfmSetChanged and bDocSfmSetChanged being TRUE -- if that
+            // is the case, we suppress (and restore pre-edit filter settings) the filtered
+            // marker changes being attempted, tell the user about that, and just allow the
+            // set change to get done. (Set change should have priority, because filtering
+            // certain markers relies on those markers existing, which is not necessarily
+            // the case if the SFM set is changed.)
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			// now restore the set radio buttons to what they were before the click, and
+			// restore necessary pre-edit local variables, and leave the page ready for
+			// the filter changes to be done if the user clicks its OK button
+			SfmSet currentSet = gpApp->gCurrentSfmSet;
+			if (currentSet == UsfmOnly)
+			{
+				pRadioPngOnlyProj->SetValue(FALSE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(TRUE);
+			}
+			else if (currentSet == PngOnly)
+			{
+				pRadioPngOnlyProj->SetValue(TRUE);
+				pRadioUsfmAndPngProj->SetValue(FALSE);
+				pRadioUsfmOnlyProj->SetValue(FALSE);
+			}
+			bProjectSfmSetChanged = FALSE;
+			bDocSfmSetChanged = FALSE;
+			tempSfmSetAfterEditProj = tempSfmSetBeforeEditProj; // restore this also
+									// to the value it had before the button click
+			return;
+		}
 
 		// In the wizard we force the Doc sfm set setting to follow the Proj sfm set setting
 		tempSfmSetAfterEditDoc = tempSfmSetAfterEditProj;
@@ -2836,7 +3312,6 @@ void CUsfmFilterPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		wxInitDialogEvent idevent;
 		pDocPage->InitDialog(idevent);
 	}
-
 }
 
 ///////////////////////////////////// CUsfmFilterPagePrefs ///////////////////////////////////
@@ -2941,7 +3416,7 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	TRACE0("In OnEditPreferences BEFORE Doc rebuild BEFORE DoUsfmSetChanges call:\n");
 	TRACE1("     Doc's unk mkrs fm arrays = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pDoc->m_unknownMarkers, &pDoc->m_filterFlagsUnkMkrs));
 	TRACE1("   m_currentUnknownMarkersStr = %s\n", pDoc->m_currentUnknownMarkersStr);
-#endif
+#endif	
 
 	// whm the following DoUsfmSetChanges() call brought from the old usfmPage's OnOK(). It is placed
 	// before the other old filterPage's code (including its calls to DoUsfmFilterChanges() since when
@@ -2995,7 +3470,35 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		// worked out that that is error prone and we instead rebuild the doc from itself without looking
 		// again at the source text) because the needed rebuild (including filtering changes) will have been
 		// done by the preceding DoUsfmSetChanges() call.
-		gpApp->DoUsfmFilterChanges(&usfm_filterPgCommon, NoReparse);
+		
+		//gpApp->DoUsfmFilterChanges(&usfm_filterPgCommon, NoReparse); // calling it here
+																	   //is deprecated
+        // BEW 5Jan11, to prevent the dialog from being used to make a filtering change and
+        // a set change at the one time. It's likely to result in a mess. (See comments in
+        // the DoBnClickedRadioUse...OnlyDoc() functions or their ...Proj() equivalents
+        // earlier in this file for why. Here we check for filtering changes wanted, warn the user
+        // if the two can't be done together, and allow only the set change to happen
+		if (usfm_filterPgCommon.bDocFilterMarkersChanged || usfm_filterPgCommon.bProjectFilterMarkersChanged)
+		{
+			wxString msgForIllegalJob = _(
+"Trying to change the standard format marker (SFM) set at the same time as trying to change the marker filtering settings is illegal.\nThe filtering changes will be ignored. Only the SFM set change will be done now.\nTo get the filtering changes done, return to this page after the SFM set changes are completed and then set up the filtering changes a second time.");
+			wxMessageBox(msgForIllegalJob, _T(""), wxICON_WARNING);
+
+			// undo the filter changes here
+			if (usfm_filterPgCommon.bDocSfmSetChanged)
+			{
+				usfm_filterPgCommon.tempFilterMarkersAfterEditDoc = 
+					usfm_filterPgCommon.tempFilterMarkersBeforeEditDoc;
+				gpApp->gCurrentFilterMarkers = usfm_filterPgCommon.tempFilterMarkersAfterEditDoc;
+				gpApp->m_filterMarkersAfterEdit = usfm_filterPgCommon.tempFilterMarkersAfterEditDoc;
+			}
+			if (usfm_filterPgCommon.bProjectSfmSetChanged)
+			{
+				usfm_filterPgCommon.tempFilterMarkersAfterEditProj = 
+					usfm_filterPgCommon.tempFilterMarkersBeforeEditProj;
+				gpApp->gProjectFilterMarkersForConfig = usfm_filterPgCommon.tempFilterMarkersAfterEditProj;
+			}
+		}
 	}
 	else
 	{

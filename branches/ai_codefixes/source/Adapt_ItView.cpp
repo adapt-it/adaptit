@@ -5180,12 +5180,21 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		// we are somewhere in the midst of the data, so a pile will be active
-		activeSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		// we are possibly somewhere in the midst of the data, so a pile will be active,
+		// unless we cancelled from the wizard without getting a doc open - in which case
+		// activeSequNum may be 0, but m_pActivePile would still be null, so check
+		if (pApp->m_pActivePile != NULL)
+		{
+			activeSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 
-		// remove any current selection, as we can't be sure of any pointers
-		// depending on what user may choose to alter
-		RemoveSelection();
+			// remove any current selection, as we can't be sure of any pointers
+			// depending on what user may choose to alter
+			RemoveSelection();
+		}
+		else
+		{
+			activeSequNum = 0; // to avoid a compiler warning
+		}
 	}
 	pApp->m_nActiveSequNum = activeSequNum;
 	wxString strSavePhraseBox = pApp->m_targetPhrase;

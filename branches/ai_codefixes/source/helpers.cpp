@@ -4137,10 +4137,11 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 					for (index = 0; index < arrayCount; index++)
 					{
 						mkr = beginMkrsArray.Item(index);
-						if (mkr != _T("\\f") && mkr != _T("\\x") && mkr != _T("\\fe"))
+						if (mkr != _T("\\f"))
 						{
-							// those markers are in both SFM sets, so we are interested
-							// only in markers which are not one of those
+                            // the \f marker is a begin-marker belonging to both SFM sets,
+                            // so we are interested only in begin-markers which are not that
+                            // one
 							mkrPlusSpace = mkr + aSpace;
 							if (gpApp->m_usfmIndicatorMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
 							{
@@ -4182,6 +4183,67 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 						}
 					}
 				}
+			}
+			// check out the m_filtereInfo member of pSrcPhrase too, because if \f ... \f*
+			// is filtered, it may be the only indicator for USFM and we'd get an
+			// indeterminate result without it, but changing to the PngOnly marker set
+			// would give a malformed document if, in that set, the \f marker was
+			// unfiltered - so we need to look in this member too
+			if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
+			{
+				wxArrayString filteredMarkers;		filteredMarkers.Clear();
+				wxArrayString filteredEndMarkers;	filteredEndMarkers.Clear();
+				wxArrayString filteredContent;		filteredContent.Clear();
+				bool bIsOkay = pSrcPhrase->GetFilteredInfoAsArrays(&filteredMarkers, 
+											&filteredEndMarkers, &filteredContent);
+				if (bIsOkay)
+				{
+					// look for \f* or \x* or \fe* being endmarkers for filtered footnote,
+					// or cross reference, or endnote - these are diagnostic of USFM
+					size_t arrayCount2 = filteredEndMarkers.GetCount();
+					if (arrayCount2 > 0)
+					{
+						size_t index2;
+						for (index2 = 0; index2 < arrayCount2; index2++)
+						{
+							mkr = filteredEndMarkers.Item(index2);
+							if (mkr == _T("\\f*") || mkr == _T("\\fe*") || mkr == _T("\\x*"))
+							{
+								// it's a diagnostic marker for USFM set
+								count++;
+							}
+							else if (mkr[mkr.Len() - 1] == _T('*'))
+							{
+								// it ends with an asterisk, so it's diagnostic of USFM
+								count++;
+							}
+						}
+					}
+					// look for any filtered begin-markers diagnostic of USFM, other than
+					// \f which is in both SFM sets
+					size_t arrayCount3 = filteredMarkers.GetCount();
+					if (arrayCount3 > 0)
+					{
+						size_t index3;
+						for (index3 = 0; index3 < arrayCount3; index3++)
+						{
+							mkr = filteredMarkers.Item(index3);
+							if (mkr != _T("\\f"))
+							{
+								// the \f marker is a begin-marker belonging to both SFM sets,
+								// so we are interested only in begin-markers which are not that
+								// one
+								mkrPlusSpace = mkr + aSpace;
+								if (gpApp->m_usfmIndicatorMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
+								{
+									// it's one of the diagnostic markers for USFM set
+									count++;
+								}
+							}
+						}
+					}
+
+				} // end of TRUE block for test: if (bIsOkay)
 			}
 		}
 		break;

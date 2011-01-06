@@ -5254,6 +5254,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// define some useful flags which will govern the code blocks to be entered
 	bool bUnfilteringRequired = TRUE;
 	bool bFilteringRequired = TRUE;
+	// next two can have no markers but a single space, so the IsEmpty() test won't be
+	// valid unless any whitespace preceding the markers is removed - which, of course,
+	// removes any whitespace which comprises the whole content of either
+	strMarkersToBeFiltered.Trim(FALSE); // trim whitespace off left end
+	strMarkersToBeUnfiltered.Trim(FALSE); // trim whitespace off left end
 	if (strMarkersToBeFiltered.IsEmpty())
 		bFilteringRequired = FALSE;
 	if (strMarkersToBeUnfiltered.IsEmpty())
@@ -12799,6 +12804,8 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 /// BEW 24Mar10, updated for support of doc version 5(changes needed - just a block of code
 /// removed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 11Oct10 (actually 6Jan11) added code for closing off a TextType span because of
+/// endmarker content within m_endMarkers - I missed doing this in the earlier tweaks
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired)
@@ -12879,6 +12886,8 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 		bInvalidLast = TRUE; // only possible if user edited source text at the very 
                              // first sourcephrase in the doc iterate over each
                              // sourcephrase instance in the sublist
+    bool bStartDefaultTextTypeOnNextIteration = FALSE;
+	bool bSkipPropagation = FALSE;
 	while (pos != 0) // pos will be NULL if the pL list is empty
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -12886,6 +12895,82 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 		wxASSERT(pSrcPhrase);
 		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =, 
 									  // so we must clear its contents first
+
+		// BEW 11Oct10 (actually 6Jan11) endmarkers in docV5 are no longer stored at the
+		// start of the next CSourcePhrase's m_markers member, but on the current
+		// CSourcePhrase which ends the actual TextType span. Therefore, interating
+		// through the list we'll come to an m_endMarkers which ends a span such as a
+		// footnote, endnore or cross reference before we come to the CSourcePhrase
+		// instance which follows and for which m_bFirstOfType for the new TextType value
+		// will be TRUE. So check here for non-empty m_endMarkers member (other storage of
+		// markers, the inline types, doesn't affect TextType, so we can ignore those and
+		// only need examine m_endMarkers), and if it contains \f* or \x* or \fe* for
+		// USFM 2.x marker set, or \fe or \F for PNG 1998 marker set, then we must end the
+		// type on the current pSrcPhrase (ie. it is the last with the current TextType
+		// value) and tell the code that the next iteration of the loop must commence a
+		// new TextType - which we'll default to 'verse' type, and m_bSpecialText = FALSE
+		// -- the next iteration can then change to some other type if the next
+		// iteration's pSrcPhrase->m_markers contains a final marker which changes the
+		// TextType - the code for doing that is already in place below. How we'll tell
+		// the code what to do on the next iteration will be done with a new local
+		// boolean, bStartDefaultTextTypeOnNextIteration -- which we'll set TRUE if one of
+		// the endmarkers of either set is found in m_endMarkers of the current instance;
+		// We'll also need a bSkipPropagation flag, default FALSE, but when set TRUE, it causes
+		// a skip of the code further down which propagates from the last CSourcePhrase
+		// instance when m_markers is empty -- which is typically the case after an
+		// endnote, footnote or cross reference
+		bSkipPropagation = FALSE; // default value
+		if (bStartDefaultTextTypeOnNextIteration)
+		{
+			// a switch to default TextType is requested - do it here, then let the code
+			// below override the value we set here if m_markers has a last marker which
+			// requires a different TextType value
+			pSrcPhrase->m_curTextType = verse;
+			pSrcPhrase->m_bSpecialText = FALSE;
+			pSrcPhrase->m_bFirstOfType = TRUE;
+			// m_inform has be cleared to default empty above, code further below may put
+			// something in it (if m_markers is non-empty)
+			bStartDefaultTextTypeOnNextIteration = FALSE; // restore default bool value
+			bSkipPropagation = TRUE; // used about 70 lines below, to skip a code block
+									 // for propagating from the previous instance, which
+									 // is not wanted when we have already closed of a
+									 // TextType span on the previous iteration (see the
+									 // code block immediately below)
+		}
+		if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+		{
+			wxArrayString array;
+			array.Clear();
+			pSrcPhrase->GetEndMarkersAsArray(&array);
+			size_t count = array.GetCount();
+			if (count > 0)
+			{
+				wxString wholeEndMkr; wholeEndMkr.Empty();
+				wholeEndMkr = array.Item(count - 1); // get the last one, if there is more than one
+									// for instance, it may have \ft*\f* in the old way of
+									// doing USFM
+				wxASSERT(!wholeEndMkr.IsEmpty());
+				if (gpApp->gCurrentSfmSet == UsfmOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
+				{
+					if (wholeEndMkr == _T("\\f*") || wholeEndMkr == _T("\\fe*") ||
+						wholeEndMkr == _T("\\x*"))
+					{
+						// it's the end of either a footnote, endnote or cross reference
+						bStartDefaultTextTypeOnNextIteration = TRUE;
+					}
+				}
+				else
+				{
+					// must be PngOnly
+					if (wholeEndMkr == _T("\\fe") || wholeEndMkr == _T("\\F"))
+					{
+                        // it's the end of a footnote (either the \fe marker or the \F
+                        // marker can end a footnote in the legacy marker set)
+						bStartDefaultTextTypeOnNextIteration = TRUE;
+					}
+				}
+			}
+		}
 
 		// get any marker text into mkrBuffer
 		mkrBuffer = pSrcPhrase->m_markers;
@@ -12920,13 +13005,22 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 			}
 			else
 			{
-				pSrcPhrase->m_bFirstOfType = FALSE;
-				pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the 
-																// earlier instance's type
-				pSrcPhrase->m_inform.Empty();
-				pSrcPhrase->m_chapterVerse.Empty();
-				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate the
-																			 // previous value
+				if (!bSkipPropagation)
+				{
+					// if no skipping of this propagation code is wanted, then do the
+					// propagation from the earlier instance; when bSkipPropagation is
+					// TRUE, we skip because in code above we've closed of a TextType span
+					// already and so this pSrcPhrase is the first of a new TextType span,
+					// which defaults to verse and not special text in the absence of a
+					// marker to specify otherwise 
+					pSrcPhrase->m_bFirstOfType = FALSE;
+					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the 
+																	// earlier instance's type
+					pSrcPhrase->m_inform.Empty();
+					pSrcPhrase->m_chapterVerse.Empty();
+					// propagate the previous value
+					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; 
+				}
 			}
 		}
 		else
@@ -12965,8 +13059,6 @@ x:				while (ptr < pEndMkrBuff)
 					}
 
 					// are we pointing at a standard format marker?
-//b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1 
-//												 // contextual sfms
 b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1 
 									   // contextual sfms
 					{
@@ -13009,9 +13101,11 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 
 							// set pSrcPhrase attributes
 							pSrcPhrase->m_bVerse = TRUE;
-							if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes 
-																	 // before \v
-							pSrcPhrase->m_curTextType = verse;
+							if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
+							{
+								// if its already poetry, don't change it
+								pSrcPhrase->m_curTextType = verse;
+							}
 							pSrcPhrase->m_bSpecialText = FALSE;
 
 							itemLen = ParseWhiteSpace(ptr); // past white space which is 
@@ -13047,9 +13141,10 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 								pSrcPhrase->m_bChapter = TRUE;
 								pSrcPhrase->m_bVerse = TRUE; // always have verses following a 
 															 // chapter
-								if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes 
-																		 // before \v
+								if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
+								{
 									pSrcPhrase->m_curTextType = verse;
+								}
 								pSrcPhrase->m_bSpecialText = FALSE;
 
 								itemLen = ParseWhiteSpace(ptr); // parse white space following 
