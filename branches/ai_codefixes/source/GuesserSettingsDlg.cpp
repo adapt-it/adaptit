@@ -61,7 +61,7 @@ BEGIN_EVENT_TABLE(CGuesserSettingsDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Dialog Title Here"),
+	: AIModalDialog(parent, -1, _("Guesser Settings Dialog"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
