@@ -2402,6 +2402,7 @@ protected:
 #endif
 
 public:
+	wxString GetAppVersionOfRunningAppAsString(); // whm added 8Jan11 for version 5.2.4
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
