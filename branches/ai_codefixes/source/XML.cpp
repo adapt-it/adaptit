@@ -2181,6 +2181,7 @@ bool AtEMAILRptTag(CBString& tag,CStack*& WXUNUSED(pStack))
 		gpEmailReportData->toAddress = _T("");
 		gpEmailReportData->subjectSummary = _T("");
 		gpEmailReportData->emailBody = _T("");
+		gpEmailReportData->sendersName = _T("");
 		gpApp->m_pEmailReportData = gpEmailReportData; // make the App's point also point at it
 	}
 
@@ -2221,6 +2222,14 @@ bool AtEMAILRptAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*
 				gpEmailReportData->subjectSummary = pValueW;
 	#else
 				gpEmailReportData->subjectSummary = pValue;
+	#endif
+			}
+			else if (attrName == emailsendersname)
+			{
+	#ifdef _UNICODE
+				gpEmailReportData->sendersName = pValueW;
+	#else
+				gpEmailReportData->sendersName = pValue;
 	#endif
 			}
 		}
