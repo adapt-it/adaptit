@@ -10822,6 +10822,29 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+    // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
+    // check to see that the computer hardware has a certain minimum resolution, especially
+    // the screen's vertical pixels should be at least 549 pixels in height. Width should
+    // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
+    // the Start Working wizard shrink the wizard to an unusable size in which nothing
+    // can be seen and the only response possible is to hit the Esc key to close the wizard.
+    // Hence, if the screen size is below 549h x 640w we notify the user and shut down the
+    // application.
+    int nDisplayHeightInPixels;
+	int nDisplayWidthInPixels;
+	::wxDisplaySize(&nDisplayWidthInPixels,&nDisplayHeightInPixels);
+	if (nDisplayWidthInPixels < 640 || nDisplayHeightInPixels < 549)
+	{
+		wxString msg;
+		// a message in English will do, since this message is likely only to appear
+		// before a user can change the interface language
+		wxString appVer = GetAppVersionOfRunningAppAsString();
+		msg = msg.Format(_T("The Display size of this computer is too small (%dw x %dh) to run this version of Adapt It (%s).\nAdapt It cannot display its windows and dialogs properly.\nProgram aborting..."),nDisplayWidthInPixels,nDisplayHeightInPixels,appVer.c_str());
+		wxMessageBox(msg,_T("Screen size too small"),wxICON_ERROR);
+		abort();
+		return FALSE;
+	}
+    // 
     // BEW 11Oct10, we need this fast-access string for improving punctuation support when
 	// inline markers are in the immediate context (since endmarkers for inline markers
 	// should be handled within ParseWord(), we'll have two strings
@@ -13738,6 +13761,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // multiple monitor setup, and determine the boundaries for valid main frame positions
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
+    // 
 	int numMonitors;
 	numMonitors = wxDisplay::GetCount();
 	if (numMonitors > 1)
