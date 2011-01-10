@@ -57,7 +57,7 @@ public:
 
 	// The following stuff is for version 2.3.0 and onwards; m_punctuation[0] and [1]
 	// are set entirely from the contents of the punctuation correspondences defined in
-	// this dialog when the user dismisses the dialog. If the user cancells, the earlier
+	// this dialog when the user dismisses the dialog. If the user cancels, the earlier
 	// contents are retained.
 	wxString m_srcPunctuation; // to accept what will be placed in m_punctuation[0]
 	wxString m_tgtPunctuation; // to accept what will be placed in m_punctuation[1]

@@ -16319,7 +16319,7 @@ void CAdapt_ItApp::InitializePunctuation()
 		// the code following this block
 		m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] "); // defaults for narrow or 
 																// wide characters
-		m_punctWordBuilding[0] = _T(""); // leave this in the code, just done use them --
+		m_punctWordBuilding[0] = _T(""); // leave this in the code, just don't use them --
 										// since reading an old config file would require them
 		if (m_punctuation[1].IsEmpty())
 		{

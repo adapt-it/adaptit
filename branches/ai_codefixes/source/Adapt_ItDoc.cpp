@@ -15735,7 +15735,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
             // the owned ones and this process could conceivably generate a different total
             // for the number produced (it would be unexpected and I can't conceive how it
             // could happen but I'm going to play safe and assume it could) -- so we'll
-            // base our final merger on a remerge of the rebuild owned ones, but we can do
+            // base our final merger on a remerge of the rebuilt owned ones, but we can do
             // that only if there are less than MAX_WORDS (ie. 10) - otherwise, we count
             // this build attempt as a "failure" and insert the rebuilt owned ones back
             // into the main list and throw away the original merged sourcephrase instance
