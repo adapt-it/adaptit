@@ -21,6 +21,7 @@
 #define _string_h_loaded
 #include "string.h"
 #endif
+#include "Adapt_It.h"
 
 class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
