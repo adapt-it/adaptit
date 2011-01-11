@@ -3128,7 +3128,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					{
 						gpSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
 					}
-					else if (attrName == xml_iBEM)
+					else if (attrName == xml_iNEM)
 					{
 						gpSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
 					}
