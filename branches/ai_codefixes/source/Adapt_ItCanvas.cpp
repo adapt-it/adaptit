@@ -494,6 +494,10 @@ void CAdapt_ItCanvas::DiscardEdits()
 }
 
 // BEW 22Jun10, no changes needed for support of kbVersion 2
+// BEW 12Jan11, changed the setting of ptWedgeBotRight.y to be initialized to the
+// top of the top cell; before this, it was set to the bottom of the strip, and
+// then for a narrow word, a source text click would trick the code into thinking
+// a wedge was clicked when in fact, it wasn't
 void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -599,7 +603,14 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 		ptWedgeTopLeft.x = pClickedStrip->GetStripRect_CellsOnly().GetLeft();
 		ptWedgeTopLeft.y = pClickedStrip->GetStripRect_CellsOnly().GetTop();
 		ptNoteTopLeft = ptWedgeTopLeft;
-		ptWedgeBotRight = ptWedgeTopLeft;
+		ptWedgeBotRight.x = ptWedgeTopLeft.x;
+		// BEW 12Jan11, changed the setting of ptWedgeBotRight.y to be initialized to the
+		// top of the top cell; before this, it was set to the bottom of the strip, and
+		// then for a narrow word, a source text click would trick the code into thinking
+		// a wedge was clicked when in fact, it wasn't
+		ptWedgeBotRight.y = ptWedgeTopLeft.y; // initialize bottom of wedge (its point)
+											  // to the top of the top cell; we move it
+											  // further up in the stuff below
 		ptNoteBotRight = ptNoteTopLeft;
 		int numPiles;
 

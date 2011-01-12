@@ -295,6 +295,10 @@ the actual end of the footnote, cross reference or endnote contents.
 * In free translation mode, clicking on a different section, the phrase 
 box would show the source text word rather than the adaptation word
 (or phrase) at the clicked section's anchor location.
+* It was possible, when a free translation applied to a certain span of
+text, for a click at the start of the source text for a word within that
+span to wrongly open the View Filtered Information dialog, even though
+there was no wedge icon present at that location.
 
 ----------------------------------------------
 Version 5.2.3 update 29September2010:

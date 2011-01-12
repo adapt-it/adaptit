@@ -49,6 +49,19 @@ enum SaveType {
 	save_as
 };
 
+enum PunctChangeType {
+	was_empty_stays_empty,
+	was_empty_added,
+	exists_removed,
+	exists_replaced,
+	exists_unchanged
+};
+
+enum WhichLang {
+	sourceLang,
+	targetLang
+};
+
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
 // the SrcPList class that is declared by the macro to declare 
@@ -279,7 +292,11 @@ public:
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
 	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
 	wxString		SetupBufferForOutput(wxString* pCString);
-	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,int nTextLength);
+	// BEW 11Oct10 (actually 11Jan11) added bTokenizingTargetText param so as to be able
+	// to parse target text, with target punctuation settings, as if it was source text -
+	// this is useful for handling user-changes from Preferences to the punctuation settings
+	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
+									int nTextLength, bool bTokenizingTargetText = FALSE);
 	void			UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,bool bKBBackupPath,
 										   bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09

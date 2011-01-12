@@ -13209,6 +13209,24 @@ int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str, int nInit
 		return 0;
 }
 
+// TokenizeTargetTextString() overloads TokenizeTextString, to do the parsing with str
+// containing target text, and the TokenizeText() internal call will use the
+// m_punctuation[1] (target text punctuation characters delimited by space between each)
+// to calculate the spaceless punctuation string to be used for tokenizing; if
+// pUseTargetTextPuncts is passed in as FALSE, or omitted, then source text punctuation
+// characters are used when parsing the contents of str
+int CAdapt_ItView::TokenizeTargetTextString(SPList* pNewList, wxString& str, 
+											int nInitialSequNum, bool bUseTargetTextPuncts)
+{
+	CAdapt_ItDoc* pDoc = GetDocument();
+	int	length = str.Length();
+	if (!str.IsEmpty())
+	{
+		return pDoc->TokenizeText(nInitialSequNum,pNewList,str,length,bUseTargetTextPuncts);
+	}
+	else
+		return 0;
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

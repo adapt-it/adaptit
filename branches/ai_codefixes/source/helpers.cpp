@@ -4678,9 +4678,15 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 	return bAddedSomething;
 }
 
+// BEW 12Jan11, in first test, changed pSrcPhrase->m_bHasFreeTrans to use
+// pSrcPhrase->m_bStartFreeTrans instead, because the CSourcePhrase on which the latter
+// flag is TRUE is the one which does the storage of the filtered information, in
+// particular the free translation if there is one (using the other flag would give a TRUE
+// returned when a CSourcePhrase instance within the free translation was tested, even
+// though it had no filtered info stored on it)
 bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 {
-	if (pSrcPhrase->m_bHasFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+	if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
 	{
 		return TRUE;
 	}

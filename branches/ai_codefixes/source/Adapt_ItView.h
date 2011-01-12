@@ -241,6 +241,12 @@ public:
 	void		ToggleGlossingMode(); // BEW added 19Sep08
 	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
 	int			TokenizeTextString(SPList* pNewList,wxString& str,int nInitialSequNum);
+    // BEW 11Oct10 (actually 11Jan11) overload of TokenizeTextString, to pass in a bool for
+    // asking for use of m_punctuation[1] and do a tokenizing of target text with target
+    // punctuation settings (useful for a smarter way to support user on-the-fly changes of
+    // punctuation settings made from Preferences)
+	int			TokenizeTargetTextString(SPList* pNewList, wxString& str, int nInitialSequNum,
+										bool bUseTargetTextPuncts);
 	bool		TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp, SPList::Node* curPos,
 										SPList::Node* nextPos, CSourcePhrase* pSrcPhrase);
 	void		AdjustDialogPosition(wxDialog* pDlg);

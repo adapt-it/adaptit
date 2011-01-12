@@ -11450,6 +11450,10 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// \param		rBuffer				-> the buffer from which words are tokenized and stored 
 ///									   as CSourcePhrase instances in pList
 /// \param		nTextLength			-> the initial text length
+/// \param      bTokenizingTargetText -> default FALSE, set TRUE if rBuffer contains target
+///                                    text which is to be parsed, using target punctuation,
+///                                    so as to make use of its smarts in separating text,
+///                                    punctuation and inline markers 
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), the View's TokenizeTextString(),
 /// DoExtendedSearch(), DoSrcOnlyFind(), DoTgtOnlyFind(), DoSrcAndTgtFind().
@@ -11464,7 +11468,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// data on each call. TokenizeText also reworked to handle text colouring better.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
-							   int nTextLength)
+							   int nTextLength, bool bTokenizingTargetText)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -11485,7 +11489,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bFreeTranslationIsCurrent = FALSE;
 	int nFreeTransWordCount = 0;
 
-	wxString spacelessSrcPuncts = pApp->m_punctuation[0];
+	wxString spacelessSrcPuncts;
+	// BEW 11Jan11, added test here so that the function can be used on target text as
+	// well as on source text
+	if (bTokenizingTargetText)
+	{
+		spacelessSrcPuncts = pApp->m_punctuation[1];
+	}
+	else
+	{
+		spacelessSrcPuncts = pApp->m_punctuation[0];
+	}
 	while (spacelessSrcPuncts.Find(_T(' ')) != -1)
 	{
 		// remove all spaces, leaving only the list of punctation characters

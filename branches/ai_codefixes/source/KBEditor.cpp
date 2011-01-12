@@ -1653,6 +1653,10 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 // other class methods
 
 // BEW 22Jun10, changes needed for support of kbVersion 2's m_bDeleted flag
+// BEW 12Jan11, removed the wxASSERT which assumes the target text list will have at least
+// one showable entry - that won't be the case if the user deletes all the list's entries,
+// which would otherwise produce an unwanted trip of the assert because no error has been
+// produced by such a deletion, it's an allowed user operation
 void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 {
     // In the wx version wxDesigner has created identical sets of controls for each page
@@ -2001,8 +2005,12 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			} // end TRUE block for test: if (!pCurRefString->m_bDeleted)
 		} // end while loop
 
-		wxASSERT(countShowable > 0 && countShowable == countNonDeleted);
+		//wxASSERT(countShowable > 0 && countShowable == countNonDeleted); // <<-- remove
+		// because if the user has removed all the list's entries, this assert would trip
+		// even though no error has happened
+		
 		// if possible select the matched m_translation in the Ref String
+        int listcount = m_pListBoxExistingTranslations->GetCount();
 		if (nMatchedRefString != -1)
 		{
 			// there was a match
@@ -2011,38 +2019,50 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		}
 		else
 		{
-			// select the first translation in the listbox by default -- there will always be at least one
-			m_pListBoxExistingTranslations->SetSelection(0);
+            // select the first translation in the listbox by default -- there will always
+            // be at least one - except when the user has just used the Remove button to
+            // remove all the entries
+			if (listcount > 0)
+			{
+				m_pListBoxExistingTranslations->SetSelection(0);
+			}
 		}
-		wxString str = m_pListBoxExistingTranslations->GetStringSelection();
-		int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
-		wxASSERT(nNewSel != -1);
-		pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nNewSel);
-		wxASSERT(pCurRefString != 0);
-		m_refCount = pCurRefString->m_refCount;
-		m_refCountStr.Empty();
-		m_refCountStr << m_refCount;
-		if (m_refCount < 0)
+		if (listcount > 0)
 		{
-			m_refCount = 0; // an error condition
-			m_refCountStr = _T("0");
-			wxMessageBox(_T("A value of zero for the reference count means there was an error."),_T(""),wxICON_WARNING);
-		}
+			wxString str = m_pListBoxExistingTranslations->GetStringSelection();
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
+			wxASSERT(nNewSel != -1);
+			pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nNewSel);
+			wxASSERT(pCurRefString != 0);
+			m_refCount = pCurRefString->m_refCount;
+			m_refCountStr.Empty();
+			m_refCountStr << m_refCount;
+			if (m_refCount < 0)
+			{
+				m_refCount = 0; // an error condition
+				m_refCountStr = _T("0");
+				wxMessageBox(_T("A value of zero for the reference count means there was an error."),_T(""),wxICON_WARNING);
+			}
 
-        // get the selected translation text; if nNewSel is the same value as the default
-        // selection of index 0, then m_edTransStr caan be got from the top element in the
-        // list, but if nNewSel is > 0, we must assign str's contents to it instead
-		if (nNewSel > 0)
-		{
-			m_edTransStr = str;
+			// get the selected translation text; if nNewSel is the same value as the default
+			// selection of index 0, then m_edTransStr can be got from the top element in the
+			// list, but if nNewSel is > 0, we must assign str's contents to it instead
+			if (nNewSel > 0)
+			{
+				m_edTransStr = str;
+			}
+			else
+			{
+				m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
+			}
 		}
 		else
 		{
-			m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
+			m_edTransStr.Empty();
 		}
 	}
 
-	m_pTypeSourceBox->SetSelection(-1,-1); //(0,0); // MFC intends to select the whole contents
+	m_pTypeSourceBox->SetSelection(-1,-1); // select all
 	m_pTypeSourceBox->SetFocus();
 		
 	m_pEditRefCount->ChangeValue(m_refCountStr);
