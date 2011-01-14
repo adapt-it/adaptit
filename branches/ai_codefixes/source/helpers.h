@@ -240,6 +240,27 @@ bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
 bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
 void	 SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& othersFilteredStr);
 
+// A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
+// CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
+// new CSourcePhrase instance (param 3) at the same Node, returning that Node's pointer.
+// The bDeleteOriginal parameter, when TRUE, causes the document's function
+// DeleteSingleSrcPhrase() to be called with pOriginalSrcPhrase as its parameter, and if
+// bDeletePartnerPileToo is TRUE, that partner pile is also located and deleted;
+// bDeleteOriginal can be TRUE, and bDeletePartnerPile FALSE (when deleting a
+// CSourcePhrase instance not yet shown in the view's layout, for example, so it doesn't
+// yet have a partner pile), and bDeleteOriginal can be FALSE, in which case
+// bDeletePartnerPileToo is ignored. pList (param 1) can be any list of CSourcePhrase
+// instances, but most likely it will be the app's m_pSourcePhrases list which defines the
+// document.
+// If pOriginalSrcPhrase cannot be found in pList, then NULL is returned and the
+// replacement is not made.
+// So far, this function is used only within ReconstituteAfterPunctuationChange() and
+// ReconstituteOneAfterPunctuationChange().
+// BEW created 13Jan11
+SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
+						CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal = TRUE, 
+						bool bDeletePartnerPileToo = TRUE);
+
 // uuid support
 wxString GetUuid();
 

@@ -34,7 +34,6 @@
 #include <wx/textfile.h>
 
 #include "Adapt_It.h"
-#include "helpers.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
@@ -49,6 +48,7 @@
 #include "KB.h"
 #include "KBEditor.h"
 #include "RefString.h"
+#include "helpers.h"
 #include "tellenc.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -2216,16 +2216,18 @@ void EmptyMarkersAndFilteredStrings(
 /// markers into the editable string. It is used in RebuildTargetText() to compose
 /// non-editable and editable strings, these are source text and target text, from a merger
 /// (in the case of glosses, the glass would have been added after the merger since
-/// glossing mode does not permit mergers). Mergers are illegal across filtered info, such
-/// info may only occur on the first CSourcePhrase in a merger, and so we know there cannot
-/// be any medial filtered information to be dealt with - we only have to consider
-/// m_markers and m_endMarkers. Also, since a placement dialog doesn't need to do placement
-/// in any of the stored initial filtered information, if present, we separate that
-/// information in markersPrefix and don't present it to the user if the dialog is made
-/// visible, but just add it in after the dialog is dismissed.
-/// Note: we only produce Sstr in order to support a referential source text in the top
-/// edit box of the placement dialog - which won't be called if there are no medial
-/// markers stored in the merged src phrase. The modified Tstr is what we return.
+/// glossing mode does not permit mergers). It's also used in doc's
+/// ReconstituteAfterPunctuationChange().
+/// Mergers are illegal across filtered info, such info may only occur on the first
+/// CSourcePhrase in a merger, and so we know there cannot be any medial filtered
+/// information to be dealt with - we only have to consider m_markers and m_endMarkers.
+/// Also, since a placement dialog doesn't need to do placement in any of the stored
+/// initial filtered information, if present, we separate that information in markersPrefix
+/// and don't present it to the user if the dialog is made visible, but just add it in
+/// after the dialog is dismissed. Note: we only produce Sstr in order to support a
+/// referential source text in the top edit box of the placement dialog - which won't be
+/// called if there are no medial markers stored in the merged src phrase. The modified
+/// Tstr is what we return.
 /// BEW 1Apr10, written for support of doc version 5
 /// BEW 8Sep10, altered order of export of filtered stuff, it's now 1. filtered info, 2.
 /// collected back trans, 3. free translation, 4. note (This fits better with OXES export)
@@ -3239,18 +3241,16 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 /// \remarks
 /// This function is used in the preparation of source text data (Sstr). It is used in
 /// RebuildSourceText() in the export of USFM markup for the source text when the passed in
-/// CSourcePhrase instance is a merger. Mergers are illegal across filtered info, such info
-/// may only occur on the first CSourcePhrase in a merger, and so we know there cannot be
-/// any medial filtered information to be dealt with - we only have to consider m_markers
-/// and m_endMarkers -- and since 11Oct10 (see below) inline non-binding markers and
-/// endmarkers, inline binding markers and endmarkers, and m_follOuterPunct. 
-/// Also, no placement dialog is needed because, for source text, the
-/// location of SF markers in the recomposed source text is 100% determinate.
-/// Note: filtered info and m_markers content from the merger has already been handled in
-/// the caller, so we only work with the remaining members, and the source text words we
-/// will get from the individual stored original srcPhrases' m_key members. With the
-/// non-initial CSourcePhrase members we must take into account any markers and punctuation
-/// information medial to the merger. 
+/// CSourcePhrase instance is a merger; it is also used in
+/// ReconstituteAfterPunctuationChange() - which is a function defined in CAdapt_ItDoc.
+/// Mergers are illegal across filtered info, such info may only occur on the first
+/// CSourcePhrase in a merger, and so we know there cannot be any medial filtered
+/// information to be dealt with - we only have to consider m_markers and m_endMarkers --
+/// and since 11Oct10 (see below) inline non-binding markers and endmarkers, inline binding
+/// markers and endmarkers, and m_follOuterPunct. Also, no placement dialog is needed
+/// because, for source text, the location of SF markers in the recomposed source text is
+/// 100% determinate. Note: With the non-initial CSourcePhrase members we must take into
+/// account any markers and punctuation information medial to the merger.
 /// BEW 7Apr10, written for support of doc version 5
 /// BEW 11Oct10, additions to the code for extra doc version 5 storage members,
 /// m_follOuterPunct and four wxString members for inline binding and non-binding markers
@@ -4294,26 +4294,26 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 	}
 }
 
-// return      The recomposed source text string, including punctuation and markers, but
-//             the which members are included is controlled by booleans passed in
-// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
-// bAttachFilteredInfo     ->  if TRUE, cross reference and other filtered info, if present
-//                             are returned in the recomposed source text string (note,
-//                             cross reference is returned after m_markers material, if
-//                             any, and the remaining filtered material before m_markers
-//                             material (if any))
-// bAttach_m_markers       ->  include any m_markers information in the returned string
-//                             (sometimes the caller has already got the m_markers info
-//                             and so we need to be able to suppress having it returned
-//                             again)
-// mMarkersStr             <-  contents of m_markers member, unilaterally returned (or empty)
-// xrefStr                 <-  filtered \x .... \x* information, including markers, if
-//                             any such is stored in the m_filteredInfo member; unilaterally
-//                             returned
-// filteredInfoStr         <-  the contents of m_filteredInfo member, with any cross reference
-//                             information (ie. \x ....\x*) removed; or an empty string if there
-//                             is no filtered info. Unilaterally returned
-// BEW created 11Oct10 for support of additions to doc version 5 for better USFM support
+/// return      The recomposed source text string, including punctuation and markers, but
+///             which members are included is controlled by booleans passed in
+/// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
+/// bAttachFilteredInfo     ->  if TRUE, cross reference and other filtered info, if present
+///                             are returned in the recomposed source text string (note,
+///                             cross reference is returned after m_markers material, if
+///                             any, and the remaining filtered material before m_markers
+///                             material (if any))
+/// bAttach_m_markers       ->  include any m_markers information in the returned string
+///                             (sometimes the caller has already got the m_markers info
+///                             and so we need to be able to suppress having it returned
+///                             again)
+/// mMarkersStr             <-  contents of m_markers member, unilaterally returned (or empty)
+/// xrefStr                 <-  filtered \x .... \x* information, including markers, if
+///                             any such is stored in the m_filteredInfo member; unilaterally
+///                             returned
+/// filteredInfoStr         <-  the contents of m_filteredInfo member, with any cross reference
+///                             information (ie. \x ....\x*) removed; or an empty string if there
+///                             is no filtered info. Unilaterally returned
+/// BEW created 11Oct10 for support of additions to doc version 5 for better USFM support
 wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
 				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
@@ -6327,6 +6327,34 @@ void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
 	}
 }
 
+SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
+	CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal, bool bDeletePartnerPileToo)
+{
+	SPList::Node* pos = pList->Find(pOriginalSrcPhrase);
+	if (pos == NULL)
+		return pos;
+	int sequNum = pOriginalSrcPhrase->m_nSequNumber;
+	SPList::Node* nextPos = pos;
+	nextPos->GetNext(); // we insert before this Node (this may not exist, if so, append)
+	pList->Erase(pos); // removes the Node* from the list
+	if (bDeleteOriginal)
+	{
+		gpApp->GetDocument()->DeleteSingleSrcPhrase(pOriginalSrcPhrase,bDeletePartnerPileToo);
+	}
+	if (nextPos == NULL)
+	{
+		// at list end, so do an append
+		pos = pList->Append(pNewSrcPhrase);
+
+	}
+	else
+	{
+		// insert before nextPos 
+		pos = pList->Insert(nextPos,pNewSrcPhrase);
+	}
+	pNewSrcPhrase->m_nSequNumber = sequNum;
+	return pos;
+}
 
 
 

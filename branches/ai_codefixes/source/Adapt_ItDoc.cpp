@@ -5160,7 +5160,236 @@ b:		pSrcPhrase->m_gloss = gloss;
                         // instance passed in
 	}
 }
+/* legacy code, new one is above
+bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, 
+						SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
+						wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
+{
+	// BEW added 5Apr05
+	bool bHasTargetContent = TRUE; // assume it has an adaptation, clear below if not true
+	bool bPlaceholder = FALSE; // default
+	bool bNotInKB = FALSE; // default
+	bool bRetranslation = FALSE; // default
+	if (pSrcPhrase->m_bNullSourcePhrase) bPlaceholder = TRUE;
+	if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
+	if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
 
+	wxString srcPhrase; // copy of m_srcPhrase member
+	wxString targetStr; // copy of m_targetStr member
+	wxString key; // copy of m_key member
+	wxString adaption; // copy of m_adaption member
+	wxString gloss; // copy of m_gloss member
+	key.Empty(); adaption.Empty(); gloss.Empty();
+
+	// setup the srcPhrase, targetStr and gloss strings - we must handle glosses too regardless of the current mode
+	// (whether adapting or not)
+	int numElements = 1; // default
+	srcPhrase = pSrcPhrase->m_srcPhrase; // this member has all the source 
+										 // punctuation, if any on this word or phrase
+	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
+	if (pSrcPhrase->m_adaption.IsEmpty())
+		bHasTargetContent = FALSE;	// use to suppress copying of source punctuation 
+									// to an adaptation not yet existing
+	else
+		targetStr = pSrcPhrase->m_targetStr; // likewise, has punctuation, if any
+
+    // handle placeholders - these have elipsis ... as their m_key and m_srcPhrase
+    // members, and so there is no possibility of punctuation changes having any effect
+    // on these except possibly for the m_adaption member. Placeholders can occur
+    // independently, or as part of a retranslation - the same treatment can be given
+    // to instances occurring in either environment.
+	SPList::Node* fpos;
+	fpos = NULL;
+	CSourcePhrase* pNewSrcPhrase;
+	SPList::Node* newpos;
+	if (bPlaceholder)
+		goto b;
+
+    // BEW 8Jul05: a pSrcPhrase with empty m_srcPhrase and empty m_key can't produce
+    // anything when passed to TokenizeTextString, and so to prevent numElements being
+    // set to zero we must here detect any such sourcephrases and just return TRUE -
+    // for these punctuation changes can produce no effect
+	if (pSrcPhrase->m_srcPhrase.IsEmpty() || pSrcPhrase->m_key.IsEmpty())
+		return TRUE; // causes the caller to use pSrcPhase 'as is'
+
+    // reparse the srcPhrase string - if we get a single CSourcePhrase as the result,
+    // we have a simple job to complete the rebuild for this passed in pSrcPhrase; if
+    // we get more than one, we'll have to abandon the adaptation or gloss and set up
+    // the flags etc accordingly, and return the two or more new instances to the
+    // caller - the caller will know what to do (eg. we might be processing an owned
+    // original CSourcePhrase instance from a former merge, and if so we'd want to
+    // collect all sibling new CSourcePhrase instances so the caller could abandon the
+    // merge and insert the collected instances into m_pSourcePhrases; and that's a
+    // different scenario from being at the top level already for a pSrcPhrase with
+    // m_pSavedWords empty and which has returned more than one new instance from the
+    // reparse - the caller will distinguish these and act accordingly)
+	
+	// important, ParseWord() doesn't work right if the first character is a space
+	srcPhrase.Trim(TRUE); // trim right end
+	srcPhrase.Trim(FALSE); // trim left end
+	numElements = pView->TokenizeTextString(pNewList, srcPhrase,  pSrcPhrase->m_nSequNumber);
+	wxASSERT(numElements >= 1);
+	pNewSrcPhrase = NULL;
+	newpos = NULL;
+	if (numElements == 1)
+	{
+        // simple case - we can complete the rebuild in this block; note, the passed in
+        // pSrcPhrase might be storing quite complex data - such as filtered material,
+        // chapter & verse information and so forth, so we have to copy everything
+        // across as well as update the source and target string members and
+        // punctuation. The simplest direction for this copy is to copy from the parsed
+        // new source phrase instance back to the original, since only m_key,
+        // m_adaption, m_targetStr, precPunct and follPunct can possibly be different
+        // in the new parse
+		fpos = pNewList->GetFirst();
+		pNewSrcPhrase = fpos->GetData();
+		pSrcPhrase->m_key = pNewSrcPhrase->m_key;
+		pSrcPhrase->m_precPunct = pNewSrcPhrase->m_precPunct;
+		pSrcPhrase->m_follPunct = pNewSrcPhrase->m_follPunct;
+
+		// the adaptation, and gloss if any, is already presumably what the user wants, 
+		// so we'll just remove punctuation from the adaptation, and set the relevant members
+		// (m_targetStr is already correct) - but only provided there is an existing adaptation
+b:		pSrcPhrase->m_gloss = gloss;
+		// remove any initial or final spaces before using it
+		targetStr.Trim(TRUE); // trim right end
+		targetStr.Trim(FALSE); // trim left end
+		if (bHasTargetContent)
+		{
+			adaption = targetStr;
+			pView->RemovePunctuation(this,&adaption,from_target_text); // 1 = from tgt
+			pSrcPhrase->m_adaption = adaption;
+
+			// update the KBs (both glossing and adapting KBs) provided it is 
+			// appropriate to do so
+			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
+				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
+		}
+
+		return TRUE;
+	}
+	else
+	{
+        // oops, somehow we got more than a single sourcephrase instance -- we'll have
+        // to transfer the legacy information (such as filtered stuff, markers, etc) to
+        // the first of the new instances here, and then return to the caller so it can
+        // have those instances inserted into the document's list in place of the
+        // original single instance. (User will need to manually edit at this location
+        // later on.) All CSourcePhrase instances handled in this block have to be
+        // marked as m_bHasKBEntry == FALSE, and m_bHasGlossingKBEntry == FALSE too,
+        // since the user will have to readapt/regloss later for these ones.
+		CSourcePhrase* pSPnew = NULL;
+		SPList::Node* pos2 = pNewList->GetFirst();
+		bool bIsFirst = TRUE;
+		bool bIsLast = FALSE;
+		while (pos2 != NULL)
+		{
+			pSPnew = (CSourcePhrase*)pos2->GetData(); // m_srcPhrase, m_key, 
+                        // m_precPunct, m_follPunct, m_nSrcWords are set, but it has no
+                        // idea what context it belongs to and so all other flags and
+                        // strings have to be copied from the original pSrcPhrase
+                        // passed in, but we copy only to the new first instance of
+                        // pSPnew, and for subsequent ones just propagate what is
+                        // necessary to those
+			pos2 = pos2->GetNext();
+			if (pos2 == NULL)
+				bIsLast = TRUE;
+			if (bIsFirst)
+			{
+                // copying everything to the first instance ensures that the source
+                // text's original order of characters is not violated despite the
+                // reparse generating unexpected additional sourcephrase instances; so
+                // first copy all the original's flag values
+				CopyFlags(pSPnew,pSrcPhrase);
+
+                // copy the other stuff, except for the sublists (since m_pSavedWords,
+                // m_pMedialPuncts, and m_pMedialMarkers we must leave for the caller
+                // to handle, since these pertain only to a passed in pSrcPhrase which
+                // is a merged one - so the caller will need extra apparatus to handle
+                // such instances correctly; moreover, those three lists are always
+                // empty for owned instances and for non-owned instances which are not
+                // merged, so it is safe to ignore them here)
+				pSPnew->m_curTextType = pSrcPhrase->m_curTextType;
+				pSPnew->m_inform = pSrcPhrase->m_inform;
+				pSPnew->m_chapterVerse = pSrcPhrase->m_chapterVerse;
+				pSPnew->m_markers = pSrcPhrase->m_markers;
+				pSPnew->m_nSequNumber= pSrcPhrase->m_nSequNumber;
+
+
+				bIsFirst = FALSE;
+			}
+			else
+			{
+				// for non-first instances, copy the essential members which 
+				// require propagation
+				pSPnew->m_bRetranslation = pSrcPhrase->m_bRetranslation;
+				pSPnew->m_bSpecialText = pSrcPhrase->m_bSpecialText;
+				pSPnew->m_curTextType = pSrcPhrase->m_curTextType;
+
+                // in the case of a <Not In KB> instance (whether merged or not) we
+                // preserve that flag value and propagate it to each new instance, but
+                // retranslations work differently - see below
+				pSPnew->m_bNotInKB = pSrcPhrase->m_bNotInKB;
+
+				// the m_bFirstOfType cannot possibly be set TRUE on any of the 
+				// non-first new instances
+				pSPnew->m_bFirstOfType = FALSE;
+
+			}
+            // set up booleans which record that the instance is the last of a
+            // retranslation or footnote; and handle m_bBoundary likewise, since
+            // boundaries are 'at the end' kind of things
+			if (pSrcPhrase->m_bEndRetranslation && !bIsLast)
+				pSPnew->m_bEndRetranslation = FALSE; // a TRUE value will move to the last in the series
+			if (pSrcPhrase->m_bEndRetranslation && bIsLast)
+				pSPnew->m_bEndRetranslation = TRUE;
+			if (pSrcPhrase->m_bFootnoteEnd && !bIsLast)
+				pSPnew->m_bFootnoteEnd = FALSE; // a TRUE value will move to the last in the series
+			if (pSrcPhrase->m_bFootnoteEnd && bIsLast)
+				pSPnew->m_bFootnoteEnd = TRUE;
+			if (pSrcPhrase->m_bBoundary && !bIsLast)
+				pSPnew->m_bBoundary = FALSE; // a TRUE value would move to the last in the series
+			if (pSrcPhrase->m_bBoundary && bIsLast)
+				pSPnew->m_bBoundary = TRUE;
+
+            // ensure that the "Has..." boolean values are FALSE, since we have
+            // abandoned the gloss and adaptation strings
+			pSPnew->m_bHasKBEntry = pSrcPhrase->m_bHasKBEntry;
+			pSPnew->m_bHasGlossingKBEntry = pSrcPhrase->m_bHasGlossingKBEntry;
+		} // end of loop for iterating over the new CSourcePhrase instances 
+		  // resulting from the reparse
+
+        // Note: a changed number of CSourcePhrase instances is okay if the original is
+        // from a retranslation - we then return TRUE. This is because retranslations
+        // don't care how many CSourcePhrase instances comprise them, so adding an
+        // extra one or more is immaterial - hence we can treat this situation as if it
+        // was normal
+		if (bRetranslation)
+		{
+            // since we will return TRUE from this block rather then FALSE, the caller
+            // will not replace the original pSrcPhrase with the newly parsed ones - so
+            // we must do that job here instead
+			SPList::Node* pos3 = pNewList->GetFirst();
+			while (pos3 != NULL)
+			{
+				CSourcePhrase* pSP = (CSourcePhrase*)pos3->GetData();
+				pos3 = pos3->GetNext();
+				pList->Insert(pos,pSP); // insert before the passed in 
+										// POSITION in original list
+			}
+			DeleteSingleSrcPhrase(pSrcPhrase); // delete the old one
+			pList->DeleteNode(pos); // remove its element from m_pSourcePhrases or 
+									// whatever was the passed in list
+			return TRUE; // tell caller all is okay
+		}
+		return FALSE;	// except for a retranslation, we always return FALSE from 
+                        // this block so the caller will know that fixesStr must have a
+                        // reference added, and the new CSourcePhrase instances must,
+                        // in the m_pSourcePhrases list, replace the pSrcPhrase
+                        // instance passed in
+	}
+}
+*/
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		FALSE if the rebuild fails internally at one or more locations so that the 
 ///				user must later inspect the doc visually and do something corrective at such 
@@ -14140,9 +14369,8 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	{
         // this one will not change, since there are no chapter verse references able to be
         // constructed
-		//IDS_MANUAL_FIXES_NO_REFS
 		fixesStr = _(
-"There were places where automatic rebuilding did not fully succeed and so either adaptations were abandoned, or filtered material not made visible, or visible material not filtered. Please visually check the document and perhaps edit where necessary.");
+			"There were places where automatic rebuilding of the document potentially did not fully succeeded. Visually check and edit where necessary: ");
 	}
 	else
 	{
@@ -14152,7 +14380,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
         // instance
 		// IDS_MANUAL_FIXES_REFS
 		fixesStr = _(
-"Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: ");
+			"Locate the following chapter:verse locations for potential errors in the rebuild of the document. Visually check and edit where necessary: ");
 	}
 
 	int nOldTotal = gpApp->m_pSourcePhrases->GetCount();
@@ -15631,57 +15859,109 @@ void CAdapt_ItDoc::CopyFlags(CSourcePhrase* dest, CSourcePhrase* src)
 	dest->m_bHasGlossingKBEntry = src->m_bHasGlossingKBEntry;
 }
 
+wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation)
+{
+	wxString str = targetStrWithPunctuation;
+	SPList* pTempList = new SPList;
+	CSourcePhrase* pSPh = NULL;
+
+//int CAdapt_ItView::TokenizeTargetTextString(SPList* pNewList, wxString& str, 
+//											int nInitialSequNum, bool bUseTargetTextPuncts);
+
+
+	SPList::Node* pos = pTempList->GetFirst();
+	while (pos != NULL)
+	{
+		pSPh = pos->GetData();
+		DeleteSingleSrcPhrase(pSPh,FALSE); // there is no partner pile
+		pos = pos->GetNext();
+	}
+	pTempList->Clear();
+	delete pTempList;
+	return str;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		FALSE if the rebuild fails internally, TRUE if the rebuild was successful
+/// \return		FALSE if the rebuild potentially isn't done fully right internally (that
+///             usually means that rebuilding one CSourcePhrase instance resulted in two
+///             or more new ones being created - so we have to replace the old one with
+///             the rebuilds; whereas a successful rebuild means one CSourcePhrase is
+///             just changed internally and no new ones needed to be created), TRUE if 
+///             the rebuild was successful
 /// \param		pView		-> a pointer to the View
-/// \param		pList		<- the list of source phrases of the current document (m_pSourcePhrases)
-/// \param		pos			-> the node location which stores the passed in pSrcPhrase pointer
-/// \param		pSrcPhrase	<- a pointer to a passed in source phrase
-/// \param		fixesStr	<- a reference to the caller's storage string for accumulating
-///								a list of references to the locations where the rebuild 
-///								failed for specific pSrcPhrase instances, if any
+/// \param		pList		<- the list of source phrases of the current document 
+///                            (i.e. m_pSourcePhrases)
+/// \param		pos			-> the node location which stores the passed in pSrcPhrase
+/// \param		pSrcPhrase	<- the pointer to the CSourcePhrase instance on the pos Node
+///                            passed in as the previous parameter
+/// \param		fixesStr	<- reference to the caller's storage string for accumulating
+///							   a list of references to the locations where the rebuild 
+///							   potentially isn't quite fully right, for specific 
+///							   pSrcPhrase instances, if any
 /// \remarks
 /// Called from: the Doc's RetokenizeText(). 
-/// Rebuilds the document after a punctuation change has been made.
-/// If the function fails internally, that particular pSrcPhrase instance has to have its
-/// adaptation (or gloss) abandoned and the user must later inspect the doc visually and
-/// edit at such locations to restore the translation (or gloss) correctly.
-/// A "fail" of the rebuild means that the rebuild did not, for the rebuild done on a
-/// single CSourcePhrase instance, result in a single CSourcePhrase instance - but rather
-/// two or more (it is not possible for the rebuild of a single instance to result in
-/// none).
+/// Rebuilds the document after a punctuation change has been made. If the function "fails"
+/// internally (ie. potentially isn't a simple rebuild, as discussed above for the return
+/// value), that particular pSrcPhrase instance has to be noted with a reference to chapter
+/// and verse in fixesStr so the user can later inspect the doc visually and edit at such
+/// locations to restore the translation (or gloss) correctly; but while the legacy
+/// function would throw away the adaptation in such a circumstance happened, this present
+/// (11Oct10)refactoring will try to retain the adaptation - even if it means a new
+/// CSourcePhrase is left with m_adaption and m_targetStr empty, we rely on the user's
+/// manual check to then fix things if it's different than what it should be, after the
+/// rebuild has finished. \So a "fail" of the rebuild means that the rebuild did not, for
+/// the rebuild done on a single CSourcePhrase instance, result in a single CSourcePhrase
+/// instance - but rather two or more (it is not possible for the rebuild of a single
+/// instance to result in none).
+/// 
+/// ???? the next paragraph may be inaccurate -- I'm gunna reparse fully, so probably
+/// we'll insert the new one or more before the old one, on every call, and delete the old
+/// one, rather than messing with copying info etc -- remove the next paragraph if this is
+/// indeed what I end up doing (BEW 13Jan11)
+/// ???
 /// Our approach is as follows: if the rebuild of each generates a single instance, we
 /// re-setup the members of that passed in instance with the correct new values, (and throw
 /// away the rebuilt one - fixing that one up would be too time-consuming); but if the
-/// rebuild fails, we go to the bother of copying member values across to the first
-/// instance in the new list of resulting sourcephrases, insert the list into the main
-/// document's list, and throw away the original passed in one.
-/// We internally keep track of how many new CSourcePhrase instances are created and how
-/// many of these proceed the view's m_nActiveSequNum value so we can progressively update
-/// the latter and so reconstitute the phrase box at the correct location when done.
+/// rebuild fails, we go to the bother of putting the possibly altered translation into the
+/// m_adaption and m_targetStr members of the instance with the longest m_key member, and
+/// other members we copy across to the first of the new instances; then insert the new
+/// list into the main document's list, and throw away the original passed in one. We
+/// internally keep track of how many new CSourcePhrase instances are created and how many
+/// of these precede the view's m_nActiveSequNum value so we can progressively update the
+/// latter and so reconstitute the phrase box at the correct location when done.
+/// 
+/// BEW ammended definition and coded the function
+/// whm added to wxWidgets build 4Apr05
+/// BEW 11Oct10 (actually 13Jan11)added code to base reparse on returned string from the
+/// function FromSingleMakeSstr() (rather than on m_srcPhrase, because the latter would
+/// ignore the stored inline markers etc); and also added code to use an overload of
+/// TokenizeTextString() to parse the old m_targetStr adaptation, (whenever an adaptation
+/// is present of course, this function has to be able to operate on unadapted
+/// CSourcePhrase instances too), so as to extract a possibly adjusted m_adaption value to
+/// use in the rebuild, and not to abandon the legacy adaptations if possible, - the final
+/// result should be a much better rebuild, keeping much more (or all) of the information
+/// without loss, and alerting the user to where we think a visual inspection should be
+/// done in order to verify the results are acceptable - and edit if not.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, 
 					SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
 					wxString& fixesStr)
 {
-	// whm added 4Apr05
-	// BEW ammended definition and coded the function
 	SPList* pResultList = new SPList; // where we'll store pointers to parsed 
-									  // new CSourcePhrase instances
+									  // new CSourcePhrase instances	
 	bool bSucceeded = TRUE;
 
 	int nActiveSequNum = gpApp->m_nActiveSequNum; // store original value so 
 												  // we can update it as necessary
 	int nThisSequNum = pSrcPhrase->m_nSequNumber; // store the passed in 
-                                    // sourcephrase's sequence number (we update the active
-                                    // location only for sourcephrases located before the
-                                    // one which is the nActiveSequNum one)
+		// sourcephrase's sequence number (we may need to update sequ numbers)
 
     // remove the CRefString entries for this instance from the KBs, or decrement its count
     // if several seen before but do restoring of KB entries within the called functions
     // (because they know whether the rebuild succeeded or not and they have the required
-    // strings at hand) - but do it only if not a placeholder, not a retranslation not
-    // specified as "not in the KB", and there is a non-empty adaptation.
+    // strings at hand) - but do the removal from the KB only if not a placeholder, not a
+    // retranslation not specified as "not in the KB", and there is a non-empty adaptation
 	if (!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation && 
 		!pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_adaption.IsEmpty())
 	{
@@ -15691,27 +15971,32 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	// or an owning one and the sublist containing those it owns
 	if (pSrcPhrase->m_nSrcWords > 1)
 	{
-        // this is a merged sourcephrase; so we expect the tokenizing of its m_srcPhrase
-        // string to result in several new CSourcePhrase instances, so we can't call
-        // ReconstituteOneAfterPunctuationChange() here, instead plagiarize its code and
-        // modify to handle the passed in merged CSourcePhrase instance here. Our primary
-        // goal here is to determine if the count of the new srcPhrase instances from the
-        // retokenization of m_srcPhrase is the same value as the value in the passed in
-        // pSrcPhrase instance's member m_nSrcWords. If that is so, then this is a likely
-        // candidate for a successful rebuild -- the only other criterion is that the total
-        // count of the reparsed original (owned) sourcephrase instances does not exceed
-        // the maximum (10) allowed for a merged sourcephrase. If both criteria are
+        // Legacy Protocol: this is a merged sourcephrase; so we expect the tokenizing of
+        // its m_srcPhrase string to result in several new CSourcePhrase instances, so we
+        // can't call ReconstituteOneAfterPunctuationChange() here, instead plagiarize its
+        // code and modify to handle the passed in merged CSourcePhrase instance here. Our
+        // primary goal here is to determine if the count of the new srcPhrase instances
+        // from the retokenization of m_srcPhrase is the same value as the value in the
+        // passed in pSrcPhrase instance's member m_nSrcWords. If that is so, then this is
+        // a likely candidate for a successful rebuild -- the only other criterion is that
+        // the total count of the reparsed original (owned) sourcephrase instances does not
+        // exceed the maximum (10) allowed for a merged sourcephrase. If both criteria are
         // satisfied, we can programmatically rebuild this merged pSrcPhrase; if either is
         // not satisfied, we have to abandon the merged instance and restore the list of
         // (retokenized) owned instances to the main m_pSourcePhrases list, and inform the
         // user of where he'll later need to manually remerge and readapt/regloss.
+        // 
+		// BEW 15Jan11, the above protocal still applies except that now we will rebuild
+		// the merger even if the sourcephrase count has changed, provided the count does
+		// not exceed the MAXWORDS limit (currently which is 10) - if it does exceed that,
+		// then we do the legacy protocal in toto 
 		int nOriginalCount = pSrcPhrase->m_nSrcWords;
 		bool bNotInKB = FALSE; // default
 		bool bRetranslation = FALSE; // default
 		if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
 		if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
-		// placeholders omitted above - because they can't be merged so this block 
-		// doesn't need to deal with them
+		// none of the above local variable settings involves placeholders - because they 
+		// can't be merged, and so won't be in the merger, so this block can ignore them
 
 		wxString srcPhrase; // copy of m_srcPhrase member
 		wxString targetStr; // copy of m_targetStr member
@@ -15723,11 +16008,16 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
         // setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
         // regardless of the current mode (whether adapting or not) since rebuilding
         // affects everything
-		int numLegacyElements = pSrcPhrase->m_nSrcWords;
 		gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
-		targetStr = pSrcPhrase->m_targetStr; // likewise, has punctuation, if any
-		srcPhrase = pSrcPhrase->m_srcPhrase; // this member has all the source punctuation, 
-											 // if any on this word or phrase
+        // Set srcPhrase string: this member has all the source punctuation, if any on this
+        // word or phrase, as well as markers etc, as FromMergerMakeSstr() is docv5 aware
+		//srcPhrase = pSrcPhrase->m_srcPhrase;
+		srcPhrase = FromMergerMakeSstr(pSrcPhrase);
+		// Set targetStr only to the punctuated m_targetStr member, because we only want
+		// to deal with words, tgt punctuation and possibly fixed space marker (~) when we
+		// come to reparsing the target text with target punctutation chars to see if
+		// things have been changed in the target text
+		targetStr = pSrcPhrase->m_targetStr;
 
 		// reparse the srcPhrase string
 		// important, ParseWord() doesn't work right if the first character is a space
@@ -15739,7 +16029,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		wxASSERT(numElements > 1);
 		
 		// test to see if we have a candidate for rebuilding successfully
-		if ((int)pResultList->GetCount() == numLegacyElements)
+		if ((int)pResultList->GetCount() == nOriginalCount)
 		{
             // the numbers of old and new CSourcePhrase instances match, so check out the
             // owned instances next - after retokenizing them; we can't base the rebuild on
@@ -16125,7 +16415,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
 				pos2 = pos2->GetNext();
 				SPList::Node* pos3;
-				pos3 = pList->Insert(pos,pSP); // insert before the original POSITION
+				pos3 = pList->Insert(pos,pSP); // insert before the original Node*
 			}
 			DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // delete old one, 
 									// don't bother to delete partner pile
@@ -16151,21 +16441,21 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		pASrcPhrase = (CSourcePhrase*)apos->GetData();
 		apos = apos->GetNext();
 
-        // If pASrcPhrase belongs to a retranslation,
-        // ReconstituteOneAfterPunctuationChange() will have already inserted any sublist
-        // of newly built sourcephrases resulting from a 'fail' to reconstitute a passed in
-        // single instance as as the same one rebuilt resulting in two or more - the
-        // insertion having taken place in pList (ie. m_pSourcePhrases); whereas if the
-        // single was rebuilt without failure, then the rebuilt one is to be thrown away
-        // entirely. Hence, in the former case, if we unilaterally here delete the rebuilt
-        // ones, those resulting from a failure and so are already in pList would then be
-        // unilaterally deleted, and the result is hanging pointers and a corrupted
-        // m_pSourcePhrases list. So for failures, we have to do a conditional delete -
-        // that is, only delete an instance if it is NOT in pList.
-        // (ConditionallyDeleteSrcPhrase() has a sufficient test that would allow us to use
-        // the one call to replace all the next four lines, but pList is typically long,
-        // and it is therefore quicker to confine the call of this function to only those
-        // sourcephrase instances which could be affected - that is, retranslation ones
+        // If pASrcPhrase is in a retranslation, ReconstituteOneAfterPunctuationChange()
+        // will have already inserted any sublist of newly built sourcephrases resulting
+        // from a 'fail' to reconstitute a passed in single instance as the same one
+        // rebuilt resulting in two or more - the insertion having taken place in pList
+        // (ie. m_pSourcePhrases); whereas if the single was rebuilt without failure, then
+        // the rebuilt one is to be thrown away entirely. Hence, in the former case, if we
+        // unilaterally here delete the rebuilt ones, those resulting from a failure and so
+        // are already in pList would then be unilaterally deleted, and the result is
+        // hanging pointers and a corrupted m_pSourcePhrases list. So for failures, we have
+        // to do a conditional delete - that is, only delete an instance if it is NOT in
+        // pList. (ConditionallyDeleteSrcPhrase() has a sufficient test that would allow us
+        // to use the one call to replace all the next four lines, but pList is typically
+        // long, and it is therefore quicker to confine the call of this function to only
+        // those sourcephrase instances which could be affected - that is, retranslation
+        // ones
 		if (pASrcPhrase->m_bRetranslation)
 			ConditionallyDeleteSrcPhrase(pASrcPhrase,pList);
 		else
@@ -16179,7 +16469,537 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 											  // so all keeps in sync
 	return bSucceeded;
 }
+/* legacy code, new one is above
+bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, 
+					SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
+					wxString& fixesStr)
+{
+	// whm added 4Apr05
+	// BEW ammended definition and coded the function
+	SPList* pResultList = new SPList; // where we'll store pointers to parsed 
+									  // new CSourcePhrase instances	
+	bool bSucceeded = TRUE;
 
+	int nActiveSequNum = gpApp->m_nActiveSequNum; // store original value so 
+												  // we can update it as necessary
+	int nThisSequNum = pSrcPhrase->m_nSequNumber; // store the passed in 
+                                    // sourcephrase's sequence number (we update the active
+                                    // location only for sourcephrases located before the
+                                    // one which is the nActiveSequNum one)
+
+    // remove the CRefString entries for this instance from the KBs, or decrement its count
+    // if several seen before but do restoring of KB entries within the called functions
+    // (because they know whether the rebuild succeeded or not and they have the required
+    // strings at hand) - but do the removal from the KB only if not a placeholder, not a
+    // retranslation not specified as "not in the KB", and there is a non-empty adaptation
+	if (!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation && 
+		!pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_adaption.IsEmpty())
+	{
+		pView->RemoveKBEntryForRebuild(pSrcPhrase);
+	}
+	// determine whether we are dealing with just one, 
+	// or an owning one and the sublist containing those it owns
+	if (pSrcPhrase->m_nSrcWords > 1)
+	{
+        // Legacy Protocol: this is a merged sourcephrase; so we expect the tokenizing of
+        // its m_srcPhrase string to result in several new CSourcePhrase instances, so we
+        // can't call ReconstituteOneAfterPunctuationChange() here, instead plagiarize its
+        // code and modify to handle the passed in merged CSourcePhrase instance here. Our
+        // primary goal here is to determine if the count of the new srcPhrase instances
+        // from the retokenization of m_srcPhrase is the same value as the value in the
+        // passed in pSrcPhrase instance's member m_nSrcWords. If that is so, then this is
+        // a likely candidate for a successful rebuild -- the only other criterion is that
+        // the total count of the reparsed original (owned) sourcephrase instances does not
+        // exceed the maximum (10) allowed for a merged sourcephrase. If both criteria are
+        // satisfied, we can programmatically rebuild this merged pSrcPhrase; if either is
+        // not satisfied, we have to abandon the merged instance and restore the list of
+        // (retokenized) owned instances to the main m_pSourcePhrases list, and inform the
+        // user of where he'll later need to manually remerge and readapt/regloss.
+        // 
+		// BEW 15Jan11, the above protocal still applies except that now we will rebuild
+		// the merger even if the sourcephrase count has changed, provided the count does
+		// not exceed the MAXWORDS limit (currently which is 10) - if it does exceed that,
+		// then we do the legacy protocal in toto 
+		int nOriginalCount = pSrcPhrase->m_nSrcWords;
+		bool bNotInKB = FALSE; // default
+		bool bRetranslation = FALSE; // default
+		if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
+		if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
+		// none of the above local variable settings involves placeholders - because they 
+		// can't be merged, and so won't be in the merger, so this block can ignore them
+
+		wxString srcPhrase; // copy of m_srcPhrase member
+		wxString targetStr; // copy of m_targetStr member
+		wxString adaption; // copy of m_adaption member
+		wxString gloss; // copy of m_gloss member
+		adaption.Empty(); 
+		gloss.Empty();
+
+        // setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
+        // regardless of the current mode (whether adapting or not) since rebuilding
+        // affects everything
+		gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
+        // Set srcPhrase string: this member has all the source punctuation, if any on this
+        // word or phrase, as well as markers etc, as FromMergerMakeSstr() is docv5 aware
+		//srcPhrase = pSrcPhrase->m_srcPhrase;
+		srcPhrase = FromMergerMakeSstr(pSrcPhrase);
+		// Set targetStr only to the punctuated m_targetStr member, because we only want
+		// to deal with words, tgt punctuation and possibly fixed space marker (~) when we
+		// come to reparsing the target text with target punctutation chars to see if
+		// things have been changed in the target text
+		targetStr = pSrcPhrase->m_targetStr;
+
+		// reparse the srcPhrase string
+		// important, ParseWord() doesn't work right if the first character is a space
+		srcPhrase.Trim(TRUE); // trim right end
+		srcPhrase.Trim(FALSE); // trim left end
+		int numElements;
+		numElements = pView->TokenizeTextString(pResultList, srcPhrase, 
+												pSrcPhrase->m_nSequNumber);
+		wxASSERT(numElements > 1);
+		
+		// test to see if we have a candidate for rebuilding successfully
+		if ((int)pResultList->GetCount() == nOriginalCount)
+		{
+            // the numbers of old and new CSourcePhrase instances match, so check out the
+            // owned instances next - after retokenizing them; we can't base the rebuild on
+            // the above retokenization because it would leave the owned sourcephrase
+            // instances unrebuilt, and if the user then later unmerged, he would restore
+            // instances with the wrong punctuation settings. So we must rebuild each of
+            // the owned ones and this process could conceivably generate a different total
+            // for the number produced (it would be unexpected and I can't conceive how it
+            // could happen but I'm going to play safe and assume it could) -- so we'll
+            // base our final merger on a remerge of the rebuilt owned ones, but we can do
+            // that only if there are less than MAX_WORDS (ie. 10) - otherwise, we count
+            // this build attempt as a "failure" and insert the rebuilt owned ones back
+            // into the main list and throw away the original merged sourcephrase instance
+            // passed in.
+			SPList* pOwnedList = new SPList; // accumulate here the results of reparsing 
+											 // all owned CSourcePhrases
+			SPList::Node* posOwned = pSrcPhrase->m_pSavedWords->GetFirst();
+			wxASSERT( posOwned != NULL);
+			SPList* pParsedList = new SPList; // for returning the results of parsing 
+											  // each owned instance
+			while (posOwned != NULL)
+			{
+				SPList::Node* savePos = posOwned;
+				CSourcePhrase* pOwnedSrcPhrase = (CSourcePhrase*)posOwned->GetData();
+				posOwned = posOwned->GetNext();
+				pParsedList->Clear(); 
+				bool bParseCountUnchanged = ReconstituteOneAfterPunctuationChange(
+												pView,pSrcPhrase->m_pSavedWords,
+												savePos,pOwnedSrcPhrase,fixesStr,
+												pParsedList,TRUE);
+                // which sourcephrase instance(s) we transfer to pOwnedList depends on the
+                // value of bParseCountUnchanged. If the latter is TRUE, then
+                // ReconstituteOneAfterPunctuationChange will have updated the passed in
+                // sourcephrase pOwnedSrcPhrase and so we'll abandon the contents of
+                // pParsedList since the function would not have updated that list's one,
+                // but if the return value was FALSE, the ones in pParsedList will have to
+                // be copied to pOwnedList because they were the ones which the function
+                // updated
+				if (bParseCountUnchanged)
+				{
+					// retain the original
+					pOwnedList->Append(pOwnedSrcPhrase);
+
+					// delete the unwanted newly parsed sourcephrases in pParsedList
+					DeleteListContentsOnly(pParsedList);
+				}
+				else
+				{
+                    // number of instances changed from one, so we want what is in
+                    // pParsedList to replace the original - so we will not call
+                    // DeleteListContentsOnly() here, and we'll not bother to delete the
+                    // original in the m_pSavedWords list on the original merged
+                    // sourcephrase instance because we will abandon that list's contents
+                    // and replace the contents by the list pOwnedList (provided the number
+                    // of saved instances in it is 10 or less) - but if more than 10 then
+                    // we'll abandon the whole merger and instead put the contents of
+                    // pOwnedList back into m_pSourcePhrases and get a reference to the
+                    // fail location added to fixesStr. (NOTE. In this algorithm, a change
+                    // in the number of the parsed CSourcePhrase instances when rebuilding
+                    // one of the owned ones in the m_pSavedWords list is potentially being
+                    // treated as a non- failure of the rebuild, provided we end up with
+                    // less than 10 when the loop has finished. We will try to 'get away'
+                    // with this on the grounds that the rebuilding of the merged phrase
+                    // can be still be done reliably - its only the number of owned
+                    // instances which has changed, and one or more of those will have had
+                    // any adaptation & gloss abandoned - but such ones are rather unlikely
+                    // to have either an adaptation or gloss anyway, in which case nothing
+                    // much is lost; and provided the user does not subsequently unmerge
+                    // this rebuilt merger, those owned originals will never be seen again
+                    // because they will remain hidden in its m_pSavedWords list.)
+					SPList::Node* ppos = pParsedList->GetFirst();
+					while (ppos != NULL)
+					{
+						CSourcePhrase* pSP = (CSourcePhrase*)ppos->GetData();
+						ppos = ppos->GetNext();
+						pOwnedList->Append(pSP);
+					}
+				}
+			} // end of loop for retokenizing the source text of each of the 
+			  // owned sourcephrases of pSrcPhrase
+
+            // pParsedList is no longer needed and any time its contents were retained the
+            // sourcephrase pointers were transferred to pOwnedList and so are managed by
+            // pOwnedList, and the blocks in the loop above will have already deleted any
+            // sourcephrase instances not to be retained, so finish cleaning up
+				pParsedList->Clear();
+				delete pParsedList;
+
+            // Find out if we have 10 or less; if 10 or less then we can successfully
+            // rebuild the merger, if not, we are forced to abandon the merge and will have
+            // to put the owned (new) instances back into m_pSourcePhrases and tell the
+            // user where this happened
+			int nNewCount = pOwnedList->GetCount();
+			if (nNewCount > MAX_WORDS)
+			{
+                // No deal on the rebuild possibility with the rebuild owned instances, so
+                // abandon the merge. First, add a reference to the bad location to
+                // fixesStr (but only if it is (U)SFM structured data - since unstructured
+                // data lacks chapter and verse markers)
+				pView->UpdateSequNumbers(0); // make sure they are in sequence, 
+											 // so next call won't fail
+				if (!gbIsUnstructuredData)
+				{
+					fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
+					fixesStr += _T("   ");
+				}
+
+				// do the active sequence number updating
+				if (nThisSequNum < nActiveSequNum)
+					nActiveSequNum += nNewCount - 1; // 1 instance is being replaced by 
+													 // nNewCount instances
+
+                // insert the newly built list of CSourcePhrase instances into
+                // m_pSourcePhrases preceding the pos position
+				SPList::Node* newPOS = pOwnedList->GetFirst();
+				CSourcePhrase* pSrcPhr = NULL;
+				while (newPOS != NULL)
+				{
+					pSrcPhr = (CSourcePhrase*)newPOS->GetData();
+					newPOS = newPOS->GetNext();
+					pList->Insert(pos,pSrcPhr);
+				}
+
+				// delete the original merged instance and tidy up
+				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // don't bother to delete 
+														 // its partner pile
+				pList->DeleteNode(pos);
+
+				// tell caller there was a failure on this rebuild attempt
+				bSucceeded = FALSE;
+			}
+			else // there were MAX_WORDS ie. 10 or less new CSourcePhrases 
+				 // parsed from the m_pSavedWords list
+			{
+                // we are gunna get away with a rebuild, so get on with it -- we need to
+                // use the Merge() function in the CSourcePhrase class, and pass it the new
+                // CSourcePhrase instances in pOwnedList - the iterative calls to Merge
+                // build the m_pSavedWords list (where the merging is done by all but the
+                // first of pOwnedList being merged to the first in that list so that
+                // m_pSavedWords is the list in that first instance in the pOwnedList list
+				SPList::Node* pos2 = pOwnedList->GetFirst();
+				wxASSERT(pos2);
+				// we merge the second and all succeeding to the first one
+				CSourcePhrase* pMergedSrcPhr = (CSourcePhrase*)pos2->GetData();
+				pos2 = pos2->GetNext();
+				while (pos2 != NULL)
+				{
+					CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
+					pos2 = pos2->GetNext();
+					if (pSP->m_bNotInKB)
+						pSP->m_bNotInKB = FALSE;
+					pMergedSrcPhr->Merge(pView,pSP);
+				}
+
+                // do the active sequence number updating; since we will get away with a
+                // merge here, we must subtract nOriginalCount from the nNewCount value to
+                // find out how many extras, if any, are involved
+				if (nThisSequNum < nActiveSequNum)
+					nActiveSequNum += nNewCount - nOriginalCount;
+
+                // we now have this situation: the original merged sourcephrase
+                // (pSrcPhrase) is due to be abandoned (ie. deleted) but we have rebuilt
+                // the sourcephrases in its m_pSavedWords list, and earlier stored these
+                // rebuilt ones in pOwnedList; the rebuilt ones are actually the same
+                // objects as in the pSrcPhrase->m_pSavedWords list, except that if any one
+                // of the rebuilt ones produced two or more in the rebuilding, then these
+                // ones would not be identical to any in the pSrcPhrase->m_pSavedWords list
+                // (see what ReconstituteOneAfterPunctuationChange() does when it fails, to
+                // see why). To get rid of pSrcPhrase we have to therefore first delete any
+                // owned sourcephrase instances in the pSrcPhrase->m_pSavedWords list which
+                // are NOT also in the pOwnedList which (due to the merge) are now all in
+                // the pMergedSrcPhr->m_pSavedWords list - and recall that the first in the
+                // latter list is built by the copy constructor because pMergedSrcPhrase is
+                // actually the first instance that was in pOwnedList - to which all the
+                // others merged in the block above. We can't therefore just delete all the
+                // instances in the pSrcPhrase->m_pSavedWords list because we'd be deleting
+                // some which we must retain (ie. those which are pointed at by pointers in
+                // both lists).
+				pOwnedList->Clear(); // these are all managed elsewhere, either as 
+                                     // pMergedSrcPhr or in the latter's m_pSavedWords list
+				SPList::Node* posOld = pSrcPhrase->m_pSavedWords->GetFirst();
+				wxASSERT(posOld);
+				while (posOld != NULL)
+				{
+					CSourcePhrase* pSrcPhraseOld = (CSourcePhrase*)posOld->GetData();
+					posOld = posOld->GetNext();
+					SPList::Node* posNew = NULL;
+					if (pSrcPhraseOld == pMergedSrcPhr)
+					{
+						// retain this one, so do nothing
+						continue;
+					}
+					else // it's not the pMergedSrcPhr, so test for a match in the 
+						 // latter's m_pSavedWords list
+					{
+						posNew = pMergedSrcPhr->m_pSavedWords->Find(pSrcPhraseOld);
+						if (posNew == NULL)
+						{
+							// no matching CSourcePhrase instance was found, 
+							// so this old one can be deleted
+							DeleteSingleSrcPhrase(pSrcPhraseOld, FALSE); // don't 
+											// bother to delete its partner pile
+						}
+						else
+						{
+							// there was a match, so we need to retain this one
+							continue;
+						}
+					}
+				}
+                // remove the entries in the old m_pSavedWords list, but leave pointers
+                // alone - anything retained is now managed by the
+                // pMergedSrcPhr->m_pSavedWords list
+				pSrcPhrase->m_pSavedWords->Clear();
+
+				// copy across the passed-in pSrcPhrase's flag values to the new merged
+				// instance 
+				CopyFlags(pMergedSrcPhr,pSrcPhrase);
+
+                // copy the other stuff (m_chapterVerse & m_markers are accumulated by the
+                // Merge() call and the medial lists, if needed, set up; so we have fewer
+                // things to copy here)
+				pMergedSrcPhr->m_curTextType = pSrcPhrase->m_curTextType;
+				pMergedSrcPhr->m_inform = pSrcPhrase->m_inform;
+				pMergedSrcPhr->m_nSequNumber = pSrcPhrase->m_nSequNumber;// maybe 
+														// incorrect, but we don't care
+
+				bool bNotInKB = pSrcPhrase->m_bNotInKB; // preserve for store test below
+                // The m_bHas... booleans need to be made FALSE since this instance is not
+                // yet in the KB (we store it there below, if the original was stored
+                // there)
+				pMergedSrcPhr->m_bHasKBEntry = FALSE;
+				pMergedSrcPhr->m_bHasGlossingKBEntry = FALSE;
+				
+                // the rebuilt sourcephrase instances may not have filled-in m_targetStr
+                // and m_adaption members, so we have to copy pSrcPhrase's (merged) members
+                // to pMergedSrcPhr in order to retain the user's adaptation - and
+                // similarly for the m_gloss member (the m_key member should already be
+                // correct, since it was built by the Merge() calls within the loop, along
+                // with the m_srcPhrase member)
+				targetStr.Trim(TRUE); // trim right end
+				targetStr.Trim(FALSE); // trim left end
+				gloss.Trim(TRUE); // trim right end
+				gloss.Trim(FALSE); // trim left end
+
+				pMergedSrcPhr->m_targetStr = targetStr;
+				pMergedSrcPhr->m_gloss = gloss;
+				adaption = targetStr;
+				pView->RemovePunctuation(this,&adaption,from_target_text);
+				pMergedSrcPhr->m_adaption = adaption;
+
+				// now insert our rebuilt merged sourcephrase preceding the old one
+				pList->Insert(pos,pMergedSrcPhr);
+
+				// and delete the old one, and then remove its list entry
+				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't bother to delete 
+														  // its partner pile
+				pList->DeleteNode(pos);
+
+				// store its gloss and adaptation entries in the appropriate KBs, 
+				// provided it is appropriate
+				if (!bNotInKB)
+					pView->StoreKBEntryForRebuild(pMergedSrcPhr,
+							pMergedSrcPhr->m_adaption,pMergedSrcPhr->m_gloss);
+			}
+
+            // remove pOwnedList and remove its pointers, but don't delete the objects
+            // since they belong to m_pSavedWords in the rebuilt merged sourcephrase; or
+            // they have been inserted into the document's m_pSourcePhrases list - either
+            // way, they must be retained
+			pOwnedList->Clear();
+			delete pOwnedList;
+		}
+		else // count of new instances after reparse differs from count of 
+			 // legacy instances
+		{
+            // we got more (or maybe less) CSourcePhrases in the reparse, so we'll have to
+            // abandon this merger; we'll handle this case by plagiarizing the code from
+            // earlier in this function, and just omit some tests. We will have to call
+            // ReconstituteOneAfterPunctuationChange() on all the owned ones in
+            // m_pSavedWords, and then insert these rebuilt instances into the
+            // m_pSourcePhrases list, delete the passed in pSrcPhrase, then abandon the old
+            // adaptation, and make sure the user is informed about where this failure to
+            // rebuild took place. (Comments removed in the code in the following block,
+            // since it is copied from above.)
+			SPList* pOwnedList = new SPList;
+			SPList::Node* posOwned = pSrcPhrase->m_pSavedWords->GetFirst();
+			wxASSERT( posOwned != NULL);
+			SPList* pParsedList = new SPList; // for returning the results of parsing 
+											  // each owned instance
+			while (posOwned != NULL)
+			{
+				SPList::Node* savePos = posOwned;
+				CSourcePhrase* pOwnedSrcPhrase = (CSourcePhrase*)posOwned->GetData();
+				posOwned = posOwned->GetNext();
+				pParsedList->Clear(); 
+				bool bParseCountUnchanged = ReconstituteOneAfterPunctuationChange(
+												pView,pSrcPhrase->m_pSavedWords,
+												savePos,pOwnedSrcPhrase,fixesStr,
+												pParsedList,TRUE);
+				if (bParseCountUnchanged)
+				{
+					pOwnedList->Append(pOwnedSrcPhrase);
+					DeleteListContentsOnly(pParsedList);
+				}
+				else
+				{
+                    // wxList's Append method can't append another list to this list, so
+                    // we'll just add the items in pParsedList to pOwnedList one-by-one.
+					SPList::Node* ppos = pParsedList->GetFirst();
+					while (ppos != NULL)
+					{
+						CSourcePhrase* pSP = (CSourcePhrase*)ppos->GetData();
+						ppos = ppos->GetNext();
+						pOwnedList->Append(pSP);
+					}
+				}
+			}
+			pParsedList->Clear();
+			delete pParsedList;
+			pView->UpdateSequNumbers(0); // make sure they are in sequence, 
+										 // so next call won't fail
+			int nTheCount = pOwnedList->GetCount();
+			if (nThisSequNum < nActiveSequNum)
+				nActiveSequNum += nTheCount - 1; // 1 instance is being 
+												 // replaced by nTheCount instances
+			if (!gbIsUnstructuredData)
+			{
+				fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
+				fixesStr += _T("   ");
+			}
+			SPList::Node* newPOS = pOwnedList->GetFirst();
+			CSourcePhrase* pSrcPhr = NULL;
+			while (newPOS != NULL)
+			{
+				pSrcPhr = (CSourcePhrase*)newPOS->GetData();
+				newPOS = newPOS->GetNext();
+				pList->Insert(pos,pSrcPhr);
+			}
+			SmartDeleteSingleSrcPhrase(pSrcPhrase,pOwnedList);
+			pList->DeleteNode(pos);
+			pOwnedList->Clear();
+			delete pOwnedList;
+			bSucceeded = FALSE;
+		}
+	} // end of block for when dealing with a merged sourcephrase
+	else // the test of pSrcPhrase->m_nSrcWords yielded 1 
+		 // (ie. an unmerged sourcephrase)
+	{
+        // we are dealing with a plain vanila single-word non-owned sourcephrase in either
+        // adaptation or glossing mode
+		bool bWasOK = ReconstituteOneAfterPunctuationChange(
+						pView,pList,pos,pSrcPhrase,fixesStr,pResultList,FALSE);
+		if (!bWasOK)
+		{
+            // we got more than one in the reparse, so work out how many extras there are
+            // and update nActiveSequNum accordingly
+			int count = pResultList->GetCount();
+			wxASSERT (count > 1);
+			if (nThisSequNum < nActiveSequNum)
+				nActiveSequNum += count - 1; // 1 instance is being replaced 
+											 // by count instances
+
+            // add a reference to where things went wrong for the Rebuild Log.txt file and
+            // the message box
+			pView->UpdateSequNumbers(0);
+			if (!gbIsUnstructuredData)
+			{
+                // sequence numbers may not be uptodate, so do so first over whole list so
+                // that the attempt to find the chapter:verse reference string will not
+                // fail
+				fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
+				fixesStr += _T("   ");
+			}
+
+            // we are now ready to replace the original pSrcPhrase in m_pSourcePhrases with
+            // what was parsed within the above function - since we unexpectedly got more
+            // sourcephrase instances than one in the parse (we don't add to the KB for
+            // such as these, because we treat them as yet to be adapted/glossed)
+			SPList::Node* pos2 = pResultList->GetFirst();
+			while (pos2 != NULL)
+			{
+				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
+				pos2 = pos2->GetNext();
+				SPList::Node* pos3;
+				pos3 = pList->Insert(pos,pSP); // insert before the original Node*
+			}
+			DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // delete old one, 
+									// don't bother to delete partner pile
+			pList->DeleteNode(pos);
+
+            // the sourcephrases stored in pResultList are now managed by m_pSourcePhrases
+            // list, and so we must not delete them - hence just remove the pointers from
+            // pResultList and return here rather than exiting the block
+			pResultList->Clear();
+			delete pResultList;
+			bSucceeded = FALSE; // ensure caller knows we got a bad rebuild
+			gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member so 
+													  // all keeps in sync
+			return bSucceeded;
+		}
+	}
+
+	// delete the local list and its managed memory chunks - don't leak memory
+	SPList::Node* apos = pResultList->GetFirst();
+	CSourcePhrase* pASrcPhrase = NULL;
+	while (apos != NULL)
+	{
+		pASrcPhrase = (CSourcePhrase*)apos->GetData();
+		apos = apos->GetNext();
+
+        // If pASrcPhrase is in a retranslation, ReconstituteOneAfterPunctuationChange()
+        // will have already inserted any sublist of newly built sourcephrases resulting
+        // from a 'fail' to reconstitute a passed in single instance as the same one
+        // rebuilt resulting in two or more - the insertion having taken place in pList
+        // (ie. m_pSourcePhrases); whereas if the single was rebuilt without failure, then
+        // the rebuilt one is to be thrown away entirely. Hence, in the former case, if we
+        // unilaterally here delete the rebuilt ones, those resulting from a failure and so
+        // are already in pList would then be unilaterally deleted, and the result is
+        // hanging pointers and a corrupted m_pSourcePhrases list. So for failures, we have
+        // to do a conditional delete - that is, only delete an instance if it is NOT in
+        // pList. (ConditionallyDeleteSrcPhrase() has a sufficient test that would allow us
+        // to use the one call to replace all the next four lines, but pList is typically
+        // long, and it is therefore quicker to confine the call of this function to only
+        // those sourcephrase instances which could be affected - that is, retranslation
+        // ones
+		if (pASrcPhrase->m_bRetranslation)
+			ConditionallyDeleteSrcPhrase(pASrcPhrase,pList);
+		else
+			DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+                        // "don't delete its partner pile" as we'll let RecalcLayout()
+                        // delete them all quickly en masse later
+	}
+	pResultList->Clear();
+	delete pResultList;
+	gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member 
+											  // so all keeps in sync
+	return bSucceeded;
+}
+*/
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param		bKBFilename				-> if TRUE the KB's filename is to be updated

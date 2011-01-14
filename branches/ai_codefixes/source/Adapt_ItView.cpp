@@ -13191,9 +13191,19 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 }
 
 
-// Tokenize the string str storing the CSourcePhrase instances (only m_strSource &
-// m_nSequNumber are set) in pNewList. nInitialSequNum is what will be used for the
-// sequence number of the first element tokenized
+// Tokenize the source text string, str, storing the CSourcePhrase instances in pNewList.
+// nInitialSequNum is what will be used for the sequence number of the first element
+// tokenized. The tokenizing creates on CSourcePhrase instance per word in str, where
+// "word" is a sequence of non-punctuation characters (the parser will skip word-internal
+// punctuation, if present, as it works from both ends inwards); and the parser will deal
+// with fixed-space (~) marker, SFM or USFM markup, distinquishing between inline binding
+// (ie. next to the word, inside of any punctuation) markers, non-binding inline markers,
+// and non-inline markers; and strip off and store punctuation at either or both ends of
+// the word - it also supports USFM markup where punctuation can both precede and follow an
+// endmarker such as \f* (footnote) \fe* (endnote) or \x* (cross reference). The grunt work
+// is done by the ParseWord() function which is called within the internal TokenizeText()
+// call. Punctuation settins for the source text are used by default. A count of how many
+// CSourcePhrase instances were created is returned.
 // BEW 23Mar10, updated for support of doc version 5 (no changes needed, except in internally
 // called function)
 // BEW 9July10, no changes needed for support of kbVersion 2
@@ -13210,11 +13220,14 @@ int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str, int nInit
 }
 
 // TokenizeTargetTextString() overloads TokenizeTextString, to do the parsing with str
-// containing target text, and the TokenizeText() internal call will use the
-// m_punctuation[1] (target text punctuation characters delimited by space between each)
-// to calculate the spaceless punctuation string to be used for tokenizing; if
-// pUseTargetTextPuncts is passed in as FALSE, or omitted, then source text punctuation
-// characters are used when parsing the contents of str
+// assumed to containing target text (it is up to the caller to ensure that is so), and the
+// TokenizeText() internal call will use the m_punctuation[1] (target text punctuation
+// characters delimited by space between each) to calculate the spaceless punctuation
+// string to be used for tokenizing. If pUseTargetTextPuncts is passed in as FALSE, or
+// omitted, then source text punctuation characters are used when parsing the contents of
+// str - often source and target punctuation sets are identical and which set is used wouldn't
+// then matter, but it can't be assumed that is so, and so the caller should specify TRUE
+// when str is target text, in order to guarantee correct results
 int CAdapt_ItView::TokenizeTargetTextString(SPList* pNewList, wxString& str, 
 											int nInitialSequNum, bool bUseTargetTextPuncts)
 {

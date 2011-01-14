@@ -17224,14 +17224,15 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 		CAdapt_ItDoc* pDoc = GetDocument();
 		CAdapt_ItView* pView = gpApp->GetView();
 
-        // if the source punctuation was empty and remains so, then don't retokenize unless
-        // target punctuation is non empty and has changed (test for the latter is at the
-        // else if below)
-		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && m_punctuation[0].IsEmpty()))
+        // if the source punctuation was empty and remains so, then don't retokenize or
+        // likewise for target punctuation
+		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && m_punctuation[0].IsEmpty()) ||
+			!(punctPgCommon->m_punctuationBeforeEdit[1].IsEmpty() && m_punctuation[1].IsEmpty()))
 		{
-			if (punctPgCommon->m_punctuationBeforeEdit[0] != m_punctuation[0])
+			if (punctPgCommon->m_punctuationBeforeEdit[0] != m_punctuation[0] || 
+				punctPgCommon->m_punctuationBeforeEdit[1] != m_punctuation[1])
 			{
-				// the source punctuation list has changed, so do the retokenization
+				// the source or target punctuation list has changed, so do the retokenization
 				int nOldCount = m_pSourcePhrases->GetCount();
 				int difference = 0;
 
@@ -17287,43 +17288,6 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 				}
 				m_pLayout->m_bPunctuationChanged = TRUE; // do full rebuild of the layout
 
-			}
-		}
-		else if (!(punctPgCommon->m_punctuationBeforeEdit[1].IsEmpty() && m_punctuation[1].IsEmpty()))
-		{
-			// use same logic as above, so omit the comments here
-			if (punctPgCommon->m_punctuationBeforeEdit[1] != m_punctuation[1])
-			{
-				// the target punctuation list has changed, so do the retokenization
-				int nOldCount = m_pSourcePhrases->GetCount();
-				int difference = 0;
-				pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase());// ignore returned BOOL
-				wxString strSavePhraseBox = m_targetPhrase;
-				int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation changing
-															FALSE,	// FALSE = no filter changes
-															FALSE);	// FALSE = no sfm set change
-				difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
-				CSourcePhrase* pSrcPhrase = NULL;
-				m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
-				pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
-				wxASSERT(pSrcPhrase);
-				if (gbIsGlossing)
-				{
-					if (m_pGlossingKB != NULL)
-					{
-						m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
-															useTargetPhraseForLookup);
-					}
-				}
-				else
-				{
-					if (m_pKB != NULL)
-					{
-						m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
-															useTargetPhraseForLookup);
-					}
-				}
-				m_pLayout->m_bPunctuationChanged = TRUE; // do full rebuild of the layout
 			}
 		}
 	}
