@@ -58,9 +58,15 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase
 class CKB : public wxObject  
 {
     DECLARE_DYNAMIC_CLASS(CKB)
-
+	
+	friend bool GetGlossingKBFlag(CKB* pKB);  // or the public accessor, IsThisAGlossingKB()
+											  // can be used instead of this friend function
 public:
 	CKB();
+	// CKB(const CKB& kb); copy constructor - doesn't work, because TUList can't be guaranteed to have
+	// been defined before it gets used. Compiles fine actually, but m_pTargetUnits list pointer is
+	// garbage when the app runs. As a work around, use a function approach, defining a Copy() function.
+	CKB(bool bGlossingKB); // BEW 12May10, use this constructor everywhere from 5.3.0 onwards
 	// CKB(const CKB& kb); copy constructor - doesn't work, because TUList can't be guaranteed to have
 	// been defined before it gets used. Compiles fine actually, but m_pTargetUnits list pointer is
 	// garbage when the app runs. As a work around, use a function approach, defining a Copy() function.
@@ -101,6 +107,18 @@ public:
 									   // where the key is a phrase with [index + 1] source words
 
 	virtual ~CKB();
+	
+	// accessors for private members
+	int				GetCurrentKBVersion();
+	void			SetCurrentKBVersion();
+
+private:
+	CAdapt_ItApp*	m_pApp;
+    // m_bGlossingKB will enable each CKB instantiation to know which kind of CKB class it
+    // is, an (adapting) KB or a GlossingKB
+	bool			m_bGlossingKB; // TRUE for a glossing KB, FALSE for an adapting KB
+    int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
+
 
 // Serialization
 public:

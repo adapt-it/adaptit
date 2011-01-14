@@ -1445,3 +1445,48 @@ bool CSourcePhrase::ChapterColonVerseStringIsNotEmpty()
 	return !this->m_chapterVerse.IsEmpty();
 }
 
+void CSourcePhrase::AddEndMarker(wxString endMarker)
+{
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		// for this marker set, the only endmarker is the footnote marker, officially \fe,
+		// but some branches (eg. PNG) used \F as an alternative. Since these have no
+		// final asterisk, we can't rely on an asterisk being present at the marker's end,
+		// and so we'll want to have a following space. But for USFM, which has all
+		// endmarkers with a final * character, we'll omit storing a delimiting space
+		// between consecutive endmarkers, because this gives the best possible results if
+		// additional textual apparatus (such as callouts like a, b, c superscripts, or
+		// numbers) are used in the USFM markup at the end of the section of text where
+		// the endMarkers are - such as at the end of a footnote
+		if (m_endMarkers.IsEmpty())
+		{
+			m_endMarkers = endMarker;
+		}
+		else
+		{
+			m_endMarkers += _T(" ") + endMarker;
+		}
+		// store a final space too, for this marker set
+		m_endMarkers.Trim();
+		m_endMarkers += _T(' ');
+	}
+	else
+	{
+		// its USFM set (or combined USFM and PNG, but we treat this as USFM)
+		m_endMarkers += endMarker;
+		// don't add a space after endmarkers in USFM, it's likely to mess with
+		// punctuation in unhelpful ways
+	}
+}
+
+void CSourcePhrase::AddFollOuterPuncts(wxString outers)
+{
+	if (m_follOuterPunct.IsEmpty())
+	{
+		m_follOuterPunct = outers;
+	}
+	else
+	{
+		m_follOuterPunct += outers;
+	}
+}

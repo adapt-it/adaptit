@@ -62,6 +62,7 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 
 CKB::CKB()
 {
+	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
 
 	// whm Note: I've changed the order of the following in order to create
@@ -74,6 +75,27 @@ CKB::CKB()
 		m_pMap[i] = new MapKeyStringToTgtUnit;
 		wxASSERT(m_pMap[i] != NULL);
 	}
+	//m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
+	//							   // FALSE for adapting KB
+	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
+}
+
+CKB::CKB(bool bGlossingKB)
+{
+	m_pApp = &wxGetApp();
+	m_nMaxWords = 1; // value for a minimal phrase
+
+	m_pTargetUnits = new TUList; // whm added back for 5.2.4
+	wxASSERT(m_pTargetUnits != NULL);
+
+	for (int i = 0; i< MAX_WORDS; i++)
+	{
+		m_pMap[i] = new MapKeyStringToTgtUnit;
+		wxASSERT(m_pMap[i] != NULL);
+	}
+	m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
+								   // FALSE for adapting KB
+	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
 }
 
 // copy constructor - it doesn't work, see header file for explanation
@@ -182,6 +204,10 @@ void CKB::Copy(const CKB& kb)
 		m_sourceLanguageName = pCopy->m_sourceLanguageName;
 		m_targetLanguageName = pCopy->m_targetLanguageName;
 	}
+	// whm 10Jan11 added following 3 from v6 for 5.2.4
+	m_bGlossingKB = pCopy->m_bGlossingKB; // BEW added 12May10
+	m_pApp = pCopy->m_pApp; // BEW added 12May10
+	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 
 	TUList* pTUList = pCopy->m_pTargetUnits;
 	wxASSERT(pTUList);
@@ -236,6 +262,17 @@ void CKB::Copy(const CKB& kb)
 		}
 	}
 }
+
+inline int CKB::GetCurrentKBVersion()
+{
+	return m_kbVersionCurrent;
+}
+
+inline void CKB::SetCurrentKBVersion()
+{
+	m_kbVersionCurrent = (int)KB_VERSION2; // KB_VERSION2 is defined in Adapt_ItConstants.h
+}
+
 
 /*
 // Implementations of LoadObject and SaveObject below take the place of this 

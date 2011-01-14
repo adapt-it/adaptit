@@ -527,7 +527,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 			// open the knowledge base and load its contents
 			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB;
+			pApp->m_pKB = new CKB(FALSE);
 			wxASSERT(pApp->m_pKB != NULL);
 			{ // this block defines the existence of the wait dialog for loading the regular KB
 			CWaitDlg waitDlg(gpApp->GetMainFrame());
@@ -544,7 +544,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 				// now do it for the glossing KB
 				wxASSERT(pApp->m_pGlossingKB == NULL);
-				pApp->m_pGlossingKB = new CKB;
+				pApp->m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(pApp->m_pGlossingKB != NULL);
 				
 				//{ // this block defines the existence of the wait dialog for loading the glossing KB

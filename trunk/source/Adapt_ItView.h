@@ -334,6 +334,7 @@ public:
 	void		RemoveFollowingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public
 	void		RemoveLaterSelForShortening(wxClientDC* pDC, CCell* pEndCell);
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
+	wxString	GetConvertedPunct(const wxString& rStr); // whm 10Jan11 moved here from protected
 	
 // helper functions (protected)
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing
@@ -389,7 +390,7 @@ protected:
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
-	wxString	GetConvertedPunct(const wxString& rStr);
+	//wxString	GetConvertedPunct(const wxString& rStr);
 	bool		GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum), 
 							int& WXUNUSED(nEndingFreeTransSequNum),int& nStartingBackTransSequNum, 

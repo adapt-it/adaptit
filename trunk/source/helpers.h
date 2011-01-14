@@ -125,4 +125,32 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox);
 
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum);
 
+// the following returns the members m_markers, m_endMarkers, m_freeTrans, m_Note,
+// m_collectedBackTrans, m_filteredInfo, "as is" - the filteredInfoStr will include the
+// wrapping filter bracket markers, and freeTransStr and the two following won't have any
+// markers at all. We just get what's in the members, and let the caller decide how to
+// process the returned strings
+void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
+								  wxString& markersStr, 
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr);
+// use the following to empty the caller's local wxString variables for storing these info
+// types 
+void EmptyMarkersAndFilteredStrings(
+								  wxString& markersStr, 
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr); 
+
+wxString GetLastMarker(wxString markers);
+bool IsWhiteSpace(const wxChar *pChar);
+int ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)
+bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
+bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
+
 #endif

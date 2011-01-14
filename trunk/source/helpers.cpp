@@ -38,11 +38,24 @@
 #include "BString.h"
 #include "SplitDialog.h"
 #include "SourcePhrase.h"
+#include "KB.h"
+#include "Adapt_ItDoc.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
+extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
+
 //  helper functions
+//*************************************
+// Friend functions for various classes
+//*************************************
+
+// friend function for CKB class, to access private m_bGlossingKB flag
+bool GetGlossingKBFlag(CKB* pKB)
+{
+	return pKB->m_bGlossingKB;
+}
 
 //////////////////////////////////////////////////////////////
 /// \return nothing
@@ -1781,4 +1794,205 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 	return newName;
 }
 
+void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
+								  wxString& markersStr,
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr)
+{
+	markersStr = pSrcPhrase->m_markers;
+	//endMarkersStr = pSrcPhrase->GetEndMarkers();
+	endMarkersStr = pSrcPhrase->m_endMarkers;
+	//freeTransStr = pSrcPhrase->GetFreeTrans();
+	freeTransStr = pSrcPhrase->m_freeTrans;
+	//noteStr = pSrcPhrase->GetNote();
+	noteStr = pSrcPhrase->m_note;
+	//collBackTransStr = pSrcPhrase->GetCollectedBackTrans();
+	collBackTransStr = pSrcPhrase->m_collectedBackTrans;
+	//filteredInfoStr = pSrcPhrase->GetFilteredInfo();
+	filteredInfoStr = pSrcPhrase->m_filteredInfo;
+}
 
+void EmptyMarkersAndFilteredStrings(
+								  wxString& markersStr,
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr)
+{
+	markersStr.Empty();
+	endMarkersStr.Empty();
+	freeTransStr.Empty();
+	noteStr.Empty();
+	collBackTransStr.Empty();
+	filteredInfoStr.Empty();
+}
+
+// return an empty string if there are no SF markers in markers string, else return the
+// last of however many are stored in markers (if space follows the marker, the space is
+// not returned with the marker); return the empty string if there is no marker present
+wxString GetLastMarker(wxString markers)
+{
+	wxString mkr = _T("");
+	wxString backslash = gSFescapechar;
+	if (markers.Find(backslash) == wxNOT_FOUND)
+		return mkr;
+	else
+	{
+		int offset = wxNOT_FOUND;
+		int lastOffset = offset;
+		markers.Trim(); // trim whitespace off of end of string
+		offset = markers.Find(backslash);
+		while (offset != wxNOT_FOUND)
+		{
+			lastOffset = offset;
+			offset = FindFromPos(markers, backslash, offset + 1);
+		}
+		mkr = markers.Mid(lastOffset);
+		mkr = gpApp->GetDocument()->GetWholeMarker(mkr);
+		return mkr;
+	}
+}
+
+
+// the next 3 functions are similar or identical to member functions of the document class
+// which are used in the parsing of text files to produce a document; one (ParseMarker())
+// is a modification of the one in the doc class; these are needed here for use in
+// CSourcePhrase - later we could replace IsWhatSpace() and ParseWhiteSpace() in the doc
+// class with these ( *** TODO *** ?)
+bool IsWhiteSpace(const wxChar *pChar)
+{
+	// returns true for tab 0x09, return 0x0D or space 0x20
+	if (wxIsspace(*pChar) == 0)// _istspace not recognized by g++ under Linux
+		return FALSE;
+	else
+		return TRUE;
+}
+
+// BEW 11Oct10, modified the algorithm because when parsing *f\ it returns incorrect 2
+// rather than correct 3; the solution I adopted is to look at what pChar points at on
+// input, if at a backslash, then the test can include *; if at * we assume the marker is
+// reversed and add 1 to what Bill's original code came up with; ] is also a halt location
+// BEW 8Dec10 -- kept getting failures because when a reversed string was passed in it
+// often didn't match with the original assumption that * would be at its start. So I've
+// tried to make it smarter, and if the situation is really indeterminate, return a value
+// of zero.
+int ParseMarker(const wxChar *pChar)
+{
+	// this algorithm differs from the one in CAdapt_ItDoc class by not having the code to
+	// break immediately after an asterisk; we don't want the latter because this function
+	// will be used to parse over a reversed string, and a reversed endmarker will have an
+	// initial asterisk and we don't want to halt the loop there
+	
+	// BEW 8Dec10, it just isn't safe to assume that if the unreversed input didn't
+	// have a * at the end of the string buffer, then it must be an unreversed string
+	// that was input and that backslash starts it. If the SFM set is PngOnly, there
+	// could be a final \fe or \F with a space following, and reversing that would
+	// mean that space starts the string. Or there could be embedded binding markers and
+	// finding an endmarker may find one of those and it won't be at the string end
+	// necessarily, etc etc. I'm very uncomfortable with this function, and eventually I
+	// think we need to remove it and use different code to do what we need in the 4
+	// places it currently is called (once in helpers.cpp and 3 times in xml.cpp). For
+	// now, I'll try make it safer - we may just manage to get away with it
+	int len = 0;
+	wxChar* ptr = (wxChar*)pChar;
+	wxChar* pBegin = ptr;
+	if (*ptr == _T('*'))
+	{
+		// assume it is a reversed endmarker
+		while (!IsWhiteSpace(ptr) && *ptr != _T('\0'))
+		{
+			if (ptr != pBegin && *ptr == gSFescapechar)
+			{
+				if (*ptr == gSFescapechar)
+				{
+					// we must count the backslash too
+					len++;
+				}
+				break;
+			}
+			ptr++;
+			len++;
+		}
+	}
+	else
+	{
+		// let's hope the caller really gets it right its an SF marker here, because we
+		// don't return 0 if it isn't - I'll add an assert to maybe catch the problem
+		// during development
+		//wxASSERT(*pChar == gSFescapechar);
+		// Our first check needs to be for an initial backslash, it that succeeds, we've
+		// an unreversed string passed in and we can just parse the marker that starts it.
+		// If we don't have an initial marker, we've got a mess we have to do something
+		// with. We won't really know - this uncertainty in knowing whether it was
+		// reversed or not calls for a change - perhaps pass in a boolean which tells us
+		// whether or not the input string was reversed.
+		if (*pChar == gSFescapechar)
+		{
+			ptr++; // get past the initial backslash
+			len++;
+			while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0') && *ptr != _T(']'))
+			{
+				if (*ptr == _T('*'))
+				{
+					// we must count the asterisk too
+					len++;
+					break;
+				}
+				ptr++;
+				len++;
+			}
+		}
+		else // neither expectation has been met
+		{
+			// Connundrum. What do we assume here? We'll assume a reversed string, as that
+			// is more likely to have got us here. I'll check for an initial space, and if
+			// so, assume its a PngOnly SFM endmarker, and just parse to the backslash (it
+			// must be either "<space>F\...." or "<space>ef\...." we are dealing with -
+			// anything else isn't kosher for the PngOnly set of markers.
+			if (gpApp->gCurrentSfmSet == PngOnly && *pBegin == _T(' '))
+			{
+				if (*(pBegin + 1) == _T('F') && *(pBegin + 2) == gSFescapechar)
+					return 3; // include the delimiting space in the marker string
+				if (*(pBegin + 1) == _T('e') && *(pBegin + 2) == _T('f') && *(pBegin + 3) == gSFescapechar) 
+					return 4;
+			}
+			// if not a reversed "\fe " or reversed "\F ", what else might we be dealing
+			// with? Dunno. We'll just assume there's no actual endmarker, and return a
+			// length of 0 and let the caller deal with it
+			return 0;
+		}
+	}
+	return len;
+}
+
+// BEW 11Oct10, for support of doc version 5
+bool IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase)
+{
+	wxString theSymbol = _T("~"); // USFM fixedspace symbol
+	if (pSrcPhrase == NULL)
+	{
+		return FALSE; // there isn't an instance
+	}
+	else
+	{
+		if (pSrcPhrase->m_key.Find(theSymbol) != wxNOT_FOUND)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+bool IsFixedSpaceSymbolWithin(wxString& str)
+{
+	wxString theSymbol = _T("~"); // USFM fixedspace symbol
+	if (str.IsEmpty())
+		return FALSE;
+	if (str.Find(theSymbol) != wxNOT_FOUND)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}

@@ -174,6 +174,18 @@ class ReadOnlyProtection;
 // might conflict with other defined symbols in the code. Therefore I've prefixed the
 // symbols with xml_ in the wx version.
 
+/// the standard entities
+const char xml_amp[] = "&amp;";
+/// the standard entities
+const char xml_quote[] = "&quot;";
+/// the standard entities
+const char xml_apos[] = "&apos;";
+/// the standard entities
+const char xml_lt[] = "&lt;";
+/// the standard entities
+const char xml_gt[] = "&gt;";
+
+
 /// For Adapt It document output as XML, and parsing of XML elements.
 const char xml_adaptitdoc[] = "AdaptItDoc";
 /// For Adapt It document output as XML, and parsing of XML elements.
@@ -207,6 +219,22 @@ const char xml_srcname[] = "srcname";
 const char xml_tgtname[] = "tgtname";
 /// Attribute name used in Adapt It XML documents
 const char xml_others[] = "others";
+
+// next ones added by BEW 1Jun10 for kbv2 support
+/// Attribute name used in Adapt It XML documents
+const char xml_kbversion[] = "kbVersion";
+/// Attribute name used in Adapt It XML documents
+const char xml_glossingKB[] = "glossingKB";
+/// Attribute name used in Adapt It XML documents
+const char xml_creationDT[] = "cDT";
+/// Attribute name used in Adapt It XML documents
+const char xml_modifiedDT[] = "mDT";
+/// Attribute name used in Adapt It XML documents
+const char xml_deletedDT[] = "dDT";
+/// Attribute name used in Adapt It XML documents
+const char xml_whocreated[] = "wC";
+/// Attribute name used in Adapt It XML documents
+const char xml_deletedflag[] = "df";
 
 // next ones are for the sourcephrases themselves
 
@@ -242,6 +270,28 @@ const char xml_m[] = "m"; // m_markers
 const char xml_mp[] = "mp"; // some medial punctuation
 /// Attribute name used in Adapt It XML documents
 const char xml_mm[] = "mm"; // one or more medial markers (no filtered stuff)
+
+// new ones, Feb 2010 and 11Oct10, for doc version = 5
+/// Attribute name used in Adapt It XML documents
+const char xml_em[] = "em"; // m_endMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_ft[] = "ft"; // m_freeTrans
+/// Attribute name used in Adapt It XML documents
+const char xml_no[] = "no"; // m_note
+/// Attribute name used in Adapt It XML documents
+const char xml_bt[] = "bt"; // m_collectedBackTrans
+/// Attribute name used in Adapt It XML documents
+const char xml_fi[] = "fi"; // m_filteredInfo
+/// Attribute name used in Adapt It XML documents
+const char xml_fop[] = "fop"; // m_follOuterPunct
+/// Attribute name used in Adapt It XML documents
+const char xml_iBM[] = "iBM"; // m_inlineBindingMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_iBEM[] = "iBEM"; // m_inlineBindingEndMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_iNM[] = "iNM"; // m_inlineNonbindingMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_iNEM[] = "iNEM"; // m_inlineNonbindingEndMarkers
 
 // tag & attribute names for KB i/o
 
@@ -2240,6 +2290,16 @@ public:
                 // changes the current working set of filter markers to something else by
                 // means of Edit Preferences Filter tab or by means of the Start Working...
                 // wizard Filter page.
+
+	// whm added the following 5 strings from v6 for use in 5.2.4
+	wxString m_inlineNonbindingMarkers; // BEW 11Oct10, the begin and end markers which are
+				// inline, but which do not bind more closely than punctuation
+				// (these are \wj \qt \sls \tl \fig; and their endmarkers are a separate
+				// wxString member -- see next line)
+	wxString m_inlineNonbindingEndMarkers;
+	wxString m_inlineBindingMarkers; // beginmarkers, needed for docV4 to docV5 conversions
+	wxString m_usfmIndicatorMarkers; // some common beginmarkers found only in USFM
+	wxString m_pngIndicatorMarkers; // some common beginmarkers found only in PNG SFM 1998 set
 
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is 
 				// being viewed in the ViewFilteredMaterial dialog
