@@ -175,6 +175,19 @@ public:
 								// marker \note and endmarker \note*)
 	bool			m_bHasBookmark; // TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
 
+	// whm 10Jan11 added the following 10 as public members from version 6 for use by version 5.2.4
+	wxString		m_endMarkers;
+	wxString		m_freeTrans;
+	wxString		m_note;
+	wxString		m_collectedBackTrans;
+	wxString		m_filteredInfo;
+	wxString		m_inlineBindingMarkers;
+	wxString		m_inlineBindingEndMarkers;
+	wxString		m_inlineNonbindingMarkers;
+	wxString		m_inlineNonbindingEndMarkers;
+	wxString		m_follOuterPunct; // store any punctuation after endmarker (inline
+									  // non-binding, or \f* or \x*) here; but puncts
+									  // after inline binding mkr go in m_follPunct
 // Serialization
 	//virtual void	Serialize(CArchive& ar); // MFC used this
 	// MFC's Serialize() function is handled in the wxWidgets version with SaveObject() 
@@ -207,6 +220,8 @@ public:
 	// BEW added 04Nov05
 	bool ChapterColonVerseStringIsNotEmpty();
 
+	void AddEndMarker(wxString endMarker);
+	void AddFollOuterPuncts(wxString outers);
 
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)

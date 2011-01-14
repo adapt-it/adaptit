@@ -1621,7 +1621,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			// there is an existing .KB file, so we need to create a CKB instance in
 			// memory, open the .KB file on disk, and fill the memory instance's members
 			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB;
+			pApp->m_pKB = new CKB(FALSE);
 			wxASSERT(pApp->m_pKB != NULL);
 			bool bOK = pApp->LoadKB();
 			if (bOK)
@@ -1630,7 +1630,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
 				// now do it for the glossing KB
 				wxASSERT(pApp->m_pGlossingKB == NULL);
-				pApp->m_pGlossingKB = new CKB;
+				pApp->m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(pApp->m_pGlossingKB != NULL);
 				bOK = pApp->LoadGlossingKB();
 				if (bOK)
@@ -1663,7 +1663,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
             // instance on the application ready to receive data, and save it to disk. for
             // version 2, do the same for the glossing KB
 			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB;
+			pApp->m_pKB = new CKB(FALSE);
 			wxASSERT(pApp->m_pKB != NULL);
 
 			// store the language names in it

@@ -115,6 +115,7 @@ protected:
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename, bool bSaveAsXML);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
+	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
 #ifndef __WXMSW__
@@ -131,6 +132,7 @@ protected:
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,
 							wxString newFilterMarkers, wxString& secondPassFilterStr, enum WhichPass pass);
 	void			SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
+	void			ValidateFilenameAndPath(wxString& curFilename, wxString& curPath, wxString& pathForSaveFolder);
 	void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
 
 public:
@@ -152,6 +154,7 @@ public:
 										   // defined in CLayout for that)
 	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
 	bool			DoFileSave(bool bShowWaitDlg);
+	bool			DoLegacyFileSave(bool bShowWaitDlg,wxString pathName); // whm added 11Jan11 modified v6 DoFileSave() used in 5.2.4
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoTransformedDocFileSave(wxString path);
@@ -165,6 +168,8 @@ public:
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
+	int				GetLoadedDocVersion(); // whm 12Jan11 added
+	void			SetLoadedDocVersion(int nDocVer); // whm 12Jan11 added
 	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
 					wxString* fileTitle);
 	CPile*			GetPile(const int nSequNum);
@@ -194,6 +199,7 @@ public:
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
+	bool			IsMarker(wxChar* pChar); // whm added 10Jan11 from v6 code
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
@@ -225,6 +231,7 @@ public:
 	int				RetokenizeText(	bool bChangedPunctuation,
 									bool bChangedFiltering, bool bChangedSfmSet);
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
+	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
 	wxString		SetupBufferForOutput(wxString* pCString);
 	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,int nTextLength);
 	void			UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,bool bKBBackupPath,
@@ -262,6 +269,10 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
+    int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
+	int		m_nLoadedDocV5;
+	bool	m_bLegacyDocVersionForSaveAs;
+	bool	m_bDocRenameRequestedForSaveAs;
 
 	DECLARE_EVENT_TABLE()
 };
