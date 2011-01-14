@@ -2945,7 +2945,8 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	SPList* pSrcPhraseSublist = pMergedSrcPhrase->m_pSavedWords;
 	SPList::Node* pos = pSrcPhraseSublist->GetFirst();
 	wxASSERT(pos != 0);
-	SPList::Node* posLast = pSrcPhraseSublist->GetLast();
+	SPList::Node* posLast;
+	posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
 	bool bHasInternalMarkers = pMergedSrcPhrase->m_bHasInternalMarkers;
 	bool bFirst = TRUE;

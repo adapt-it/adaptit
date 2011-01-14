@@ -41,7 +41,8 @@
 int iCorrespondenceBack( wxChar* psz1, wxChar* psz2, int& iStart, int& iEnd1, int& iEnd2 ) // Return length of correspondence from start
 	{
 	// Find a difference, and return start and end of difference
-	int iDiff = 0;
+	int iDiff;
+	iDiff = 0;
 	iStart = 0;
 	iEnd1 = 0;
 	iEnd2 = 0;
@@ -304,7 +305,8 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 			wxChar* pszSuffSrc = pcorSuff->pszSrc;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
 			int iLenSrc = wxStrlen( pszSuffSrc );
-			int iLenTar = wxStrlen( pszSuffTar );
+			int iLenTar;
+			iLenTar = wxStrlen( pszSuffTar );
 			for ( pcor = corlst.pcorFirst; pcor; pcor = pcor->pcorNext ) // Look at each knowledge base pair to see if it is an exception
 				{
 				wxChar* pszEndSrc = pcor->pszSrc; // Get end of source of kb pair
@@ -346,7 +348,8 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 			if ( wxStrlen( pszSrc ) >= ( MAX_GUESS_LENGTH - 10 ) ) // If not enough room for possible guess, don't try
 				return false;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
-			int iLenTar = wxStrlen( pszSuffTar );
+			int iLenTar;
+			iLenTar = wxStrlen( pszSuffTar );
 			wxStrcpy( *ppszTar, pszSrc ); // Copy source to target
 			wxChar* pszStartReplace = *ppszTar + wxStrlen( pszSrc ) - iLenSrc;
 			wxStrcpy( pszStartReplace, pszSuffTar ); // Overwrite end of source with target

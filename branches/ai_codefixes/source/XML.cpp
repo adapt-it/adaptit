@@ -7403,7 +7403,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			wxString adaptation1;	adaptation1.Empty();
 			wxString adaptation2;	adaptation2.Empty();
 			offset4 = pSrcPhrase->m_adaption.Find(FixedSpace);
-			if (offset4 == wxNOT_FOUND)
+			if ((int)offset4 == wxNOT_FOUND)
 			{
 				// we have only the first word present
 				adaptation1 = pSrcPhrase->m_adaption;
