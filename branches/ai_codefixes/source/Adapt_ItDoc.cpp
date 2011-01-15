@@ -15859,26 +15859,34 @@ void CAdapt_ItDoc::CopyFlags(CSourcePhrase* dest, CSourcePhrase* src)
 	dest->m_bHasGlossingKBEntry = src->m_bHasGlossingKBEntry;
 }
 
-wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation)
+wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation, 
+														  int startingSequNum)
 {
 	wxString str = targetStrWithPunctuation;
+	wxString adaption; adaption.Empty();
 	SPList* pTempList = new SPList;
-	CSourcePhrase* pSPh = NULL;
+	CSourcePhrase* pSPhr = NULL;
+	// TRUE in next call is bool bUseTargetTextPuncts
+	int elementCount = gpApp->GetView()->TokenizeTargetTextString(pTempList, str, 
+															startingSequNum, TRUE);
 
-//int CAdapt_ItView::TokenizeTargetTextString(SPList* pNewList, wxString& str, 
-//											int nInitialSequNum, bool bUseTargetTextPuncts);
+
+
+
+
+
 
 
 	SPList::Node* pos = pTempList->GetFirst();
 	while (pos != NULL)
 	{
-		pSPh = pos->GetData();
-		DeleteSingleSrcPhrase(pSPh,FALSE); // there is no partner pile
+		pSPhr = pos->GetData();
+		DeleteSingleSrcPhrase(pSPhr,FALSE); // there is no partner pile
 		pos = pos->GetNext();
 	}
 	pTempList->Clear();
 	delete pTempList;
-	return str;
+	return adaption;
 }
 
 

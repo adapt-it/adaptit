@@ -249,7 +249,7 @@ public:
 	// BEW created 13Jan11, pass in the CSourcePhrase instance's m_targetStr value (it may
 	// have punctuation, and possibly also be a fixed-space (~) conjoined pair; internally
 	// parse it & extract and return the equivalent puncuation-less string
-	wxString		MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation);
+	wxString		MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation, int startingSequNum);
 	bool			MarkerExistsInArrayString(wxArrayString* pUnkMarkers, wxString unkMkr, int& MkrIndex);
 	bool			MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, int& markerPos);
 	wxString		MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd);
