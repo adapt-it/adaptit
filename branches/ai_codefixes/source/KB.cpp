@@ -3357,75 +3357,89 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 		aStr += numStr;
 		aStr += "\" a=\""; // adaptation (or gloss for GlossingKB)
 		aStr += bstr;
-		aStr += "\" df=\"";  // m_bDeleted flag
-		if (pRefStr->m_bDeleted)
-		{
-			aStr += "1";
-		}
-		else
-		{
-			aStr += "0";
-		}
 
-		// BEW 31May10, added code for kbv2's new attributes taken from the
-		// CRefStringMetadata class instance attached to this pRefStr
-		aStr += "\"\r\n"; // end the line
-		aStr += rsTabs; // start a new line at the same indentation
-		CBString attrStr = pRefStr->m_pRefStringMetadata->m_creationDateTime;
-		// no entities are in the dateTime strings, so don't call InsertEntities()
-		aStr += "cDT=\"";
-		aStr += attrStr; // the m_creationDateTime value
-
-		aStr += "\" wC=\"";
-		attrStr = pRefStr->m_pRefStringMetadata->m_whoCreated;
-		aStr += attrStr; // the m_whoCreated value
-
-		// how we finish off the line depends on whether more is present or not
-		if (pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty() 
-			&& pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+		// whm 14Jan11 modified the following to create 5.2.4 or 6.0.0+ KB xml format
+		// depending on whether we are doing a Save As Legacy XML verion 3, 4, or 5
+		// format.
+		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+		if (pDoc != NULL && pDoc->IsLegacyDocVersionForFileSaveAs())
 		{
-			// there is no more to be constructed, so finish off the RS element
+			// Its the older Legacy format; close off the RS element
 			aStr += "\"/>\r\n";
 		}
 		else
 		{
-			// another line is needed for one or both of the other dateTime members
-			aStr += "\"\r\n"; // end the line
-			aStr += rsTabs; // start a new line at the same indentation
-			attrStr = pRefStr->m_pRefStringMetadata->m_modifiedDateTime;
-			if (!attrStr.IsEmpty())
+			// Its the newer format; add the metadata stuff
+			aStr += "\" df=\"";  // m_bDeleted flag
+			if (pRefStr->m_bDeleted)
 			{
-				aStr += "mDT=\"";
-				aStr += attrStr; // the m_modifiedDateTime value
-
-				// we may have m_deletedDateTime non-empty too, so check it out and build
-				// it here if needed - then close off RS element
-				attrStr = pRefStr->m_pRefStringMetadata->m_deletedDateTime;
-				if (!attrStr.IsEmpty())
-				{
-					// there is a non-empty m_deletedDateTime stamp stored, so add it to
-					// the RS element
-					aStr += "\" dDT=\"";
-					aStr += attrStr; // the m_deletedDateTime value
-				}
-				else
-				{
-					// there is no m_deletedDateTime stamp available
-					;
-				}
+				aStr += "1";
 			}
 			else
 			{
-				// m_modifiedDateTime is empty, so it must be the case that
-				// m_deletedDateTime is not empty, so unilaterally build the xml for it
-				// and then close off the RS element
-				aStr += "dDT=\"";
-				attrStr = pRefStr->m_pRefStringMetadata->m_deletedDateTime;
-				aStr += attrStr; // the m_deletedDateTime value
+				aStr += "0";
 			}
-			// close off the RS element
-			aStr += "\"/>\r\n";
-		} // end of else block for test of both modifed and deleted dateTime stamps empty
+
+			// BEW 31May10, added code for kbv2's new attributes taken from the
+			// CRefStringMetadata class instance attached to this pRefStr
+			aStr += "\"\r\n"; // end the line
+			aStr += rsTabs; // start a new line at the same indentation
+			CBString attrStr = pRefStr->m_pRefStringMetadata->m_creationDateTime;
+			// no entities are in the dateTime strings, so don't call InsertEntities()
+			aStr += "cDT=\"";
+			aStr += attrStr; // the m_creationDateTime value
+
+			aStr += "\" wC=\"";
+			attrStr = pRefStr->m_pRefStringMetadata->m_whoCreated;
+			aStr += attrStr; // the m_whoCreated value
+
+			// how we finish off the line depends on whether more is present or not
+			if (pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty() 
+				&& pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+			{
+				// there is no more to be constructed, so finish off the RS element
+				aStr += "\"/>\r\n";
+			}
+			else
+			{
+				// another line is needed for one or both of the other dateTime members
+				aStr += "\"\r\n"; // end the line
+				aStr += rsTabs; // start a new line at the same indentation
+				attrStr = pRefStr->m_pRefStringMetadata->m_modifiedDateTime;
+				if (!attrStr.IsEmpty())
+				{
+					aStr += "mDT=\"";
+					aStr += attrStr; // the m_modifiedDateTime value
+
+					// we may have m_deletedDateTime non-empty too, so check it out and build
+					// it here if needed - then close off RS element
+					attrStr = pRefStr->m_pRefStringMetadata->m_deletedDateTime;
+					if (!attrStr.IsEmpty())
+					{
+						// there is a non-empty m_deletedDateTime stamp stored, so add it to
+						// the RS element
+						aStr += "\" dDT=\"";
+						aStr += attrStr; // the m_deletedDateTime value
+					}
+					else
+					{
+						// there is no m_deletedDateTime stamp available
+						;
+					}
+				}
+				else
+				{
+					// m_modifiedDateTime is empty, so it must be the case that
+					// m_deletedDateTime is not empty, so unilaterally build the xml for it
+					// and then close off the RS element
+					aStr += "dDT=\"";
+					attrStr = pRefStr->m_pRefStringMetadata->m_deletedDateTime;
+					aStr += attrStr; // the m_deletedDateTime value
+				}
+				// close off the RS element
+				aStr += "\"/>\r\n";
+			} // end of else block for test of both modifed and deleted dateTime stamps empty
+		} // end of else not Legacy 5.x.x format
 	} // end of loop: while (pos != NULL)
 
 	// construct the closing TU tab
@@ -3483,75 +3497,89 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 		aStr += numStr;
 		aStr += "\" a=\"";
 		aStr += bstr;
-		aStr += "\" df=\"";  // m_bDeleted flag
-		if (pRefStr->m_bDeleted)
-		{
-			aStr += "1";
-		}
-		else
-		{
-			aStr += "0";
-		}
 
-		// BEW 31May10, added code for kbv2's new attributes taken from the
-		// CRefStringMetadata class instance attached to this pRefStr
-		aStr += "\"\r\n"; // end the line
-		aStr += rsTabs; // start a new line at the same indentation
-		CBString attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_creationDateTime);
-		// no entities are in the dateTime strings, so don't call InsertEntities()
-		aStr += "cDT=\"";
-		aStr += attrStr; // the m_creationDateTime value
-
-		aStr += "\" wC=\"";
-		attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_whoCreated);
-		aStr += attrStr; // the m_whoCreated value
-
-		// how we finish off the line depends on whether more is present or not
-		if (pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty() 
-			&& pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+		// whm 14Jan11 modified the following to create 5.2.4 or 6.0.0+ KB xml format
+		// depending on whether we are doing a Save As Legacy XML verion 3, 4, or 5
+		// format.
+		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+		if (pDoc != NULL && pDoc->IsLegacyDocVersionForFileSaveAs())
 		{
-			// there is no more to be constructed, so finish off the RS element
+			// it's the older Legacy format; close off the RS element
 			aStr += "\"/>\r\n";
 		}
 		else
 		{
-			// another line is needed for one or both of the other dateTime members
-			aStr += "\"\r\n"; // end the line
-			aStr += rsTabs; // start a new line at the same indentation
-			attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_modifiedDateTime);
-			if (!attrStr.IsEmpty())
+			// it's the newer format; add the metadata stuff
+			aStr += "\" df=\"";  // m_bDeleted flag
+			if (pRefStr->m_bDeleted)
 			{
-				aStr += "mDT=\"";
-				aStr += attrStr; // the m_modifiedDateTime value
-
-				// we may have m_deletedDateTime non-empty too, so check it out and build
-				// it here if needed - then close off RS element
-				attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_deletedDateTime);
-				if (!attrStr.IsEmpty())
-				{
-					// there is a non-empty m_deletedDateTime stamp stored, so add it to
-					// the RS element
-					aStr += "\" dDT=\"";
-					aStr += attrStr; // the m_deletedDateTime value
-				}
-				else
-				{
-					// there is no m_deletedDateTime stamp available
-					;
-				}
+				aStr += "1";
 			}
 			else
 			{
-				// m_modifiedDateTime is empty, so it must be the case that
-				// m_deletedDateTime is not empty, so unilaterally build the xml for it
-				// and then close off the RS element
-				aStr += "dDT=\"";
-				attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_deletedDateTime);
-				aStr += attrStr; // the m_deletedDateTime value
+				aStr += "0";
 			}
-			// close off the RS element
-			aStr += "\"/>\r\n";
-		} // end of else block for test of both modifed and deleted dateTime stamps empty
+
+			// BEW 31May10, added code for kbv2's new attributes taken from the
+			// CRefStringMetadata class instance attached to this pRefStr
+			aStr += "\"\r\n"; // end the line
+			aStr += rsTabs; // start a new line at the same indentation
+			CBString attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_creationDateTime);
+			// no entities are in the dateTime strings, so don't call InsertEntities()
+			aStr += "cDT=\"";
+			aStr += attrStr; // the m_creationDateTime value
+
+			aStr += "\" wC=\"";
+			attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_whoCreated);
+			aStr += attrStr; // the m_whoCreated value
+
+			// how we finish off the line depends on whether more is present or not
+			if (pRefStr->m_pRefStringMetadata->m_modifiedDateTime.IsEmpty() 
+				&& pRefStr->m_pRefStringMetadata->m_deletedDateTime.IsEmpty())
+			{
+				// there is no more to be constructed, so finish off the RS element
+				aStr += "\"/>\r\n";
+			}
+			else
+			{
+				// another line is needed for one or both of the other dateTime members
+				aStr += "\"\r\n"; // end the line
+				aStr += rsTabs; // start a new line at the same indentation
+				attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_modifiedDateTime);
+				if (!attrStr.IsEmpty())
+				{
+					aStr += "mDT=\"";
+					aStr += attrStr; // the m_modifiedDateTime value
+
+					// we may have m_deletedDateTime non-empty too, so check it out and build
+					// it here if needed - then close off RS element
+					attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_deletedDateTime);
+					if (!attrStr.IsEmpty())
+					{
+						// there is a non-empty m_deletedDateTime stamp stored, so add it to
+						// the RS element
+						aStr += "\" dDT=\"";
+						aStr += attrStr; // the m_deletedDateTime value
+					}
+					else
+					{
+						// there is no m_deletedDateTime stamp available
+						;
+					}
+				}
+				else
+				{
+					// m_modifiedDateTime is empty, so it must be the case that
+					// m_deletedDateTime is not empty, so unilaterally build the xml for it
+					// and then close off the RS element
+					aStr += "dDT=\"";
+					attrStr = m_pApp->Convert16to8(pRefStr->m_pRefStringMetadata->m_deletedDateTime);
+					aStr += attrStr; // the m_deletedDateTime value
+				}
+				// close off the RS element
+				aStr += "\"/>\r\n";
+			} // end of else block for test of both modifed and deleted dateTime stamps empty
+		} // end of else not Legacy 5.x.x format
 	} // end of loop: while (pos != NULL)
 
 	// construct the closing TU tab
@@ -3673,7 +3701,25 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	// use an attribute called kbVersion from kbv2 and onwards, kbVersion will take the
 	// current kb version number, which is KB_VERSION2 (see Adapt_ItConstants.h), defined
 	// as 2.
-	intStr << GetCurrentKBVersion(); // see note above for 31May10
+	//
+	// whm modified 14Jan11 to save KB with Legacy xml format if the app is
+	// performaing a Save As operation with the save type set to "Legacy XML format, 
+	// as in versions 3, 4 or 5.", i.e., the Doc's m_bLegacyDocVersionForSaveAs member 
+	// is TRUE.
+	CBString verStrTagName;
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	if (pDoc != NULL && pDoc->IsLegacyDocVersionForFileSaveAs())
+	{
+		// we are saving the KB is Legacy xml format for 5.2.4 and earlier
+		verStrTagName = xml_docversion;
+		intStr << 4;
+	}
+	else
+	{
+		// we are saving the KB in current xml format for 6.0.0 and later
+		verStrTagName = xml_kbversion;
+		intStr << GetCurrentKBVersion(); // see note above for 31May10
+	}
 #ifdef _UNICODE
 	numStr = m_pApp->Convert16to8(intStr);
 #else
@@ -3682,7 +3728,9 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	
 	aStr = "<";
 	aStr += xml_kb;
-	aStr += " kbVersion=\""; // kbVersion is currently 2
+	aStr += " ";
+	aStr += verStrTagName; //verStrTagName is "kbVersion" for xml 6.0.0; "docVersion" for Save As xml 5.2.4
+	aStr += "=\"";
 	aStr += numStr;
 	if (m_bGlossingKB)
 	{

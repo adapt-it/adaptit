@@ -344,14 +344,19 @@ END_EVENT_TABLE()
 // CAdapt_ItDoc construction/destruction
 
 /// **** DO NOT PUT INITIALIZATIONS IN THE DOCUMENT'S CONSTRUCTOR *****
-/// **** ALL INITIALIZATIONS SHOULD BE DONE IN THE APP'S OnInit() METHOD *****
+/// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD ****
+/// **** BE DONE HERE; DO OTHER INITIALIZATIONS IN THE APP'S      *****
+/// **** OnInit() METHOD                                          *****
 CAdapt_ItDoc::CAdapt_ItDoc()
 {
 	m_bHasPrecedingStraightQuote = FALSE; // this one needs to be initialized to
 										  // FALSE every time a doc is recreated
+	m_bLegacyDocVersionForSaveAs = FALSE; // whm added 14Jan11
 	// WX Note: All Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
-	// **** ALL INITIALIZATIONS SHOULD BE DONE IN THE APP (OnInit) ************
+	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD      ****
+	// **** BE DONE HERE; DO OTHER INITIALIZATIONS IN THE APP'S           *****
+	// **** OnInit() METHOD                                               *****
 }
 
 
@@ -2107,7 +2112,6 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
 	// file, so must store both KBs, since the user could have altered both since the last
 	// save
-
 	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
 	gpApp->StoreKB(FALSE);
 	
@@ -2142,6 +2146,14 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	}
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
+	if (m_bLegacyDocVersionForSaveAs)
+	{
+		wxString msg;
+		wxString appVerStr;
+		appVerStr = pApp->GetAppVersionOfRunningAppAsString();
+		msg = msg.Format(_("This document (%s) is now saved on disk in the older (version 3, 4, 5) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."),gpApp->m_curOutputFilename.c_str(),appVerStr.c_str());
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	}
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
 	return TRUE;
 }
@@ -2483,7 +2495,10 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
+	// whm 14Jan11 removed the && IsModified() test below. Save As should be available
+	// whether the document is "dirty" or not.
+	//if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
+	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);	
@@ -11015,6 +11030,11 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 	}
 	// the marker at pChar has an asterisk on it so we have the corresponding end marker
 	return TRUE;
+}
+
+bool CAdapt_ItDoc::IsLegacyDocVersionForFileSaveAs()
+{
+	return m_bLegacyDocVersionForSaveAs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -243,6 +243,7 @@ public:
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
+	bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList *LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis*	LookupSFM(wxChar *pChar);
 	USFMAnalysis*	LookupSFM(wxString bareMkr);
@@ -355,11 +356,11 @@ public:
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
   public:
-	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
 										  // (" or ') is encountered preceding the word when
 										  // parsing using TokenizeText()
 
   private:
+	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
 	DECLARE_EVENT_TABLE()
 };
 
