@@ -75,9 +75,10 @@ CKB::CKB()
 		m_pMap[i] = new MapKeyStringToTgtUnit;
 		wxASSERT(m_pMap[i] != NULL);
 	}
-	//m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
-	//							   // FALSE for adapting KB
-	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
+
+	// whm Note: When this 5.2.4 version is creating KB instances, they should
+	// be KB_VERSION1 which is defined as 1.
+	SetCurrentKBVersion(KB_VERSION1); // Note: version from 6.x.x create KB_VERSION2 which is defined as 2
 }
 
 CKB::CKB(bool bGlossingKB)
@@ -94,8 +95,10 @@ CKB::CKB(bool bGlossingKB)
 		wxASSERT(m_pMap[i] != NULL);
 	}
 	m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
-								   // FALSE for adapting KB
-	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
+								 // FALSE for adapting KB
+	// whm Note: When this 5.2.4 version is creating KB instances, they should
+	// be KB_VERSION1 which is defined as 1.
+	SetCurrentKBVersion(KB_VERSION1); // Note: version from 6.x.x create KB_VERSION2 which is defined as 2
 }
 
 // copy constructor - it doesn't work, see header file for explanation
@@ -268,9 +271,9 @@ inline int CKB::GetCurrentKBVersion()
 	return m_kbVersionCurrent;
 }
 
-inline void CKB::SetCurrentKBVersion()
+inline void CKB::SetCurrentKBVersion(int kb_version)
 {
-	m_kbVersionCurrent = (int)KB_VERSION2; // KB_VERSION2 is defined in Adapt_ItConstants.h
+	m_kbVersionCurrent = kb_version; // this is KB_VERSION1 for 5.2.4 defined in Adapt_ItConstants.h
 }
 
 

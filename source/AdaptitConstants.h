@@ -33,8 +33,8 @@
 // uuid="theUuid", the uuids are in subfields of length 8,4,4,4,12, hyphen separated, as
 // required by LIFT format, and there will be a standoff markup file as well, with
 // metadata, linked by the uuids. Prior to 3May10, the KB was not versioned.
-#define KB_VERSION2			2 // to coincide with the introduction of docVersion 5 (at 5.3.0?)
-#define KB_VERSION1			1 // legacy KBs, from 1.0.0 to 5.2.x
+#define KB_VERSION2			2 // to coincide with the introduction of docVersion 5 (at 6.0.0)
+#define KB_VERSION1			1 // legacy KBs, from 1.0.0 to 5.2.4
 
 #define VERT_SPACE			4
 #define MAX_WORDS			10	// maximum # of words allowed in a src phrase before Adapt It chokes

@@ -574,7 +574,10 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				// currently turned off
 				if (pApp->m_bAutoBackupKB)
 				{
-					pApp->DoKBBackup(); // use the bSuppressOKMessage = TRUE option
+					// whm 15Jan11 commented out this DoKBBackup() call. I don't think it should be called
+					// when a project is first opened when no changes have been made.
+					;
+					// pApp->DoKBBackup(); // use the bSuppressOKMessage = TRUE option
 				}
 				else
 				{

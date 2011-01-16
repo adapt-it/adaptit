@@ -11756,12 +11756,14 @@ void CAdapt_ItApp::DoKBBackup()
 /// Called from: The Event Table when "Backup Knowledge Base" item is selected on the File
 /// Menu. Backs up the regular or glossing KB. If gbIsGlossing is TRUE it calls
 /// DoGlossingKBBackup(), otherwise it calls DoKBBackup().
+/// whm 15Jan11 changed so that both DoGlossingKBBackup() and DoKBBackup() are called
+/// when the File > Backup Knowledge Base menu item is selected.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event)) 
 {
-	if (gbIsGlossing)
+	//if (gbIsGlossing)
 		DoGlossingKBBackup();
-	else
+	//else
 		DoKBBackup();
 }
 
