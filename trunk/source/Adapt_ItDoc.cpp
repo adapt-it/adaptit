@@ -1567,20 +1567,6 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 		return TRUE;
 }
 
-void CAdapt_ItDoc::SetDocVersion(int index)
-{	
-	switch (index)
-	{
-	default: // default to the current doc version number
-	case 0:
-		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 5 in AdaptitConstant.h
-		break;
-	case 1:
-		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstant.h
-		break;
-	}
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \return a CBString composed of settings info formatted as XML.
 /// \param	nTabLevel	-> defines how many indenting tab characters are placed before each
@@ -2509,23 +2495,12 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 /// format, and stays queit until such time as the 5.2.4 app encounters another project
 /// and document that has v6 format. After DoLegacyFileSave the application continues in 
 /// all respects as the 5.2.x legacy application. 
-/// Ammended for handling saving when glossing or adapting.
 /// whm Note: This function only gets called when there is document displaying and
 /// no phrase box located so, I'm not worrying about code for dealing with the state
 /// of phrase box contents, etc.
-/// 
-/// BEW modified 13Nov09, if the local user has only read-only access to a remote
-/// project folder, the local user must not be able to cause his local copy of the 
-/// remote document to be saved to the remote user's disk; if that could happen, the
-/// remote user would almost certainly lose some of his edits
-/// BEW 16Apr10, added SaveType param, for support of Save As... menu item
-/// BEW 20Aug10, changed 2nd and 3rd params to have no default, and added the bool
-/// reference 4th param (needed for OnFileSaveAs())
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 {
-	m_bLegacyDocVersionForSaveAs = TRUE; //m_docVersionCurrent != (int)VERSION_NUMBER;
-	m_bDocRenameRequestedForSaveAs = FALSE; // initialize private member
 	bool bDummySrcPhraseAdded = FALSE;
 	SPList::Node* posLast = NULL;
 
@@ -2548,79 +2523,6 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		return TRUE; // let the caller think all is well, even though the save is suppressed
 	}
 
-//	if (pApp->m_pActivePile == NULL)
-//	{
-//		// phrase box is not visible, put it at sequnum = 0 location
-//		pApp->m_nActiveSequNum = 0;
-//		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-//		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-//		pApp->GetView()->Jump(pApp,pSrcPhrase);
-//	}
-//	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-//	if (pApp->m_pTargetBox != NULL)
-//	{
-//		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
-//		{
-//			if (!gbIsGlossing)
-//			{
-//				pView->MakeLineFourString(pActiveSrcPhrase,pApp->m_targetPhrase);
-//				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
-//			}
-//			//gbInhibitMakeTargetStringCall = TRUE;
-//			if (gbIsGlossing)
-//			{
-//				bOK = pView->StoreText(pApp->m_pGlossingKB,pActiveSrcPhrase,pApp->m_targetPhrase);
-//			}
-//			else
-//			{
-//				// do the store, but don't store if it is a <Not In KB> location
-//				if (pActiveSrcPhrase->m_bNotInKB)
-//				{
-//					bInhibitSave = TRUE;
-//					bOK = TRUE; // need this, otherwise the message below will get shown
-//					// set the m_adaption member of the active CSourcePhrase instance,
-//					// because not doing the StoreText() call means it would not otherwise
-//					// get set; the above MakeTargetStringIncludingPunctuation() has
-//					// already set the m_targetStr member to include any punctuation
-//					// stored or typed
-//					pActiveSrcPhrase->m_adaption = pApp->m_targetPhrase; // punctuation was removed above
-//				}
-//				else
-//				{
-//					bOK = pView->StoreText(pApp->m_pKB,pActiveSrcPhrase,pApp->m_targetPhrase);
-//				}
-//			}
-//			//gbInhibitMakeTargetStringCall = FALSE;
-//			if (!bOK)
-//			{
-//				// something is wrong if the store did not work, but we can tolerate the error 
-//				// & continue
-//				wxMessageBox(_(
-//"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-//				_T(""),wxICON_EXCLAMATION);
-//				bNoStore = TRUE;
-//			}
-//			else
-//			{
-//				if (gbIsGlossing)
-//				{
-//					pActiveSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-//				}
-//				else
-//				{
-//					if (!bInhibitSave)
-//					{
-//						pActiveSrcPhrase->m_bHasKBEntry = TRUE;
-//					}
-//					else
-//					{
-//						bNoStore = TRUE;
-//					}
-//				}
-//			}
-//		}
-//	}
-	
 	wxFileName fn(pathName);
 	wxString fullFileName;
 	fullFileName = fn.GetFullName();
@@ -2665,24 +2567,8 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 	// dialog, we also don't worry about the user having changed the folder or file
 	// name, name clashes, etc.
 
-	// in case file rename is wanted... from the Save As dialog
-	wxString theNewFilename = _T("");
+	// Legacy documents (5.2.4 and earlier) use docVersion number 4
 
-	// Here we use a docVersion number 4
-	SetDocVersion(1); // 1 is legacy docV4
-
-	// Execution control now takes one of two paths: if the user chose filterIndex ==
-	// 0 item, which is VERSION_NUMBER's docVersion (currently == 5), then the code
-	// for a norm Save is to be executed (except that in the Save As.. dialog he may
-	// have also requested a document rename, in which case a block at the end of this
-	// function will do that as well, as well as for when he makes the docVersion 4
-	// choice). But if he chosee filterIndex == 1 item, this is for docVersion set to
-	// DOCVERSION4 (always == 4), in which case extra work has to be done - deep
-	// copies of CSourcePhrase need to be created, and passed to a conversion function
-	// FromDocVersion5ToDocVersion4() and the XML built from the converted deep copy
-	// (to prevent corrupting the internal data structures which are docVersion5
-	// compliant)
-	
 	// Saving in doc version 4 may require the addition of a doc-final dummy
 	// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
 	// but only when needed, and remove it when done. It's needed if the very last
@@ -2700,12 +2586,8 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		pDummyForLast->m_nSequNumber = aCount;
 	}
 
-	// place the <Settings> element at the start of the doc (this has to know what the
-	// user chose for the SaveType, so this call has to be made after the
-	// SetDocVersion() call above - as that call sets the doc's save state which
-	// remains in force until changed, or restored by a RestoreCurrentDocVersion() call
-	aStr = ConstructSettingsInfoAsXML(1); // internally sets the docVersion attribute
-							// to whatever is the current value of m_docVersionCurrent
+	// place the <Settings> element at the start of the doc
+	aStr = ConstructSettingsInfoAsXML(1);
 	DoWrite(f,aStr);
 
 	// setup the progress dialog
@@ -2751,8 +2633,7 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		}
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		// get a deep copy, so that we can change the data to what is compatible with
-		// docc version 4 without corrupting the pSrcPhrase which remains in doc
-		// version 5
+		// docc version
 		CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 		pDeepCopy->DeepCopy();
 		
@@ -2819,11 +2700,7 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		pProgDlg->Pulse(progMsg); // more general message during KB save
 	}
 
-	// Do the document backup if required (This call supports a docVersion 4 choice, and
-	// also a request to rename the document; by internally accessing the private members
-	// bool	m_bLegacyDocVersionForSaveAs, and bool m_bDocRenameRequestedForSaveAs either
-	// or both of which may have been changed from their default values of FALSE depending
-	// on the execution path through the code above
+	// Do the document backup if required. 
 	if (gpApp->m_bBackupDocument)
 	{
 		bool bBackedUpOK;
@@ -2836,11 +2713,7 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		}
 	}
 
-    // Restore the latest document version number, in case the save done above was actually
-    // a Save As... using an earlier doc version number. Must not restore earlier than
-    // this, as a call of BackupDocument() will need to know what the user's chosen state
-    // value currently is for docVersion.
-	//RestoreCurrentDocVersion(); // whm not needed for DoLegacyFileSave
+    // whm Note: RestoreCurrentDocVersion() not needed for DoLegacyFileSave.
 
 	Modify(FALSE); // declare the document clean
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
@@ -2853,7 +2726,6 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
 	// file, so must store both KBs, since the user could have altered both since the last
 	// save
-
 	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
 	gpApp->StoreKB(FALSE);
 	
@@ -2861,7 +2733,6 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
-	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
 	return TRUE;
 }
 
@@ -3339,7 +3210,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			// TODO: Should we notify the user that Adapt It is going to convert the document for use in
 			// this version of Adapt It? If not the following three lines should be commented out.
 			wxString msg;
-			msg = msg.Format(_("This document (%s) was created with a newer version of Adapt It.\nAdapt It will now comvert it for use in this version of Adapt It."),fullFileName.c_str());
+			wxString appVerStr;
+			appVerStr = gpApp->GetAppVersionOfRunningAppAsString();
+			msg = msg.Format(_("This document (%s) was created with a newer version of Adapt It.\nAdapt It will now comvert it for use in this version (%s) of Adapt It."),fullFileName.c_str(),appVerStr.c_str());
 			wxMessageBox(msg,_T(""),wxICON_WARNING);
 			DoLegacyFileSave(TRUE,thePath);
 			SetLoadedDocVersion(4);

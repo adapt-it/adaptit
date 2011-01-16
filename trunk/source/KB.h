@@ -110,7 +110,7 @@ public:
 	
 	// accessors for private members
 	int				GetCurrentKBVersion();
-	void			SetCurrentKBVersion();
+	void			SetCurrentKBVersion(int kb_version);
 
 private:
 	CAdapt_ItApp*	m_pApp;

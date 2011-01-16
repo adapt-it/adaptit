@@ -5359,9 +5359,13 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 {
+	// whm modified 15Jan11 to save both glossing and adapting KBs when OnFileSaveKB()
+	// is called. This is now more important with transitions possible between the new
+	// and old KB xml formats.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
-	bool bOK = FALSE;
+	bool bOK1 = FALSE;
+	bool bOK2 = FALSE;
 
 	// BEW added 13Nov09, the local user, if he has only read-only access to a remote
 	// project folder, must not be able to cause saving of the KB data - otherwise the
@@ -5373,23 +5377,23 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 
 	wxString mess;
 	mess.Empty();
-	if (gbIsGlossing)
+	//if (gbIsGlossing)
+	//{
+	bOK1 = pApp->SaveGlossingKB(FALSE); // don't want backup produced of the glossing KB
+	if (!bOK1)
 	{
-		bOK = pApp->SaveGlossingKB(FALSE); // don't want backup produced of the glossing KB
-		if (!bOK)
-		{
-			mess = _("Failure when trying to save the glossing knowledge base. ");
-		}
+		mess = _("Failure when trying to save the glossing knowledge base. ");
 	}
-	else
+	//}
+	//else
+	//{
+	bOK2 = pApp->SaveKB(FALSE); // don't want backup produced
+	if (!bOK2)
 	{
-		bOK = pApp->SaveKB(FALSE); // don't want backup produced
-		if (!bOK)
-		{
-			mess = _("Failure when trying to save the knowledge base. ");
-		}
+		mess = _("Failure when trying to save the knowledge base. ");
 	}
-	if (!bOK)
+	//}
+	if (!bOK1 || !bOK2)
 	{
 		pApp->m_bAutoBackupKB = FALSE;	// turn it off, so if user reopens the app later, the
 										// bad glossing KB will not overwrite the backed up one

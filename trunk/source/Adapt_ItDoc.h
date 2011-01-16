@@ -231,7 +231,6 @@ public:
 	int				RetokenizeText(	bool bChangedPunctuation,
 									bool bChangedFiltering, bool bChangedSfmSet);
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
-	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
 	wxString		SetupBufferForOutput(wxString* pCString);
 	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,int nTextLength);
 	void			UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,bool bKBBackupPath,
@@ -269,10 +268,7 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
-    int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
 	int		m_nLoadedDocV5;
-	bool	m_bLegacyDocVersionForSaveAs;
-	bool	m_bDocRenameRequestedForSaveAs;
 
 	DECLARE_EVENT_TABLE()
 };
