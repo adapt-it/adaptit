@@ -1740,7 +1740,7 @@ retry:	bFileIsRenamed = FALSE;
 			_("Save As"),
 			defaultDir,	// an empty string would cause it to use the current working directory
 			filename,	// the current document's filename
-			filter, // the SaveType option - currently there are two, default is doc version 4, the other is doc version 4
+			filter, // the SaveType option - currently there are two, default is doc version 5, the other is doc version 4
 			wxFD_SAVE ); // don't want wxFD_OVERWRITE_PROMPT as part of the style param
 						 // because if user changes filename, we'll save with the new
 						 // name and after verifying the file is on disk and okay, we'll
@@ -1888,7 +1888,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		// for a norm Save is to be executed (except that in the Save As.. dialog he may
 		// have also requested a document rename, in which case a block at the end of this
 		// function will do that as well, as well as for when he makes the docVersion 4
-		// choice). But if he chosee filterIndex == 1 item, this is for docVersion set to
+		// choice). But if he chose filterIndex == 1 item, this is for docVersion set to
 		// DOCVERSION4 (always == 4), in which case extra work has to be done - deep
 		// copies of CSourcePhrase need to be created, and passed to a conversion function
 		// FromDocVersion5ToDocVersion4() and the XML built from the converted deep copy
@@ -1978,7 +1978,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			}
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			// get a deep copy, so that we can change the data to what is compatible with
-			// docc version 4 without corrupting the pSrcPhrase which remains in doc
+			// doc version 4 without corrupting the pSrcPhrase which remains in doc
 			// version 5
 			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 			pDeepCopy->DeepCopy();

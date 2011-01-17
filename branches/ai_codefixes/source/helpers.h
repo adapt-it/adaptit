@@ -301,5 +301,7 @@ void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
 			 wxString& srcPunctsAfter, wxString& tgtPunctsAfter,
 			 wxArrayInt*& pSrcPunctsRemovedArray, wxArrayInt*& pSrcPunctsAddedArray,
 			 wxArrayInt*& pTgtPunctsRemovedArray, wxArrayInt*& pTgtPunctsAddedArray);
+// BEW created 17Jan11, used when converting back from docV5 to docV4
+bool HasParagraphMkr(wxString& str);
 
 #endif	// helpers_h

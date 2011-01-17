@@ -3685,6 +3685,11 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bo
 	if (pSrcPhrase->m_markers.IsEmpty())
 		return; // no conversions needed for this one
 
+	// clear the old m_bParagraph boolean, we don't use it in docV5, and in the latter it
+	// is m_bUnused
+	if (pSrcPhrase->m_bUnused)
+		pSrcPhrase->m_bUnused = FALSE;
+
 	// If the pList list is empty on entry, then the GetLast() call will return NULL
 	// rather than a valid pos value
 	wxString strModifiers = pSrcPhrase->m_markers;
@@ -3995,9 +4000,37 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 
 	// insert any endmarkers passed in, at its beginning (don't need space at end) - do
 	// this in reverse order to what we expect for encountering their matching begin
-	// markers when original parsing
+	// markers when originally parsing
 	TransferEndmarkersToStartOfMarkersStrForDocV4(pSrcPhrase, *pEndMarkersStr,
 							*pInlineNonbindingEndMkrs, *pInlineBindingEndMkrs);
+
+	// doc version 5 does not have a bool m_bParagraph flag in CSourcePhrase, it is stored
+	// as bit 22 in the f attribute of the S tag in the legacy 5.2.4 and earlier versions.
+	// Converting back to docV4 requires we restore this flag (it has virtually a zero
+	// functional load, so we maybe could omit this step, but it's easier to do the
+	// restoration than to check whether or not there really would be a problem in
+	// omitting it!)
+	if (HasParagraphMkr(pSrcPhrase->m_markers))
+	{
+        // in docVersion5 we call the flag m_bUnused, so that's what we set when the above
+        // test finds \p in m_markers; legacy Adapt It versions will then later read it in
+        // as m_bParagraph
+		pSrcPhrase->m_bUnused = TRUE;
+		// do the same (if the instance is a merger) to the listed original instances
+		if (pSrcPhrase->m_nSrcWords > 1)
+		{
+			SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pOriginalSrcPhrase = pos->GetData();
+				pos = pos->GetNext();
+				if (HasParagraphMkr(pOriginalSrcPhrase->m_markers))
+				{
+					pOriginalSrcPhrase->m_bUnused = TRUE;
+				}
+			}
+		}
+	}
 
     // check if this pSrcPhrase is a merger - if it is, we have to also convert the
     // CSourcePhrase instances in the m_pSavedWords list back to docVersion 4 as well, but
