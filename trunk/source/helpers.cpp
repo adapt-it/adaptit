@@ -1996,3 +1996,29 @@ bool IsFixedSpaceSymbolWithin(wxString& str)
 	}
 	return FALSE;
 }
+
+// BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for
+// 5.2.4, but it could be put into the Save As... code for 6.x.y too - if so, we can retain
+// it for version 6 and higher)
+bool HasParagraphMkr(wxString& str)
+{
+	int offset = str.Find(_T("\\p"));
+	if (offset == wxNOT_FOUND)
+		return FALSE; // most calls will return here
+	wxString wholeMkr;
+	wxString theRest = str.Mid(offset); // the rest contains \p and whatever is after it
+	wholeMkr = gpApp->GetDocument()->GetWholeMarker(theRest);
+	if (wholeMkr == _T("\\p"))
+	{
+		return TRUE;
+	}
+	return FALSE; // it's some other marker beginning with \p, (such as \periph, \pn, \pn*,
+				  // \pb, \pro, \pro*), or it could be one of the more obscure USFM paragraph
+				  //  markers like \pmo \pm \pmc \pmr \pi1 \pi2 etc \pc \pr \ph1 \ph2 etc;
+				  //  but since legacy versions only used flag bit 11, for m_bParagraph, and
+				  //  it was always only set by \p being in m_markers, we'll not bother to
+				  //  do anything more sophisticated than the code above
+}
+
+
+
