@@ -15879,25 +15879,69 @@ void CAdapt_ItDoc::CopyFlags(CSourcePhrase* dest, CSourcePhrase* src)
 	dest->m_bHasGlossingKBEntry = src->m_bHasGlossingKBEntry;
 }
 
+// Returns the target text adaptation string resulting from a reparse of the m_targetStr
+// member after punctuation settings were changed (the target language punctuation
+// settings may have be changed or not, we don't care which is the case); the first
+// parameter is the the original m_targetStr on the currently being accessed CSourcePhrase
+// instance, and we reparse with target punctuation settings - so that we get the
+// unpunctuated string we want in the m_key member of the instance() in pTempList which we use
+// internally. We pass in the caller's CSourcePhrase instance's m_nSequNumber value in
+// param 2, only in order that the reparse doesn't try deal with a value of -1; but the
+// param 2 value actually makes no difference to what is computed for returning as the
+// adaptation without any punctuation
 wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation, 
 														  int startingSequNum)
 {
 	wxString str = targetStrWithPunctuation;
+	bool bHasFixedSpaceMkr = FALSE;
+	bHasFixedSpaceMkr = IsFixedSpaceSymbolWithin(str);
 	wxString adaption; adaption.Empty();
 	SPList* pTempList = new SPList;
 	CSourcePhrase* pSPhr = NULL;
-	// TRUE in next call is bool bUseTargetTextPuncts
-	int elementCount = gpApp->GetView()->TokenizeTargetTextString(pTempList, str, 
-															startingSequNum, TRUE);
-
-
-
-
-
-
-
-
+	// TRUE in next call is bool bUseTargetTextPuncts, this call is an overload of the
+	// legacy TokenizeTargetTextString() function
+	int elementCount = gpApp->GetView()->TokenizeTargetTextString(pTempList, str, startingSequNum, TRUE);
+	wxASSERT(elementCount > 0); // there should be at least one CSourcePhrase instance in pTempList
 	SPList::Node* pos = pTempList->GetFirst();
+	// what we do depends on whether a fixed-space conjoining is present or not
+	if (bHasFixedSpaceMkr)
+	{
+		// we assume ~ only conjoins a pair of words, not a series of three or more; and
+		// pTempList will then contain only one CSourcePhrase instance which is a
+		// pseudo-merger of the two conjoined parts, so m_nSrcWords == 2
+		SPList::Node* pos2 = pTempList->GetFirst();
+		CSourcePhrase* pSP = pos2->GetData();
+		wxASSERT(pSP->m_nSrcWords == 2 && pTempList->GetCount() == 1);
+		SPList::Node* pos3 = pSP->m_pSavedWords->GetFirst();
+		CSourcePhrase* pWordSrcPhrase = pos3->GetData();
+		adaption = pWordSrcPhrase->m_key;
+		adaption += _T("~"); // fixed space marker
+		pos3 = pSP->m_pSavedWords->GetLast();
+		pWordSrcPhrase = pos3->GetData();
+		adaption += pWordSrcPhrase->m_key;  // append the second word
+	}
+	else
+	{
+		// most of the time, control will go through this block and there will usually be
+		// just a single CSourcePhrase instance in pTempList (exceptions will be when
+		// dealing with a merger, or the reparse of a single instance results in 2 or more
+		// due to the effect of the punctuation change)
+		SPList::Node* pos2 = pTempList->GetFirst();
+		while (pos2 != NULL)
+		{
+			CSourcePhrase* pSP = pos2->GetData();
+			if (adaption.IsEmpty())
+			{
+				adaption = pSP->m_key;
+			}
+			else
+			{
+				adaption += _T(" ") + pSP->m_key;
+			}
+		}
+	}
+	// cleanup
+	pos = pTempList->GetFirst();
 	while (pos != NULL)
 	{
 		pSPhr = pos->GetData();

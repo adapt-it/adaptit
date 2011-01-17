@@ -4000,6 +4000,9 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /// 14July below, for example)
 /// BEW 22Feb10 no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 17Jan11, fails if there is only one strip (or less than numVisibleStrips) because
+/// the code assumes a document longer than a single screen's worth, so changes needed and
+/// made
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 {
@@ -4011,25 +4014,41 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 	}
 	pStartPile = m_pView->GetPile(activeSequNum);
 	wxASSERT(pStartPile);
+	int stripCount = m_pLayout->GetStripCount();
 	int numVisibleStrips = m_pLayout->GetNumVisibleStrips();
-	if (numVisibleStrips < 1)
-		numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
-	int nCurStripIndex = pStartPile->GetStripIndex();
-    // BEW changed 14Jul09, we want to start the off-window scan no more than a strip or
-    // two from the start of the visible area, otherwise our caller, DrawFreeTranslations()
-    // may exit early without drawing anything - so from the active strip we go back a
-    // half-window and then two more strips for good measure
-	nCurStripIndex = nCurStripIndex - (numVisibleStrips / 2 + 2);
-	if (nCurStripIndex < 0)
-		nCurStripIndex = 0;
-	// protect also, at doc end - ensure we start drawing before whatever is visible in
-	// the client area
-	int stripCount = m_pLayout->GetStripArray()->GetCount();
-	if (nCurStripIndex > stripCount - (numVisibleStrips + 1))
-		nCurStripIndex = stripCount - (numVisibleStrips + 1);
-	// now get the strip pointer and find it's first pile to return to the caller
-	CStrip* pStrip = (CStrip*)m_pLayout->GetStripArray()->Item(nCurStripIndex);
-	pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+	if (stripCount < numVisibleStrips)
+	{
+		// the whole doc fits on the screen
+		int nCurStripIndex = pStartPile->GetStripIndex();
+		if (nCurStripIndex >= 1)
+		{
+			nCurStripIndex = 0; // start at doc start
+		}
+		// now get the strip pointer and find it's first pile to return to the caller
+		CStrip* pStrip = (CStrip*)m_pLayout->GetStripArray()->Item(nCurStripIndex);
+		pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+	}
+	else
+	{
+		if (numVisibleStrips < 1)
+			numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
+		int nCurStripIndex = pStartPile->GetStripIndex();
+		// BEW changed 14Jul09, we want to start the off-window scan no more than a strip or
+		// two from the start of the visible area, otherwise our caller, DrawFreeTranslations()
+		// may exit early without drawing anything - so from the active strip we go back a
+		// half-window and then two more strips for good measure
+		nCurStripIndex = nCurStripIndex - (numVisibleStrips / 2 + 2);
+		if (nCurStripIndex < 0)
+			nCurStripIndex = 0;
+		// protect also, at doc end - ensure we start drawing before whatever is visible in
+		// the client area
+		int stripCount = m_pLayout->GetStripArray()->GetCount();
+		if (nCurStripIndex > stripCount - (numVisibleStrips + 1))
+			nCurStripIndex = stripCount - (numVisibleStrips + 1);
+		// now get the strip pointer and find it's first pile to return to the caller
+		CStrip* pStrip = (CStrip*)m_pLayout->GetStripArray()->Item(nCurStripIndex);
+		pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+	}
 	wxASSERT(pStartPile);
 	return pStartPile;
 }
