@@ -24,6 +24,9 @@
 // 1. 
 // 
 /////////////////////////////////////////////////////////////////////////////
+
+// dummy comment to force a recompile
+
 //#pragma warning( disable : 4189 )
 
 #if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this. 

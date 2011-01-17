@@ -15,12 +15,8 @@
 /// This schema is an implementation of the document/view framework. 
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
-// 1.
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
+// dummy comment to force a recompile
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"

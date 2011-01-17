@@ -8,7 +8,9 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing some helper functions used by Adapt It. 
 /////////////////////////////////////////////////////////////////////////////
-//
+
+// dummy comment to force a recompile
+
 #ifndef helpers_h
 #define helpers_h
 
