@@ -2488,10 +2488,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 /// This function is only called when the application (5.2.4) detects that a KB and
 /// document are being loaded that contains the newer version 6.x.x KB (v2) and document 
 /// (v5) format. It unilaterally saves them in the older KB (v1) and document (v4) xml
-/// format, and stays queit until such time as the 5.2.4 app encounters another project
+/// format, and stays quiet until such time as the 5.2.4 app encounters another project
 /// and document that has v6 format. After DoLegacyFileSave the application continues in 
 /// all respects as the 5.2.x legacy application. 
-/// whm Note: This function only gets called when there is document displaying and
+/// whm Note: This function only gets called when there is no document displaying and
 /// no phrase box located so, I'm not worrying about code for dealing with the state
 /// of phrase box contents, etc.
 ///////////////////////////////////////////////////////////////////////////////
@@ -2629,7 +2629,7 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		}
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		// get a deep copy, so that we can change the data to what is compatible with
-		// docc version
+		// doc version
 		CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 		pDeepCopy->DeepCopy();
 		
@@ -3208,7 +3208,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			wxString msg;
 			wxString appVerStr;
 			appVerStr = gpApp->GetAppVersionOfRunningAppAsString();
-			msg = msg.Format(_("This document (%s) was created with a newer version of Adapt It.\nAdapt It will now comvert it for use in this version (%s) of Adapt It."),fullFileName.c_str(),appVerStr.c_str());
+			msg = msg.Format(_("This document (%s) was created with a newer version of Adapt It.\nAdapt It will now convert it for use in this version (%s) of Adapt It."),fullFileName.c_str(),appVerStr.c_str());
 			wxMessageBox(msg,_T(""),wxICON_WARNING);
 			DoLegacyFileSave(TRUE,thePath);
 			SetLoadedDocVersion(4);
