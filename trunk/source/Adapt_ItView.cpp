@@ -41583,7 +41583,7 @@ void CAdapt_ItView::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 	// IDS_ABOUT_TO_DELETE_NOTES
 	if(wxMessageBox(_(
 "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
-	_T(""),wxYES_NO | wxICON_EXCLAMATION) == wxID_YES )
+	_T(""),wxYES_NO | wxICON_EXCLAMATION) == wxYES )
 	{
 		RemoveSelection();
 
