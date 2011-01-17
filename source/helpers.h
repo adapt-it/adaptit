@@ -148,9 +148,11 @@ void EmptyMarkersAndFilteredStrings(
 								  wxString& filteredInfoStr); 
 
 wxString GetLastMarker(wxString markers);
-bool IsWhiteSpace(const wxChar *pChar);
-int ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)
-bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
-bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
+bool    IsWhiteSpace(const wxChar *pChar);
+int     ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)
+bool	IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
+bool    IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
+bool	HasParagraphMkr(wxString& str); // used when converting back from docV5 to docV4
 
 #endif
+

@@ -4075,6 +4075,33 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 	TransferEndmarkersToStartOfMarkersStrForDocV4(pSrcPhrase, *pEndMarkersStr,
 							*pInlineNonbindingEndMkrs, *pInlineBindingEndMkrs);
 
+	// doc version 5 does not have a bool m_bParagraph flag in CSourcePhrase, it is stored
+	// as bit 22 in the f attribute of the S tag in the legacy 5.2.4 and earlier versions.
+	// Converting back to docV4 requires we restore this flag (it has virtually a zero
+	// functional load, so we maybe could omit this step, but it's easier to do the
+	// restoration than to check whether or not there really would be a problem in
+	// omitting it!)
+	if (HasParagraphMkr(pSrcPhrase->m_markers))
+	{
+        // in docVersion5 we call the flag m_bUnused, but here if the above test finds \p
+        // in m_markers; this version must see it as m_bParagraph
+		pSrcPhrase->m_bParagraph = TRUE;
+		// do the same (if the instance is a merger) to the listed original instances
+		if (pSrcPhrase->m_nSrcWords > 1)
+		{
+			SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pOriginalSrcPhrase = pos->GetData();
+				pos = pos->GetNext();
+				if (HasParagraphMkr(pOriginalSrcPhrase->m_markers))
+				{
+					pOriginalSrcPhrase->m_bParagraph = TRUE;
+				}
+			}
+		}
+	}
+
     // check if this pSrcPhrase is a merger - if it is, we have to also convert the
     // CSourcePhrase instances in the m_pSavedWords list back to docVersion 4 as well, but
     // we don't need to collect any endmarkers from the last in that list, as the merger
