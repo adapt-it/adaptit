@@ -20,6 +20,8 @@
 // 
 /////////////////////////////////////////////////////////////////////////////
 
+// dummy comment to force a recompile
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "DocPage.h"

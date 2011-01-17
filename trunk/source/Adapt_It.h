@@ -18,6 +18,9 @@
 ///                 for the document/view framework.
 /// The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
+
+// dummy comment to force a recompile
+
 #ifndef Adapt_It_h
 #define Adapt_It_h
 

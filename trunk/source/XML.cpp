@@ -9,6 +9,8 @@
 /// \description	This is the implementation file for XML routines used in Adapt It for Dana and the WX version.
 /////////////////////////////////////////////////////////////////////////////
 
+// dummy comment to force a recompile
+
 // for debugging LIFT AtLIFTxxxx() callback functions
 //#define _debugLIFT_
 

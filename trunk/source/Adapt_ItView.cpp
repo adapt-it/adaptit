@@ -21,6 +21,8 @@
 // 
 /////////////////////////////////////////////////////////////////////////////////
 
+// dummy comment to force a recompile
+
 //#define DrawFT_Bug
 
 #if defined(__GNUG__) && !defined(__APPLE__)

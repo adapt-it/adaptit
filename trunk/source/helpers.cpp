@@ -8,7 +8,9 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file containing some helper functions used by Adapt It. 
 /////////////////////////////////////////////////////////////////////////////
-//
+
+// dummy comment to force a recompile
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "helpers.h"
