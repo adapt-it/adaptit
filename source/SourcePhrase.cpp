@@ -570,6 +570,19 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bHasNote = sp.m_bHasNote;
 	m_bHasBookmark = sp.m_bHasBookmark;
 
+	// and doc version 5's 10 new members
+	m_endMarkers = sp.m_endMarkers;
+	m_freeTrans = sp.m_freeTrans;
+	m_note = sp.m_note;
+	m_collectedBackTrans = sp.m_collectedBackTrans;
+	m_filteredInfo = sp.m_filteredInfo;
+
+	m_inlineBindingMarkers = sp.m_inlineBindingMarkers;
+	m_inlineBindingEndMarkers = sp.m_inlineBindingEndMarkers;
+	m_inlineNonbindingMarkers = sp.m_inlineNonbindingMarkers;
+	m_inlineNonbindingEndMarkers = sp.m_inlineNonbindingEndMarkers;
+	m_follOuterPunct = sp.m_follOuterPunct;
+
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
 	wxASSERT(m_pSavedWords != NULL);
@@ -666,6 +679,19 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bEndFreeTrans = sp.m_bEndFreeTrans;
 	m_bHasNote = sp.m_bHasNote;
 	m_bHasBookmark = sp.m_bHasBookmark;
+
+	// and doc version 5's 10 new members
+	m_endMarkers = sp.m_endMarkers;
+	m_freeTrans = sp.m_freeTrans;
+	m_note = sp.m_note;
+	m_collectedBackTrans = sp.m_collectedBackTrans;
+	m_filteredInfo = sp.m_filteredInfo;
+
+	m_inlineBindingMarkers = sp.m_inlineBindingMarkers;
+	m_inlineBindingEndMarkers = sp.m_inlineBindingEndMarkers;
+	m_inlineNonbindingMarkers = sp.m_inlineNonbindingMarkers;
+	m_inlineNonbindingEndMarkers = sp.m_inlineNonbindingEndMarkers;
+	m_follOuterPunct = sp.m_follOuterPunct;
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	if (m_pSavedWords == NULL)

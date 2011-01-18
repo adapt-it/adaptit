@@ -1,4 +1,12 @@
 ----------------------------------------------
+Version 5.2.4 update 31January2011:
+----------------------------------------------
+Bug fixes in 5.2.4
+----------------------------------------------
+* Attempting to open free translation mode when the document was
+only a line or two in length, crashed the application.
+
+----------------------------------------------
 Version 5.2.3 update 29September2010:
 ----------------------------------------------
 Bug fixes in 5.2.3

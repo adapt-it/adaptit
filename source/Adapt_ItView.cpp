@@ -40109,6 +40109,53 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	}
 	pStartPile = GetPile(activeSequNum);
 	wxASSERT(pStartPile);
+	int stripCount = pLayout->GetStripCount();
+	int numVisibleStrips = pLayout->GetNumVisibleStrips();
+	if (stripCount < numVisibleStrips)
+	{
+		// the whole doc fits on the screen
+		int nCurStripIndex = pStartPile->GetStripIndex();
+		if (nCurStripIndex >= 1)
+		{
+			nCurStripIndex = 0; // start at doc start
+		}
+		// now get the strip pointer and find it's first pile to return to the caller
+		CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
+		pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+	}
+	else
+	{
+		if (numVisibleStrips < 1)
+			numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
+		int nCurStripIndex = pStartPile->GetStripIndex();
+		// BEW changed 14Jul09, we want to start the off-window scan no more than a strip or
+		// two from the start of the visible area, otherwise our caller, DrawFreeTranslations()
+		// may exit early without drawing anything - so from the active strip we go back a
+		// half-window and then two more strips for good measure
+		nCurStripIndex = nCurStripIndex - (numVisibleStrips / 2 + 2);
+		if (nCurStripIndex < 0)
+			nCurStripIndex = 0;
+		// protect also, at doc end - ensure we start drawing before whatever is visible in
+		// the client area
+		int stripCount = pLayout->GetStripArray()->GetCount();
+		if (nCurStripIndex > stripCount - (numVisibleStrips + 1))
+			nCurStripIndex = stripCount - (numVisibleStrips + 1);
+		// now get the strip pointer and find it's first pile to return to the caller
+		CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
+		pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+	}
+	wxASSERT(pStartPile);
+	return pStartPile;
+	/* legacy code, removed 18Jan11 by  BEW because it fails if doc is just a few lines or less
+	CLayout* pLayout = GetLayout();
+	CPile* pStartPile = NULL;
+	if (activeSequNum < 0)
+	{
+		pStartPile = GetPile(0);
+		return pStartPile;
+	}
+	pStartPile = GetPile(activeSequNum);
+	wxASSERT(pStartPile);
 	int numVisibleStrips = pLayout->GetNumVisibleStrips();
 	if (numVisibleStrips < 1)
 		numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
@@ -40134,6 +40181,7 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 #endif
 	wxASSERT(pStartPile);
 	return pStartPile;
+	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////
