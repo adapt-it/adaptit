@@ -5917,33 +5917,43 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				}
 				else if (attrName == xml_deletedflag)
 				{
-					bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
-					gpRefStr->SetDeletedFlag(flag); 
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
+					//bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
+					//gpRefStr->SetDeletedFlag(flag); 
 				}
 				else if (attrName == xml_creationDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(value); 
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetCreationDateTime(value); 
 				}
 				else if (attrName == xml_whocreated)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// could potentially require entity replacement, so do it to be safe
-					ReplaceEntities(attrValue);
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetWhoCreated(value);
+					//ReplaceEntities(attrValue);
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetWhoCreated(value);
 				}
 				else if (attrName == xml_modifiedDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(value); 
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(value); 
 				}
 				else if (attrName == xml_deletedDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(value); 
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(value); 
 				}
 				else
 				{

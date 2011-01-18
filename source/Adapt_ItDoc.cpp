@@ -2523,7 +2523,8 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 	wxFile f; // create a CFile instance with default constructor
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
+	CAdapt_ItView* pView;
+	pView = (CAdapt_ItView*) GetFirstView();
 	wxASSERT(pView != NULL);
 	
 	if (pApp->m_bReadOnlyAccess)
