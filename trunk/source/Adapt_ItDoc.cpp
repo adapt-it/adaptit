@@ -2675,6 +2675,30 @@ bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
 		gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
 	}
 
+	// having used the converted pDeepCopy instances to create the docV4 XML document and
+	// having saved it to disk, we now need to set the current doc version to 4, and
+	// reload the just-saved file -- doing so control won't enter an infinite loop because
+	// being now docV4, a different path though OnOpenDocument() will be taken
+	SetLoadedDocVersion(4);
+	// clobber the existing in-RAM document first though, it's deficient anyway, as its
+	// unconverted (the call always returns TRUE, so we won't bother with the return value)
+	DeleteContents(); // of the doc
+	// reload doc
+	bool bReadOK = ReadDoc_XML(pathName,this);
+	if (!bReadOK)
+	{
+		// we don't expect this to ever fail... but do something anyway and let processing
+		// continue
+		wxString s;
+		s = _(
+"Reloading the document after converting it to the legacy format did not succeed.\nThis error is unexpected. Shut down Adapt It and then start a new session.\nIf this error persists, contact the developers, and attach the document file.");
+		wxMessageBox(s, _T(""), wxICON_ERROR);
+		if (pProgDlg != NULL)
+			pProgDlg->Destroy();
+		return FALSE;
+	}
+
+
 	// recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath,
 	// because the path computed at the end of OnOpenDocument() will have been invalidated
 	// if the filename extension was changed by code earlier in DoFileSave()
@@ -3210,8 +3234,22 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			appVerStr = gpApp->GetAppVersionOfRunningAppAsString();
 			msg = msg.Format(_("This document (%s) was created with a newer version of Adapt It.\nAdapt It will now convert it for use in this version (%s) of Adapt It."),fullFileName.c_str(),appVerStr.c_str());
 			wxMessageBox(msg,_T(""),wxICON_WARNING);
-			DoLegacyFileSave(TRUE,thePath);
-			SetLoadedDocVersion(4);
+			// Do the conversion from the newer document format, back to doc version 4;
+			// DoLegacyFileSave() does this job, it reads in the new format, converts it
+			// to the legacy storage structures, writes out the XML in docV4 format,
+			// resets the doc version to "4", and then re-loads the converted XML which
+			// has now become a standard docV4 xml file. The process should not fail, but
+			// just in case we attempt to do nothing and let the user make up his own mind
+			// what to do next - we provide a message which suggests a shut down, then a
+			// new session, but if the error persists to contact the developers and attach
+			// the errant document (to the email). DoLegacyFileSave() is called nowhere
+			// else besides here
+			bool bNoFailure = DoLegacyFileSave(TRUE,thePath);
+			if (bNoFailure == FALSE)
+			{
+				DeleteContents(); // anything of the doc read in so far
+				return TRUE; // let the user try something else
+			}
 		}
 	}
 
