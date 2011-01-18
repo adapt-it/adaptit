@@ -741,6 +741,18 @@ bool CAdapt_ItDoc::OnNewDocument()
 				OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
 	#endif
 	#endif
+				// BEW 16Dec10, added needed code to set gCurrentSfmSet to the current value
+				// of the project's SfmSet. This code has been lacking from version 3 onwards
+				// to 5.2.3 at least
+				if (gpApp->gCurrentSfmSet != gpApp->gProjectSfmSetForConfig)
+				{
+					// the project's setting is not the same as the current setting for the
+					// doc (the latter is either UsfmOnly if the app has just been launched,
+					// as that is the default; or if there was some previous doc open, it has
+					// the same value as that previous doc had)
+					gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
+				}
+
 				// parse the input file
 				int nHowMany;
 				nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,

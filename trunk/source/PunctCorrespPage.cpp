@@ -69,6 +69,9 @@ extern CFontPageWiz* pFontPageWiz;
 /// This global is defined in Adapt_It.cpp.
 extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
+extern bool gbIsGlossing;
+extern wxString translation;
+
 // the following are common functions - used by the CPunctCorrespPageWiz class 
 // and the CPunctCorrespPagePrefs class
 
@@ -1230,6 +1233,35 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	punctPgCommon.GetDataFromEdits();
 	punctPgCommon.UpdateAppValues(TRUE); // TRUE means the data is punctuation characters, (not encoding values)
 #endif
+	// the phrase box might be past the end of the doc, if so, the DoPunctuationChanges
+	// call will crash because m_pActivePile is undefined. So put in a safety-first block
+	// here (cloned from same code in doc's OnFileSave_Protected() )
+	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
+	{
+		int sequNumAtEnd = gpApp->GetMaxIndex();
+		if (sequNumAtEnd == -1)
+		{
+			// no document is open, so don't need to so any reconstitutions
+			return;
+		}
+		gpApp->m_pActivePile = gpApp->GetDocument()->GetPile(sequNumAtEnd);
+		gpApp->m_nActiveSequNum = sequNumAtEnd;
+		wxString boxValue;
+		if (gbIsGlossing)
+		{
+			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		}
+		else
+		{
+			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+			translation = boxValue;
+		}
+		gpApp->m_targetPhrase = boxValue;
+		gpApp->m_pTargetBox->ChangeValue(boxValue);
+		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
+		gpApp->GetView()->Invalidate();
+	}	
+
 	gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
 }
 
