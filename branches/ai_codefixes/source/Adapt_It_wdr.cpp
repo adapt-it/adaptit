@@ -5494,7 +5494,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs5 = (wxString*) NULL;
-    wxListBox *item5 = new wxListBox( parent, ID_LIST_UI_LANGUAGES, wxDefaultPosition, wxSize(400,220), 0, strs5, wxLB_SINGLE );
+    wxListBox *item5 = new wxListBox( parent, ID_LIST_UI_LANGUAGES, wxDefaultPosition, wxSize(400,180), 0, strs5, wxLB_SINGLE );
     item5->SetToolTip( _("This is a list of interface languages found at the path below") );
     item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
