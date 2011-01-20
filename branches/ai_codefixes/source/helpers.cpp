@@ -46,6 +46,9 @@
 // the following includes support friend functions for various classes
 #include "TargetUnit.h"
 #include "KB.h"
+#include "Pile.h"
+#include "Strip.h"
+#include "Layout.h"
 #include "KBEditor.h"
 #include "RefString.h"
 #include "helpers.h"
@@ -4646,10 +4649,38 @@ int ParseMarker(const wxChar *pChar)
 	return len;
 }
 
+// BEW created 20Jan11, to avoid adding duplicates of ints already in the passed in
+// wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
+// contents won't be used if another layout_selector enum valus is in effect, as
+// RecalcLayout() would recreate the strips and repopulate the partner piles in such
+// situations 
+void AddUniqueInt(wxArrayInt* pArrayInt, int nInt)
+{
+	int count = pArrayInt->GetCount();
+	if (count == 0)
+	{
+		pArrayInt->Add(nInt);
+	}
+	else
+	{
+		int index = pArrayInt->Index(nInt);
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so Add() it
+			pArrayInt->Add(nInt);
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return;
+		}
+	}
+}
+
 // Any strings in pPossiblesArray not already in pBaseStrArray, append them to
 // pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
 // BEW 11Oct10, added param bExcludeDuplicates, with default FALSE (which means everything
-// is excepted whether a duplicate or not)
+// is accepted whether a duplicate or not)
 bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray,
 						  bool bExcludeDuplicates)
 {
@@ -6380,6 +6411,74 @@ bool HasParagraphMkr(wxString& str)
 				  //  do anything more sophisticated than the code above
 }
 
+// a diagnostic function used for chasing a vertical edit bug
+void ShowSPandPile(int atSequNum, int whereTis)
+{
+	SPList* pList = gpApp->m_pSourcePhrases;
+	SPList::Node* pos = pList->Item(atSequNum);
+	CSourcePhrase* pSrcPhrase = pos->GetData();
+	CLayout* pLayout = gpApp->m_pLayout;
+	PileList* pPiles = pLayout->GetPileList();
+	PileList::Node* posPiles = pPiles->Item(atSequNum);
+	CPile* pPile = posPiles->GetData();
+	// CPile private members
+	//CLayout*		m_pLayout;
+	//CSourcePhrase*	m_pSrcPhrase;
+	//CStrip*			m_pOwningStrip;
+	//CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
+	//int				m_nPile; // what my index is in the strip object
+	//int				m_nWidth;
+	//int				m_nMinWidth;
+	//bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
+	wxString msg1;
+	if (pPile->GetStrip() == NULL)
+	{
+		// strip pointer is NULL, so strip index is undefined
+		msg1 = msg1.Format(_T("\n              CPile: Where = %d ; m_pSrcPhrase %x ; m_pOwningStrip %x ; m_nPile %d ; Strip index is UNDEFINED"),
+		whereTis, pPile->GetSrcPhrase(), pPile->GetStrip(), pPile->GetPileIndex());
+	}
+	else
+	{
+		// strip pointer is not NULL, so can get value of strip index
+		msg1 = msg1.Format(_T("\n              CPile: Where = %d ; m_pSrcPhrase %x ; m_pOwningStrip %x ; m_nPile %d ; m_nStrip %d"),
+		whereTis, pPile->GetSrcPhrase(), pPile->GetStrip(), pPile->GetPileIndex(), pPile->GetStrip()->GetStripIndex());
+	}
+	wxLogDebug(msg1);
+	wxString msg2;
+	msg2 = msg2.Format(_T("CSourcePhrase:   SequNum %d ; m_pSrcPhrase %x ; m_srcPhrase %s ; m_targetStr %s ; m_gloss %s"),
+		pSrcPhrase->m_nSequNumber, pSrcPhrase, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_targetStr.c_str(),
+		pSrcPhrase->m_gloss.c_str());
+	wxLogDebug(msg2);
+}
+
+// a debugging helper, to see contents of m_pLayout's m_invalidStripArray, a wxArrayInt
+void ShowInvalidStripRange()
+{
+	CLayout* pLayout = gpApp->m_pLayout;
+	wxArrayInt* pInvalidStripArray = pLayout->GetInvalidStripArray();
+	int nCount = pInvalidStripArray->GetCount();
+	int index = 0;
+	int aValue;
+	wxString thisValue;
+	wxString listOfValues;
+	if (!pInvalidStripArray->IsEmpty() && nCount > 0)
+	{
+		listOfValues.Empty();
+		listOfValues = _T("Invalid strips in m_pInvalidStripArray: ");
+		for (index = 0; index < nCount; index++)
+		{
+			thisValue.Empty();
+			aValue = pInvalidStripArray->Item(index);
+			thisValue = thisValue.Format(_T(" %d  "),aValue);
+			listOfValues += thisValue;
+			wxLogDebug(listOfValues);
+		}
+	}
+	else
+	{
+		wxLogDebug(_T("No invalid strips in m_pInvalidStripArray"));
+	}
+}
 
 
 

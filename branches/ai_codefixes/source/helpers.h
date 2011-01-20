@@ -303,5 +303,16 @@ void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
 			 wxArrayInt*& pTgtPunctsRemovedArray, wxArrayInt*& pTgtPunctsAddedArray);
 // BEW created 17Jan11, used when converting back from docV5 to docV4
 bool HasParagraphMkr(wxString& str);
+// BEW created 20Jan11, to avoid adding duplicates of ints already in the passed in
+// wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
+// contents won't be used if another layout_selector enum valus is in effect, as
+// RecalcLayout() would recreate the strips and repopulate the partner piles in such
+// situations 
+void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
+
+
+// a diagnostic function used for chasing a vertical edit bug
+void ShowSPandPile(int atSequNum, int whereTis);
+void ShowInvalidStripRange();
 
 #endif	// helpers_h

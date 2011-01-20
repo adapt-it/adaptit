@@ -1791,7 +1791,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		return;
 
 #ifdef __WXDEBUG__
-	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
+//	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
 #endif
 	m_pApp->m_pActivePile = m_pView->GetPile(activeSequNum); // has to be set here, because at
 							// end of RecalcLayout's legacy code it is still undefined
@@ -1923,8 +1923,8 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			m_pCurFreeTransSectionPileArray->Add(pile);
 
 #ifdef __WXDEBUG__
-			wxLogDebug(_T("Empty area:  Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
-				pile->GetSrcPhrase()->m_nSequNumber, m_pCurFreeTransSectionPileArray->GetCount());
+//			wxLogDebug(_T("Empty area:  Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
+//				pile->GetSrcPhrase()->m_nSequNumber, m_pCurFreeTransSectionPileArray->GetCount());
 #endif
 			// count the pile's words (BEW changed 28Apr06)
 			wordcount += pile->GetSrcPhrase()->m_nSrcWords;

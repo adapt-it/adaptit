@@ -2042,8 +2042,8 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 // the caller, nSaveActiveSequNum is the caller's saved value for the active sequence
 // number
 // BEW updated 17Feb10 for support of doc version 5 (no changes were needed)
-// BEW 11Oct10, updated to remove a bug (pSrcPhrase cleared to NULL and then searched for
-// in the main m_pSrcPhrases list. Not a good idea!)
+// BEW 11Oct10, updated to remove a bug (pSrcPhraseCopy deleted and then cleared to NULL
+// and then searched for in the main m_pSrcPhrases list. Not a good idea to search for NULL!)
 void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,
 									int& nCount,int& nEndSequNum,
 									bool bActiveLocAfterSelection,

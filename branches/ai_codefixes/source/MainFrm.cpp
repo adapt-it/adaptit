@@ -30,6 +30,7 @@
 #include <wx/wx.h>
 #endif
 
+#define _debugLayout
 
 //// the next three are for wxHtmlHelpController
 //#include <wx/filesys.h>
@@ -4302,6 +4303,11 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 							pEdit->ChangeValue(_T("")); // clear the box
 						}
 					}
+#ifdef _debugLayout
+ShowSPandPile(393, 1);
+ShowSPandPile(394, 1);
+ShowInvalidStripRange();
+#endif
                     // now restore the free translation span to what it was at last entry
                     // to freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
@@ -4323,6 +4329,11 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+#ifdef _debugLayout
+ShowSPandPile(393, 2);
+ShowSPandPile(394, 2);
+ShowInvalidStripRange();
+#endif
 
                         // now make the free translation part of the gEditRecord think that
                         // freeTranslationsStep has not yet been entered
@@ -4391,14 +4402,27 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nGlossStep_SpanCount);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+#ifdef _debugLayout
+ShowSPandPile(393, 3);
+ShowSPandPile(394, 3);
+ShowInvalidStripRange();
+#endif
 
 					// delete the instances in the freeTranslationsStep's list
 					pDoc->DeleteSourcePhrases(&pRec->freeTranslationStep_SrcPhraseList);
+#ifdef _debugLayout
+ShowSPandPile(393, 4);
+ShowSPandPile(394, 4);
+ShowInvalidStripRange();
+#endif
 
 					// place the phrase box at the start of the span, and update the layout etc
 					int activeSequNum = pRec->nGlossStep_StartingSequNum;
 					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
-					
+#ifdef _debugLayout
+ShowSPandPile(393, 5);
+ShowSPandPile(394, 5);
+#endif					
 					// populate the combobox with the required removals data for adaptationsStep
 					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 
@@ -4422,6 +4446,10 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 
 					// ensure gEditStep remains set to adaptationsStep here, before returning
 					gEditStep = glossesStep;
+#ifdef _debugLayout
+ShowSPandPile(393, 6);
+ShowSPandPile(394, 6);
+#endif
 
                     // record the fact that this step has been entered and initial values
                     // set up (it is done once only, see above)

@@ -16,6 +16,8 @@
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
 /////////////////////////////////////////////////////////////////////////////
 
+#define _debugLayout
+
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
 #endif
@@ -4646,6 +4648,10 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 /// list end, so that each CreatePartnerPile call is creating the CPile instance which is
 /// next to be appended to PileList. We test for non-compliance with this rule and abort
 /// the application if it happens, because to continue would inevitably lead to an app crash.
+/// BEW 20Jan11, replacing partner piles is a problem in some circumstances, because the
+/// pile count could change larger and so some new piles can't then be assigned to a
+/// strip. This circumstance needs create_strips_keep_piles to be used for the
+/// layout_selector enum value in RecalcLayout() in order to get the strips and piles in sync
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 {
@@ -4653,6 +4659,7 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 	CLayout* pLayout = GetLayout();
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed
 									 // in pSrcPhrase
+
 	PileList::Node* aPosition = NULL;
 	CPile* aPilePtr = NULL;
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
@@ -4722,11 +4729,35 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 			CStrip* pLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
 			pLastStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 			int nStripIndex = pLastStrip->GetStripIndex();
-			pLayout->GetInvalidStripArray()->Add(nStripIndex); 
+			// BEW 20Jan11, changed to only add unique index values to the array
+			AddUniqueInt(pLayout->GetInvalidStripArray(), nStripIndex);
+			//pLayout->GetInvalidStripArray()->Add(nStripIndex);
 		}
 		// now do the append
 		posPile = pPiles->Append(pNewPile); // do this only after aPilePtr is calculated
 	}
+/* this doesn't work, inner test is always FALSE
+	// finally, if m_pStripArray is not empty, and pNewPile->GetStrip() returns a non-NULL
+	// value, then the strip it is embedded in exists, so we should then set the other
+	// members of pNewPile  - except for m_bIsCurrentFreeTransSection because this is
+	// default FALSE and only gets set TRUE at later times than when CreatePartnerPile()
+	// is called
+	if (!pLayout->GetStripArray()->IsEmpty())
+	{
+		if (pNewPile->GetStrip() != NULL)
+		{
+			// it's owning strip exists, so populate the other members
+			CStrip* pStrip = pNewPile->GetStrip();
+			pNewPile->SetStrip(pStrip);
+			wxArrayPtrVoid* pArrPiles = pStrip->GetPilesArray();
+			int whereAt = pArrPiles->Index(pNewPile);
+			if (whereAt != wxNOT_FOUND)
+			{
+				pNewPile->SetMyIndexInTheStrip(whereAt);
+			}
+		}
+	}
+*/
 }
 
 // return the index in m_pSourcePhrases for the passed in pSrcPhrase
@@ -4775,7 +4806,7 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		}
 
 		// mark the strip invalid and put the parent strip's index into 
-		// CLayout::m_invalidStripArray
+		// CLayout::m_invalidStripArray if it is not in the array already
 		MarkStripInvalid(pPile);
 	}
 	else
@@ -4819,7 +4850,9 @@ void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 	CStrip* pStrip = pChangedPile->GetStrip();
 	pStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 	int nStripIndex = pStrip->GetStripIndex();
-	pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
+	// BEW 20Jan11, changed to only add unique index values to the array
+	AddUniqueInt(pInvalidStripArray, nStripIndex);
+	//pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
 										  // which strips are invalid
 }
 

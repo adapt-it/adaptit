@@ -19,6 +19,8 @@
 //#define DrawFT_Bug
 //#define FINDNXT
 
+#define _debugLayout
+
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
 #endif
@@ -6293,6 +6295,12 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	CSourcePhrase* pReplaceSrcPhrase = NULL;
 	CSourcePhrase* pDeepCopiedSrcPhrase = NULL;
 
+#ifdef _debugLayout
+ShowSPandPile(393, 30);
+ShowSPandPile(394, 30);
+ShowInvalidStripRange();
+#endif
+
 	int maxIndex = pApp->GetMaxIndex();
 	if (nStartAt > maxIndex)
 	{
@@ -6329,6 +6337,11 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 			return FALSE;
 		}
 	}
+#ifdef _debugLayout
+ShowSPandPile(393, 31);
+ShowSPandPile(394, 31);
+ShowInvalidStripRange();
+#endif
 	posReplace = pReplacementsList->Item(nReplaceStartAt);
 	if (posMaster == NULL)
 	{
@@ -6379,6 +6392,11 @@ ins:	;
 			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks its or a
 														// nearby strip as invalid
 
+#ifdef _debugLayout
+ShowSPandPile(393, 34);
+ShowSPandPile(394, 34);
+ShowInvalidStripRange();
+#endif
 			// break out of loop if we have come to the end of the replacements list
 			if (pReplaceSrcPhrase == NULL)
 				break;
@@ -6407,6 +6425,11 @@ ins:	;
 		}
 		else
 		{
+#ifdef _debugLayout
+ShowSPandPile(393, 32);
+ShowSPandPile(394, 32);
+ShowInvalidStripRange();
+#endif
 			// delete the non-empty range of originals from pMasterList
 			for (index = 0; index < nHowMany; index++)
 			{
@@ -6447,6 +6470,11 @@ ins:	;
 					if (pReplaceSrcPhrase == NULL)
 						break;
 				}
+#ifdef _debugLayout
+ShowSPandPile(393, 33);
+ShowSPandPile(394, 33);
+ShowInvalidStripRange();
+#endif
 			}
 			else
 			{
@@ -6468,6 +6496,11 @@ ins:	;
 					wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 					return FALSE;
 				}
+#ifdef _debugLayout
+ShowSPandPile(393, 35);
+ShowSPandPile(394, 35);
+ShowInvalidStripRange();
+#endif
 				goto ins;
 			}
 		}
@@ -17585,9 +17618,15 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		// which) strip list. So we'll get a crash now unless we do the RecalcLayout()
 		// call which takes the parameter create_strips_keep_piles. Hence the following
 		// test and the two RecalcLayout() blocks.
-		if (pLayout->GetStripArray()->IsEmpty())
+		// BEW 20Jan11, added OR gbVerticalEditInProgress to the following test, so that
+		// if the user in vertical edit hits a button like Cancel All Steps, we will have
+		// the strips rebuilt to be in sync with whatever the restored partner piles happen to
+		// be - otherwise there could be a crash because a pile has m_pOwningStrip still
+		// set to default NULL value
+		if (pLayout->GetStripArray()->IsEmpty() || gbVerticalEditInProgress)
 		{
-			// we've come here probably from an MRU document opening, strips need building
+			// we've come here probably from an MRU document opening, strips need building;
+			// or from within vertical edit
 #ifdef _NEW_LAYOUT
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
@@ -22756,7 +22795,13 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	}
 	CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
+	// been piles replaced and possibly some created in order to restore the original
+	// state, and they will still have default value for m_pOwningStrip of NULL, and that
+	// will cause a crash unless the strips are rebuilt so as to be synched to whatever
+	// pile array was reestablished
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -24960,7 +25005,12 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 	}
 	CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+    // BEW changed 20Jan11: Need to use create_strips_keep_piles to ensure that any
+    // replaced piles are properly embedded into the layout, and each partner pile's
+	// members all correctly set (otherwise, in particular, pPile's m_pOwningStrip pointer
+	// will be default NULL, and the ScrollIntoView() call below will fail)
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif

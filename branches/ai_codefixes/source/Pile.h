@@ -102,6 +102,7 @@ public:
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();
+	//void		SetMyIndexInTheStrip(int index);
 
 	int			Width();
 	int			Height();
