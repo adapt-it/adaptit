@@ -468,9 +468,10 @@ a:	Destroy();
 	delete gpApp->m_pNoteDlg; // yes, it is required in wx to prevent crashes while navigating
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
+	pView->RemoveSelection(); // in case a selection was used to indicate the note location
+	gpApp->m_pLayout->Redraw(); // needed in order to get rid of the selection
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
-
 	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
 }
 
@@ -536,6 +537,8 @@ void CNoteDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
+	pView->RemoveSelection(); // in case a selection was used to indicate the note location
+	gpApp->m_pLayout->Redraw(); // needed in order to get rid of the selection
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
 

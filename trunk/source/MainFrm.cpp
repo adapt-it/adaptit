@@ -4564,6 +4564,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 					// place the phrase box at the start of the span, and update the layout etc
 					int activeSequNum = pRec->nGlossStep_StartingSequNum;
+
 					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
 					
 					// populate the combobox with the required removals data for adaptationsStep
