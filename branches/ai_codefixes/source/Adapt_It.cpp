@@ -4830,8 +4830,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
 	EVT_MENU(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnOpenSourceDataFolder)
 	EVT_UPDATE_UI(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnUpdateOpenSourceDataFolder)
-	EVT_MENU(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnOpenExportDataFolder)
-	EVT_UPDATE_UI(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnUpdateOpenExportDataFolder)
+	EVT_MENU(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnAssignTargetExportDataFolder)
+	EVT_UPDATE_UI(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder)
+	EVT_MENU(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnSetupParatextCollaboration)
+	EVT_UPDATE_UI(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnUpdateSetupParatextCollaboration)
 	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 
@@ -31782,7 +31784,7 @@ void CAdapt_ItApp::OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void CAdapt_ItApp::OnUpdateOpenExportDataFolder(wxUpdateUIEvent& event)
+void CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event)
 {
 	if (m_curProjectPath.IsEmpty())
 	{
@@ -31801,9 +31803,21 @@ void CAdapt_ItApp::OnUpdateOpenExportDataFolder(wxUpdateUIEvent& event)
 	}
 }
 
-void CAdapt_ItApp::OnOpenExportDataFolder(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 {
-	wxMessageBox(_T("The OnOpenExportDataFolder function has not yet been written."),_T(""),wxICON_INFORMATION);
+	if (m_curProjectPath.IsEmpty())
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		event.Enable(TRUE);
+	}
+}
+
+void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event))
+{
+	wxMessageBox(_T("The OnAssignTargetExportDataFolder function has not yet been implemented."),_T(""),wxICON_INFORMATION);
 	/*
 	if (m_bShowAdministratorMenu)
 	{
@@ -31857,6 +31871,11 @@ void CAdapt_ItApp::OnOpenExportDataFolder(wxCommandEvent& WXUNUSED(event))
 		wxBell();
 	}
 	*/
+}
+
+void CAdapt_ItApp::OnSetupParatextCollaboration(wxCommandEvent& WXUNUSED(event))
+{
+	wxMessageBox(_T("The OnSetupParatextCollaboration function has not yet been implemented."),_T(""),wxICON_INFORMATION);
 }
 
 void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)

@@ -103,7 +103,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2010, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2011, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -7998,9 +7998,11 @@ wxMenuBar *AIMenuBarFunc()
     item9->AppendSeparator();
     item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password..."), _("Set a password, it will be stored in the clear in the basic configuration file") );
     item9->AppendSeparator();
+    item9->Append( ID_SETUP_PARATEXT_COLLABORATION, _("Setup Parate&xt Collaboration..."), _("Configure Adapt It to use a Paratext project for its input (source) texts, and a different Paratext project exporting its (target) texts") );
+    item9->AppendSeparator();
     item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("&Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
     item9->Append( ID_SOURCE_DATA_FOLDER, _("Open &Source Data Folder..."), _("Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.") );
-    item9->Append( ID_EXPORT_DATA_FOLDER, _("Open &Export Data Folder..."), _("Opens the project's Export Data folder (creating it first if necessary). Protects the user from folder navigation of exports.") );
+    item9->Append( ID_EXPORT_DATA_FOLDER, _("Assign Location for Translation &Exports..."), _("Assigns the Export folder to be used for translated/adapted texts (creating it first if necessary). Protects the user from folder navigation of exports.") );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item0->Append( item9, _("Ad&ministrator") );

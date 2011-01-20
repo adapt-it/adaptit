@@ -828,36 +828,37 @@ const int ID_LOCK_CUSTOM_LOCATION = 642;
 const int ID_UNLOCK_CUSTOM_LOCATION = 643;
 const int ID_LOCAL_WORK_FOLDER_MENU = 644;
 const int ID_SET_PASSWORD_MENU = 645;
-const int ID_MOVE_OR_COPY_FOLDERS_OR_FILES = 646;
-const int ID_SOURCE_DATA_FOLDER = 647;
-const int ID_EXPORT_DATA_FOLDER = 648;
-const int ID_EDIT_USER_MENU_SETTINGS_PROFILE = 649;
+const int ID_SETUP_PARATEXT_COLLABORATION = 646;
+const int ID_MOVE_OR_COPY_FOLDERS_OR_FILES = 647;
+const int ID_SOURCE_DATA_FOLDER = 648;
+const int ID_EXPORT_DATA_FOLDER = 649;
+const int ID_EDIT_USER_MENU_SETTINGS_PROFILE = 650;
 wxMenuBar *AIMenuBarFunc();
 
 // Declare toolbar functions
 
-const int ID_BUTTON_GUESSER = 650;
-const int ID_BUTTON_CREATE_NOTE = 651;
-const int ID_BUTTON_PREV_NOTE = 652;
-const int ID_BUTTON_NEXT_NOTE = 653;
-const int ID_BUTTON_DELETE_ALL_NOTES = 654;
-const int ID_BUTTON_RESPECTING_BDRY = 655;
-const int ID_BUTTON_SHOWING_PUNCT = 656;
-const int ID_BUTTON_TO_END = 657;
-const int ID_BUTTON_TO_START = 658;
-const int ID_BUTTON_STEP_DOWN = 659;
-const int ID_BUTTON_STEP_UP = 660;
-const int ID_BUTTON_BACK = 661;
-const int ID_BUTTON_MERGE = 662;
-const int ID_BUTTON_RETRANSLATION = 663;
-const int ID_BUTTON_EDIT_RETRANSLATION = 664;
-const int ID_REMOVE_RETRANSLATION = 665;
-const int ID_BUTTON_NULL_SRC = 666;
-const int ID_BUTTON_REMOVE_NULL_SRCPHRASE = 667;
-const int ID_BUTTON_CHOOSE_TRANSLATION = 668;
-const int ID_SHOWING_ALL = 669;
-const int ID_BUTTON_EARLIER_TRANSLATION = 670;
-const int ID_BUTTON_NO_PUNCT_COPY = 671;
+const int ID_BUTTON_GUESSER = 651;
+const int ID_BUTTON_CREATE_NOTE = 652;
+const int ID_BUTTON_PREV_NOTE = 653;
+const int ID_BUTTON_NEXT_NOTE = 654;
+const int ID_BUTTON_DELETE_ALL_NOTES = 655;
+const int ID_BUTTON_RESPECTING_BDRY = 656;
+const int ID_BUTTON_SHOWING_PUNCT = 657;
+const int ID_BUTTON_TO_END = 658;
+const int ID_BUTTON_TO_START = 659;
+const int ID_BUTTON_STEP_DOWN = 660;
+const int ID_BUTTON_STEP_UP = 661;
+const int ID_BUTTON_BACK = 662;
+const int ID_BUTTON_MERGE = 663;
+const int ID_BUTTON_RETRANSLATION = 664;
+const int ID_BUTTON_EDIT_RETRANSLATION = 665;
+const int ID_REMOVE_RETRANSLATION = 666;
+const int ID_BUTTON_NULL_SRC = 667;
+const int ID_BUTTON_REMOVE_NULL_SRCPHRASE = 668;
+const int ID_BUTTON_CHOOSE_TRANSLATION = 669;
+const int ID_SHOWING_ALL = 670;
+const int ID_BUTTON_EARLIER_TRANSLATION = 671;
+const int ID_BUTTON_NO_PUNCT_COPY = 672;
 void AIToolBarFunc( wxToolBar *parent );
 
 void AIToolBar32x30Func( wxToolBar *parent );
@@ -866,15 +867,15 @@ void AIToolBar32x30Func( wxToolBar *parent );
 
 wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index );
 
-const int ID_BITMAP_FOLDERAI = 672;
-const int ID_BITMAP_FILEAI = 673;
-const int ID_BITMAP_EMPTY_FOLDER = 674;
+const int ID_BITMAP_FOLDERAI = 673;
+const int ID_BITMAP_FILEAI = 674;
+const int ID_BITMAP_EMPTY_FOLDER = 675;
 wxBitmap AIMainFrameIcons( size_t index );
 
-const int ID_BUTTON_IGNORING_BDRY = 675;
-const int ID_BUTTON_HIDING_PUNCT = 676;
-const int ID_SHOWING_TGT = 677;
-const int ID_BUTTON_ENABLE_PUNCT_COPY = 678;
+const int ID_BUTTON_IGNORING_BDRY = 676;
+const int ID_BUTTON_HIDING_PUNCT = 677;
+const int ID_SHOWING_TGT = 678;
+const int ID_BUTTON_ENABLE_PUNCT_COPY = 679;
 wxBitmap AIToolBarBitmapsToggledFunc( size_t index );
 
 wxBitmap WhichFilesBitmapsFunc( size_t index );
