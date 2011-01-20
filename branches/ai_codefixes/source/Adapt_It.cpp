@@ -10490,7 +10490,13 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 		}
 		else
 		{
-            // The user aborted from the CChooseLanguageDlg dialog, so we set the
+			// TODO: Check how Canceling the dialog handles the situation where the 
+			// systemLanguage of the host machine is something like "English India" 
+			// which is not a recognized language in wxWidgets language database.
+			// In particular, we don't want curr_UI_Language to be assigned a language
+			// which has no localization.
+			// 
+			// The user aborted from the CChooseLanguageDlg dialog, so we set the
             // CurrLocalizationInfo struct's members back to their values before calling
             // CChooseLanguageDlg.
 			currLocalizationInfo.curr_UI_Language = currLocInfo.curr_UI_Language;
@@ -10502,6 +10508,12 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 	}
 	else
 	{
+		// TODO: Check how Canceling the dialog handles the situation where the 
+		// systemLanguage of the host machine is something like "English India" 
+		// which is not a recognized language in wxWidgets language database.
+		// In particular, we don't want curr_UI_Language to be assigned a language
+		// which has no localization.
+		// 
         // Localization files could not be found, and user did not hold down the ALT key to
         // force the CChooseLanguageDlg dialog to appear. Therefore we quietly assign
         // default English language values to the currLocalizationInfo struct (which will
@@ -12194,8 +12206,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 														//  Ubuntu: m_systemLanguage = 58
 														//     Mac: m_systemLanguage = 58
 	m_languageInfo = wxLocale::GetLanguageInfo(m_systemLanguage);
+	// if GetStytemLanguage() can't determine the system language it returns wxLANGUAGE_UNKNOWN
+	// for m_systemLanguage, and GetLanguageInfo(m_systemLanguage) will return NULL for
+	// m_languageInfo.
 	if (m_languageInfo != NULL)
 	{
+		wxLogDebug(_T("m_systemLanguage = %d"),m_systemLanguage); // 58
 		wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
 		wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
 		wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
@@ -12204,6 +12220,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
 #endif
 		wxLogDebug(_T("m_languageInfo->LayoutDirection = %d"),m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
+	}
+	else
+	{
+		wxLogDebug(_T("m_systemLanguage = %d (wxLANGUAGE_UNKNOWN)"),m_systemLanguage); // 58
+		wxLogDebug(_T("m_languageInfo = NULL"));
 	}
 	
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
@@ -12238,9 +12259,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// file.
 		// Once the user makes the choice the interface is set to use that language.
 		// After the first run of Adapt It, the user's choice of UI language is saved in the 
-		// registry on Windows or a hidden settings file on Linux/Mac, and the user won't be 
-		// asked again at program startup - but the user can later change the interface language
-		// choice from within the app via View | "Choose Interface Language...".
+		// wxConfig's Adapt_It_WX.ini (Windows) or .Adapt_It_WX (Linux and Mac), and the user 
+		// won't be asked again at program startup - but the user can later change the interface 
+		// language choice from within the app via View | "Choose Interface Language...".
+		// Note: currLocalizationInfo.curr_UI_Language is initialized to wxLANGUAGE_UNKNOWN by
+		// OnInit(), but may be changed by ProcessUILanguageInfoFromConfig() call made above
+		// if it has been previously determined.
 
 		if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
 		{
