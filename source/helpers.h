@@ -158,3 +158,9 @@ bool	HasParagraphMkr(wxString& str); // used when converting back from docV5 to 
 
 #endif
 
+// BEW created 20Jan11, to avoid adding duplicates of ints already in the passed in
+// wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
+// contents won't be used if another layout_selector enum valus is in effect, as
+// RecalcLayout() would recreate the strips and repopulate the partner piles in such
+// situations 
+void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);

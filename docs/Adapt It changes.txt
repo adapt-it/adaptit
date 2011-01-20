@@ -5,6 +5,9 @@ Bug fixes in 5.2.4
 ----------------------------------------------
 * Attempting to open free translation mode when the document was
 only a line or two in length, crashed the application.
+* Making a note, the note icon and wedge icon did not appear on 
+closure of the dialog, until the user caused the screen to be 
+refreshed.
 
 ----------------------------------------------
 Version 5.2.3 update 29September2010:

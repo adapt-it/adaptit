@@ -2826,7 +2826,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					if (stripIndex > 0)
 					{
 						stripIndex--;
-						pLayout->GetInvalidStripArray()->Add(stripIndex);
+						// BEW changed 20Jan11
+						AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex); 
 					}
 				}
 				// user has not typed anything at the new location yet
@@ -3116,7 +3117,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			int free = pStrip->GetFree();
 			if (free > stripWidth / 4)
 			{
-				pLayout->GetInvalidStripArray()->Add(stripIndex);
+				// BEW changed 20Jan11
+				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex); 
 			}
 		}
 	}
@@ -18254,6 +18256,8 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 // indices on the view, nCount is the count of elements in pList (it will be reduced as
 // each null source phrase is eliminated), bActiveLocAfterSelection is a flag in the
 // caller, nSaveActiveSequNum is the caller's saved value for the active sequence number
+// BEW 11Oct10, updated to remove a bug (pSrcPhraseCopy deleted and then cleared to NULL
+// and then searched for in the main m_pSrcPhrases list. Not a good idea to search for NULL!)
 void CAdapt_ItView::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,
 							int& nCount,int& nEndSequNum,bool bActiveLocAfterSelection,
 							int& nSaveActiveSequNum)
@@ -18282,7 +18286,6 @@ void CAdapt_ItView::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhr
 				RemoveRefString(pRefString,pSrcPhraseCopy,pSrcPhraseCopy->m_nSrcWords);
 			}
 			delete pSrcPhraseCopy;
-			pSrcPhraseCopy = (CSourcePhrase*)NULL;
 			pList->DeleteNode(savePos); 
 
             // the main list on the app still stores the (now hanging) pointer, so find
@@ -18295,6 +18298,7 @@ void CAdapt_ItView::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhr
 			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
 			GetDocument()->DeletePartnerPile(pSrcPhraseCopy);
 			pSrcPhrases->DeleteNode(mainPos); 
+			pSrcPhraseCopy = (CSourcePhrase*)NULL; // unneeded, but harmless
 
 			nCount -= 1; // since there is one less source phrase in the selection now
 			nEndSequNum -= 1;
@@ -25797,7 +25801,12 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		// which) strip list. So we'll get a crash now unless we do the RecalcLayout()
 		// call which takes the parameter create_strips_keep_piles. Hence the following
 		// test and the two RecalcLayout() blocks.
-		if (pLayout->GetStripArray()->IsEmpty())
+		// BEW 20Jan11, added OR gbVerticalEditInProgress to the following test, so that
+		// if the user in vertical edit hits a button like Cancel All Steps, we will have
+		// the strips rebuilt to be in sync with whatever the restored partner piles happen to
+		// be - otherwise there could be a crash because a pile has m_pOwningStrip still
+		// set to default NULL value
+		if (pLayout->GetStripArray()->IsEmpty() || gbVerticalEditInProgress)
 		{
 			// we've come here probably from an MRU document opening, strips need building
 #ifdef _NEW_LAYOUT
@@ -32444,7 +32453,13 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	}
 	CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
+	// been piles replaced and possibly some created in order to restore the original
+	// state, and they will still have default value for m_pOwningStrip of NULL, and that
+	// will cause a crash unless the strips are rebuilt so as to be synched to whatever
+	// pile array was reestablished
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -34557,7 +34572,12 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec),
         // that, else leave empty
 	CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+    // BEW changed 20Jan11: Need to use create_strips_keep_piles to ensure that any
+    // replaced piles are properly embedded into the layout, and each partner pile's
+	// members all correctly set (otherwise, in particular, pPile's m_pOwningStrip pointer
+	// will be default NULL, and the ScrollIntoView() call below will fail)
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif

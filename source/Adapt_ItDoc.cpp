@@ -3956,6 +3956,13 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 /// list end, so that each CreatePartnerPile call is creating the CPile instance which is
 /// next to be appended to PileList. We test for non-compliance with this rule and abort
 /// the application if it happens, because to continue would inevitably lead to an app crash.
+/// BEW 20Jan11, replacing partner piles is a problem in some circumstances, because the
+/// pile count could change larger and so some new piles can't then be assigned to a
+/// strip. This circumstance needs create_strips_keep_piles to be used for the
+/// layout_selector enum value in RecalcLayout() in order to get the strips and piles in
+/// sync; this comment is for information only, no code was changed below, except the
+/// addition of AddUniqueInt() (an unrelated issue, the latter is to prevent duplicate
+/// strip indices being stored in the m_invalidStripArray of CLayout)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 {
@@ -4032,7 +4039,8 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 			CStrip* pLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
 			pLastStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 			int nStripIndex = pLastStrip->GetStripIndex();
-			pLayout->GetInvalidStripArray()->Add(nStripIndex); 
+			// BEW changed 20Jan11
+			AddUniqueInt(pLayout->GetInvalidStripArray(), nStripIndex); 
 		}
 		// now do the append
 		posPile = pPiles->Append(pNewPile); // do this only after aPilePtr is calculated
@@ -4129,8 +4137,9 @@ void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 	CStrip* pStrip = pChangedPile->GetStrip();
 	pStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 	int nStripIndex = pStrip->GetStripIndex();
-	pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
-										  // which strips are invalid
+	// BEW changed 20Jan11
+	AddUniqueInt(pInvalidStripArray, nStripIndex); 
+	// this array makes it easy to quickly compute which strips are invalid
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -913,122 +913,6 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 	}
 	return endmarkers;
 }
-/* From MFC version below
-////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString containing one or more consecutive endmarkers followed by their trailing
-///             whitespace characters; or an empty string if there were no endmarkers detected
-/// \param      pSrcPhrase	->	the pSourcePhrase which is first in the document part immediately following the
-///     						earlier part of the document which has just been split off from the rest
-/// \param      currSfmSet	->	either UsfmOnly, or PngOnly, or perhaps rarely, UsfmAndPng - whatever is
-///     						the current value stored in the global gCurrentSfmSet
-/// \param      bLacksAny	<->	ref to a bool which is FALSE on entry, but set TRUE if there is no initial
-///     						endmarker in pSrcPhrase's m_markers member (ie. when TRUE there are no
-///     						initial enddmarkers in the pSrcPhrase->m_markers member)
-/// \param      bCopyOnly	->	Default FALSE means the endmarkers are found and the copy of them returned and
-///     						they are removed from the passed in pSrcPhrase's m_markers member; but TRUE 
-///     						means only that the first two effects happen, they are left on the pSrcPhrase's
-///     						m_markers member
-/// \remarks
-/// Called from: the View's TransportWidowedEndmarkersToFollowingContext(), OnEditSourceText(), and 
-/// SplitDialog::MoveFinalEndmarkersToEndOfLastChapter().
-/// Used to detect one or more initial endmarkers in the m_markers member of the pSourcePhrase passed
-/// in, move them to a different tempory CString, leave the remainder in m_markers, and pass a copy
-/// of the tempory CString to the caller - the caller then must create a new CSourcePhrase pointer,
-/// store the one or more moved endmarkers in its m_markers member, and add it to the tail of the
-/// split off document part's CObList, thereby preserving correct document SFM or USFM structure.
-/// This function is used in the SplitDocument class's MoveFinalEndmarkersToEndOfLastChapter() member
-/// function, which is itself used in the handler for processing per-chapter splitting, and also in
-/// the helper function SplitOffStartOfList() defined here in Helpers.cpp, which is used in both
-/// splitting at the box location, and at the next chapter.
-/// History:
-/// Created 15Aug07 by BEW, in response to an email bug report from Bill Martin on same date
-/// 19May08, BEW also used this function, with added 4th parameter, bCopyOnly = FALSE, so that when
-/// refactoring the edit source text functionality the markers can be returned to the caller without
-/// altering the pSrcPhrase in the m_pSourcePhrases list on the document by passing in TRUE for that
-/// parameter.
-////////////////////////////////////////////////////////////////////////////////////////////
-wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet, bool& bLacksAny,
-								bool bCopyOnly)
-{
-	// bAbortOp is FALSE on input
-	wxString markers, endmarkers;
-	endmarkers.Empty();
-	int offset = 0;
-	int lastPos = offset;
-	wxString aToken;
-	markers = pSrcPhrase->m_markers;
-	wxStringTokenizer tkz(markers,_T(" \n\r\t"));
-	while (tkz.HasMoreTokens())
-	{
-		aToken = tkz.GetNextToken();
-		if (aToken.IsEmpty())
-		{
-			bLacksAny = TRUE;
-			return endmarkers;
-		}
-		aToken = MakeReverse(aToken);
-		if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
-			((aToken != _T("ef\\") || aToken != _T("F\\")) && 
-			(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
-		{
-			// marker's final character is not an asterisk, nor a reversed one of the possible
-			// PngOnly sfm set's \F or \fe markers (either was historically used for ending 
-			// footnotes); hence it is not an endmarker, so return
-			bLacksAny = TRUE;
-			return endmarkers;
-		}
-
-		aToken = MakeReverse(aToken);
-		endmarkers += aToken + tkz.GetLastDelimiter(); // accumulate the token and its delimiter
-		lastPos = tkz.GetPosition(); // gets the current position, i.e., one index after the last returned token
-		
-	// it is an endmarker, so break out any others at the start of markers
-	bLacksAny = FALSE;
-	while (!aToken.IsEmpty())
-	{
-		lastPos = offset;
-		aToken = markers.Tokenize(_T(" \n\r\t"),offset);
-		if (aToken.IsEmpty())
-			break;
-		else
-		{
-			aToken.MakeReverse();
-			if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
-				((aToken != _T("ef\\") || aToken != _T("F\\")) && 
-				(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
-			{
-				// same test as above, only this time just break out if it returns TRUE
-				break;
-			}
-		}
-	}
-	// the break-out token, if any, will have resulted in offset pointing past it, so we have
-	// to use lastPos to get the offset which points past the last broken out endmarker
-	// BEW added 30Aug08, to fix a crash where, if the markers CString contains just \f* then
-	// lastPos is 4 at breakout, and that triggers a breakpoint in atlsimpstr.cpp because lastPos
-	// accesses the byte past the '\0' endbyte of the string; so we here check and reduce lastPos
-	// if that is the case
-	int strLen = markers.GetLength();
-	if (lastPos > strLen)
-		lastPos = strLen;
-
-	// include any following white space after the lostPos position, in the endmarkers substring 
-	while (markers[lastPos] == _T(' ') || markers[lastPos] == _T('\n') || markers[lastPos] == _T('\r') ||
-		markers[lastPos] == _T('\t'))
-	{lastPos++;}
-	endmarkers = markers.Left(lastPos); // this stuff belongs at the end of the list in the previous
-									   // Chapter object; or if editing source text, it belongs with
-									   // the previous storage location's source text
-	if (!bCopyOnly)
-	{
-		// remove the endmarkers from pSrcPhrase->m_markers only when bCopyOnly is not TRUE
-		markers = markers.Mid(lastPos); // whatever is left over, belongs in the current Chapter object, or
-									// the remainder part of the document, depending on radio button choice
-		pSrcPhrase->m_markers = markers; // update the m_markers member in the current Chapter's CSourcePhrase
-	}
-	return endmarkers;
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with 
@@ -2022,5 +1906,32 @@ bool HasParagraphMkr(wxString& str)
 				  //  do anything more sophisticated than the code above
 }
 
+// BEW created 20Jan11, to avoid adding duplicates of ints already in the passed in
+// wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
+// contents won't be used if another layout_selector enum valus is in effect, as
+// RecalcLayout() would recreate the strips and repopulate the partner piles in such
+// situations 
+void AddUniqueInt(wxArrayInt* pArrayInt, int nInt)
+{
+	int count = pArrayInt->GetCount();
+	if (count == 0)
+	{
+		pArrayInt->Add(nInt);
+	}
+	else
+	{
+		int index = pArrayInt->Index(nInt);
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so Add() it
+			pArrayInt->Add(nInt);
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return;
+		}
+	}
+}
 
 
