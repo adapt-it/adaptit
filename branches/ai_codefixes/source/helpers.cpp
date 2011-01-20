@@ -6410,8 +6410,9 @@ bool HasParagraphMkr(wxString& str)
 				  //  it was always only set by \p being in m_markers, we'll not bother to
 				  //  do anything more sophisticated than the code above
 }
-
-// a diagnostic function used for chasing a vertical edit bug
+/*
+// a diagnostic function used for chasing a bug due to partner piles not being fully
+// populated when CSourcePhrase replacements were done (as in vertical editing)
 void ShowSPandPile(int atSequNum, int whereTis)
 {
 	SPList* pList = gpApp->m_pSourcePhrases;
@@ -6479,7 +6480,7 @@ void ShowInvalidStripRange()
 		wxLogDebug(_T("No invalid strips in m_pInvalidStripArray"));
 	}
 }
-
+*/
 
 
 

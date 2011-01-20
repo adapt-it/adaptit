@@ -14,7 +14,7 @@
 /// \derivation		The CAdapt_ItCanvas class is derived from wxScrolledWindow.
 /////////////////////////////////////////////////////////////////////////////
 
-#define _debugLayout
+//#define _debugLayout
 
 // uncomment out next line in order to turn on wxLogDebug calls in ScrollIntoView()
 //#define DEBUG_ScrollIntoView
@@ -2008,11 +2008,11 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
 #endif
 
-#ifdef _debugLayout
-ShowSPandPile(393, 50);
-ShowSPandPile(394, 50);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 50);
+//ShowSPandPile(394, 50);
+//ShowInvalidStripRange();
+//#endif
 
 	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
 	if (!debugDisableScrollIntoView)

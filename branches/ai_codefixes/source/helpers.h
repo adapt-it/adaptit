@@ -311,8 +311,11 @@ bool HasParagraphMkr(wxString& str);
 void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
 
 
-// a diagnostic function used for chasing a vertical edit bug
-void ShowSPandPile(int atSequNum, int whereTis);
-void ShowInvalidStripRange();
+// two diagnostic functions which can be used for chasing any bug resulting from the
+// partner piles not having all required values filled out, especially m_pSrcPhrase and
+// m_pOwningPile, and so not being properly in sync with the doc list; uncomment places
+// where the #define _debugLayout is, and the calls below
+//void ShowSPandPile(int atSequNum, int whereTis);
+//void ShowInvalidStripRange();
 
 #endif	// helpers_h

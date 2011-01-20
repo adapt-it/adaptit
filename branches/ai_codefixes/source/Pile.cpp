@@ -240,11 +240,6 @@ bool CPile::GetIsCurrentFreeTransSection()
 	return m_bIsCurrentFreeTransSection;
 }
 
-//void CPile::SetMyIndexInTheStrip(int index)
-//{
-//	m_nPile = index;
-//}
-
 int CPile::Width()
 {
     // Note: for this calculation to return the correct values in all circumstances, the

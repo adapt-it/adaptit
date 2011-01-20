@@ -19,7 +19,7 @@
 //#define DrawFT_Bug
 //#define FINDNXT
 
-#define _debugLayout
+//#define _debugLayout
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
@@ -2766,7 +2766,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					if (stripIndex > 0)
 					{
 						stripIndex--;
-						pLayout->GetInvalidStripArray()->Add(stripIndex);
+						//pLayout->GetInvalidStripArray()->Add(stripIndex);
+						// BEW changed 20Jan11, we want only unique indices in the array
+						AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
 					}
 				}
 				// user has not typed anything at the new location yet
@@ -3089,7 +3091,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			int free = pStrip->GetFree();
 			if (free > stripWidth / 4)
 			{
-				pLayout->GetInvalidStripArray()->Add(stripIndex);
+				// BEW changed 20Jan11, we want only unique indices in the array
+				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
 			}
 		}
 	}
@@ -6295,11 +6298,11 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	CSourcePhrase* pReplaceSrcPhrase = NULL;
 	CSourcePhrase* pDeepCopiedSrcPhrase = NULL;
 
-#ifdef _debugLayout
-ShowSPandPile(393, 30);
-ShowSPandPile(394, 30);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 30);
+//ShowSPandPile(394, 30);
+//ShowInvalidStripRange();
+//#endif
 
 	int maxIndex = pApp->GetMaxIndex();
 	if (nStartAt > maxIndex)
@@ -6337,11 +6340,11 @@ ShowInvalidStripRange();
 			return FALSE;
 		}
 	}
-#ifdef _debugLayout
-ShowSPandPile(393, 31);
-ShowSPandPile(394, 31);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 31);
+//ShowSPandPile(394, 31);
+//ShowInvalidStripRange();
+//#endif
 	posReplace = pReplacementsList->Item(nReplaceStartAt);
 	if (posMaster == NULL)
 	{
@@ -6365,7 +6368,7 @@ ShowInvalidStripRange();
 	{
 		// insertion is wanted, preceding posMaster location
 ins:	;
-#ifdef __WXDEBUG__
+//#ifdef __WXDEBUG__
 		//SPList::Node* posDebug = pMasterList->GetFirst();
 		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		//{
@@ -6375,7 +6378,7 @@ ins:	;
 		//	wxLogDebug(_T("pMasterList BEFORE Insert: pSrcPh->m_srcPhrase = %s"),
 		//	pSrcPh->m_srcPhrase.c_str());
 		//}
-#endif
+//#endif
 
 		for (index = 0; index < nReplaceCount; index++)
 		{
@@ -6392,16 +6395,16 @@ ins:	;
 			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks its or a
 														// nearby strip as invalid
 
-#ifdef _debugLayout
-ShowSPandPile(393, 34);
-ShowSPandPile(394, 34);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 34);
+//ShowSPandPile(394, 34);
+//ShowInvalidStripRange();
+//#endif
 			// break out of loop if we have come to the end of the replacements list
 			if (pReplaceSrcPhrase == NULL)
 				break;
 		}
-#ifdef __WXDEBUG__
+//#ifdef __WXDEBUG__
 		//posDebug = pMasterList->GetFirst();
 		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		//{
@@ -6411,7 +6414,7 @@ ShowInvalidStripRange();
 		//	wxLogDebug(_T("pMasterList AFTER Insert: pSrcPh->m_srcPhrase = %s"),
 		//	pSrcPh->m_srcPhrase.c_str());
 		//}
-#endif
+//#endif
 		return TRUE;
 	}
 	else
@@ -6425,11 +6428,11 @@ ShowInvalidStripRange();
 		}
 		else
 		{
-#ifdef _debugLayout
-ShowSPandPile(393, 32);
-ShowSPandPile(394, 32);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 32);
+//ShowSPandPile(394, 32);
+//ShowInvalidStripRange();
+//#endif
 			// delete the non-empty range of originals from pMasterList
 			for (index = 0; index < nHowMany; index++)
 			{
@@ -6470,11 +6473,11 @@ ShowInvalidStripRange();
 					if (pReplaceSrcPhrase == NULL)
 						break;
 				}
-#ifdef _debugLayout
-ShowSPandPile(393, 33);
-ShowSPandPile(394, 33);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 33);
+//ShowSPandPile(394, 33);
+//ShowInvalidStripRange();
+//#endif
 			}
 			else
 			{
@@ -6496,11 +6499,11 @@ ShowInvalidStripRange();
 					wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 					return FALSE;
 				}
-#ifdef _debugLayout
-ShowSPandPile(393, 35);
-ShowSPandPile(394, 35);
-ShowInvalidStripRange();
-#endif
+//#ifdef _debugLayout
+//ShowSPandPile(393, 35);
+//ShowSPandPile(394, 35);
+//ShowInvalidStripRange();
+//#endif
 				goto ins;
 			}
 		}
