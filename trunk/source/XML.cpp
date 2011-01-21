@@ -119,7 +119,7 @@ int gnRefCount; // reference count for the current CRefString instance
 //bool bKeyDefined = FALSE;
 //extern bool gbIsGlossing;
 
-static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
+//static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
 						// for a given key, the relevant map contains a CTargetUnit
 						// instance, and this will be a pointer to it
 static char emptyStr[32];
