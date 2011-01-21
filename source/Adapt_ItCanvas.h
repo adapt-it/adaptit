@@ -50,7 +50,7 @@ public:
     void OnPaint(wxPaintEvent &WXUNUSED(event));
 	void DoPrepareDC(wxDC& dc); // this is called OnPrepareDC() in MFC
 
-#if wxUSE_GRAPHICS_CONTEXT
+#if wxUSE_GRAPHICS_CONTEXT && __WXMAC__
 	void UseGraphicContext(bool use) {m_useContext = use; Refresh();};
 #endif
 	
@@ -97,7 +97,7 @@ public:
 private:
 	// class attributes
 
-#if wxUSE_GRAPHICS_CONTEXT
+#if wxUSE_GRAPHICS_CONTEXT && __WXMAC__
 	bool m_useContext;
 #endif
 
