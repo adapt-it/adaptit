@@ -4957,8 +4957,12 @@ void CAdapt_ItDoc::ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPLis
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterPunctuationChange()
 /// Handles one pSrcPhrase and ignores the m_pSavedWords list, since that is handled within
-/// the ReconstituteAfterPunctuationChange() function for the owning srcPhrase with m_nSrcWords > 1.
-/// For the return value, see ReconstituteAfterPunctuationChange()'s return value - same deal applies here.
+/// the ReconstituteAfterPunctuationChange() function for the owning srcPhrase with
+/// m_nSrcWords > 1. For the return value, see ReconstituteAfterPunctuationChange()'s
+/// return value - same deal applies here.
+/// BEW 11Oct10 (actually 21Jan11) modified to use FromSingleMakeSstr(), and to use the
+/// TokenizeText() parser - but using target text and punctuation in order to obtain the
+/// punctuation-less target text
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, 
 						SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
@@ -4980,17 +4984,33 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	wxString gloss; // copy of m_gloss member
 	key.Empty(); adaption.Empty(); gloss.Empty();
 
-	// setup the srcPhrase, targetStr and gloss strings - we must handle glosses too regardless of the current mode
-	// (whether adapting or not)
+    // setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
+    // regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
-	srcPhrase = pSrcPhrase->m_srcPhrase; // this member has all the source 
+	wxString mMarkersStr;
+	wxString xrefStr;
+	wxString filteredInfoStr;
+	// BEW 21Jan11, changed to reconstruct srcPhrase using FromSingleMakeSstr() - which
+	// will generate any binding markers, non-binding inline markers, and punctuation from
+	// what is stored in pSrcPhrase, in their correct places
+	bool bAttachFilteredInfo = TRUE;
+	bool bAttach_m_markers = TRUE;
+	bool bDoCount = FALSE;
+	bool bCountInTargetText = FALSE;
+	srcPhrase = FromSingleMakeSstr(pSrcPhrase, bAttachFilteredInfo, bAttach_m_markers, 
+					mMarkersStr, xrefStr, filteredInfoStr, bDoCount, bCountInTargetText);	
+	//srcPhrase = pSrcPhrase->m_srcPhrase; // this member has all the source 
 										 // punctuation, if any on this word or phrase
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
+	{
 		bHasTargetContent = FALSE;	// use to suppress copying of source punctuation 
 									// to an adaptation not yet existing
+	}
 	else
+	{
 		targetStr = pSrcPhrase->m_targetStr; // likewise, has punctuation, if any
+	}
 
     // handle placeholders - these have elipsis ... as their m_key and m_srcPhrase
     // members, and so there is no possibility of punctuation changes having any effect
@@ -5002,7 +5022,29 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	CSourcePhrase* pNewSrcPhrase;
 	SPList::Node* newpos;
 	if (bPlaceholder)
-		goto b;
+	{
+		// the adaptation, and gloss if any, is already presumably what the user wants, 
+		// so we'll just remove punctuation from the adaptation, and set the relevant members
+		// (m_targetStr is already correct) - but only provided there is an existing adaptation
+		pSrcPhrase->m_gloss = gloss;
+		// remove any initial or final spaces before using it
+		targetStr.Trim(TRUE); // trim right end
+		targetStr.Trim(FALSE); // trim left end
+		if (bHasTargetContent)
+		{
+			adaption = targetStr;
+			// Note: RemovePunctuation() calls ParseWord() in order to give consistent
+			// punctuation stripping with parsing text, src or tgt, in the rest of the app
+			pView->RemovePunctuation(this, &adaption, from_target_text);
+			pSrcPhrase->m_adaption = adaption;
+
+			// update the KBs (both glossing and adapting KBs) provided it is 
+			// appropriate to do so
+			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
+				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
+		}
+		return TRUE;
+	}
 
     // BEW 8Jul05: a pSrcPhrase with empty m_srcPhrase and empty m_key can't produce
     // anything when passed to TokenizeTextString, and so to prevent numElements being
@@ -5013,7 +5055,10 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 
     // reparse the srcPhrase string - if we get a single CSourcePhrase as the result,
     // we have a simple job to complete the rebuild for this passed in pSrcPhrase; if
-    // we get more than one, we'll have to abandon the adaptation or gloss and set up
+    // we get more than one, we'll have to do something smarter...
+    // 
+    // 
+    //  to abandon the adaptation or gloss and set up
     // the flags etc accordingly, and return the two or more new instances to the
     // caller - the caller will know what to do (eg. we might be processing an owned
     // original CSourcePhrase instance from a former merge, and if so we'd want to
@@ -5042,21 +5087,47 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
         // in the new parse
 		fpos = pNewList->GetFirst();
 		pNewSrcPhrase = fpos->GetData();
+
+		// first, copy over the flags
+		CopyFlags(pNewSrcPhrase,pSrcPhrase); // copies boolean flags from param2 to param1
+
+		// next, info not handled by ParseWord()
+		pNewSrcPhrase->m_curTextType = pSrcPhrase->m_curTextType;
+		pNewSrcPhrase->m_inform = pSrcPhrase->m_inform;
+		pNewSrcPhrase->m_chapterVerse = pSrcPhrase->m_chapterVerse;
+		pNewSrcPhrase->m_markers = pSrcPhrase->m_markers;
+		pNewSrcPhrase->m_nSequNumber= pSrcPhrase->m_nSequNumber;
+		
+		// next the text info and m_markers member
+		pSrcPhrase->m_srcPhrase = pNewSrcPhrase->m_srcPhrase;
 		pSrcPhrase->m_key = pNewSrcPhrase->m_key;
 		pSrcPhrase->m_precPunct = pNewSrcPhrase->m_precPunct;
 		pSrcPhrase->m_follPunct = pNewSrcPhrase->m_follPunct;
+		pSrcPhrase->m_markers = pNewSrcPhrase->m_markers;
+
+		// finally, the new docV5 members...
+		pSrcPhrase->SetFollowingOuterPunct(pNewSrcPhrase->GetFollowingOuterPunct());
+		pSrcPhrase->SetInlineBindingEndMarkers(pNewSrcPhrase->GetInlineBindingEndMarkers());
+		pSrcPhrase->SetInlineBindingMarkers(pNewSrcPhrase->GetInlineBindingMarkers());
+		pSrcPhrase->SetInlineNonbindingMarkers(pNewSrcPhrase->GetInlineNonbindingMarkers());
+		pSrcPhrase->SetInlineNonbindingEndMarkers(pNewSrcPhrase->GetInlineNonbindingEndMarkers());
+		pSrcPhrase->SetEndMarkers(pNewSrcPhrase->GetEndMarkers());
+		pSrcPhrase->SetNote(pNewSrcPhrase->GetNote());
+		pSrcPhrase->SetFreeTrans(pNewSrcPhrase->GetFreeTrans());
+		pSrcPhrase->SetCollectedBackTrans(pNewSrcPhrase->GetCollectedBackTrans());
+		pSrcPhrase->SetFilteredInfo(pNewSrcPhrase->GetFilteredInfo());
 
 		// the adaptation, and gloss if any, is already presumably what the user wants, 
 		// so we'll just remove punctuation from the adaptation, and set the relevant members
 		// (m_targetStr is already correct) - but only provided there is an existing adaptation
-b:		pSrcPhrase->m_gloss = gloss;
+		pSrcPhrase->m_gloss = gloss;
 		// remove any initial or final spaces before using it
 		targetStr.Trim(TRUE); // trim right end
 		targetStr.Trim(FALSE); // trim left end
 		if (bHasTargetContent)
 		{
 			adaption = targetStr;
-			pView->RemovePunctuation(this,&adaption,from_target_text); // 1 = from tgt
+			pView->RemovePunctuation(this,&adaption,from_target_text);
 			pSrcPhrase->m_adaption = adaption;
 
 			// update the KBs (both glossing and adapting KBs) provided it is 
@@ -5064,35 +5135,36 @@ b:		pSrcPhrase->m_gloss = gloss;
 			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
 				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
 		}
-
 		return TRUE;
 	}
 	else
 	{
-        // oops, somehow we got more than a single sourcephrase instance -- we'll have
-        // to transfer the legacy information (such as filtered stuff, markers, etc) to
-        // the first of the new instances here, and then return to the caller so it can
-        // have those instances inserted into the document's list in place of the
-        // original single instance. (User will need to manually edit at this location
-        // later on.) All CSourcePhrase instances handled in this block have to be
-        // marked as m_bHasKBEntry == FALSE, and m_bHasGlossingKBEntry == FALSE too,
-        // since the user will have to readapt/regloss later for these ones.
+        // oops, somehow we got more than a single sourcephrase instance -- we'll have to
+        // transfer the legacy information (such as filtered stuff, markers, etc) to the
+        // first of the new instances (in order to ensure data remains in correct order),
+        // and then return to the caller so it can have these instances inserted into the
+        // document's list in place of the original single instance. (User will need to
+        // manually edit at this location later on.) We will do the KB update only for the
+        // CSourcePhrase instance to which we transferred the parsed data -- if this is
+        // inadequate, the user can edit the document at this location later on - which
+        // will also accomplish the KB adjustments automatically The other new
+        // CSourcePhrase instances handled in this block have to be marked as m_bHasKBEntry
+        // == FALSE, and m_bHasGlossingKBEntry == FALSE too, since we'll return these as
+        // "holes" - the user can later inspect and do something else if he wishes,
+        // manually
 		CSourcePhrase* pSPnew = NULL;
 		SPList::Node* pos2 = pNewList->GetFirst();
 		bool bIsFirst = TRUE;
 		bool bIsLast = FALSE;
+		bool bIsNonFirst = FALSE;
 		while (pos2 != NULL)
 		{
-			pSPnew = (CSourcePhrase*)pos2->GetData(); // m_srcPhrase, m_key, 
-                        // m_precPunct, m_follPunct, m_nSrcWords are set, but it has no
-                        // idea what context it belongs to and so all other flags and
-                        // strings have to be copied from the original pSrcPhrase
-                        // passed in, but we copy only to the new first instance of
-                        // pSPnew, and for subsequent ones just propagate what is
-                        // necessary to those
+			pSPnew = pos2->GetData();
 			pos2 = pos2->GetNext();
 			if (pos2 == NULL)
+			{
 				bIsLast = TRUE;
+			}
 			if (bIsFirst)
 			{
                 // copying everything to the first instance ensures that the source
@@ -5102,20 +5174,51 @@ b:		pSrcPhrase->m_gloss = gloss;
 				CopyFlags(pSPnew,pSrcPhrase);
 
                 // copy the other stuff, except for the sublists (since m_pSavedWords,
-                // m_pMedialPuncts, and m_pMedialMarkers we must leave for the caller
-                // to handle, since these pertain only to a passed in pSrcPhrase which
-                // is a merged one - so the caller will need extra apparatus to handle
-                // such instances correctly; moreover, those three lists are always
-                // empty for owned instances and for non-owned instances which are not
-                // merged, so it is safe to ignore them here)
+                // m_pMedialPuncts, and m_pMedialMarkers are not handled here, but in the
+                // caller - since these pertain only to a merged CSourcePhrase instance -
+                // so the caller will need extra apparatus to handle such instances
+                // correctly; moreover, those three member variables are always empty for
+                // owned instances and for non-owned instances which are not merged, so it
+                // is safe to ignore them here)
 				pSPnew->m_curTextType = pSrcPhrase->m_curTextType;
 				pSPnew->m_inform = pSrcPhrase->m_inform;
 				pSPnew->m_chapterVerse = pSrcPhrase->m_chapterVerse;
 				pSPnew->m_markers = pSrcPhrase->m_markers;
 				pSPnew->m_nSequNumber= pSrcPhrase->m_nSequNumber;
 
+				// finally, the new docV5 members...
+				pSPnew->SetFollowingOuterPunct(pSrcPhrase->GetFollowingOuterPunct());
+				pSPnew->SetInlineBindingEndMarkers(pSrcPhrase->GetInlineBindingEndMarkers());
+				pSPnew->SetInlineBindingMarkers(pSrcPhrase->GetInlineBindingMarkers());
+				pSPnew->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+				pSPnew->SetInlineNonbindingEndMarkers(pSrcPhrase->GetInlineNonbindingEndMarkers());
+				pSPnew->SetEndMarkers(pSrcPhrase->GetEndMarkers());
+				pSPnew->SetNote(pSrcPhrase->GetNote());
+				pSPnew->SetFreeTrans(pSrcPhrase->GetFreeTrans());
+				pSPnew->SetCollectedBackTrans(pSrcPhrase->GetCollectedBackTrans());
+				pSPnew->SetFilteredInfo(pSrcPhrase->GetFilteredInfo());
 
+                // the adaptation, and gloss if any, is already presumably what the user
+                // wants, so we'll just remove punctuation from the adaptation, and set the
+                // relevant members (m_targetStr is already correct) - but only provided
+                // there is an existing adaptation
+				pSPnew->m_gloss = gloss;
+				// remove any initial or final spaces before using targetStr
+				targetStr.Trim(TRUE); // trim right end
+				targetStr.Trim(FALSE); // trim left end
+				if (bHasTargetContent)
+				{
+					adaption = targetStr;
+					pView->RemovePunctuation(this,&adaption,from_target_text);
+					pSPnew->m_adaption = adaption;
+
+					// update the KBs (both glossing and adapting KBs) provided it is 
+					// appropriate to do so
+					if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
+						pView->StoreKBEntryForRebuild(pSPnew, adaption, gloss);
+				}
 				bIsFirst = FALSE;
+				bIsNonFirst = TRUE;
 			}
 			else
 			{
@@ -5133,7 +5236,6 @@ b:		pSrcPhrase->m_gloss = gloss;
 				// the m_bFirstOfType cannot possibly be set TRUE on any of the 
 				// non-first new instances
 				pSPnew->m_bFirstOfType = FALSE;
-
 			}
             // set up booleans which record that the instance is the last of a
             // retranslation or footnote; and handle m_bBoundary likewise, since
@@ -5153,8 +5255,11 @@ b:		pSrcPhrase->m_gloss = gloss;
 
             // ensure that the "Has..." boolean values are FALSE, since we have
             // abandoned the gloss and adaptation strings
-			pSPnew->m_bHasKBEntry = pSrcPhrase->m_bHasKBEntry;
-			pSPnew->m_bHasGlossingKBEntry = pSrcPhrase->m_bHasGlossingKBEntry;
+            if (bIsNonFirst)
+			{
+				pSPnew->m_bHasKBEntry = FALSE;
+				pSPnew->m_bHasGlossingKBEntry = FALSE;
+			}
 		} // end of loop for iterating over the new CSourcePhrase instances 
 		  // resulting from the reparse
 
@@ -16112,7 +16217,19 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		numElements = pView->TokenizeTextString(pResultList, srcPhrase, 
 												pSrcPhrase->m_nSequNumber);
 		wxASSERT(numElements > 1);
-		
+
+
+        // BEW for thought.... Redesign this next bit?? So that we remerge no matter if the
+        // count changes or not, provided the count is less than MAXWORDS; if it is greater
+        // than MAXWORDS then consider the possibility of making the list of CSourcePhrases
+        // into a retranslation, - that way we can keep the adjusted adaptation (gloss may
+        // be trickier, but if it exists, we could tokenize it and assign the tokens to the
+        // instances, and if more, then all the leftovers go to the last...
+
+
+
+
+
 		// test to see if we have a candidate for rebuilding successfully
 		if ((int)pResultList->GetCount() == nOriginalCount)
 		{
@@ -16363,6 +16480,8 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				pMergedSrcPhr->m_targetStr = targetStr;
 				pMergedSrcPhr->m_gloss = gloss;
 				adaption = targetStr;
+				// Note, the RemovePunctuation call uses ParseWord(), to get consistent
+				// punctuation handling/parsing across the application
 				pView->RemovePunctuation(this,&adaption,from_target_text);
 				pMergedSrcPhr->m_adaption = adaption;
 
