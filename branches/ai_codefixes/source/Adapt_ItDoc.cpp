@@ -5152,6 +5152,17 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
         // == FALSE, and m_bHasGlossingKBEntry == FALSE too, since we'll return these as
         // "holes" - the user can later inspect and do something else if he wishes,
         // manually
+        
+
+// *************** TODO ********************
+		// If there are > 1 CSourcePhrase instances, which one does the original non-empty
+		// m_endmarkers, and m_inlineBindingEndMarker and m_inlineNonbindingEndMarker, and
+		// m_follOuterPunct belong on?
+		// I need to think this through and build code to check and assign wherever these
+		// should be put - not all necessarily on the same instance either!
+
+
+
 		CSourcePhrase* pSPnew = NULL;
 		SPList::Node* pos2 = pNewList->GetFirst();
 		bool bIsFirst = TRUE;
@@ -16226,7 +16237,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
         // be trickier, but if it exists, we could tokenize it and assign the tokens to the
         // instances, and if more, then all the leftovers go to the last...
 
-
+// *************** TODO ****************
 
 
 
