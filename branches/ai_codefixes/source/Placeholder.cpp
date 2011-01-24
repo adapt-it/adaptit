@@ -374,6 +374,15 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 }
 
+CSourcePhrase*  CPlaceholder::CreateBasicPlaceholder()
+{
+	CSourcePhrase* pSP = new CSourcePhrase();
+	pSP->m_bNullSourcePhrase = TRUE;
+	pSP->m_key = _T("...");
+	pSP->m_srcPhrase = pSP->m_key;
+	return pSP;
+}
+
 // BEW additions 22Jul05 for support of free translations when placeholder insertions are 
 // done
 // BEW additions 17Feb10 in support of doc version 5 (a previous, or at end of retranslation,

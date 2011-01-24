@@ -974,6 +974,144 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 	}
 }
 
+// pList is a sublist of CSourcePhrase instances, from a reparse of a source text string
+// (typically from calling FromMergerMakeSstr() which re-generates the source of the
+// merger, including all markers and (if we request it, and we would have) all filtered
+// info stored thereon)
+// tgtText is the adaptation text, if any, stored on that merger - including punctuation
+// gloss is the gloss text, if any, stored on that merger -- Note, we'll not tokenize the
+// gloss into an array of words and assign them to the CSourcePhrase instances - it is
+// almost certain that this would produce invalid correspondences between source text and
+// glosses, so we'll just assign the whole gloss to the m_gloss member of the first
+// instance - that way, if a manual edit is needed, the user only has one place to grab
+// the whole gloss from
+void CRetranslation::ConvertSublistToARetranslation(SPList* pList, wxString& tgtText, wxString& gloss)
+{
+	// Note: the CSourcePhrase instances in pList are not yet inserted into the
+	// m_pSourcePhrases list of the document, so we don't here need to create partner
+	// piles for any new ones we may add to the list
+	long listCount = (long)pList->GetCount();
+	if (listCount == 0)
+		return;
+	SPList::Node* pos = pList->GetFirst();
+	CSourcePhrase* pSrcPhrase = pos->GetData();
+	SPList::Node* posEnd = pList->GetLast();
+	CSourcePhrase* pEndSrcPhrase = posEnd->GetData();
+	int lastSequNum = pEndSrcPhrase->m_nSequNumber;
+	TextType theType = pEndSrcPhrase->m_curTextType;
+	bool bSpecialText = pEndSrcPhrase->m_bSpecialText;
+	bool bFootnoteEnd = pEndSrcPhrase->m_bFootnoteEnd;
+	bool bBoundary = pEndSrcPhrase->m_bBoundary;
+	bool bHasFreeTrans = pEndSrcPhrase->m_bHasFreeTrans;
+	bool bEndFreeTrans = pEndSrcPhrase->m_bEndFreeTrans;
+	
+	SPList::Node* posNewLast;
+	
+	// put the whole gloss on the first instance
+	pSrcPhrase->m_gloss = gloss;
+
+    // tokenize the target text, using space as a delimiter, into words (including any
+    // punctuation on each), the final FALSE parameter is bStoreEmptyStringsToo
+	wxArrayString arrTgtText;
+	wxString delimiters = _T(" ");
+	long numTgtElements = SmartTokenize(delimiters, tgtText, arrTgtText, FALSE);
+
+	// if numTgtElements is greater than listCount, we need to add Placeholders at the end
+	// of the sublist in order to carry the extra tokens which SmartTokenize() generated;
+	// to do this job we reuse some of the code from the PadWithNullSourcePhrasesAtEnd()
+	// function
+	long nExtrasLong = numTgtElements - listCount;
+	if (nExtrasLong > 0)
+	{
+		// padding is required... & so closing-off things may need shifting to the end
+		wxString saveFollOuterPunct = pEndSrcPhrase->GetFollowingOuterPunct();
+		wxString saveFollPunct = pEndSrcPhrase->m_follPunct;
+		wxString saveInlineNonbindingEndMkr = pEndSrcPhrase->GetInlineNonbindingEndMarkers();
+		wxString saveInlineBindingEndMkrs = pEndSrcPhrase->GetInlineBindingEndMarkers();
+		wxString saveEndMarkers = pEndSrcPhrase->GetEndMarkers();
+		// now clear out these members, as their values will be tranferred to the sublist end
+		pEndSrcPhrase->GetFollowingOuterPunct().Empty();
+		pEndSrcPhrase->m_follPunct = _T("");
+		pEndSrcPhrase->GetInlineNonbindingEndMarkers().Empty();
+		pEndSrcPhrase->GetInlineBindingEndMarkers().Empty();
+		pEndSrcPhrase->GetEndMarkers().Empty();
+		
+		int nExtras = (int)nExtrasLong;
+		int index = 0;
+		CSourcePhrase* pPlaceholder = NULL;
+		for (index = 0; index < nExtras; index++)
+		{
+			// create on the heap, and return
+			pPlaceholder = m_pApp->GetPlaceholder()->CreateBasicPlaceholder();
+			pPlaceholder->m_nSequNumber = lastSequNum + index + 1;
+			// it's going to be part of a retranslation, so set the flags
+			pPlaceholder->m_bRetranslation = TRUE;
+			pPlaceholder->m_bNotInKB = TRUE;
+			posNewLast = pList->Append(pPlaceholder);
+			// handle the flag values, etc, that must propagate to each instance
+			pPlaceholder->m_bHasFreeTrans = bHasFreeTrans;
+			pPlaceholder->m_curTextType = theType;
+			pPlaceholder->m_bSpecialText = bSpecialText;
+
+			// handle the transfers of end-pertinent data
+			if (index == nExtras - 1)
+			{
+				// pPlaceholder is the last to be appended, so add the end stuff
+				pPlaceholder->SetFollowingOuterPunct(saveFollOuterPunct);
+				pPlaceholder->m_follPunct = saveFollPunct;
+				pPlaceholder->SetInlineNonbindingEndMarkers(saveInlineNonbindingEndMkr);
+				pPlaceholder->SetInlineBindingEndMarkers(saveInlineBindingEndMkrs);
+				pPlaceholder->SetEndMarkers(saveEndMarkers);
+
+				pPlaceholder->m_bEndRetranslation = TRUE;
+				if (bBoundary)
+				{
+					pEndSrcPhrase->m_bBoundary = FALSE;
+					pPlaceholder->m_bBoundary = TRUE;
+				}
+				if (bFootnoteEnd)
+				{
+					pEndSrcPhrase->m_bFootnoteEnd = FALSE;
+					pPlaceholder->m_bFootnoteEnd = TRUE;
+				}
+				if (bEndFreeTrans)
+				{
+					pEndSrcPhrase->m_bEndFreeTrans = FALSE;
+					pPlaceholder->m_bEndFreeTrans = TRUE;
+				}
+			}
+		} // end of for loop: for (index = 0; index < nExtras; index++)
+	} // end of TRUE block for test: if (nExtrasLong > 0)
+
+	// before we insert the target text into each instance, we need to remove target
+	// punctuation from each target text substring, and store the result in a different
+	// wxArrayString, these elements will be assigned to m_adaption members
+	size_t numElements = (int)numTgtElements;
+	size_t i = 0; // a new local index
+	wxArrayString arrTgtNoPuncts;
+	for (i = 0; i < numElements; i++)
+	{
+		wxString nopuncts = arrTgtText.Item(i);
+		m_pView->RemovePunctuation(m_pApp->GetDocument(), &nopuncts, from_target_text); // uses ParseWord()
+		arrTgtNoPuncts.Add(nopuncts);
+	}
+
+	// handle the first CSourcePhrase instance, then loop over the rest
+	pSrcPhrase->m_targetStr = arrTgtText.Item(0);
+	pSrcPhrase->m_adaption = arrTgtNoPuncts.Item(0);
+	// get the second position; since it was a merger, this instance will always exist
+	pos = pos->GetNext();
+	i = 1;
+	do {
+		// fill out the send and later instances
+		pSrcPhrase = pos->GetData();
+		pSrcPhrase->m_targetStr = arrTgtText.Item(i);
+		pSrcPhrase->m_adaption = arrTgtNoPuncts.Item(i);
+		pos = pos->GetNext();
+		i++;
+	} while (pos != NULL);
+}
+
 void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 {
 	// refactor 13Mar09; these are shallow copies, and have no partner piles, 
@@ -1872,14 +2010,20 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		int nNewCount = 0; // number of CSourcePhrase instances returned from the
 		// tokenization operation
 		
-        // tokenize the retranslation into a list of new CSourcePhrase instances on the
-        // heap (they are incomplete - only m_srcPhrase, m_key, m_nSequNumber and
-        // punctuation are set -- the user is unlikely to have typed any markers in his
-        // retranslation); nSaveSequNum is the absolute sequence number for first source
-        // phrase in the sublist - it is used to define the starting sequence number to be
-        // stored on the first element of the sublist, and higher numbers on succeeding
-        // ones
-		nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
+        // tokenize the retranslation (which is target text) into a list of new
+        // CSourcePhrase instances on the heap (the m_srcPhrase and m_key members will then
+        // contain target text - which a function further below will mine in order to
+        // construct the punctuated and unpunctuated strings for the building of the
+        // retranslation's target text); nSaveSequNum is the absolute sequence number for
+        // first source phrase in the sublist - it is used to define the starting sequence
+        // number to be stored on the first element of the sublist, and higher numbers on
+        // succeeding ones
+		// BEW changed 24Jan11 -- the legacy call used source text punctuation for parsing
+		// the target text, which isn't appropriate if source and target text are not the
+		// same. So I've used the alternative function which explicitly uses the target
+		// text punctuation (when the final param is TRUE)
+		//nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
+		nNewCount = m_pView->TokenizeTargetTextString(pRetransList,retrans,nSaveSequNum,TRUE);
 		
 		// augment the active sequ num if it lay after the selection
 		if (bActiveLocAfterSelection && nNewCount > nCount)

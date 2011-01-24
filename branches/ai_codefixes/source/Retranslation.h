@@ -53,6 +53,13 @@ public:
 	inline void SetSuppressRemovalOfRefString(bool bNewValue) {m_bSuppressRemovalOfRefString = bNewValue; }
 	inline bool GetReplaceInTranslation() {return m_bReplaceInRetranslation; }
 	inline void SetReplaceInTranslation(bool bNewValue) {m_bReplaceInRetranslation = bNewValue; }
+
+	// a function for use when converting a sublist of (modified) CSourcePhrase instances
+	// generated when the user has changed punctuation settings, to a retranslation -
+	// because the conversion of a merger resulted in more than MAX_WORDS instances, and
+	// the only way to preserve the (modified) target text is to store it as a
+	// retranslation (called only by ReconstituteAfterPunctuationChange() - in two places)
+	void		ConvertSublistToARetranslation(SPList* pList, wxString& tgtText, wxString& gloss);
 	
 protected:
 	void		AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt);

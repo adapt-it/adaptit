@@ -65,6 +65,9 @@ class CPlaceholder : public wxEvtHandler
 		bool		NeedsTransferBackwards(CSourcePhrase* pPlaceholderSrcPhrase);
 		bool		NeedsTransferForwards(CSourcePhrase* pPlaceholderSrcPhrase);
 		bool		IsPlaceholderInSublist(SPList* pSublist);
+		CSourcePhrase* CreateBasicPlaceholder(); // creates a new placeholder on the
+							// heap, and sets the expected flags - the caller then
+							// needs to fill out other members relevant to the situation
 
 		// BEW added 11Oct10 for better support of docV5 within OnButtonRetranslation()
 		void		UntransferTransferredMarkersAndPuncts(

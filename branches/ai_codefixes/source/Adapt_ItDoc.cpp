@@ -5055,20 +5055,9 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 
     // reparse the srcPhrase string - if we get a single CSourcePhrase as the result,
     // we have a simple job to complete the rebuild for this passed in pSrcPhrase; if
-    // we get more than one, we'll have to do something smarter...
-    // 
-    // 
-    //  to abandon the adaptation or gloss and set up
-    // the flags etc accordingly, and return the two or more new instances to the
-    // caller - the caller will know what to do (eg. we might be processing an owned
-    // original CSourcePhrase instance from a former merge, and if so we'd want to
-    // collect all sibling new CSourcePhrase instances so the caller could abandon the
-    // merge and insert the collected instances into m_pSourcePhrases; and that's a
-    // different scenario from being at the top level already for a pSrcPhrase with
-    // m_pSavedWords empty and which has returned more than one new instance from the
-    // reparse - the caller will distinguish these and act accordingly)
-	
-	// important, ParseWord() doesn't work right if the first character is a space
+	// we get more than one, we'll have to do something smarter... actually, it's too
+	// complex to be smart, so we'll rely on visual editing after the fact to fix problems
+	// that may have arisen
 	srcPhrase.Trim(TRUE); // trim right end
 	srcPhrase.Trim(FALSE); // trim left end
 	numElements = pView->TokenizeTextString(pNewList, srcPhrase,  pSrcPhrase->m_nSequNumber);
@@ -5151,18 +5140,11 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
         // CSourcePhrase instances handled in this block have to be marked as m_bHasKBEntry
         // == FALSE, and m_bHasGlossingKBEntry == FALSE too, since we'll return these as
         // "holes" - the user can later inspect and do something else if he wishes,
-        // manually
-        
-
-// *************** TODO ********************
-		// If there are > 1 CSourcePhrase instances, which one does the original non-empty
-		// m_endmarkers, and m_inlineBindingEndMarker and m_inlineNonbindingEndMarker, and
-		// m_follOuterPunct belong on?
-		// I need to think this through and build code to check and assign wherever these
-		// should be put - not all necessarily on the same instance either!
-
-
-
+		// manually -- because not knowing what kind of punctuation change the user may
+		// have made, and the possibility that markup at the problematic area may be
+		// complex, could result in rare but many differing scenarios - this is one place
+		// where the smartest thing to do is to do the simplest, and let visual checking
+		// lead the user to do manual editing if it is not what he wants
 		CSourcePhrase* pSPnew = NULL;
 		SPList::Node* pos2 = pNewList->GetFirst();
 		bool bIsFirst = TRUE;
@@ -12511,6 +12493,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 		// not pointing at [ so do the parsing of the word - including puncts and inline
 		// markers
+		if (pSrcPhrase->m_nSequNumber == 49)
+		{
+			int breakpt_here = 1;
+		}
 		itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts,
 							pApp->m_inlineNonbindingMarkers,
 							pApp->m_inlineNonbindingEndMarkers,
@@ -16168,9 +16154,13 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	{
 		pView->RemoveKBEntryForRebuild(pSrcPhrase);
 	}
-	// determine whether we are dealing with just one, 
-	// or an owning one and the sublist containing those it owns
-	if (pSrcPhrase->m_nSrcWords > 1)
+    // determine whether we are dealing with just one, or an owning one and the sublist
+	// containing those it owns (note, a conjoined pair with joining by fixed space USFM
+	// marker, ~ , is to be treated as a single CSourcePhrase even though formally it's a
+	// pseudo-merger, so we must call IsFixedSpaceSymbolWithin() in the test and if it
+	// returns TRUE, we don't enter the TRUE block below, but rather process such an
+	// instance in the else block where ReconstituteOneAfterPunctuationChange() is called)
+	if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 	{
         // Legacy Protocol: this is a merged sourcephrase; so we expect the tokenizing of
         // its m_srcPhrase string to result in several new CSourcePhrase instances, so we
@@ -16221,42 +16211,39 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		targetStr = pSrcPhrase->m_targetStr;
 
 		// reparse the srcPhrase string
-		// important, ParseWord() doesn't work right if the first character is a space
 		srcPhrase.Trim(TRUE); // trim right end
 		srcPhrase.Trim(FALSE); // trim left end
 		int numElements;
-		numElements = pView->TokenizeTextString(pResultList, srcPhrase, 
-												pSrcPhrase->m_nSequNumber);
+		numElements = pView->TokenizeTextString(pResultList, srcPhrase, pSrcPhrase->m_nSequNumber);
 		wxASSERT(numElements > 1);
 
 
-        // BEW for thought.... Redesign this next bit?? So that we remerge no matter if the
-        // count changes or not, provided the count is less than MAXWORDS; if it is greater
-        // than MAXWORDS then consider the possibility of making the list of CSourcePhrases
-        // into a retranslation, - that way we can keep the adjusted adaptation (gloss may
-        // be trickier, but if it exists, we could tokenize it and assign the tokens to the
-        // instances, and if more, then all the leftovers go to the last...
-
-// *************** TODO ****************
-
-
+        // BEW 24Jan11, Redesigned this next bit so that we remerge no matter if the count
+        // changes or not, provided the count is less than MAXWORDS; if it is greater than
+        // MAXWORDS then making the list of CSourcePhrases into a retranslation at that
+        // point, so that the target text doesn't get lost, - that way we can keep the
+        // adjusted adaptation (gloss may be trickier, but if it exists, we could tokenize
+        // it and assign the tokens to the instances, and if more, then all the leftovers
+        // go to the last)
 
 		// test to see if we have a candidate for rebuilding successfully
-		if ((int)pResultList->GetCount() == nOriginalCount)
+		//if ((int)pResultList->GetCount() == nOriginalCount)
+		if ((int)pResultList->GetCount() <= (int)MAX_WORDS)
 		{
-            // the numbers of old and new CSourcePhrase instances match, so check out the
-            // owned instances next - after retokenizing them; we can't base the rebuild on
-            // the above retokenization because it would leave the owned sourcephrase
-            // instances unrebuilt, and if the user then later unmerged, he would restore
-            // instances with the wrong punctuation settings. So we must rebuild each of
-            // the owned ones and this process could conceivably generate a different total
-            // for the number produced (it would be unexpected and I can't conceive how it
-            // could happen but I'm going to play safe and assume it could) -- so we'll
-            // base our final merger on a remerge of the rebuilt owned ones, but we can do
-            // that only if there are less than MAX_WORDS (ie. 10) - otherwise, we count
-            // this build attempt as a "failure" and insert the rebuilt owned ones back
-            // into the main list and throw away the original merged sourcephrase instance
-            // passed in.
+            // the numbers of new CSourcePhrase instances doesn't exceed the mergable
+            // limit, so check out the owned instances next (we need to check their new
+            // count doesn't exceed MAX_WORDS either - if so, then we can remerge). Also
+            // after retokenizing we can't base the rebuild on the above retokenization
+            // because it would leave the owned sourcephrase instances unrebuilt, and if
+            // the user then later unmerged, he would restore instances with the wrong
+            // punctuation settings. So we must rebuild each of the owned ones and this
+            // process could conceivably generate a different total for the number produced
+            // -- so we'll base our final merger on a remerge of the rebuilt owned ones,
+            // but we can do that only if there are less than MAX_WORDS (ie. 10) -
+            // otherwise, we count this build attempt as a "failure" and insert the rebuilt
+            // owned ones back into the main list as a retranslation, keeping the adjusted
+            // target text & handling glosses as best we can if they are present too (see
+            // above)
 			SPList* pOwnedList = new SPList; // accumulate here the results of reparsing 
 											 // all owned CSourcePhrases
 			SPList::Node* posOwned = pSrcPhrase->m_pSavedWords->GetFirst();
@@ -16283,7 +16270,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
                 // updated
 				if (bParseCountUnchanged)
 				{
-					// retain the original
+					// retain the now-modified original
 					pOwnedList->Append(pOwnedSrcPhrase);
 
 					// delete the unwanted newly parsed sourcephrases in pParsedList
@@ -16355,8 +16342,11 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 					nActiveSequNum += nNewCount - 1; // 1 instance is being replaced by 
 													 // nNewCount instances
 
-                // insert the newly built list of CSourcePhrase instances into
-                // m_pSourcePhrases preceding the pos position
+				// Convert to a retranslation
+				gpApp->GetRetranslation()->ConvertSublistToARetranslation(pOwnedList, targetStr, gloss);
+
+                // insert the newly built list of CSourcePhrase instances, which are now a
+                // retranslation, into m_pSourcePhrases preceding the pos position
 				SPList::Node* newPOS = pOwnedList->GetFirst();
 				CSourcePhrase* pSrcPhr = NULL;
 				while (newPOS != NULL)
@@ -16374,7 +16364,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				// tell caller there was a failure on this rebuild attempt
 				bSucceeded = FALSE;
 			}
-			else // there were MAX_WORDS ie. 10 or less new CSourcePhrases 
+			else // there were MAX_WORDS (ie. 10), or fewer, new CSourcePhrases 
 				 // parsed from the m_pSavedWords list
 			{
                 // we are gunna get away with a rebuild, so get on with it -- we need to
@@ -16517,19 +16507,15 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
             // way, they must be retained
 			pOwnedList->Clear();
 			delete pOwnedList;
-		}
-		else // count of new instances after reparse differs from count of 
-			 // legacy instances
+		} // end of TRUE block for test:  if ((int)pResultList->GetCount() <= (int)MAX_WORDS)
+		else // the reparsed source text has generated more than MAX_WORDS instances of CSourcePhrase 
 		{
-            // we got more (or maybe less) CSourcePhrases in the reparse, so we'll have to
+            // we got too many CSourcePhrase instances in the reparse, so we'll have to
             // abandon this merger; we'll handle this case by plagiarizing the code from
             // earlier in this function, and just omit some tests. We will have to call
             // ReconstituteOneAfterPunctuationChange() on all the owned ones in
             // m_pSavedWords, and then insert these rebuilt instances into the
-            // m_pSourcePhrases list, delete the passed in pSrcPhrase, then abandon the old
-            // adaptation, and make sure the user is informed about where this failure to
-            // rebuild took place. (Comments removed in the code in the following block,
-            // since it is copied from above.)
+            // m_pSourcePhrases list, etc, as above -- generating a retranslation instead
 			SPList* pOwnedList = new SPList;
 			SPList::Node* posOwned = pSrcPhrase->m_pSavedWords->GetFirst();
 			wxASSERT( posOwned != NULL);
@@ -16568,14 +16554,17 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			pView->UpdateSequNumbers(0); // make sure they are in sequence, 
 										 // so next call won't fail
 			int nTheCount = pOwnedList->GetCount();
-			if (nThisSequNum < nActiveSequNum)
-				nActiveSequNum += nTheCount - 1; // 1 instance is being 
-												 // replaced by nTheCount instances
 			if (!gbIsUnstructuredData)
 			{
 				fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
 				fixesStr += _T("   ");
 			}
+			if (nThisSequNum < nActiveSequNum)
+				nActiveSequNum += nTheCount - 1; // 1 instance is being 
+												 // replaced by nTheCount instances
+			// Convert to a retranslation
+			gpApp->GetRetranslation()->ConvertSublistToARetranslation(pOwnedList, targetStr, gloss);
+
 			SPList::Node* newPOS = pOwnedList->GetFirst();
 			CSourcePhrase* pSrcPhr = NULL;
 			while (newPOS != NULL)
@@ -16589,7 +16578,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			pOwnedList->Clear();
 			delete pOwnedList;
 			bSucceeded = FALSE;
-		}
+		} // end of else block for test: if ((int)pResultList->GetCount() <= (int)MAX_WORDS)
 	} // end of block for when dealing with a merged sourcephrase
 	else // the test of pSrcPhrase->m_nSrcWords yielded 1 
 		 // (ie. an unmerged sourcephrase)
@@ -16607,7 +16596,6 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			if (nThisSequNum < nActiveSequNum)
 				nActiveSequNum += count - 1; // 1 instance is being replaced 
 											 // by count instances
-
             // add a reference to where things went wrong for the Rebuild Log.txt file and
             // the message box
 			pView->UpdateSequNumbers(0);

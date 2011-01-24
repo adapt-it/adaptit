@@ -1028,7 +1028,7 @@ wxString SpanIncluding(wxString inputStr, wxString charSet)
 
 // overload version (slightly different behaviour if charSet is empty), and with the
 // additional property that encountering ~ (the USFM fixed space marker) unilaterally
-// halts the scan, as also does encounterning a backslash, and as also does coming to a
+// halts the scan, as also does encountering a backslash, and as also does coming to a
 // closing bracket character, ], or a carriage return or linefeed
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 {
