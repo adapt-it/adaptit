@@ -238,6 +238,7 @@ bool	 IsRetranslationInSelection(SPList* pList);
 bool	 IsFixedSpaceSymbolInSelection(SPList* pList);
 bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
 bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
+bool	 IsFixedSpaceOrBracket(wxChar* ptr); // quick way to detect ~ or ] or [ at ptr
 void	 SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& othersFilteredStr);
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
@@ -254,12 +255,11 @@ void	 SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& other
 // document.
 // If pOriginalSrcPhrase cannot be found in pList, then NULL is returned and the
 // replacement is not made.
-// So far, this function is used only within ReconstituteAfterPunctuationChange() and
-// ReconstituteOneAfterPunctuationChange().
+// So far, this function is unused
 // BEW created 13Jan11
-SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
-						CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal = TRUE, 
-						bool bDeletePartnerPileToo = TRUE);
+//SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
+//						CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal = TRUE, 
+//						bool bDeletePartnerPileToo = TRUE);
 
 // uuid support
 wxString GetUuid();

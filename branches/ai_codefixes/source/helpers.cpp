@@ -6359,6 +6359,7 @@ void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
 	}
 }
 
+/* unused so far
 SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
 	CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal, bool bDeletePartnerPileToo)
 {
@@ -6386,6 +6387,18 @@ SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhra
 	}
 	pNewSrcPhrase->m_nSequNumber = sequNum;
 	return pos;
+}
+*/
+
+// a handy check for whether or not the wxChar which ptr points at is ~ or [ or ]
+// BEW created 25Jan11, used in FindParseHaltLocation() of doc class
+bool IsFixedSpaceOrBracket(wxChar* ptr)
+{
+	if (*ptr == _T('~') || *ptr == _T(']') || *ptr == _T('['))
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 // BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for

@@ -7951,28 +7951,46 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// punctuation. For the moment, we feel this is a satisfactory simplification, because
 /// use of ~ in actual data is rare (no known instances in a decade of Adapt It use), and
 /// so too is the use of punctuation as a word-building character.
+/// 
+/// BEW 25Jan11: ***BIGGER NOTE**** I've left the above NOTE here, at the time it seemed a
+/// reasonable simplification. But user's dynamic changes to punctuation settings proved
+/// it be it's archilles heel. The early code used ScanExcluding() to parse over the word
+/// proper, and if there is embedded punctuation (as there might be if a file is loaded
+/// while inadequate punctuation settings were in effect), then the internal punctuation
+/// can become visible to such a scan - and cause a disastrous result. The correct way to
+/// handle scanning a word is to honour the fact that there may be internal punctuation
+/// which must remain "unseen" by any scanning process - the way to do that is to scan
+/// inward over punctuation from the start of the word, until a non-punct is reached, and
+/// for scanning at the end of the word, reverse the word and scan inwards in the reversed
+/// string until a non-punct is reached, and then undo the reversals. So to do these scans,
+/// ScanIncluding() is to be used from either end, WE MUST NOT SCAN ACROSS THE WORD ITSELF
+/// LOOKING FOR PUNCTUATION AT THE OTHER END OF IT. Instead, scan in from either end. That
+/// gives us the problem of determining where the "other end" is before we can do the
+/// reversal of what lies between and then do the scan in. If there is a ~ fixed space, we
+/// can use that as defining the other end. But if there is no fixed space (~) present, we
+/// have to define the other end as whitespace or a backslash (ie. ignore punctuation for
+/// determining where the other end is). In support of these observations the code will be 
+/// re-written below.
 /// ******************************************************** END NOTE *****************
 /// When the scanning ptr points at a word, we don't know whether the word will be a
 /// singleton, or the first word of a pair conjoined by USFM ~ fixed space marker. We
 /// support punctuation and inline binding markers before or after ~ too, so these
 /// substrings may be present. The caller needs to know if it has to handle the word about
-/// to be parsed as a conjoined pair, or not. To find this out, a copy of ptr must scan
-/// forward parsing over the word, any following inline binding endmarker, any final
-/// punctuation (which could have a space between quote symbols) in order to get to the
-/// place where the ~ would be - if indeed there is one. If it gets past all that stuff and
-/// there is no ~ present, but rather a space or ] or other marker or another word, we
-/// return FALSE - we won't then have a ~ conjoining pair; but if ~ is there, we do have
-/// such a pair and we return TRUE. We pass in references to the start and end locations
-/// for the word, etc, so that the useful info we learn as we parse does not have to be
-/// reparsed in the caller. If TRUE is returned, another function in the caller will be
-/// called in order to complete the delimitation of the conjoined word pair, as far as the
-/// final character of the second word. The ptr value returned must be, if ~ was detected,
-/// following the character ~. If FALSE is returned, we've a normal word parsing, and the
-/// caller will only use the pWdEnd value - resetting the caller's ptr variable to that
-/// location, since the caller can successfully parse on from that point (this would mean
-/// throwing information away about following punctuation, but that is a small matter
-/// because the latter is low frequency in the text, and the caller will reparse that
-/// information quickly anyway).
+/// to be parsed as a conjoined pair, or not. To find this out, we first try to find if ~
+/// is present. If it is, that's the dividing point between a conjoined pair (and we return
+/// TRUE eventually). If there is no such character (we return FALSE eventually), it's not
+/// a conjoined pair and the end of the word will be determined by scanning back from later
+/// whitespace or a later marker. A ] character also is considered as an end point for the
+/// word. We pass in references to the start and end locations for the word, etc, so that
+/// the useful info we learn as we parse does not have to be reparsed in the caller. If
+/// TRUE is returned, another function in the caller will be called in order to complete
+/// the delimitation of the conjoined word pair, as far as the final character of the
+/// second word. The ptr value returned must be, if ~ was detected, following the character
+/// ~. If FALSE is returned, we've a normal word parsing, and the caller will only use the
+/// pWdEnd value - resetting the caller's ptr variable to that location, since the caller
+/// can successfully parse on from that point (this would mean throwing information away
+/// about following punctuation, but that is a small matter because the latter is low
+/// frequency in the text, and the caller will reparse that information quickly anyway).
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
@@ -7987,6 +8005,45 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	pWdStart = ptr;
 	int length = 0;
 	int ignoredSpaceLen = 0;
+	// Find where ~ is, if present; we can't just call .Find() in the string defined by
+	// ptr and pEnd, because it could contain thousands of words and a ~ may be many
+	// hundreds of words ahead. Instead, we must scan ahead, parsing over any ignorable
+	// white space, until we come to either ~, or non-ignorable whitespace, or a closing
+	// bracket (]) - halting immediately before any such character. We need a function for
+	// this and it can return, via its signature, what the specific halt condition was. If
+	// we halt due to ] or whitespace, then we infer that we do not have conjoining of the
+	// word being defined from the parse. We also may parse over an inline binding
+	// endmarker, (perhaps more than one), these don't halt parsing - but we'll return the
+	// info in the signature, along with a count of how many such markers we parsed over.
+	wxChar* pHaltLoc = NULL;
+	bool bFixedSpaceIsAhead = FALSE;
+	bool bFoundInlineBindingEndMarker = FALSE;
+	bool bFoundFixedSpaceMarker = FALSE;
+	bool bFoundClosingBracket = FALSE;
+	bool bFoundHaltingWhitespace = FALSE;
+	int nFixedSpaceOffset = -1;
+	int nEndMarkerCount = 0;
+	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
+					&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+
+
+
+
+
+
+
+	wxString aSpan(ptr,pEnd);
+	size_t offset = aSpan.Find(FixedSpace);
+	if (offset != wxNOT_FOUND)
+	{
+		bFixedSpaceIsAhead = TRUE;
+	}
+
+
+
+
+
 	// scan across the word; our punctuation set used herein is the source language's one,
 	// and this overloaded version of SpanExcluding() always halts if it comes to ~
 	// (if ] is in any substring of punctuation here, we'll parse over it; that is, we
@@ -8260,6 +8317,92 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 		} // end of else block for test: if (p >= pEnd)
 	} // end of TRUE block for test: if (p < pEnd)
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		the number of characters parsed over
+/// \param  ptr            -> pointer to the next wxChar to be parsed (it should
+///                           point at the starting character of the word proper,
+///                           and after preceding punctuation for that word (if any)
+/// \param  pEnd		   -> a pointer to the first character beyond the input 
+///                           buffer's end (could be tens of kB ahead of ptr)
+///                           marker, or an inline binding marker)
+/// \param	pbFoundInlineBindingEndMarker   <- ptr to boolean, its name explains it
+/// \param	pbFoundFixedSpaceMarker <- ptr to boolean, TRUE if ~ encountered at or before
+///                                    the halting location (~ IS the halting location
+///                                    provided it precedes non-ignorable whitespace)
+/// \param	pbFoundBracket          <- ptr to boolean, TRUE if ] or [ encountered (either
+///                                    halts the scan, if it precedes ~ or whitespace)
+/// \param  pbFoundHaltingWhitespace <- ptr to bool, TRUE if space or \n or \r encountered
+///                                    and that whitespace is not ignorable (see comments
+///                                    below for a definition of what is ignorable whitespace)
+///	\param bIsInlineNonbindingMkr -> TRUE if pChar points at one of the above 5 mkrs								 
+///	\param bIsInlineBindingMkr  -> TRUE if pChar points at any of the other lineline
+///	                               markers (but not any from the footnote or
+///	                               crossReference set, which start with \f or \x,
+///	                               respectively)
+/// \remarks
+/// Called from: the Doc's IsFixedSpaceAhead().
+/// The IsFixedSpaceAhead() function, which is mission critical for delimiting a parsed
+/// word or conjoined pair of words in the ParseWord() function, requires a smart subparser
+/// which looks ahead for a fixed space marker (~), but only looks ahead a certain distance
+/// - ensuring the parsing pointer does not encroach into material which belows to any of
+/// the words which follow. This is that subparser. In doing it's job, it may parse over
+/// whitespace which is ignorable, and possibly one or more inline binding endmarkers. The
+/// halting conditions are:
+/// a) finding non-ignorable whitespace
+/// b) finding ~ (the fixed space marker of USFM)
+/// c) finding a closing bracket, ] or an opening bracket [
+/// We return, via the signature, information about the data types parsed over, to help
+/// the caller to do it's more definitive parsing and data storage more easily. 
+/// The following conditions define ignorable whitespace for the scanning process:
+/// i)  immediately after an inline binding endmarker - provided what follows the whitespace
+///     is either ] or ~ or another inline binding endmarker or punctuation which is not an
+///     opening quote or opening doublequote
+/// ii) following non-punctuation and immediately preceding an inline binding endmarker
+/// iii)after punctuation provided a closing quote or closing doublequote follows
+/// BEW 11Oct10, (actually created 25Jan11)
+//////////////////////////////////////////////////////////////////////////////////
+wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
+											bool* pbFoundInlineBindingEndMarker,
+											bool* pbFoundFixedSpaceMarker,
+											bool* pbFoundClosingBracket,
+											bool* pbFoundHaltingWhitespace,
+											int& nFixedSpaceOffset,
+											int& nEndMarkerCount)
+{
+	wxChar* p = ptr; // scan with p
+	wxChar* pHaltLoc = ptr; // initialize to the start of the word proper
+	enum SfmSet setType = gpApp->gCurrentSfmSet;
+	wxChar fixedSpaceChar = _T('~');
+	// intialize return parameters
+	*pbFoundInlineBindingEndMarker = FALSE;
+	*pbFoundFixedSpaceMarker = FALSE;
+	*pbFoundClosingBracket = FALSE;
+	*pbFoundHaltingWhitespace = FALSE;
+	nFixedSpaceOffset = -1;
+	nEndMarkerCount = 0;
+	// scan ahead, looking for the halt location prior to a following word or
+	// end-of-buffer
+	while (p < pEnd)
+	{
+		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
+		{
+			// if none of those, then it's part of the word, or part of punctuation which
+			// follows it, so keep scanning
+			p++;
+		}
+		else
+		{
+			// it's one of those
+
+
+
+
+		}
+	}
+	return pHaltLoc;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of characters parsed over
@@ -12493,10 +12636,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 		// not pointing at [ so do the parsing of the word - including puncts and inline
 		// markers
+#ifdef __WXDEBUG__
 		if (pSrcPhrase->m_nSequNumber == 49)
 		{
 			int breakpt_here = 1;
 		}
+#endif
 		itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts,
 							pApp->m_inlineNonbindingMarkers,
 							pApp->m_inlineNonbindingEndMarkers,

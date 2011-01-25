@@ -268,6 +268,13 @@ public:
 	int				ParseWhiteSpace(wxChar *pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 							wxChar *pBuffStart, wxChar *pEnd);
+	wxChar*			FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
+											bool* pbFoundInlineBindingEndMarker,
+											bool* pbFoundFixedSpaceMarker,
+											bool* pbFoundClosingBracket,
+											bool* pbFoundHaltingWhitespace,
+											int& nFixedSpaceOffset,
+											int& nEndMarkerCount); // BEW created 25Jan11
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
