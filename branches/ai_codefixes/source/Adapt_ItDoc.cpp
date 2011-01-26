@@ -7271,8 +7271,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 /// the View's DetachedNonQuotePunctuationFollows(), FormatMarkerBufferForOutput(),
 /// FormatUnstructuredTextBufferForOutput(), DoExportInterlinearRTF(), DoExportSrcOrTgtRTF(),
 /// DoesTheRestMatch(), ProcessAndWriteDestinationText(), ApplyOutputFilterToText(),
-/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(), and from
-/// Usfm2Oxes ParseMarker_Content_Endmarker()
+/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(), 
+/// IsFixedSpaceAhead() and from Usfm2Oxes ParseMarker_Content_Endmarker()
 /// Parses through a buffer's whitespace beginning at pChar.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
@@ -8023,26 +8023,34 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	bool bFoundHaltingWhitespace = FALSE;
 	int nFixedSpaceOffset = -1;
 	int nEndMarkerCount = 0;
-	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
+	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
 					&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
 					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+	bFixedSpaceIsAhead = bFoundFixedSpaceMarker;
+	wxString aSpan(ptr,pHaltLoc); // this could be up to ~, or a [ or ], or a whitespace
 
-
-
-
-
-
-
-	wxString aSpan(ptr,pEnd);
-	size_t offset = aSpan.Find(FixedSpace);
-	if (offset != wxNOT_FOUND)
+	// we know whether or not we found a USFM fixedspace marker, what we do next depends
+	// on whether we did or not
+	if (bFixedSpaceIsAhead)
 	{
-		bFixedSpaceIsAhead = TRUE;
+
+
+
+
+
+
+	}
+	else
+	{
+
+
+
+
+
 	}
 
 
-
-
+// **** legacy code below
 
 	// scan across the word; our punctuation set used herein is the source language's one,
 	// and this overloaded version of SpanExcluding() always halts if it comes to ~
@@ -8326,7 +8334,11 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// \param  pEnd		   -> a pointer to the first character beyond the input 
 ///                           buffer's end (could be tens of kB ahead of ptr)
 ///                           marker, or an inline binding marker)
-/// \param	pbFoundInlineBindingEndMarker   <- ptr to boolean, its name explains it
+/// \param	pbFoundInlineBindingEndMarker   <- ptr to boolean, its name explains it; there
+///                                    might be two or more in sequence, so a count of how
+///                                    many of these there are is return in nEndMarkerCount
+/// \param	pbFoundInlineNonbindingEndMarker <- ptr to boolean, its name explains it; these
+///                                    are rare and only one will be at any one CSourcePhrase
 /// \param	pbFoundFixedSpaceMarker <- ptr to boolean, TRUE if ~ encountered at or before
 ///                                    the halting location (~ IS the halting location
 ///                                    provided it precedes non-ignorable whitespace)
@@ -8335,11 +8347,6 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// \param  pbFoundHaltingWhitespace <- ptr to bool, TRUE if space or \n or \r encountered
 ///                                    and that whitespace is not ignorable (see comments
 ///                                    below for a definition of what is ignorable whitespace)
-///	\param bIsInlineNonbindingMkr -> TRUE if pChar points at one of the above 5 mkrs								 
-///	\param bIsInlineBindingMkr  -> TRUE if pChar points at any of the other lineline
-///	                               markers (but not any from the footnote or
-///	                               crossReference set, which start with \f or \x,
-///	                               respectively)
 /// \remarks
 /// Called from: the Doc's IsFixedSpaceAhead().
 /// The IsFixedSpaceAhead() function, which is mission critical for delimiting a parsed
@@ -8347,19 +8354,20 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// which looks ahead for a fixed space marker (~), but only looks ahead a certain distance
 /// - ensuring the parsing pointer does not encroach into material which belows to any of
 /// the words which follow. This is that subparser. In doing it's job, it may parse over
-/// whitespace which is ignorable, and possibly one or more inline binding endmarkers. The
-/// halting conditions are:
+/// whitespace which is ignorable, and possibly one or more inline binding endmarkers. 
+/// The halting conditions are:
 /// a) finding non-ignorable whitespace
 /// b) finding ~ (the fixed space marker of USFM)
 /// c) finding a closing bracket, ] or an opening bracket [
+/// d) finding a begin-marker, or an endmarker which is not an inline binding one
 /// We return, via the signature, information about the data types parsed over, to help
 /// the caller to do it's more definitive parsing and data storage more easily. 
 /// The following conditions define ignorable whitespace for the scanning process:
 /// i)  immediately after an inline binding endmarker - provided what follows the whitespace
-///     is either ] or ~ or another inline binding endmarker or punctuation which is not an
-///     opening quote or opening doublequote
-/// ii) following non-punctuation and immediately preceding an inline binding endmarker
-/// iii)after punctuation provided a closing quote or closing doublequote follows
+///     is either ] or ~ or another inline binding endmarker or punctuation which is a 
+///     closing quote or closing doublequote
+/// ii) between non-punctuation and an immediately following inline binding endmarker
+/// iii)after punctuation, provided a closing quote or closing doublequote follows
 /// BEW 11Oct10, (actually created 25Jan11)
 //////////////////////////////////////////////////////////////////////////////////
 wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
@@ -8372,7 +8380,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 {
 	wxChar* p = ptr; // scan with p
 	wxChar* pHaltLoc = ptr; // initialize to the start of the word proper
-	enum SfmSet setType = gpApp->gCurrentSfmSet;
+	enum SfmSet whichSFMSet = gpApp->gCurrentSfmSet;
 	wxChar fixedSpaceChar = _T('~');
 	// intialize return parameters
 	*pbFoundInlineBindingEndMarker = FALSE;
@@ -8381,6 +8389,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 	*pbFoundHaltingWhitespace = FALSE;
 	nFixedSpaceOffset = -1;
 	nEndMarkerCount = 0;
+	wxString lastEndMarker; lastEndMarker.Empty();
+	int offsetToEndOfLastBindingEndMkr = -1;
 	// scan ahead, looking for the halt location prior to a following word or
 	// end-of-buffer
 	while (p < pEnd)
@@ -8393,16 +8403,292 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 		}
 		else
 		{
-			// it's one of those
+			// it's one of those - handle each possibility appropriately
+			if (*p == fixedSpaceChar)
+			{
+				pHaltLoc = p;
+				nFixedSpaceOffset = (int)(pHaltLoc - ptr);
+				*pbFoundFixedSpaceMarker = TRUE;
+				break;
+			}
+			else if (*p == _T(']') || *p == _T('['))
+			{
+				*pbFoundClosingBracket = TRUE;
+				pHaltLoc = p;
+				break;
+			}
+			// if neither of the above, it must be one of the other conditions - try
+			// endmarkers next; if it is one, we note which the fact if it is an inline
+			// binding marker and continue scanning; but other endmarkers halt scanning
+			// (including the non-binding inline ones, like \wj*)
+			if (IsMarker(p))
+			{
+				wxString wholeMkr = GetWholeMarker(p);
+				int offset = wholeMkr.Find(_T('*'));
+				if (whichSFMSet == PngOnly)
+				{
+					// this is a sufficient condition for determining that there is no ~
+					// conjoining (endmarkers in this set are only \F or \fe - either is a
+					// footnote end, and there would not be conjoining across that kind of
+					// a boundary) and so we are at the end of a word for sure, so return
+					pHaltLoc = p;
+					break;
+				}
+				else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
+				{
+					if (offset == wxNOT_FOUND)
+					{
+						//  there is no asterisk in the marker, so it is not an endmarker
+						//  - it must then be a beginmarker, and they halt scanning
+						pHaltLoc = p;
+						break;
+					}
+					else
+					{
+						// it's an endmarker, but we parse over only those which are
+						// inline binding ones, otherwise the marker halts scanning
+						wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+											// the * (we are assuming the asterisk was at
+											// the end where it should be)
+						wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
+						int offset2 = gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace);
+						if (offset2 == wxNOT_FOUND)
+						{
+							// it's not one of the space-delimited markers in the fast access
+							// string of inline binding beginmarkers, so it halts scanning
+							pHaltLoc = p;
+							break;
+						}
+						else
+						{
+							// it's an inline binding endmarker, so we scan over it and
+							// let the caller handle it when parsing backwards to find the
+							// end of the text part of the word just parsed over
+							*pbFoundInlineBindingEndMarker = TRUE;
+							lastEndMarker = wholeMkr;
+							nEndMarkerCount++;
+							unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
+							offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
+							p = p + markerLen;
+						}
+					}
+				} // end of else block for test: if (whichSFMSet == PngOnly)
+			} // end of TRUE block for test: if (IsMarker(p))
+			else if (IsWhiteSpace(p))
+			{
+				// it's whitespace - some such can just be ignored, others constitute the
+				// end of the word or word plus punctuation (and possibly binding
+				// endmarker(s)) and so constitute grounds for halting - determine which
+				// is the case 
+				// first, handle condition (i) in the remarks of the function description
+				if (*pbFoundInlineBindingEndMarker == TRUE && p == (ptr + offsetToEndOfLastBindingEndMkr))
+				{
+                    // The iterator, p, is pointing at a whitespace character immediately
+                    // following an inline binding marker just parsed over. This halts
+                    // scanning except when this whitespace (or several whitespace
+                    // characters) is followed by ~ or one of [ or ], or another inline
+                    // binding endmarker -- check these subconditions out, if one of them
+                    // is satisfied, then advance p to the ~ or [ or ] and halt there, but
+                    // if another inline binding endmarker follows, advance p to its start
+                    // and let the scanning loop continue
+					int whitespaceSpan = ParseWhiteSpace(p);
+					if (*(p + whitespaceSpan) == fixedSpaceChar)
+					{
+						// there is a fixedspace marker following, so return with p
+						// pointing at it, etc
+						pHaltLoc = p + whitespaceSpan;
+						nFixedSpaceOffset = (int)(pHaltLoc - ptr);
+						*pbFoundFixedSpaceMarker = TRUE;
+						break;
+					}
+					else if (*(p + whitespaceSpan) == _T(']') || *(p + whitespaceSpan) == _T('['))
+					{
+						// there is an opening or closing bracket following the
+						// whitespace(s), this halts scanning and also means there is no
+						// conjoining (the whitespace is ignorable)
+						pHaltLoc = p + whitespaceSpan;
+						break;
+					}
+					else if (IsMarker(p + whitespaceSpan))
+					{
+						// it's a marker -- if it is an inline binding endmarker, then
+						// jump over it, etc, and continue scanning, otherwise, it halts
+						// scanning (and might as well halt at the space where p currently
+						// is if that is the case)
+						wxString wholeMkr = GetWholeMarker(p + whitespaceSpan);
+						int offset = wholeMkr.Find(_T('*'));
+						if (whichSFMSet == PngOnly)
+						{
+							// this is a sufficient condition for determining that there is no ~
+							// conjoining (endmarkers in this set are only \F or \fe - either is a
+							// footnote end, and there would not be conjoining across that kind of
+							// a boundary) and so we are at the end of a word for sure, so return
+							*pbFoundHaltingWhitespace = TRUE;
+							pHaltLoc = p;
+							break;
+						}
+						else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
+						{
+							if (offset == wxNOT_FOUND)
+							{
+								//  there is no asterisk in the marker, so it is not an endmarker
+								//  - it must then be a beginmarker, and they halt scanning
+								*pbFoundHaltingWhitespace = TRUE;
+								pHaltLoc = p;
+								break;
+							}
+							else
+							{
+								// it's an endmarker, but we parse over only those which are
+								// inline binding ones, otherwise the marker halts scanning
+								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+													// the * (we are assuming the asterisk was at
+													// the end where it should be)
+								wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
+								int offset2 = gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace);
+								if (offset2 == wxNOT_FOUND)
+								{
+									// it's not one of the space-delimited markers in the fast access
+									// string of inline binding beginmarkers, so it halts scanning
+									*pbFoundHaltingWhitespace = TRUE;
+									pHaltLoc = p;
+									break;
+								}
+								else
+								{
+									// it's an inline binding endmarker, so we scan over it and
+									// let the caller handle it when parsing backwards to find the
+									// end of the text part of the word just parsed over,
+									// continue iterating
+									*pbFoundInlineBindingEndMarker = TRUE;
+									nEndMarkerCount++;
+									unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
+									p = p + whitespaceSpan; // point p at the start of the binding endmarker 
+									offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
+									p = p + markerLen;
+								}
+							}
+						} // end of else block for test: if (whichSFMSet == PngOnly)
+					} // end of TRUE block for test: else if (IsMarker(p + whitespaceSpan))
+					else if (IsClosingCurlyQuote(p + whitespaceSpan))
+					{
+						// it's a closing curly quote, or a > chevron -- so scan over it &
+						// continue 
+						p = p + whitespaceSpan;
+					}
+					else
+					{
+						// any other punctuation coming after a space or spaces should be
+						// considered as opening punctuation for the following word, so
+						// halt now
+						*pbFoundHaltingWhitespace = TRUE;
+						pHaltLoc = p;
+						break;
+					}
 
-
-
-
-		}
+				} // end of TRUE block for test: if (*pbFoundInlineBindingEndMarker == TRUE && 
+				  //                                 p == (ptr + offsetToEndOfLastBindingEndMkr))
+				else
+				{
+					// subcondition (i) does not apply, so now test for subcondition (ii)
+					// -- between something and a following inline binding endmarker
+					int whitespaceSpan = ParseWhiteSpace(p);
+					if (IsMarker(p + whitespaceSpan))
+					{
+						// it's a marker -- if it is an inline binding endmarker, then
+						// jump over it, etc, and continue scanning, otherwise, it halts
+						// scanning (and might as well halt at the space where p currently
+						// is if that is the case)
+						wxString wholeMkr = GetWholeMarker(p + whitespaceSpan);
+						int offset = wholeMkr.Find(_T('*'));
+						if (whichSFMSet == PngOnly)
+						{
+							// this is a sufficient condition for determining that there is no ~
+							// conjoining (endmarkers in this set are only \F or \fe - either is a
+							// footnote end, and there would not be conjoining across that kind of
+							// a boundary) and so we are at the end of a word for sure, so return
+							*pbFoundHaltingWhitespace = TRUE;
+							pHaltLoc = p;
+							break;
+						}
+						else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
+						{
+							if (offset == wxNOT_FOUND)
+							{
+								//  there is no asterisk in the marker, so it is not an endmarker
+								//  - it must then be a beginmarker, and they halt scanning
+								*pbFoundHaltingWhitespace = TRUE;
+								pHaltLoc = p;
+								break;
+							}
+							else
+							{
+								// it's an endmarker, but we parse over only those which are
+								// inline binding ones, otherwise the marker halts scanning
+								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+													// the * (we are assuming the asterisk was at
+													// the end where it should be)
+								wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
+								int offset2 = gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace);
+								if (offset2 == wxNOT_FOUND)
+								{
+									// it's not one of the space-delimited markers in the fast access
+									// string of inline binding beginmarkers, so it halts scanning
+									*pbFoundHaltingWhitespace = TRUE;
+									pHaltLoc = p;
+									break;
+								}
+								else
+								{
+									// it's an inline binding endmarker, so we scan over it and
+									// let the caller handle it when parsing backwards to find the
+									// end of the text part of the word just parsed over,
+									// continue iterating
+									*pbFoundInlineBindingEndMarker = TRUE;
+									nEndMarkerCount++;
+									unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
+									p = p + whitespaceSpan; // point p at the start of the binding endmarker 
+									offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
+									p = p + markerLen;
+								}
+							}
+						} // end of else block for test: if (whichSFMSet == PngOnly)
+					} // end of TRUE block for test: else if (IsMarker(p + whitespaceSpan))
+					else 
+					{
+						// subcondition (ii) doesn't apply, so try subconditon (iii) --
+						// this boils down to testing for a closing (curly) quote or >
+						// wedge after the whitespace, if we find that ignore the space
+						// and continue scanning, otherwise we halt here
+						int whitespaceSpan = ParseWhiteSpace(p);
+						if (IsClosingCurlyQuote(p + whitespaceSpan))
+						{
+							// this space(s) is/are to be ignored, continue scanning
+							p = p + whitespaceSpan;
+						}
+						else
+						{
+							// none of the subconditions for regarding this space as ignorable are
+							// satisfied, so halt here
+							*pbFoundHaltingWhitespace = TRUE;
+							pHaltLoc = p;
+							break;
+						}
+					}
+				} // end of else block for test: if (*pbFoundInlineBindingEndMarker == TRUE && 
+				  //                                 p == (ptr + offsetToEndOfLastBindingEndMkr))
+			} // end of TRUE block for test: else if (IsWhiteSpace(p))
+			else
+			{
+				// it's not whitespace -- control should never enter here, but if it does,
+				// then halt for safety's sake
+				pHaltLoc = p;
+				break;
+			}	
+		} // end of else block for test: if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
 	}
 	return pHaltLoc;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of characters parsed over
@@ -11013,108 +11299,24 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 /// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(), 
 /// ApplyOutputFilterToText(), ParseMarkerAndAnyAssociatedText(), IsMarkerRTF(), and in
 /// Usfm2Oxes class
-/// Determines if pChar is pointing at a standard format marker in the given buffer.
+/// Determines if pChar is pointing at a standard format marker in the given buffer
+/// BEW 26Jan11, added test for character after the backslash, that it is alphabetic (this
+/// prevents spurious TRUE returns if a \ is followed by whitespace)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 {
-	if (*pChar == gSFescapechar)
+	// also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an 
+	// alphabetic one 
+	if (*pChar == gSFescapechar && IsAnsiLetter(*(pChar + 1)))
 	{
 			return TRUE;
 	}
 	else
 	{
-		// not pointing at a backslash, so it is not a marker
+		// not pointing at a backslash followed by alphabetic character, so it is not a marker
 		return FALSE;
 	}
 }
-/* old one
-///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
-/// \param		pChar		-> a pointer to a character in a buffer
-/// \param		pBufStart	<- a pointer to the start of the buffer
-/// \remarks
-/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
-/// GetMarkerAndTextFromString(), TokenizeText(), DoMarkerHousekeeping(), the View's
-/// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(), 
-/// ApplyOutputFilterToText(), ParseMarkerAndAnyAssociatedText(), IsMarkerRTF().
-/// Determines if pChar is pointing at a standard format marker in the given buffer. If
-/// pChar is pointing at a backslash, further tests are made if gbSfmOnlyAfterNewlines is
-/// TRUE. In that case, it is only considered to be a marker if it is immediately preceded
-/// by a newline character. Additional checks are also made if the marker is an inline
-/// marker (see comments within the function for details).
-///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::IsMarker(wxChar *pChar, wxChar* pBufStart)
-{
-	// BEW 8Jun10, removed support for checkbox "Recognise standard format
-	// markers only following newlines"
-	pBufStart = pBufStart; // after removing support for the checkbox this
-						   // parameter became unused, so suppress compiler warning
-
-	// from version 1.4.1 onwards, we have to allow for contextually defined
-	// sfms. If the gbSfmOnlyAfterNewlines flag is TRUE, then sfms are only
-	// identified as such when a newline precedes the sfm escape character (a backslash)
-
-    // BEW changed 10Apr06, because the legacy algorithm (pre 3.0.9) did not allow for the
-    // fact that inLine markers may or may not occur in the source text with a newline
-    // preceding but are valid SFMs nevertheless, so a smarter test is called for
-	if (*pChar == gSFescapechar)
-	{
-		// pointing at a potential SFM, so check the flag which asks for markers
-		// only to be defined if they follow newlines
-		
-		// BEW 8Jun10, removed support for checkbox "Recognise standard format
-		// markers only following newlines"
-		//if (gbSfmOnlyAfterNewlines)
-		//{
-			// the flag is turned on, but we'll have to pass this marker through as a
-			// valid marker, unilaterally, if it is an inLine marker - because these can
-			// be not line initial yet the source file still is marked up correctly; so
-			// check for the inLine == TRUE value, by looking up the marker in its 
-			// USFMAnalysis struct & checking the inLine value
-		//	USFMAnalysis* pUsfmAnalysis = LookupSFM(pChar);
-		//	if (pUsfmAnalysis == NULL)
-		//	{
-				// it is not a known marker, so treat it as an unknown marker only
-				// provided a newline precedes it; otherwise, it's an instance of
-				// backslash which we want to ignore for marker identification purposes
-		//		goto a;
-		//	}
-		//	if (pUsfmAnalysis->inLine)
-		//	{
-				// we don't care whether or not newline precedes, its a valid SFM
-		//		return TRUE;
-		//	}
-		//	else
-		//	{
-				// its not inLine == TRUE, so now it can be a valid SFM only provided
-				// it follows a newline
-//a:				if (IsPrevCharANewline(pChar,pBufStart))
-		//		{
-		//			return TRUE; // well-formed SFM file, marker is at start of line
-		//		}
-		//		else
-		//		{
-                    // marker is not at the start of the line - it's either a malformed SFM
-                    // file, or the 'marker' is not to be interpretted as an SFM so that
-                    // the backslash is treated as part of the word
-		//			return FALSE;
-		//		}
-		//	}
-		//}
-		//else
-		//{
-			// the flag is not turned on, so this backslash is to be interpretted
-			// as starting an SFM
-			return TRUE;
-		//}
-	}
-	else
-	{
-		// not pointing at a backslash, so it is not a marker
-		return FALSE;
-	}
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also an end 
