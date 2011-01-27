@@ -4567,16 +4567,17 @@ int ParseMarker(const wxChar *pChar)
 	// will be used to parse over a reversed string, and a reversed endmarker will have an
 	// initial asterisk and we don't want to halt the loop there
 	
-	// BEW 8Dec10, it just isn't safe to assume that if the unreversed input didn't
-	// have a * at the end of the string buffer, then it must be an unreversed string
-	// that was input and that backslash starts it. If the SFM set is PngOnly, there
-	// could be a final \fe or \F with a space following, and reversing that would
-	// mean that space starts the string. Or there could be embedded binding markers and
-	// finding an endmarker may find one of those and it won't be at the string end
-	// necessarily, etc etc. I'm very uncomfortable with this function, and eventually I
-	// think we need to remove it and use different code to do what we need in the 4
-	// places it currently is called (once in helpers.cpp and 3 times in xml.cpp). For
-	// now, I'll try make it safer - we may just manage to get away with it
+    // BEW 8Dec10, it just isn't safe to assume that if the unreversed input didn't have a
+    // * at the end of the string buffer, then it must be an unreversed string that was
+    // input and that backslash starts it. If the SFM set is PngOnly, there could be a
+    // final \fe or \F with a space following, and reversing that would mean that space
+    // starts the string. Or there could be embedded binding markers and finding an
+    // endmarker may find one of those and it won't be at the string end necessarily, etc
+    // etc. I'm very uncomfortable with this function, it is dangerous if not used
+    // appropriately. It currently is called (once in helpers.cpp and 3 times in xml.cpp,
+    // and in the doc function, ParseSpanBackwards()). FWe may just manage to get away with
+    // using it - the places where it is used don't have to deal with reversed PngOnly
+    // marker set's markers I think
 	int len = 0;
 	wxChar* ptr = (wxChar*)pChar;
 	wxChar* pBegin = ptr;

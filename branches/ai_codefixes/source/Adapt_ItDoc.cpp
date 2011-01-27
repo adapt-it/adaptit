@@ -7927,6 +7927,220 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param	span		           -> span of characters extracted from the text buffer
+///                                   by the FindParseHaltLocation() function; we parse this
+/// \param  wordProper             <- the word itself [see a) below]
+/// \param  firstFollPuncts	       <- any punctuation characters (out-of-place ones, [see b)
+///                                   below])
+/// \param	nEndMkrsCount          <- how many inline binding endmarkers there are in the
+///                                   span string [this is known to the caller beforehand]
+/// \param	inlineBindingEndMarkers <- one of more inline binding endmarkers following the
+///                                    wordProper in the span string
+/// \param  secondFollPuncts        <- normal "following punctuation" which, if an inline
+///                                    binding endmarker is present, should (if the USFM
+///                                    markup is correctly done) follow the marker [Note:
+///                                    if there is no inline binding endmarker present,
+///                                    only firstFollPuncts will have punctuation chars in
+///                                    it, and they will be in standard position (of course)]
+/// \param  ignoredWhiteSpaces      <- one or more characters of whitespace - because
+///                                    Adapt It normalizes most \n and \r characters out of
+///                                    the data (using space instead) typically this will just
+///                                    be one of more spaces, but we don't rely on that being
+///                                    true
+/// \param  spacelessPuncts          -> the (spaceless) punctuation set being used (usually
+///                                    src punctuation, but target punctuation can be passed
+///                                    if we want to parse target text for some reason - in
+///                                    which case span should contain target text) Note, if
+///                                    we want space to be part of the punctuation set, we
+///                                    must add it here explicitly in a local string before
+///                                    doing anything else
+/// \remarks
+/// Called from: IsFixedSpaceAhead()
+/// FindParseHaltLocation() is used within IsFixedSpaceAhead() (itself within ParseWord()
+/// called from TokenizeText()) to extract characters from the input buffer until a
+/// halting location is reached - which could be at a ~ fixedspace marker, or if certain
+/// other post-word data is encountered. That defines a span of characters which commence
+/// with the characters of the word being parsed, but which could end with quite complex
+/// possibilities. This ParseSpanBackwards() function parsed from the end of that span,
+/// backwards towards its start, extracting each information type which it returns via the
+/// signature's parameters. The material being parsed, in storage order (in a RTL script
+/// this would be rendered RTL, not LTR of course, but both are stored in LTR order) may
+/// be this:
+/// a) the word proper (it may contain embedded punctuation which must remain invisible to
+/// our parsers, that's why we parse backwards - we expect to reach characters at the end
+/// of the word before the backwards parse has a chance to hit an embedded punct character)
+/// b) out-of-place (for canonical USFM markup) following punctuation (which may contain
+/// embedded space - such as for closing curly quote sequences)
+/// c) inline binding endmarker(s) (we allow for more than one - we'll extract them as a
+/// sequence and not try to remove any unneeded spaces between them - they normally would
+/// have no space between any such pair) -- the FindParseHaltLocation() knows how many such
+/// markers it scanned over to get to the halt location, and it returned a count for that,
+/// and so we pass in that count value in the nEndMkrsCount param
+/// d) more following punctuation (this is in the canonical location if there is an inline
+/// binding marker present - punctuation should only follow such an endmarker in good USFM
+/// markup, never precede it -- so the caller will coalesce the out of place puncts with
+/// the in place puncts, to restore good USFM markup
+/// e) some white space - this would be ignorable, and we'll return it so that the caller
+/// can get it's iterator position set correctly, but the caller will then just ignore any
+/// such white space returned
+/// BEW created 11Oct10 (actually 27Jan11), to support the improved USFM parser build into
+/// doc version 5 
+//////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxString& firstFollPuncts,
+								int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+								wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+								wxString& spacelessPuncts)
+{
+	// initialize
+	wordProper.Empty(); firstFollPuncts.Empty(); inlineBindingEndMarkers.Empty();
+	secondFollPuncts.Empty(); ignoredWhiteSpaces.Empty();
+	// reverse the string
+	if (span.IsEmpty())
+	{
+		wxBell();
+		wxMessageBox(_T("Error: in ParseSpanBackwards(), input string 'span' is empty"));
+		return;
+	}
+	int length = span.Len();
+	wxString str = MakeReverse(span);
+
+	// check we have a non-empty punctuation characters set - if it's empty, we can skip
+	// parsing for punctuation characters
+	bool bPunctSetNonEmpty = TRUE;
+	if (spacelessPuncts.IsEmpty())
+	{
+		bPunctSetNonEmpty = FALSE;
+	}
+
+	// we need space to be in the punctuation set, so add it to a local string and use the
+	// local string thereafter
+	wxString punctSet = spacelessPuncts + _T(' ');
+
+	// get access to the wxString's buffer - then iterate across it, collecting the
+	// substrings as we go
+	const wxChar* pBuffer = str.GetData();
+	wxChar* p = (wxChar*)pBuffer;
+	wxChar* pEnd = p + length;
+	wxChar* pStartHere = p;
+	int punctsLen2 = 0;
+	int punctsLen1 = 0;
+	int ignoredWhitespaceLen = 0;
+	int bindingEndMkrsLen = 0;
+
+	// first get any ignorable whitespace
+	ignoredWhitespaceLen = ParseWhiteSpace(p);
+	if (ignoredWhitespaceLen > 0)
+	{
+		wxString ignoredSpaceRev(p, p + ignoredWhitespaceLen);
+		ignoredWhiteSpaces = MakeReverse(ignoredSpaceRev); // normal order
+		pStartHere = p + ignoredWhitespaceLen; // advance starting location
+	}
+    // next, any punctuation characters -- we'll put them in secondFollPuncts string
+	// whether of not nEndMkrsCount is zero (because this is where we'd expect good USFM
+	// markup to have them); skip this step if there are no punctuation characters defined
+	p = pStartHere;
+	wxString puncts; puncts.Empty();
+	if (bPunctSetNonEmpty)
+	{
+		// allow \n and \r to be parsed over too (ie. whitespace, not just space),
+		// space character is already in punctSet, so no need to add an explicit test
+		while (p < pEnd)
+		{
+			if (punctSet.Find(*p) != wxNOT_FOUND ||  *p == _T('\n') || *p == _T('\r'))
+				puncts += *p++;
+			else
+				break;
+		}
+		// add the puncts to secondFollPuncts, if any were found -- note, there could be a
+		// spurious space (bad USFM markup) at the end of the (reversed)substring -- we'll
+		// collect it, and let the caller test for such and remove them
+		if (!puncts.IsEmpty())	
+		{
+			secondFollPuncts = MakeReverse(puncts); // normal order
+			punctsLen2 = secondFollPuncts.Len();
+			puncts.Empty(); // in case we reuse it for a subsequent inline binding endmarker
+			pStartHere = pStartHere + punctsLen2; // advance starting location
+		}
+	}
+	// now, however many (reversed) inline binding endmarkers were found to be present --
+	// since any such are reversed, and because there are no inline markers in the PNG
+	// 1998 SFM marker set, we know that asterisk * must be the first character
+	// encountered if a marker is present...
+    // since we parse backwards we could use the version of ParseMarker() that is in
+    // helpers.cpp, in a loop, because it checks for initial * and so can find reversed
+    // USFM endmarkers, however the easiest way is to assume that the nEndMkrsCount value
+    // passed in is correct, and just use FindFromPos() in a loop - searching for a
+    // backslash on each iteration. Until the latter proves to be non-robust, that will
+    // suffice
+	p = pStartHere;
+#ifdef __WXDEBUG__
+	if (nEndMkrsCount > 0)
+	{
+		wxASSERT(*p == _T('*'));
+	}
+#endif
+	if (nEndMkrsCount > 0)
+	{
+		int lastPos = 0;
+		wxString aReversedSpan(p, pEnd);
+		int index;
+		for (index = 0; index < nEndMkrsCount; index++)
+		{
+			// use the helpers.cpp function: int FindFromPos(const wxString& inputStr, 
+			// const wxString& subStr, int startAtPos), it allows us to find several
+			// instances of a substring within the string
+			lastPos = FindFromPos(aReversedSpan,_T("\\"),lastPos);
+			lastPos++; // include the backslash marker
+		}
+		wxString theBindingEndMarkers(p, p + lastPos);
+		bindingEndMkrsLen = theBindingEndMarkers.Len();
+		inlineBindingEndMarkers = MakeReverse(theBindingEndMarkers); // normal order
+		pStartHere = p + bindingEndMkrsLen; // advance starting location
+	}
+    // next, any pre-marker punctuation characters in the unreversed string -- we'll put
+    // them in firstFollPuncts string whether of not nEndMkrsCount is zero (because if
+    // there was no inline binding endmarker just parsed, we'd have already collected all
+    // the punctuation characters which follow the word; so any collected now must not have
+    // been collected because of an intervening inline binding endmarker; but skip this
+    // step if there are no punctuation characters defined
+	p = pStartHere;
+	if (bPunctSetNonEmpty)
+	{
+		// allow \n and \r to be parsed over too (ie. whitespace, not just space),
+		// space character is already in punctSet, so no need to add an explicit test
+		while (p < pEnd)
+		{
+			if (punctSet.Find(*p) != wxNOT_FOUND ||  *p == _T('\n') || *p == _T('\r'))
+				puncts += *p++;
+			else
+				break;
+		}
+		// add the puncts to firstFollPuncts, if any were found -- note, there could be a
+		// spurious space (bad USFM markup) at the end of the (reversed)substring -- we'll
+		// collect it, and let the caller test for such and remove them
+		if (!puncts.IsEmpty())	
+		{
+			firstFollPuncts = MakeReverse(puncts); // normal order
+			punctsLen1 = firstFollPuncts.Len();
+			puncts.Empty();
+			pStartHere = pStartHere + punctsLen1; // advance starting location
+		}
+	}
+	// finally, what remains is the word proper (it could have embedded punctuation
+	// 'invisible' to our parsing algorithms - it's invisible provided it has a
+	// non-punctuation character both before and after it)
+	p = pStartHere;
+	wxString theReversedWord(p, pEnd);
+	wordProper = MakeReverse(theReversedWord);
+#ifdef __WXDEBUG__
+	int wordLen = wordProper.Len();
+	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 + ignoredWhitespaceLen == length);
+#endif
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if ~ conjoins the word and the next, FALSE if there is no such
 ///             conjoining
 /// \param		ptr			    <-> ref to the pointer to the next character to be parsed
@@ -7939,18 +8153,22 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 ///                                of the first word parsed over
 /// \param	    punctBefore     <- any punctuation (it can have space within, provided
 ///                                that it does not end with a space) which follows
-///                                the word
+///                                the word (*** this should always be empty, because the
+///                                caller has already parsed over initial punctuation, and
+///                                so this member never gets filled) -- remove later on ***
 /// \param      endMkr          <- any inline binding endmarker, if present
+/// \param      spacelessPuncts -> the (spaceless) punctuation set to be used herein
 /// \remarks
 /// Called from: ParseWord()
 /// ******************************************************** NOTE *********************
-/// NOTE: our parsing algorithms for scanning words which are conjoined by ~ assumes that
-/// there is no punctuation within the word proper - so xyz:abc would NOT be parsed as a
-/// single word; our general parser, ParseWord() DOES handle this type of thing as a single
-/// word, but for word1~word2 type of conjoining, word1 and word2 must have no internal
-/// punctuation. For the moment, we feel this is a satisfactory simplification, because
-/// use of ~ in actual data is rare (no known instances in a decade of Adapt It use), and
-/// so too is the use of punctuation as a word-building character.
+/// NOTE: (this is now different, see next paragraph!) our parsing algorithms for scanning
+/// words which are conjoined by ~ assumes that there is no punctuation within the word
+/// proper - so xyz:abc would NOT be parsed as a single word; our general parser,
+/// ParseWord() DOES handle this type of thing as a single word, but for word1~word2 type
+/// of conjoining, word1 and word2 must have no internal punctuation. For the moment, we
+/// feel this is a satisfactory simplification, because use of ~ in actual data is rare (no
+/// known instances in a decade of Adapt It use), and so too is the use of punctuation as a
+/// word-building character.
 /// 
 /// BEW 25Jan11: ***BIGGER NOTE**** I've left the above NOTE here, at the time it seemed a
 /// reasonable simplification. But user's dynamic changes to punctuation settings proved
@@ -7994,8 +8212,8 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
-		wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr)
-{
+	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, wxString& spacelessPuncts)
+{	
 	wxChar* p = ptr; // scan with p, so that we can return a ptr value which is at
 					 // the place we want the caller to pick up from (and that will
 					 // be determined by what we find herein)
@@ -8031,12 +8249,20 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 
 	// we know whether or not we found a USFM fixedspace marker, what we do next depends
 	// on whether we did or not
+	wxString wordProper; // emptied at start of ParseSpanBackwards() call below
+	wxString firstFollPuncts; // ditto
+	wxString inlineBindingEndMarkers; // ditto
+	wxString secondFollPuncts; // ditto
+	wxString ignoredWhiteSpaces; // ditto
+	ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+						inlineBindingEndMarkers, secondFollPuncts, 
+						ignoredWhiteSpaces, spacelessPuncts);
+
 	if (bFixedSpaceIsAhead)
 	{
 
 
-
-
+int stophere = 1;
 
 
 	}
@@ -8044,6 +8270,7 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	{
 
 
+int stophere = 1;
 
 
 
@@ -8210,6 +8437,7 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	return TRUE;
 }
 
+	// *** REWRITE OF THIS WILL NEED TO PASS IN THE (spaceless) PUNCTUATION SET TOO ***
 //////////////////////////////////////////////////////////////////////////////////
 /// \return		                   nothing
 /// \param		ptr			   <-> ref to the pointer to the next character to be parsed
@@ -8252,6 +8480,8 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
 							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr)
 {
+	// *** REWRITE OF THIS WILL NEED TO PASS IN THE PUNCTUATION SET TOO ***
+	
 	wxChar* p = ptr;
 	punctAfter.Empty();
 	bindingMkr.Empty();
@@ -8368,6 +8598,9 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 ///     closing quote or closing doublequote
 /// ii) between non-punctuation and an immediately following inline binding endmarker
 /// iii)after punctuation, provided a closing quote or closing doublequote follows
+/// No punctuation set is passed in, because this function deliberately does not
+/// distinguish between punctuation and word-building characters -- halt location is
+/// determined solely by ~ or [ or ] or certain SF markers.
 /// BEW 11Oct10, (actually created 25Jan11)
 //////////////////////////////////////////////////////////////////////////////////
 wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
@@ -8698,7 +8931,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 ///                                marker, or an inline binding marker)
 /// \param      pEnd            -> pointer to first char past the end of the buffer
 /// \param		pSrcPhrase	   <-> ptr to the CSourcePhrase instance we are building
-/// \param	spacelessSrcPuncts  -> source text punctuation characters, spaces removed
+/// \param	spacelessPuncts     -> punctuation characters set used herein, spaces removed
 /// \param	boundarySet	        -> same as spacelessSrcPunct but also with comma removed
 /// \param inlineNonbindingMrks -> space-delimited markers, \wj \qt \sls \tl \fig
 ///	\param bIsInlineNonbindingMkr -> TRUE if pChar points at one of the above 5 mkrs								 
@@ -8758,13 +8991,13 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 /// character is designated a punctuation character - we treat it as if it was, even if not.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
-							wxChar* pEnd,
-							CSourcePhrase* pSrcPhrase, 
-							wxString& spacelessSrcPuncts,
-							wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
-							wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
-							bool& bIsInlineNonbindingMkr, 
-							bool& bIsInlineBindingMkr)
+		wxChar* pEnd,
+		CSourcePhrase* pSrcPhrase, 
+		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
+		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
+		bool& bIsInlineNonbindingMkr, 
+		bool& bIsInlineBindingMkr)
 {
 	int len = 0;
 	wxChar* ptr = pChar;
@@ -8969,7 +9202,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	{
 		// the legacy parser's code still applies here - to finish parsing over any
 		// non-quote punctuation which precedes the word
-		while (!IsEnd(ptr) && (nFound = spacelessSrcPuncts.Find(*ptr)) >= 0)
+		while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
 		{
             // the test checks to see if the character at the location of ptr belongs to
             // the set of source language punctuation characters (with space excluded from
@@ -9099,7 +9332,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	}
 	*/
 	bMatchedFixedSpaceSymbol = IsFixedSpaceAhead(ptr, pEnd, pWordProper, pEndWordProper, 
-				finalPunctBeforeFixedSpaceSymbol, inlineBindingEndMkrBeforeFixedSpace);
+				finalPunctBeforeFixedSpaceSymbol, inlineBindingEndMkrBeforeFixedSpace,
+				spacelessPuncts); // the punctuationSet passed in has all spaces removed
 	if (bMatchedFixedSpaceSymbol)
 	{
 		// It's a pair of words conjoined by ~, so complete the parse of what follows the
@@ -9153,7 +9387,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// check if we are pointing at a punctuation character (it can't be a ]
 			// character because we've bled out that possibility in the preceding block)
-			if ((nFound = spacelessSrcPuncts.Find(*ptr)) != wxNOT_FOUND)
+			if ((nFound = spacelessPuncts.Find(*ptr)) != wxNOT_FOUND)
 			{
 				// we found a punctuation character - it could be medial, or word final, so we
 				// have to parse on to determine which is the case
@@ -9207,7 +9441,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			}
 			// are we at the end of word-medial punctuation? (but not at buffer end)
 			if (bStartedPunctParse && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar)
-				&& (nFound = spacelessSrcPuncts.Find(*ptr)) == wxNOT_FOUND &&
+				&& (nFound = spacelessPuncts.Find(*ptr)) == wxNOT_FOUND &&
 				!IsEnd(ptr))
 			{
                 // Punctuation parsing had started, we are not pointing at a white space
@@ -9398,7 +9632,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
         bExitParseWordOnReturn = FALSE;
 		wxString additions; additions.Empty();
 		// in next call, FALSE is bPutInOuterStorage
-		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts, len, 
+		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
 					bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
 		{
@@ -9458,13 +9692,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
                 // an endmarker or a ] closing bracket we'll keep the punctuation as
                 // following puncts for the current pSrcPhrase, but any other option -
                 // we'll just return without advancing over the puncts.
-				if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+				if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 				{
 					// it's some sort of nonquote punctuation (IsOpeningQuote() call above
 					// returns true even if straight quote or double quote is matched)
 					wxChar* ptr2 = ptr;
 					int countThem = 0;
-					while (spacelessSrcPuncts.Find(*ptr2) != wxNOT_FOUND && *ptr2 != _T(']'))
+					while (spacelessPuncts.Find(*ptr2) != wxNOT_FOUND && *ptr2 != _T(']'))
 					{
 						ptr2++;
 						countThem++;
@@ -9642,7 +9876,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
     // TRUE in order to assign the matched final punctuation to the pSrcPhrase->m_follPunct
     // member, and to the same member in pSrcPhrWord2 - otherwise the ParseWord() function
     // will end without doing these assignments
-	if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+	if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 	{
 		// ptr is pointing at punctuation. It could belong to the next word to be parsed,
 		// as preceding punctuation for it, or to the current word as final punctuation if
@@ -9654,7 +9888,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		ptr++;
 		pMorePunctsEnd = ptr;
 		bGotSomeMorePuncts = TRUE;
-		while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd && *ptr != _T(']'))
+		while (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd && *ptr != _T(']'))
 		{
 			nMorePunctsSpan++;
 			ptr++;
@@ -9710,7 +9944,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			int nOldLen = len;
 			wxString additions; additions.Empty();
 			// in next call, FALSE is bPutInOuterStorage
-			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts, len, 
+			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
 					bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
 			if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
 			{
@@ -9736,7 +9970,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				pMorePunctsEnd = ptr; // may need this value below, so make sure it is correct
 			}
 		}
-	} // end of TRUE block for test: if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+	} // end of TRUE block for test: if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 
 	// we might now be pointing at inline non-binding endmarker, or the endmarker for a
 	// footnote, endnote or crossReference. There might be a small possibility that we get
@@ -9804,12 +10038,12 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// endmarker too. So the same delay tactics apply as we did earlier
 		// ******   end note about protocol change   ********
 		
-		if (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
+		if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
 		{
 			// there is at least one, parse over as many as their are until non-punct
 			// character is found, store the result in m_follOuterPunct
 			wxString outerPuncts; outerPuncts.Empty();
-			while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
+			while (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
 			{
 				outerPuncts += *ptr;
 				ptr++;
@@ -9844,7 +10078,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
         // follows and so will not be part of the data for this call of ParseWord()
         bExitParseWordOnReturn = FALSE;
 		wxString additions; additions.Empty();
-		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts, len, 
+		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
 						bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, 
 						bPutInOuterStorage);
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty() &&
@@ -9959,7 +10193,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				wxChar* pLastPunctsStart = ptr;
 				wxChar* pLastPunctsEnd = ptr;
 				int nCountLastPuncts = 0;
-				while (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd
+				while (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd
 						&& *ptr != _T(']'))
 				{
 					nCountLastPuncts++;
@@ -10213,6 +10447,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 // pEnd            ->  first character past the end of the data buffer we are parsing
 // pSrcPhrase     <->  where we are storing information parsed, here it is final
 //                     punctuation to be appended to its m_follPunct member
+// spacelessPuncts ->  the punctuation set being used (either source puncts, or target ones)
 // len             ->  the len value before ptr is advanced in this internal scan
 // bExitOnReturn  <-   return TRUE if ParseWord() should be exited on return 
 // bHasPrecedingStraightQuote <-> default is FALSE, the boolean passed in is stored
@@ -10238,7 +10473,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 // BEW created 11Oct10
 // BEW 2Dec10 added ] character as cause to return, ptr should be pointing at it on return                
 int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
-					CSourcePhrase*& pSrcPhrase, wxString& spacelessSrcPuncts, 
+					CSourcePhrase*& pSrcPhrase, wxString& spacelessPuncts, 
 					int len, bool& bExitOnReturn, bool& bHasPrecedingStraightQuote,
 					wxString& additions, bool bPutInOuterStorage)
 {
@@ -10423,7 +10658,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					}
 					// else, accumulate any more puncts until space or non-punct or a
 					// ] bracket is reached
-					while (ptr < pEnd && (spacelessSrcPuncts.Find(*ptr) != wxNOT_FOUND)
+					while (ptr < pEnd && (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 						&& *ptr != _T(']'))
 					{
 						wxString aPunct = *ptr;
@@ -12194,23 +12429,23 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bFreeTranslationIsCurrent = FALSE;
 	int nFreeTransWordCount = 0;
 
-	wxString spacelessSrcPuncts;
+	wxString spacelessPuncts;
 	// BEW 11Jan11, added test here so that the function can be used on target text as
 	// well as on source text
 	if (bTokenizingTargetText)
 	{
-		spacelessSrcPuncts = pApp->m_punctuation[1];
+		spacelessPuncts = pApp->m_punctuation[1];
 	}
 	else
 	{
-		spacelessSrcPuncts = pApp->m_punctuation[0];
+		spacelessPuncts = pApp->m_punctuation[0];
 	}
-	while (spacelessSrcPuncts.Find(_T(' ')) != -1)
+	while (spacelessPuncts.Find(_T(' ')) != -1)
 	{
 		// remove all spaces, leaving only the list of punctation characters
-		spacelessSrcPuncts.Remove(spacelessSrcPuncts.Find(_T(' ')),1); 
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1); 
 	}
-	wxString boundarySet = spacelessSrcPuncts;
+	wxString boundarySet = spacelessPuncts;
 	while (boundarySet.Find(_T(',')) != -1)
 	{
 		boundarySet.Remove(boundarySet.Find(_T(',')),1);
@@ -12844,7 +13079,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			int breakpt_here = 1;
 		}
 #endif
-		itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessSrcPuncts,
+		// the TokenizeText() caller determines whether spacelessPuncts contains the
+		// m_punctuation[0] source puncts set, or m_punctuation[1] target set; typically,
+		// it is the source set, but we do use an override of the TokenizeTextString()
+		// with a boolean at the end, when we explicitly want to parse target text - in
+		// that case, the boolean is TRUE and the target puncts set get passed to
+		// TokenizeText() which then removes spaces (whichever set it receives, it removes
+		// spaces before passing the punctuation characters themselves to TokenizeText())
+		// - if any functions within ParseWord() require space to be in the passed-in set
+		// of punctuation characters, they can add an explicit space when they first run
+		itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 							pApp->m_inlineNonbindingMarkers,
 							pApp->m_inlineNonbindingEndMarkers,
 							bIsInlineNonbindingMkr, bIsInlineBindingMkr);

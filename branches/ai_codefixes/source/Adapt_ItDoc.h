@@ -141,8 +141,9 @@ protected:
 	//bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
-	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, wxChar*& pWdEnd,
-							wxString& punctBefore, wxString& endMkr); // BEW created 11Oct10
+	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
+							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
+							wxString& spacelessPuncts); // BEW created 11Oct10
 	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
 							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr);
 	bool			IsUnstructuredPlainText(wxString& rText);
@@ -257,7 +258,7 @@ public:
 	wxString		NormalizeToSpaces(wxString str);
 	bool			OpenDocumentInAnotherProject(wxString lpszPathName);
 	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
-								wxString& spacelessSrcPuncts, int len, bool& bExitOnReturn, 
+								wxString& spacelessPuncts, int len, bool& bExitOnReturn, 
 								bool& bHasPrecedingStraightQuote, wxString& additions,
 								bool bPutInOuterStorage);
 	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
@@ -275,12 +276,16 @@ public:
 											bool* pbFoundHaltingWhitespace,
 											int& nFixedSpaceOffset,
 											int& nEndMarkerCount); // BEW created 25Jan11
+	void			ParseSpanBackwards( wxString& span, wxString& wordProper, wxString& firstFollPuncts,
+								int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+								wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+								wxString& spacelessPuncts); //BEW created 27Jan11
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
 							wxChar* pEnd, // pointer to the null at the end of the string buffer
 							CSourcePhrase* pSrcPhrase, // where we store what we parse
-							wxString& spacelessSrcPuncts, // source punctuation with spaces removed
+							wxString& spacelessPuncts, // punctuationset used, with spaces removed
 							wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
 							wxString& inlineNonbindingEndMrks, // fast access string for \wj* \qt* \sls* \tl* \fig*
 							bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
