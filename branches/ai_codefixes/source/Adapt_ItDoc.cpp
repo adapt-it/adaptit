@@ -7980,7 +7980,9 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// d) more following punctuation (this is in the canonical location if there is an inline
 /// binding marker present - punctuation should only follow such an endmarker in good USFM
 /// markup, never precede it -- so the caller will coalesce the out of place puncts with
-/// the in place puncts, to restore good USFM markup
+/// the in place puncts, to restore good USFM markup [white space between word and puncts,
+/// keep it if present, because some languages require space between word and puncts at
+/// either end.
 /// e) some white space - this would be ignorable, and we'll return it so that the caller
 /// can get it's iterator position set correctly, but the caller will then just ignore any
 /// such white space returned
@@ -8052,9 +8054,9 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 			else
 				break;
 		}
-		// add the puncts to secondFollPuncts, if any were found -- note, there could be a
-		// spurious space (bad USFM markup) at the end of the (reversed)substring -- we'll
-		// collect it, and let the caller test for such and remove them
+        // add the puncts to secondFollPuncts, if any were found -- note, there could be a
+        // space (it's not necessaryily bad USFM markup, some languages require it) at the
+        // end of the (reversed)substring -- we'll collect it & retain it if present
 		if (!puncts.IsEmpty())	
 		{
 			secondFollPuncts = MakeReverse(puncts); // normal order
@@ -8073,6 +8075,9 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
     // passed in is correct, and just use FindFromPos() in a loop - searching for a
     // backslash on each iteration. Until the latter proves to be non-robust, that will
     // suffice
+	// Note: we know that the marker or markers to be parsed next are all inline
+	// binding endmarkers - that was verified in the prior call of
+	// FindParseHaltLocation() which did the requisite test and set nEndMkrsCount
 	p = pStartHere;
 #ifdef __WXDEBUG__
 	if (nEndMkrsCount > 0)
@@ -8116,9 +8121,9 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 			else
 				break;
 		}
-		// add the puncts to firstFollPuncts, if any were found -- note, there could be a
-		// spurious space (bad USFM markup) at the end of the (reversed)substring -- we'll
-		// collect it, and let the caller test for such and remove them
+        // add the puncts to firstFollPuncts, if any were found -- note, there could be a
+        // space (it's not necessaryily bad USFM markup, some languages require it) at the
+        // end of the (reversed)substring -- we'll collect it & retain it if present
 		if (!puncts.IsEmpty())	
 		{
 			firstFollPuncts = MakeReverse(puncts); // normal order
@@ -8221,8 +8226,6 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	punctBefore.Empty();
 	endMkr.Empty();
 	pWdStart = ptr;
-	int length = 0;
-	int ignoredSpaceLen = 0;
 	// Find where ~ is, if present; we can't just call .Find() in the string defined by
 	// ptr and pEnd, because it could contain thousands of words and a ~ may be many
 	// hundreds of words ahead. Instead, we must scan ahead, parsing over any ignorable
@@ -8257,187 +8260,90 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
 						inlineBindingEndMarkers, secondFollPuncts, 
 						ignoredWhiteSpaces, spacelessPuncts);
-
+	// now use the info extracted to set the IsFixedSpaceAhead() param values ready
+	// for returning to ParseWord()
 	if (bFixedSpaceIsAhead)
 	{
+		// now use the info extracted to set the IsFixedSpaceAhead() param values ready
+		// for returning to ParseWord()
 
+		// first, pWdEnd -- this will be the length of wordProper after pWdStart
+		pWdEnd = pWdStart + wordProper.Len();
 
-int stophere = 1;
-
-
-	}
-	else
-	{
-
-
-int stophere = 1;
-
-
-
-	}
-
-
-// **** legacy code below
-
-	// scan across the word; our punctuation set used herein is the source language's one,
-	// and this overloaded version of SpanExcluding() always halts if it comes to ~
-	// (if ] is in any substring of punctuation here, we'll parse over it; that is, we
-	// don't ask of SpanExcluding() that it pay particular attention to ] nor halt at a ] )
-	// 
-	// NOTE: SpanExcluding() and SpanIncluding() halt at space or puncts, but not at <CR>
-	// nor <LF>, and so the following call will include the carriage return linefeed pair
-	// if the word does not end in punctuation - and that would carry the CR+LF into the
-	// xml output of the doc, etc, if we don't check for and remove these unwanted white
-	// space characters here. (I don't think these versions of the Span...() functions
-	// would ever be wanted for parsing over line ends, so I'll put \r and \n into the
-	// halt conditions of these two functions - that will fix the problem here without
-	// extra code being needed)
-	wxString word = SpanExcluding(p, pEnd, gpApp->m_punctuation[0]);
-	length = word.Len();
-	p = p + length;
-	pWdEnd = p;
-	if (p < pEnd)
-	{
-        // there is more in the caller's buffer, so attempt to parse over a potential
-        // inline binding endmarker, then any following punctuation {- the test of the
-        // punctuation yields TRUE when the *p is a space, since spaces are in the test
-        // string along with puncuation characters; and this overloaded version of
-        // SpanExcluding() always halts if it comes to ~ }. Do so until we come to either
-		// ~ or a halt without finding ~. (If there is any whitespace before an inline
-		// binding endmarker, we'll parse over it but not return it in any of the string
-		// parameters of the signature.
-		 
-		// get over any ignorable space (beware, if an inline binding endmarker does not
-		// follow it, it is not ignorable, but an indicator that there is no ~ conjoining
-		// and we must not parse further)
-		ignoredSpaceLen = ParseWhiteSpace(p);
-		wxChar* tempPtr = p;
-		bool bFoundBindingEndMarker = FALSE;
-		if ( ignoredSpaceLen > 0)
-		{	
-			tempPtr += ignoredSpaceLen;
-		}
-		if (*tempPtr == gSFescapechar)
+		// second, punctuation which follows the word but precedes the fixed space; if
+		// there is correct markup and there is an inline binding endmarker, it would all be
+		// after that marker (or markers, if there is more than one here), but user markup
+		// errors might have some or all before such a marker - if so, we move the
+		// before-marker puncts to be immediately after the endmarker(s) and append
+		// whatever is already after the endmarkers. We won't remove any initial whitespace
+		// before the puncts, as that would be inappropriate -- some languages'
+		// punctuation conventions are to have a space between the word and preceding or
+		// following punctuation - so if there is space there, we must retain it 
+		if (nEndMarkerCount == 0)
 		{
-			// there is a marker following the whitespace, find out what kind it is
-			if (IsEndMarker(tempPtr,pEnd))
+			// all the punctuation is together in secondFollPuncts, if there is any at all
+			if (secondFollPuncts.IsEmpty())
 			{
-				// remove final * if it is present
-				wxString mkr = GetWholeMarker(tempPtr);
-				endMkr = mkr; // assume it's an inline binding endmarker to be
-							  // returned to the caller, if we find out below
-							  // that is not the case, empty the endMkr parameter
-				int length = mkr.Len();
-				if (mkr[length-1] == _T('*'))
-				{
-					mkr = mkr.Left(length-1);
-				}
-				wxString mkrPlusSpace = mkr + _T(' ');
-				if (gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
-				{
-					// it is an endmarker of the inline binding type (what USFM calls
-					// 'Special Markers'), and so we need to deal with it, because ~ may
-					// still lie ahead
-					p += length; // point past the stored (to-be-returned) endmarker
-					// but take care, outside the block we may have to add in the
-					// ignored whitespace if we parsed over some before this endmarker
-					bFoundBindingEndMarker = TRUE;
-				}
-				else
-				{
-					// it's not an inline binding endmarker, so we are done
-					endMkr.Empty();
-					ptr = pWdEnd;
-					return FALSE;
-				}
+				punctBefore.Empty();
 			}
 			else
 			{
-				// it's not an endmarker, so must be a beginmarker for data which follows,
-				// in which case we've no ~ conjoining and we return that info to the caller
-				ptr = pWdEnd;
-				return FALSE;
-			}
-		} // end of TRUE block for test: if (*tempPtr == gSFescapechar)
-		if (bFoundBindingEndMarker)
-		{
-			// check for any ignored whitespace and bump the p location by that much more
-			// if there was some, if not, p is accurate already
-			if (ignoredSpaceLen > 0)
-			{
-				p += ignoredSpaceLen;
+				punctBefore = secondFollPuncts;
 			}
 		}
 		else
 		{
-            // we didn't find an inline binding endmarker, so if we previously parsed over
-            // some post-word white space, that indicates we have no conjoining with ~ and
-            // must return FALSE; if we didn't parse over any white space, then parsing may
-            // continue
-			if (ignoredSpaceLen > 0)
+			// handle any out-of-place puncts (will be in firstFollPuncts if there is any)
+			// first, and then append any which follows the inline binding endmarker() to it
+			if (firstFollPuncts.IsEmpty())
 			{
-				ptr = pWdEnd;
-				return FALSE;
+				punctBefore.Empty();
 			}
-		}
-        // continue parsing, next check at the possibility that a ] bracket follows - if
-        // so, we are done parsing and must return with ptr pointing at the ] character
-        // (which will be the pWdEnd value if we didn't parse over an endmarker, since
-        // we've not yet begun parsing any following punctuation; but if we did, then we
-        // need to return with a smaller value for ptr than p, namely where pWdEnd is)
-		if (*p == _T(']'))
-		{
-			ptr = pWdEnd;
-			return FALSE; // we don't have ~ conjoining either; and len value is correct
+			else
+			{
+				punctBefore = firstFollPuncts;
+			}
+			if (!secondFollPuncts.IsEmpty())
+			{
+				punctBefore += secondFollPuncts;
+			}
 		}
 
-		// continue parsing, next check out the possibility of word-final punctuation
-		// characters, and beware there may be detached closing quote, and so we can't
-		// assume there won't be a space within the punctuation string (if there is a
-		// punctuation string, that is)
-		// SpanIncluding() will need to halt if a ] character is found, if we are to
-		// support [ and ] bracketing as Paratext does. Since we may parse over some
-		// punctuation before coming to a ] symbol, if we find ] then we'll return with
-		// ptr pointing pWdEnd instead of at ], and let the caller's following punctuation
-		// parsing re-encounter the ] which terminates ParseWord().
-		punctBefore = SpanIncluding(p, pEnd, gpApp->m_punctuation[0]);
-		length = punctBefore.Len();
-		if (length > 0)
+		// third, the contents for endMkr; there could be space(s) in the string, and
+		// they should be removed as they contribute nothing except to make things more
+		// complicated than is necessary for rendinging the markup for publishing, so we
+		// remove them
+		endMkr.Empty();
+		if (!inlineBindingEndMarkers.IsEmpty())
 		{
-			p = p + length; // point past what we spanned
+			while (inlineBindingEndMarkers.Find(_T(' ')) != wxNOT_FOUND)
+			{
+				// remove all spaces, leaving only the one or more inline binding endmarkers
+				inlineBindingEndMarkers.Remove(inlineBindingEndMarkers.Find(_T(' ')),1); 
+			}
+			endMkr = inlineBindingEndMarkers;
 		}
-		// bleed out the possibility that ] was halted at, if so return ptr with value pWdEnd
-		if (*p == _T(']'))
-		{
-			ptr = pWdEnd;
-			return FALSE; // we don't have ~ conjoining either
-		}
-        // we've stopped because either we have come to ~, or to an endmarker, or to the
-        // next word in the data buffer, or to the end of the buffer
-		if (*p == _T('~'))
-		{
-			// We are pointing at a ~ marker. Set ptr to point after it, & return TRUE
-			ptr = p + 1;
-		}
-		else
-		{
-            // we are not pointing at ~ so we don't care what we are pointing at, we
-            // just return FALSE with ptr set to pWdEnd
-			ptr = pWdEnd;
-			return FALSE;
-		}
-	} // end of TRUE block for test: if (p < pEnd)
+
+		// last, since ~ is not in aSpan but immediately after it, set ptr to point past
+		// the ~ fixedspace character
+		ptr = ptr + nFixedSpaceOffset + 1;
+	} // end of TRUE block for test: if (bFixedSpaceIsAhead)
 	else
 	{
-		// we are at the buffer end, so no conjoining is present - we've just a normal
-		// word to handle in the caller
+		punctBefore.Empty(); // forget what we know about following punctuation
+		endMkr.Empty(); // forget what we know about following inline binding endmarkers
+
+		// first, pWdEnd -- this will be the length of wordProper after pWdStart
+		pWdEnd = pWdStart + wordProper.Len();
+
+		// last, reset ptr to point where pWdEnd points -- for when we've not found any
+		// fixed space, we let the caller do the final punctuation & endmarkers parsing etc
 		ptr = pWdEnd;
-		return FALSE;
-	}
+		return FALSE; // tell the caller that no fixedspace was encountered
+	} // end of else block for test: if (bFixedSpaceIsAhead)
 	return TRUE;
 }
 
-	// *** REWRITE OF THIS WILL NEED TO PASS IN THE (spaceless) PUNCTUATION SET TOO ***
 //////////////////////////////////////////////////////////////////////////////////
 /// \return		                   nothing
 /// \param		ptr			   <-> ref to the pointer to the next character to be parsed
@@ -8476,25 +8382,30 @@ int stophere = 1;
 /// parsed over, update the callers len (length) value, and then parse on over anything
 /// which may lie beyond the end of the second word (such as final punctuation, etc).
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
+/// BEW refactored 28Jan11, to parse 'inwards' from the ends, rather than across the word
 //////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
-							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr)
+		wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr, wxString& spacelessPuncts)
 {
-	// *** REWRITE OF THIS WILL NEED TO PASS IN THE PUNCTUATION SET TOO ***
-	
+	// Note: the punctAfter param is "punctuation after the ~ fixedspace, which, since
+	// this function is only used to parse the second of two conjoined words, is also the
+	// preceding punctuation for the second of the two words (it is NOT the *'punctuation
+	// after the second word' - the latter will be determined in the caller, ParseWord())
 	wxChar* p = ptr;
 	punctAfter.Empty();
 	bindingMkr.Empty();
 	pWord2Start = NULL;
 	pWord2End = NULL;
 	int length = 0;
+	// we need a punctuation string which includes space
+	wxString punctuation = spacelessPuncts + _T(' ');
 	if (p < pEnd)
 	{
 		// check out the possibility of word-initial punctuation preceding word2's
 		// characters, and beware there may be detached opening quote, and so we can't
 		// assume there won't be a space within the punctuation string (if there is a
 		// punctuation string, that is)   
-		punctAfter = SpanIncluding(p, pEnd, gpApp->m_punctuation[0]); // use src language punctuation
+		punctAfter = SpanIncluding(p, pEnd, punctuation);
 		length = punctAfter.Len();
 		if (length > 0)
 		{
@@ -8514,19 +8425,24 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 		else
 		{
 			// there's more, so check out what is next - could be the start of the word,
-			// or an inline binding beginmarker
-			if (*p == gSFescapechar)
+			// or an inline binding beginmarker (could even be a sequence of these)
+			// BEW 28Jan11, changed to using IsMarker() because it tests for \ followed by
+			// a single alphabetic character, and so we don't have \ followed by space
+			// giving a false positive
+			//if (*p == gSFescapechar)
+			bindingMkr.Empty();
+			while (IsMarker(p))
 			{
-				bindingMkr = GetWholeMarker(p);
-				length = bindingMkr.Len();
-				wxString mkrPlusSpace = bindingMkr + _T(' ');
+				wxString aBindingMkr = GetWholeMarker(p);
+				length = aBindingMkr.Len();
+				wxString mkrPlusSpace = aBindingMkr + _T(' ');
 				if (gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
 				{
 					// it is a beginmarker of the inline binding type (what USFM calls
 					// 'Special Markers'), and so we need to deal with it - we store these
 					// with their trailing space
-					bindingMkr = mkrPlusSpace; // caller will store returned string in
-											   // m_inlineBindingMarkers member
+					bindingMkr += mkrPlusSpace; // caller will store returned string(s) in
+											    // m_inlineBindingMarkers member
 					p += length;
 					length = ParseWhiteSpace(p); // get past the whitespace after the marker
 												 // (it might not be a single character)
@@ -8542,16 +8458,55 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 					// since we've not changed ptr yet, all we need do is return
 					return;
 				}
-			} // end of else block for test: if (*p == gSFescapechar)
+			} // end of loop for test: while (IsMarker(p))
 
-			// we are at the start of word2, parse over it, set the pointers and return
-			// (this scan will halt if p comes to whitespace, a backslash, or punctuation)
+			// we are at the start of word2, we can't scan over it using SpanExcluding()
+			// because if there is embedded punctuation, it would foul the integrity of
+			// the parse; so use FindParseHaltLocation() and ParseSpanBackwards() as the
+			// IsFixedSpaceAhead() function does - this combination adhere's to our
+			// word-parsing protocol, which is to parse inwards from either end, never
+			// across it
 			pWord2Start = p;
-			wxString word = SpanExcluding(p, pEnd, gpApp->m_punctuation[0]);
-			length = word.Len();
-			p += length;
-			pWord2End = p;
 			ptr = p;
+
+            // Find a halting location which is beyond the currently to-be-parsed word, but
+            // not past the start of information which belongs to the following of what
+            // could be thousands of words. Instead, we must scan ahead, parsing over any
+            // ignorable white space, until we come to either ~, or non-ignorable
+            // whitespace, or a closing bracket (]) - halting immediately before any such
+            // character. We need a function for this and it can return, via its signature,
+            // what the specific halt condition was. We also may parse over an inline
+            // binding endmarker, (perhaps more than one), these don't halt parsing - but
+            // we'll return the info in the signature, along with a count of how many such
+            // markers we parsed over. We don't use much of what we find, just the
+            // wordProper, because we let the caller handle everything to be parsed from
+            // the end of the wordProper onwards
+			wxChar* pHaltLoc = NULL;
+			bool bFoundInlineBindingEndMarker = FALSE;
+			bool bFoundFixedSpaceMarker = FALSE;
+			bool bFoundClosingBracket = FALSE;
+			bool bFoundHaltingWhitespace = FALSE;
+			int nFixedSpaceOffset = -1;
+			int nEndMarkerCount = 0;
+			pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
+							&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+							&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+			wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a 
+										  // whitespace or a beginmarker
+			// now parse backwards to extract the span's info
+			wxString wordProper; // emptied at start of ParseSpanBackwards() call below
+			wxString firstFollPuncts; // ditto
+			wxString inlineBindingEndMarkers; // ditto
+			wxString secondFollPuncts; // ditto
+			wxString ignoredWhiteSpaces; // ditto
+			ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+								inlineBindingEndMarkers, secondFollPuncts, 
+								ignoredWhiteSpaces, spacelessPuncts);
+            // now use the info extracted to set the FinishedOffConjoinedWordsParse() param
+            // values ready for returning to ParseWord() -- all we want is wordProper
+			length = wordProper.Len();
+			pWord2End = ptr + length;
+			ptr = pWord2End;
 		} // end of else block for test: if (p >= pEnd)
 	} // end of TRUE block for test: if (p < pEnd)
 }
@@ -8639,15 +8594,13 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 			// it's one of those - handle each possibility appropriately
 			if (*p == fixedSpaceChar)
 			{
-				pHaltLoc = p;
-				nFixedSpaceOffset = (int)(pHaltLoc - ptr);
+				nFixedSpaceOffset = (int)(p - ptr);
 				*pbFoundFixedSpaceMarker = TRUE;
 				break;
 			}
 			else if (*p == _T(']') || *p == _T('['))
 			{
 				*pbFoundClosingBracket = TRUE;
-				pHaltLoc = p;
 				break;
 			}
 			// if neither of the above, it must be one of the other conditions - try
@@ -8664,7 +8617,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 					// conjoining (endmarkers in this set are only \F or \fe - either is a
 					// footnote end, and there would not be conjoining across that kind of
 					// a boundary) and so we are at the end of a word for sure, so return
-					pHaltLoc = p;
 					break;
 				}
 				else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
@@ -8673,7 +8625,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 					{
 						//  there is no asterisk in the marker, so it is not an endmarker
 						//  - it must then be a beginmarker, and they halt scanning
-						pHaltLoc = p;
 						break;
 					}
 					else
@@ -8689,7 +8640,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 						{
 							// it's not one of the space-delimited markers in the fast access
 							// string of inline binding beginmarkers, so it halts scanning
-							pHaltLoc = p;
 							break;
 						}
 						else
@@ -8729,8 +8679,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 					{
 						// there is a fixedspace marker following, so return with p
 						// pointing at it, etc
-						pHaltLoc = p + whitespaceSpan;
-						nFixedSpaceOffset = (int)(pHaltLoc - ptr);
+						p = p + whitespaceSpan;
+						nFixedSpaceOffset = (int)(p - ptr);
 						*pbFoundFixedSpaceMarker = TRUE;
 						break;
 					}
@@ -8739,7 +8689,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 						// there is an opening or closing bracket following the
 						// whitespace(s), this halts scanning and also means there is no
 						// conjoining (the whitespace is ignorable)
-						pHaltLoc = p + whitespaceSpan;
+						p = p + whitespaceSpan;
 						break;
 					}
 					else if (IsMarker(p + whitespaceSpan))
@@ -8757,7 +8707,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							// footnote end, and there would not be conjoining across that kind of
 							// a boundary) and so we are at the end of a word for sure, so return
 							*pbFoundHaltingWhitespace = TRUE;
-							pHaltLoc = p;
 							break;
 						}
 						else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
@@ -8767,7 +8716,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 								//  there is no asterisk in the marker, so it is not an endmarker
 								//  - it must then be a beginmarker, and they halt scanning
 								*pbFoundHaltingWhitespace = TRUE;
-								pHaltLoc = p;
 								break;
 							}
 							else
@@ -8784,7 +8732,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 									// it's not one of the space-delimited markers in the fast access
 									// string of inline binding beginmarkers, so it halts scanning
 									*pbFoundHaltingWhitespace = TRUE;
-									pHaltLoc = p;
 									break;
 								}
 								else
@@ -8815,7 +8762,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 						// considered as opening punctuation for the following word, so
 						// halt now
 						*pbFoundHaltingWhitespace = TRUE;
-						pHaltLoc = p;
 						break;
 					}
 
@@ -8841,7 +8787,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							// footnote end, and there would not be conjoining across that kind of
 							// a boundary) and so we are at the end of a word for sure, so return
 							*pbFoundHaltingWhitespace = TRUE;
-							pHaltLoc = p;
 							break;
 						}
 						else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
@@ -8851,7 +8796,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 								//  there is no asterisk in the marker, so it is not an endmarker
 								//  - it must then be a beginmarker, and they halt scanning
 								*pbFoundHaltingWhitespace = TRUE;
-								pHaltLoc = p;
 								break;
 							}
 							else
@@ -8868,7 +8812,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 									// it's not one of the space-delimited markers in the fast access
 									// string of inline binding beginmarkers, so it halts scanning
 									*pbFoundHaltingWhitespace = TRUE;
-									pHaltLoc = p;
 									break;
 								}
 								else
@@ -8904,7 +8847,6 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							// none of the subconditions for regarding this space as ignorable are
 							// satisfied, so halt here
 							*pbFoundHaltingWhitespace = TRUE;
-							pHaltLoc = p;
 							break;
 						}
 					}
@@ -8915,11 +8857,11 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 			{
 				// it's not whitespace -- control should never enter here, but if it does,
 				// then halt for safety's sake
-				pHaltLoc = p;
 				break;
 			}	
 		} // end of else block for test: if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
 	}
+	pHaltLoc = p;
 	return pHaltLoc;
 }
 
@@ -9162,10 +9104,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// handle these possibilities
 	if (*ptr == gSFescapechar)
 	{
-		// we are pointing at an inline marker - it must be one with inLine TRUE and
-		// TextType none and not one of the 5 mentioned above, that is, an inline binding
-        // marker; beware, we can have \k \w word\w*\k*, and so we could be pointing at the
-        // first of a pair of them, so we can't assume there will be only one every time
+        // we are pointing at an inline marker - it must be one with inLine TRUE, that is,
+        // an inline binding marker; beware, we can have \k \w word\w*\k*, and so we could
+        // be pointing at the first of a pair of them, so we can't assume there will be
+        // only one every time
 		while (*ptr == gSFescapechar)
 		{
 			// parse across as many as there are, and the obligatory white space following
@@ -9343,7 +9285,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		len += nChangeInLenValue;
 		savePtr = ptr;
 		FinishOffConjoinedWordsParse(ptr, pEnd, pSecondWordBegins, pSecondWordEnds,
-				precedingPunctAfterFixedSpaceSymbol, inlineBindingMkrAfterFixedSpace);
+				precedingPunctAfterFixedSpaceSymbol, inlineBindingMkrAfterFixedSpace,
+				spacelessPuncts);
 		nChangeInLenValue = ptr - savePtr;
 		len += nChangeInLenValue;
 	}
@@ -13074,10 +13017,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// not pointing at [ so do the parsing of the word - including puncts and inline
 		// markers
 #ifdef __WXDEBUG__
-		if (pSrcPhrase->m_nSequNumber == 49)
-		{
-			int breakpt_here = 1;
-		}
+//		if (pSrcPhrase->m_nSequNumber == 49)
+//		{
+//			int breakpt_here = 1;
+//		}
 #endif
 		// the TokenizeText() caller determines whether spacelessPuncts contains the
 		// m_punctuation[0] source puncts set, or m_punctuation[1] target set; typically,

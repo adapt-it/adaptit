@@ -145,7 +145,8 @@ protected:
 							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
 							wxString& spacelessPuncts); // BEW created 11Oct10
 	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
-							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr);
+							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
+							wxString& spacelessPuncts);
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
