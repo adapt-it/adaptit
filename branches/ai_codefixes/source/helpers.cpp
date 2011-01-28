@@ -1097,6 +1097,50 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 	return span;
 }
 
+// the overloaded SpanExluding(wxChar* ptr, ....) function is dangerous, as I only used it
+// to parse over a word as far as following punctuation - and that goes belly up if there
+// is an embedded punctuation character (which can happen if user changes punct settings)
+// so I've deprecated it; and the following ParseWordInwardsFromEitherEnd() replaces it.
+// This new function should include a space in the punctuation string because parsing
+// inwards we could be parsing over detacted quotes, and some languages require
+// punctuation to be offset from the word proper by a space. The function it calls will
+// automatically add a space to charSet, so it is safe to pass in spacelessPuncts string.
+// BEW created 28Jan11, the code is adapted from the second half of doc class's
+// FinishOffConjoinedWordsParse() function
+wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, wxString charSet)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	wxChar* p = ptr; // using this function, we expect any punctuation or markers or both
+					 // which precede the word proper, have been parsed already, and hence
+					 // at entry ptr should be pointing at the first word of the word to be
+					 // parsed over and returned to the caller
+	wxChar* pHaltLoc = NULL;
+	bool bFoundInlineBindingEndMarker = FALSE;
+	bool bFoundFixedSpaceMarker = FALSE;
+	bool bFoundClosingBracket = FALSE;
+	bool bFoundHaltingWhitespace = FALSE;
+	int nFixedSpaceOffset = -1;
+	int nEndMarkerCount = 0;
+	pHaltLoc = pDoc->FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
+					&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+	wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a 
+								  // whitespace or a beginmarker
+	// now parse backwards to extract the span's info
+	wxString wordProper; // emptied at start of ParseSpanBackwards() call below
+	wxString firstFollPuncts; // ditto
+	wxString inlineBindingEndMarkers; // ditto
+	wxString secondFollPuncts; // ditto
+	wxString ignoredWhiteSpaces; // ditto
+	// internally, the next function call adds a space to charSet to ensure there is one
+	// in the set of punctuation characters passed in
+	pDoc->ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+						inlineBindingEndMarkers, secondFollPuncts, 
+						ignoredWhiteSpaces, charSet);
+	return wordProper;
+}
+
+/* deprecated -- it's dangerous for parsing across a word, see comments for ParseWordInwardsFromEnd() above
 // overload version (slightly different behaviour if charSet is empty) and with the
 // additional property that encountering ~ (the USFM fixed space marker) unilaterally
 // halts the scan, as does encountering a backslash or a carriage return or linefeed
@@ -1134,7 +1178,7 @@ wxString SpanExcluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	}
 	return span;
 }
-
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a string whose characters are in reverse order from those in inputStr.
@@ -3908,7 +3952,9 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	length = word1PrecPunct.Len();
 	ptr += length;
 	// next, get word1
-	word1 = SpanExcluding(ptr, pEnd, gpApp->m_punctuation[1]);
+	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use 
+	// ParseWordInwardsFromEnd() instead
+	word1 = ParseWordInwardsFromEnd(ptr, pEnd, gpApp->m_punctuation[1]);
 	length = word1.Len();
 	ptr += length;
 	// next, get following puncts from word1
@@ -3922,7 +3968,9 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	length = word2PrecPunct.Len();
 	ptr += length;
 	// next, get word2
-	word2 = SpanExcluding(ptr, pEnd, gpApp->m_punctuation[1]);
+	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use 
+	// ParseWordInwardsFromEnd() instead
+	word2 = ParseWordInwardsFromEnd(ptr, pEnd, gpApp->m_punctuation[1]);
 	length = word2.Len();
 	ptr += length;
 	// next, get following puncts from word2
