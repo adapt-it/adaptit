@@ -10855,6 +10855,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxString appVer = GetAppVersionOfRunningAppAsString();
 		msg = msg.Format(_T("The Display size of this computer is too small (%dw x %dh) to run this version of Adapt It (%s).\nAdapt It cannot display its windows and dialogs properly.\nProgram aborting..."),nDisplayWidthInPixels,nDisplayHeightInPixels,appVer.c_str());
 		wxMessageBox(msg,_T("Screen size too small"),wxICON_ERROR);
+		LogUserAction(_T("Screen size too small"));
 		abort();
 		return FALSE;
 	}
@@ -11246,7 +11247,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
 
-	m_aiDeveloperEmailAddresses = _T("bruce_waters@sil.org,bill_martin@sil.org"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
+	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
 											   // into phrases for adapting
@@ -13761,6 +13762,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."),
 		m_customWorkFolderPath.c_str());
 		wxMessageBox(str, _("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+		LogUserAction(_T("Locating the custom work folder location failed"));
 		abort();
 		return FALSE;
 	}
@@ -14288,7 +14290,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // which is safer than hard coding the path to a predetermined setup location.
 	wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
 	bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
-	LogUserAction(_T("Program startup"));
+	LogUserAction(_T("AppStartUp"));
 
 	wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
 	// Does AI_UserProfiles.xml exist in the work folder
@@ -16622,7 +16624,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."),
 				m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
-				//wxExit();
+				LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
 				abort();
 				return FALSE;
 			}
@@ -16641,6 +16643,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\nAdapt It %s is not set up correctly and so must close down."),
 				m_strNR.c_str(),m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
+				LogUserAction(_T("Error creating the \"Adapt It %sWork\" folder in <home user>"));
 				wxASSERT(FALSE);
 				return FALSE;
 			}
@@ -16718,7 +16721,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str());
 				wxMessageBox(text, _T(""), wxICON_ERROR);
-				//wxExit();
+				LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
 				abort();
 				return FALSE;
 			}
@@ -16779,7 +16782,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."),
 				m_curProjectName.c_str());
 				wxMessageBox(text, _T(""), wxICON_ERROR);
-				//wxExit();
+				LogUserAction(_T("A file named \"Adaptations\" exists interfering with creating the folder of same name"));
 				abort();
 				return FALSE;
 			}
@@ -16796,6 +16799,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				wxMessageBox(_(
 "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."),
 				_T(""), wxICON_ERROR);
+				LogUserAction(_T("Error creating the \"Adaptations\" folder in the project folder"));
 				wxASSERT(FALSE);
 				return FALSE;
 			}
@@ -16873,7 +16877,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading the glossing knowledge base failed. The application will now close."),
 					_T(""), wxICON_ERROR);
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: loading the glossing knowledge base failed"));
 					abort();
 					return FALSE;
 				}
@@ -16885,7 +16889,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading a knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR);
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: loading a knowledge base failed"));
 				abort();
 				return FALSE;
 			}
@@ -16927,7 +16931,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
 					_T(""), wxICON_ERROR); // something went wrong
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
 					abort();
 					return FALSE;
 				}
@@ -16939,7 +16943,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: saving the knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR); // something went wrong
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: saving the knowledge base failed"));
 				abort();
 				return FALSE;
 			}
@@ -16964,7 +16968,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			str = str.Format(_T("Somehow no 'Adapt It %sWork' folder detected in SetupDirectories(). Aborting now."),
 			m_strNR.c_str());
 			wxMessageBox(str, _T(""), wxICON_ERROR);
-			//wxExit();
+			LogUserAction(_T("No 'Adapt It Work' folder detected in SetupDirectories()"));
 			abort();
 			return FALSE;
 		}
@@ -17016,6 +17020,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				_T("SetupDirectories(): Error trying to create the \"%s to %s adaptations\" folder. Abort now."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
+				LogUserAction(_T("SetupDirectories(): Error trying to create the \"... to ... adaptations\" folder"));
 				abort();
 				return FALSE;
 			}
@@ -17044,6 +17049,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			{
 				wxMessageBox(_("SetupDirectories(): error creating the \"Adaptations\" folder. Abort now."),
 				_T(""), wxICON_ERROR);
+				LogUserAction(_T("SetupDirectories(): error creating the \"Adaptations\" folder"));
 				abort();
 				return FALSE;
 			}
@@ -17120,7 +17126,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading the glossing knowledge base failed. The application will now close."),
 					_T(""), wxICON_ERROR);
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: loading the glossing knowledge base failed"));
 					abort();
 					return FALSE;
 				}
@@ -17132,7 +17138,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading a knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR);
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: loading a knowledge base failed"));
 				abort();
 			}
 		}
@@ -17173,7 +17179,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
 					_T(""), wxICON_ERROR); // something went wrong
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
 					abort();
 					return FALSE;
 				}
@@ -17185,7 +17191,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: saving the knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR); // something went wrong
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: saving the knowledge base failed"));
 				abort();
 				return FALSE;
 			}
@@ -19397,6 +19403,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 			message = _("Adapt It cannot create its work folder: ") + workFolderPath;
 			message += _("\nAdapt It cannot continue and will now abort.");
 			wxMessageBox(message, _("Critical Error"), wxICON_ERROR | wxOK);
+			LogUserAction(_T("Adapt It cannot create its work folder in EnsureWorkFolderPresent()"));
 			abort(); // wxExit() not used, as it calls OnExit() before aborting the program 
 					 // which would attempt to delete some objects not yet created.
 		}
@@ -23366,6 +23373,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				wxMessageBox(_T(
 					"The CustomWorkFolderLocation file is empty, but it should contain the path to the custom work folder. Aborting now. To recover: (1) Outside of Adapt It use a file browser to find where your custom work folder is located, then (2) in a text editor, type the path to that custom work folder into the CustomWorkFolderLocation, (3) save the file where it currently is (in the default work folder), and then (4) re-launch Adapt It."),
 				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+				LogUserAction(_T("Error of file named CustomWorkFolderLocation - file is empty"));
 				return FALSE;
 			}
 			else
@@ -23376,6 +23384,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				wxMessageBox(_T(
 "Another running process has the file named CustomWorkFolderLocation open, and so that file is locked and Adapt It is unable to use it until you halt that other process. Aborting now. Halt the other process, then re-launch Adapt It."),
 				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+				LogUserAction(_T("Error of file named CustomWorkFolderLocation - another process has the file open"));
 				return FALSE;
 			}
 		}
@@ -23409,6 +23418,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			wxMessageBox(_T(
 "DealWithThePossibilityOfACustomWorkFolderLocation(): Failed to open the CustomWorkFolderLocation file at default work folder location, and that file is neither locked nor empty. Aborting..."),
 			_T("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+			LogUserAction(_T("Error of file named CustomWorkFolderLocation - failed to open at default work folder location"));
 			return FALSE; // forces caller to call abort()
 		}
 		// get the first line (path is to be in first line, if there is any text in
@@ -23460,6 +23470,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."),
 						_("Recovery By Plugging In The Missing External Drive Failed"), wxICON_ERROR);
+						LogUserAction(_T("Recovery By Plugging In The Missing External Drive Failed"));
 						return FALSE; // let caller do the abort() call
 					}
 					break;
@@ -23490,6 +23501,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."),
 						_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+						LogUserAction(_T("Error of file named CustomWorkFolderLocation - file still oper or incorrect path"));
 						return FALSE; // forces caller to call abort()
 					}
 					// now check if the stored folder path string yields a valid directory
@@ -23499,6 +23511,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "The path to the custom work folder did not find a directory with the required name. Did you check the path specification using a file browser, to make sure your edit of the path in the CustomWorkFolderLocation file resulted in a correct path to the custom work folder? Aborting now. Use a text editor again to get the path typed correctly before you re-launch Adapt It."),
 						_("Recovery By Editing The Path Specificiation Failed"), wxICON_ERROR);
+						LogUserAction(_T("Recovery By Editing The Path Specificiation Failed"));
 						return FALSE; // let caller do the abort() call
 					}
 					break;
@@ -23574,6 +23587,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."),
 						_("One chance to relocate the work folder failed"), wxICON_ERROR);
+						LogUserAction(_T("One chance to relocate the work folder failed"));
 						abort();
 						return FALSE; // let caller do the abort() call
 					}
@@ -32535,6 +32549,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_T(
 		"Failed to set the current working directory to default work folder location. Aborting..."),
 		_T(""), wxICON_ERROR);
+		LogUserAction(_T("Failed to set the current working directory to default work folder location in OnLockCustomLocation()"));
 		abort();
 		return;
 	}
@@ -32547,6 +32562,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_T(
 		"Failed to open the CustomWorkFolderLocation file at default work folder location. Aborting..."),
 		_T(""), wxICON_ERROR);
+		LogUserAction(_T("Failed to open the CustomWorkFolderLocation file at default work folder location in OnLockCustomLocation()"));
 		abort();
 		return;
 	}
@@ -32557,6 +32573,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_T(
 			"Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."),
 		_T(""), wxICON_ERROR);
+		LogUserAction(_T("Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file"));
 		abort();
 		return;
 	}
@@ -33877,6 +33894,7 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 						// exit app
 						wxMessageBox(
 _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic config file for cloning failed. Aborting..."));
+						LogUserAction(_T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic config file for cloning failed"));
 						abort();
 						return;
 					}
@@ -33919,6 +33937,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 				// there was a problem opening the file
 				wxString str = _T("MakeForeignBasicConfigFileSafe() failed, path to the folder was  %s. Aborting...");
 				wxMessageBox(str, _T("Could not open basic config file"), wxICON_ERROR);
+				LogUserAction(_T("MakeForeignBasicConfigFileSafe(): Could not open basic config file"));
 				abort();
 				return;
 			}
@@ -33954,6 +33973,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 				// could not update the config file so inform developer
 				wxMessageBox(
 _T("Unable to write adjusted basic config file for persistent custom location, so abort"));
+				LogUserAction(_T("MakeForeignBasicConfigFileSafe(): Unable to write adjusted basic config file for persistent custom location"));
 				abort();
 				return;
 			}

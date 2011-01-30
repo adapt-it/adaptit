@@ -7639,8 +7639,8 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("TO: (Adapt It Developers)"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_DEVS_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item5->SetToolTip( _("Adapt It developers who will receive this email report (addresses separated by commas)") );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_DEVS_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
+    item5->SetToolTip( _("Adapt It developers who will receive this email report") );
     item3->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("FROM: (Your Email Address)"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -7842,6 +7842,41 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item43->Add( item45, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item43, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *LogViewerFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Adapt It User Log (read only):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_LOG_FILE_PATH_AND_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_LOGGED_TEXT, wxT(""), wxDefaultPosition, wxSize(500,300), wxTE_MULTILINE|wxTE_READONLY );
+    item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxButton *item6 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetDefault();
+    item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
