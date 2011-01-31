@@ -258,6 +258,7 @@ public:
 	wxString		MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd);
 	wxString		NormalizeToSpaces(wxString str);
 	bool			OpenDocumentInAnotherProject(wxString lpszPathName);
+	void			TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase);
 	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
 								wxString& spacelessPuncts, int len, bool& bExitOnReturn, 
 								bool& bHasPrecedingStraightQuote, wxString& additions,

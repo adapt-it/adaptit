@@ -4936,6 +4936,65 @@ void CAdapt_ItDoc::ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPLis
 	}
 }
 
+// transfer info about punctuation which got changed, but which doesn't get transferred to
+// the original pSrcPhrase (here, pDestSrcPhrase) from the new one resulting from the
+// tokenization, for a conjoined pair (the new one is pFromSrcPhrase), unless we do it herein
+void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase)
+{
+	CSourcePhrase* pDestWord1SPh = NULL;
+	CSourcePhrase* pDestWord2SPh = NULL;
+	CSourcePhrase* pFromWord1SPh = NULL;
+	CSourcePhrase* pFromWord2SPh = NULL;
+	SPList::Node* destPos = pDestSrcPhrase->m_pSavedWords->GetFirst();
+	pDestWord1SPh = destPos->GetData();
+	destPos = pDestSrcPhrase->m_pSavedWords->GetLast();
+	pDestWord2SPh = destPos->GetData();
+	SPList::Node* fromPos = pFromSrcPhrase->m_pSavedWords->GetFirst();
+	pFromWord1SPh = fromPos->GetData();
+	fromPos = pFromSrcPhrase->m_pSavedWords->GetLast();
+	pFromWord2SPh = fromPos->GetData();
+	pDestWord1SPh->m_precPunct = pFromWord1SPh->m_precPunct; // copy any m_precPunct to list's first one
+	pDestSrcPhrase->m_precPunct = pFromWord1SPh->m_precPunct; // put it also at top level
+	pDestWord2SPh->m_follPunct = pFromWord2SPh->m_follPunct; // copy any 2nd word's m_follPunct to list's second one
+	pDestSrcPhrase->m_follPunct = pFromWord2SPh->m_follPunct; // put it also at top level
+	// handle transfer of m_follOuterPunct data
+	pDestWord2SPh->SetFollowingOuterPunct(pFromWord2SPh->GetFollowingOuterPunct());
+	pDestSrcPhrase->SetFollowingOuterPunct(pFromWord2SPh->GetFollowingOuterPunct()); // put it also at top level
+	// the "outer" ones are handled, the "inner ones" are next - these are stored only on
+	// the instances in each top level's m_pSavedWords list, and so we don't also copy
+	// them to the top level
+	pDestWord1SPh->m_follPunct = pFromWord1SPh->m_follPunct;
+	// we do the next line, be it should always just be copying empty string to empty string
+	pDestWord1SPh->SetFollowingOuterPunct(pFromWord1SPh->GetFollowingOuterPunct());
+	pDestWord2SPh->m_precPunct = pFromWord2SPh->m_precPunct;
+
+	// that handles the punctuation, now we must copy across any stored inline markers; in
+	// a fixedspace conjoining, we store these only at the m_pSavedWords level, not at the
+	// top level
+	// First, do the inline ones for the first CSourcePhrase instance in m_pSavedWords
+	pDestWord1SPh->SetInlineBindingEndMarkers(pFromWord1SPh->GetInlineBindingEndMarkers());
+	pDestWord1SPh->SetInlineBindingMarkers(pFromWord1SPh->GetInlineBindingMarkers());
+	pDestWord1SPh->SetInlineNonbindingMarkers(pFromWord1SPh->GetInlineNonbindingMarkers());
+	pDestWord1SPh->SetInlineNonbindingEndMarkers(pFromWord1SPh->GetInlineNonbindingEndMarkers());
+	// Second, do the inline ones for the second CSourcePhrase instance in m_pSavedWords
+	pDestWord2SPh->SetInlineBindingEndMarkers(pFromWord2SPh->GetInlineBindingEndMarkers());
+	pDestWord2SPh->SetInlineBindingMarkers(pFromWord2SPh->GetInlineBindingMarkers());
+	pDestWord2SPh->SetInlineNonbindingMarkers(pFromWord2SPh->GetInlineNonbindingMarkers());
+	pDestWord2SPh->SetInlineNonbindingEndMarkers(pFromWord2SPh->GetInlineNonbindingEndMarkers());
+
+	// the caller will have already transferred data for m_markers and m_endMarkers at the
+	// top level; here we have to copy the first to pDestWord1SPh, and the second to pDestWord2SPh
+	pDestWord1SPh->m_markers = pDestSrcPhrase->m_markers;
+	pDestWord2SPh->SetEndMarkers(pDestSrcPhrase->GetEndMarkers());
+
+	// the lower level m_key members will need to be updated too, pFromSrcPhrase's lower
+	// level instances have the new values which need to be transferred to the lower level
+	// instances in pDestSrcPhrase
+	pDestWord1SPh->m_key = pFromWord1SPh->m_key;
+	pDestWord2SPh->m_key = pFromWord2SPh->m_key;
+	// that should do it!
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE to indicate to the caller all is OK. Except for a retranslation, return FALSE to 
 ///			indicate to the caller that fixesStr must have a reference added, and the new 
@@ -5124,6 +5183,12 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
 				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
 		}
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			// it's a conjoined pair, so there is more data to be transferred for the
+			// instances in m_pSavedWords member
+			TransferFixedSpaceInfo(pSrcPhrase, pNewSrcPhrase);
+		}
 		return TRUE;
 	}
 	else
@@ -5209,6 +5274,18 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 					// appropriate to do so
 					if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
 						pView->StoreKBEntryForRebuild(pSPnew, adaption, gloss);
+				}
+				// handle transfer of other-wise untranferred info from a fixedspace
+				// conjoined pair (the transfer here is from the original to the first of
+				// the new ones, since we are replacing the original with the sequence
+				// when the punctuation changes turn a singleton into a sequence of
+				// CSourcePhrase instances)
+				if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+				{
+					// it's a conjoined pair, so there is more data to be transferred for the
+					// instances in m_pSavedWords member (here, we are transferring from
+					// pSrcPhrase to pSPnew)
+					TransferFixedSpaceInfo(pSPnew, pSrcPhrase);
 				}
 				bIsFirst = FALSE;
 				bIsNonFirst = TRUE;
@@ -6500,10 +6577,10 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // be carried forward.... the next line of code does it
 			strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo(); // could be empty
 #ifdef __WXDEBUG__
-				if (pSrcPhrase->m_nSequNumber >= 27)
-				{
-					wxString theSrcPhrase = pSrcPhrase->m_srcPhrase;
-				}
+				//if (pSrcPhrase->m_nSequNumber >= 27)
+				//{
+				//	wxString theSrcPhrase = pSrcPhrase->m_srcPhrase;
+				//}
 #endif
 			
 			// BEW 21Sep10 -- read the next two paragraphs carefully, because for
@@ -8010,14 +8087,17 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 	// check we have a non-empty punctuation characters set - if it's empty, we can skip
 	// parsing for punctuation characters
 	bool bPunctSetNonEmpty = TRUE;
+	wxString punctSet; punctSet.Empty();
 	if (spacelessPuncts.IsEmpty())
 	{
 		bPunctSetNonEmpty = FALSE;
 	}
-
-	// we need space to be in the punctuation set, so add it to a local string and use the
-	// local string thereafter
-	wxString punctSet = spacelessPuncts + _T(' ');
+	else
+	{
+		// we need space to be in the punctuation set, so add it to a local string and use the
+		// local string thereafter; we don't add it if there are no punctuation characters set
+		punctSet = spacelessPuncts + _T(' ');
+	}
 
 	// get access to the wxString's buffer - then iterate across it, collecting the
 	// substrings as we go
@@ -8079,6 +8159,29 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 	// binding endmarkers - that was verified in the prior call of
 	// FindParseHaltLocation() which did the requisite test and set nEndMkrsCount
 	p = pStartHere;
+
+	// it's possible that changed punctuation resulted in a word-final character moving to
+	// be in m_follPunct; this is benign except when there was also an inline binding
+	// endmarker present - because Adapt It will restore the character to after the inline
+	// marker, thinking it is to remain as punctuation, and if it is now no longer in the
+	// punctuation set being used, then it needs to be shifted to precede the inline
+	// marker before further parsing takes place. Test and do that now. There could be
+	// more than one. We'll have to store such characters in a local string, until we've
+	// parsed over any endmarkers, and then we can put them back on the end of the reversed
+	// stem after we restore it to normal order at the end of the function
+	wxString nowWordBuilding; nowWordBuilding.Empty();
+	bool bStoredSome = FALSE;
+	if (nEndMkrsCount > 0 && *p != _T('*') && punctSet.Find(*p) == wxNOT_FOUND)
+	{
+		while (*p != _T('*') && punctSet.Find(*p) == wxNOT_FOUND)
+		{
+			bStoredSome = TRUE;
+			nowWordBuilding += *p;
+			p++;
+			pStartHere = p;
+		}
+	}
+	// p should now be pointing at an * if nEndMkrsCount is not zero
 #ifdef __WXDEBUG__
 	if (nEndMkrsCount > 0)
 	{
@@ -8132,12 +8235,22 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 			pStartHere = pStartHere + punctsLen1; // advance starting location
 		}
 	}
+
+	
 	// finally, what remains is the word proper (it could have embedded punctuation
 	// 'invisible' to our parsing algorithms - it's invisible provided it has a
 	// non-punctuation character both before and after it)
 	p = pStartHere;
 	wxString theReversedWord(p, pEnd);
 	wordProper = MakeReverse(theReversedWord);
+
+	// if we temporarily stored any punctuation now restored to word-building status above, it
+	// is to go at the end of wordProper, once we've reversed it
+	if (bStoredSome)
+	{
+		nowWordBuilding = MakeReverse(nowWordBuilding);
+		wordProper += nowWordBuilding;
+	}
 #ifdef __WXDEBUG__
 	int wordLen = wordProper.Len();
 	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 + ignoredWhitespaceLen == length);
@@ -8631,7 +8744,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 					{
 						// it's an endmarker, but we parse over only those which are
 						// inline binding ones, otherwise the marker halts scanning
-						wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+						wxString beginMkr = wholeMkr;
+						beginMkr = beginMkr.Truncate(beginMkr.Len() - 1); // remove 
 											// the * (we are assuming the asterisk was at
 											// the end where it should be)
 						wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
@@ -9102,13 +9216,15 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// iterated across some data in the above loop, or be pointing at the first character
 	// of the word, or be pointing at the backslash of an inline binding marker - so
 	// handle these possibilities
-	if (*ptr == gSFescapechar)
+	//if (*ptr == gSFescapechar)
+	if (IsMarker(ptr))
 	{
         // we are pointing at an inline marker - it must be one with inLine TRUE, that is,
         // an inline binding marker; beware, we can have \k \w word\w*\k*, and so we could
         // be pointing at the first of a pair of them, so we can't assume there will be
         // only one every time
-		while (*ptr == gSFescapechar)
+		//while (*ptr == gSFescapechar)
+		while (IsMarker(ptr))
 		{
 			// parse across as many as there are, and the obligatory white space following
 			// each - normalizing \n or \r to a space at the same time
@@ -9159,7 +9275,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
         // italics (\it), etc -- so handle the possibility of one or more inline binding
         // markers here within this else block, so that when the else block is exited, we
         // are pointing at the first character of the actual word
-		if (*ptr == gSFescapechar)
+		//if (*ptr == gSFescapechar)
+		if (IsMarker(ptr))
 		{
             // we are pointing at an inline marker - it must be one with inLine TRUE and
             // TextType none and not one of the 5 mentioned above, that is, an inline
@@ -9167,7 +9284,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
             // (beware, we can have \k \w word\w*\k*, and so we could be pointing at the
             // first of a pair of them, so we can't assume there will be only one every
             // time)
-			while (*ptr == gSFescapechar)
+			//while (*ptr == gSFescapechar)
+			while (IsMarker(ptr))
 			{
                 // parse across as many as there are, and the obligatory white space
                 // following each - normalizing \n or \r to a space at the same time
@@ -9218,12 +9336,38 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
             // once control gets to here, ptr should be pointing at the first character of
             // the actual word for saving in m_key of pSrcPhrase ... well, usually.
 		}
-	} // end of else block for test: if (*ptr == gSFescapechar)
+	} // end of else block for test: if (IsMarker(ptr))
 	// determine if we've found preceding punctuation
 	if (pSrcPhrase->m_precPunct.Len() > 0)
 		bHasPrecPunct = TRUE;
 
-	// this is where the first character of the word starts
+	// this is where the first character of the word possibly starts...
+	
+	// BEW 31Jan11, it is possible that a dynamic punctuation change has just made one or
+	// more of the former word-initial character/characters into punctuation
+	// characters, and if that is the case, then our algorithm won't handle it without
+	// something extra here if control has just parsed over an inline binding marker - so
+	// test for this and do additional checks, removing any punctuation characters from
+	// where ptr is pointing if they are in the being-used punctuation set, and moving
+	// them to the m_precPunct member, and setting bHasPrecPunct if any such are moved.
+	// [Note: removing a punctuation character from the punctuation set dynamically isn't a
+	// problem, as it returns then to the word-building set, and when parsing the
+	// reconstituted string, the parser will halt earlier, so that the non-word-building
+	// character(s) are at the new starting point for the word proper - for this scenario,
+	// no new code is needed.]
+	if (bParsedInlineBindingMkr)
+	{
+		int offset = wxNOT_FOUND;
+		while ((offset = spacelessPuncts.Find(*ptr)) != wxNOT_FOUND)
+		{
+			// we've a newly-defined initial punctuation character to move to m_precPunct
+			bHasPrecPunct = TRUE;
+			pSrcPhrase->m_precPunct += *ptr;
+			ptr++;
+			len++;
+		}
+	}
+	// we are now a the first character of the word
 	wxChar* pWordProper = ptr;
 	// the next four variables are for support of words separated by ~ fixed space symbol
 	wxChar* pEndWordProper = NULL;
@@ -9325,8 +9469,9 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// In this case we returned with ptr pointing at word end (i.e. the start of the
 		// following punctuation), so we must parse forward again, below, over those
 		// punctuation characters a second time to get to the ] character which determines
-		// our return point - so that's why we keep looking for present of ] below
-		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
+		// our return point - so that's why we keep looking for presence of ] below
+		//while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
+		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
 		{
 			// check if we are pointing at a punctuation character (it can't be a ]
 			// character because we've bled out that possibility in the preceding block)
@@ -9383,9 +9528,9 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				return len;
 			}
 			// are we at the end of word-medial punctuation? (but not at buffer end)
-			if (bStartedPunctParse && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar)
-				&& (nFound = spacelessPuncts.Find(*ptr)) == wxNOT_FOUND &&
-				!IsEnd(ptr))
+			//if (bStartedPunctParse && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar)
+			if (bStartedPunctParse && !IsWhiteSpace(ptr) && !IsMarker(ptr)
+				&& (nFound = spacelessPuncts.Find(*ptr)) == wxNOT_FOUND && !IsEnd(ptr))
 			{
                 // Punctuation parsing had started, we are not pointing at a white space
                 // nor a backslash, nor at a punctuation character (nor ]) - so we
@@ -9403,7 +9548,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 					pEndWordProper = NULL; // it's not to be set yet
 				}
 			}
-		} // end of loop: while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
+		} // end of loop: while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
 
 	} // end of else block for test: if (bMatchedFixedSpaceSymbol)
 
@@ -9777,8 +9922,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// unnecessary and probably unhelpful and should be ignored. This calls for some
 	// tricky parsing and delays of the decisions about what to do until all the ducks are
 	// lined up.
-	wxChar* pWhiteSpaceStarts = ptr; 
-	pWhiteSpaceStarts = pWhiteSpaceStarts; // avoid compiler warning
+	//wxChar* pWhiteSpaceStarts = ptr; 
+	//pWhiteSpaceStarts = pWhiteSpaceStarts; // avoid compiler warning
 	wxChar* pWhiteSpaceEnds = ptr;
 	int nWhiteSpaceSpan = 0;
 	if (IsWhiteSpace(ptr))
@@ -9894,10 +10039,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				pSrcPhrWord2->m_follPunct += additions;
 				pSrcPhrWord2->m_srcPhrase += additions;
 			}
+			// m_srcPhrase has been updated with any additional final punctuation within
+			// the above call, so just return len to the caller after updating it
 			if (bExitParseWordOnReturn)
 			{
-				// m_srcPhrase has been updated with any additional final punctuation within
-				// the above call, so just return len to the caller after updating it
+				// since we must now return, the tentative former decisions have to become
+				// concrete, so do the arithmetic to get len value correct (if not
+				// returning here, the arithmetic is done further down in ParseWord() when
+				// more is known about endmarkers etc)
 				if (nWhiteSpaceSpan > 0)
 				{
 					len += nWhiteSpaceSpan;
@@ -10266,7 +10415,8 @@ bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxStr
 {
 	if (gpApp->gCurrentSfmSet == PngOnly)
 	{
-		if (*ptr == gSFescapechar)
+		//if (*ptr == gSFescapechar)
+		if (IsMarker(ptr))
 		{
 			(*pWholeMkr) = GetWholeMarker(ptr);
 			if (*pWholeMkr != _T("\\fe") && *pWholeMkr != _T("\\F"))
@@ -10283,7 +10433,8 @@ bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxStr
 	else
 	{
 		// it's either USFM set or UsfmAndPng set --  treat both as if USFM
-		if (*ptr == gSFescapechar)
+		//if (*ptr == gSFescapechar)
+		if (IsMarker(ptr))
 		{
 			(*pWholeMkr) = GetWholeMarker(ptr);
 			if (*pWholeMkr != _T("\\f*") && *pWholeMkr != _T("\\fe*") && *pWholeMkr != _T("\\x*"))
@@ -10439,13 +10590,19 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			// the current pSrcPhrase
 			if (IsClosingCurlyQuote(ptr))
 			{
-				// marker the location following it
+				// mark the location following it
 				pLocation_OK = (ptr + 1);
 			}
 		}
 		counter++;
 		ptr++;
 		pPunctEnd = ptr;
+		// if the punctuation end is also pEnd, then tell the caller not to parse further
+		// on return
+		if (IsEnd(pPunctEnd))
+		{
+			bExitOnReturn = TRUE;
+		}
 	}
 	// on exit of the loop we are either at buffer end, or backslash of a marker, or a ]
     // closing bracket, or some character which is not whitespace nor a closing quote
@@ -10464,6 +10621,12 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
             // at buffer end then further parsing is needed in the caller because there may
             // be more markers and punctuation to be handled for the end of the current
             // word
+ 			if (IsEnd(ptr))
+			{
+				// may have been set above, but no harm in making the test again & setting
+				// it here again
+				bExitOnReturn = TRUE;
+			}
             wxString finalPunct(pPunctStart,counter);
 			if (bPutInOuterStorage)
 			{
@@ -10476,7 +10639,12 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
  			pSrcPhrase->m_srcPhrase += finalPunct; // add any punct'n
 			additions += finalPunct; // accumulate here, so that the caller can add any
 									 // additions to secondWord of ~ conjoining, in the
-									 // m_srcPhrase and m_follPunct members
+									 // m_srcPhrase and m_follPunct members; note this
+									 // setting of additions is done whether fixedspace
+									 // was encountered or not, but the caller makes
+									 // this safe by checking that pSrcPhrase has a
+									 // fixedspace before trying to use this variable's
+									 // contents
             // what ptr points at now could be an inline non-binding endmarker (like \wj*)
             // or one of \f* or \x* (or even an inline binding endmarker with misplaced
             // punctuation before it which we are now parsing over) - so while our parse of
@@ -10670,6 +10838,11 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 	{
 		if (counter > 0)
 		{
+			if (IsEnd(ptr))
+			{
+				// ensure that if ptr is at pEnd, the caller does not parse further
+				bExitOnReturn = TRUE;
+			}
             // an endmarker is what ptr points at now, or the buffer's end, so we'll accept
             // everything as valid final punctuation for the current pSrcPhrase; and if not
             // at buffer end then further parsing is needed in the caller because there may
@@ -10889,7 +11062,8 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 {
-	if (*pChar != gSFescapechar)
+	//if (*pChar != gSFescapechar)
+	if (!IsMarker(pChar))
 	{
 		wxString s; s.Empty();
 		return s;
@@ -11480,18 +11654,53 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 /// Determines if pChar is pointing at a standard format marker in the given buffer
 /// BEW 26Jan11, added test for character after the backslash, that it is alphabetic (this
 /// prevents spurious TRUE returns if a \ is followed by whitespace)
+/// BEW 31Jan11, made it smarter still
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 {
-	// also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an 
-	// alphabetic one 
-	if (*pChar == gSFescapechar && IsAnsiLetter(*(pChar + 1)))
+    // also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an
+    // alphabetic one; and in response to issues Bill raised in any email on Jan 31st about
+    // spurious marker match positives, make the test smarter so that more which is not a
+    // genuine marker gets rejected (and also, use IsMarker() in ParseWord() etc, rather
+    // than testing for *ptr == gSFescapechar)
+	if (*pChar == gSFescapechar)
 	{
+		// reject \n but allow the valid USFM markers \nb \nd \nd* \no \no* \ndx \ndx*
+		if (*(pChar + 1) == _T('n'))
+		{
+			if (IsAnsiLetter(*(pChar + 2)))
+			{
+				// assume this is one of the allowed USFM characters listed in the above
+				// comment
+				return TRUE;
+			}
+			else if (IsWhiteSpace(pChar + 2)) // see helpers.cpp for definition
+			{
+				// it's an \n escaped linefeed indicator, not an SFM
+				return FALSE;
+			}
+			else
+			{
+                // the sequence \n followed by some nonalphabetic character nor
+                // non-whitespace character is unlikely to be a value SFM or USFM, so
+                // return FALSE here too -- if we later want to make the function more
+                // specific, we can put extra tests here
+                return FALSE;
+			}
+		}
+		else if (!IsAnsiLetter(*(pChar + 1)))
+		{
+			return FALSE;
+		}
+		else
+		{
+			// after the backslash is an alphabetic character, so assume its a valid marker
 			return TRUE;
+		}
 	}
 	else
 	{
-		// not pointing at a backslash followed by alphabetic character, so it is not a marker
+		// not pointing at a backslash, so it is not a marker
 		return FALSE;
 	}
 }
@@ -12423,7 +12632,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
         // don't get counted; Bruce commented out the next line 10May08, but I've left it
         // there because I've dealt with and checked that other code agrees with the code
         // as it stands.
-		++nTheLen; // make sure we include space for a null
+		// BEW 30Jan11, I really think this should be commented out, but in the light of
+		// Bill's comment, I'll compromise -- only do this is nDerivedLength and
+		// nTextLength are different & the former more than the latter) -- anyway, I doubt
+		// that it matters either way any more
+		if (nDerivedLength > nTextLength)
+		{
+			++nTheLen; // make sure we include space for a null
+		}
 	}
 	else
 	{
@@ -17119,6 +17335,9 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	{
         // we are dealing with a plain vanila single-word non-owned sourcephrase in either
         // adaptation or glossing mode
+        // FALSE is bIsOwned, i.e. not owned, when not owned it is visible in the layout,
+        // if TRUE, it is one which is stored in the m_pSavedWords list of an unowned
+        // CSourcePhrase and so is not visible in the layout
 		bool bWasOK = ReconstituteOneAfterPunctuationChange(
 						pView,pList,pos,pSrcPhrase,fixesStr,pResultList,FALSE);
 		if (!bWasOK)
