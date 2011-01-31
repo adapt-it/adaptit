@@ -2638,6 +2638,10 @@ public:
 	wxString m_inlineBindingMarkers; // beginmarkers, needed for docV4 to docV5 conversions
 	wxString m_usfmIndicatorMarkers; // some common beginmarkers found only in USFM
 	wxString m_pngIndicatorMarkers; // some common beginmarkers found only in PNG SFM 1998 set
+	// the following makes GetWholeMarker() (the one in doc class, and the other in helpers.cpp)
+	// smarter about when to close off parsing a marker - in the event of bad markup (no
+	// whitespace between marker end and certain things which must NEVER be in a marker)
+	wxString m_forbiddenInMarkers; // set contents in OnInit()
 
 	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is 
 				// being viewed in the ViewFilteredMaterial dialog

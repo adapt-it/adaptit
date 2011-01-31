@@ -10870,6 +10870,30 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
 	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
 	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
+	
+	// the following characters must never be in a SFM or USFM marker
+	m_forbiddenInMarkers = _T("<>'\"&[],.{}()%$#@!+=|/?:;");
+	// and append the single and double curly quotes
+	wxChar aChar;
+#ifdef _UNICODE
+	aChar = L'\x201C'; // unicode Left Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = L'\x2018'; // unicode Left Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = L'\x201D'; // unicode Right Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = L'\x2019'; // unicode Right Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+#else // ANSI version
+	aChar = 147; // Left Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = 145; // Left Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar == 148; // Right Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar == 146; // Right Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+#endif
 
 	//wxString s = _T("*f\\ *x\\");
 	//const wxChar* pBuf = s.GetData();

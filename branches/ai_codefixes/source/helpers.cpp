@@ -4623,7 +4623,7 @@ int ParseMarker(const wxChar *pChar)
     // endmarker may find one of those and it won't be at the string end necessarily, etc
     // etc. I'm very uncomfortable with this function, it is dangerous if not used
     // appropriately. It currently is called (once in helpers.cpp and 3 times in xml.cpp,
-    // and in the doc function, ParseSpanBackwards()). FWe may just manage to get away with
+    // and in the doc function, ParseSpanBackwards()). We may just manage to get away with
     // using it - the places where it is used don't have to deal with reversed PngOnly
     // marker set's markers I think
 	int len = 0;
@@ -4632,7 +4632,8 @@ int ParseMarker(const wxChar *pChar)
 	if (*ptr == _T('*'))
 	{
 		// assume it is a reversed endmarker
-		while (!IsWhiteSpace(ptr) && *ptr != _T('\0'))
+		while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && 
+				gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 		{
 			if (ptr != pBegin && *ptr == gSFescapechar)
 			{
@@ -4645,6 +4646,12 @@ int ParseMarker(const wxChar *pChar)
 			}
 			ptr++;
 			len++;
+		}
+		if ( gpApp->m_forbiddenInMarkers.Find(*ptr) != wxNOT_FOUND)
+		{
+			// we found a forbidden character for a marker before finding the backslash,
+			// so this can't be a SFM or USFM or even an unknown marker, so return zero
+			len = 0;
 		}
 	}
 	else
@@ -4663,7 +4670,8 @@ int ParseMarker(const wxChar *pChar)
 		{
 			ptr++; // get past the initial backslash
 			len++;
-			while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0') && *ptr != _T(']'))
+			while (!IsWhiteSpace(ptr) && *ptr != gSFescapechar && *ptr != _T('\0') && *ptr != _T(']')
+					&& gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 			{
 				if (*ptr == _T('*'))
 				{

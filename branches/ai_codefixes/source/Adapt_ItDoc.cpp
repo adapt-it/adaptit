@@ -7608,6 +7608,7 @@ bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 /// marker is at the end of a string ParseMarker won't crash (TCHAR(0) won't help at the end
 /// of the buffer here because _istspace which is called from IsWhiteSpace() only recognizes
 /// 0x09 ?0x0D or 0x20 as whitespace for most locales.
+/// BEW 1Feb11, added test for forbidden marker characters using app::m_forbiddenInMarkers
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 {
@@ -7633,7 +7634,7 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 	int len = 0;
 	wxChar* ptr = pChar; // was wchar_t
 	wxChar* pBegin = ptr;
-	while (!IsWhiteSpace(ptr) && *ptr != _T('\0')) // whm added test for *ptr != _T('\0') 24Nov07
+	while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 	{
 		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']'))) 
 			break; 
@@ -8977,6 +8978,93 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 	}
 	pHaltLoc = p;
 	return pHaltLoc;
+}
+
+wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts)
+{
+	wxString squirrel; squirrel.Empty();
+	// first, find out if there is an inline binding beginmarker no more than
+	// MAX_MOVED_FORMER_PUNCTS characters ahead of where ptr points on entry; if there
+	// isn't, return an empty string because the caller must then assume that ptr on entry
+	// is pointing at the actual start of the word which is to be parsed
+	int numCharsToCheck = (int)MAX_MOVED_FORMER_PUNCTS;
+	bool bMarkerExists = FALSE;
+	bool bItsAnInlineBindingMarker = FALSE;
+	int count = 1;
+	while (count <= numCharsToCheck)
+	{
+		if (IsMarker(ptr + count))
+		{
+			bMarkerExists = TRUE; // we must exit at the first found, we can't look beyond it
+			break;
+		}
+		else
+		{
+			count++;
+		}
+	}
+	// did we find a marker?
+	if (!bMarkerExists)
+	{
+		// no marker within the allowed small span of following characters (3 is
+		// MAX_MOVED_FORMER_PUNCTS value -- see AdaptItConstants.h) so the caller must
+		// assume that ptr is the actual start of the word - it will deduce that fact if
+		// the returned string is empty
+		return squirrel;
+	}
+	else
+	{
+        // we found a marker, but it has to be an inline binding marker (and not an inline
+        // binding endmarker); so check if it is an inline binding marker - if so we can
+        // test for squirreling some non-restored word initial word-building characters
+        // that got moved earlier to precede the inline binding marker, into the squirrel
+        // string for safekeeping until the caller needs to insert them at the start of the
+        // word to be parsed
+		wxString wholeMkr = GetWholeMarker(ptr + count);
+		// if it's an endmarker, return, we've not the situation we expect could happen
+		if (wholeMkr[wholeMkr.Len() - 1] == _T('*'))
+		{
+			// it's an endmarker - return
+			return squirrel;
+		}
+		wxString bareMkr = wholeMkr.Mid(1); // remove the initial backslash
+		USFMAnalysis* pUsfmAnalysis = LookupSFM(bareMkr);
+		if (pUsfmAnalysis == NULL)
+		{
+			// it's an unknown marker, therefore not an inline binding marker
+			return squirrel; // caller will have to assume the char(s) at ptr are start of a word
+		}
+		else
+		{
+			wxString wholeMkrPlusSpace = wholeMkr + _T(' ');
+			if (gpApp->m_inlineBindingMarkers.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+			{
+				// we've found a valid beginmarker from the set of inline binding markers
+				bItsAnInlineBindingMarker = TRUE;
+			}
+		}
+	}
+	if (!bItsAnInlineBindingMarker)
+	{
+		squirrel.Empty();
+		return squirrel;
+	}
+	wxChar* pNewEnd = ptr + count; // where the inline binding marker commences
+	// now move each of them up to the marker, to squirrel string, provided they are not
+	// in the punctuation set
+	while (ptr < pNewEnd && ptr < pEnd && spacelessPuncts.Find(*ptr) == wxNOT_FOUND)
+	{
+		squirrel += *ptr++;
+	}
+	if (ptr < pNewEnd)
+	{
+		// we found a punctuation character amongst them - this means we can't have a
+		// little span of moved ones preceding a marker, it must be that the original ptr
+		// location is the start of a word
+		squirrel.Empty();
+		return squirrel;
+	}
+	return squirrel;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

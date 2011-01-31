@@ -94,3 +94,10 @@
 
 // for free translation support - added BEW on 24Jun05, changed to ..._WORDS on 28Apr06
 #define MIN_FREE_TRANS_WORDS	5
+
+// for changing punctuation characters on the fly, the parser needs to be able to find if
+// there is an inline binding marker a few characters ahead of one or more characters
+// shunted to m_precPunct from off of the wordProper earlier when it/they were made
+// punctuation characters and now the user wants to undo that punctuation set change;
+// allowing for 3 such characters should probably be enough for any real situation
+#define MAX_MOVED_FORMER_PUNCTS   3

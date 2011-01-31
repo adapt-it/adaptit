@@ -282,6 +282,8 @@ public:
 								int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 								wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
 								wxString& spacelessPuncts); //BEW created 27Jan11
+	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
+								// created 31Jan11, a helper for round tripping punctuation changes
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
