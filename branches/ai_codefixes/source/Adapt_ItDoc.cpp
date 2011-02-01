@@ -8070,11 +8070,11 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxString& firstFollPuncts,
 								int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 								wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
-								wxString& spacelessPuncts)
+								wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
 {
 	// initialize
 	wordProper.Empty(); firstFollPuncts.Empty(); inlineBindingEndMarkers.Empty();
-	secondFollPuncts.Empty(); ignoredWhiteSpaces.Empty();
+	secondFollPuncts.Empty(); ignoredWhiteSpaces.Empty(); wordBuildersForPostWordLoc.Empty();
 	// reverse the string
 	if (span.IsEmpty())
 	{
@@ -8169,7 +8169,8 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 	// marker before further parsing takes place. Test and do that now. There could be
 	// more than one. We'll have to store such characters in a local string, until we've
 	// parsed over any endmarkers, and then we can put them back on the end of the reversed
-	// stem after we restore it to normal order at the end of the function
+	// stem after passing the stored characters back to ParseWord() -- we don't add them
+	// earlier because we'd mess up word length counts which we compute along the way
 	wxString nowWordBuilding; nowWordBuilding.Empty();
 	bool bStoredSome = FALSE;
 	if (nEndMkrsCount > 0 && *p != _T('*') && punctSet.Find(*p) == wxNOT_FOUND)
@@ -8181,6 +8182,13 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 			p++;
 			pStartHere = p;
 		}
+	}
+	if (!nowWordBuilding.IsEmpty())
+	{
+		wordBuildersForPostWordLoc = nowWordBuilding; // return these to IsFixedSpaceAhead()
+				// which in turn will return these to ParseWord() where, if the string is
+				// not empty, they'll be appended to the word; ptr will get updated in
+				// IsFixedSpaceAhead() I think, as probably will the len value
 	}
 	// p should now be pointing at an * if nEndMkrsCount is not zero
 #ifdef __WXDEBUG__
@@ -8245,16 +8253,11 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 	wxString theReversedWord(p, pEnd);
 	wordProper = MakeReverse(theReversedWord);
 
-	// if we temporarily stored any punctuation now restored to word-building status above, it
-	// is to go at the end of wordProper, once we've reversed it
-	if (bStoredSome)
-	{
-		nowWordBuilding = MakeReverse(nowWordBuilding);
-		wordProper += nowWordBuilding;
-	}
 #ifdef __WXDEBUG__
 	int wordLen = wordProper.Len();
-	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 + ignoredWhitespaceLen == length);
+	int storedRevertedPunctsLen = wordBuildersForPostWordLoc.Len();
+	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 + 
+				ignoredWhitespaceLen + storedRevertedPunctsLen == length);
 #endif
 }
 
@@ -8331,7 +8334,8 @@ void CAdapt_ItDoc::ParseSpanBackwards( wxString& span, wxString& wordProper, wxS
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
-	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, wxString& spacelessPuncts)
+	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
+	wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
 {	
 	wxChar* p = ptr; // scan with p, so that we can return a ptr value which is at
 					 // the place we want the caller to pick up from (and that will
@@ -8373,7 +8377,8 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	wxString ignoredWhiteSpaces; // ditto
 	ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
 						inlineBindingEndMarkers, secondFollPuncts, 
-						ignoredWhiteSpaces, spacelessPuncts);
+						ignoredWhiteSpaces, wordBuildersForPostWordLoc, 
+						spacelessPuncts);
 	// now use the info extracted to set the IsFixedSpaceAhead() param values ready
 	// for returning to ParseWord()
 	if (bFixedSpaceIsAhead)
@@ -8448,6 +8453,10 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 		endMkr.Empty(); // forget what we know about following inline binding endmarkers
 
 		// first, pWdEnd -- this will be the length of wordProper after pWdStart
+		// [ Note: wordProper will be shorter, if punctuation char(s) have just been
+		// reverted to word-building ones - they are carried back to the caller in the
+		// wordBuildersForPostWordLoc string, so as to to mess up the Len() counts here,
+		// it is the caller that will append them to the word at the appropriate time]
 		pWdEnd = pWdStart + wordProper.Len();
 
 		// last, reset ptr to point where pWdEnd points -- for when we've not found any
@@ -8613,9 +8622,11 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 			wxString inlineBindingEndMarkers; // ditto
 			wxString secondFollPuncts; // ditto
 			wxString ignoredWhiteSpaces; // ditto
+			// temporary fix....
+			wxString strTemp;
 			ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
 								inlineBindingEndMarkers, secondFollPuncts, 
-								ignoredWhiteSpaces, spacelessPuncts);
+								ignoredWhiteSpaces, strTemp, spacelessPuncts);
             // now use the info extracted to set the FinishedOffConjoinedWordsParse() param
             // values ready for returning to ParseWord() -- all we want is wordProper
 			length = wordProper.Len();
@@ -9169,6 +9180,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	int nHowManyWhites = 0;
 	wxChar* pMaybeWhitesStart = NULL;
 	wxChar* pMaybeWhitesEnd = NULL;
+	wxString wordBuildersForPreWordLoc;
+	wxString wordBuildersForPostWordLoc; wordBuildersForPostWordLoc.Empty();
+	// next pair for use with the second word in a conjoined pair
+	wxString wordBuildersFor2ndPreWordLoc;
+	wxString wordBuildersFor2ndPostWordLoc; wordBuildersFor2ndPostWordLoc.Empty();
 
 	// the first possibility to deal with is that we may be pointing at an inline
 	// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
@@ -9304,7 +9320,6 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// iterated across some data in the above loop, or be pointing at the first character
 	// of the word, or be pointing at the backslash of an inline binding marker - so
 	// handle these possibilities
-	//if (*ptr == gSFescapechar)
 	if (IsMarker(ptr))
 	{
         // we are pointing at an inline marker - it must be one with inLine TRUE, that is,
@@ -9342,7 +9357,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
 		// after a binding inline marker, but because of the possibility of user markup
 		// error, we'll allow it. It's not that we can't deal with it; it's just
-		// inappropriate markup. So we won't have a wxASSERT() here.
+		// inappropriate markup. So we won't have a wxASSERT() here. Also, when
+		// ParseWord() is being called to rebuild a doc after user changed punctuation
+		// settings, this can produce exceptions (see below) to the expectation we are now
+		// at the start of the word to be parsed.
 	}
 	else
 	{
@@ -9357,13 +9375,28 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			pSrcPhrase->m_precPunct += *ptr++;
 			len++;
 		}
-        // when the above loop exits, ptr may be pointing at the word, or at a preceding
-        // inline binding marker, like \k (for keyword) or \w (for a wordlist word) or
-        // various other markers - many of which are character formatting ones, like
-        // italics (\it), etc -- so handle the possibility of one or more inline binding
-        // markers here within this else block, so that when the else block is exited, we
-        // are pointing at the first character of the actual word
-		//if (*ptr == gSFescapechar)
+
+		// handle the undoing of the above block's code when the user has changed his mind and
+		// reverted punctuation character(s) to being word-building ones
+		wordBuildersForPreWordLoc = SquirrelAwayMovedFormerPuncts(ptr, pEnd, spacelessPuncts);
+		// if we actually squirreled some away, then we must advance ptr over them, and update
+		// len value
+		if (!wordBuildersForPreWordLoc.IsEmpty())
+		{
+			size_t theirLength = wordBuildersForPreWordLoc.Len();
+			ptr += theirLength;
+			len += theirLength;
+			// we will insert that prior to the word where theWord wxString is created below,
+			// and for when dealing with ~ fixedspaced conjoining, where wxString firstWord is
+			// defined
+		}
+        // when the above loop exits, and any squirreling required has been done, ptr may
+        // be pointing at the word, or at a preceding inline binding marker, like \k (for
+        // keyword) or \w (for a wordlist word) or various other markers - many of which
+        // are character formatting ones, like italics (\it), etc -- so handle the
+        // possibility of one or more inline binding markers here within this else block,
+        // so that when the else block is exited, we are pointing at the first character of
+        // the actual word
 		if (IsMarker(ptr))
 		{
             // we are pointing at an inline marker - it must be one with inLine TRUE and
@@ -9372,7 +9405,6 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
             // (beware, we can have \k \w word\w*\k*, and so we could be pointing at the
             // first of a pair of them, so we can't assume there will be only one every
             // time)
-			//while (*ptr == gSFescapechar)
 			while (IsMarker(ptr))
 			{
                 // parse across as many as there are, and the obligatory white space
@@ -9443,6 +9475,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// reconstituted string, the parser will halt earlier, so that the non-word-building
 	// character(s) are at the new starting point for the word proper - for this scenario,
 	// no new code is needed.]
+	// Note: when we put the new punctuation character into m_precPunct, we are producing
+	// a connundrum for later on if the user changes his mind about that character's
+	// punctuation status, because in the presence of an inline binding marker, the former
+	// punctuation character then becomes pre-marker rather than pre-word, so we'll need
+	// additional code (it's above, where pre-word non-quote puncts have finished being
+	// parsed over) for that situation which will squirrel such characters away and
+	// restore them to word-initial position later on when the word is actually defined
 	if (bParsedInlineBindingMkr)
 	{
 		int offset = wxNOT_FOUND;
@@ -9455,6 +9494,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			len++;
 		}
 	}
+
 	// we are now a the first character of the word
 	wxChar* pWordProper = ptr;
 	// the next four variables are for support of words separated by ~ fixed space symbol
@@ -9505,14 +9545,18 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		int break_point_here = 1;
 	}
 	*/
+	// in the next call, if ~ is found, ptr returns pointing at whatever follows it, but
+	// if ~ is not found, then ptr returns pointing at whatever pEndWordProper points at
+	// (which is usually space, or endmarker, or punctuation)
 	bMatchedFixedSpaceSymbol = IsFixedSpaceAhead(ptr, pEnd, pWordProper, pEndWordProper, 
 				finalPunctBeforeFixedSpaceSymbol, inlineBindingEndMkrBeforeFixedSpace,
-				spacelessPuncts); // the punctuationSet passed in has all spaces removed
+				wordBuildersForPostWordLoc, spacelessPuncts); // the punctuationSet 
+												// passed in has all spaces removed
 	if (bMatchedFixedSpaceSymbol)
 	{
-		// It's a pair of words conjoined by ~, so complete the parse of what follows the
-		// ~ symbol, the test function exits with ptr pointing at the first character
-		// following ~
+        // It's a pair of words conjoined by ~, so complete the parse of what follows the ~
+        // symbol, the IsFixedSpaceAhead() function exits with ptr pointing at the first
+        // character following ~
 		int nChangeInLenValue = ptr - savePtr;
 		len += nChangeInLenValue;
 		savePtr = ptr;
@@ -9527,7 +9571,10 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// it's not ~ conjoined words, so the word parsing loop begins instead, and ptr
 		// will be pointing at the first character past the end of the word (which could
 		// be following punctuation for the word), or at a ] if there was no following
-		// punctuation for the word, or at buffer end
+		// punctuation for the word, or at buffer end (there could be former punctuation,
+		// but now reverted to word-building characters, in wordBuildersForPostWordLoc
+		// too, which are being held over for placement on the end of the word once we've
+		// defined its string below somewhere)
 		int nChangeInLenValue = ptr - savePtr;
 		len += nChangeInLenValue;
 		// we might have come to a closing bracket, ], and if so we must parse no further
@@ -9542,6 +9589,23 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// with ptr pointing at [, and so we must finish up the same way in this
 			// circumstance and return control to the caller (ie. to TokenizeText())
 			wxString theWord(pWordProper,nChangeInLenValue);
+			if (!wordBuildersForPreWordLoc.IsEmpty())
+			{
+				// put the former punct(s) moved to m_precPunct earlier, but now reverted
+				// back to word-building characters, back at the start of the word - if
+				// there were any such found
+				theWord = wordBuildersForPreWordLoc + theWord;
+				wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
+				len += wordBuildersForPreWordLoc.Len();
+			}
+			if (!wordBuildersForPostWordLoc.IsEmpty())
+			{
+				// put the former punct(s) moved to m_follPunct earlier, but now reverted
+				// back to word-building characters, back at the end of the word - if
+				// there were any such found
+				theWord += wordBuildersForPostWordLoc;
+				len += wordBuildersForPostWordLoc.Len();
+			}
 			pSrcPhrase->m_key = theWord;
 			// now m_srcPhrase except for ending punctuation - of which there is none present
 			if (!pSrcPhrase->m_precPunct.IsEmpty())
@@ -9605,6 +9669,22 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				wxString follPuncts(pEndWordProper,punctSpan);
 				pSrcPhrase->m_follPunct = follPuncts;
 				wxString theWord(pWordProper,nChangeInLenValue);
+				if (!wordBuildersForPreWordLoc.IsEmpty())
+				{
+					// put the former punct(s) moved to m_precPunct earlier, but now reverted
+					// back to word-building characters, back at the start of the word - if
+					// there were any such found
+					theWord = wordBuildersForPreWordLoc + theWord;
+					len += wordBuildersForPreWordLoc.Len();
+				}
+				if (!wordBuildersForPostWordLoc.IsEmpty())
+				{
+					// put the former punct(s) moved to m_follPunct earlier, but now reverted
+					// back to word-building characters, back at the end of the word - if
+					// there were any such found
+					theWord += wordBuildersForPostWordLoc;
+					len += wordBuildersForPostWordLoc.Len();
+				}
 				pSrcPhrase->m_key = theWord;
 				// now m_srcPhrase except for ending punctuation - of which there is none present
 				if (!pSrcPhrase->m_precPunct.IsEmpty())
@@ -9701,6 +9781,24 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// NOTE: we are assuming ~ only ever joins TWO words in sequence, never 3 or more
 		length1 = pEndWordProper - pWordProper;
 		wxString firstWord(pWordProper,length1);
+		if (!wordBuildersForPreWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_precPunct earlier, but now reverted
+			// back to word-building characters, back at the end of the word - if
+			// there were any such found
+			firstWord = wordBuildersForPreWordLoc + firstWord;
+			wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
+			len += wordBuildersForPreWordLoc.Len();
+		}
+		if (!wordBuildersForPostWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_follPunct earlier, but now reverted
+			// back to word-building characters, back at the end of the word - if
+			// there were any such found
+			firstWord += wordBuildersForPostWordLoc;
+			len += wordBuildersForPostWordLoc.Len();
+			//wordBuildersForPostWordLoc.Empty(); // we may need it later
+		}
 		length2 = pSecondWordEnds - pSecondWordBegins;
 		wxString secondWord(pSecondWordBegins, length2);
 		pSrcPhrase->m_key = firstWord;
@@ -9766,6 +9864,26 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	{
 		length1 = pEndWordProper - pWordProper;
 		wxString theWord(pWordProper,length1);
+		if (!wordBuildersForPreWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_precPunct earlier, but now reverted
+			// back to word-building characters, back at the start of the word - if
+			// there were any such found
+			theWord = wordBuildersForPreWordLoc + theWord;
+			len += wordBuildersForPreWordLoc.Len();
+			wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
+		}
+		if (!wordBuildersForPostWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_follPunct earlier, but now reverted
+			// back to word-building characters, back at the end of the word - if
+			// there were any such found
+			theWord += wordBuildersForPostWordLoc;
+			len += wordBuildersForPostWordLoc.Len();
+			// don't delete the wordBuildersForPostWordLoc string, we need it later in
+			// order to get ptr to skip any characters in it when our parsing ptr gets to
+			// be just past the last inline binding endmarker, if any
+		}
 		pSrcPhrase->m_key = theWord;
 		// now m_srcPhrase except for ending punctuation
 		if (!pSrcPhrase->m_precPunct.IsEmpty())
@@ -9981,16 +10099,33 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			{
 				return len;
 			}
-			// if we found one, there might be a bogus space following it which is
-			// entirely unneeded and should be omitted, because any whitespace after an
-			// inline binding endmarker is a nuisance - so check for it and remove it,
-			// because if another follows, the loop must start with ptr pointing at a
-			// backslash
+            // if we found an endmarker, there might be a bogus space following it which is
+            // entirely unneeded and should be omitted, because any whitespace after an
+            // inline binding endmarker is a nuisance - so check for it and remove it,
+            // because if another follows, the loop must start with ptr pointing at a
+            // backslash
 			if (bBindingEndMkrFound && IsWhiteSpace(ptr))
 			{
 				len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len); 
 			}
 		} while (len > saveLen); // repeat as long as there was ptr advancement each time
+
+		// Once we have got past the one or more endmarkers, there could be following
+		// punctuation which we try parse over in the code below. However, if a
+		// punctuation character has reverted to being word-building, and it got moved to
+		// post-endmarker position, it will have been restored (and counted in the len
+		// value update done earlier) to its post word location. But the ParseWord()
+		// parsing pointer ptr will now be pointing at however many such there are - it or
+		// they, as the case may be, are still stored in the wordBuildersForPostWordLoc
+		// string, which because we haven't returned, is still not emptied. So here we
+		// must look at each *ptr, to see if it is in that wordBuildersForPostWordLoc
+		// string, and if it is we advance over it WITHOUT INCREMENTING the len value - as
+		// that is already done above; after this block is done, ptr must be left pointing
+		// at any genuine punctuation, or space or whatever
+		while (wordBuildersForPostWordLoc.Find(*ptr) != wxNOT_FOUND)
+		{
+			ptr++;
+		}
 	}
 
 	// What now? Final punctuation may already have been collected and stored. But if we

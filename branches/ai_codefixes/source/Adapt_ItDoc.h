@@ -143,7 +143,7 @@ protected:
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
 							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
-							wxString& spacelessPuncts); // BEW created 11Oct10
+							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); // BEW created 11Oct10
 	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
 							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
 							wxString& spacelessPuncts);
@@ -279,9 +279,9 @@ public:
 											int& nFixedSpaceOffset,
 											int& nEndMarkerCount); // BEW created 25Jan11
 	void			ParseSpanBackwards( wxString& span, wxString& wordProper, wxString& firstFollPuncts,
-								int nEndMkrsCount, wxString& inlineBindingEndMarkers,
-								wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
-								wxString& spacelessPuncts); //BEW created 27Jan11
+							int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+							wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
 	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature

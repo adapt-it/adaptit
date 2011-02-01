@@ -10871,8 +10871,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
 	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
 	
-	// the following characters must never be in a SFM or USFM marker
-	m_forbiddenInMarkers = _T("<>'\"&[],.{}()%$#@!^+=|/?:;");
+	// the following characters must never be in a SFM or USFM marker (we'll have the XML
+	// metacharacters, and curly quotes for now - we can add more later if we need to)
+	m_forbiddenInMarkers = _T("<>'\"&"); // possibles for later:  _T("[],.{}()%$#@!^+=|/?:;")
 	// and append the single and double curly quotes
 	wxChar aChar;
 #ifdef _UNICODE

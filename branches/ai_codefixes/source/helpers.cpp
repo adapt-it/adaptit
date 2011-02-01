@@ -1102,12 +1102,13 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 // is an embedded punctuation character (which can happen if user changes punct settings)
 // so I've deprecated it; and the following ParseWordInwardsFromEitherEnd() replaces it.
 // This new function should include a space in the punctuation string because parsing
-// inwards we could be parsing over detacted quotes, and some languages require
+// inwards we could be parsing over detatched quotes, and some languages require
 // punctuation to be offset from the word proper by a space. The function it calls will
 // automatically add a space to charSet, so it is safe to pass in spacelessPuncts string.
 // BEW created 28Jan11, the code is adapted from the second half of doc class's
 // FinishOffConjoinedWordsParse() function
-wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, wxString charSet)
+wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, 
+								 wxString& wordBuildingForPostWordLoc, wxString charSet)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxChar* p = ptr; // using this function, we expect any punctuation or markers or both
@@ -1132,11 +1133,9 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	wxString inlineBindingEndMarkers; // ditto
 	wxString secondFollPuncts; // ditto
 	wxString ignoredWhiteSpaces; // ditto
-	// internally, the next function call adds a space to charSet to ensure there is one
-	// in the set of punctuation characters passed in
 	pDoc->ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
 						inlineBindingEndMarkers, secondFollPuncts, 
-						ignoredWhiteSpaces, charSet);
+						ignoredWhiteSpaces, wordBuildingForPostWordLoc, charSet);
 	return wordProper;
 }
 
@@ -3954,7 +3953,17 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	// next, get word1
 	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use 
 	// ParseWordInwardsFromEnd() instead
-	word1 = ParseWordInwardsFromEnd(ptr, pEnd, gpApp->m_punctuation[1]);
+	wxString wordBuildersForPostWordLoc;
+	word1 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc, 
+									gpApp->m_punctuation[1]);
+	if (!wordBuildersForPostWordLoc.IsEmpty())
+	{
+		// handle any punctuation characters the user has reverted to being word-building
+		// ones by making a change to the target punctuation set in Preferences...
+		word1 += wordBuildersForPostWordLoc;
+		wordBuildersForPostWordLoc.Empty(); // so it won't interfere
+											// with the second call below
+	}
 	length = word1.Len();
 	ptr += length;
 	// next, get following puncts from word1
@@ -3970,7 +3979,15 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	// next, get word2
 	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use 
 	// ParseWordInwardsFromEnd() instead
-	word2 = ParseWordInwardsFromEnd(ptr, pEnd, gpApp->m_punctuation[1]);
+	word2 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc,
+									gpApp->m_punctuation[1]);
+	if (!wordBuildersForPostWordLoc.IsEmpty())
+	{
+		// handle any punctuation characters the user has reverted to being word-building
+		// ones by making a change to the target punctuation set in Preferences...
+		word2 += wordBuildersForPostWordLoc;
+		wordBuildersForPostWordLoc.Empty();
+	}
 	length = word2.Len();
 	ptr += length;
 	// next, get following puncts from word2

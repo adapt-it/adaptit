@@ -128,7 +128,8 @@ wxString SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10
 
-wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW created 28Jan11
+wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, 
+			wxString& wordBuildersForPostWordLoc, wxString charSet); // BEW created 28Jan11
 
 wxString SpanExcluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser  <<-- deprecated 29Jan11
