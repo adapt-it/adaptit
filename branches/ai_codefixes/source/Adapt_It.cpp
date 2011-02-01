@@ -10872,7 +10872,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
 	
 	// the following characters must never be in a SFM or USFM marker
-	m_forbiddenInMarkers = _T("<>'\"&[],.{}()%$#@!+=|/?:;");
+	m_forbiddenInMarkers = _T("<>'\"&[],.{}()%$#@!^+=|/?:;");
 	// and append the single and double curly quotes
 	wxChar aChar;
 #ifdef _UNICODE
