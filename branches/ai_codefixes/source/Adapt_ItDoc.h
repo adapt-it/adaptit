@@ -146,6 +146,8 @@ protected:
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); // BEW created 11Oct10
 	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
 							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
+							wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
+							wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
 							wxString& spacelessPuncts);
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
@@ -278,7 +280,7 @@ public:
 											bool* pbFoundHaltingWhitespace,
 											int& nFixedSpaceOffset,
 											int& nEndMarkerCount); // BEW created 25Jan11
-	void			ParseSpanBackwards( wxString& span, wxString& wordProper, wxString& firstFollPuncts,
+	void			ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
 							int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 							wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
