@@ -99,5 +99,5 @@
 // there is an inline binding marker a few characters ahead of one or more characters
 // shunted to m_precPunct from off of the wordProper earlier when it/they were made
 // punctuation characters and now the user wants to undo that punctuation set change;
-// allowing for 3 such characters should probably be enough for any real situation
-#define MAX_MOVED_FORMER_PUNCTS   3
+// allowing for 5 such characters should probably be enough for any real situation
+#define MAX_MOVED_FORMER_PUNCTS   5

@@ -9730,7 +9730,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				// back to word-building characters, back at the start of the word - if
 				// there were any such found
 				theWord = wordBuildersForPreWordLoc + theWord;
-				wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
+				//wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
 				len += wordBuildersForPreWordLoc.Len();
 			}
 			if (!wordBuildersForPostWordLoc.IsEmpty())
@@ -10324,32 +10324,35 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			}
 		} while (len > saveLen); // repeat as long as there was ptr advancement each time
 
-		// Once we have got past the one or more endmarkers, there could be following
-		// punctuation which we try parse over in the code below. However, if a
-		// punctuation character has reverted to being word-building, and it got moved to
-		// post-endmarker position, it will have been restored (and counted in the len
-		// value update done earlier) to its post word location. But the ParseWord()
-		// parsing pointer ptr will now be pointing at however many such there are - it or
-		// they, as the case may be, are still stored in the wordBuildersForPostWordLoc
-		// string, which because we haven't returned, is still not emptied. So here we
-		// must look at each *ptr, to see if it is in that wordBuildersForPostWordLoc
-		// string, and if it is we advance over it WITHOUT INCREMENTING the len value - as
-		// that is already done above; after this block is done, ptr must be left pointing
-		// at any genuine punctuation, or space or whatever
-		while (wordBuildersForPostWordLoc.Find(*ptr) != wxNOT_FOUND)
+        // Once we have got past the one or more endmarkers, there could be following
+        // punctuation which we try parse over in the code below. However, if a punctuation
+        // character has reverted to being word-building, and it got moved to
+        // post-endmarker position, it will have been restored (and counted in the len
+        // value update done earlier) to its post word location. But the ParseWord()
+        // parsing pointer ptr will now be pointing at however many such there are - it or
+        // they, as the case may be, are still stored in the wordBuildersForPostWordLoc
+        // string, which because we haven't returned, is still not emptied. So here we must
+        // get the length of what we put into the wordBuildersForPostWordLoc string from
+        // the character sequence and advance ptr by that much, and if it is we advance
+        // over it WITHOUT INCREMENTING the len value - as that is already done above;
+        // after this block is done, ptr must be left pointing at any genuine punctuation,
+        // or space or whatever
+        if (!wordBuildersForPostWordLoc.IsEmpty())
 		{
-			ptr++;
+			ptr += wordBuildersForPostWordLoc.Len();
+
 		}
 		// do the same adjustment if we are at this point having parsed the secondWord of
 		// a conjoined word pair, and there is punctuation that has be reverted back to
 		// being word-building and it occurs after the endmarker
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
 		{
-			while (wordBuildersFor2ndPostWordLoc.Find(*ptr) != wxNOT_FOUND)
+			if (!wordBuildersFor2ndPostWordLoc.IsEmpty())
 			{
-				ptr++;
+				ptr += wordBuildersFor2ndPostWordLoc.Len();
+
 			}
-		}
+		}	
 	}
 
 	// What now? Final punctuation may already have been collected and stored. But if we
