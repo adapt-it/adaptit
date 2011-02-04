@@ -163,9 +163,9 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// set up pointers to interface objects
 	pSrcFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PATH);
-	pSrcFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strSrcFolderPath));
+	//pSrcFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strSrcFolderPath));
 	pDestFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_PATH);
-	pDestFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strDestFolderPath));
+	//pDestFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strDestFolderPath));
 
 	pLocateSrcFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_SOURCE_FOLDER);
 	wxASSERT(pLocateSrcFolderButton != NULL);
