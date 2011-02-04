@@ -14876,6 +14876,267 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if no errors; FALSE if an error occurred
+/// \param		packByteStr		<- a CBString byte buffer used to return the raw data
+///                                 for packing to the caller
+/// \remarks
+/// Called from: the Doc's OnFilePackDocument() and EmailReportDlg::OnBtnAttachPackedDoc.
+/// Assembles the raw contents that go into an Adapt It Packed Document into the packByteStr
+/// which is a CBString byte buffer. 
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::DoPackDocument(CBString& packByteStr)
+{
+	wxString packStr;
+	packStr.Empty();
+
+    // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
+    // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
+    // check that it is matching; and if not, warn user that continuing the unpack might
+    // not result in properly encoded text in the docment (but allow him to continue,
+    // because if source and target text are all ASCII, the either app can read the packed
+    // data from the other and give valid encodings in the doc when unpacked.)
+	//
+    // whm Note: The legacy logic doesn't work cross-platform! The sizeof(char) and
+    // sizeof(w_char) is not constant across platforms. On Windows sizeof(char) is 1 and
+    // sizeof(w_char) is 2; but on all Unix-based systems (i.e., Linux and Mac OS X) the
+    // sizeof(char) is 2 and sizeof(w_char) is 4. We can continue to use '1' to indicate
+    // the file was packed by an ANSI version, and '2' to indicate the file was packed by
+    // the Unicode app for back compatibility. However, the numbers cannot signify the size
+    // of char and w_char across platforms. They can only be used as pure signals for ANSI
+    // or Unicode contents of the packed file. Here in OnFilePackDoc we will save the
+    // string _T("1") if we're packing from an ANSI app, or the string _T("2") if we're
+    // packing from a Unicode app. See DoUnpackDocument() for how we can interpret "1" and
+    // "2" in a cross-platform manner.
+	//
+#ifdef _UNICODE
+	packStr = _T("2");
+#else
+	packStr = _T("1");
+#endif
+
+	packStr += _T("|*0*|"); // the zeroth unique delimiter
+
+	// get source and target language names, or whatever is used for these
+	wxString curSourceName;
+	wxString curTargetName;
+	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName, 
+											curSourceName, curTargetName);
+
+    // get the book information (mode flag, disable flag, and book index; as ASCII string
+    // with colon delimited fields)
+	wxString bookInfoStr;
+	bookInfoStr.Empty();
+	if (gpApp->m_bBookMode)
+	{
+		bookInfoStr = _T("1:");
+	}
+	else
+	{
+		bookInfoStr = _T("0:");
+	}
+	if (gpApp->m_bDisableBookMode)
+	{
+		bookInfoStr += _T("1:");
+	}
+	else
+	{
+		bookInfoStr += _T("0:");
+	}
+	if (gpApp->m_nBookIndex != -1)
+	{
+		bookInfoStr << gpApp->m_nBookIndex;
+	}
+	else
+	{
+		bookInfoStr += _T("-1");
+	}
+
+	wxLogNull logNo; // avoid spurious messages from the system
+
+	// update and save the project configuration file
+	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
+	// BEW added flag to the following test on 25Nov09
+	if (!gpApp->m_curProjectPath.IsEmpty() && !gpApp->m_bReadOnlyAccess)
+	{
+		if (gpApp->m_bUseCustomWorkFolderPath && !gpApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (gpApp->m_bLockedCustomWorkFolderPath)
+				bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = gpApp->WriteConfigurationFile(szAdminProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
+		}
+		// original code below
+		//bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
+	}
+	// we don't expect any failure here, so an English message hard coded will do
+	if (!bOK)
+	{
+		wxMessageBox(_T(
+		"Writing out the configuration file failed in OnFilePackDoc, command aborted\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+
+	// get the size of the configuration file, in bytes
+	wxFile f;
+	wxString configFile = gpApp->m_curProjectPath + gpApp->PathSeparator + 
+									szProjectConfiguration + _T(".aic");
+	int nConfigFileSize = 0;
+	if (f.Open(configFile,wxFile::read))
+	{
+		nConfigFileSize = f.Length();
+		wxASSERT(nConfigFileSize);
+	}
+	else
+	{
+		wxMessageBox(_T(
+	"Getting the configuration file's size failed in OnFilePackDoc, command aborted\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+	f.Close(); // needed because in wx we opened the file
+
+	// save the doc as XML
+	bool bSavedOK = TRUE;
+	// BEW added test on 25Nov09, so documents can be packed when user has read only access
+	// BEW changed 29Apr10, to use DoFileSave_Protected() rather than DoFileSave() because the
+	// former gives better protection against data loss in the event of file truncation
+	// due to a processing error.
+	if (!gpApp->m_bReadOnlyAccess)
+	{
+		//bSavedOK = DoFileSave(TRUE);
+		bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+	}
+
+	// construct the absolute path to the document as it currently is on disk; if the
+	// local user has read-only access, the document on disk may not have been recently
+	// saved. (Read-only access must not force document saves on a remote user
+	// who has ownership of writing permission for data in the project; otherwise, doing
+	// so could cause data to be lost)
+	wxString docPath;
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	{
+		docPath = gpApp->m_bibleBooksFolderPath;
+	}
+	else
+	{
+		docPath = gpApp->m_curAdaptionsPath;
+	}
+	docPath += gpApp->PathSeparator + gpApp->m_curOutputFilename; // it will have .xml extension
+
+	// get the size of the document's XML file, in bytes
+	int nDocFileSize = 0;
+	if (f.Open(docPath,wxFile::read))
+	{
+		nDocFileSize = f.Length();
+		wxASSERT(nDocFileSize);
+	}
+	else
+	{
+		wxMessageBox(_T(
+	"Getting the document file's size failed in OnFilePackDoc, command aborted\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+	f.Close(); // needed for wx version which opened the file to determine its size
+
+	// construct the composed information required for the pack operation, as a wxString
+	packStr += curSourceName;
+	packStr += _T("|*1*|"); // the first unique delimiter
+	packStr += curTargetName;
+	packStr += _T("|*2*|"); // the second unique delimiter
+	packStr += bookInfoStr;
+	packStr += _T("|*3*|"); // the third unique delimiter
+	packStr += gpApp->m_curOutputFilename;
+	packStr += _T("|*4*|"); // the fourth unique delimiter
+
+    // set up the byte string for the data, taking account of whether we have unicode data
+    // or not
+#ifdef _UNICODE
+	packByteStr = gpApp->Convert16to8(packStr);
+#else
+	packByteStr(packStr);
+#endif
+
+	// from here on we work with bytes, and so use CBString rather than wxString for the data
+
+	if (!f.Open(configFile,wxFile::read))
+	{
+		// if error, just return after telling the user about it -- English will do, 
+		// it shouldn't happen
+		wxString s;
+		s = s.Format(_T(
+"Could not open a file stream for project config, in OnFilePackDoc(), for file %s"),
+		gpApp->m_curProjectPath.c_str());
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	int nFileLength = nConfigFileSize; // our files won't require more than 
+									   // an int for the length
+
+    // create a buffer large enough to receive the whole lot, allow for final null byte (we
+    // don't do anything with the data except copy it and resave it, so a char buffer will
+    // do fine for unicode too), then fill it
+	char* pBuff = new char[nFileLength + 1];
+	memset(pBuff,0,nFileLength + 1);
+	int nReadBytes = f.Read(pBuff,nFileLength);
+	if (nReadBytes < nFileLength)
+	{
+		wxMessageBox(_T(
+		"Project file read was short, some data missed so abort the command\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	f.Close(); // assume no errors
+
+	// append the configuration file's data to packStr and add the next 
+	// unique delimiter string
+	packByteStr += pBuff;
+	packByteStr += "|*5*|"; // the fifth unique delimiter
+
+	// clear the buffer, then read in the document file in similar fashion & 
+	// delete the buffer when done
+	delete[] pBuff;
+	if (!f.Open(docPath,wxFile::read))
+	{
+		// if error, just return after telling the user about it -- English will do, 
+		// it shouldn't happen
+		wxString s;
+		s = s.Format(_T(
+"Could not open a file stream for the XML document as text, in OnFilePackDoc(), for file %s"),
+		docPath.c_str());
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	nFileLength = nDocFileSize; // our files won't require more than an int for the length
+	pBuff = new char[nFileLength + 1];	
+	memset(pBuff,0,nFileLength + 1);
+	nReadBytes = f.Read(pBuff,nFileLength);
+	if (nReadBytes < nFileLength)
+	{
+		wxMessageBox(_T(
+		"Document file read was short, some data missed so abort the command\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	f.Close(); // assume no errors
+	packByteStr += pBuff;
+	delete[] pBuff;
+
+    // packByteStr now is complete; so we must ask the user to save it and then do so to
+    // his nominated destination
+    return TRUE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// \return		the value of the m_bSpecialText member of pSrcPhrase
 /// \param		pSrcPhrase		<- a pointer to the source phrase instance on 
 ///									which this marker will be stored
@@ -18893,258 +19154,17 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 /// filename for the document; the current project configuration file contents; the
 /// document in xml format.
 /// BEW 12Apr10, no changes needed for support of doc version 5
+/// whm 3Feb11 modified to assemble the packByteStr in a separate function DoPackDocument()
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 {
     // OnFilePackDoc(), for a unicode build, converts to UTF-8 internally, and so uses
     // CBString for the final output (config file and xml doc file are UTF-8 already).
-	wxString packStr;
-	packStr.Empty();
-
-    // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
-    // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
-    // check that it is matching; and if not, warn user that continuing the unpack might
-    // not result in properly encoded text in the docment (but allow him to continue,
-    // because if source and target text are all ASCII, the either app can read the packed
-    // data from the other and give valid encodings in the doc when unpacked.)
-	//
-    // whm Note: The legacy logic doesn't work cross-platform! The sizeof(char) and
-    // sizeof(w_char) is not constant across platforms. On Windows sizeof(char) is 1 and
-    // sizeof(w_char) is 2; but on all Unix-based systems (i.e., Linux and Mac OS X) the
-    // sizeof(char) is 2 and sizeof(w_char) is 4. We can continue to use '1' to indicate
-    // the file was packed by an ANSI version, and '2' to indicate the file was packed by
-    // the Unicode app for back compatibility. However, the numbers cannot signify the size
-    // of char and w_char across platforms. They can only be used as pure signals for ANSI
-    // or Unicode contents of the packed file. Here in OnFilePackDoc we will save the
-    // string _T("1") if we're packing from an ANSI app, or the string _T("2") if we're
-    // packing from a Unicode app. See DoUnpackDocument() for how we can interpret "1" and
-    // "2" in a cross-platform manner.
-	//
-#ifdef _UNICODE
-	packStr = _T("2");
-#else
-	packStr = _T("1");
-#endif
-
-	packStr += _T("|*0*|"); // the zeroth unique delimiter
-
-	// get source and target language names, or whatever is used for these
-	wxString curSourceName;
-	wxString curTargetName;
-	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName, 
-											curSourceName, curTargetName);
-
-    // get the book information (mode flag, disable flag, and book index; as ASCII string
-    // with colon delimited fields)
-	wxString bookInfoStr;
-	bookInfoStr.Empty();
-	if (gpApp->m_bBookMode)
+	CBString packByteStr; 
+	if (!DoPackDocument(packByteStr)) // assembles the raw data into the packByteStr byte buffer (CBString)
 	{
-		bookInfoStr = _T("1:");
-	}
-	else
-	{
-		bookInfoStr = _T("0:");
-	}
-	if (gpApp->m_bDisableBookMode)
-	{
-		bookInfoStr += _T("1:");
-	}
-	else
-	{
-		bookInfoStr += _T("0:");
-	}
-	if (gpApp->m_nBookIndex != -1)
-	{
-		bookInfoStr << gpApp->m_nBookIndex;
-	}
-	else
-	{
-		bookInfoStr += _T("-1");
-	}
-
-	wxLogNull logNo; // avoid spurious messages from the system
-
-	// update and save the project configuration file
-	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
-	// BEW added flag to the following test on 25Nov09
-	if (!gpApp->m_curProjectPath.IsEmpty() && !gpApp->m_bReadOnlyAccess)
-	{
-		if (gpApp->m_bUseCustomWorkFolderPath && !gpApp->m_customWorkFolderPath.IsEmpty())
-		{
-			// whm 10Mar10, must save using what paths are current, but when the custom
-			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
-			// custom location.
-			if (gpApp->m_bLockedCustomWorkFolderPath)
-				bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
-			else
-				bOK = gpApp->WriteConfigurationFile(szAdminProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
-		}
-		else
-		{
-			bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
-		}
-		// original code below
-		//bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
-	}
-	// we don't expect any failure here, so an English message hard coded will do
-	if (!bOK)
-	{
-		wxMessageBox(_T(
-		"Writing out the configuration file failed in OnFilePackDoc, command aborted\n"),
-		_T(""), wxICON_EXCLAMATION);
 		return;
 	}
-
-	// get the size of the configuration file, in bytes
-	wxFile f;
-	wxString configFile = gpApp->m_curProjectPath + gpApp->PathSeparator + 
-									szProjectConfiguration + _T(".aic");
-	int nConfigFileSize = 0;
-	if (f.Open(configFile,wxFile::read))
-	{
-		nConfigFileSize = f.Length();
-		wxASSERT(nConfigFileSize);
-	}
-	else
-	{
-		wxMessageBox(_T(
-	"Getting the configuration file's size failed in OnFilePackDoc, command aborted\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return;
-	}
-	f.Close(); // needed because in wx we opened the file
-
-	// save the doc as XML
-	bool bSavedOK = TRUE;
-	// BEW added test on 25Nov09, so documents can be packed when user has read only access
-	// BEW changed 29Apr10, to use DoFileSave_Protected() rather than DoFileSave() because the
-	// former gives better protection against data loss in the event of file truncation
-	// due to a processing error.
-	if (!gpApp->m_bReadOnlyAccess)
-	{
-		//bSavedOK = DoFileSave(TRUE);
-		bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
-	}
-
-	// construct the absolute path to the document as it currently is on disk; if the
-	// local user has read-only access, the document on disk may not have been recently
-	// saved. (Read-only access must not force document saves on a remote user
-	// who has ownership of writing permission for data in the project; otherwise, doing
-	// so could cause data to be lost)
-	wxString docPath;
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-	{
-		docPath = gpApp->m_bibleBooksFolderPath;
-	}
-	else
-	{
-		docPath = gpApp->m_curAdaptionsPath;
-	}
-	docPath += gpApp->PathSeparator + gpApp->m_curOutputFilename; // it will have .xml extension
-
-	// get the size of the document's XML file, in bytes
-	int nDocFileSize = 0;
-	if (f.Open(docPath,wxFile::read))
-	{
-		nDocFileSize = f.Length();
-		wxASSERT(nDocFileSize);
-	}
-	else
-	{
-		wxMessageBox(_T(
-	"Getting the document file's size failed in OnFilePackDoc, command aborted\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return;
-	}
-	f.Close(); // needed for wx version which opened the file to determine its size
-
-	// construct the composed information required for the pack operation, as a wxString
-	packStr += curSourceName;
-	packStr += _T("|*1*|"); // the first unique delimiter
-	packStr += curTargetName;
-	packStr += _T("|*2*|"); // the second unique delimiter
-	packStr += bookInfoStr;
-	packStr += _T("|*3*|"); // the third unique delimiter
-	packStr += gpApp->m_curOutputFilename;
-	packStr += _T("|*4*|"); // the fourth unique delimiter
-
-    // set up the byte string for the data, taking account of whether we have unicode data
-    // or not
-#ifdef _UNICODE
-	CBString packByteStr = gpApp->Convert16to8(packStr);
-#else
-	CBString packByteStr(packStr);
-#endif
-
-	// from here on we work with bytes, and so use CBString rather than wxString for the data
-
-	if (!f.Open(configFile,wxFile::read))
-	{
-		// if error, just return after telling the user about it -- English will do, 
-		// it shouldn't happen
-		wxString s;
-		s = s.Format(_T(
-"Could not open a file stream for project config, in OnFilePackDoc(), for file %s"),
-		gpApp->m_curProjectPath.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	int nFileLength = nConfigFileSize; // our files won't require more than 
-									   // an int for the length
-
-    // create a buffer large enough to receive the whole lot, allow for final null byte (we
-    // don't do anything with the data except copy it and resave it, so a char buffer will
-    // do fine for unicode too), then fill it
-	char* pBuff = new char[nFileLength + 1];
-	memset(pBuff,0,nFileLength + 1);
-	int nReadBytes = f.Read(pBuff,nFileLength);
-	if (nReadBytes < nFileLength)
-	{
-		wxMessageBox(_T(
-		"Project file read was short, some data missed so abort the command\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	f.Close(); // assume no errors
-
-	// append the configuration file's data to packStr and add the next 
-	// unique delimiter string
-	packByteStr += pBuff;
-	packByteStr += "|*5*|"; // the fifth unique delimiter
-
-	// clear the buffer, then read in the document file in similar fashion & 
-	// delete the buffer when done
-	delete[] pBuff;
-	if (!f.Open(docPath,wxFile::read))
-	{
-		// if error, just return after telling the user about it -- English will do, 
-		// it shouldn't happen
-		wxString s;
-		s = s.Format(_T(
-"Could not open a file stream for the XML document as text, in OnFilePackDoc(), for file %s"),
-		docPath.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	nFileLength = nDocFileSize; // our files won't require more than an int for the length
-	pBuff = new char[nFileLength + 1];	
-	memset(pBuff,0,nFileLength + 1);
-	nReadBytes = f.Read(pBuff,nFileLength);
-	if (nReadBytes < nFileLength)
-	{
-		wxMessageBox(_T(
-		"Document file read was short, some data missed so abort the command\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	f.Close(); // assume no errors
-	packByteStr += pBuff;
-	delete[] pBuff;
-
-    // packByteStr now is complete; so we must ask the user to save it and then do so to
-    // his nominated destination
 
 	// whm Pack design notes for future consideration:
 	// 1. Initial design calls for the packing/compression of a single Adapt It document
@@ -19201,6 +19221,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 
 	// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
 	// do it) Probably the project folder would be best.
+	bool bOK;
 	bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
 
 	if (fileDlg.ShowModal() != wxID_OK)
@@ -19245,7 +19266,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 													// zip returning TRUE if successfully
 	{
 		wxString msg;
-		msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
+		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_ERROR);
 	} 
 }
