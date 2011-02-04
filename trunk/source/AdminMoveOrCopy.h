@@ -49,6 +49,7 @@ public:
 	bool m_bDoTheSameWay;
 	CopyAction copyType;
 	CopyAction lastWay;
+	wxSizer* pAdminMoveCopySizer;
 
 	// wx version pointers for dialog controls
 	wxButton* pMoveButton;
