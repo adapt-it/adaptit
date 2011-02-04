@@ -181,9 +181,9 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// set up pointers to interface objects
 	pLeftFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PATH);
-	pLeftFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strLeftFolderPath));
+	//pLeftFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strLeftFolderPath)); // whm removed 4Feb11
 	pRightFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_PATH);
-	pRightFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strRightFolderPath));
+	//pRightFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strRightFolderPath)); // whm removed 4Feb11
 
 	pLocateLeftFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_SOURCE_FOLDER);
 	wxASSERT(pLocateLeftFolderButton != NULL);
@@ -541,6 +541,7 @@ void AdminMoveOrCopy::SetupLeftList(wxString& folderPath)
 
 		EnableButtons();
 	}
+	pAdminMoveCopySizer->Layout(); // whm added 4Feb11
 }
 
 void AdminMoveOrCopy::SetupRightList(wxString& folderPath)
@@ -594,6 +595,7 @@ void AdminMoveOrCopy::SetupRightList(wxString& folderPath)
 		rightFilesCount = 0;
 	}
 	EnableButtons();
+	pAdminMoveCopySizer->Layout(); // whm added 4Feb11
 }
 
 

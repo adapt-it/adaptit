@@ -6604,7 +6604,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL );
-    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item5->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
@@ -6655,7 +6655,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL );
-    item25->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item25->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item19->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
@@ -7825,8 +7825,8 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item55 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item56 = new wxButton( parent, ID_BUTTON_ATTACH_PACKED_DOC, _("Attach a packed document"), wxDefaultPosition, wxDefaultSize, 0 );
-    item56->SetToolTip( _("Click to attach a packed adaptation document if you refer to it in your report") );
+    wxButton *item56 = new wxButton( parent, ID_BUTTON_ATTACH_PACKED_DOC, _("Attach this document (packed)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item56->SetToolTip( _("Click to attach the currently open document as a packed adaptation document - if you refer to it in your report") );
     item55->Add( item56, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item55->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
