@@ -108,7 +108,7 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	MoveOrCopyFilesOrFoldersFunc(this, TRUE, TRUE);
+	pAdminMoveCopySizer = MoveOrCopyFilesOrFoldersFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
 
