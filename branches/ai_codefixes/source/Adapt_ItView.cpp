@@ -6920,6 +6920,26 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 // to a KB if the <no adaptation> button was not pressed), and FALSE if the store could not
 // be done (eg. if the embedded call to StoreText returned FALSE) ammended, July 2003, for
 // auto-capitalization support
+// BEW ***NOTE *** 4Feb11: Do not call this function in the handler for the user having
+// just changed the punctuation settings, that is, do not call it in
+// DoPunctuationChanges(), which is an app class member function. In such a context, the
+// status of each character, whether punctuation or word-building, and whether or not all
+// target text word-building characters are restored to the word proper or not, is not
+// determinate -- some kinds of punct changes would be benign (such as changing a
+// word-initial or word final word-building character to be a punctuation character) would
+// give a correct KB entry, but the opposite would give a faulty KB entry because the
+// phrase box contents won't have the required string (unless the user has typed it
+// manually, which can't be guaranteed) and so a word-building character would be lost from
+// the start or end of the target text word or phrase. A further problem is that
+// StoreBeforeProceeding calls MakeTargetStringIncludingPunctuation() and the latter has a
+// different protocol regarding punctuation than does the code for handling a user's
+// punctuation set changes: the MakeTargetStringIncludingPunctuation() interprets
+// differences between the punctuation on the target text, and that stored in the
+// m_precPunct & m_follPunct & m_follOuterPunct as indicating manual typing which should
+// replace the latter with the former - which would be an incorrect assumption if this
+// function is called in the handler for doing changes to the punctuation settings - the
+// latter scenario regards such differences as additive, not replacive, and gives
+// potentially different results.
 bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -12803,9 +12823,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
             // <puncts1>word1<puncts2>~<puncts3>word2<puncts4> stored as a merger, where
             // any or all of <punctsi> where i = 1,2,3, or 4 may be empty or contain
             // punctuation; if <puncts2> is non-empty, it is stored in the first child
-            // pSrcPhrase in m_nSavedWords, in the former's m_follPunct member, ; if
+            // pSrcPhrase in m_pSavedWords, in its m_follPunct member, ; if
             // <puncts3> is non-empty, it is stored in the second child pSrcPhrase in
-            // m_nSavedWords, in the former's m_precPunct member.
+            // m_pSavedWords, in its m_precPunct member.
 			// So, because we have to allow the user to type his own new punctuation to
 			// replace any of these four potential punctuation substrings, we've a lot of
 			// work to do to analyse what is there and what, if anything, the user has
@@ -12837,7 +12857,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			word1FollPunct = SpanIncluding(reversedWord1, pApp->m_punctuation[1]);
 			word2FollPunct = SpanIncluding(reversedWord2, pApp->m_punctuation[1]);
 			word1FollPunct = MakeReverse(word1FollPunct); // punct now in natural order
-			word2FollPunct = MakeReverse(word1FollPunct); // ditto
+			word2FollPunct = MakeReverse(word2FollPunct); // ditto
 			int preclen1 = word1PrecPunct.Len();
 			int preclen2 = word2PrecPunct.Len();
 			word1Proper = word1.Mid(preclen1); // may still have following puncts
@@ -12942,42 +12962,37 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				wxString finalW2PrecPuncts;
 				wxString finalW2FollPuncts;
 
+                // NOTE: in what follows the variable names differ by whether the
+                // punctuation is "stored" versus "parsed". The stored stuff will be source
+                // text punctuation stored in the CSourcePhrase at document creation time,
+                // when the source text is parsed in to make the document. The parsedPuncts
+                // are not those identified at doc creation time, but rather are typed by
+                // the user in the phrase box, and so have just been parsed by the code
+                // above. The protocol we follow is that if there is, in pre-word location,
+                // or post-word location, both parsed puncts and stored puncts, then the
+                // parsed puncts replace the stored ones, because we assume the user typed
+                // the ones just now identified above by the parsing code, and so he wants
+                // what he typed to be used rather than what was in the source text to be
+                // converted to the equivalent target text puncts.
+				// This "replacive" protocol is used throughout the application except in
+				// one scenario -- it must not be used when doing the document rebuild
+				// after the user has changed the punctuation settings. In the latter
+				// scenario, the replacive protocol is not appropriate. See the
+				// descriptive comments above the StoreBeforeProceeding() function,
+				// also defined in the view class. 
+                
 				// start with the preceding puncts of word1
 				storedPuncts = pSrcPhrWord1->m_precPunct;
 				parsedPuncts = word1PrecPunct;
 				if (!parsedPuncts.IsEmpty())
 				{
-					// the user has typed preceding punctuation for word1, so we use it if it
-					// is different than what is stored
-					if (storedPuncts.IsEmpty())
-					{
-						// there was no preceding punctuation on word1 before, so the user is
-						// adding some, so no comparison is needed, just copy it over & convert
-						parsedPuncts.Trim(FALSE); // trim off any initial whitespace
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						finalW1PrecPuncts = parsedPuncts;
-					}
-					else
-					{
-						// there are stored puncts available in pSrcPhrase & its 2 children
-						storedPuncts.Trim(FALSE);
-						parsedPuncts.Trim(FALSE);
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						storedPuncts = GetConvertedPunct(storedPuncts);
-						if (storedPuncts == parsedPuncts)
-						{
-							finalW1PrecPuncts = storedPuncts; // could assign either string
-						}
-						else
-						{
-							// parsed puncts differ from stored puncts
-							finalW1PrecPuncts = parsedPuncts; // use the just-parsed puncts
-						}
-					}
+					// the user has typed preceding punctuation for word1, so we use it
+					parsedPuncts.Trim(FALSE); // trim off any initial whitespace
+					finalW1PrecPuncts = parsedPuncts;
 				}
 				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
-					// user has not typed any preceding punctuation for word1, and there is
+					// the user has not typed any preceding punctuation for word1, and there is
 					// stored preceding punctuation available, so providing copying of the
 					// source is permitted, we'll copy the stored preceding punctuation
 					storedPuncts.Trim(FALSE);
@@ -12991,33 +13006,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				parsedPuncts = word1FollPunct;
 				if (!parsedPuncts.IsEmpty())
 				{
-					// the user has typed following punctuation for word1, so we use it if it
-					// is different than what is stored
-					if (storedPuncts.IsEmpty())
-					{
-						// there was no following punctuation on word1 before, so the user is
-						// adding some, so no comparison is needed, just convert & copy it
-						parsedPuncts.Trim(TRUE); // trim off any final whitespace
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						finalW1FollPuncts = parsedPuncts;
-					}
-					else
-					{
-						// there are stored puncts available in pSrcPhrase & its 2 children
-						storedPuncts.Trim(TRUE);
-						parsedPuncts.Trim(TRUE);
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						storedPuncts = GetConvertedPunct(storedPuncts);
-						if (storedPuncts == parsedPuncts)
-						{
-							finalW1FollPuncts = storedPuncts; // could assign either string
-						}
-						else
-						{
-							// parsed puncts differ from stored puncts
-							finalW1FollPuncts = parsedPuncts; // use the just-parsed puncts
-						}
-					}
+					// the user has typed following punctuation for word1, so we use it
+					parsedPuncts.Trim(TRUE); // trim off any final whitespace
+					finalW1FollPuncts = parsedPuncts;
 				}
 				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
@@ -13035,33 +13026,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				parsedPuncts = word2PrecPunct;
 				if (!parsedPuncts.IsEmpty())
 				{
-					// the user has typed preceding punctuation for word2, so we use it if it
-					// is different than what is stored, and replace the stored puncts with it
-					if (storedPuncts.IsEmpty())
-					{
-						// there was no preceding punctuation on word2 before, so the user is
-						// adding some, so no comparison is needed, just convert & copy it
-						parsedPuncts.Trim(FALSE); // trim off any initial whitespace
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						finalW2PrecPuncts = parsedPuncts;
-					}
-					else
-					{
-						// there are stored puncts available in pSrcPhrase & its 2 children
-						storedPuncts.Trim(FALSE);
-						parsedPuncts.Trim(FALSE);
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						storedPuncts = GetConvertedPunct(storedPuncts);
-						if (storedPuncts == parsedPuncts)
-						{
-							finalW2PrecPuncts = storedPuncts; // could assign either string
-						}
-						else
-						{
-							// parsed puncts differ from stored puncts
-							finalW2PrecPuncts = parsedPuncts; // use the just-parsed puncts
-						}
-					}
+					// the user has typed preceding punctuation for word2, so we use it
+					parsedPuncts.Trim(FALSE); // trim off any initial whitespace
+					finalW2PrecPuncts = parsedPuncts;
 				}
 				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
@@ -13079,33 +13046,9 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				parsedPuncts = word2FollPunct;
 				if (!parsedPuncts.IsEmpty())
 				{
-					// the user has typed following punctuation for word2, so we use it if it
-					// is different than what is stored
-					if (storedPuncts.IsEmpty())
-					{
-						// there was no following punctuation on word2 before, so the user is
-						// adding some, so no comparison is needed, just convert & copy it
-						parsedPuncts.Trim(TRUE); // trim off any final whitespace
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						finalW2FollPuncts = parsedPuncts;
-					}
-					else
-					{
-						// there are stored puncts available in pSrcPhrase & its 2 children
-						storedPuncts.Trim(TRUE);
-						parsedPuncts.Trim(TRUE);
-						parsedPuncts = GetConvertedPunct(parsedPuncts);
-						storedPuncts = GetConvertedPunct(storedPuncts);
-						if (storedPuncts == parsedPuncts)
-						{
-							finalW2FollPuncts = storedPuncts; // could assign either string
-						}
-						else
-						{
-							// parsed puncts differ from stored puncts
-							finalW2FollPuncts = parsedPuncts; // use the just-parsed puncts
-						}
-					}
+					// the user has typed following punctuation for word2, so we use it
+					parsedPuncts.Trim(TRUE); // trim off any final whitespace
+					finalW2FollPuncts = parsedPuncts;
 				}
 				else if (!storedPuncts.IsEmpty() && pApp->m_bCopySourcePunctuation)
 				{
@@ -13145,7 +13088,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
     // m_nCurSequNum_ForPlacementDialog is reset to default -1
 	pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 }
-
 
 void CAdapt_ItView::DoFileSaveKB()
 {

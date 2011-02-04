@@ -17293,6 +17293,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 				int nOldCount = m_pSourcePhrases->GetCount();
 				int difference = 0;
 
+                // BEW 4Feb11, legacy comment; it is now deprecated - see below
                 // make sure we don't lose the active sourcephrase's contents from the KB
                 // (if the sourcephrase's m_bHasKBEntry is TRUE, then no store will be done
                 // - which is what we'd want because that means it has already been done;
@@ -17301,7 +17302,18 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
                 // already been removed (or its count decremented) and so a re-store is
                 // appropriate now -- because the box location may end up elsewhere
                 // depending on the results of the rebuild process.)
-				pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase());// ignore returned BOOL
+				// BEW 4Feb11 DO NOT CALL StoreBeforeProceeding() when the punctuation set
+				// or sets is/ are in the process of being changed. If it is called, it
+				// cannot be guaranteed that the target text of the entry being put in the
+				// KB will be correct. See the descriptive header before the definition of
+				// the StoreBeforeProceeding() function for more details why this is
+				// dangerous
+				//pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase()); <<-- it's better
+				//to do no store than to do a possibly bogus one, the user won't see a
+				//bogus KB entry storage, but he will notice a target text in the layout
+				//which may need it's punctuation or word spelling altered - so we'll go
+				//for the safer option. Since the punctuation settings are already
+				//altered, the store if done now, may not have right spelling for tgt text
 
 				wxString strSavePhraseBox = m_targetPhrase;
                 // now do the reparse - the functions which effect the reconstitution of

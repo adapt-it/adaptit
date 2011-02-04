@@ -879,6 +879,9 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 // global helper function -- it's now used in MakeTargetStringIncludingPunctuation(), a view
 // function, and in a function, MakeFixedSpaceTranslation(), in XML.cpp; since it draws on
 // data in the app class, it is more appropriate as a global function
+// BEW changed 4Feb11, if the source punct character was not matched in the source list,
+// then we MUST NOT put it in the returned string s, we just fall though and the loop
+// iterates through any others to try find matches
 wxString GetConvertedPunct(const wxString& rStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -978,7 +981,10 @@ a:		ch = rStr.GetChar(j);
 		if (!bFound)
 		{
 			// if not found, copy original character to the converted punct string
-			s += ch;
+			// BEW changed 4Feb11, if the source punct character was not matched in
+			// the source list, then we MUST NOT put it in the returned string s, we just
+			// fall though and the loop iterates through any others to try find matches
+			//s += ch;
 		}
 		else
 		{
@@ -1097,7 +1103,35 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 	return span;
 }
 
-// the overloaded SpanExluding(wxChar* ptr, ....) function is dangerous, as I only used it
+// Returns the "word proper", that is, ptr on entry must point to the start of the word
+// proper, and the function will do smart parsing using the currently passed in
+// punctuation character set (charSet) and do the parsing at the end of the word from past
+// the word backwards until it comes to the first character not in the punctuation set
+// (and it knows how to parse over any endmarker which may follow the word proper) - then
+// it constructs the word and returns it to the caller - throwing away any other info
+// gained except that returned in the 3rd param, wordBuildingForPostWordLoc. This param
+// will have one or more characters in it only if the following is true:
+// (1) each such character was, when the document was first created, a word-building 
+// character.
+// (2) at some previous time, the user changed the punctuation settings so that that
+// character / those characters became punctuation characters, AND
+// (3) there was at least one inline binding endmarker following the word (that being so,
+// the punctuation status change for those characters will have shifted them to
+// immediately follow the inline binding endmarker - where they would be still when this
+// function is called)
+// (4) prior to calling this function, the user has changed the punctuation settings again
+// so that one or more or all of those characters were removed from the punctuation list,
+// so that the ones so removed have become word-building characters
+// (5) if this function is called and all of 1 to 4 are true, then those characters'
+// changed status will be recognised and they'll be stored in the
+// wordBuildingForPostWordLoc parameter - the caller can then check for this being
+// non-empty and do something with them. (Normally, if 4 has happened, at that time such
+// characters will have been moved back to the end of the stem, and so this function
+// should, theoretically, never find any such characters not yet moved but needing to be;
+// because we don't use it in the reconstitute doc call for rebuilding the document when
+// the user changes punctuation settings)
+// Rationale for this function....
+// The overloaded SpanExluding(wxChar* ptr, ....) function is dangerous, as I only used it
 // to parse over a word as far as following punctuation - and that goes belly up if there
 // is an embedded punctuation character (which can happen if user changes punct settings)
 // so I've deprecated it; and the following ParseWordInwardsFromEitherEnd() replaces it.

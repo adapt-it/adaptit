@@ -5109,7 +5109,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
     // anything when passed to TokenizeTextString, and so to prevent numElements being
     // set to zero we must here detect any such sourcephrases and just return TRUE -
     // for these punctuation changes can produce no effect
-	if (pSrcPhrase->m_srcPhrase.IsEmpty() || pSrcPhrase->m_key.IsEmpty())
+	if (pSrcPhrase->m_srcPhrase.IsEmpty() && pSrcPhrase->m_key.IsEmpty())
 		return TRUE; // causes the caller to use pSrcPhase 'as is'
 
     // reparse the srcPhrase string - if we get a single CSourcePhrase as the result,
@@ -8420,10 +8420,26 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	wxString inlineBindingEndMarkers; // ditto
 	wxString secondFollPuncts; // ditto
 	wxString ignoredWhiteSpaces; // ditto
-	ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+	// if ptr is already at pEnd (perhaps punctuation changes made a short word into all
+	// puncts), then no point in calling ParseSpanBackwards() and generating a message
+	// about an empty span, instead code to jump the call
+	if (!aSpan.IsEmpty())
+	{
+		ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
 						inlineBindingEndMarkers, secondFollPuncts, 
 						ignoredWhiteSpaces, wordBuildersForPostWordLoc, 
 						spacelessPuncts);
+	}
+	else
+	{
+		wordProper.Empty();
+		firstFollPuncts.Empty();
+		nEndMarkerCount = 0;
+		secondFollPuncts.Empty();
+		ignoredWhiteSpaces.Empty();
+		wordBuildersForPostWordLoc.Empty();
+		inlineBindingEndMarkers.Empty();
+	}
 	// now use the info extracted to set the IsFixedSpaceAhead() param values ready
 	// for returning to ParseWord()
 	if (bFixedSpaceIsAhead)
