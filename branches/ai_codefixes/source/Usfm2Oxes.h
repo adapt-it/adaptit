@@ -52,6 +52,16 @@ enum CustomMarkersFT {
 };
 
 // values are 0 or 1, synonyms are used because one value is meaningful when parsing, the
+// synonym is more meaningful when making a test where including or excluding the \rem marker
+// in the test is what is in focus
+enum RemarkMarker {
+	excludeRemarkFromTest = 0,
+	includeRemarkInTest,
+	ignoreRemarkWhenParsing = 0,
+	haltAtRemarkWhenParsing
+};
+
+// values are 0 or 1, synonyms are used because one value is meaningful when parsing, the
 // synonym is more meaningful when making a test where including or excluding the marker
 // in the test is what is in focus
 enum CustomMarkersN {
@@ -91,12 +101,15 @@ WX_DECLARE_OBJARRAY(NoteDetails*,NoteDetailsArray); // store pointers, and manag
 
 struct aiGroup
 {
-	// for storing (1) free translation, (2) one or more embedded notes following the free
-	// translation, (3) one or more SF markers preceding the text, (4) the text; the
-	// information for a single aiGroup is typically deemed complete when the document end
-	// is reached or one of the following is true: another free translation occurs,
-	// a note which follows the text occurs, a marker which halts parsing is encountered
-	// (such as \c \v, \p, \q, \q#, \s, \s# etc)
+    // for storing (1) zero, one or several \rem remarks fields, (2) free translation, (3)
+    // one or more embedded notes following the free translation, (4) one or more SF
+    // markers preceding the text, (5) the text; the information for a single aiGroup is
+    // typically deemed complete when the document end is reached or one of the following
+    // is true: another \rem field, or free translation occurs, a note which follows the
+    // text occurs, a marker which halts parsing is encountered (such as \c \v, \p, \q,
+    // \q#, \s, \s# etc)
+    wxArrayString arrRemarks; // stores zero, one or several content strings from zero, one
+								// or several \rem fields from the USFM markup
 	wxString freeTransStr;
 	NoteDetailsArray arrNoteDetails; // stores NoteDetail struct pointers
 	wxArrayString arrMarkers; // for \c and \v, the chapter or verse number is stored separately
@@ -323,7 +336,8 @@ private:
 	// SF marker is encountered
 	int ParseMarker_Content_Endmarker(wxString& buffer, wxString& mkr, 
 					wxString& endMkr, wxString& dataStr, bool& bEmbeddedSpan,  
-					CustomMarkersFT inclOrExclFreeTrans, CustomMarkersN inclOrExclNote);
+					CustomMarkersFT inclOrExclFreeTrans, CustomMarkersN inclOrExclNote,
+					RemarkMarker inclOrExclRemarks);
 	// a parser which takes the TitleInfo chunk and parses it for it's array of aiGroup
 	// structs
 	void ParseTitleInfoForAIGroupStructs(); 
@@ -407,14 +421,15 @@ private:
 	wxString* m_pBuffer; // ptr to the (ex-class) buffer containing the (U)SFM text
 	bool m_bContainsFreeTrans;
 	bool m_bContainsNotes;
-	wxString m_freeMkr; // "\free"
-	wxString m_freeEndMkr; // "\free*"
-	wxString m_noteMkr; // "\note"
-	wxString m_noteEndMkr; // "\note*"
-	wxString m_chapterMkr; // "\c"
-	wxString m_verseMkr; // "\v"
-	wxString backslash; // "\"
-	wxString m_majorSectionMkr; // any marker beginning with "\ms"
+	wxString m_freeMkr; // "\\free"
+	wxString m_freeEndMkr; // "\\free*"
+	wxString m_noteMkr; // "\\note"
+	wxString m_noteEndMkr; // "\\note*"
+	wxString m_chapterMkr; // "\\c"
+	wxString m_verseMkr; // "\\v"
+	wxString m_remarkMkr; // "\\rem"
+	wxString backslash; // "\\"
+	wxString m_majorSectionMkr; // any marker beginning with "\\ms"
 
 
 	TitleInfo* m_pTitleInfo; // struct for storage for TitleInfo part of document

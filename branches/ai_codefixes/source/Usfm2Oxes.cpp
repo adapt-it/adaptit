@@ -240,6 +240,9 @@ void Usfm2Oxes::Initialize()
 	m_noteEndMkr = m_noteMkr + _T("*");
 	m_freeEndMkr = m_freeMkr + _T("*");
 
+	// remarks marker
+	m_remarkMkr = _T("\\rem");
+
  
     // Make the wxString of 'halting markers' -- utilize Bill's commonHaltingMarkers string
     // and add more (eg \h) but don't add \free or note (commonHaltingMarkers is definied
@@ -251,7 +254,7 @@ void Usfm2Oxes::Initialize()
 	// cross references, tables, running heading, subheadings, and some markers from the
 	// 1998 PNG SFM set too; but excludes special markers, character formatting markers,
 	// and other inline markers -- see above
-	m_haltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr ");
+	m_haltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr \\id  ");
 	wxString additions = _T("\\h \\vp \\id "); // \vp ... \vp* is for publishing things 
 			// like "3b" as a verse number, when what precedes is a range up to "...-3a"
 	m_haltingMarkers = additions + m_haltingMarkers;
@@ -767,7 +770,8 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
             // always exists with span giving the offset to the marker which halted
             // scanning (or end of buffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
-						bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+						bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						ignoreRemarkWhenParsing);
 			lastFreeTransSpan = span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
@@ -776,7 +780,8 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 		else if (m_bContainsNotes && wholeMkr == m_noteMkr)
 		{
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
-						bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+						bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						ignoreRemarkWhenParsing);
 			lastNoteSpan = span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
@@ -790,7 +795,8 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 			// previously scanned; but the tests within this parse must ignore any
 			// embedded notes, so the last param will be ignoreNoteWhenParsing
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
-						bEmbeddedSpan, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing);
+						bEmbeddedSpan, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
+						ignoreRemarkWhenParsing);
 			charsDefinitelyInChunk += span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
@@ -866,7 +872,8 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
             // always exists with span giving the offset to the marker which halted
             // scanning (or end of buffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
-				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
 			lastFreeTransSpan = span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
@@ -875,7 +882,8 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 		else if (m_bContainsNotes && wholeMkr == m_noteMkr)
 		{
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
-				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
 			lastNoteSpan = span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
@@ -883,13 +891,14 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 		}
 		else
 		{
-            // it's some other marker than \free or \note, and it belongs in the TitleInfo
+            // it's some other marker than \free or \note, and it belongs in the IntroInfo
             // chunk, so scan over its data & count that, and add in the counts for
             // preceding free translation and/or note if either or both of these were
 			// previously scanned; but the tests within this parse must ignore any
-			// embedded notes, so the last param will be ignoreNoteWhenParsing
+			// embedded notes, so the 2nd last param will be ignoreNoteWhenParsing
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
-				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing);
+							dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, 
+							ignoreNoteWhenParsing, ignoreRemarkWhenParsing);
 			charsDefinitelyInChunk += span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
@@ -1131,7 +1140,8 @@ bool Usfm2Oxes::IsNormalSectionMkr(wxString& buffer)
 /// continues on the text from start of the passed in buffer, until a halt location is reached
 int Usfm2Oxes::ParseMarker_Content_Endmarker(wxString& buffer, wxString& mkr, wxString& endMkr, 
 						wxString& dataStr, bool& bEmbeddedSpan, 
-						CustomMarkersFT inclOrExclFreeTrans, CustomMarkersN inclOrExclNote)
+						CustomMarkersFT inclOrExclFreeTrans, CustomMarkersN inclOrExclNote,
+						RemarkMarker inclOrExclRemarks)
 {
 	wxString wholeMarker;
 	mkr.Empty(); // default to being empty, until set below
@@ -1156,7 +1166,8 @@ int Usfm2Oxes::ParseMarker_Content_Endmarker(wxString& buffer, wxString& mkr, wx
 	wxString lookedUpEndMkr;
 
 	// do the next block if on entry we are pointing at the backslash of a marker
-	if (*ptr == _T('\\')) 
+	//if (*ptr == _T('\\')) 
+	if (pDoc->IsMarker(ptr)) 
 	{
 		// we are pointing at the backslash of a marker
 		wholeMarker = pDoc->GetWholeMarker(ptr); // has an initial backslash
@@ -1304,8 +1315,10 @@ int Usfm2Oxes::ParseMarker_Content_Endmarker(wxString& buffer, wxString& mkr, wx
 			if (pDoc->IsMarker(ptr))
 			{
 				bool bIsInlineMkr = IsSpecialTextStyleMkr(ptr);
-				if (bIsInlineMkr || (inclOrExclNote == excludeNoteFromTest)
-								 || (inclOrExclFreeTrans == excludeFreeTransFromTest))
+				if (bIsInlineMkr || ((inclOrExclNote == excludeNoteFromTest) && (wholeMarker == _T("\\note")))
+								 || ((inclOrExclFreeTrans == excludeFreeTransFromTest) && (wholeMarker == _T("\\free")))
+								 || ((inclOrExclRemarks == excludeRemarkFromTest) && (wholeMarker == m_remarkMkr))
+				   )
 				{
 					ptr++;
 					txtLen++;
@@ -1383,14 +1396,37 @@ void Usfm2Oxes::ParseTitleInfoForAIGroupStructs()
 		// knows nothing about such markers; store only the main marker, or empty string
 	do
 	{
+		// In good USFM markup, if \rem occurs, it occurs at verse start, etc - or before
+		// whatever marker type if is a remark for, so if present it should start off an aiGroup
+		if ( wholeMkr == m_remarkMkr)
+		{
+			// there could be several in sequence, parse them all and add each's contents
+			// string to the aiGroup's arrRemarks wxArrayString member
+			while (wholeMkr == m_remarkMkr)
+			{
+				// identify the \rem remarks chunk
+				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
+							bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+							ignoreRemarkWhenParsing);
+				// bleed out the scanned over material
+				buff = buff.Mid(span);
+				// store the remark
+				pGroupStruct->arrRemarks.Add(dataStr);
+				dataStr.Empty();
+				// prepare for next iteration
+				wholeMkr = pDoc->GetWholeMarker(buff);
+				wholeEndMkr.Empty();
+			}
+		}
 		// check if we are pointing at a \free marker
-		if (m_bContainsFreeTrans && wholeMkr == m_freeMkr)
+		else if (m_bContainsFreeTrans && wholeMkr == m_freeMkr)
 		{
             // identify the free translation chunk & count its characters; this function
             // always exists with span giving the offset to the marker which halted
             // scanning (or end of buffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
-						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						ignoreRemarkWhenParsing);
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			// remove from dataStr the |@nnn@| and following space
@@ -1412,7 +1448,8 @@ void Usfm2Oxes::ParseTitleInfoForAIGroupStructs()
 			// Adapt It notes embedded within a stretch of text - for those we will need
 			// to extract them in the block below
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
-						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						ignoreRemarkWhenParsing);
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			// store this note - the first or perhaps only one in this section of text
@@ -1436,9 +1473,14 @@ void Usfm2Oxes::ParseTitleInfoForAIGroupStructs()
             // markers we are interested in - until we can parse our way across them to
             // where the text begins)
 inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing))
+			//	|| pDoc->GetWholeMarker(buff) == m_remarkMkr)
 			{
+				// when we get here, we are dealing with not one of the above, and so a
+				// remark (\rem) would be a reason to halt, as it would apply to the next
+				// aiGroup, so here the last param has the opposite value to above
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
-							bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing);
+							bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
+							haltAtRemarkWhenParsing);
 
 				// as this function will be used outside of TitleInfo contexts, we have to
 				// handle the possibilities that we could have just parsed over a \c and
@@ -1537,7 +1579,7 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 				pGroupStruct->bHasInlineMarker = FALSE;
 			}
 		}
-	} while (!buff.IsEmpty());
+	} while (!buff.IsEmpty()); // end of do loop
 	// when control gets to here, we've consumed the chunk copy stored in m_pTitleInfo
 
 	// check we got the structs filled out correctly
@@ -1611,7 +1653,8 @@ void Usfm2Oxes::ParseIntroInfoForAIGroupStructs()
             // always exists with span giving the offset to the marker which halted
             // scanning (or end of buffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr, 
-					bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+					bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			// remove from dataStr the |@nnn@| and following space
@@ -1633,7 +1676,8 @@ void Usfm2Oxes::ParseIntroInfoForAIGroupStructs()
 			// Adapt It notes embedded within a stretch of text - for those we will need
 			// to extract them in the block below
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr, 
-						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing);
+						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			// store this note - the first or perhaps only one in this section of text
@@ -1657,7 +1701,8 @@ void Usfm2Oxes::ParseIntroInfoForAIGroupStructs()
 inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing))
 			{
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr, 
-							bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing);
+							bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
+							haltAtRemarkWhenParsing);
 
 				// Comment out the chapter and verse tests, they won't be needed for
 				// introductory information
@@ -1740,7 +1785,8 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 				// markerless buffer beginning for the current aiGroup - so do the usual
 				// parse
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr, 
-						bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing);
+						bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
+						haltAtRemarkWhenParsing);
 
 				buff = buff.Mid(span);
 
@@ -1814,6 +1860,24 @@ void Usfm2Oxes::DisplayAIGroupStructContents(TitleInfo* pTitleInfo) // for check
 			{
 				wxLogDebug(_T("\n*** TitleInfo ***     aiGroup with index = %d   bHasInlineMarker %s"), index, _T("FALSE"));
 			}
+
+			// display one or more \rem contents, if there was one or more \rem fields present
+			size_t remarksCount = pGrp->arrRemarks.Count();
+			if (remarksCount == 0)
+			{
+				wxLogDebug(_T("    *no \\rem field remarks in this group*"));
+			}
+			else
+			{
+				size_t remIndex;
+				for (remIndex = 0; remIndex < remarksCount; remIndex++)
+				{
+					wxString aRemark = pGrp->arrRemarks.Item(remIndex);
+
+					wxLogDebug(_T("    index = %d , Remark:  %s"), remIndex, aRemark.c_str());
+				}
+			}
+
 			wxLogDebug(_T("    Usfm bare Mkr  =      %s"),pGrp->usfmBareMarker.c_str());
 			wxLogDebug(_T("    freeTransStr   =      %s"),pGrp->freeTransStr.c_str());
 			int count2 = pGrp->arrNoteDetails.GetCount();
@@ -2096,14 +2160,24 @@ void Usfm2Oxes::ExtractNotesAndStoreText(aiGroup* pCurAIGroup, wxString& theText
 				{
 					// this is a programming/logic error, only inline formatting markers
 					// should be able to get through to the enclosing code block, so
-					// tell the developer & drop into the debugger
+					// tell the developer & drop into the debugger? -- Better, give a
+					// message and just accumulate the rest including the unknown marker -
+					// then inspection of the wxLogDebug output will tell what I did wrong
 					wxString aWrongMkr = pDoc->GetWholeMarker(ptr);
 					wxString msg;
 					msg = msg.Format(_T(
-"ExtractNotesAndStoreText(): found non-inline marker %s\nExpected an inline formatting marker or endmarker."),
+"ExtractNotesAndStoreText(): found non-inline marker %s\nThis marker is not yet handled for parsing to an aiGroup struct."),
 					aWrongMkr.c_str());
 					wxMessageBox(msg, _T("Logic error in the code"), wxICON_ERROR);
-					wxASSERT(FALSE);
+					// in a release build, unless we do something here, the failure to
+					// parse the marker will lead to an infinite loop - so just accumulate
+					// the rest and return in order to get something fixable produced and output
+					wxString theRest(ptr, pEnd);
+					accumStr += theRest;
+					int aLength = theRest.Len();
+					accumOffset += aLength;
+					ptr = pEnd;
+					//wxASSERT(FALSE);
 				}
 			}
 		}

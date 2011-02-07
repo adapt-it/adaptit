@@ -325,6 +325,7 @@ public:
 										   bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
 	void			SetFilename(const wxString& filename, bool notifyViews);
+	
 
 public:
 	// Destructor from the MFC version

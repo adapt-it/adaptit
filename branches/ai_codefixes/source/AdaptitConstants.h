@@ -101,3 +101,4 @@
 // punctuation characters and now the user wants to undo that punctuation set change;
 // allowing for 5 such characters should probably be enough for any real situation
 #define MAX_MOVED_FORMER_PUNCTS   5
+
