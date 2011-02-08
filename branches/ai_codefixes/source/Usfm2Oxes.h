@@ -312,7 +312,7 @@ private:
 	bool IsSpecialTextStyleMkr(wxChar* pChar);
 	//bool IsEmbeddedWholeMarker(wxChar* pChar);
 	bool IsOneOf(wxString& str, wxArrayString& array, CustomMarkersFT inclOrExclFreeTrans, 
-			CustomMarkersN inclOrExclNote); // eg. check for SFMkr in array
+			CustomMarkersN inclOrExclNote, RemarkMarker inclOrExclRemark); // eg. check for SFMkr in array
 	bool IsWhiteSpace(wxChar& ch);
 	bool IsMkrAllowedPrecedingParagraphs(wxString& wholeMkr); // tests against the marker
 		// set stored (space delimited) in m_allowedPreParagraphMkrs (see Initialize())
