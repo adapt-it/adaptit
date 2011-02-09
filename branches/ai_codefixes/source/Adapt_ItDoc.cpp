@@ -14877,15 +14877,18 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if no errors; FALSE if an error occurred
-/// \param		packByteStr		<- a CBString byte buffer used to return the raw data
-///                                 for packing to the caller
+/// \param		exportPathUsed		<- a wxString to return the path/name of the packed
+///                                 document to the caller
+/// \param      bInvokeFileDialog -> TRUE (default) presents the wxFileDialog; FALSE 
+///                                 uses the <current doc name>.aip
 /// \remarks
 /// Called from: the Doc's OnFilePackDocument() and EmailReportDlg::OnBtnAttachPackedDoc.
 /// Assembles the raw contents that go into an Adapt It Packed Document into the packByteStr
 /// which is a CBString byte buffer. 
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::DoPackDocument(CBString& packByteStr)
+bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog)
 {
+	CBString packByteStr; 
 	wxString packStr;
 	packStr.Empty();
 
@@ -15131,8 +15134,116 @@ bool CAdapt_ItDoc::DoPackDocument(CBString& packByteStr)
 	packByteStr += pBuff;
 	delete[] pBuff;
 
-    // packByteStr now is complete; so we must ask the user to save it and then do so to
-    // his nominated destination
+	// whm Pack design notes for future consideration:
+	// 1. Initial design calls for the packing/compression of a single Adapt It document
+	//    at a time. With the freeware zip utils provided by Lucian Eischik (based on zlib
+	//    and info-zip) it would be relatively easy in the future to have the capability of
+	//    packing multiple files into the .aip zip archive.
+	// 2. Packing/zipping can be accomplished by doing it on external files (as done below)
+	//    or by doing it in internal buffers (in memory).
+	// 3. If in future we want to do the packing/zipping in internal buffers, we would do it
+	//    with the contents of packByteStr after this point in OnFilePackDoc, and before
+	//    the pBuf is written out via CFile ff below.
+	// 4. If done in a buffer, after compression we could add the following Warning statement 
+	//    in uncompressed form to the beginning of the compressed character buffer (before 
+	//    writing it to the .aip file): "|~WARNING: DO NOT ATTEMPT TO CHANGE THIS FILE WITH 
+	//    AN EDITOR OR WORD PROCESSOR! IT CAN ONLY BE UNCOMPRESSED WITH THE UNPACK COMMAND
+	//    FROM WITHIN ADAPT IT VERSION 3.X. COMPRESSED DATA FOLLOWS:~|" 
+	//    The warning would serve as a warning to users if they were to try to load the file
+	//    into a word processor, not to edit it or save it within the word processor,
+	//    otherwise the packed file would be corrupted. The warning (without line breaks
+	//    or quote marks) would be 192 bytes long. When the file would be read from disk
+	//    by DoUnpackDocument, this 192 byte warning would be stripped off prior to
+	//    uncompressing the remaining data using the zlib tools.
+	
+    // whm 22Sep06 update: The wx version now uses wxWidget's built-in wxZipOutputStream
+    // facilities for compressing and uncompressing packed documents, hence, it no longer
+    // needs the services of Lucian Eischik's zip and unzip library. The wxWidget's zip
+    // format is based on the same free-ware zlib library, so there should be no problem
+    // zipping and unzipping .aip files produced by the MFC version or the WX version.
+
+	// make a suitable default output filename for the packed data
+	wxString exportFilename = gpApp->m_curOutputFilename;
+	int len = exportFilename.Length();
+	exportFilename.Remove(len-3,3); // remove the xml extension
+	exportFilename += _T("aip"); // make it a *.aip file type
+	wxString exportPath;
+	wxString defaultDir;
+	defaultDir = gpApp->m_curProjectPath;
+	if (bInvokeFileDialog)
+	{
+		wxString filter;
+
+		// get a file Save As dialog for Source Text Output
+		filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
+
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Filename For Packed Document"),
+			defaultDir,
+			exportFilename,
+			filter,
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
+			// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
+		fileDlg.Centre();
+
+		// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
+		// do it) Probably the project folder would be best.
+		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
+
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			// user cancelled file dialog so return to what user was doing previously, because
+			// this means he doesn't want the Pack Document... command to go ahead
+			return FALSE; 
+		}
+
+		// get the user's desired path
+		exportPath = fileDlg.GetPath();
+	}
+	else
+	{
+		exportPath = defaultDir + gpApp->PathSeparator + exportFilename;
+	}
+
+	// get the length of the total byte string in packByteStr (exclude the null byte)
+	int fileLength = packByteStr.GetLength();
+
+    // wx version: we use the wxWidgets' built-in zip facilities to create the zip file,
+    // therefore we no longer need the zip.h, zip.cpp, unzip.h and unzip.cpp freeware files
+    // required for the MFC version.
+	// first, declare a simple output stream using the temp zip file name
+	// we set up an input file stream from the file having the raw data to pack
+	wxString tempZipFile;
+	wxString nameInZip;
+    int extPos = exportPath.Find(_T(".aip"));
+	tempZipFile = exportPath.Left(extPos);
+	extPos = exportFilename.Find(_T(".aip"));
+	nameInZip = exportFilename.Left(extPos);
+	nameInZip = nameInZip + _T(".aiz");
+	
+	wxFFileOutputStream zippedfile(exportPath);
+	// then, declare a zip stream placed on top of it (as zip generating filter)
+	wxZipOutputStream zipStream(zippedfile);
+    // wx version: Since our pack data is already in an internal buffer in memory, we can
+    // use wxMemoryInputStream to access packByteStr; run it through a wxZipOutputStream
+    // filter and output the resulting zipped file via wxFFOutputStream.
+	wxMemoryInputStream memStr(packByteStr,fileLength);
+	// create a new entry in the zip file using the .aiz file name
+	zipStream.PutNextEntry(nameInZip);
+	// finally write the zipped file, using the data associated with the zipEntry
+	zipStream.Write(memStr);
+	if (!zipStream.Close() || !zippedfile.Close() || 
+		zipStream.GetLastError() == wxSTREAM_WRITE_ERROR) // Close() finishes writing the 
+													// zip returning TRUE if successfully
+	{
+		wxString msg;
+		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
+		wxMessageBox(msg,_T(""),wxICON_ERROR);
+	} 
+
+	exportPathUsed = exportPath;
     return TRUE;
 }
 
@@ -19154,121 +19265,16 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 /// filename for the document; the current project configuration file contents; the
 /// document in xml format.
 /// BEW 12Apr10, no changes needed for support of doc version 5
-/// whm 3Feb11 modified to assemble the packByteStr in a separate function DoPackDocument()
+/// whm 4Feb11 modified to call a separate function DoPackDocument()
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 {
     // OnFilePackDoc(), for a unicode build, converts to UTF-8 internally, and so uses
     // CBString for the final output (config file and xml doc file are UTF-8 already).
-	CBString packByteStr; 
-	if (!DoPackDocument(packByteStr)) // assembles the raw data into the packByteStr byte buffer (CBString)
-	{
-		return;
-	}
-
-	// whm Pack design notes for future consideration:
-	// 1. Initial design calls for the packing/compression of a single Adapt It document
-	//    at a time. With the freeware zip utils provided by Lucian Eischik (based on zlib
-	//    and info-zip) it would be relatively easy in the future to have the capability of
-	//    packing multiple files into the .aip zip archive.
-	// 2. Packing/zipping can be accomplished by doing it on external files (as done below)
-	//    or by doing it in internal buffers (in memory).
-	// 3. If in future we want to do the packing/zipping in internal buffers, we would do it
-	//    with the contents of packByteStr after this point in OnFilePackDoc, and before
-	//    the pBuf is written out via CFile ff below.
-	// 4. If done in a buffer, after compression we could add the following Warning statement 
-	//    in uncompressed form to the beginning of the compressed character buffer (before 
-	//    writing it to the .aip file): "|~WARNING: DO NOT ATTEMPT TO CHANGE THIS FILE WITH 
-	//    AN EDITOR OR WORD PROCESSOR! IT CAN ONLY BE UNCOMPRESSED WITH THE UNPACK COMMAND
-	//    FROM WITHIN ADAPT IT VERSION 3.X. COMPRESSED DATA FOLLOWS:~|" 
-	//    The warning would serve as a warning to users if they were to try to load the file
-	//    into a word processor, not to edit it or save it within the word processor,
-	//    otherwise the packed file would be corrupted. The warning (without line breaks
-	//    or quote marks) would be 192 bytes long. When the file would be read from disk
-	//    by DoUnpackDocument, this 192 byte warning would be stripped off prior to
-	//    uncompressing the remaining data using the zlib tools.
-	
-    // whm 22Sep06 update: The wx version now uses wxWidget's built-in wxZipOutputStream
-    // facilities for compressing and uncompressing packed documents, hence, it no longer
-    // needs the services of Lucian Eischik's zip and unzip library. The wxWidget's zip
-    // format is based on the same free-ware zlib library, so there should be no problem
-    // zipping and unzipping .aip files produced by the MFC version or the WX version.
-
-	wxString filter;
-	wxString DefaultExt;
-	wxString defaultDir;
-	defaultDir = gpApp->m_curProjectPath;
-	// make a suitable default output filename for the packed data
-	wxString exportFilename = gpApp->m_curOutputFilename;
-	int len = exportFilename.Length();
-	exportFilename.Remove(len-3,3); // remove the xml extension
-	exportFilename += _T("aip"); // make it a *.aip file type
-
-	// get a file Save As dialog for Source Text Output
-	DefaultExt = _T("aip");
-	filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
-
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Filename For Packed Document"),
-		defaultDir,
-		exportFilename,
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-		// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
-		// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
-	fileDlg.Centre();
-
-	// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
-	// do it) Probably the project folder would be best.
-	bool bOK;
-	bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
-
-	if (fileDlg.ShowModal() != wxID_OK)
-	{
-		// user cancelled file dialog so return to what user was doing previously, because
-		// this means he doesn't want the Pack Document... command to go ahead
-		return; 
-	}
-
-	// get the length of the total byte string in packByteStr (exclude the null byte)
-	int fileLength = packByteStr.GetLength();
-
-	// get the user's desired path
-	wxString exportPath = fileDlg.GetPath();
-	
-    // wx version: we use the wxWidgets' built-in zip facilities to create the zip file,
-    // therefore we no longer need the zip.h, zip.cpp, unzip.h and unzip.cpp freeware files
-    // required for the MFC version.
-	// first, declare a simple output stream using the temp zip file name
-	// we set up an input file stream from the file having the raw data to pack
-	wxString tempZipFile;
-	wxString nameInZip;
-    int extPos = exportPath.Find(_T(".aip"));
-	tempZipFile = exportPath.Left(extPos);
-	extPos = exportFilename.Find(_T(".aip"));
-	nameInZip = exportFilename.Left(extPos);
-	nameInZip = nameInZip + _T(".aiz");
-	
-	wxFFileOutputStream zippedfile(exportPath);
-	// then, declare a zip stream placed on top of it (as zip generating filter)
-	wxZipOutputStream zipStream(zippedfile);
-    // wx version: Since our pack data is already in an internal buffer in memory, we can
-    // use wxMemoryInputStream to access packByteStr; run it through a wxZipOutputStream
-    // filter and output the resulting zipped file via wxFFOutputStream.
-	wxMemoryInputStream memStr(packByteStr,fileLength);
-	// create a new entry in the zip file using the .aiz file name
-	zipStream.PutNextEntry(nameInZip);
-	// finally write the zipped file, using the data associated with the zipEntry
-	zipStream.Write(memStr);
-	if (!zipStream.Close() || !zippedfile.Close() || 
-		zipStream.GetLastError() == wxSTREAM_WRITE_ERROR) // Close() finishes writing the 
-													// zip returning TRUE if successfully
-	{
-		wxString msg;
-		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
-		wxMessageBox(msg,_T(""),wxICON_ERROR);
-	} 
+	// DoPackDocument() assembles the raw data into the packByteStr byte buffer (CBString)
+	wxString exportPathUsed;
+	exportPathUsed.Empty();
+	DoPackDocument(exportPathUsed,TRUE); // TRUE = invoke the wxFileDialog
 }
 
 ///////////////////////////////////////////////////////////////////////////////
