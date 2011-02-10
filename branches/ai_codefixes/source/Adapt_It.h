@@ -2532,6 +2532,11 @@ public:
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)
 
+	// whm added 9Feb11 in support of Paratext collaboration
+	bool m_bParatextIsInstalled;
+	bool m_bParatextIsRunning;
+	wxString m_ParatextProjectsDirPath;
+
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
 	// to the word or phrase in the phrase box
@@ -2883,6 +2888,9 @@ public:
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
+	bool	ParatextIsInstalled(); // whm added 9Feb11
+	bool	ParatextIsRunning(); // whm added 9Feb11
+	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 

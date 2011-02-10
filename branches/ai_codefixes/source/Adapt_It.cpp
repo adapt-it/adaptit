@@ -10102,6 +10102,98 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if Paratext.exe is installed on the host computer, FALSE otherwise
+/// \remarks
+/// Called from: the App's OnInit().
+/// Looks in the Windows registry to see if Paratext is installed. Returns TRUE if host
+/// machine has a Windows registry and this function finds the following conditions to 
+/// be met:
+/// 1. The following key exists in the registry: 
+///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+/// 2. The string value associated with the above key represents a valid path where
+///    Paratext is installed, usually something like "C:\Program Files\Paratext7\".
+/// 3. The folder designated in 2 above contains the Paratext.exe executable file.
+/// If the above conditions are not all met, the function returns FALSE. This function 
+/// only reads/queries the Windows registry; it does not make changes to it.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ParatextIsInstalled()
+{
+	bool bPTInstalled = FALSE;
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	
+	wxLogNull logNo; // eliminate any spurious messages from the system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	{
+		wxString dirStrValue;
+		dirStrValue.Empty();
+		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		{
+			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			if (::wxDirExists(dirStrValue))
+			{
+				if (::wxFileExists(dirStrValue + _T("Paratext.exe")))
+				{
+					bPTInstalled = TRUE;
+				}
+			}
+		}
+	}
+#endif
+
+	return bPTInstalled;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the path to the Paratext projects directory
+/// \remarks
+/// Called from: the App's OnInit().
+/// Looks in the Windows registry to get the path to the Paratext Projects directory.
+/// The following registry key is queried for the return value: 
+///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Settings_Directory
+/// If the key is not found, or is found but the value string does not exist on
+/// the system, the function returns an empty string. This function only reads/queries 
+/// the Windows registry; it does not make changes to it.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetParatextProjectsDirPath()
+{
+	wxString path;
+	path.Empty();
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	
+	wxLogNull logNo; // eliminate any spurious messages from the system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
+	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	{
+		wxString dirStrValue;
+		dirStrValue.Empty();
+		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		{
+			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			if (::wxDirExists(dirStrValue))
+			{
+				path = dirStrValue;
+			}
+		}
+	}
+#endif
+
+	return path;
+}
+
+bool CAdapt_ItApp::ParatextIsRunning()
+{
+	bool bIsRunning = FALSE;
+
+
+	return bIsRunning;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
 ///             m_pConfig info
 /// \remarks
@@ -11275,6 +11367,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
+	
+	// whm added 9Feb11 in support of Paratext collaboration
+	m_bParatextIsInstalled = FALSE;
+	m_bParatextIsRunning = FALSE;
+	m_ParatextProjectsDirPath.Empty();
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
@@ -13701,6 +13798,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
 	*/
+
+	// whm added 9Feb11 for Paratext Collaboration support
+	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
+	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+	// If it exists, it queries the string value associated with the key which will be
+	// the directory where Paratext is installed, i.e., "C:\Program Files\Paratext 7\"
+	// It then checks for the existence of a "Paratext.exe" executable file within that
+	// directory. If all checks pass, we assume Paratext is installed on the host system.
+	if (ParatextIsInstalled())
+	{
+		m_bParatextIsInstalled = TRUE;
+	}
+
+	// whm added 9Feb11 for Paratext Collaboration support
+	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
+	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
+	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on 
+	// a Windows host system.
+	// Note: a non empty path in m_ParatextProjectsDirPath ends with a Windows \ path separator.
+	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
 
     // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
@@ -31888,7 +32005,7 @@ void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 	{
 		event.Enable(FALSE);
 	}
-	else
+	else if (m_bParatextIsInstalled)
 	{
 		event.Enable(TRUE);
 	}
