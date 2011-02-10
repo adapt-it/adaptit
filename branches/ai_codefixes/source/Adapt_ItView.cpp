@@ -343,7 +343,7 @@ wxString embeddedWholeEndMkrs = _T("\\fr* \\fk* \\fq* \\fqa* \\ft* \\fdc* \\fv* 
 // using it for OXES parsing of SFM or USFM data, and so we want to halt if we parse to a \h
 // or \h1 \h2 or \h3 or a \note, so these are included by forming a wxString in the
 // USFM2Oxes class at the beginning of processing
-wxString commonHaltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\imt \\imte \\is \\ip \\ipi \\ipq \\ipr \\iq \\im \\imi \\imq \\io \\iot \\iex \\ie \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr ");
+wxString commonHaltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \\tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\imt \\imte \\is \\ip \\ipi \\ipq \\ipr \\iq \\im \\imi \\imq \\io \\iot \\iex \\ie \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr ");
 wxString btHaltingMarkers = commonHaltingMarkers;
 
 // The following string is a list of sfms which are significant enough to become a halting
@@ -7382,6 +7382,13 @@ void CAdapt_ItView::OnUpdateButtonToStart(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// if the button is at the start, it should be disabled
+	if (pApp->m_nActiveSequNum == 0 && pApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		// we are at the doc start, so can't go back to start
+		event.Enable(FALSE);
+		return;
+	}	
 	if (pApp->GetMaxIndex() > 0)
 		event.Enable(TRUE);
 	else
@@ -7957,6 +7964,13 @@ void CAdapt_ItView::OnUpdateButtonStepUp(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// if the button is at the start, it should be disabled
+	if (pApp->m_nActiveSequNum == 0 && pApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		// we are at the doc start, so can't go back to start
+		event.Enable(FALSE);
+		return;
+	}	
 	if (pApp->GetMaxIndex() > 0)
 		event.Enable(TRUE);
 	else
@@ -8046,9 +8060,13 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	}
 
 	// if no chapter beginning was found, then exit with a beep
+	// BEW 10Feb11, in response to Bob Buss's email, changed this behaviour to not beep,
+	// but just invoke the To Start button to get the phrase box to the beginning of the
+	// document (ie over any intro and title stuff which may precede the first chapter)
 	if (!bFoundChapterBeginning)
 	{
-		::wxBell();
+		//::wxBell();
+		OnButtonToStart(event);
 		return;
 	}
 

@@ -2634,6 +2634,8 @@ public:
 				// inline, but which do not bind more closely than punctuation
 				// (these are \wj \qt \sls \tl \fig; and their endmarkers are a separate
 				// wxString member -- see next line)
+	wxString m_FootnoteMarkers;
+	wxString m_CrossReferenceMarkers;
 	wxString m_inlineNonbindingEndMarkers;
 	wxString m_inlineBindingMarkers; // beginmarkers, needed for docV4 to docV5 conversions
 	wxString m_usfmIndicatorMarkers; // some common beginmarkers found only in USFM

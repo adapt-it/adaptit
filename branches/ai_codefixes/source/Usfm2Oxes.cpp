@@ -16,6 +16,9 @@
 /// \derivation		The Usfm2Oxes class is derived from wxEvtHandler.
 /////////////////////////////////////////////////////////////////////////////
 
+#define _IntroOverrun
+#undef _IntroOverrun
+
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Usfm2Oxes.h"
 #endif
@@ -287,7 +290,7 @@ void Usfm2Oxes::Initialize()
 	// once an \s or \s1, etc, is found because often a \c chapter marker will precede and
 	// when that happens the chapter info goes within the Oxes <section>, so we'll have to
 	// make sure chapter starts at a section start are indicated in the section chunks  
-	m_sectioningMkrs = _T("\\s \\s1 \\s2 \\s3 \\ms \\ms1 \\ms2 \\ms3 ");
+	m_sectioningMkrs = _T("\\s \\s1 \\s2 \\s3 \\ms \\ms1 \\ms2 \\ms3 "); 
 
 	// any markers which can start a paragraph or finish one; \nb 'no break' is not
 	// included as while USFM lists it with paragraph markers, it indicates "no paragraph
@@ -758,12 +761,6 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 								   // we are ready to bleed off the title info chunk
 	// we need a counter for characters in the TitleInfo chunk
 	int charsDefinitelyInChunk = 0;
-	// and two more for the last free trans and /or note which ultimately may not belong
-	// in the span and so will need to have their spans not included in the
-	// charsDefinitelyInChunk value when the chunk boundary is finally known
-	int lastFreeTransSpan = 0;
-	int lastNoteSpan = 0;
-	int totalRemarksSpans = 0; // there can be more than one \rem 
 	// scratch strings
 	wxString wholeEndMkr;
 	wxString dataStr;
@@ -775,6 +772,13 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 								includeRemarkInTest);
 	while (bBelongsInChunk)
 	{
+		// NOTE, we know that any \rem, \free...\free*, and/or \note...\note* fields
+		// before a marker which is not one of those belongs to this chunk because at the
+		// end of the loop we check for loop end condition, jumping over these to find if
+		// the first marker which isn't one of these is still in the chunk - if it is, we
+		// then iterate the loop and collect those fields, if it isn't, we break out of
+		// the loop -- in this way we can be certain we increment charsDefinitelyInChunk
+		// only when the material is definitely in the current chunk
 		if ( wholeMkr == m_remarkMkr)
 		{
 			// there could be several in sequence, parse them all and add each's contents
@@ -785,7 +789,7 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
 							bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 							haltAtRemarkWhenParsing);
-				totalRemarksSpans += span;
+				charsDefinitelyInChunk += span;
 				// bleed out the scanned over material
 				buff = buff.Mid(span);
 				dataStr.Empty();
@@ -802,7 +806,7 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
 						bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 						haltAtRemarkWhenParsing);
-			lastFreeTransSpan = span;
+			charsDefinitelyInChunk += span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			dataStr.Empty();
@@ -812,7 +816,7 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
 						bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 						haltAtRemarkWhenParsing);
-			lastNoteSpan = span;
+			charsDefinitelyInChunk += span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			dataStr.Empty();
@@ -820,12 +824,11 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 		else
 		{
             // it's some other marker than \free or \note or \rem, and it belongs in the
-            // TitleInfo chunk, so scan over its data & count that, and add in the counts
-            // for preceding free translation and/or note if either or both of these were
-            // previously scanned; but the tests within this parse must ignore any embedded
-            // notes, so the 2nd last param will be ignoreNoteWhenParsing (the last one can
-            // be the 'halt' enum value, since Adapt It doesn't use \rem for its notes
-            // feature)
+			// TitleInfo chunk, so scan over its data & count that -- then check whether
+			// we should iterate or break out
+			// Note, buff can start with a non-marker, such as the text following a note,
+			// and when that happens, we must parse over the text to the next marker and
+			// iterate the loop
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
 						bEmbeddedSpan, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
 						haltAtRemarkWhenParsing);
@@ -833,102 +836,135 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			dataStr.Empty();
-
-			// update the count for any free trans and/or note parsed over earlier
-			if (lastFreeTransSpan > 0)
-			{
-				charsDefinitelyInChunk += lastFreeTransSpan;
-				lastFreeTransSpan = 0;
-			}
-			if (lastNoteSpan > 0)
-			{
-				charsDefinitelyInChunk += lastNoteSpan;
-				lastNoteSpan = 0;
-			}
-			if (totalRemarksSpans > 0)
-			{
-				charsDefinitelyInChunk += totalRemarksSpans;
-				totalRemarksSpans = 0;
-			}
 		}
 
-		// check next marker, and iterate or exit as the case may be; we have to be
-		// careful with \rem because a remark can be in any of the chunks, and if we
-		// match a \rem field in the following call, it might belong to the chunk which
-		// follows - the latter will be the case if the first non-remark field following
-		// is a marker which is not in the set of markers for the title chunk - so we have
-		// to search ahead in that case...
+        // check next marker(s), and iterate or exit as the case may be; we have to be
+        // careful with \rem, \free and \note because a remark, free translation or note
+        // can be in any of the chunks, and if we match one of these in the following call,
+        // it might belong to the chunk which follows - the latter will be the case if the
+        // first field which is not one of these and which follows is a marker which is not
+        // in the set of markers for the intro chunk - so we have to search ahead in that
+        // one of those cases...
 		wholeMkr = pDoc->GetWholeMarker(buff);
+		wxString aMkr;
 		if (!wholeMkr.IsEmpty())
 		{
 			bBelongsInChunk = IsOneOf(wholeMkr, m_pTitleInfo->arrPossibleMarkers, 
 										includeFreeTransInTest, includeNoteInTest,
 										includeRemarkInTest);
-			// if it's a \rem, test if this one belongs in this chunk or the next -- if it
-			// belongs in the next, break out of the loop with buff still pointing at the
-			// just-matched \rem marker
-			if (bBelongsInChunk && wholeMkr == m_remarkMkr)
+			// if it doesn't belong in this chunk then break out of the loop, we've found
+			// the start of the next chunk and must parse no further in the current one
+			if (!bBelongsInChunk)
 			{
-				wxString remainingBuff = buff.Mid(4); // 4 is sizeof(\rem), get past the \rem
-				size_t offset = 0;
-				bool bMarkerIsNotARemarkMkr = FALSE;
-				offset = FindFromPos(remainingBuff, backslash, offset);
-				wxString aMkr;
-				while (offset != wxNOT_FOUND)
+				break;
+			}
+			else
+			{
+				// the marker potentially belongs in the chunk
+				if (wholeMkr == m_remarkMkr || wholeMkr == m_freeMkr || wholeMkr == m_noteMkr)
 				{
-					// we've found a marker, find out what it is
-					wxString theRest = remainingBuff.Mid(offset); // the marker commences at
-																  // the start of theRest
-					aMkr = pDoc->GetWholeMarker(theRest);
-					if (aMkr == m_remarkMkr)
+                    // if it is a \rem or \free or \note marker, it may belong in the next
+                    // chunk -- check it out
+					wxString remainingBuff = buff.Mid(4); // 4 is sizeof(\rem), get past the \rem
+														// or most of \free or \note
+					size_t offset = 0;
+					bool bMarkerIsNotThese = FALSE;
+					offset = FindFromPos(remainingBuff, backslash, offset);
+					while (offset != wxNOT_FOUND)
 					{
-						// it's another \rem marker, so iterate
-						offset += 4; // start from past the just-found \rem marker
-						offset = FindFromPos(remainingBuff, backslash, offset);
+						// we've found a marker, find out what it is
+						wxString theRest = remainingBuff.Mid(offset); // the marker commences at
+																	  // the start of theRest
+						aMkr = pDoc->GetWholeMarker(theRest);
+						if (aMkr == m_remarkMkr || aMkr == m_freeMkr || aMkr == m_noteMkr
+							 || aMkr == m_freeEndMkr || aMkr == m_noteEndMkr)
+						{
+							// it's another \rem marker or \free or \note or endmarker of
+							// the last two, so iterate
+							offset += 4; // start from past the just-found marker
+							offset = FindFromPos(remainingBuff, backslash, offset);
+						}
+						else
+						{
+                            // it's not one of these, so check if it is one which belongs
+                            // in the current chunk
+							bMarkerIsNotThese = TRUE;
+							break;
+						}
+					} // end of while loop: while (offset != wxNOT_FOUND)
+					if (bMarkerIsNotThese)
+					{
+						// check if aMkr belongs in the current group or not
+						bool bItBelongs = IsOneOf(aMkr, m_pTitleInfo->arrPossibleMarkers, 
+											excludeFreeTransFromTest, excludeNoteFromTest,
+											excludeRemarkFromTest);
+						if (bItBelongs)
+						{
+							continue;
+						}
+						else
+						{
+                            // Nope, it doesn't belong, so the one or more fields we
+                            // examined belong in the next chunk
+							break;
+						}
 					}
 					else
 					{
-						// it's not a \rem marker, so check if it is one which belongs in the
-						// current chunk
-						bMarkerIsNotARemarkMkr = TRUE;
-						break;
-					}
-				} // end of while loop: while (offset != wxNOT_FOUND)
-				if (bMarkerIsNotARemarkMkr)
-				{
-					// check if aMkr belongs in the current group or not
-					bool bItBelongs = IsOneOf(aMkr, m_pTitleInfo->arrPossibleMarkers, 
-										includeFreeTransInTest, includeNoteInTest,
-										excludeRemarkFromTest);
-					if (bItBelongs)
-					{
+                        // we ran out of markers before finding one belonging to the next
+                        // chunk! We never expect this to happen, since in USFM \rem or my
+                        // \free or \note fields precede whatever field they are associated
+                        // with. I guess we can only include them in the current aiGroup,
+                        // which would reorder them earlier - but it's that or throw them
+                        // away, and we should not do that. To include it in the group
+                        // we've nothing to do here but let the outer loop continue
 						continue;
 					}
-					else
-					{
-						// Nope, the one or more \rem fields belong in the next chunk
-						break;
-					}
-				}
+				} // end of TRUE block for test: if (wholeMkr == m_remarkMkr || 
+				  // wholeMkr == m_freeMkr || wholeMkr == m_noteMkr)
 				else
 				{
-					// we ran out of markers! There were no markers other than \rem ahead (a
-					// situation we never expect to happen, since in USFM \rem precedes what
-					// it comments about. I guess we can only include them in the current
-					// aiGroup, which would reorder them earlier - but it's that or throw them
-					// away, and we should not do that. To include it in the group we've
-					// nothing to do here but let the outer loop continue
+					// it belongs in the chunk and is not one of \rem, \free or \not, so
+					// iterate the loop
 					continue;
 				}
-			} // end of TRUE block for test: if (bBelongsInChunk && wholeMkr == m_remarkMkr)
+			} // end of else block for test: if (!bBelongsInChunk) ie. it does belong in chunk
 		} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
 		else
 		{
-			// we are near or at buff end, and there is no marker, so just accept the rest
-			size_t theRestLength = buff.Len();
-			charsDefinitelyInChunk += theRestLength;
-			break;
-		}
+            // we have some text (we must assume it belongs in the chunk, only certain
+            // markers signal the start of the next chunk), so parse to the next marker and
+			// iterate the testing loop (we will parse to pEnd if no marker lies ahead, in
+			// which case .Find() will return wxNOT_FOUND)
+			int myOffset = buff.Find(backslash);
+			if (myOffset != wxNOT_FOUND)
+			{
+				// we found a marker
+				charsDefinitelyInChunk += myOffset;
+				buff = buff.Mid(myOffset);
+				aMkr = pDoc->GetWholeMarker(buff);
+				bool bItBelongs = IsOneOf(aMkr, m_pTitleInfo->arrPossibleMarkers, 
+										includeFreeTransInTest, includeNoteInTest,
+										includeRemarkInTest);
+
+				// we'll iterate now, provided bItBelongs is TRUE, but if it is FALSE then
+				// we've come to a marker which does not belong in this section - in which
+				// case we should exit the loop
+				if (!bItBelongs)
+				{
+					// buff starts with material which is not in this current chunk
+					break;
+				}
+				else
+				{
+					// we have a marker, so iterate the loop
+					bBelongsInChunk = bItBelongs;
+					wholeMkr = aMkr;
+					aMkr.Empty();
+					continue;
+				}
+			} // end of TRUE block for test: if (myOffset != wxNOT_FOUND)
+		} // end of else block for test: if (!wholeMkr.IsEmpty())
 	} // end of while loop: while (bBelongsInChunk)
 
 	// when control gets to here, we've just identified a SF marker which does not belong
@@ -943,7 +979,9 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 		m_pTitleInfo->bChunkExists = TRUE;
 
 	// check it works - yep
+#ifdef __WXDEBUG__
 	wxLogDebug(_T("\nGetTitleInfoChunk()  num chars = %d\n%s"),charsDefinitelyInChunk, m_pTitleInfo->strChunk.c_str());
+#endif
 	return pInputBuffer;
 }
 
@@ -962,23 +1000,32 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 						// we are ready to bleed off the introduction info chunk
 	// we need a counter for characters in the IntroInfo chunk
 	int charsDefinitelyInChunk = 0;
-	// and two more for the last free trans and /or note which ultimately may not belong
-	// in the span and so will need to have their spans not included in the
-	// charsDefinitelyInChunk value when the chunk boundary is finally known
-	int lastFreeTransSpan = 0;
-	int lastNoteSpan = 0;
-	int totalRemarksSpans = 0; // there can be more than one \rem 
 	// scratch strings
 	wxString wholeEndMkr;
 	wxString dataStr;
 
-	// begin...  
+	// begin...
+#ifdef __WXDEBUG__
+#ifdef _IntroOverrun
+	//wxString first2K = buff.Left(2200);
+	//wxLogDebug(_T("****** GetIntroInfoChunk(), FIRST 2,200 characters.\n%s"), first2K.c_str());
+	//wxLogDebug(_T("****** GetIntroInfoChunk(), END OF FIRST 2,200 characters.\n"));
+#endif
+#endif
+	  
 	wxString wholeMkr = pDoc->GetWholeMarker(buff);
 	bool bBelongsInChunk = IsOneOf(wholeMkr, m_pIntroInfo->arrPossibleMarkers, 
 									includeFreeTransInTest, includeNoteInTest,
 									includeRemarkInTest);
 	while (bBelongsInChunk)
 	{
+		// NOTE, we know that any \rem, \free...\free*, and/or \note...\note* fields
+		// before a marker which is not one of those belongs to this chunk because at the
+		// end of the loop we check for loop end condition, jumping over these to find if
+		// the first marker which isn't one of these is still in the chunk - if it is, we
+		// then iterate the loop and collect those fields, if it isn't, we break out of
+		// the loop -- in this way we can be certain we increment charsDefinitelyInChunk
+		// only when the material is definitely in the current chunk
 		if ( wholeMkr == m_remarkMkr)
 		{
 			// there could be several in sequence, parse them all and add each's contents
@@ -989,7 +1036,7 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
 							bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 							ignoreRemarkWhenParsing);
-				totalRemarksSpans += span;
+				charsDefinitelyInChunk += span;
 				// bleed out the scanned over material
 				buff = buff.Mid(span);
 				dataStr.Empty();
@@ -1006,7 +1053,7 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
 				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 						haltAtRemarkWhenParsing);
-			lastFreeTransSpan = span;
+			charsDefinitelyInChunk += span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			dataStr.Empty();
@@ -1016,7 +1063,7 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
 				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 						haltAtRemarkWhenParsing);
-			lastNoteSpan = span;
+			charsDefinitelyInChunk += span;
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			dataStr.Empty();
@@ -1024,115 +1071,155 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 		else
 		{
             // it's some other marker than \free or \note or \rem, and it belongs in the
-            // IntroInfo chunk, so scan over its data & count that, and add in the counts
-            // for preceding free translation and/or note and/or remark(s) if any of these
-            // were previously scanned; but the tests within this parse must ignore any
-            // embedded notes, so the 2nd last param will be ignoreNoteWhenParsing (the
-            // last one can be the 'halt' enum value, since Adapt It doesn't use \rem for
-            // its notes feature)
+			// TitleInfo chunk, so scan over its data & count that -- then check whether
+			// we should iterate or break out
+			// Note, buff can start with a non-marker, such as the text following a note,
+			// and when that happens, we must parse over the text to the next marker and
+			// iterate the loop
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
 							dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, 
 							ignoreNoteWhenParsing, haltAtRemarkWhenParsing);
 			charsDefinitelyInChunk += span;
+#ifdef __WXDEBUG__
+#ifdef _IntroOverrun
+			if (wholeMkr == _T("\\io2") && dataStr.Find(_T("B Ghengis")) != wxNOT_FOUND)
+			{
+				int breakPoint_Here = 1;
+			}
+#endif
+#endif
 			// bleed out the scanned over material
 			buff = buff.Mid(span);
 			dataStr.Empty();
-
-			// update the count for any free trans and/or note parsed over earlier
-			if (lastFreeTransSpan > 0)
-			{
-				charsDefinitelyInChunk += lastFreeTransSpan;
-				lastFreeTransSpan = 0;
-			}
-			if (lastNoteSpan > 0)
-			{
-				charsDefinitelyInChunk += lastNoteSpan;
-				lastNoteSpan = 0;
-			}
-			if (totalRemarksSpans > 0)
-			{
-				charsDefinitelyInChunk += totalRemarksSpans;
-				totalRemarksSpans = 0;
-			}
 		}
 
-		// check next marker, and iterate or exit as the case may be; we have to be
-		// careful with \rem because a remark can be in any of the chunks, and if we
-		// match a \rem field in the following call, it might belong to the chunk which
-		// follows - the latter will be the case if the first non-remark field following
-		// is a marker which is not in the set of markers for the title chunk - so we have
-		// to search ahead in that case...
+        // check next marker(s), and iterate or exit as the case may be; we have to be
+        // careful with \rem, \free and \note because a remark, free translation or note
+        // can be in any of the chunks, and if we match one of these in the following call,
+        // it might belong to the chunk which follows - the latter will be the case if the
+        // first field which is not one of these and which follows is a marker which is not
+        // in the set of markers for the intro chunk - so we have to search ahead in that
+        // one of those cases...
 		wholeMkr = pDoc->GetWholeMarker(buff);
+		wxString aMkr;
 		if (!wholeMkr.IsEmpty())
 		{
 			bBelongsInChunk = IsOneOf(wholeMkr, m_pIntroInfo->arrPossibleMarkers, 
 										includeFreeTransInTest, includeNoteInTest,
 										includeRemarkInTest);
-			// if it's a \rem, test if this one belongs in this chunk or the next -- if it
-			// belongs in the next, break out of the loop with buff still pointing at the
-			// just-matched \rem marker
-			if (bBelongsInChunk && wholeMkr == m_remarkMkr)
+			// if it doesn't belong in this chunk then break out of the loop, we've found
+			// the start of the next chunk and must parse no further in the current one
+			if (!bBelongsInChunk)
 			{
-				wxString remainingBuff = buff.Mid(4); // 4 is sizeof(\rem), get past the \rem
-				size_t offset = 0;
-				bool bMarkerIsNotARemarkMkr = FALSE;
-				offset = FindFromPos(remainingBuff, backslash, offset);
-				wxString aMkr;
-				while (offset != wxNOT_FOUND)
+				break;
+			}
+			else
+			{
+				// the marker potentially belongs in the chunk
+				if (wholeMkr == m_remarkMkr || wholeMkr == m_freeMkr || wholeMkr == m_noteMkr)
 				{
-					// we've found a marker, find out what it is
-					wxString theRest = remainingBuff.Mid(offset); // the marker commences at
-																  // the start of theRest
-					aMkr = pDoc->GetWholeMarker(theRest);
-					if (aMkr == m_remarkMkr)
+                    // if it is a \rem or \free or \note marker, it may belong in the next
+                    // chunk -- check it out
+					wxString remainingBuff = buff.Mid(4); // 4 is sizeof(\rem), get past the \rem
+														// or most of \free or \note
+					size_t offset = 0;
+					bool bMarkerIsNotThese = FALSE;
+					offset = FindFromPos(remainingBuff, backslash, offset);
+					while (offset != wxNOT_FOUND)
 					{
-						// it's another \rem marker, so iterate
-						offset += 4; // start from past the just-found \rem marker
-						offset = FindFromPos(remainingBuff, backslash, offset);
+						// we've found a marker, find out what it is
+						wxString theRest = remainingBuff.Mid(offset); // the marker commences at
+																	  // the start of theRest
+						aMkr = pDoc->GetWholeMarker(theRest);
+						if (aMkr == m_remarkMkr || aMkr == m_freeMkr || aMkr == m_noteMkr
+							 || aMkr == m_freeEndMkr || aMkr == m_noteEndMkr)
+						{
+							// it's another \rem marker or \free or \note or endmarker of
+							// the last two, so iterate
+							offset += 4; // start from past the just-found marker
+							offset = FindFromPos(remainingBuff, backslash, offset);
+						}
+						else
+						{
+                            // it's not one of these, so check if it is one which belongs
+                            // in the current chunk
+							bMarkerIsNotThese = TRUE;
+							break;
+						}
+					} // end of while loop: while (offset != wxNOT_FOUND)
+					if (bMarkerIsNotThese)
+					{
+						// check if aMkr belongs in the current group or not
+						bool bItBelongs = IsOneOf(aMkr, m_pIntroInfo->arrPossibleMarkers, 
+											excludeFreeTransFromTest, excludeNoteFromTest,
+											excludeRemarkFromTest);
+						if (bItBelongs)
+						{
+							continue;
+						}
+						else
+						{
+                            // Nope, it doesn't belong, so the one or more fields we
+                            // examined belong in the next chunk
+							break;
+						}
 					}
 					else
 					{
-						// it's not a \rem marker, so check if it is one which belongs in the
-						// current chunk
-						bMarkerIsNotARemarkMkr = TRUE;
-						break;
-					}
-				} // end of while loop: while (offset != wxNOT_FOUND)
-				if (bMarkerIsNotARemarkMkr)
-				{
-					// check if aMkr belongs in the current group or not
-					bool bItBelongs = IsOneOf(aMkr, m_pTitleInfo->arrPossibleMarkers, 
-										includeFreeTransInTest, includeNoteInTest,
-										excludeRemarkFromTest);
-					if (bItBelongs)
-					{
+                        // we ran out of markers before finding one belonging to the next
+                        // chunk! We never expect this to happen, since in USFM \rem or my
+                        // \free or \note fields precede whatever field they are associated
+                        // with. I guess we can only include them in the current aiGroup,
+                        // which would reorder them earlier - but it's that or throw them
+                        // away, and we should not do that. To include it in the group
+                        // we've nothing to do here but let the outer loop continue
 						continue;
 					}
-					else
-					{
-						// Nope, the one or more \rem fields belong in the next chunk
-						break;
-					}
-				}
+				} // end of TRUE block for test: if (wholeMkr == m_remarkMkr || 
+				  // wholeMkr == m_freeMkr || wholeMkr == m_noteMkr)
 				else
 				{
-					// we ran out of markers! There were no markers other than \rem ahead (a
-					// situation we never expect to happen, since in USFM \rem precedes what
-					// it comments about. I guess we can only include them in the current
-					// aiGroup, which would reorder them earlier - but it's that or throw them
-					// away, and we should not do that. To include it in the group we've
-					// nothing to do here but let the outer loop continue
+					// it belongs in the chunk and is not one of \rem, \free or \not, so
+					// iterate the loop
 					continue;
 				}
-			} // end of TRUE block for test: if (bBelongsInChunk && wholeMkr == m_remarkMkr)
+			} // end of else block for test: if (!bBelongsInChunk) ie. it does belong in chunk
 		} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
 		else
 		{
-			// we are near or at buff end, and there is no marker, so just accept the rest
-			size_t theRestLength = buff.Len();
-			charsDefinitelyInChunk += theRestLength;
-			break;
-		}
+            // we have some text (we must assume it belongs in the chunk, only certain
+            // markers signal the start of the next chunk), so parse to the next marker and
+			// iterate the testing loop (we will parse to pEnd if no marker lies ahead, in
+			// which case .Find() will return wxNOT_FOUND)
+			int myOffset = buff.Find(backslash);
+			if (myOffset != wxNOT_FOUND)
+			{
+				// we found a marker
+				charsDefinitelyInChunk += myOffset;
+				buff = buff.Mid(myOffset);
+				aMkr = pDoc->GetWholeMarker(buff);
+				bool bItBelongs = IsOneOf(aMkr, m_pIntroInfo->arrPossibleMarkers, 
+										includeFreeTransInTest, includeNoteInTest,
+										includeRemarkInTest);
+
+				// we'll iterate now, provided bItBelongs is TRUE, but if it is FALSE then
+				// we've come to a marker which does not belong in this section - in which
+				// case we should exit the loop
+				if (!bItBelongs)
+				{
+					// buff starts with material which is not in this current chunk
+					break;
+				}
+				else
+				{
+					// we have a marker, so iterate the loop
+					bBelongsInChunk = bItBelongs;
+					wholeMkr = aMkr;
+					aMkr.Empty();
+					continue;
+				}
+			} // end of TRUE block for test: if (myOffset != wxNOT_FOUND)
+		} // end of else block for test: if (!wholeMkr.IsEmpty())
 	} // end of while loop: while (bBelongsInChunk)
 
     // when control gets to here, we've just identified a SF marker which does not belong
@@ -1147,7 +1234,9 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 		m_pIntroInfo->bChunkExists = TRUE;
 
 	// check it works - yep
+#ifdef __WXDEBUG__
 	wxLogDebug(_T("\nGetIntroInfoChunk  num chars = %d\n%s"),charsDefinitelyInChunk, m_pIntroInfo->strChunk.c_str());
+#endif
 	return pInputBuffer;
 }
 
@@ -1229,8 +1318,13 @@ wxString Usfm2Oxes::DoOxesExport(wxString& buff)
 		m_pCanonInfo->strChunk = *m_pBuffer;
 		m_pBuffer->Empty();
 		// parse the canon into sections
-		ParseCanonIntoSections(m_pCanonInfo);
-
+		bool bAllWentWell = ParseCanonIntoSections(m_pCanonInfo);
+		if (!bAllWentWell)
+		{
+			// an error message has been seen already, so just return an empty string
+			oxesStr.Empty();
+			return oxesStr;
+		}
 
 
 
@@ -1794,9 +1888,49 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 		}
 	} while (!buff.IsEmpty()); // end of do loop
 	// when control gets to here, we've consumed the chunk copy stored in m_pTitleInfo
+	 
+	// if the 3-letter Bible book ID is in an initial \id field, we'll find it in the
+	// first aiGroup of title info structs -- check for it, and if it's 3 letters, assume
+	// it's a valid code and store it in the m_bookID member
+	aiGroup* pFirstGroup = NULL;
+	if (m_pTitleInfo->bChunkExists)
+	{
+		pFirstGroup = m_pTitleInfo->aiGroupArray.Item(0);
+		if (pFirstGroup->usfmBareMarker == _T("id"))
+		{
+			wxString contents = pFirstGroup->textStr;
+			if (contents.Len() >= 3)
+			{
+				wxArrayString arr;
+				wxString delimiters = _T(" ");
+				long numTokens = SmartTokenize(delimiters, contents, arr, FALSE);
+				// the 3-letter Bible book code will be the first token - only accept it
+				// if it has a length of 3 characters
+				if (!arr.IsEmpty())
+				{
+					wxString possibleCode = arr.Item(0);
+					if (possibleCode.Len() == 3)
+					{
+						// accept it
+						m_bookID = possibleCode;
+						m_bookID.Trim(FALSE);
+						m_bookID.Trim();
+					}
+					else
+					{
+						m_bookID.Empty();
+					}
+				}
+			}
+		}
+	}
 
 	// check we got the structs filled out correctly
-#ifdef __WXDEBUG__	
+#ifdef __WXDEBUG__
+	if (!m_bookID.IsEmpty())
+	{
+		wxLogDebug(_T(">>>>>    BOOK ID =  %s  <<<<<<"), m_bookID.c_str());
+	}
 	DisplayAIGroupStructContents(m_pTitleInfo);
 #endif
 }
@@ -1859,6 +1993,13 @@ void Usfm2Oxes::ParseIntroInfoForAIGroupStructs()
 		// knows nothing about such markers; store only the main marker, or empty string
 	do
 	{
+#ifdef __WXDEBUG__
+#ifdef _IntroOverrun
+				wxString initialBuff = buff.Left(50);
+				wxLogDebug(_T("ParseIntroInfoForAIGroupStructs(), after do. wholeMkr = %s , buff = %s"),
+					wholeMkr.c_str(), initialBuff.c_str());
+#endif
+#endif
 		// In good USFM markup, if \rem occurs, it occurs at verse start, etc - or before
 		// whatever marker type if is a remark for, so if present it should start off an aiGroup
 		if ( wholeMkr == m_remarkMkr)
@@ -1939,48 +2080,6 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr, 
 							bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
 							haltAtRemarkWhenParsing);
-
-				// Comment out the chapter and verse tests, they won't be needed for
-				// introductory information
-				/*
-				if (wholeMkr == _T("\\c"))
-				{
-					// in this case, wholeEndMkr will be empty, and dataStr a chapter
-					// number string
-					wxASSERT(wholeEndMkr.IsEmpty());
-					pGroupStruct->chapterNumber = dataStr;
-					pGroupStruct->arrMarkers.Add(wholeMkr); // this group has a chapter start
-					buff = buff.Mid(span); // bleed out this \c and its chapter number
-					dataStr.Empty();
-					goto inner;
-				}
-				else if (wholeMkr == _T("\\v") || wholeMkr == _T("\\vn"))
-				{
-					// it's a verse number we've found (dataStr could have a verse number,
-					// or a bridge - we don't care which, we just store the whole whatever
-					// it is)
-					wxASSERT(wholeEndMkr.IsEmpty());
-					bool bIsBridge = IsAVerseBridge(dataStr);
-					if (bIsBridge)
-					{
-						pGroupStruct->verseNumberBridgeStr = dataStr;
-					}
-					else
-					{
-						pGroupStruct->verseNumber = dataStr;
-					}
-					if (wholeMkr = _T("\\vn"))
-					{
-						wholeMkr = wholeMkr.Left(2); // change it to \v for storage 
-													 // purposes for the marker
-					}
-					pGroupStruct->arrMarkers.Add(wholeMkr); // this group has a verse start
-					buff = buff.Mid(span); // bleed out this \v or \vn and its verse info
-					dataStr.Empty();
-					goto inner;
-				}
-				else
-				*/
 				if (wholeEndMkr.IsEmpty() && dataStr.IsEmpty())
 				{
 					// it's a marker like \q, \q1, \q2, \q3, \m, \p etc - and a halting
@@ -1989,7 +2088,6 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 					buff = buff.Mid(span); // bleed out this \v or \vn and its verse info
 					goto inner;
 				}
-
 				// store the bare main marker for this aiGroup
 				if (!wholeMkr.IsEmpty())
 				{
@@ -2023,7 +2121,12 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr, 
 						bHasInlineMarker, haltAtFreeTransWhenParsing, ignoreNoteWhenParsing,
 						haltAtRemarkWhenParsing);
-
+#ifdef __WXDEBUG__
+#ifdef _IntroOverrun
+				wxString buffStarts = buff.Left(80);
+				wxLogDebug(_T("ParseIntroInfoForAIGroupStructs(), text block. buff = %s"),buffStarts.c_str());
+#endif
+#endif
 				buff = buff.Mid(span);
 
 				ExtractNotesAndStoreText(pGroupStruct, dataStr);
@@ -2453,7 +2556,9 @@ void Usfm2Oxes::ExtractNotesAndStoreText(aiGroup* pCurAIGroup, wxString& theText
 // loop - any \s type of marker encountered before the counter reaches the value 3 are
 // included in the current new section, rather than being an indicator for closing the
 // current section and opening a new one.
-void Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
+// Return TRUE if all was well; but FALSE if there was a problem requiring premature
+// termination of the parse - such as a document with no verses in it
+bool Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 {
 	// the markers for sectioning are stored in m_sectioningMkrs
 	wxChar aSpace = _T(' ');
@@ -2473,7 +2578,12 @@ void Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 						// and also the non-standard \vn (verse number) and \vt
 						// (verse text) which are sometimes used in Sth Asia Group;
 						// but no matter, because any of these matches is okay here
-	wxASSERT(offset != wxNOT_FOUND);
+	if (offset == wxNOT_FOUND)
+	{
+		wxString msg = _("OXES export terminated prematurely. There are no verses in this document.");
+		wxMessageBox(msg, _T(""), wxICON_WARNING);
+		return FALSE;
+	}
 	pCurSection->strChunk = canonStr.Left(offset);
 	canonStr = canonStr.Mid(offset); // bleed out the transferred data
 
@@ -2766,6 +2876,7 @@ void Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 	} while(!canonStr.IsEmpty() && offset != wxNOT_FOUND);
 
 	// verify that the sections are chunked correctly, using a loop and wxLogDebug calls
+#ifdef __WXDEBUG__
 	size_t count = pCanonInfo->arrSections.GetCount();
 	if (count > 0)
 	{
@@ -2784,6 +2895,8 @@ void Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 				pSectionInfo->strChunk.c_str());
 		}
 	}
+#endif
+	return TRUE;
 }
 
 void Usfm2Oxes::ParseSectionsIntoParagraphs(CanonInfo* pCanonInfo)

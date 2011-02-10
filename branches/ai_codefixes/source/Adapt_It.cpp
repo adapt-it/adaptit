@@ -10859,13 +10859,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		abort();
 		return FALSE;
 	}
-    // 
-    // BEW 11Oct10, we need this fast-access string for improving punctuation support when
+	// markers like \ft* \fk* \fq* etc are no longer supported, similarly for cross ref markers
+	m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
+	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
+	// BEW 11Oct10, we need this fast-access string for improving punctuation support when
 	// inline markers are in the immediate context (since endmarkers for inline markers
 	// should be handled within ParseWord(), we'll have two strings
 	m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* ");
 	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig ");
-	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh ");
+	// the next set each have an endmarkers, we'll not bother to have a separate string
+	// for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11)
+	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs ");
 	m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
 	// whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
 	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).

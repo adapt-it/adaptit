@@ -143,10 +143,30 @@ void CPlaceRetranslationInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(
 	// BEW 11Oct10, if the user selected, we'll assume he wants the selection removed - so
 	// check and do so here. After doing so, we want nStartChar == nEndChar as that is to
 	// be the starting location for the checks to be made (see below)
+	// BEW changed 10Feb11, because a selection can be gotten accidently by a mouse move
+	// when clicking - if Place is done, the marker replaces the selection and then the
+	// code below puts a second copy in as well - so we'll check here for a selection and
+	// remove it, leaving the nStartChar and nEndChar values the same, and at a space if
+	// possible (the user is free to manually edit in the text box, we just don't want the
+	// Place button to do editing
 	if (nStartChar < nEndChar)
 	{
-		pEditTarget->Replace(nStartChar, nEndChar, m_markers);
+		//pEditTarget->Replace(nStartChar, nEndChar, m_markers);
 		pEditTarget->GetSelection(&nStartChar,&nEndChar);
+		// BEW added the following on 10Feb11, and removed the Replace() call above
+		wxString rangeStr = pEditTarget->GetRange(nStartChar, nEndChar);
+		int offset = rangeStr.Find(aSpace);
+		if (offset == wxNOT_FOUND)
+		{
+			// there is no space; we'll assume nEndChar should be reset to nStartChar
+			nEndChar = nStartChar;
+		}
+		else
+		{
+			// we found a space - put the insertion point there
+			nStartChar += offset;
+			nEndChar = nStartChar;
+		}
 	}
 	// nStartChar and nEndChar will how be at the same location
 	int len;

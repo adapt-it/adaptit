@@ -346,8 +346,8 @@ private:
 	void ParseIntroInfoForAIGroupStructs();
 	// a parser which takes the m_pCanonInfo->strChunk data and parses it into a series of
 	// SectionInfo structs - each of the latter stores the section data in its own
-	// strChunk member
-	void ParseCanonIntoSections(CanonInfo* pCanonInfo);
+	// strChunk member; return FALSE if the canon is empty of verses, else TRUE
+	bool ParseCanonIntoSections(CanonInfo* pCanonInfo);
 	// a parser which parses the information in each SectionInfo, into paragraphs, and any
 	// pre-paragraph fields such as \ms \s \c \mr \r etc
 	void ParseSectionsIntoParagraphs(CanonInfo* pCanonInfo); // level 2 of the hierarchy
