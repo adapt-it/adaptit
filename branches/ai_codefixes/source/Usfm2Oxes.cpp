@@ -57,7 +57,10 @@
 WX_DEFINE_OBJARRAY(NoteDetailsArray);
 WX_DEFINE_OBJARRAY(AIGroupArray);
 WX_DEFINE_OBJARRAY(AISectionInfoArray);
-WX_DEFINE_OBJARRAY(AISectHdrOrParaArray);
+
+
+
+//WX_DEFINE_OBJARRAY(AISectHdrOrParaArray);
 
 
 /// This flag is used to indicate that the text being processed is unstructured, i.e.,
@@ -414,29 +417,6 @@ void Usfm2Oxes::ClearAIGroupArray(AIGroupArray& rGrpArray)
 	}
 }
 
-// clear an AISectHdrOrParaArray of its set of SectionHeaderOrParagraph struct instances
-void Usfm2Oxes::ClearAISectHdrOrParaArray(AISectHdrOrParaArray& rParagraphArray)
-{
-	if (!rParagraphArray.IsEmpty())
-	{
-		int count = rParagraphArray.GetCount();
-		int index;
-		for (index = 0; index < count; index++)
-		{
-			SectionHeaderOrParagraph* pParagraph = rParagraphArray.Item(index);
-			// temporarily, just delete, it has only wxString members so far, but when we
-			// get to the point of having it store an array of substructures, we'll need a
-			// prior call to a clearing function here as well
-			// *** TODO *** -- any more than the two below???
-			ClearAIGroupArray(pParagraph->majorHeaderGroupArray);
-			ClearAIGroupArray(pParagraph->sectionHeaderGroupArray);
-			delete pParagraph;
-		}
-		rParagraphArray.Clear(); // remove its stored pointers which are all now hanging
-	}
-}
-
-
 void Usfm2Oxes::ClearCanonInfo()
 {
     // this function cleans out the file-specific data present in the IntroInfo struct from
@@ -463,7 +443,9 @@ void Usfm2Oxes::ClearAISectionInfoArray(AISectionInfoArray& arrSections)
 void Usfm2Oxes::ClearSectionInfo(SectionInfo* pSectionInfo)
 {
 	pSectionInfo->strChunk.Empty();
-	ClearAISectHdrOrParaArray(pSectionInfo->paraArray); // does nothing if paraArray is empty
+	
+	//ClearAISectHdrOrParaArray(pSectionInfo->paraArray); // does nothing if paraArray is empty
+
 	delete pSectionInfo;
 }
 
@@ -1904,6 +1886,7 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 				wxArrayString arr;
 				wxString delimiters = _T(" ");
 				long numTokens = SmartTokenize(delimiters, contents, arr, FALSE);
+				numTokens = numTokens; // avoids a compiler warning
 				// the 3-letter Bible book code will be the first token - only accept it
 				// if it has a length of 3 characters
 				if (!arr.IsEmpty())
@@ -2899,6 +2882,15 @@ bool Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 	return TRUE;
 }
 
+
+
+
+
+
+
+
+
+/* first attempt, didn't take siblings of each other in sections into account - unfinished
 void Usfm2Oxes::ParseSectionsIntoParagraphs(CanonInfo* pCanonInfo)
 {
 	SectionInfo* pSection = NULL;
@@ -3333,8 +3325,8 @@ void Usfm2Oxes::ParseHeaderInfoAndFirstParagraph(wxString* pSectionText,
 		SectionHeaderOrParagraph* pCurPara, bool* pbReachedEndOfHdrMaterial, 
 		bool* pbMatchedParagraphMkrAtEnd, wxString* pStr_wholeMkrAtOpening)
 {
-
-
+	int i = 0;
+	i = i + 1;
 
 
 
@@ -3381,7 +3373,8 @@ void Usfm2Oxes::ParseNonFirstParagraph(wxString* pSectionText,
 		bool* pbMatchedParagraphMkrAtEnd, wxString* pStr_wholeMkrAtOpening,
 		bool* pbMatchedNoBreakMkr)
 {
-
+	int i = 0;
+	i = i + 1;
 
 
 
@@ -3390,12 +3383,37 @@ void Usfm2Oxes::ParseNonFirstParagraph(wxString* pSectionText,
 void Usfm2Oxes::ParseParagraphData(wxString* pSectionText, wxString* pAccumulatedParagraphData,
 								   SectionHeaderOrParagraph* pCurPara)
 {
-
+	int i = 0;
+	i = i + 1;
 
 
 }
 
+// clear an AISectHdrOrParaArray of its set of SectionHeaderOrParagraph struct instances
+void Usfm2Oxes::ClearAISectHdrOrParaArray(AISectHdrOrParaArray& rParagraphArray)
+{
+	if (!rParagraphArray.IsEmpty())
+	{
+		int count = rParagraphArray.GetCount();
+		int index;
+		for (index = 0; index < count; index++)
+		{
+			SectionHeaderOrParagraph* pParagraph = rParagraphArray.Item(index);
+			// temporarily, just delete, it has only wxString members so far, but when we
+			// get to the point of having it store an array of substructures, we'll need a
+			// prior call to a clearing function here as well
+			// *** TODO *** -- any more than the two below???
+			ClearAIGroupArray(pParagraph->majorHeaderGroupArray);
+			ClearAIGroupArray(pParagraph->sectionHeaderGroupArray);
+			delete pParagraph;
+		}
+		rParagraphArray.Clear(); // remove its stored pointers which are all now hanging
+	}
+}
 
+
+
+*/
 
 
 
