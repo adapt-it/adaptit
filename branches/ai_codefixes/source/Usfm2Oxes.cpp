@@ -721,7 +721,7 @@ bool Usfm2Oxes::IsAHaltingMarker_PreFirstParagraph(wxString& wholeMkr)
 // BEW 15Sep10, added the protocol that if str is empty, then TRUE is returned immediately
 // - so that text without a preceding marker is still considered part of the current
 // chunk, as IsOneOf() is used for determining what does or doesn't belong to a chunk
-bool Usfm2Oxes::IsOneOf(wxString& str, wxArrayString& arr, 
+bool Usfm2Oxes::IsOneOf(wxString& str, wxArrayString* pArray, 
 				CustomMarkersFT inclOrExclFreeTrans, CustomMarkersN inclOrExclNote, 
 				RemarkMarker inclOrExclRemark)
 {
@@ -730,14 +730,14 @@ bool Usfm2Oxes::IsOneOf(wxString& str, wxArrayString& arr,
 		return TRUE; // the empty string (ie. str is not a marker) indicates membership
 					 // in the chunk nevertheless
 	}
-	size_t count = arr.GetCount();
+	size_t count = pArray->GetCount();
 	if (count == 0)
 		return FALSE;
 	size_t index;
 	wxString testStr;
 	for (index = 0; index < count; index++)
 	{
-		testStr = arr.Item(index);
+		testStr = pArray->Item(index);
 		if (str == testStr)
 		{
 			return TRUE;
@@ -1051,6 +1051,34 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 	wxString wholeMkr = pDoc->GetWholeMarker(buff);
 	bool bBelongsInChunk = FALSE; // initialize
 
+	// define the skip markers and possible markers arrays
+	wxArrayString* pSkipArray = NULL;
+	wxArrayString* pPossiblesArray = NULL;
+	switch (chunkType)
+	{
+	case titleChunkType:
+		{
+			pPossiblesArray = &(static_cast<TitleInfo*>(pChunkStruct))->arrPossibleMarkers;
+			pSkipArray = &(static_cast<TitleInfo*>(pChunkStruct))->arrSkipMarkers;
+		}
+		break;
+	case introductionChunkType:
+		{
+			pPossiblesArray = &(static_cast<IntroductionInfo*>(pChunkStruct))->arrPossibleMarkers; 
+			pSkipArray = &(static_cast<IntroductionInfo*>(pChunkStruct))->arrSkipMarkers; 
+		}
+		break;
+	case sectionChunkType:
+		break; // SectionInfo chunking is handled externally (there's no
+			   // arrPossibleMarkers member in a SectionInfo struct)
+	case sectionPartChunkType:
+		{
+			pPossiblesArray = &(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers;
+			pSkipArray = &(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers;
+		}
+		break;
+	} // end of switch
+
     // if there are any markers (and content) to be skipped, but retained in the chunk,
     // test here and do the skips until we come to one which is not to be skipped (we
     // assume there won't be \rem, \free nor \note before any of these -- typically we
@@ -1062,10 +1090,10 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 		switch (chunkType)
 		{
 		case titleChunkType:
-			break; // TitleInfo struct is handled externally
+			break; // TitleInfo struct doesn't have any skip markers defined
 		case introductionChunkType:
 			{
-				// introduction chunk doesn't have any skip markers defined
+				// IntroInfo chunk doesn't have any skip markers defined
 				break;
 			}
 			break;
@@ -1074,9 +1102,8 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 				   // member in a SectionInfo struct
 		case sectionPartChunkType:
 			{
-				bBelongsInChunk = IsOneOf(wholeMkr, 
-					(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers, 
-					excludeFreeTransFromTest, excludeNoteFromTest, excludeRemarkFromTest);
+				bBelongsInChunk = IsOneOf(wholeMkr, pSkipArray, excludeFreeTransFromTest, 
+											excludeNoteFromTest, excludeRemarkFromTest);
 			}
 			break;
 		} // end of switch
@@ -1179,16 +1206,13 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 				{
 				case titleChunkType:
 					{
-						bBelongsInChunk = IsOneOf(wholeMkr,
-							((TitleInfo*)pChunkStruct)->arrPossibleMarkers,
-							//(static_cast<TitleInfo*>(pChunkStruct))->arrPossibleMarkers, 
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray, 
 							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
 					}
 					break;
 				case introductionChunkType:
 					{
-						bBelongsInChunk = IsOneOf(wholeMkr, 
-							(static_cast<IntroductionInfo*>(pChunkStruct))->arrPossibleMarkers, 
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
 							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
 					}
 					break;
@@ -1197,8 +1221,7 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 						   // arrPossibleMarkers member in a SectionInfo struct)
 				case sectionPartChunkType:
 					{
-						bBelongsInChunk = IsOneOf(wholeMkr, 
-							(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers, 
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
 							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
 					}
 					break;
@@ -1383,9 +1406,11 @@ wxString Usfm2Oxes::DoOxesExport(wxString& buff)
 		//wxString free = _T("\\free");
 		//CBString asciiMkr = toUTF8(free);
 
-		// clear structs of any old data
-		ClearTitleInfo();
-		ClearIntroInfo();
+        // *** DO NOT call the next two -- these are initialized previously and only once
+        //     in OnInit(), and calling a clearing function here on them will remove the
+        //     markers in the arrays! ***
+		// ClearTitleInfo();
+		// ClearIntroInfo();
 
 		// make sure the parser starts with a start marker (typically \id) at the
 		// beginning of the buffer

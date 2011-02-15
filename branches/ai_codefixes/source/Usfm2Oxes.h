@@ -320,7 +320,7 @@ private:
 											   // or \s2 or \s3 is present
 	bool IsSpecialTextStyleMkr(wxChar* pChar);
 	//bool IsEmbeddedWholeMarker(wxChar* pChar);
-	bool IsOneOf(wxString& str, wxArrayString& array, CustomMarkersFT inclOrExclFreeTrans, 
+	bool IsOneOf(wxString& str, wxArrayString* pArray, CustomMarkersFT inclOrExclFreeTrans, 
 			CustomMarkersN inclOrExclNote, RemarkMarker inclOrExclRemark); // eg. check for SFMkr in array
 	bool IsWhiteSpace(wxChar& ch);
 	//bool IsMkrAllowedPrecedingParagraphs(wxString& wholeMkr); // tests against the marker <<-- unneeded
