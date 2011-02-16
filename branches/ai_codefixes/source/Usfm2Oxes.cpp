@@ -920,6 +920,24 @@ void Usfm2Oxes::PopulatePossibleMarkers(wxString& strMarkers, enum ChunkType chu
 		break; // SectionInfo parsing is handled externally (there's no arrPossibleMarkers
 			   // member in a SectionInfo struct
 	case sectionPartChunkType:
+		// unused
+		break;
+	case majorOrSeriesChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Clear();
+		break;
+	case rangeOrPsalmChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Clear();
+		break;
+	case normalOrMinorChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Clear();
+		break;
+	case parallelPassageHeadChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Clear();
+		break;
+	case poetryChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Clear();
+		break;
+	case paragraphChunkType:
 		(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Clear();
 		break;
 	} // end of switch
@@ -943,6 +961,24 @@ void Usfm2Oxes::PopulatePossibleMarkers(wxString& strMarkers, enum ChunkType chu
 			break; // SectionInfo parsing is handled externally (there's no arrPossibleMarkers
 				   // member in a SectionInfo struct
 		case sectionPartChunkType:
+			// unused
+			break;
+		case majorOrSeriesChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Add(mkr);
+			break;
+		case rangeOrPsalmChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Add(mkr);
+			break;
+		case normalOrMinorChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Add(mkr);
+			break;
+		case parallelPassageHeadChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Add(mkr);
+			break;
+		case poetryChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Add(mkr);
+			break;
+		case paragraphChunkType:
 			(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers.Add(mkr);
 			break;
 		} // end of switch
@@ -984,6 +1020,24 @@ void Usfm2Oxes::PopulateSkipMarkers(wxString& strMarkers, enum ChunkType chunkTy
 		break; // SectionInfo parsing is handled externally (there's no arrSkipMarkers
 			   // member in a SectionInfo struct
 	case sectionPartChunkType:
+		// unused
+		break;
+	case majorOrSeriesChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Clear();
+		break;
+	case rangeOrPsalmChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Clear();
+		break;
+	case normalOrMinorChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Clear();
+		break;
+	case parallelPassageHeadChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Clear();
+		break;
+	case poetryChunkType:
+		(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Clear();
+		break;
+	case paragraphChunkType:
 		(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Clear();
 		break;
 	} // end of switch
@@ -1007,6 +1061,24 @@ void Usfm2Oxes::PopulateSkipMarkers(wxString& strMarkers, enum ChunkType chunkTy
 			break; // SectionInfo parsing is handled externally (there's no arrPossibleMarkers
 				   // member in a SectionInfo struct
 		case sectionPartChunkType:
+			// unused
+			break;
+		case majorOrSeriesChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Add(mkr);
+			break;
+		case rangeOrPsalmChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Add(mkr);
+			break;
+		case normalOrMinorChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Add(mkr);
+			break;
+		case parallelPassageHeadChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Add(mkr);
+			break;
+		case poetryChunkType:
+			(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Add(mkr);
+			break;
+		case paragraphChunkType:
 			(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers.Add(mkr);
 			break;
 		} // end of switch
@@ -2289,7 +2361,8 @@ inner:      if (IsAHaltingMarker(buff, haltAtFreeTransWhenParsing, haltAtNoteWhe
 			}
 		}
 	} while (!buff.IsEmpty());
-	// when control gets to here, we've consumed the chunk copy stored in m_pIntroInfo
+	// when control gets to here, we've consumed the copy we made from the chunk
+	// stored in m_pIntroInfo
 
 	// check we got the structs filled out correctly
 #ifdef __WXDEBUG__	
@@ -2488,14 +2561,15 @@ void Usfm2Oxes::DisplayAIGroupStructContentsIntro(IntroductionInfo* pIntroInfo) 
 /// embedded notes - these have to be extracted by this function, and it may have one or
 /// more inline markers for formatting (USFM has a couple of dozen such marker types) -
 /// these we leave embedded in the text, because when we later construct the <tr> element,
-/// any inline markers can be parsed for an converted, in place, to the appropriate OXES
-/// tag, or in the case of an enmarker, an endtag. Eg. <keyWord> ..... </keyWord>.
+/// any inline markers can be parsed for and converted, in place, to the appropriate OXES
+/// tag, or in the case of an endmarker, an endtag. Eg. <keyWord> ..... </keyWord>.
 /// Any notes which we extract here have to be stored in a NoteDetails struct, and its
 /// pointer stored in the arrNoteDetails member of pCurAIGroup. OXES places all the notes
-/// pertaining to a <trGroup> at its start, in sequence, and with an attribute giving the
-/// offset (in characters) from the start of the text for that group, to the location to
-/// which the note applies -- for adapt it, the latter will always be either a word or a
-/// phrase (a merger) - from the single CSourcePhrase where the note was stored.
+/// pertaining to a <trGroup> at its start (after any \rem fields which also end up as
+/// annotations), in sequence, and with an attribute giving the offset (in characters) from
+/// the start of the text for that group, to the location to which the note applies -- for
+/// adapt it, the latter will always be either a word or a phrase (a merger) - from the
+/// single CSourcePhrase where the note was stored.
 /// BEW created 13Sep10
 void Usfm2Oxes::ExtractNotesAndStoreText(aiGroup* pCurAIGroup, wxString& theText)
 {
@@ -2533,7 +2607,7 @@ void Usfm2Oxes::ExtractNotesAndStoreText(aiGroup* pCurAIGroup, wxString& theText
 	// array in pCurAiGroup, along with start and ending offsets for the word following,
 	// and accumating theText's non-Note text into pCurAIGroup's textStr member. (In the
 	// most general case, there may be inline markers, such as formatting markers, in
-	// theText - these we parse over and store along with the the text - these are changed
+	// theText - these we parse over and store along with the text - these are changed
 	// to oxes elements inline later on, for example: (I think the following is right)...
 	// \k Jerusalem\k* becomes "<keyWord>Jerusalem </keyWord> in the Oxes PCDATA
 	// and \wj word1 word2 .... becomes <wordsOfJesus>word1 word2.... and the closing \wj*
@@ -3033,11 +3107,125 @@ bool Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 		}
 	}
 #endif
+
+	// do the next level of parsing, by chunking the set of SectionInfo structs into
+	// each's component SectionPart structs
+	ParseSectionsIntoSectionParts(&pCanonInfo->arrSections);
+
 	return TRUE;
 }
 
+// loop over each of the SectionInfo structs to call ParseSingleSectionIntoSectionParts()
+// on each in order to achieve the next level of parsing. SectionPart structs are of 6
+// types, four which are short, if they occur, at the start of a section, and then one or
+// more poetry and paragraph chunks until all the section's data is consumed
+void Usfm2Oxes::ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray)
+{
+	size_t count = pSectionsArray->GetCount();
+	if (count > 0)
+	{
+		size_t index;
+		SectionInfo* pSectionInfo = NULL;
+		for (index = 0; index < count; index++)
+		{
+			pSectionInfo = pSectionsArray->Item(index);
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("\n ***  <<<  Parsing Section with index = %d   >>>  *** \n"), index);
+#endif
+			ParseSingleSectionIntoSectionParts(pSectionInfo);
+		}
+	}
+	else
+	{
+		wxBell(); // ring the bell if there are no sections
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("\n ***  !!!!!!!!!!!  OOPS! No sections defined.  !!!!!!!!!!  ***"));
+		wxLogDebug(_T("      Called from the end of ParseCanonIntoSections() at the ParseSectionsIntoSectionParts() call. \n"));
+#endif
+	}
+}
+
+void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
+{
+	wxString buff = pSectionInfo->strChunk; // this will be consumed by the chunking loop
+	int charsDefinitelyInChunk = 0; // a counter for the characters in the chunk to be delineated next
+	bool bMatched = FALSE; // TRUE if an attempt to chunk the text for one of the looked-for types of 
+						   // SectionPart succeeded in any one pass through the loop
+
+	// The parsing strategy, since there are 6 different SectionPart chunks which are
+	// mutual siblings, is to first look for the 4 which may occur at a section start,
+	// doing that in a loop; after that there will only be paragraph SectionParts
+	// interspersed with occasional Poetry SectionParts - we look for them in a second
+	// loop, until the whole chunk is consumed. If it wasn't for the fact that in Adapt It
+	// the user may free translate things like an \ms field, an \s field, and could place
+	// notes in them too, it would be easy to just test for markers using the appropriate
+	// fast-access strings; but free translations or notes, or even \rem fields (if the
+	// data originated from Paratext) could precede the markers diagnostic of each
+	// SectionPart, and so we clone each tentative SectionPart to the relevant one from the
+	// m_arrSectionPartTemplate array so as to give it its array of possible markers and
+	// array of any skip markers, then we can pass it to Chunker() to get the needed
+	// chunking done. If Chunker returns a count of zero, then we abandon that instance of
+	// SectionPart, produce a new one, and test for that, etc.
+	
+	// This is the outer loop, it terminates when the content of the passed in section is
+	// consumed
+	do {
+		// This is the first of the inner loops: it looks for section-initial fields like
+		// \ms or \ms# or \qa, (# = 1, 2, or 3) then \mr or \d, then \s or \s# (#=1-4),
+		// then, finally, \r. If there is a pass through this loop without finding any of
+		// these, or any more of these, then the loop terminates and control goes on to
+		// the second inner loop below
+		do {
+			bMatched = FALSE; // initialize for this iteration
+			// start by looking for a majorOrSeriesChunkType
+			SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(0)));
+			// the wxArrayString arrays have to be explicitly copied, fortunately,
+			// the WxArrayString class has an assignment operator defined
+			SectionPart* pTemplate = m_arrSectionPartTemplate.Item(0);
+			pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+			pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+			
+// ***********  TODO ************ continue from here
+
+		} while (!buff.IsEmpty() && bMatched);
+
+		// This is the second inner loop, it looks for poetry or paragraph SectionParts
+		if (!buff.IsEmpty())
+		{
+			do {
+				bMatched = FALSE; // initialize for this iteration
 
 
+
+
+			} while (!buff.IsEmpty() && bMatched);
+		}
+	} while (!buff.IsEmpty());
+
+	// verify that the section partss are chunked correctly, using a loop and wxLogDebug calls
+#ifdef __WXDEBUG__
+	size_t count = pSectionInfo->sectionPartArray.GetCount();
+	if (count > 0)
+	{
+		size_t index;
+		for (index = 0; index < count; index++)
+		{
+			SectionPart* pSectionPart = pSectionInfo->sectionPartArray.Item(index);
+			wxLogDebug(_T("\nSectionPart with index = %d   enum ChunkType = %d\n   Chunk text (next lines):\n%s"),
+				index, pSectionPart->sectionPartType, pSectionPart->strChunk.c_str());
+		}
+	}
+#endif
+
+	// *** TODO *** Here is where we put a function to loop over all the section parts, and parse
+	// to the next-lower level of chunks. For 4 of the 6 types of SectionPart, this will
+	// just be a single aiGroup - our terminal chunk; for poetry too it will also be a
+	// single aiGroup for each chunk; but for paragraph, there could be dozens of aiGroups
+	// in an array -- so the next level of parsing will complete the hierarchy
+	
+
+
+}
 
 
 

@@ -364,8 +364,14 @@ private:
 	// SectionInfo structs - each of the latter stores the section data in its own
 	// strChunk member; return FALSE if the canon is empty of verses, else TRUE
 	bool ParseCanonIntoSections(CanonInfo* pCanonInfo);
-	// a parser which parses the information in each SectionInfo, into paragraphs, and any
-	// pre-paragraph fields such as \ms \s \c \mr \r etc
+    // a chunker which scans over all the SectionInfo chunks, to divide each into its
+    // component parts - SectionPart chunks
+	void ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray);
+    // the chunker which chunks an individual SectionInfo to one or more SectionPart
+    // chunks, those being chunks for paragraphs, and any pre-paragraph fields such as \ms
+    // \s \c \mr \r or poetry etc
+	void ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo);
+
 
 // ---------------------------------------------------------------
 
@@ -451,7 +457,7 @@ private:
 	IntroductionInfo* m_pIntroInfo; // struct for storage of Introduction material
 	CanonInfo* m_pCanonInfo; // struct for storing the canon data in wxString, and 
 							 // its parsing into SectionInfo chunks in AISectionInfoArray
-	SectionPartTemplateArray m_arrSectionPartTemplate; // stores 4 initialized SectionPart* instances
+	SectionPartTemplateArray m_arrSectionPartTemplate; // stores 6 initialized SectionPart* instances
 
 // ---------------------------------------------------------------
 
