@@ -354,30 +354,6 @@ void Usfm2Oxes::Initialize()
 	m_titleMkrs = _T("\\id \\ide \\h \\h1 \\h2 \\h3 \\mt \\mt1 \\mt2 \\mt3 ");
 	PopulatePossibleMarkers(m_titleMkrs, titleChunkType, (void*)m_pTitleInfo);
 
-	/* delete this if we don't need it any more
-	wxString mkr;
-	mkr = _T("\\id");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\ide");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\h");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\h1");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\h2");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\h3");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\mt");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\mt1");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\mt2");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	mkr = _T("\\mt3");
-	m_pTitleInfo->arrPossibleMarkers.Add(mkr);
-	*/
-
 	// permit Adapt It notes and free translations to be present in the chunk
 	// I changed my mind - I'll support the two custom markers in the functions as special
 	// cases rather than including them in the marker lists in data structures
