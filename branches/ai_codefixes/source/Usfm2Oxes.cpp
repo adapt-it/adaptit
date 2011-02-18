@@ -276,7 +276,7 @@ void Usfm2Oxes::Initialize()
 	// cross references, tables, running heading, subheadings, and some markers from the
 	// 1998 PNG SFM set too; but excludes special markers, character formatting markers,
 	// and other inline markers -- see above
-	m_haltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr \\id  ");
+	m_haltingMarkers = _T("\\v \\c \\p \\m \\q \\qc \\qm \\qr \\qa \\pi \\mi \\pc \\pt \\ps \\pgi \\cl \\vn \\f \\fe \\x \\gd \\tr \\th \thr \\tc \tcr \\mt \\st \\mte \\div \\ms \\s \\sr \\sp \\d \\di \\hl \\r \\dvrf \\mr \\br \\rr \\pp \\pq \\pm \\pmc \\pmr \\cls \\li \\qh \\gm \\gs \\gd \\gp \\tis \\tpi \\tps \\tir \\pb \\hr \\id \\b ");
 	wxString additions = _T("\\h \\vp \\id "); // \vp ... \vp* is for publishing things 
 			// like "3b" as a verse number, when what precedes is a range up to "...-3a"
 	m_haltingMarkers = additions + m_haltingMarkers;
@@ -329,7 +329,7 @@ void Usfm2Oxes::Initialize()
 	// not included because these belong in the inline set; similarly for \qac and \qac*,
 	// for an acrostic letter within a poetic line (it too is a character style marker);
 	// we'll include \q4 even though it is unlikely to ever occur in data
-	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa ");
+	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
 	m_chapterMkrs = _T("\\c \\ca \\ca* \\cl \\cp \\cd ");
 	m_majorOrSeriesMkrs = _T("\\ms \\ms1 \\qa \\ms2 \\ms3 ");
 	m_parallelPassageHeadMkrs = _T("\\mr ");
@@ -1065,8 +1065,13 @@ void Usfm2Oxes::PopulateSkipMarkers(wxString& strMarkers, enum ChunkType chunkTy
 // remarks field, these associate with a <trGroup> (which in our parser, is realized
 // when chunking as an aiGroup) and precede the text of the group within the input
 // data file, so our chunker has to look ahead all the time to work out where the
-// chunk ends
-int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* pChunkStruct)
+// chunk ends. 
+// Returns TRUE in the bOnlySkippedMaterial if the only material identified and scanned
+// over was material stipulated (in pChunkStruct's arrSkipMarkers array member) as to be
+// skipped (the caller will need to use this fact to avoid assuming that a certain type of
+// chunk was identified and scanned over)
+int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, 
+					   void* pChunkStruct, bool& bOnlySkippedMaterial)
 {
 	wxASSERT((*pInputBuffer)[0] == _T('\\')); // we must be pointing at a marker
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -1083,6 +1088,8 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 	// scratch strings
 	wxString wholeEndMkr;
 	wxString dataStr;
+	bool bMatchedSkipMkr = FALSE;
+	bool bMatchedNonSkipMaterial = FALSE;
 
 	// begin...
 #ifdef __WXDEBUG__
@@ -1120,6 +1127,13 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 		break; // SectionInfo chunking is handled externally (there's no
 			   // arrPossibleMarkers member in a SectionInfo struct)
 	case sectionPartChunkType:
+		break; // unused
+	case majorOrSeriesChunkType:
+	case rangeOrPsalmChunkType:
+	case normalOrMinorChunkType:
+	case parallelPassageHeadChunkType:
+	case poetryChunkType:
+	case paragraphChunkType:
 		{
 			pPossiblesArray = &(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers;
 			pSkipArray = &(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers;
@@ -1149,14 +1163,653 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 			break; // SectionInfo parsing is handled externally (there's no arrSkipMarkers
 				   // member in a SectionInfo struct
 		case sectionPartChunkType:
+			break; //unused
+		case majorOrSeriesChunkType:
+		case rangeOrPsalmChunkType:
+		case normalOrMinorChunkType:
+		case parallelPassageHeadChunkType:
+		case poetryChunkType:
+		case paragraphChunkType:
 			{
 				bBelongsInChunk = IsOneOf(wholeMkr, pSkipArray, excludeFreeTransFromTest, 
 											excludeNoteFromTest, excludeRemarkFromTest);
 			}
 			break;
 		} // end of switch
+
 		if (bBelongsInChunk)
 		{
+			if (bBelongsInChunk)
+			{
+				bMatchedSkipMkr = TRUE; // used later on, further down after loop is finished
+			}
+			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
+						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
+			charsDefinitelyInChunk += span;
+			// bleed out the scanned over material
+			buff = buff.Mid(span);
+			dataStr.Empty();
+			// get whatever marker is being pointed at now
+			wholeMkr = pDoc->GetWholeMarker(buff);
+		}
+	} while (bBelongsInChunk);
+
+    // we now come to the material this chunk type is really interested in. It may be
+    // preceded by one or more \rem fields (data from Paratext can have these), or a \free
+    // field, or a \note field - these precede data which we are really wanting to look at,
+    // and so we must not commit to counting any of these using the local int
+    // charsDefinitelyInChunk until we get to some other field which is found to belong to
+    // this chunk; so we keep the tentative count in the other local counter, aCounter
+	aCounter = 0;
+	do {
+		bBelongsInChunk = FALSE; // default, if no marker is found which potentially
+								 // belongs in the chunk or definitely belongs, the
+								 // loop will terminate
+		// NOTE, we know that any \rem, \free...\free*, and/or \note...\note* fields
+		// before a marker which is not one of those belongs to this chunk because at the
+		// end of the loop we check for loop end condition, jumping over these to find if
+		// the first marker which isn't one of these is still in the chunk - if it is, we
+		// then iterate the loop and collect those fields, if it isn't, we break out of
+		// the loop -- in this way we can be certain we increment charsDefinitelyInChunk
+		// only when the material is definitely in the current chunk
+		if ( wholeMkr == m_remarkMkr)
+		{
+            // there could be several in sequence, parse over them all (and later in the
+            // parsing operation, at a lower level, we will add each's contents string to
+            // the aiGroup's arrRemarks wxArrayString member when we parse to the level of
+            // aiGroup structs)
+			while (wholeMkr == m_remarkMkr)
+			{
+				// identify the \rem remarks chunk
+				bBelongsInChunk = TRUE;
+				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
+							bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+							haltAtRemarkWhenParsing);
+				aCounter += span;
+				// bleed out the scanned over material
+				buff = buff.Mid(span);
+				dataStr.Empty();
+				// get whatever marker is being pointed at now
+				wholeMkr = pDoc->GetWholeMarker(buff);
+			}
+		}
+		// check if we are pointing at a \free marker
+		if (m_bContainsFreeTrans && wholeMkr == m_freeMkr)
+		{
+            // identify the free translation chunk & count its characters; this function
+            // always exists with span giving the offset to the marker which halted
+            // scanning (or end of buffer)
+			bBelongsInChunk = TRUE;
+			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
+				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
+			aCounter += span;
+			// bleed out the scanned over material
+			buff = buff.Mid(span);
+			dataStr.Empty();
+			// get whatever marker is being pointed at now
+			wholeMkr = pDoc->GetWholeMarker(buff);
+		}
+		else if (m_bContainsNotes && wholeMkr == m_noteMkr)
+		{
+			bBelongsInChunk = TRUE;
+			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
+				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
+			aCounter += span;
+			// bleed out the scanned over material
+			buff = buff.Mid(span);
+			dataStr.Empty();
+			// get whatever marker is being pointed at now
+			wholeMkr = pDoc->GetWholeMarker(buff);
+		}
+		else
+		{
+            // It's possibly some other marker than \free or \note or \rem, (or it might be
+            // text - in which case wholeMkr will be empty) so check if it belongs in this
+            // type of chunk, if it does, we get charsDefinitelyInChunk updated, get the
+            // next wholeMkr, and iterate the loop; if it doesn't belong, break out of the
+            // loop. Note, as mentioned above, buff can start with a non-marker, such as
+            // the text following a note, and when that happens, we must parse over the
+            // text to the next marker and iterate the loop because that text will belong
+            // in the chunk if the preceding marker's content belongs in the chunk
+			if (!wholeMkr.IsEmpty())
+			{
+				switch (chunkType)
+				{
+				case titleChunkType:
+					{
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray, 
+							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+					}
+					break;
+				case introductionChunkType:
+					{
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
+							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+					}
+					break;
+				case sectionChunkType:
+					break; // SectionInfo chunking is handled externally (there's no
+						   // arrPossibleMarkers member in a SectionInfo struct)
+				case majorOrSeriesChunkType:
+				case rangeOrPsalmChunkType:
+				case normalOrMinorChunkType:
+				case parallelPassageHeadChunkType:
+				case poetryChunkType:
+				case paragraphChunkType:
+					{
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
+							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+					}
+					break;
+				} // end of switch
+				// if it doesn't belong in this chunk then break out of the loop, we've found
+				// the start of the next chunk and must parse no further in the current one
+				if (!bBelongsInChunk)
+				{
+					// charsDefinitelyInChunk must not be incremented, just break from loop
+					break;
+				}
+				else
+				{
+					bMatchedNonSkipMaterial = TRUE;
+					// it belongs in the chunk, so accept any of \rem, \free or \note already
+					// temporarily parsed over but not yet counted by charsDefinitelyInChunk
+					charsDefinitelyInChunk += aCounter;
+					aCounter = 0; // re-initialize, for next iteration
+
+					// now parse over the marker, its content and any endmarker, and
+					// update buff, to point at the next marker, and get a new wholeMkr
+					
+					// since there could be a second \note, we parse over any found inline by
+					// passing the param ignoreNoteWhenParsing
+					span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
+									dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, 
+									ignoreNoteWhenParsing, haltAtRemarkWhenParsing);
+					charsDefinitelyInChunk += span;
+#ifdef __WXDEBUG__
+#ifdef _IntroOverrun
+					//if (chunkType == introductionChunkType)
+					//{
+					//	if (wholeMkr == _T("\\io2") && dataStr.Find(_T("B Ghengis")) != wxNOT_FOUND)
+					//	{
+							int breakPoint_Here = 1;
+					//	}
+					//}
+#endif
+#endif
+					// bleed out the scanned over material
+					buff = buff.Mid(span);
+					dataStr.Empty();
+					// get whatever marker is being pointed at now
+					wholeMkr = pDoc->GetWholeMarker(buff);
+					// iterate the loop
+				}
+			} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
+			else
+			{
+                // buff currently starts with text, not a marker, so accept it so parse to
+                // the next marker and iterate the testing loop (we will parse to pEnd if
+                // no marker lies ahead, in which case .Find() will return wxNOT_FOUND)
+				int myOffset = buff.Find(backslash);
+				if (myOffset != wxNOT_FOUND)
+				{
+					// we found a marker
+					charsDefinitelyInChunk += myOffset;
+					buff = buff.Mid(myOffset);
+					dataStr.Empty();
+					wholeMkr = pDoc->GetWholeMarker(buff);
+					bBelongsInChunk = TRUE; // iterate the loop
+					bMatchedNonSkipMaterial = TRUE;
+				}
+				else
+				{
+					// no markers lie ahead, so just accept the rest
+					size_t lastStuffLen = buff.Len();
+					charsDefinitelyInChunk += lastStuffLen;
+					dataStr.Empty();
+					bMatchedNonSkipMaterial = TRUE;
+					break;
+				}
+			} // end of else block for test: if (!wholeMkr.IsEmpty())
+		} // end of else block for test: else if (m_bContainsNotes && wholeMkr == m_noteMkr)
+	} while (bBelongsInChunk); // end of do loop
+	if (!bMatchedNonSkipMaterial && bMatchedSkipMkr)
+	{
+		bOnlySkippedMaterial = TRUE; // tell the caller we scanned only over skippable material
+	}
+	return charsDefinitelyInChunk;
+}
+
+// for poetry chunking; we'll treat a blank line (\b marker) as poetry for chunking
+// purposes, but in the OXES productions we are free to call it whatever we like - so
+// while a blank is often in extended poetry sections, it can also be between poetry and
+// prose - so we'll eventually do whatever the OXES v1 examples do with it
+int Usfm2Oxes::PoetryChunker(wxString* pInputBuffer,  enum ChunkType chunkType, 
+					void* pChunkStruct, bool& bOnlySkippedMaterial, bool& bBlankLine)
+{
+	wxASSERT((*pInputBuffer)[0] == _T('\\')); // we must be pointing at a marker
+	if (chunkType != poetryChunkType)
+	{
+		wxMessageBox(_T("PoetryChunker() error: a chunkType other than poetryChunkType was passed in.\nProcessing will continue, but data is likely to be lost from the OXES output."),
+						_T(""), wxICON_ERROR);
+		return 0;
+	}
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	bBlankLine = FALSE; // a \b marker is used for a blank line
+	bool bEmbeddedSpan = FALSE;
+	bool bHasInlineMarker = FALSE; // needed for \rem parsing -- & is ignored
+	int span = 0;
+	wxString buff = *pInputBuffer; // work with a copy of the buffer contents
+	int charsDefinitelyInChunk = 0;
+	int aCounter = 0; // count using this, when we are not sure that a field will
+					  // actually belong in the chunk
+	// scratch strings
+	wxString wholeEndMkr;
+	wxString dataStr;
+	bool bMatchedSkipMkr = FALSE;
+	bool bMatchedNonSkipMaterial = FALSE;
+
+	// define the skip markers and possible markers arrays
+	wxArrayString* pSkipArray = NULL;
+	wxArrayString* pPossiblesArray = NULL;
+	switch (chunkType)
+	{
+	case titleChunkType:
+		{
+			pPossiblesArray = &(static_cast<TitleInfo*>(pChunkStruct))->arrPossibleMarkers;
+			pSkipArray = &(static_cast<TitleInfo*>(pChunkStruct))->arrSkipMarkers;
+		}
+		break;
+	case introductionChunkType:
+		{
+			pPossiblesArray = &(static_cast<IntroductionInfo*>(pChunkStruct))->arrPossibleMarkers; 
+			pSkipArray = &(static_cast<IntroductionInfo*>(pChunkStruct))->arrSkipMarkers; 
+		}
+		break;
+	case sectionChunkType:
+		break; // SectionInfo chunking is handled externally (there's no
+			   // arrPossibleMarkers member in a SectionInfo struct)
+	case sectionPartChunkType:
+		break; // unused
+		case majorOrSeriesChunkType:
+		case rangeOrPsalmChunkType:
+		case normalOrMinorChunkType:
+		case parallelPassageHeadChunkType:
+		case poetryChunkType:
+		case paragraphChunkType:
+		{
+			pPossiblesArray = &(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers;
+			pSkipArray = &(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers;
+		}
+		break;
+	} // end of switch
+
+	// begin...
+	wxString wholeMkr = pDoc->GetWholeMarker(buff);
+	bool bBelongsInChunk = FALSE; // initialize
+
+    // if there are any markers (and content) to be skipped, but retained in the chunk,
+    // test here and do the skips until we come to one which is not to be skipped (we
+    // assume there won't be \rem, \free nor \note before any of these -- typically we
+    // might want to skip a \c because we are interested in \ms or \s etc which may follow
+    // (higher levels of the parse hierarchy should have taken account already of any
+    // markers we skip here)
+	do {
+		bBelongsInChunk = FALSE;
+		switch (chunkType)
+		{
+		case titleChunkType:
+			break; // TitleInfo struct doesn't have any skip markers defined
+		case introductionChunkType:
+			{
+				// IntroInfo chunk doesn't have any skip markers defined
+				break;
+			}
+			break;
+		case sectionChunkType:
+			break; // SectionInfo parsing is handled externally (there's no arrSkipMarkers
+				   // member in a SectionInfo struct
+		case sectionPartChunkType:
+			break; // unused
+		case majorOrSeriesChunkType:
+		case rangeOrPsalmChunkType:
+		case normalOrMinorChunkType:
+		case parallelPassageHeadChunkType:
+		case poetryChunkType:
+		case paragraphChunkType:
+			{
+				bBelongsInChunk = IsOneOf(wholeMkr, pSkipArray, excludeFreeTransFromTest, 
+											excludeNoteFromTest, excludeRemarkFromTest);
+			}
+			break;
+		} // end of switch
+
+		if (bBelongsInChunk)
+		{
+			if (bBelongsInChunk)
+			{
+				bMatchedSkipMkr = TRUE;
+			}
+			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
+						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
+			charsDefinitelyInChunk += span;
+			// bleed out the scanned over material
+			buff = buff.Mid(span);
+			dataStr.Empty();
+			// get whatever marker is being pointed at now
+			wholeMkr = pDoc->GetWholeMarker(buff);
+		}
+	} while (bBelongsInChunk);
+
+    // we now come to the material this chunk type is really interested in. It may be
+    // preceded by one or more \rem fields (data from Paratext can have these), or a \free
+    // field, or a \note field - these precede data which we are really wanting to look at,
+    // and so we must not commit to counting any of these using the local int
+    // charsDefinitelyInChunk until we get to some other field which is found to belong to
+    // this chunk; so we keep the tentative count in the other local counter, aCounter
+	aCounter = 0;
+	do { // <<- don't actually need a loop, we match one \q etc, then close off the chunk
+		bBelongsInChunk = FALSE; // default, if no marker is found which potentially
+								 // belongs in the chunk or definitely belongs, the
+								 // loop will terminate
+		// NOTE, we know that any \rem, \free...\free*, and/or \note...\note* fields
+		// before a marker which is not one of those belongs to this chunk because at the
+		// end of the loop we check for loop end condition, jumping over these to find if
+		// the first marker which isn't one of these is still in the chunk - if it is, we
+		// then iterate the loop and collect those fields, if it isn't, we break out of
+		// the loop -- in this way we can be certain we increment charsDefinitelyInChunk
+		// only when the material is definitely in the current chunk
+		if ( wholeMkr == m_remarkMkr)
+		{
+            // there could be several in sequence, parse over them all (and later in the
+            // parsing operation, at a lower level, we will add each's contents string to
+            // the aiGroup's arrRemarks wxArrayString member when we parse to the level of
+            // aiGroup structs)
+			while (wholeMkr == m_remarkMkr)
+			{
+				// identify the \rem remarks chunk
+				bBelongsInChunk = TRUE;
+				span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
+							bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+							haltAtRemarkWhenParsing);
+				aCounter += span;
+				// bleed out the scanned over material
+				buff = buff.Mid(span);
+				dataStr.Empty();
+				// get whatever marker is being pointed at now
+				wholeMkr = pDoc->GetWholeMarker(buff);
+			}
+		}
+		// check if we are pointing at a \free marker
+		if (m_bContainsFreeTrans && wholeMkr == m_freeMkr)
+		{
+            // identify the free translation chunk & count its characters; this function
+            // always exists with span giving the offset to the marker which halted
+            // scanning (or end of buffer)
+			bBelongsInChunk = TRUE;
+			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
+				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
+			aCounter += span;
+			// bleed out the scanned over material
+			buff = buff.Mid(span);
+			dataStr.Empty();
+			// get whatever marker is being pointed at now
+			wholeMkr = pDoc->GetWholeMarker(buff);
+		}
+		else if (m_bContainsNotes && wholeMkr == m_noteMkr)
+		{
+			bBelongsInChunk = TRUE;
+			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
+				dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
+						haltAtRemarkWhenParsing);
+			aCounter += span;
+			// bleed out the scanned over material
+			buff = buff.Mid(span);
+			dataStr.Empty();
+			// get whatever marker is being pointed at now
+			wholeMkr = pDoc->GetWholeMarker(buff);
+		}
+		else
+		{
+            // It's possibly some other marker than \free or \note or \rem, (or it might be
+            // text - in which case wholeMkr will be empty) so check if it belongs in this
+            // type of chunk, if it does, we get charsDefinitelyInChunk updated, get the
+            // next wholeMkr, and iterate the loop; if it doesn't belong, break out of the
+            // loop. Note, as mentioned above, buff can start with a non-marker, such as
+            // the text following a note, and when that happens, we must parse over the
+            // text to the next marker and iterate the loop because that text will belong
+            // in the chunk if the preceding marker's content belongs in the chunk
+			if (!wholeMkr.IsEmpty())
+			{
+				switch (chunkType)
+				{
+				case titleChunkType:
+					{
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray, 
+							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+					}
+					break;
+				case introductionChunkType:
+					{
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
+							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+					}
+					break;
+				case sectionChunkType:
+					break; // SectionInfo chunking is handled externally (there's no
+						   // arrPossibleMarkers member in a SectionInfo struct)
+				case sectionPartChunkType:
+					break; // unused
+				case majorOrSeriesChunkType:
+				case rangeOrPsalmChunkType:
+				case normalOrMinorChunkType:
+				case parallelPassageHeadChunkType:
+				case poetryChunkType:
+				case paragraphChunkType:
+					{
+						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
+							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+					}
+					break;
+				} // end of switch
+				// if it doesn't belong in this chunk then break out of the loop, this
+				// isn't a poetry chunk
+				if (!bBelongsInChunk)
+				{
+					// charsDefinitelyInChunk must not be incremented, just break from
+					// loop, because wholeMkr is not one of the poetry markers
+					charsDefinitelyInChunk = 0;
+					bMatchedNonSkipMaterial = FALSE;
+					bOnlySkippedMaterial = FALSE;
+					return charsDefinitelyInChunk;
+				}
+				else
+				{
+					bBelongsInChunk = FALSE; // this will ensure the loop won't iterate a 2nd time
+
+					bMatchedNonSkipMaterial = TRUE; // we found a poetry marker, so we need 
+													// to delineate this marker and its content
+													// as the total of this chunk
+					if (wholeMkr == _T("\\b") && wholeMkr.Len() == 2)
+					{
+						// it's a blank line marker, so caller needs to know this so it won't
+						// think a zero returned as the character count means that nothing
+						// belonging to the poetry marker set was found
+						bBlankLine = TRUE; 
+					}
+					// it belongs in the chunk, so accept any of \rem, \free or \note already
+					// temporarily parsed over but not yet counted by charsDefinitelyInChunk
+					charsDefinitelyInChunk += aCounter;
+
+					// now parse forwards, looking for the end of this poetry fragment's
+					// chunk; it will be at or immediately preceding one of the following:
+					// (1) the next marker, irrespective of what it is (even if \b for a
+					// blank line)
+					// (2) end of the data in the section
+					int anOffset = wxNOT_FOUND;
+					int mkrLen = wholeMkr.Len();
+					charsDefinitelyInChunk += mkrLen;
+					buff = buff.Mid(mkrLen); // get past the marker
+					anOffset = buff.Find(backslash);
+					if (anOffset == wxNOT_FOUND)
+					{
+						// the buffer end was reached before a marker was found, so the
+						// rest of the buffer contents belongs with the poetry marker
+						int theRestLen = buff.Len();
+						charsDefinitelyInChunk += theRestLen;
+						break;
+					}
+					else
+					{
+						// found a marker, everything up to it therefore belongs with the
+						// poetry fragment
+						charsDefinitelyInChunk += anOffset;
+						break;
+					}
+				}
+			} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
+			else
+			{
+				// buff currently starts with text, not a marker, so don't accept it
+				// because poetry must begin with one of the poetry markers
+				charsDefinitelyInChunk = 0;
+				bMatchedNonSkipMaterial = FALSE;
+				bOnlySkippedMaterial = FALSE;
+				bBlankLine = FALSE;
+				return charsDefinitelyInChunk;
+			} // end of else block for test: if (!wholeMkr.IsEmpty())
+		} // end of else block for test: else if (m_bContainsNotes && wholeMkr == m_noteMkr)
+	} while (bBelongsInChunk); // end of do loop  <<- don't actually need a loop, we match one
+										// \q etc only & then close off the chunk
+
+	if (!bMatchedNonSkipMaterial && bMatchedSkipMkr)
+	{
+		bOnlySkippedMaterial = TRUE; // tell the caller we scanned only over skippable material
+	}
+	return charsDefinitelyInChunk;
+}
+
+// for paragraph chunking (we assume blank lines don't belong in these - so if there are
+// any, they'll be picked up as a minimal poetry chunk instead)
+int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkType, 
+								void* pChunkStruct, bool& bOnlySkippedMaterial)
+{
+    // for this chunker, allow buff to start with a marker or text - so don't assert a
+    // marker is at its start
+	if (chunkType != paragraphChunkType)
+	{
+		// just a message for the developer
+		wxMessageBox(_T("ParagraphChunker() error: a chunkType other than paragraphChunkType was passed in.\nProcessing will continue, but data is likely to be lost from the OXES output."),
+						_T(""), wxICON_ERROR);
+		return 0;
+	}
+	if (chunkType != paragraphChunkType)
+	{
+		// just a message for the developer
+		wxMessageBox(_T("ParagraphChunker() error: a chunkType other than paragraphChunkType was passed in.\nProcessing will continue, but data is likely to be lost from the OXES output."),
+						_T(""), wxICON_ERROR);
+		return 0;
+	}
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	bool bEmbeddedSpan = FALSE;
+	bool bHasInlineMarker = FALSE; // needed for \rem parsing -- & is ignored
+	int span = 0;
+	wxString buff = *pInputBuffer; // work with a copy of the buffer contents
+	int charsDefinitelyInChunk = 0;
+	int aCounter = 0; // count using this, when we are not sure that a field will
+					  // actually belong in the chunk
+	// scratch strings
+	wxString wholeEndMkr;
+	wxString dataStr;
+	bool bMatchedSkipMkr = FALSE;
+	bool bMatchedNonSkipMaterial = FALSE;
+
+	// define the skip markers and possible markers arrays
+	wxArrayString* pSkipArray = NULL;
+	wxArrayString* pPossiblesArray = NULL;
+	switch (chunkType)
+	{
+	case titleChunkType:
+		{
+			pPossiblesArray = &(static_cast<TitleInfo*>(pChunkStruct))->arrPossibleMarkers;
+			pSkipArray = &(static_cast<TitleInfo*>(pChunkStruct))->arrSkipMarkers;
+		}
+		break;
+	case introductionChunkType:
+		{
+			pPossiblesArray = &(static_cast<IntroductionInfo*>(pChunkStruct))->arrPossibleMarkers; 
+			pSkipArray = &(static_cast<IntroductionInfo*>(pChunkStruct))->arrSkipMarkers; 
+		}
+		break;
+	case sectionChunkType:
+		break; // SectionInfo chunking is handled externally (there's no
+			   // arrPossibleMarkers member in a SectionInfo struct)
+	case sectionPartChunkType:
+		break; // unused
+		case majorOrSeriesChunkType:
+		case rangeOrPsalmChunkType:
+		case normalOrMinorChunkType:
+		case parallelPassageHeadChunkType:
+		case poetryChunkType:
+		case paragraphChunkType:
+		{
+			pPossiblesArray = &(static_cast<SectionPart*>(pChunkStruct))->arrPossibleMarkers;
+			pSkipArray = &(static_cast<SectionPart*>(pChunkStruct))->arrSkipMarkers;
+		}
+		break;
+	} // end of switch
+
+	// begin...
+	wxString wholeMkr = pDoc->GetWholeMarker(buff);
+	bool bBelongsInChunk = FALSE; // initialize
+
+    // if there are any markers (and content) to be skipped, but retained in the chunk,
+    // test here and do the skips until we come to one which is not to be skipped (we
+    // assume there won't be \rem, \free nor \note before any of these -- typically we
+    // might want to skip a \c because we are interested in \ms or \s etc which may follow
+    // (higher levels of the parse hierarchy should have taken account already of any
+    // markers we skip here)
+	do {
+		bBelongsInChunk = FALSE;
+		switch (chunkType)
+		{
+		case titleChunkType:
+			break; // TitleInfo struct doesn't have any skip markers defined
+		case introductionChunkType:
+			{
+				// IntroInfo chunk doesn't have any skip markers defined
+				break;
+			}
+			break;
+		case sectionChunkType:
+			break; // SectionInfo parsing is handled externally (there's no arrSkipMarkers
+				   // member in a SectionInfo struct
+		case sectionPartChunkType:
+			break; // unused
+		case majorOrSeriesChunkType:
+		case rangeOrPsalmChunkType:
+		case normalOrMinorChunkType:
+		case parallelPassageHeadChunkType:
+		case poetryChunkType:
+		case paragraphChunkType:
+			{
+				bBelongsInChunk = IsOneOf(wholeMkr, pSkipArray, excludeFreeTransFromTest, 
+											excludeNoteFromTest, excludeRemarkFromTest);
+			}
+			break;
+		} // end of switch
+
+		if (bBelongsInChunk)
+		{
+			if (bBelongsInChunk)
+			{
+				bMatchedSkipMkr = TRUE; // used later below, after loop exits
+			}
 			span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, dataStr,
 						bHasInlineMarker, haltAtFreeTransWhenParsing, haltAtNoteWhenParsing,
 						haltAtRemarkWhenParsing);
@@ -1268,82 +1921,79 @@ int Usfm2Oxes::Chunker(wxString* pInputBuffer,  enum ChunkType chunkType, void* 
 					break; // SectionInfo chunking is handled externally (there's no
 						   // arrPossibleMarkers member in a SectionInfo struct)
 				case sectionPartChunkType:
+					break; // unused
+					case majorOrSeriesChunkType:
+					case rangeOrPsalmChunkType:
+					case normalOrMinorChunkType:
+					case parallelPassageHeadChunkType:
+					case poetryChunkType:
+					case paragraphChunkType:
 					{
 						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
 							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
 					}
 					break;
 				} // end of switch
-				// if it doesn't belong in this chunk then break out of the loop, we've found
-				// the start of the next chunk and must parse no further in the current one
-				if (!bBelongsInChunk)
+				// ParagraphChunker() will only be called to chunk a section into
+				// paragraphs; so we'll allow for a markup error (someone forgot to have a
+				// paragraph marker after, say, poetry, or header type info), and accept
+				// both flag values for the return from IsOneOf(), and just include what
+				// follows to the next paragraph marker, or section end, as a paragraph...
+				if (!bBelongsInChunk || bBelongsInChunk)
 				{
-					// charsDefinitelyInChunk must not be incremented, just break from loop
-					break;
-				}
-				else
-				{
+					bMatchedNonSkipMaterial = TRUE;
+
 					// it belongs in the chunk, so accept any of \rem, \free or \note already
 					// temporarily parsed over but not yet counted by charsDefinitelyInChunk
 					charsDefinitelyInChunk += aCounter;
-					aCounter = 0; // re-initialize, for next iteration
 
-					// now parse over the marker, its content and any endmarker, and
-					// update buff, to point at the next marker, and get a new wholeMkr
-					
-					// since there could be a second \note, we parse over any found inline by
-					// passing the param ignoreNoteWhenParsing
-					span = ParseMarker_Content_Endmarker(buff, wholeMkr, wholeEndMkr, 
-									dataStr, bEmbeddedSpan, haltAtFreeTransWhenParsing, 
-									ignoreNoteWhenParsing, haltAtRemarkWhenParsing);
-					charsDefinitelyInChunk += span;
-#ifdef __WXDEBUG__
-#ifdef _IntroOverrun
-					//if (chunkType == introductionChunkType)
-					//{
-					//	if (wholeMkr == _T("\\io2") && dataStr.Find(_T("B Ghengis")) != wxNOT_FOUND)
-					//	{
-							int breakPoint_Here = 1;
-					//	}
-					//}
-#endif
-#endif
-					// bleed out the scanned over material
-					buff = buff.Mid(span);
-					dataStr.Empty();
-					// get whatever marker is being pointed at now
-					wholeMkr = pDoc->GetWholeMarker(buff);
-					// iterate the loop
+					// now parse forwards, looking for the end of this paragraph fragment's
+					// chunk; it will be at or immediately preceding one of the following:
+					// (1) any of the poetry markers which may lie ahead, and which
+					// precede a paragraph marker of any type
+					// (2) the next paragraph marker, of any type
+					// (3) end of the data in the section
+// DONE TO HERE ***********************************************************************************
+					int anOffset = wxNOT_FOUND;
+					int mkrLen = wholeMkr.Len();
+					charsDefinitelyInChunk += mkrLen;
+					buff = buff.Mid(mkrLen); // get past the marker
+					anOffset = buff.Find(backslash);
+					if (anOffset == wxNOT_FOUND)
+					{
+						// the buffer end was reached before a marker was found, so the
+						// rest of the buffer contents belongs with the poetry marker
+						int theRestLen = buff.Len();
+						charsDefinitelyInChunk += theRestLen;
+						break;
+					}
+					else
+					{
+						// found a marker, everything up to it therefore belongs with the
+						// poetry fragment
+						charsDefinitelyInChunk += anOffset;
+						break;
+					}
 				}
 			} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
 			else
 			{
-                // buff currently starts with text, not a marker, so accept it so parse to
-                // the next marker and iterate the testing loop (we will parse to pEnd if
-                // no marker lies ahead, in which case .Find() will return wxNOT_FOUND)
-				int myOffset = buff.Find(backslash);
-				if (myOffset != wxNOT_FOUND)
-				{
-					// we found a marker
-					charsDefinitelyInChunk += myOffset;
-					buff = buff.Mid(myOffset);
-					dataStr.Empty();
-					wholeMkr = pDoc->GetWholeMarker(buff);
-					bBelongsInChunk = TRUE; // iterate the loop
-				}
-				else
-				{
-					// no markers lie ahead, so just accept the rest
-					size_t lastStuffLen = buff.Len();
-					charsDefinitelyInChunk += lastStuffLen;
-					dataStr.Empty();
-					break;
-				}
+				// buff currently starts with text, not a marker, so don't accept it
+				// because poetry must begin with one of the poetry markers
+				charsDefinitelyInChunk = 0;
+				bMatchedNonSkipMaterial = FALSE;
+				bOnlySkippedMaterial = FALSE;
+				return charsDefinitelyInChunk;
 			} // end of else block for test: if (!wholeMkr.IsEmpty())
 		} // end of else block for test: else if (m_bContainsNotes && wholeMkr == m_noteMkr)
 	} while (bBelongsInChunk); // end of do loop
+	if (!bMatchedNonSkipMaterial && bMatchedSkipMkr)
+	{
+		bOnlySkippedMaterial = TRUE; // tell the caller we scanned only over skippable material
+	}
 	return charsDefinitelyInChunk;
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 /// \return     a pointer to the remainder of the input (U)SFM text after the title info
@@ -1367,7 +2017,11 @@ wxString* Usfm2Oxes::GetTitleInfoChunk(wxString* pInputBuffer)
 	int charsDefinitelyInChunk = 0;
 
 	// delineate the next intoduction chunk
-	charsDefinitelyInChunk = Chunker(&buff, titleChunkType, (void*)m_pTitleInfo);
+	bool bOnlySkippedMaterial = FALSE;
+	charsDefinitelyInChunk = Chunker(&buff, titleChunkType, (void*)m_pTitleInfo,
+									bOnlySkippedMaterial);
+	// ignore the returned bOnlySkippedMaterial value, we haven't stipulated any skippable
+	// markers for a TitleInfo chunk
 
     // when control gets to here, we've just identified a SF marker which does not belong
     // within the TitleInfo chunk; it such a marker's content had a free translation or
@@ -1399,7 +2053,11 @@ wxString* Usfm2Oxes::GetIntroInfoChunk(wxString* pInputBuffer)
 	int charsDefinitelyInChunk = 0;
 	
 	// delineate the next intoduction chunk
-	charsDefinitelyInChunk = Chunker(&buff, introductionChunkType, (void*)m_pIntroInfo);
+	bool bOnlySkipMarkers = FALSE;
+	charsDefinitelyInChunk = Chunker(&buff, introductionChunkType, (void*)m_pIntroInfo,
+										bOnlySkipMarkers);
+	// ignore the returned value of bOnlySkipMarkers because we haven't stipulated any
+	// skippable markers for IntroInfo structs
 
     // when control gets to here, we've just identified a SF marker which does not belong
     // within the introduction chunk; it such a marker's content had a free translation or
@@ -3124,9 +3782,15 @@ void Usfm2Oxes::ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray
 void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 {
 	wxString buff = pSectionInfo->strChunk; // this will be consumed by the chunking loop
-	int charsDefinitelyInChunk = 0; // a counter for the characters in the chunk to be delineated next
 	bool bMatched = FALSE; // TRUE if an attempt to chunk the text for one of the looked-for types of 
 						   // SectionPart succeeded in any one pass through the loop
+	bool bBlankLine = FALSE;
+	int span = 0; // scratch variable, return delimited span's character count here
+	bool bOnlySkippedMaterial = FALSE; // will be TRUE only when material (ie. markers
+                // and their contents) stipulated as skippable were the only information
+                // scanned over in a Chunker() call -- we need this information in order
+                // to advance the buff position, without setting up a chunk type which
+                // doesn't actually exist in the passed in pSectionInfo's chunk
 
 	// The parsing strategy, since there are 6 different SectionPart chunks which are
 	// mutual siblings, is to first look for the 4 which may occur at a section start,
@@ -3142,9 +3806,26 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 	// array of any skip markers, then we can pass it to Chunker() to get the needed
 	// chunking done. If Chunker returns a count of zero, then we abandon that instance of
 	// SectionPart, produce a new one, and test for that, etc.
+    // Note: Chunker() is good only for section parts that contain only the markers unique
+    // to that section part plus possibly \rem \note and/or \free; it will prematurely exit
+    // if used to try parse over markers not delineated in a struct's arrPossibleMarkers
+    // array - but adding such markers doesn't fix things, because then the chunker would
+    // not stop at the appropriate places. For this reason, and because we need only two
+    // further levels of chunking which Chunker() can't handle, we'll define also
+    // PoetryChunker() and ParagraphChunker() - these will be like Chunker() except that
+    // they match an instance of the possible markers passed in in the struct, and then
+    // internally search ahead using the relevant fast-access string to find the next
+    // instance of the relevant marker set, and terminate preceding that (or preceding any
+    // of \rem, \note, \free which belong to the next chunk).
 	
 	// This is the outer loop, it terminates when the content of the passed in section is
-	// consumed
+	// consumed.
+	// NOTE: all of the SectionPart types test for, and parse over, the same skippable
+	// information (we've set it to be any type of chapter marker) - but we don't advance
+	// buff if there was only skippable information matched and parsed over - instead we
+    // try the other types until one of them advances over non-skippable marker information
+    // - and in THAT one we acually collect the skipped information along with the rest
+    // which we delineated as belonging to that type of chunk as well
 	do {
 		// This is the first of the inner loops: it looks for section-initial fields like
 		// \ms or \ms# or \qa, (# = 1, 2, or 3) then \mr or \d, then \s or \s# (#=1-4),
@@ -3160,20 +3841,189 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 			SectionPart* pTemplate = m_arrSectionPartTemplate.Item(0);
 			pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
 			pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
-			
-// ***********  TODO ************ continue from here
-
-		} while (!buff.IsEmpty() && bMatched);
+			pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
+			bOnlySkippedMaterial = FALSE; // initialize
+			span = Chunker(&buff, majorOrSeriesChunkType, (void*)pSectionPart,
+							bOnlySkippedMaterial);
+			if (span == 0 || bOnlySkippedMaterial)
+			{
+                // it's not a \ms, \ms# nor \qa marker and there was no skippable
+                // information skipped over; or we only found skippable information
+                // -- so buff remains unchanged, but delete this now unwanted chunk type
+                // pSectionPart
+				delete pSectionPart; // the internal arrays are automatically deleted 
+			}
+			else
+			{
+				bMatched = TRUE; // this iteration found a Section Head Major or 
+							// a Section Head Series (there might be skipped material
+							// before it as well)
+				pSectionPart->bChunkExists = TRUE;
+				pSectionPart->strChunk += buff.Left(span);
+				buff = buff.Mid(span);
+				// add the chunk's struct to the parent's array
+				pSectionInfo->sectionPartArray.Add(pSectionPart);
+			}
+			// if we made a match, iterate the loop; if we didn't, try the next type of
+			// SectionPart (this will be a test for a rangeOrPsalmChunkType )
+			if (bMatched)
+			{
+				continue;
+			}
+			else
+			{
+				// try looking for a rangeOrPsalmChunkType...
+				SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(1)));
+				SectionPart* pTemplate = m_arrSectionPartTemplate.Item(1);
+				pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+				pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+				pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
+				bOnlySkippedMaterial = FALSE; // initialize
+				span = Chunker(&buff, rangeOrPsalmChunkType, (void*)pSectionPart,
+								bOnlySkippedMaterial);
+				if (span == 0 || bOnlySkippedMaterial)
+				{
+                    // it's not a \mr, or \d marker and there was no skippable information
+                    // skipped over; or we only found skippable information -- so buff
+                    // remains unchanged, but delete this now unwanted chunk type
+                    // pSectionPart
+					delete pSectionPart; // the internal arrays are automatically deleted 
+				}
+				else
+				{
+					bMatched = TRUE; // this iteration found a Section Head Range or 
+								// a Section Head Psalm (there might be skipped material
+								// before it as well)
+					pSectionPart->bChunkExists = TRUE;
+					pSectionPart->strChunk += buff.Left(span);
+					buff = buff.Mid(span);
+					// add the chunk's struct to the parent's array
+					pSectionInfo->sectionPartArray.Add(pSectionPart);
+				}
+				// if we made a match, iterate the loop; if we didn't, try the next type of
+				// SectionPart  (this will be a test for a normalOrMinorChunkType )
+				if (bMatched)
+				{
+					continue;
+				}
+				else
+				{
+					// try looking for a normalOrMinorChunkType
+					SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(2)));
+					SectionPart* pTemplate = m_arrSectionPartTemplate.Item(2);
+					pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+					pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+					pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
+					bOnlySkippedMaterial = FALSE; // initialize
+					span = Chunker(&buff, normalOrMinorChunkType, (void*)pSectionPart,
+									bOnlySkippedMaterial);
+					if (span == 0 || bOnlySkippedMaterial)
+					{
+                        // it's not a \s nor \s# marker and there was no skippable
+                        // information skipped over; or we only found skippable information
+                        // -- so buff remains unchanged, but delete this now unwanted chunk
+                        // type pSectionPart
+						delete pSectionPart; // the internal arrays are automatically deleted 
+					}
+					else
+					{
+						bMatched = TRUE; // this iteration found a Section Head (normal) or 
+									// a Section Head Minor (there might be skipped material
+									// before it as well)
+						pSectionPart->bChunkExists = TRUE;
+						pSectionPart->strChunk += buff.Left(span);
+						buff = buff.Mid(span);
+						// add the chunk's struct to the parent's array
+						pSectionInfo->sectionPartArray.Add(pSectionPart);
+					}
+					// if we made a match, iterate the loop; if we didn't, try the next type of
+					// SectionPart  (this will be a test for a parallelPassageHeaderChunkType )
+					if (bMatched)
+					{
+						continue;
+					}
+					else
+					{
+						// try looking for a parallelPassageHeadChunkType
+						SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(3)));
+						SectionPart* pTemplate = m_arrSectionPartTemplate.Item(3);
+						pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+						pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+						pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
+						bOnlySkippedMaterial = FALSE; // initialize
+						span = Chunker(&buff, parallelPassageHeadChunkType, (void*)pSectionPart,
+										bOnlySkippedMaterial);
+						if (span == 0 || bOnlySkippedMaterial)
+						{
+                            // it's not an \r marker and there was no skippable information
+                            // skipped over; or we only found skippable information -- so
+                            // buff remains unchanged, but delete this now unwanted chunk
+                            // type pSectionPart
+							delete pSectionPart; // the internal arrays are automatically deleted 
+						}
+						else
+						{
+							bMatched = TRUE; // this iteration found a Parallel Passage Head 
+										// (there might be skipped material before it as well)
+							pSectionPart->bChunkExists = TRUE;
+							pSectionPart->strChunk += buff.Left(span);
+							buff = buff.Mid(span);
+							// add the chunk's struct to the parent's array
+							pSectionInfo->sectionPartArray.Add(pSectionPart);
+						}
+					} // end of block for trying parallelPassageHeadChunkType
+				} // end of block for trying normalOrMinorChunkType
+			} // end of block for rangeOrPsalmChunkType
+		}  // end of block for trying majorOrSeriesChunkType; and also the do loop's end
+		while (!buff.IsEmpty() && bMatched);
 
 		// This is the second inner loop, it looks for poetry or paragraph SectionParts
+		// until the section is exhausted
 		if (!buff.IsEmpty())
 		{
+			bMatched = FALSE; // initialize to FALSE at the start of each iteration
 			do {
-				bMatched = FALSE; // initialize for this iteration
+				SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(4)));
+				SectionPart* pTemplate = m_arrSectionPartTemplate.Item(4);
+				pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+				pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+				pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
+				bOnlySkippedMaterial = FALSE; // initialize
+				span = PoetryChunker(&buff, poetryChunkType, (void*)pSectionPart,
+								bOnlySkippedMaterial, bBlankLine);
+				if ((span == 0 || bOnlySkippedMaterial) && !bBlankLine)
+				{
+                    // it's not a poetry marker and not a blank line (which we deem as
+                    // poetry here) and there was no skippable information skipped over; or
+                    // we only found skippable information and the marker was not a blank
+                    // line -- so buff remains unchanged, but delete this now unwanted
+                    // chunk type pSectionPart
+					delete pSectionPart; // the internal arrays are automatically deleted 
+				}
+				else
+				{
+                    // this iteration found a fragment (line) of poetry or a blank line
+                    // (there might be skipped material before it as well)
+                    bMatched = TRUE;
+					pSectionPart->bChunkExists = TRUE;
+					pSectionPart->strChunk += buff.Left(span);
+					buff = buff.Mid(span);
+					// add the chunk's struct to the parent's array
+					pSectionInfo->sectionPartArray.Add(pSectionPart);
+				}
+				// if we made a match, iterate the loop; if we didn't, try the next type of
+				// SectionPart  (this will be a test for a paragraphChunkType )
+				if (bMatched)
+				{
+					continue;
+				}
+				else
+				{
+                    // try matching a paragraph chunk -- it has to be a paragraph chunk
+                    // even if not beginning explicitly with a paragraph type of marker
 
-
-
-
+// TODO
+				}
 			} while (!buff.IsEmpty() && bMatched);
 		}
 	} while (!buff.IsEmpty());

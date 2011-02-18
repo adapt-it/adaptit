@@ -338,11 +338,24 @@ private:
 	// remarks field, these associate with a <trGroup> (which in our parser, is realized
 	// when chunking as an aiGroup) and precede the text of the group within the input
 	// data file, so our chunker has to look ahead all the time to work out where the
-	// chunk ends; returns the input string minus the chunk just delineated
-	int  Chunker(wxString* pInputBuffer, enum ChunkType chunkType, void* pChunkStruct);
+	// chunk ends; returns the input string minus the chunk just delineated. Returns TRUE
+	// in the bOnlySkippedMaterial if the only material identified and scanned over was
+	// material stipulated (in pChunkStruct's arrSkipMarkers array member) as to be
+	// skipped (the caller will need to use this fact to avoid assuming that a certain
+	// type of chunk was identified and scanned over) Chunker() is good only for chunks
+	// where the possible markers in the chunk are unique to the chunk, plus any or all of
+	// \rem, \free, and \note.
+	int  Chunker(wxString* pInputBuffer, enum ChunkType chunkType, void* pChunkStruct,
+		bool& bOnlySkippedMaterial);
 	// the following ones use Chunker()
 	wxString* GetTitleInfoChunk(wxString* pInputBuffer);
 	wxString* GetIntroInfoChunk(wxString* pInputBuffer);
+	// for poetry chunking
+	int PoetryChunker(wxString* pInputBuffer,  enum ChunkType chunkType, 
+					   void* pChunkStruct, bool& bOnlySkippedMaterial, bool& bBlankLine);
+	// for paragraph chunking
+	int ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkType, 
+					   void* pChunkStruct, bool& bOnlySkippedMaterial);
 
 // ---------------------------------------------------------------
 
