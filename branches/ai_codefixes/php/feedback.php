@@ -12,6 +12,10 @@ if (empty($_POST)) {
 
 } else {
 
+    $subject = "[Adapt It ";
+    $subject .= $_POST['reporttype']."] ";
+    $subject .= $_POST['emailsubject'];
+    
     $random_hash = md5(date('r', time())); 
     $notify_log = "Log is Attached:";
     $attach_log = $_POST['attachlog'];
@@ -22,22 +26,28 @@ if (empty($_POST)) {
     $headers .= $_POST['sendername']." <";
     $headers .= $_POST['senderemailaddr'].">\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: multipart/mixed; boundary=\"Adapt It--{$random_hash}\"\r\n\r\n"; 
-    // Note: The boundary string behavior is described in RFC1341 part 7.2.1
-    // If boundary="simple boundary", then each part should begin with "--simple boundary\r\n"
-    // with the last "Content-... declarations line ending with double CRLFs \r\n\r\n. The final
-    // boundary is of the form "--simple boundary--\r\n"
     
-    $subject = "[Adapt It ";
-    $subject .= $_POST['reporttype']."] ";
-    $subject .= $_POST['emailsubject'];
+    if ($attach_log == $notify_log || $attach_doc == $notify_doc)
+    {
+        // There is at least one attachment so use multipart/mixed and MIME boundary
+        $headers .= "Content-Type: multipart/mixed; boundary=\"Adapt It--{$random_hash}\"\r\n\r\n"; 
+        // Note: The boundary string behavior is described in RFC1341 part 7.2.1
+        // If boundary="simple boundary", then each part should begin with "--simple boundary\r\n"
+        // with the last "Content-... declarations line ending with double CRLFs \r\n\r\n. The final
+        // boundary is of the form "--simple boundary--\r\n"
+        
+        //$message = "This is a multi-part message in MIME format.\r\n\r\n";
+        $message .= "--Adapt It--{$random_hash}\r\n";
+        $message .= "Content-Type: text/plain; charset=\"iso-8859-1\"\r\n";
+        $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+    }
+    //else
+    //{
+        // There are no attachments, so the $headers must end with double CRLF, i.e., add another \r\n
+    //    $headers .= "\r\n"
+    //}
     
     // build the message body
-    //$message = "This is a multi-part message in MIME format.\r\n\r\n";
-    $message .= "--Adapt It--{$random_hash}\r\n";
-    $message .= "Content-Type: text/plain; charset=\"iso-8859-1\"\r\n";
-    $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-    
     $message .= "Submitted at ".date("F j, Y, g:i a")."\r\n";
     $message .= "To: Adapt It Developers <developers@adapt-it.org>\r\n";
     $message .= "Name of Sender: ";
@@ -85,8 +95,11 @@ if (empty($_POST)) {
         $message .= $attachment_doc;
     }
     
-    // Final boundary
-    $message .= "--Adapt It--{$random_hash}--\r\n";
+    if ($attach_log == $notify_log || $attach_doc == $notify_doc)
+    {
+      // Final boundary, but only if there were attachments
+      $message .= "--Adapt It--{$random_hash}--\r\n";
+    }
 
     // Send message to email address
     $sent = mail($recipient, $subject, $message, $headers);
