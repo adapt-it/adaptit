@@ -1,7 +1,7 @@
 <?php
 
-//$recipient = "developers@adapt-it.org";
-$recipient = "whmartin@sbcglobal.net";
+$recipient = "developers@adapt-it.org";
+//$recipient = "whmartin@sbcglobal.net";
 //$recipient = "bill_martin@sil.org";
 
 if (empty($_POST)) {
@@ -36,16 +36,10 @@ if (empty($_POST)) {
         // with the last "Content-... declarations line ending with double CRLFs \r\n\r\n. The final
         // boundary is of the form "--simple boundary--\r\n"
         
-        //$message = "This is a multi-part message in MIME format.\r\n\r\n";
         $message .= "--Adapt It--{$random_hash}\r\n";
         $message .= "Content-Type: text/plain; charset=\"iso-8859-1\"\r\n";
         $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
     }
-    //else
-    //{
-        // There are no attachments, so the $headers must end with double CRLF, i.e., add another \r\n
-    //    $headers .= "\r\n"
-    //}
     
     // build the message body
     $message .= "Submitted at ".date("F j, Y, g:i a")."\r\n";
