@@ -59,7 +59,7 @@ then
 	rm "$htbFile"
 fi
 
-# Use the tar command to get a "clean" set of dirs and files from hlp into
+# Use the gnutar command to get a "clean" set of dirs and files from hlp into
 # the hlp_temp directory, leaving out the .svn dirs and other stuff specified
 # in the excludeFiles file.
 cd "$hlpDir"
