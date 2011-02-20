@@ -1953,37 +1953,111 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 					// precede a paragraph marker of any type
 					// (2) the next paragraph marker, of any type
 					// (3) end of the data in the section
-// DONE TO HERE ***********************************************************************************
+
 					int anOffset = wxNOT_FOUND;
+					int offset2 = wxNOT_FOUND;
+					wxString buff2;
+					wxString wholeMkr2; // use this for the marker we hope may end the paragraph 
+										// chunk -- at it, of preceding \rem, \free, \note fields
+										// if present (if they precede, they would belong in
+										// next paragraph chunk - so beware)
+					wxString wholeMkr2PlusSpace;
 					int mkrLen = wholeMkr.Len();
 					charsDefinitelyInChunk += mkrLen;
 					buff = buff.Mid(mkrLen); // get past the marker
 					anOffset = buff.Find(backslash);
-					if (anOffset == wxNOT_FOUND)
+					while (anOffset != wxNOT_FOUND && !buff.IsEmpty())
 					{
-						// the buffer end was reached before a marker was found, so the
-						// rest of the buffer contents belongs with the poetry marker
-						int theRestLen = buff.Len();
-						charsDefinitelyInChunk += theRestLen;
-						break;
-					}
-					else
-					{
-						// found a marker, everything up to it therefore belongs with the
-						// poetry fragment
-						charsDefinitelyInChunk += anOffset;
-						break;
-					}
-				}
+						// found a potential marker
+						buff2 = buff.Mid(anOffset); // buff2 now begins with the backslash where the mkr is
+						wholeMkr2 = pDoc->GetWholeMarker(buff2);
+						wholeMkr2PlusSpace = wholeMkr2 + _T(' ');
+						if (pDoc->IsMarker(wholeMkr2))
+						{
+							// it's a genuine SFM or USFM marker
+							offset2 = m_poetryMkrs.Find(wholeMkr2PlusSpace); // is it a poetry marker
+							if (offset2 != wxNOT_FOUND)
+							{
+								// this wholeMkr2 marker is one of the poetry set of
+								// markers, so we've found the start (unless \rem, \free
+								// and or \note fields precede it - these would belong to
+								// information within the next paragraph and so we'd have
+								// to parse back over them to find the actual start of
+								// that next paragraph - which gives us also the end of
+								// the current one
+								int backSpan = BackParseOverNoteFreeRem(buff2, anOffset);
+								// there must be something left which isn't \rem or \free or \note data
+								wxASSERT( anOffset > backSpan);
+								// the end of this paragraph chunk is given by the difference
+								charsDefinitelyInChunk += anOffset - backSpan;
+								return charsDefinitelyInChunk;
+							}
+							else
+							{
+								// wxNOT_FOUND was returned, so wholeMkr2 is not a poetry
+								// marker, so check if it's another paragraph marker --
+								// and if it is, do the same BackParse...() call as above
+								// and for the same reason
+								offset2 = m_paragraphMkrs.Find(wholeMkr2PlusSpace); // is it a paragraph marker
+								if (offset2 != wxNOT_FOUND)
+								{
+									// this wholeMkr2 marker is one of the paragraph set of
+									// markers, so we've found the start (unless \rem, \free
+									// and or \note fields precede it - these would belong to
+									// information within the next paragraph and so we'd have
+									// to parse back over them to find the actual start of
+									// that next paragraph - which gives us also the end of
+									// the current one
+									int backSpan = BackParseOverNoteFreeRem(buff2, anOffset);
+									// there must be something left which isn't \rem or \free or \note data
+									wxASSERT( anOffset > backSpan);
+									// the end of this paragraph chunk is given by the difference
+									charsDefinitelyInChunk += anOffset - backSpan;
+									return charsDefinitelyInChunk;
+								}
+								else
+								{
+									// wxNOT_FOUND was returned, so wholeMkr2 is not a paragraph
+									// marker either. Since we found a marker, we know we are
+									// not at the end of the section chunk - so wholeMkr2
+									// is in the current paragraph chunk, therefore
+									// iterate the loop after updating buff and counting
+									// the characters in  the subspan indicated by anOffset
+									buff = buff.Mid(anOffset);
+									charsDefinitelyInChunk += anOffset;
+								}
+							} // end of else block for test: if (offset2 != wxNOT_FOUND), testing for poetry mkr
+						} // end of TRUE block for test: if (pDoc->IsMarker(wholeMkr2))
+						else
+						{
+							// a bogus marker, perhaps a stray backslash
+
+
+// do what here? ****
+
+
+						}
+					} // end of loop, while (anOffset != wxNOT_FOUND && !buff.IsEmpty()), searched for backslash
+
+					//  ****   what about the test for getting to end of section? where does that fit? -- it's
+					//  below, at 2056
+
+				} // end of TRUE block for the always succeeding test: 	if (!bBelongsInChunk || bBelongsInChunk)
+
+
 			} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
 			else
 			{
-				// buff currently starts with text, not a marker, so don't accept it
-				// because poetry must begin with one of the poetry markers
-				charsDefinitelyInChunk = 0;
-				bMatchedNonSkipMaterial = FALSE;
-				bOnlySkippedMaterial = FALSE;
-				return charsDefinitelyInChunk;
+				// buff currently starts with text, not a marker, ... we'll still treat it
+				// as a paragraph...
+
+
+
+// TODO *****
+
+
+
+
 			} // end of else block for test: if (!wholeMkr.IsEmpty())
 		} // end of else block for test: else if (m_bContainsNotes && wholeMkr == m_noteMkr)
 	} while (bBelongsInChunk); // end of do loop
@@ -1993,6 +2067,51 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 	}
 	return charsDefinitelyInChunk;
 }
+
+// a function to back-parse over any \rem, \free, \note which precedes the match
+// location, returning the number of characters back-parsed over; order is significant,
+// first over one or more notes (if present), then over a single free translation field
+// (if present), and then over one or more remark fields (if present) -- once we are over
+// that lot (if present) we are at the end of a chunk; nMatchLocation will be the location
+// at which a potential chunking ending marker was found ("potential" because \rem, \free
+// and or \note from the following chunk may preceded it -- hence this back-parsing
+// function in order to get back to data we are certain is within our chunk)
+int Usfm2Oxes::BackParseOverNoteFreeRem(wxString& buff, int nMatchLocation)
+{
+	wxString strSpan = buff.Left(nMatchLocation);
+	int spanLen = strSpan.Len();
+	// construct the reversed marker strings
+	wxString revNote = _T("eton\\");
+	wxString revFree = _T("eerf\\");
+	wxString revRem = _T("mer\\");
+	// reverse the span in question
+	MakeReverse(strSpan);
+	int lastCount = 0;
+	int offset = FindFromPos(strSpan, revNote, 0);
+	// scan back over as many consecutive reversed note markers as there are
+	while (offset != wxNOT_FOUND && offset < spanLen)
+	{
+		lastCount = offset + 5;
+		offset = FindFromPos(strSpan, revNote, lastCount);
+	}
+	// when that loop exits, lastCount has the count to just after the last-matched
+	// reversed \note marker; so next we check for a single reversed \free marker
+	// immediately following
+	offset = FindFromPos(strSpan, revFree, lastCount);
+	if (offset != wxNOT_FOUND && offset < spanLen)
+	{
+		lastCount += offset + 5; // 5 is the size of \free
+	}
+	// finally, parse over any consecutive reversed \rem fields
+	offset = FindFromPos(strSpan, revRem, lastCount);
+	while (offset != wxNOT_FOUND && offset < spanLen)
+	{
+		lastCount = offset + 5;
+		offset = FindFromPos(strSpan, revRem, lastCount);
+	}
+	return lastCount;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////

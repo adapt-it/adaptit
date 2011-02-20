@@ -384,6 +384,9 @@ private:
     // chunks, those being chunks for paragraphs, and any pre-paragraph fields such as \ms
     // \s \c \mr \r or poetry etc
 	void ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo);
+	// a function to back-parse over any \rem, \free, \note which precedes the match
+	// location, returning the number of characters back-parsed over
+	int BackParseOverNoteFreeRem(wxString& buff, int nMatchLocation);
 
 
 // ---------------------------------------------------------------

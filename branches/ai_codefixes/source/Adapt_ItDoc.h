@@ -243,6 +243,7 @@ public:
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
 	bool			IsMarker(wxChar* pChar);
+	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);

@@ -12171,6 +12171,13 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 	}
 }
 
+bool CAdapt_ItDoc::IsMarker(wxString& mkr)
+{
+	const wxChar* pConstBuff = mkr.GetData();
+	wxChar* ptr = (wxChar*)pConstBuff;
+	return IsMarker(ptr);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also an end 
 ///				marker (ends with an asterisk), FALSE otherwise.
