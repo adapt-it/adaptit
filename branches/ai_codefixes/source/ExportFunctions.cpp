@@ -16580,6 +16580,14 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	{
 		savePos = pos; // savePos is what we return to the caller
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+/*
+#ifdef __WXDEBUG__
+		if (pSrcPhrase->m_nSequNumber == 367)
+		{
+			int halt_here = 1;
+		}
+#endif
+*/
 		pos = pos->GetNext();
 		// break out of the loop if we reach the end of the retranslation, or if we reach
 		// the beginning of an immediately following (but different) retranslation
@@ -16600,6 +16608,37 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 			if (!filteredInfoStr.IsEmpty())
 			{
 				filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+			}
+
+			// BEW added 22Feb11, \x ... \x* material should follow anything in m_markers,
+			// so extract it from filteredInfoStr (if present) and put it in a separate
+			// crossRefs string, for later placement (we append it to markersStr so that
+			// when the latter is placed in location, the crossrefs go with it)
+			wxString crossRefs; crossRefs.Empty();
+			wxString tempStr1;
+			wxString tempStr2;
+			int anOffset = filteredInfoStr.Find(_T("\\x "));
+			if (anOffset != wxNOT_FOUND)
+			{
+				tempStr1 = filteredInfoStr.Left(anOffset);
+				crossRefs = filteredInfoStr.Mid(anOffset);
+				int endOffset = crossRefs.Find(_T("\\x*"));
+				if (endOffset != wxNOT_FOUND)
+				{
+					tempStr2 = crossRefs.Left(endOffset + 3);
+					wxString remStr = crossRefs.Mid(endOffset + 3); // could be empty
+					filteredInfoStr = tempStr1;
+					if (!remStr.IsEmpty())
+					{
+						filteredInfoStr += remStr;
+					}
+					crossRefs = tempStr2;
+				}
+			}
+			// attach crossRefs to markersStr now
+			if (!crossRefs.IsEmpty())
+			{
+				markersStr += crossRefs;
 			}
 
 			// we compose the pre-user-edit form of the target string, and the source
@@ -16706,8 +16745,15 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					// is; this stuff will be the first, if it exists, in Sstr, Tstr
 					// (except for any markersPrefix material which will precede it, but
 					// we attach that at the very end of the function, if its non-empty)
-					Sstr = markersStr;
-					Tstr = markersStr;
+					// 
+					// BEW changed 22Feb11 -- we won't commence Sstr and Tstr with
+					// markersStr here, because markersStr might have crossRefs appended;
+					// and there is no real need to show markersStr anyway because it will
+					// never contain a beginmarker which requires a matching later
+					// endmarker, so we'll instead just store it in markersPrefix
+					//Sstr = markersStr;
+					//Tstr = markersStr;
+					markersPrefix += markersStr;
 				}	
 
 				// USFM examples from UBS illustrate non-binding begin markers follow

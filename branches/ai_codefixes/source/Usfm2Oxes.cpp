@@ -332,7 +332,7 @@ void Usfm2Oxes::Initialize()
 	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
 	m_chapterMkrs = _T("\\c \\ca \\ca* \\cl \\cp \\cd ");
 	m_majorOrSeriesMkrs = _T("\\ms \\ms1 \\qa \\ms2 \\ms3 ");
-	m_parallelPassageHeadMkrs = _T("\\mr ");
+	m_parallelPassageHeadMkrs = _T("\\r ");
 	wxString m_rangeOrPsalmMkrs = _T("\\mr \\d ");
 	wxString m_normalOrMinorMkrs = _T("\\s \\s1 \\s2 \\s3 \\s4 "); 
 
@@ -1512,6 +1512,16 @@ int Usfm2Oxes::PoetryChunker(wxString* pInputBuffer,  enum ChunkType chunkType,
     // charsDefinitelyInChunk until we get to some other field which is found to belong to
     // this chunk; so we keep the tentative count in the other local counter, aCounter
 	aCounter = 0;
+	bool bFoundPoetryMarker = FALSE; // once we've found one, the loop below must no longer
+									 // iterate, but instead an inner loop must scan over
+									 // all markers until a halting condition is found as 
+									 // follows: (1) another poetry marker is found before
+									 // coming to a paragraph marker of any kind (any
+									 // \rem, \free and or \note before it will belong in 
+									 // the NEXT chunk, not this one), or (2) a paragraph
+									 // marker is encountered (same comments about \rem,
+									 // \free or note apply here too), or (3) buffer end
+									 // is encountered
 	do { // <<- don't actually need a loop, we match one \q etc, then close off the chunk
 		bBelongsInChunk = FALSE; // default, if no marker is found which potentially
 								 // belongs in the chunk or definitely belongs, the
@@ -1614,15 +1624,21 @@ int Usfm2Oxes::PoetryChunker(wxString* pInputBuffer,  enum ChunkType chunkType,
 					{
 						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
 							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
+						if (bBelongsInChunk)
+						{
+							// we've matched a poetry marker
+							bFoundPoetryMarker = TRUE;
+						}
 					}
 					break;
 				} // end of switch
 				// if it doesn't belong in this chunk then break out of the loop, this
 				// isn't a poetry chunk
-				if (!bBelongsInChunk)
+				if (!bBelongsInChunk && !bFoundPoetryMarker)
 				{
 					// charsDefinitelyInChunk must not be incremented, just break from
-					// loop, because wholeMkr is not one of the poetry markers
+					// loop, because the first non-\rem, non-\free and non-\note wholeMkr 
+					// is not one of the poetry markers
 					charsDefinitelyInChunk = 0;
 					bMatchedNonSkipMaterial = FALSE;
 					bOnlySkippedMaterial = FALSE;
@@ -1646,32 +1662,113 @@ int Usfm2Oxes::PoetryChunker(wxString* pInputBuffer,  enum ChunkType chunkType,
 					// temporarily parsed over but not yet counted by charsDefinitelyInChunk
 					charsDefinitelyInChunk += aCounter;
 
-					// now parse forwards, looking for the end of this poetry fragment's
-					// chunk; it will be at or immediately preceding one of the following:
-					// (1) the next marker, irrespective of what it is (even if \b for a
-					// blank line)
-					// (2) end of the data in the section
+                    // now parse forwards, looking for the end of this poetry fragment's
+                    // chunk; it will be (1) preceding a following poetry marker provided
+                    // no paragraph marker comes first (but beware, prededing \rem \\free
+                    // and or \note would belong in the next section, so backparse over
+                    // them), or (2) preceding a paragraph marker (same comments re \rem,
+                    // etc apply) or (3) end of the data in the section
+                    
 					int anOffset = wxNOT_FOUND;
+					int offset2 = wxNOT_FOUND;
+					wxString buff2;
+					wxString wholeMkr2; // use this for the marker we hope may end the paragraph 
+										// chunk -- ending at it, or preceding \rem, \free,
+										// \note fields if present (if they precede, they would
+										// belong in next paragraph chunk - so beware)
+					wxString wholeMkr2PlusSpace;
 					int mkrLen = wholeMkr.Len();
 					charsDefinitelyInChunk += mkrLen;
 					buff = buff.Mid(mkrLen); // get past the marker
 					anOffset = buff.Find(backslash);
-					if (anOffset == wxNOT_FOUND)
+					while (anOffset != wxNOT_FOUND && !buff.IsEmpty())
 					{
-						// the buffer end was reached before a marker was found, so the
-						// rest of the buffer contents belongs with the poetry marker
-						int theRestLen = buff.Len();
-						charsDefinitelyInChunk += theRestLen;
-						break;
-					}
-					else
-					{
-						// found a marker, everything up to it therefore belongs with the
-						// poetry fragment
-						charsDefinitelyInChunk += anOffset;
-						break;
-					}
-				}
+						// found a marker for the potential end location
+						buff2 = buff.Mid(anOffset); // buff2 now begins with the backslash
+													// where the marker is
+						wholeMkr2 = pDoc->GetWholeMarker(buff2);
+						wholeMkr2PlusSpace = wholeMkr2 + _T(' ');
+						if (pDoc->IsMarker(wholeMkr2))
+						{
+							// it's a genuine SFM or USFM marker
+							offset2 = m_poetryMkrs.Find(wholeMkr2PlusSpace); // is it a poetry marker
+							if (offset2 != wxNOT_FOUND)
+							{
+								// this wholeMkr2 marker is one of the poetry set of
+								// markers, so we've found the start (unless \rem, \free
+								// and or \note fields precede it - these would belong to
+								// information within the next paragraph and so we'd have
+								// to parse back over them to find the actual start of
+								// that next paragraph - which gives us also the end of
+								// the current one)
+								int backSpan = BackParseOverNoteFreeRem(buff2, anOffset);
+								// there must be something left which isn't \rem or \free or \note data
+								wxASSERT( anOffset > backSpan);
+								// the end of this paragraph chunk is given by the difference
+								charsDefinitelyInChunk += anOffset - backSpan;
+								return charsDefinitelyInChunk;
+							}
+							else
+							{
+								// wxNOT_FOUND was returned, so wholeMkr2 is not a poetry
+								// marker, so check if it's another paragraph marker --
+								// and if it is, do the same BackParse...() call as above
+								// and for the same reason
+								offset2 = m_paragraphMkrs.Find(wholeMkr2PlusSpace); // is it a paragraph marker
+								if (offset2 != wxNOT_FOUND)
+								{
+									// this wholeMkr2 marker is one of the paragraph set of
+									// markers, so we've found the start (unless \rem, \free
+									// and or \note fields precede it - these would belong to
+									// information within the next paragraph and so we'd have
+									// to parse back over them to find the actual start of
+									// that next paragraph - which gives us also the end of
+									// the current one)
+									int backSpan = BackParseOverNoteFreeRem(buff2, anOffset);
+									// there must be something left which isn't \rem or \free or \note data
+									wxASSERT( anOffset > backSpan);
+									// the end of this paragraph chunk is given by the difference
+									charsDefinitelyInChunk += anOffset - backSpan;
+									return charsDefinitelyInChunk;
+								}
+								else
+								{
+									// wxNOT_FOUND was returned, so wholeMkr2 is not a paragraph
+									// marker nor a poetry marker. Since we found a marker, we know we are
+									// not at the end of the section chunk - so wholeMkr2
+									// is in the current paragraph chunk, therefore
+									// iterate the loop after updating buff and counting
+									// the characters in the subspan indicated by anOffset
+									buff = buff.Mid(anOffset);
+									charsDefinitelyInChunk += anOffset;
+									mkrLen = wholeMkr2.Len(); // this one is in the current SectionPart
+									buff = buff.Mid(mkrLen); // get past the marker
+									charsDefinitelyInChunk += mkrLen;
+									anOffset = buff.Find(backslash);
+									// iterate loop
+								}
+							} // end of else block for test: if (offset2 != wxNOT_FOUND),
+							  // testing for poetry mkr
+						} // end of TRUE block for test: if (pDoc->IsMarker(wholeMkr2))
+						else
+						{
+							// a bogus marker, perhaps a stray backslash -- move over it
+							// and continue looping, assume this data is in the current
+							// Section Part
+							buff = buff.Mid(anOffset + 1);
+							charsDefinitelyInChunk += anOffset + 1; // include the backslash
+							anOffset = buff.Find(backslash);
+							// iterate loop
+						}
+					} // end of inner loop, while (anOffset != wxNOT_FOUND && !buff.IsEmpty()),
+					  // searched for backslash 
+					// after the loop, just accept the rest since there are no more backslashes
+					int aLength = buff.Len();
+					charsDefinitelyInChunk += aLength;
+					return charsDefinitelyInChunk;
+
+
+				} // end of else block for test: if (!bBelongsInChunk && !bFoundPoetryMarker)
 			} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
 			else
 			{
@@ -1929,6 +2026,7 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 					case poetryChunkType:
 					case paragraphChunkType:
 					{
+						// here, pPossiblesArray will contain paragraph markers
 						bBelongsInChunk = IsOneOf(wholeMkr, pPossiblesArray,
 							excludeFreeTransFromTest, includeNoteInTest, excludeRemarkFromTest);
 					}
@@ -1949,8 +2047,8 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 
 					// now parse forwards, looking for the end of this paragraph fragment's
 					// chunk; it will be at or immediately preceding one of the following:
-					// (1) any of the poetry markers which may lie ahead, and which
-					// precede a paragraph marker of any type
+					// (1) any of the poetry markers which may lie ahead, provided the poetry
+					// marker precedes a paragraph marker of any type
 					// (2) the next paragraph marker, of any type
 					// (3) end of the data in the section
 
@@ -1958,9 +2056,9 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 					int offset2 = wxNOT_FOUND;
 					wxString buff2;
 					wxString wholeMkr2; // use this for the marker we hope may end the paragraph 
-										// chunk -- at it, of preceding \rem, \free, \note fields
-										// if present (if they precede, they would belong in
-										// next paragraph chunk - so beware)
+										// chunk -- ending at it, or preceding \rem, \free,
+										// \note fields if present (if they precede, they would
+										// belong in next paragraph chunk - so beware)
 					wxString wholeMkr2PlusSpace;
 					int mkrLen = wholeMkr.Len();
 					charsDefinitelyInChunk += mkrLen;
@@ -1968,8 +2066,9 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 					anOffset = buff.Find(backslash);
 					while (anOffset != wxNOT_FOUND && !buff.IsEmpty())
 					{
-						// found a potential marker
-						buff2 = buff.Mid(anOffset); // buff2 now begins with the backslash where the mkr is
+						// found a marker for the potential end location
+						buff2 = buff.Mid(anOffset); // buff2 now begins with the backslash
+													// where the marker is
 						wholeMkr2 = pDoc->GetWholeMarker(buff2);
 						wholeMkr2PlusSpace = wholeMkr2 + _T(' ');
 						if (pDoc->IsMarker(wholeMkr2))
@@ -1984,7 +2083,7 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 								// information within the next paragraph and so we'd have
 								// to parse back over them to find the actual start of
 								// that next paragraph - which gives us also the end of
-								// the current one
+								// the current one)
 								int backSpan = BackParseOverNoteFreeRem(buff2, anOffset);
 								// there must be something left which isn't \rem or \free or \note data
 								wxASSERT( anOffset > backSpan);
@@ -2007,7 +2106,7 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 									// information within the next paragraph and so we'd have
 									// to parse back over them to find the actual start of
 									// that next paragraph - which gives us also the end of
-									// the current one
+									// the current one)
 									int backSpan = BackParseOverNoteFreeRem(buff2, anOffset);
 									// there must be something left which isn't \rem or \free or \note data
 									wxASSERT( anOffset > backSpan);
@@ -2018,49 +2117,64 @@ int Usfm2Oxes::ParagraphChunker(wxString* pInputBuffer,  enum ChunkType chunkTyp
 								else
 								{
 									// wxNOT_FOUND was returned, so wholeMkr2 is not a paragraph
-									// marker either. Since we found a marker, we know we are
+									// marker nor a poetry marker. Since we found a marker, we know we are
 									// not at the end of the section chunk - so wholeMkr2
 									// is in the current paragraph chunk, therefore
 									// iterate the loop after updating buff and counting
-									// the characters in  the subspan indicated by anOffset
+									// the characters in the subspan indicated by anOffset
 									buff = buff.Mid(anOffset);
 									charsDefinitelyInChunk += anOffset;
+									mkrLen = wholeMkr2.Len(); // this one is in the current SectionPart
+									buff = buff.Mid(mkrLen); // get past the marker
+									charsDefinitelyInChunk += mkrLen;
+									anOffset = buff.Find(backslash);
+									// iterate loop
 								}
-							} // end of else block for test: if (offset2 != wxNOT_FOUND), testing for poetry mkr
+							} // end of else block for test: if (offset2 != wxNOT_FOUND),
+							  // testing for poetry mkr
 						} // end of TRUE block for test: if (pDoc->IsMarker(wholeMkr2))
 						else
 						{
-							// a bogus marker, perhaps a stray backslash
-
-
-// do what here? ****
-
-
+							// a bogus marker, perhaps a stray backslash -- move over it
+							// and continue looping, assume this data is in the current
+							// Section Part
+							buff = buff.Mid(anOffset + 1);
+							charsDefinitelyInChunk += anOffset + 1; // include the backslash
+							anOffset = buff.Find(backslash);
+							// iterate loop
 						}
-					} // end of loop, while (anOffset != wxNOT_FOUND && !buff.IsEmpty()), searched for backslash
-
-					//  ****   what about the test for getting to end of section? where does that fit? -- it's
-					//  below, at 2056
-
+					} // end of inner loop, while (anOffset != wxNOT_FOUND && !buff.IsEmpty()),
+					  // searched for backslash 
+					// after the loop, just accept the rest since there are no more backslashes
+					int aLength = buff.Len();
+					charsDefinitelyInChunk += aLength;
+					return charsDefinitelyInChunk;
 				} // end of TRUE block for the always succeeding test: 	if (!bBelongsInChunk || bBelongsInChunk)
-
-
 			} // end of TRUE block for test: if (!wholeMkr.IsEmpty())
 			else
 			{
-				// buff currently starts with text, not a marker, ... we'll still treat it
-				// as a paragraph...
-
-
-
-// TODO *****
-
-
-
-
+				// buff currently starts with text, not a marker, ... we'll treat it
+				// as within the current paragraph...so count up to the next backslash and
+				// iterate, but if there is none, then count the result of buff contents
+				// and return
+				int anOffset2 = buff.Find(backslash);
+				if (anOffset2 == wxNOT_FOUND)
+				{
+					// no more markers in the section, so just accept the result
+					int aLength = buff.Len();
+					charsDefinitelyInChunk += aLength;
+					return charsDefinitelyInChunk;
+				}
+				else
+				{
+					// found a backslash, so it's probably a marker -- accept characters
+					// up to it and iterate
+					charsDefinitelyInChunk += anOffset2;
+					buff = buff.Mid(anOffset2);
+				}
 			} // end of else block for test: if (!wholeMkr.IsEmpty())
 		} // end of else block for test: else if (m_bContainsNotes && wholeMkr == m_noteMkr)
-	} while (bBelongsInChunk); // end of do loop
+	} while (!buff.IsEmpty()); // end of do loop
 	if (!bMatchedNonSkipMaterial && bMatchedSkipMkr)
 	{
 		bOnlySkippedMaterial = TRUE; // tell the caller we scanned only over skippable material
@@ -3863,16 +3977,23 @@ bool Usfm2Oxes::ParseCanonIntoSections(CanonInfo* pCanonInfo)
 
 	// do the next level of parsing, by chunking the set of SectionInfo structs into
 	// each's component SectionPart structs
-	ParseSectionsIntoSectionParts(&pCanonInfo->arrSections);
-
+	bool bOK = ParseSectionsIntoSectionParts(&pCanonInfo->arrSections);
+	if (!bOK)
+	{
+		// an error prevented completion of the parse of the Usfm, user has seen a
+		// message, so terminate the parese
+		return FALSE;
+	}
+	// all's well
 	return TRUE;
 }
 
 // loop over each of the SectionInfo structs to call ParseSingleSectionIntoSectionParts()
 // on each in order to achieve the next level of parsing. SectionPart structs are of 6
 // types, four which are short, if they occur, at the start of a section, and then one or
-// more poetry and paragraph chunks until all the section's data is consumed
-void Usfm2Oxes::ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray)
+// more poetry and paragraph chunks until all the section's data is consumed;
+// returns TRUE if all was well, FALSE if an error prevented completion of the parse
+bool Usfm2Oxes::ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray)
 {
 	size_t count = pSectionsArray->GetCount();
 	if (count > 0)
@@ -3885,7 +4006,11 @@ void Usfm2Oxes::ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray
 #ifdef __WXDEBUG__
 			wxLogDebug(_T("\n ***  <<<  Parsing Section with index = %d   >>>  *** \n"), index);
 #endif
-			ParseSingleSectionIntoSectionParts(pSectionInfo);
+			bool bParseWorkedRight = ParseSingleSectionIntoSectionParts(pSectionInfo);
+			if (!bParseWorkedRight)
+			{
+				return FALSE; // a message has been seen by the user
+			}
 		}
 	}
 	else
@@ -3896,9 +4021,11 @@ void Usfm2Oxes::ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray
 		wxLogDebug(_T("      Called from the end of ParseCanonIntoSections() at the ParseSectionsIntoSectionParts() call. \n"));
 #endif
 	}
+	return TRUE;
 }
 
-void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
+// returns TRUE if all was well, FALSE if an error prevented completion of the parse
+bool Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 {
 	wxString buff = pSectionInfo->strChunk; // this will be consumed by the chunking loop
 	bool bMatched = FALSE; // TRUE if an attempt to chunk the text for one of the looked-for types of 
@@ -3957,9 +4084,9 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 			SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(0)));
 			// the wxArrayString arrays have to be explicitly copied, fortunately,
 			// the WxArrayString class has an assignment operator defined
-			SectionPart* pTemplate = m_arrSectionPartTemplate.Item(0);
-			pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
-			pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+			//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(0);
+			//pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+			//pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
 			pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
 			bOnlySkippedMaterial = FALSE; // initialize
 			span = Chunker(&buff, majorOrSeriesChunkType, (void*)pSectionPart,
@@ -3993,9 +4120,9 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 			{
 				// try looking for a rangeOrPsalmChunkType...
 				SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(1)));
-				SectionPart* pTemplate = m_arrSectionPartTemplate.Item(1);
-				pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
-				pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+				//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(1);
+				//pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+				//pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
 				pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
 				bOnlySkippedMaterial = FALSE; // initialize
 				span = Chunker(&buff, rangeOrPsalmChunkType, (void*)pSectionPart,
@@ -4029,9 +4156,9 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 				{
 					// try looking for a normalOrMinorChunkType
 					SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(2)));
-					SectionPart* pTemplate = m_arrSectionPartTemplate.Item(2);
-					pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
-					pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+					//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(2);
+					//pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+					//pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
 					pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
 					bOnlySkippedMaterial = FALSE; // initialize
 					span = Chunker(&buff, normalOrMinorChunkType, (void*)pSectionPart,
@@ -4065,9 +4192,9 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 					{
 						// try looking for a parallelPassageHeadChunkType
 						SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(3)));
-						SectionPart* pTemplate = m_arrSectionPartTemplate.Item(3);
-						pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
-						pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+						//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(3);
+						//pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+						//pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
 						pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
 						bOnlySkippedMaterial = FALSE; // initialize
 						span = Chunker(&buff, parallelPassageHeadChunkType, (void*)pSectionPart,
@@ -4100,12 +4227,19 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 		// until the section is exhausted
 		if (!buff.IsEmpty())
 		{
-			bMatched = FALSE; // initialize to FALSE at the start of each iteration
 			do {
+#ifdef __WXDEBUG__
+	int xOffset = buff.Find(_T("\\p"));
+	if (xOffset == 0)
+	{
+			int halt_here = 1;
+	}
+#endif
+				bMatched = FALSE; // initialize to FALSE at the start of each iteration
 				SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(4)));
-				SectionPart* pTemplate = m_arrSectionPartTemplate.Item(4);
-				pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
-				pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+				//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(4);
+				//pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+				//pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
 				pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
 				bOnlySkippedMaterial = FALSE; // initialize
 				span = PoetryChunker(&buff, poetryChunkType, (void*)pSectionPart,
@@ -4140,14 +4274,44 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 				{
                     // try matching a paragraph chunk -- it has to be a paragraph chunk
                     // even if not beginning explicitly with a paragraph type of marker
-
-// TODO
+					SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(5)));
+					//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(5);
+					//pSectionPart->arrPossibleMarkers = pTemplate->arrPossibleMarkers;
+					//pSectionPart->arrSkipMarkers = pTemplate->arrSkipMarkers;
+					pSectionPart->pSectionInfo = pSectionInfo; // set the parent struct
+					bOnlySkippedMaterial = FALSE; // initialize
+					span = ParagraphChunker(&buff, paragraphChunkType, (void*)pSectionPart,
+									bOnlySkippedMaterial);
+					// the PargraphChunk() MUST succeed if the others failed to advance &
+					// consume some of buff's textz
+					if (span == 0)
+					{
+						// this constitues a parser error which leads to an infinite loop,
+						// so have to bail out 
+						bMatched = FALSE;
+						wxString msg;
+						int nWhereAt = wxNOT_FOUND;
+						nWhereAt = m_pCanonInfo->arrSections.Index(pSectionInfo);
+						msg = msg.Format(_("The Usfm parser for OXES version 1 export failed to advance.\nOXES export failed.\n(If not halted immediately, this would cause at infinite loop at section with index = %d)."),
+							nWhereAt);
+						wxMessageBox(msg,_T("OXES export error (infinite loop)"),wxICON_ERROR);
+						return FALSE;
+					}
+					else
+					{
+						bMatched = TRUE;
+						pSectionPart->bChunkExists = TRUE;
+						pSectionPart->strChunk += buff.Left(span);
+						buff = buff.Mid(span);
+						// add the chunk's struct to the parent's array
+						pSectionInfo->sectionPartArray.Add(pSectionPart);
+					}
 				}
 			} while (!buff.IsEmpty() && bMatched);
 		}
 	} while (!buff.IsEmpty());
 
-	// verify that the section partss are chunked correctly, using a loop and wxLogDebug calls
+	// verify that the section parts are chunked correctly, using a loop and wxLogDebug calls
 #ifdef __WXDEBUG__
 	size_t count = pSectionInfo->sectionPartArray.GetCount();
 	if (count > 0)
@@ -4170,6 +4334,7 @@ void Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 	
 
 
+	return TRUE;
 }
 
 

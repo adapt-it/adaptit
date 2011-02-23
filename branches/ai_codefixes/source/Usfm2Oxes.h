@@ -379,11 +379,11 @@ private:
 	bool ParseCanonIntoSections(CanonInfo* pCanonInfo);
     // a chunker which scans over all the SectionInfo chunks, to divide each into its
     // component parts - SectionPart chunks
-	void ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray);
+	bool ParseSectionsIntoSectionParts(AISectionInfoArray* pSectionsArray);
     // the chunker which chunks an individual SectionInfo to one or more SectionPart
     // chunks, those being chunks for paragraphs, and any pre-paragraph fields such as \ms
     // \s \c \mr \r or poetry etc
-	void ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo);
+	bool ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo);
 	// a function to back-parse over any \rem, \free, \note which precedes the match
 	// location, returning the number of characters back-parsed over
 	int BackParseOverNoteFreeRem(wxString& buff, int nMatchLocation);
