@@ -100,7 +100,7 @@ public:
 	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
                         // process which owns the write privilege to the project folder is
                         // different from me on my machine running my process which gained
-                        // ownership of write privileges earlier
+                        // ownership of write privileges earlierprivate:
 private:
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
@@ -164,7 +164,6 @@ private:
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 
 	// information
-
 };
 
 #endif // ReadOnlyProtection_h

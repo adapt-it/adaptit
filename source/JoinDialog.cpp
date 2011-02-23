@@ -10,13 +10,7 @@
 /// The CJoinDialog class provides a dialog interface for the user to be able
 /// to combine Adapt It documents into larger documents.
 /// \derivation		The CJoinDialog class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in JoinDialog.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, all changes for supporting doc version 5 are done for this file
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance

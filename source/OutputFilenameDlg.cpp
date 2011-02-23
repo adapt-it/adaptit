@@ -136,11 +136,6 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 				,_T(""), wxICON_WARNING);
 			return; // leave user in the dialog, to fix the name
 		}
-		// whm: event.Sktip() at the end of OnOK takes care of this
-		//else
-		//{
-		//	CDialog::OnOK();
-		//}
 	}
 	else
 	{
@@ -158,56 +153,13 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 			if (foundPos != -1)
 				fn[foundPos] = _T(' ');
 		}
-/*
-		while ( (nFound = fn.Find(_T(':'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('?'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('*'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('\"'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('\\'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('/'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('|'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('<'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('>'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-*/
 		m_strFilename = fn;
 		TransferDataFromWindow(); //UpdateData(FALSE);
 		::wxBell();
 		// if we decide to verbally tell the user what the beep means:
 		//wxString message;
-		//message = message.Format(_("Sorry, names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
+		//message = message.Format(_("Names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
 		//wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION);	}
 	}
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// COutputFilenameDlg message handlers
-
-

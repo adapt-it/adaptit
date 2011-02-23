@@ -3,7 +3,7 @@
 /// \file			KBPage.h
 /// \author			Bill Martin
 /// \date_created	17 August 2004
-/// \date_revised	15 January 2008
+/// \date_revised	11 May 2010
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CKBPage class. 
@@ -53,20 +53,29 @@ public:
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* pTextCtrlAsStaticTextBackupsKB;
+	
+	// whm added 10May10
+	wxTextCtrl*	pSrcLangCodeBox;
+	wxTextCtrl*	pTgtLangCodeBox;
+	wxButton* pButtonLookupCodes;
+
 	wxRadioButton* pRadioAdaptBeforeGloss;
 	wxRadioButton* pRadioGlossBeforeAdapt;
 	bool		tempDisableAutoKBBackups;
-	bool		tempAdaptBeforeGloss; // was m_bAdaptBeforeGloss in MFC version
-	bool		tempNotLegacySourceTextCopy; // was m_bNotLegacySourceTextCopy in MFC version
+	bool		tempAdaptBeforeGloss;
+	bool		tempNotLegacySourceTextCopy;
 	bool		tempBackupDocument;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString strSaveSrcName;
 	wxString strSaveTgtName;
+	wxString	tempSrcLangCode;
+	wxString	tempTgtLangCode;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& WXUNUSED(event)); 
 
+	void OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event));// whm added 10May10
 	void OnCheckKbBackup(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioAdaptBeforeGloss(wxCommandEvent& WXUNUSED(event));

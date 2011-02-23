@@ -64,7 +64,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBitmap *item3 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 7 ), wxDefaultPosition, wxDefaultSize );
+    wxStaticBitmap *item3 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 17 ), wxDefaultPosition, wxDefaultSize );
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -81,11 +81,11 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item7->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("5.0.0a"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("5.2.4"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item5->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("July 29, 2009"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("January 20, 2011"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item9->SetToolTip( wxT("This date should be the same as the executable file") );
     item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -132,117 +132,114 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("User Forum: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Send problem or feedback reports to developers via the Help menu"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, wxT("  http://code.google.com/p/adaptit/"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item12->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("This version of Adapt It built with wxWidgets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("This version of Adapt It built with wxWidgets"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("wxWidgets is a cross-platform GUI library"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("wxWidgets is a cross-platform GUI library"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Built with wxWidgets version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("Built with wxWidgets version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item29 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item28 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+    item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 0 );
 
-    wxStaticLine *item30 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item29 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item34->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item33->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 0, 0 );
+    wxFlexGridSizer *item34 = new wxFlexGridSizer( 2, 0, 0 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item36, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item35, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item37 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item38, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item37, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item39 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item38 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item40, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item39, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item41 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item42, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item43 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item44, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item45 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item44 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item46, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item45 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item47 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item47, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item46 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item48 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item48, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item47 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item47, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item49 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item48 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item48, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item31->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item30->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item31, 0, wxALIGN_CENTER, 5 );
+    item0->Add( item30, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticLine *item50 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item50, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item49 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item49, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item51 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item50 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item52 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item52->SetDefault();
-    item51->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item51 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item51->SetDefault();
+    item50->Add( item51, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item50->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item50, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -254,6 +251,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *ID_CONTROLBAR_1_LINE_SIZER;
 wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -262,6 +260,7 @@ wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    ID_CONTROLBAR_1_LINE_SIZER = item2;
 
     wxRadioButton *item3 = new wxRadioButton( parent, IDC_RADIO_DRAFTING, _("Drafting "), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item3->SetValue( TRUE );
@@ -613,66 +612,69 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    item13->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Source Language Name:") );
+    wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxVERTICAL );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Source"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_SOURCE_LANGUAGE, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    item16->SetToolTip( _("Type a name for the source language here") );
+    item14->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_SOURCE_LANGUAGE, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item15->SetToolTip( _("Type a name for the source language here") );
-    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item14, 0, wxGROW|wxALL, 5 );
 
-    item13->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("Source Language Code:") );
+    wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
 
-    item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_EDIT_SOURCE_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(120,40), 0 );
+    item19->SetToolTip( _("Type the 3-letter source language code here (or use Lookup Codes button)") );
+    item17->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item13->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item11->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item22 = new wxStaticBox( parent, -1, _("Target Language Name:") );
+    wxStaticBoxSizer *item21 = new wxStaticBoxSizer( item22, wxVERTICAL );
 
-    item17->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, IDC_TARGET_LANGUAGE, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    item23->SetToolTip( _("Type a name for the target language here") );
+    item21->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item18 = new wxStaticText( parent, -1, _("Target"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+    item20->Add( item21, 0, wxGROW|wxALL, 5 );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, IDC_TARGET_LANGUAGE, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item19->SetToolTip( _("Type a name for the target language here") );
-    item17->Add( item19, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    wxStaticBox *item25 = new wxStaticBox( parent, -1, _("Target Language Code:") );
+    wxStaticBoxSizer *item24 = new wxStaticBoxSizer( item25, wxVERTICAL );
 
-    item17->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_EDIT_TARGET_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(120,40), 0 );
+    item26->SetToolTip( _("Type the 3-letter target language code here (or use Lookup Codes button)") );
+    item24->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item16->Add( item17, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item20->Add( item24, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item11->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item12->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    item2->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item2->Add( 20, 30, 0, wxALIGN_CENTER, 0 );
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_LOOKUP_CODES, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Press this button to get a list of 3-letter language codes") );
+    item11->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
+    item2->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NL, _("Check the box below only if the standard format markers in the source language input data always start on new lines"), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( 20, 20, 0, wxALIGN_CENTER, 0 );
 
-    wxCheckBox *item22 = new wxCheckBox( parent, IDC_CHECK_SFM_AFTER_NEWLINES, _("Recognise standard format markers only following newlines"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Check this box only if the standard format markers always start on new lines") );
-    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
 
-    item2->Add( item20, 0, wxGROW|wxALL, 5 );
+    item2->Add( item28, 0, wxGROW|wxALL, 5 );
 
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
@@ -1009,42 +1011,52 @@ wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->SetToolTip( _("Move to the used list") );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    item9->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item12 = new wxButton( parent, ID_BUTTON_REJECT_ALL_FILES, _("Move All Right >>"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item9->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item13 = new wxButton( parent, ID_BUTTON_ACCEPT_ALL_FILES, _("<< Move All Left"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item4->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(240,250), 0, strs13, wxLB_SINGLE|wxLB_HSCROLL );
-    item13->SetToolTip( _("Document files listed here will not be used") );
-    item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("None of these document files will be used"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item4->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
-
-    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxString *strs15 = (wxString*) NULL;
+    wxListBox *item15 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(240,250), 0, strs15, wxLB_SINGLE|wxLB_HSCROLL );
+    item15->SetToolTip( _("Document files listed here will not be used") );
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("None of these document files will be used"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetDefault();
-    item17->SetToolTip( _("Click OK to proceed") );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item4->Add( item14, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
-    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item19 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetDefault();
+    item19->SetToolTip( _("Click OK to proceed") );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item20 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -1358,7 +1370,7 @@ wxSizer *DocPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item18 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, _("&Change USFM fixed space markers (!$) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item18 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, _("&Change USFM fixed space markers (~) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
     item17->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -1932,52 +1944,74 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    item9->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Source:") );
-    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_SRC_NAME, wxT(""), wxDefaultPosition, wxSize(300,40), 0 );
-    item12->SetToolTip( _("This is the source language name") );
-    item10->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticBox *item13 = new wxStaticBox( parent, -1, _("Source Language Name:") );
+    wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
 
-    item9->Add( item10, 10, wxGROW|wxALL, 0 );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_NAME, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    item14->SetToolTip( _("This is the source language name") );
+    item12->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item9->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item12, 0, wxGROW|wxALL, 5 );
 
-    item2->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Source Language Code:") );
+    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_EDIT_SOURCE_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(120,40), 0 );
+    item17->SetToolTip( _("This is the 3-letter source language code") );
+    item15->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item13->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Target:") );
-    wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxVERTICAL );
+    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_TGT_NAME, wxT(""), wxDefaultPosition, wxSize(300,40), 0 );
-    item16->SetToolTip( _("This is the target language name") );
-    item14->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    item13->Add( item14, 10, wxGROW|wxALL, 0 );
+    wxStaticBox *item20 = new wxStaticBox( parent, -1, _("Target Language Name:") );
+    wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxVERTICAL );
 
-    item13->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item21 = new wxTextCtrl( parent, IDC_EDIT_TGT_NAME, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    item21->SetToolTip( _("This is the target language name") );
+    item19->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    item18->Add( item19, 0, wxGROW|wxALL, 5 );
 
-    wxStaticBox *item18 = new wxStaticBox( parent, -1, _("Set Order of Adaptations and Glosses for Vertical Editing Steps") );
-    wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
+    wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Target Language Code:") );
+    wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
 
-    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_ADAPT_BEFORE_GLOSS, _("Do adaptations updating before glosses updating"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item19->SetValue( TRUE );
-    item17->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_EDIT_TARGET_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(120,40), 0 );
+    item24->SetToolTip( _("This is the 3-letter target language code") );
+    item22->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item20 = new wxRadioButton( parent, IDC_RADIO_GLOSS_BEFORE_ADAPT, _("Do glosses updating before adaptations updating"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item18->Add( item22, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item2->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxCheckBox *item21 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item25 = new wxButton( parent, ID_BUTTON_LOOKUP_CODES, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Press this button to get a list of 3-letter language codes") );
+    item9->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticBox *item27 = new wxStaticBox( parent, -1, _("Set Order of Adaptations and Glosses for Vertical Editing Steps") );
+    wxStaticBoxSizer *item26 = new wxStaticBoxSizer( item27, wxVERTICAL );
+
+    wxRadioButton *item28 = new wxRadioButton( parent, IDC_RADIO_ADAPT_BEFORE_GLOSS, _("Do adaptations updating before glosses updating"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item28->SetValue( TRUE );
+    item26->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item29 = new wxRadioButton( parent, IDC_RADIO_GLOSS_BEFORE_ADAPT, _("Do glosses updating before adaptations updating"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item2->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *item30 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item2, 0, wxGROW|wxALL, 5 );
 
@@ -2100,23 +2134,26 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item28->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item30 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    wxPanel *item30 = new wxPanel( parent, ID_PANEL_AUTO_INSERT_COLOR, wxDefaultPosition, wxSize(20,20), 0 );
     item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item31 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    item28->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item31, 0, wxGROW|wxALL, 0 );
+    item4->Add( item32, 0, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item33->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item34 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
+    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
@@ -2475,190 +2512,6 @@ wxSizer *XMLErrorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *USFMPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Define Uniform Standard Format Marker (USFM) Sets"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_USFMPAGE, _("USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project. After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 0 );
-
-    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("This Document's Settings:") );
-    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
-
-    wxRadioButton *item8 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY, _("&UBS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item8->SetValue( TRUE );
-    item8->SetToolTip( _("Select this button to use the USFM set of standard format markers for this document") );
-    item6->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item9 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY, _("SIL&PNG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("Select this button to use the PNG set of standard format markers for this document") );
-    item6->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item10 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS, _("Both UBS &and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers for this document") );
-    item6->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("Project Defaults:") );
-    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
-
-    wxRadioButton *item13 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_PROJ, _("U&BS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item13->SetValue( TRUE );
-    item13->SetToolTip( _("Select this button to use the USFM set of standard format markers as default for the whole project") );
-    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item14 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY_PROJ, _("SILP&NG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Select this button to use the PNG set of standard format markers as default for the whole project") );
-    item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item15 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS_PROJ, _("Bo&th UBS and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers as default for the whole project") );
-    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    item5->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticBox *item17 = new wxStaticBox( parent, -1, _("Factory Defaults (read only):") );
-    wxStaticBoxSizer *item16 = new wxStaticBoxSizer( item17, wxVERTICAL );
-
-    wxRadioButton *item18 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_FACTORY, _("UB&S USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item18->SetValue( TRUE );
-    item18->SetToolTip( _("The Factory default is USFM and cannot be changed") );
-    item16->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY_FACTORY, _("SILPN&G 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetToolTip( _("The Factory default is USFM and cannot be changed") );
-    item16->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxRadioButton *item20 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS_FACTORY, _("Bot&h UBS and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->SetToolTip( _("The Factory default is USFM and cannot be changed") );
-    item16->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    item5->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("Factory Defaults cannot be changed"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item21, 0, wxALIGN_CENTER|wxALL, 10 );
-
-    item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item22 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
-
-    item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM, _("&Change USFM fixed space markers (!$) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
-    item23->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
-
-    item25->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Note: USFM discretionary line breaks (//) are always removed from input texts"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item22->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *FilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Define Marker Filtering (Marker Hiding)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_FILTERPAGE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Th&is Document's Filter Settings:") );
-    wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
-
-    wxString *strs9 = (wxString*) NULL;
-    wxCheckListBox *item9 = new wxCheckListBox( parent, IDC_LIST_SFMS, wxDefaultPosition, wxSize(-1,110), 0, strs9, wxLB_SINGLE|wxLB_SORT );
-    item9->SetToolTip( _("This is a list of standard format markers that can be used in this document; when boxes are checked the markers are filtered (hidden)") );
-    item7->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Pro&ject Filter Defaults:") );
-    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
-
-    wxString *strs12 = (wxString*) NULL;
-    wxCheckListBox *item12 = new wxCheckListBox( parent, IDC_LIST_SFMS_PROJ, wxDefaultPosition, wxSize(-1,110), 0, strs12, wxLB_SINGLE|wxLB_SORT );
-    item12->SetToolTip( _("This is a list of default standard format markers for the project; when boxes are checked the markers are filtered (hidden)") );
-    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item6->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    wxStaticBox *item14 = new wxStaticBox( parent, -1, _("&Factory Filter Defaults (read only):") );
-    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxVERTICAL );
-
-    wxString *strs15 = (wxString*) NULL;
-    wxCheckListBox *item15 = new wxCheckListBox( parent, IDC_LIST_SFMS_FACTORY, wxDefaultPosition, wxSize(-1,110), 0, strs15, wxLB_SINGLE|wxLB_SORT );
-    item15->SetToolTip( _("This is the list of default standard format markers that come from the Factory (at installation); their filter status cannot be changed") );
-    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item6->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -3972,24 +3825,27 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE, _("This selection will first save the currently open document. You will then be able to choose the documents you want checked."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 10 );
 
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG_TWO, _("Note: To check all documents in the Adaptations folder, or all documents in all the book folders, Cancel this dialog, close the open document, and then choose the Consistency Check... command again. (Also, for checking all book folders, make sure book folder mode is turned on.)"), wxDefaultPosition, wxSize(-1,30), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item5->Add( item7, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    item7->Add( 70, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item8->Add( 70, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetDefault();
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -4339,70 +4195,79 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_STATIC_TEXT_SELECT_A_TAB, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxNotebook *item5 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_TEXT_SELECT_A_TAB, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item3->Add( 160, 14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_STATIC_WHICH_KB, _("Adaptations Knowledge Base"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxNotebook *item7 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
 #if !wxCHECK_VERSION(2,5,2)
-    wxNotebookSizer *item4 = new wxNotebookSizer( item5 );
+    wxNotebookSizer *item6 = new wxNotebookSizer( item7 );
 #else
-    wxWindow *item4 = item5;
+    wxWindow *item6 = item7;
 #endif
 
-    wxPanel *item6 = new wxPanel( item5, -1 );
-    KBEditorPanelFunc( item6, FALSE );
-    item5->AddPage( item6, _("1 Word") );
-
-    wxPanel *item7 = new wxPanel( item5, -1 );
-    KBEditorPanelFunc( item7, FALSE );
-    item5->AddPage( item7, _("2 Words") );
-
-    wxPanel *item8 = new wxPanel( item5, -1 );
+    wxPanel *item8 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item8, FALSE );
-    item5->AddPage( item8, _("3 Words") );
+    item7->AddPage( item8, _("1 Word") );
 
-    wxPanel *item9 = new wxPanel( item5, -1 );
+    wxPanel *item9 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item9, FALSE );
-    item5->AddPage( item9, _("4 Words") );
+    item7->AddPage( item9, _("2 Words") );
 
-    wxPanel *item10 = new wxPanel( item5, -1 );
+    wxPanel *item10 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item10, FALSE );
-    item5->AddPage( item10, _("5 Words") );
+    item7->AddPage( item10, _("3 Words") );
 
-    wxPanel *item11 = new wxPanel( item5, -1 );
+    wxPanel *item11 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item11, FALSE );
-    item5->AddPage( item11, _("6 Words") );
+    item7->AddPage( item11, _("4 Words") );
 
-    wxPanel *item12 = new wxPanel( item5, -1 );
+    wxPanel *item12 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item12, FALSE );
-    item5->AddPage( item12, _("7 Words") );
+    item7->AddPage( item12, _("5 Words") );
 
-    wxPanel *item13 = new wxPanel( item5, -1 );
+    wxPanel *item13 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item13, FALSE );
-    item5->AddPage( item13, _("8 Words") );
+    item7->AddPage( item13, _("6 Words") );
 
-    wxPanel *item14 = new wxPanel( item5, -1 );
+    wxPanel *item14 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item14, FALSE );
-    item5->AddPage( item14, _("9 Words") );
+    item7->AddPage( item14, _("7 Words") );
 
-    wxPanel *item15 = new wxPanel( item5, -1 );
+    wxPanel *item15 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item15, FALSE );
-    item5->AddPage( item15, _("10 Words") );
+    item7->AddPage( item15, _("8 Words") );
 
-    item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxPanel *item16 = new wxPanel( item7, -1 );
+    KBEditorPanelFunc( item16, FALSE );
+    item7->AddPage( item16, _("9 Words") );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxPanel *item17 = new wxPanel( item7, -1 );
+    KBEditorPanelFunc( item17, FALSE );
+    item7->AddPage( item17, _("10 Words") );
 
-    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetDefault();
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    item16->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item19 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetDefault();
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item20 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item2->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -4841,7 +4706,7 @@ wxSizer *CCTableEditDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_CCT, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_CCT, wxT(""), wxDefaultPosition, wxSize(640,420), wxTE_MULTILINE );
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 10, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -5629,7 +5494,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs5 = (wxString*) NULL;
-    wxListBox *item5 = new wxListBox( parent, ID_LIST_UI_LANGUAGES, wxDefaultPosition, wxSize(400,220), 0, strs5, wxLB_SINGLE );
+    wxListBox *item5 = new wxListBox( parent, ID_LIST_UI_LANGUAGES, wxDefaultPosition, wxSize(400,180), 0, strs5, wxLB_SINGLE );
     item5->SetToolTip( _("This is a list of interface languages found at the path below") );
     item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5668,7 +5533,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item16->SetToolTip( _("The path where Adapt It looks for localization folders containing .mo files. Use the \"Browse...\" button at right to designate a different path") );
     item15->Add( item16, 1, wxGROW|wxALL, 5 );
 
@@ -6620,6 +6485,8 @@ wxSizer *DoublePunctTabPageFunc( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+wxSizer *ID_CONTROLBAR_2_LINE_SIZER_TOP;
+wxSizer *ID_CONTROLBAR_2_LINE_SIZER_BOTTOM;
 wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6628,6 +6495,7 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    ID_CONTROLBAR_2_LINE_SIZER_TOP = item2;
 
     item2->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
 
@@ -6660,6 +6528,7 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item2, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+    ID_CONTROLBAR_2_LINE_SIZER_BOTTOM = item9;
 
     item9->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
 
@@ -6702,8 +6571,8 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG, _("Warning: innappropriate use of this dialog may cause loss of data. The item, or items, being moved or copied may be file or folders or both. Moving or copying a folder moves or copies all its contents. The direction of the move or copy is always from the left list to the right list.  For moving or copying, first select the items you  want in the list on the left. Selections in the right hand list allow you to delete or rename what you select. Double-clicking a folder in the list open that folder and the list is updated to show the folder's contents. To reopen the parent folder click the green 'Up Arrow' button.  If there is a danger of overwriting a file, a dialog will open and allow you to choose to overwrite, not move or copy, or to have the file renamed and then moved or copied. Beware: deletions are unrecoverable. Be safe: first make a backup somewhere if you are unsure whether a file contains important data or not. Click Close when finished."), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxNO_BORDER | wxGROW );
-    item2->Add( item3, 1, wxGROW|wxALL, 5 );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG1, _("Warning: inappropriate use of this dialog may cause loss of data. Moving or copying a folder moves or copies all its contents. The direction of the move or copy may be from the left to the right pane, or from the right to the left pane - starting from the pane with the selections.  Double-clicking a folder in the list opens that folder. To reopen the parent folder click the green 'Up Arrow' button. Beware: deletions are unrecoverable. "), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxNO_BORDER | wxGROW );
+    item2->Add( item3, 1, wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -6713,36 +6582,38 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item7 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the source folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item7 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the &folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetToolTip( _("Navigate to a different folder you wish to open in the left pane") );
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );
 
     item6->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBitmapButton *item8 = new wxBitmapButton( parent, ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
+    item8->SetToolTip( _("Open the parent folder") );
     item6->Add( item8, 0, wxALIGN_CENTER, 5 );
 
     item5->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to source folder (selections here can be copied or moved):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to the opened folder:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL );
-    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item5->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the source folder:") );
+    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the fo&lder:") );
     wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxHORIZONTAL );
 
-    wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxSize(-1,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
     item14->Add( item16, 1, wxGROW|wxALL, 5 );
 
     item13->Add( item14, 1, wxGROW, 0 );
@@ -6753,7 +6624,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticLine *item18 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,220), wxLI_VERTICAL );
+    wxStaticLine *item18 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,120), wxLI_VERTICAL );
     item17->Add( item18, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item4->Add( item17, 0, wxGROW|wxALL, 5 );
@@ -6762,36 +6633,38 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the destination folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the f&older"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Navigate to a different folder you wish to open in the right pane") );
     item20->Add( item21, 0, wxALIGN_CENTER, 5 );
 
     item20->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBitmapButton *item22 = new wxBitmapButton( parent, ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
+    item22->SetToolTip( _("Open the parent folder") );
     item20->Add( item22, 0, wxALIGN_CENTER, 5 );
 
     item19->Add( item20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
 
     wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to destination folder (selections here can be deleted or renamed):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to the opened folder:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item19->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL );
-    item25->Add( item26, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item25->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item19->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the destination folder:") );
+    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the folde&r:") );
     wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxHORIZONTAL );
 
-    wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxSize(-1,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
     item28->Add( item30, 1, wxGROW|wxALL, 5 );
 
     item27->Add( item28, 1, wxGROW, 0 );
@@ -6802,31 +6675,52 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE, _("Move"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
-    item31->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_MOVE, _("&Move"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Move selected files and / or folders to the folder open in the other pane") );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
 
-    item31->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item34 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item34 = new wxButton( parent, ID_BUTTON_COPY, _("&Copy"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Copy files and / or folders to the folder open in the other pane") );
+    item32->Add( item34, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item35 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_PEEK, _("&Peek..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Look at the first 16 kB of the contents of the first selected file in one of the panes, with text Left to Right") );
+    item32->Add( item35, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item31->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item36 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetDefault();
-    item31->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_RENAME, _("R&ename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Rename the first folder or file shown selected in one of the panes") );
+    item32->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
+
+    item32->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Delete the files and / or folders shown selected in one of the panes") );
+    item32->Add( item37, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item32->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("Clo&se"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetDefault();
+    item38->SetToolTip( _("Close the dialog when you have finished with it") );
+    item32->Add( item38, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+
+    item32->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item32->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item31->Add( item32, 0, wxALIGN_CENTER, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
 
@@ -6936,7 +6830,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename confllicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename conflicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item25->Add( 70, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
@@ -7097,6 +6991,903 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
+    item1->AddGrowableCol( 0 );
+    item1->AddGrowableRow( 0 );
+    item1->AddGrowableRow( 1 );
+
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("&List of Language Codes and Names:") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_STATICTEXT_SCROLL_LIST, _("Scroll &list and highlight language or search for language below"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxString *strs6 = (wxString*) NULL;
+    wxListBox *item6 = new wxListBox( parent, ID_LIST_LANGUAGE_CODES_NAMES, wxDefaultPosition, wxSize(400,220), 0, strs6, wxLB_SINGLE );
+    item6->SetToolTip( _("This is a list of languages and their 3-letter codes") );
+    item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_STATICTEXT_SEARCH_FOR_LANG_NAME, _("Search for Language (&type code or Name):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH_LANG_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
+    item10->SetToolTip( _("Enter a language name, or part of a name here") );
+    item8->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item11 = new wxButton( parent, ID_BUTTON_FIND_NEXT, _("&Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Use this button to find the next occurrence in list if it exists") );
+    item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item13 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_SRC, _("Use selected code for Sourc&e Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Source Language Code box below") );
+    item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item12->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item14 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_TGT, _("Use selected code for T&arget Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Target Language Code box below") );
+    item12->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item7->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item7, 0, wxGROW|wxALL, 0 );
+
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Enter 3-letter language codes for source and target languages:") );
+    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("If you know the 3-letter codes enter them directly below or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_SRC_LANGUAGE_CODE, _("&Source Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item21->SetToolTip( _("The 3-letter code for the Source Language goes here") );
+    item19->Add( item21, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item18->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TGT_LANGUAGE_CODE, _("&Target Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item24->SetToolTip( _("The 3-letter code for the Target Language goes here") );
+    item22->Add( item24, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item18->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item15->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item26 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetDefault();
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item27 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *m_pHorizBox_for_textctrl;
+wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_PEEKMSG, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+    m_pHorizBox_for_textctrl = item3;
+
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
+    item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    item1->Add( 20, 2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item6 = new wxButton( parent, ID_BUTTON_TOGGLE_TEXT_DIRECTION, _("Display the text Right-To-Left"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Reverse the text layout direction") );
+    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item7 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetDefault();
+    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *NewDocFromSourceDataFolderFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_INSTRUCTIONS, wxT(""), wxDefaultPosition, wxSize(240,200), wxTE_MULTILINE|wxVSCROLL );
+    item4->Add( item5, 1, wxGROW, 0 );
+
+    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+
+    wxString strs7[] = 
+    {
+        wxT("")
+    };
+    wxListBox *item7 = new wxListBox( parent, ID_LISTBOX_LOADABLES_FILENAMES, wxDefaultPosition, wxSize(300,240), 1, strs7, wxLB_SINGLE );
+    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("&Input file"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item6->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_STATIC_SELECT_A_TAB, _("1. Select a &Tab according to the user workflow profile you want to edit"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxNotebook *item6 = new wxNotebook( parent, ID_MENU_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+#if !wxCHECK_VERSION(2,5,2)
+    wxNotebookSizer *item5 = new wxNotebookSizer( item6 );
+#else
+    wxWindow *item5 = item6;
+#endif
+
+    wxPanel *item7 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item7, FALSE );
+    item6->AddPage( item7, _("Novice") );
+
+    wxPanel *item8 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item8, FALSE );
+    item6->AddPage( item8, _("Experienced") );
+
+    wxPanel *item9 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item9, FALSE );
+    item6->AddPage( item9, _("Skilled") );
+
+    wxPanel *item10 = new wxPanel( item6, -1 );
+    MenuEditorPanelFunc( item10, FALSE );
+    item6->AddPage( item10, _("Custom") );
+
+    item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("2. Select the user workflow profile (below) that you want the interface to use:") );
+    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
+
+    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_NONE, _("&None (keep all menus and settings visible)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item13->SetValue( TRUE );
+    item13->SetToolTip( _("Select this one if you do not want to activate a user profile") );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item14 = new wxRadioButton( parent, ID_RADIOBUTTON_USE_PROFILE, _("&Use a workflow profile  (Select from drop down list below)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Select this one to activate a user profile using the drop down box below") );
+    item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxString strs16[] = 
+    {
+        _("Novice"), 
+        _("Experienced"), 
+        _("Skilled"), 
+        _("Custom")
+    };
+    wxComboBox *item16 = new wxComboBox( parent, ID_COMBO_PROFILE_ITEMS, wxT(""), wxDefaultPosition, wxSize(100,-1), 4, strs16, wxCB_DROPDOWN|wxCB_READONLY );
+    item16->SetToolTip( _("Click here to see all choices and make selection") );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item17 = new wxButton( parent, ID_BUTTON_RESET_TO_FACTORY, _("&Reset to Factory Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetToolTip( _("Reset the profile items of the selected profile to their factory defaults") );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxFlexGridSizer *item18 = new wxFlexGridSizer( 2, 0, 0 );
+    item18->AddGrowableCol( 1 );
+    item18->AddGrowableRow( 1 );
+
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT_STATIC_DESCRIPTION, _("&Description of Selected User Profile (editable)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_PROFILE_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE );
+    item21->SetToolTip( _("A brief description of the selected workflow profile") );
+    item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item11->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item23 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetDefault();
+    item23->SetToolTip( _("Click here when finished") );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Click here to close this dialog without saving any changes") );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item3->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item3, 1, wxGROW|wxALL, 5 );
+
+    item1->Add( item2, 1, wxGROW|wxALL, 0 );
+
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Note:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Items with a check will be visible in the interface. Items without a check will not be visible."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Top level menus and category labels cannot be unchecked"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+
+    wxString *strs6 = (wxString*) NULL;
+    wxCheckListBox *item6 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,220), 0, strs6, wxLB_SINGLE|wxLB_ALWAYS_SB );
+    item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Define USFM and Marker Filtering (Marker Hiding)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("If you intend to change the SFM set as well as make filtering changes, change the SFM set first"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("&USFM Set Selection:") );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("This Document's Settings:") );
+    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
+
+    wxRadioButton *item12 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY, _("&UBS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item12->SetValue( TRUE );
+    item12->SetToolTip( _("Select this button to use the USFM set of standard format markers for this document") );
+    item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item13 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY, _("SIL&PNG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Select this button to use the PNG set of standard format markers for this document") );
+    item10->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item14 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS, _("Both UBS &and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers for this document") );
+    item10->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Project Defaults:") );
+    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
+
+    wxRadioButton *item17 = new wxRadioButton( parent, IDC_RADIO_USE_UBS_SET_ONLY_PROJ, _("U&BS USFM 2.0 Set Only"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item17->SetValue( TRUE );
+    item17->SetToolTip( _("Select this button to use the USFM set of standard format markers as default for the whole project") );
+    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item18 = new wxRadioButton( parent, IDC_RADIO_USE_SILPNG_SET_ONLY_PROJ, _("SILP&NG 1998 Set Only"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("Select this button to use the PNG set of standard format markers as default for the whole project") );
+    item15->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_USE_BOTH_SETS_PROJ, _("Bo&th UBS and SILPNG Sets"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("Select this button to use both the USFM set and PNG set of standard format markers as default for the whole project") );
+    item15->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item9->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    item21->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item22 = new wxCheckBox( parent, IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM, _("&Change USFM fixed space markers (~) to regular spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Check if you want Adapt It to change any fixed space markers to regular spaces in new documents") );
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item20->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+
+    item23->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("Note: USFM discretionary line breaks (//) are always removed from input texts"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item20->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item8->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_FILTERPAGE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item25->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item5->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item28 = new wxStaticBox( parent, -1, _("Th&is Document's Filter Settings:") );
+    wxStaticBoxSizer *item27 = new wxStaticBoxSizer( item28, wxVERTICAL );
+
+    wxString *strs29 = (wxString*) NULL;
+    wxCheckListBox *item29 = new wxCheckListBox( parent, IDC_LIST_SFMS, wxDefaultPosition, wxSize(-1,110), 0, strs29, wxLB_SINGLE|wxLB_SORT );
+    item29->SetToolTip( _("This is a list of standard format markers that can be used in this document; when boxes are checked the markers are filtered (hidden)") );
+    item27->Add( item29, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item5->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxStaticBox *item31 = new wxStaticBox( parent, -1, _("Pro&ject Filter Defaults:") );
+    wxStaticBoxSizer *item30 = new wxStaticBoxSizer( item31, wxVERTICAL );
+
+    wxString *strs32 = (wxString*) NULL;
+    wxCheckListBox *item32 = new wxCheckListBox( parent, IDC_LIST_SFMS_PROJ, wxDefaultPosition, wxSize(-1,110), 0, strs32, wxLB_SINGLE|wxLB_SORT );
+    item32->SetToolTip( _("This is a list of default standard format markers for the project; when boxes are checked the markers are filtered (hidden)") );
+    item30->Add( item32, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item5->Add( item30, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item2 = new wxStaticBox( parent, -1, _("Adapt It Guesser Settings") );
+    wxStaticBoxSizer *item1 = new wxStaticBoxSizer( item2, wxVERTICAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item4 = new wxCheckBox( parent, ID_CHECK_USE_GUESSER, _("Use Adaptations Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetValue( TRUE );
+    item4->SetToolTip( _("Check the box to turn on the guesser; uncheck the box to turn off the guesser") );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item3->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxPanel *item5 = new wxPanel( parent, ID_PANEL_GUESS_COLOR_DISPLAY, wxDefaultPosition, wxSize(20,20), 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item6 = new wxButton( parent, ID_BUTTON_GUESS_HIGHLIGHT_COLOR, _("Choose Guess Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Choose the background color used in the phrase box whenever its text comes from the guesser") );
+    item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Guessing level:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxSlider *item9 = new wxSlider( parent, ID_SLIDER_GUESSER, 50, 0, 100, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_AUTOTICKS|wxSL_LABELS );
+    item9->SetToolTip( _("Set the guess level (0 is no guessing, 50 is conservative guessing, 100 is wild guessing)") );
+    item1->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("< Fewer guesses (good and bad)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Zero is no guessing; closer to 50 is conservative guessing") );
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item10->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("More guesses (good and bad) >"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Close to 50 is conservative guessing; 100 is wild guessing") );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT, _("Allow Guesser to operate on unchanged Consistent Changes output"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("If Consistent Changes is also active checking this box allows the Guesser to Guess whenever Consistent Changes has made no changes") );
+    item1->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticLine *item15 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Number of Correspondences in Adaptations Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item16->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Number of Correspondences in Glossing Guesser"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item19->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT_STATIC_NUM_CORRESP_GLOSSING_GUESSER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item22 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item24 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetDefault();
+    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item25 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *STATIC_TEXT_DESCRIPTION;
+wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item2 = new wxStaticBox( parent, -1, _("Email Heading Information:") );
+    wxStaticBoxSizer *item1 = new wxStaticBoxSizer( item2, wxVERTICAL );
+
+    wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 0 );
+    item3->AddGrowableCol( 1 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("TO: (Adapt It Developers)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_DEVS_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
+    item5->SetToolTip( _("Adapt It developers who will receive this email report") );
+    item3->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("FROM: (Your Email Address)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MY_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
+    item7->SetToolTip( _("Enter your email address here so we can respond to you") );
+    item3->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("RE: Summary (Email Subject)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_SUMMARY_SUBJECT, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
+    item9->SetToolTip( _("Enter a brief summary of your report - it becomes the subject of your email") );
+    item3->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Description (Body of Email):") );
+    wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
+    STATIC_TEXT_DESCRIPTION = item10;
+
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION_BODY, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    item12->SetToolTip( _("Enter the details of your report here - this becomes the main body of your email message") );
+    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Sender's Name:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL_SENDERS_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item10->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item17 = new wxCheckBox( parent, ID_CHECKBOX_LET_DEVS_KNOW_AI_USAGE, _("Let Adapt It developers know how I use Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetValue( TRUE );
+    item17->SetToolTip( _("Attaches the Adapt It usage log to your email") );
+    item16->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item16->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item18 = new wxButton( parent, ID_BUTTON_VIEW_USAGE_LOG, _("View Usage Log"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("Click to view the contents of the Adapt It usage log before sending") );
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item10->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item20 = new wxStaticBox( parent, -1, _("System Information (automatically included in report):") );
+    wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxVERTICAL );
+
+    wxFlexGridSizer *item21 = new wxFlexGridSizer( 4, 0, 3 );
+    item21->AddGrowableCol( 1 );
+    item21->AddGrowableCol( 3 );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("AI Version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_AI_VERSION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("Release Date:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_RELEASE_DATE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Data type:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT_DATA_TYPE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Free Memory (MB):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT_FREE_MEMORY, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item30 = new wxStaticText( parent, ID_TEXT, _("Sys Locale:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT_SYS_LOCALE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("Interface Language:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT_INTERFACE_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Sys Encoding:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT_SYS_ENCODING, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Sys Layout Dir:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT_SYS_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("wxWidgets version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT_WXWIDGETS_VERSION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("OS version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT_OS_VERSION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item41->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
+    item21->Add( item41, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item19->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item42 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item19->Add( item42, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item44 = new wxStaticBox( parent, -1, _("Send the above report to Adapt It developers:") );
+    wxStaticBoxSizer *item43 = new wxStaticBoxSizer( item44, wxVERTICAL );
+
+    wxFlexGridSizer *item45 = new wxFlexGridSizer( 2, 3, 0 );
+    item45->AddGrowableCol( 1 );
+
+    wxStaticBox *item47 = new wxStaticBox( parent, -1, _("Report handling:") );
+    wxStaticBoxSizer *item46 = new wxStaticBoxSizer( item47, wxVERTICAL );
+
+    wxButton *item48 = new wxButton( parent, ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, _("Save report as text file (xml)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item48->SetToolTip( _("Click to save this report on your computer, if desired, before sending it as email") );
+    item46->Add( item48, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxButton *item49 = new wxButton( parent, ID_BUTTON_LOAD_SAVED_REPORT, _("Load a saved report"), wxDefaultPosition, wxDefaultSize, 0 );
+    item49->SetToolTip( _("Click to load a previously saved report - which you can then send as email if you wish") );
+    item46->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxButton *item50 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item50->SetToolTip( _("Click to close this dialog (you should first save any unsent changes)") );
+    item46->Add( item50, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item45->Add( item46, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    wxStaticBox *item52 = new wxStaticBox( parent, -1, _("Email handling:") );
+    wxStaticBoxSizer *item51 = new wxStaticBoxSizer( item52, wxVERTICAL );
+
+    wxRadioButton *item53 = new wxRadioButton( parent, ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI, _("Send it directly from Adapt It (via secure SSL connection)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item53->SetValue( TRUE );
+    item51->Add( item53, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item54 = new wxRadioButton( parent, ID_RADIOBUTTON_SEND_TO_MY_EMAIL, _("Send to my email program (I'll send it from there)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item51->Add( item54, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item55 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item56 = new wxButton( parent, ID_BUTTON_ATTACH_PACKED_DOC, _("Attach this document (packed)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item56->SetToolTip( _("Click to attach the currently open document as a packed adaptation document - if you refer to it in your report") );
+    item55->Add( item56, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item55->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item57 = new wxButton( parent, ID_BUTTON_SEND_NOW, _("Send Now"), wxDefaultPosition, wxDefaultSize, 0 );
+    item57->SetToolTip( _("Click to send this report via email") );
+    item55->Add( item57, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item51->Add( item55, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item45->Add( item51, 0, wxGROW|wxALL, 0 );
+
+    item43->Add( item45, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item43, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *LogViewerFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Adapt It User Log (read only):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_LOG_FILE_PATH_AND_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_LOGGED_TEXT, wxT(""), wxDefaultPosition, wxSize(500,300), wxTE_MULTILINE|wxTE_READONLY );
+    item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxButton *item6 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetDefault();
+    item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -7107,6 +7898,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( wxID_NEW, _("&New\tCtrl-N"), _("Create a new document") );
     item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
     item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );
+    item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-A"), _("Save the document with different xml format, or different filename") );
     item1->Append( wxID_CLOSE, _("&Close"), _("Close the active document") );
     item1->Append( ID_FILE_PACK_DOC, _("Pack Document..."), _("Pack document for transfer to another computer") );
     item1->Append( ID_FILE_UNPACK_DOC, _("Unpack Document..."), _("Unpack a document that was packed on another computer") );
@@ -7124,6 +7916,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
+    item1->AppendSeparator();
     item0->Append( item1, _("&File") );
     
     wxMenu* item2 = new wxMenu;
@@ -7184,8 +7977,9 @@ wxMenuBar *AIMenuBarFunc()
     item5->Append( ID_FILE_EXPORT_TO_RTF, _("Export Interlinear &Text..."), _("Export the Source and Target languages in interlinear form as an *.rtf file type") );
     item5->Append( ID_EXPORT_GLOSSES, _("Export &Glosses As Text..."), _("Export the glossing lines' contents as text") );
     item5->Append( ID_EXPORT_FREE_TRANS, _("Export Free Translation..."), _("Collect all the free translation sections' contents, adding standard format markers, and export") );
+    item5->Append( ID_EXPORT_OXES, _("Export &Open XML for Editing Scripture (OXES)..."), _("Export the translation text according to the OXES version 1 standard") );
     item5->AppendSeparator();
-    item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in SIL standard format") );
+    item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in standard format or LIFT format") );
     item5->Append( ID_IMPORT_TO_KB, _("&Import to Knowledge Base..."), _("Extend knowledge base by importing dictionary records") );
     item0->Append( item5, _("E&xport-Import") );
     
@@ -7219,7 +8013,9 @@ wxMenuBar *AIMenuBarFunc()
     wxMenu* item8 = new wxMenu;
     item8->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
     item8->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
-    item8->Append( ID_USER_FORUM, _("User Forum (Requires Internet Access)"), wxT("") );
+    item8->AppendSeparator();
+    item8->Append( ID_REPORT_A_PROBLEM, _("Report a problem..."), _("Send a bug or problem report to the Adapt It developers") );
+    item8->Append( ID_GIVE_FEEDBACK, _("Give feedback..."), _("Give the developers feedback on your use of Adapt It") );
     item8->AppendSeparator();
     item8->Append( ID_HELP_USE_TOOLTIPS, _("Use Tooltips"), _("Select this item to turn on or turn off tooltip help messages"), wxITEM_CHECK );
     item8->AppendSeparator();
@@ -7231,9 +8027,16 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_LOCK_CUSTOM_LOCATION, _("&Lock Custom Location"), _("Make the custom work folder location permanent until explicitly changed") );
     item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
+    item9->AppendSeparator();
     item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password..."), _("Set a password, it will be stored in the clear in the basic configuration file") );
     item9->AppendSeparator();
-    item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
+    item9->Append( ID_SETUP_PARATEXT_COLLABORATION, _("Setup Parate&xt Collaboration..."), _("Configure Adapt It to use a Paratext project for its input (source) texts, and a different Paratext project exporting its (target) texts") );
+    item9->AppendSeparator();
+    item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("&Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
+    item9->Append( ID_SOURCE_DATA_FOLDER, _("Open &Source Data Folder..."), _("Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.") );
+    item9->Append( ID_EXPORT_DATA_FOLDER, _("Assign Location for Translation &Exports..."), _("Assigns the Export folder to be used for translated/adapted texts (creating it first if necessary). Protects the user from folder navigation of exports.") );
+    item9->AppendSeparator();
+    item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;
@@ -7257,6 +8060,8 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->EnableTool( ID_EDIT_PASTE, FALSE );
     parent->AddSeparator();
     parent->AddTool( wxID_PRINT, wxT(""), AIToolBarBitmapsUnToggledFunc( 6 ), wxNullBitmap, wxITEM_NORMAL, _("Print"), _("Print the active document") );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_GUESSER, wxT(""), AIToolBarBitmapsUnToggledFunc( 32 ), wxNullBitmap, wxITEM_NORMAL, _("Change Guesser Settings"), _("Change settings for guessing the translation text") );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CREATE_NOTE, wxT(""), AIToolBarBitmapsUnToggledFunc( 28 ), wxNullBitmap, wxITEM_NORMAL, _("Open a Note dialog"), _("Create a note dialog and open it for typing") );
     parent->AddTool( ID_BUTTON_PREV_NOTE, wxT(""), AIToolBarBitmapsUnToggledFunc( 29 ), wxNullBitmap, wxITEM_NORMAL, _("Jump to the previous Note"), _("Go back and open the previous note") );
@@ -7310,6 +8115,8 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddTool( wxID_OPEN, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 1 ), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document") );
     parent->EnableTool( wxID_OPEN, FALSE );
     parent->AddTool( wxID_SAVE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 2 ), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document") );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_GUESSER, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 32 ), wxNullBitmap, wxITEM_NORMAL, _("Change Guesser Settings"), _("Change settings for guessing the translation text") );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CREATE_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 28 ), wxNullBitmap, wxITEM_NORMAL, _("Open a Note dialog"), _("Create a note dialog and open it for typing") );
     parent->AddTool( ID_BUTTON_PREV_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 29 ), wxNullBitmap, wxITEM_NORMAL, _("Jump to the previous Note"), _("Go back and open the previous note") );
@@ -7365,21 +8172,21 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         "16 15 3 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         /* pixels */
         "                ",
         "   aaaaaaaa     ",
-        "   abbbbbbaa    ",
-        "   abbbbbbaba   ",
-        "   abbbbbbaaaa  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
-        "   abbbbbbbbba  ",
+        "   accccccaa    ",
+        "   accccccaca   ",
+        "   accccccaaaa  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
+        "   accccccccca  ",
         "   aaaaaaaaaaa  ",
         "                "
         };
@@ -8370,6 +9177,46 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         "cccaaaaaaaaaaacc"
         };
         wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 32)
+    {
+        static const unsigned char data[] = 
+        {
+            30,30,30,23,23,23,29,29,29,31,31,31,29,29,29,26,26,26,26,26,26,26,26,26,26,
+            26,26,26,26,26,26,26,26,29,29,29,31,31,31,28,28,28,27,27,27,34,34,34,11,11,
+            11,115,115,115,199,199,199,174,174,174,186,186,186,194,194,194,189,189,189,189,189,189,189,189,189,
+            189,189,189,193,193,193,189,189,189,173,173,173,195,195,195,185,185,185,50,50,50,15,15,15,166,
+            166,166,172,172,172,28,28,28,69,69,69,230,230,230,255,255,255,255,255,255,255,255,255,255,255,
+            255,238,238,238,85,85,85,26,26,26,140,140,140,255,255,255,73,73,73,15,15,15,138,138,138,
+            27,27,27,0,0,0,0,0,0,142,142,142,255,255,255,255,255,255,255,255,255,255,255,255,158,
+            158,158,0,0,0,0,0,0,1,1,1,200,200,200,77,77,77,15,15,15,148,148,148,59,59,
+            59,0,0,0,0,0,0,160,160,160,255,255,255,255,255,255,255,255,255,255,255,255,177,177,177,
+            0,0,0,0,0,0,22,22,22,217,217,217,75,75,75,15,15,15,160,160,160,214,214,214,129,
+            129,129,151,151,151,241,241,241,255,255,255,255,255,255,255,255,255,255,255,255,246,246,246,160,160,
+            160,128,128,128,196,196,196,249,249,249,71,71,71,15,15,15,153,153,153,255,255,255,255,255,255,
+            255,255,255,255,255,255,240,241,240,120,120,120,108,108,108,227,227,227,255,255,255,255,255,255,255,
+            255,255,255,255,255,244,244,244,70,70,70,15,15,15,154,154,154,255,255,255,255,255,255,255,255,
+            255,252,252,252,105,105,105,0,0,0,0,0,0,70,70,70,243,243,243,255,255,255,255,255,255,
+            255,255,255,244,244,244,70,70,70,15,15,15,154,154,154,255,255,255,255,255,255,255,255,255,250,
+            250,250,58,58,58,0,0,0,0,0,0,26,26,26,231,231,231,255,255,255,255,255,255,255,255,
+            255,244,244,244,70,70,70,15,15,15,154,154,154,255,255,255,255,255,255,255,255,255,255,255,255,
+            164,164,164,9,9,9,3,3,3,136,136,136,255,255,255,255,255,255,255,255,255,255,255,255,244,
+            244,244,70,70,70,15,15,15,157,157,157,251,251,251,198,198,198,218,218,218,255,255,255,255,255,
+            255,203,203,203,196,196,196,255,255,255,255,255,255,226,226,226,197,197,197,244,244,244,248,248,248,
+            70,70,70,15,15,15,161,161,161,127,127,127,3,3,3,15,15,15,198,198,198,255,255,255,255,
+            255,255,255,255,255,255,255,255,215,215,215,24,24,24,3,3,3,88,88,88,243,243,243,72,72,
+            72,15,15,15,138,138,138,31,31,31,0,0,0,0,0,0,143,143,143,255,255,255,255,255,255,
+            255,255,255,255,255,255,159,159,159,0,0,0,0,0,0,1,1,1,201,201,201,77,77,77,15,
+            15,15,155,155,155,87,87,87,0,0,0,0,0,0,179,179,179,255,255,255,255,255,255,255,255,
+            255,255,255,255,194,194,194,0,0,0,0,0,0,51,51,51,229,229,229,74,74,74,11,11,11,
+            168,168,168,239,239,239,119,119,119,158,158,158,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,174,174,174,118,118,118,222,222,222,255,255,255,68,68,68,30,30,30,78,78,
+            78,129,129,129,130,130,130,130,130,130,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,
+            119,119,119,130,130,130,129,129,129,126,126,126,116,116,116,52,52,52
+        };
+        wxImage image( 16, 16, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
         return bitmap;
     }
     return wxNullBitmap;
@@ -14552,6 +15399,5003 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
+    if (index == 13)
+    {
+        static const unsigned char data[] = 
+        {
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,173,223,244,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,
+            233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,
+            92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,214,239,249,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,
+            240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,
+            248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,
+            213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,201,234,248,146,213,240,146,213,240,146,213,240,146,213,240,146,213,
+            240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,
+            146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,146,213,240,228,
+            244,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,195,221,238,150,195,226,135,
+            187,222,74,152,205,74,152,205,44,135,196,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,74,152,205,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,241,250,253,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,225,238,247,165,204,230,104,169,213,44,135,196,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,
+            170,225,64,181,229,92,191,233,146,213,240,187,228,246,241,250,253,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,210,229,242,119,178,217,44,135,196,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,64,181,229,132,207,238,187,228,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,150,195,226,44,135,196,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,51,175,227,119,202,236,
+            187,228,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,225,238,247,104,169,213,29,127,192,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,
+            240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,64,181,229,146,213,240,241,250,253,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,135,187,222,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,144,201,
+            104,169,213,135,187,222,195,221,238,195,221,238,195,221,238,195,221,238,195,221,238,150,195,226,135,
+            187,222,89,161,209,29,127,192,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,51,175,227,160,218,242,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,180,
+            212,234,29,127,192,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,144,201,
+            165,204,230,240,246,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,210,229,242,104,169,213,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,78,186,231,214,239,249,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,240,246,251,104,169,213,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            29,127,192,195,221,238,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,51,175,227,173,223,244,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,240,246,251,59,144,201,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,29,127,192,210,229,242,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,173,223,244,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,59,144,201,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,74,152,205,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,51,175,227,214,239,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,59,144,
+            201,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,
+            144,201,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,92,191,233,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,89,161,209,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,195,221,238,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,228,244,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,180,212,234,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,144,201,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,44,135,196,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,135,187,222,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            165,204,230,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,29,127,192,240,246,251,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,59,144,201,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,104,169,213,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,240,246,251,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,
+            221,238,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,165,
+            204,230,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,135,187,222,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,135,187,222,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,
+            213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,135,187,222,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,135,187,222,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,
+            234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,135,187,222,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,135,187,222,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,135,187,222,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,180,212,234,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,135,187,222,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,210,229,242,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,195,221,238,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            29,127,192,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,29,127,192,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,89,161,209,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,104,
+            169,213,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,180,212,234,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,225,238,247,29,127,192,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,
+            144,201,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,150,195,226,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,195,221,238,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,104,169,213,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,150,195,226,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,135,187,222,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,135,187,222,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,
+            240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,195,221,238,74,152,205,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,44,135,
+            196,195,221,238,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,
+            248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,221,238,104,
+            169,213,44,135,196,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,29,127,
+            192,89,161,209,165,204,230,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,195,221,238,195,221,238,195,221,
+            238,195,221,238,225,238,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,240,246,251,195,221,238,180,212,234,135,187,222,135,187,222,89,161,209,74,152,205,74,152,205,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,195,221,238,135,187,
+            222,104,169,213,74,152,205,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,210,229,242,150,195,226,104,169,213,44,135,
+            196,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,240,246,251,165,204,230,104,169,213,29,127,192,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,240,246,251,165,204,230,89,161,209,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,221,238,104,169,213,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,29,127,192,74,152,205,135,187,222,135,187,222,195,221,238,195,221,238,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,165,204,230,44,135,196,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,44,
+            135,196,104,169,213,180,212,234,225,238,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,165,204,230,44,135,
+            196,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,104,169,213,195,221,238,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,180,212,
+            234,44,135,196,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,104,169,213,225,238,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,225,238,247,74,152,205,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,44,135,196,195,221,238,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,
+            213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,165,204,230,29,127,192,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,144,201,240,246,251,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,
+            234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,104,169,213,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,144,201,240,246,
+            251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,59,144,201,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,29,127,192,210,229,242,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,
+            59,144,201,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,135,187,222,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,240,246,251,59,144,201,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,29,127,192,240,246,251,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,89,161,209,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            104,169,213,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,150,195,226,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,180,212,234,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,225,
+            238,247,29,127,192,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,225,238,247,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,74,152,205,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,221,238,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,44,135,196,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,104,169,
+            213,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,74,152,205,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,
+            240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,240,246,251,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,29,127,192,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,
+            248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,165,204,230,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,104,169,213,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,225,238,247,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,44,135,196,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,180,212,234,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,119,178,217,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,225,238,247,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,
+            144,201,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,195,221,238,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,210,229,242,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,221,238,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,104,169,213,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,221,
+            238,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,225,238,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,210,229,242,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,89,161,209,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,165,204,230,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,59,144,201,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,29,127,192,210,229,242,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,240,246,251,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,119,178,217,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,29,
+            127,192,165,204,230,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,165,204,230,29,127,192,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,210,229,242,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,89,161,209,210,229,242,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,225,238,247,150,195,226,44,135,196,
+            14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,
+            213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,74,152,205,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,44,135,196,104,169,213,135,187,222,135,187,222,135,187,222,89,161,209,44,135,196,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,
+            234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,195,221,238,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,104,169,213,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,59,144,201,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,104,169,213,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            210,229,242,29,127,192,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,150,195,226,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,210,229,242,29,127,192,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,59,144,
+            201,210,229,242,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,
+            246,251,59,144,201,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,29,127,192,135,187,222,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,135,187,222,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,104,169,213,225,238,247,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,225,238,247,104,169,213,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,104,169,213,225,238,247,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,225,238,247,104,169,213,29,127,192,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,44,135,196,135,187,222,225,238,247,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,240,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,240,246,251,165,204,230,104,169,213,29,127,192,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,59,144,201,135,187,222,210,229,242,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,146,213,
+            240,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,201,234,248,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,225,238,247,180,212,234,135,187,222,104,169,213,74,152,205,74,152,205,74,152,205,74,152,
+            205,74,152,205,89,161,209,135,187,222,150,195,226,195,221,238,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,173,223,244,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,
+            92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,
+            191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,92,191,233,214,239,
+            249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255
+        };
+        wxImage image( 128, 128, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
+        return bitmap;
+    }
+    if (index == 14)
+    {
+        static const unsigned char data[] = 
+        {
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,231,
+            246,252,170,222,244,170,221,244,170,222,244,170,222,244,170,222,244,170,222,244,170,222,244,170,222,
+            244,170,222,244,165,220,243,203,235,248,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,192,230,247,28,167,224,27,166,224,
+            29,167,224,29,167,224,29,167,224,29,167,224,29,167,224,29,167,224,29,167,224,16,162,222,117,
+            201,236,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,194,231,247,35,170,225,34,169,225,36,170,225,36,170,225,36,170,
+            225,36,170,225,36,170,225,36,170,225,36,170,225,24,165,223,121,203,237,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,
+            122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,193,231,247,34,169,225,33,
+            168,225,35,169,225,35,169,225,35,169,225,35,169,225,35,169,225,35,169,225,35,169,225,23,164,
+            223,121,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,194,231,247,35,170,225,34,169,225,36,170,225,36,170,225,
+            36,170,225,36,170,225,36,170,225,36,170,225,36,170,225,24,165,223,121,203,237,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,238,248,253,194,231,247,193,231,247,194,231,247,194,231,247,194,231,247,194,231,247,194,231,
+            247,194,231,247,194,231,247,191,230,246,218,240,250,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,252,253,254,246,250,252,240,247,251,240,247,251,240,247,251,240,247,251,240,
+            247,251,251,253,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,236,245,250,187,217,236,137,188,222,99,166,211,68,149,
+            203,46,136,197,29,126,192,28,126,192,29,126,192,28,126,192,18,119,189,154,197,227,255,255,255,
+            255,255,255,221,242,250,149,214,240,181,226,245,225,243,251,249,253,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,246,250,253,172,207,232,
+            92,162,210,32,128,193,12,117,187,0,110,184,0,110,184,0,110,184,0,109,183,0,108,183,0,
+            108,183,0,108,183,1,110,184,0,103,180,131,185,221,255,255,255,255,255,255,190,229,246,22,165,
+            223,30,167,224,43,172,226,75,185,230,134,208,239,197,232,247,252,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,251,253,254,155,198,227,49,137,198,6,113,186,1,111,184,9,115,187,12,117,
+            188,4,112,185,8,115,187,38,132,195,77,154,206,108,172,214,110,173,214,100,167,212,69,150,203,
+            12,116,187,132,185,221,255,255,255,255,255,255,194,231,247,36,170,225,34,168,225,34,169,225,30,
+            167,224,24,165,223,34,169,225,78,186,231,174,224,244,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,207,228,242,67,148,203,
+            1,111,185,6,113,186,13,117,188,14,118,188,14,118,188,7,115,186,67,148,202,177,211,234,242,
+            248,251,255,255,255,255,255,255,255,255,255,255,255,255,253,254,254,223,237,246,216,233,244,255,255,
+            255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,35,169,225,
+            28,167,224,27,166,224,101,195,234,230,245,252,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,192,219,237,26,125,191,1,111,184,13,118,188,14,118,188,14,118,
+            188,14,118,188,8,115,186,41,134,196,240,246,251,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,
+            170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,170,225,22,164,
+            222,82,187,231,240,249,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,205,226,241,
+            25,125,191,5,112,185,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,9,115,186,36,
+            131,194,236,244,250,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,170,225,22,164,223,153,215,241,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,251,253,254,70,150,204,0,110,184,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,2,111,185,118,178,217,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,24,165,223,119,202,237,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,180,212,234,6,114,186,12,117,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,10,116,187,17,120,189,206,227,241,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,
+            36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,114,175,216,0,109,
+            184,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,0,109,184,109,172,215,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,82,157,207,3,112,185,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,3,112,185,78,155,
+            206,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,79,155,206,3,112,185,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,2,111,184,90,161,209,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,
+            247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,94,164,210,0,
+            110,184,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,0,109,184,127,182,219,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,
+            237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,159,200,228,0,110,184,13,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,12,117,188,9,115,186,189,
+            218,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,242,247,251,58,143,201,0,109,184,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,0,108,183,78,155,206,251,253,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,
+            231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            214,232,243,51,139,198,0,109,184,6,113,186,11,116,187,11,116,187,11,116,187,7,114,186,0,
+            108,183,53,140,199,224,237,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,
+            203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,235,244,250,134,187,
+            221,52,139,198,22,123,190,20,121,190,21,122,190,45,136,197,122,179,218,233,243,249,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,248,251,253,224,237,246,211,
+            230,243,221,236,246,246,250,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,249,252,253,251,253,254,255,255,255,255,255,255,
+            194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,240,246,251,202,225,240,164,204,230,131,185,221,104,
+            169,213,81,157,207,47,135,197,155,198,227,255,255,255,255,255,255,194,231,247,36,170,225,35,169,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,
+            122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,243,248,251,187,216,236,127,183,
+            220,77,154,205,34,129,194,16,119,188,6,113,186,0,108,183,0,108,183,0,107,183,0,96,177,
+            124,181,219,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            253,254,254,192,219,237,111,173,215,43,135,196,10,116,187,0,110,184,4,112,185,9,115,187,5,
+            113,185,0,109,184,13,117,187,30,127,193,66,147,203,88,160,208,184,214,235,255,255,255,255,255,
+            255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,254,254,255,175,210,233,66,148,203,11,116,187,0,110,
+            184,8,114,186,12,117,188,14,118,188,10,115,187,2,111,185,45,136,197,127,182,219,190,218,237,
+            236,245,250,252,253,254,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,
+            169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,
+            223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            195,221,238,69,149,203,5,113,185,3,112,185,12,117,187,14,118,188,14,118,188,14,118,188,7,
+            114,186,21,121,190,139,189,223,240,246,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,134,186,221,14,119,189,2,111,185,13,117,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,9,115,187,24,124,191,190,218,237,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            249,251,253,100,167,212,0,110,184,10,116,187,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,13,118,188,5,113,185,155,198,227,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,
+            35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,
+            165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,108,171,214,0,109,184,12,117,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,7,114,186,50,139,198,
+            247,250,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,162,202,229,3,111,185,12,117,187,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,0,110,184,112,174,215,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,233,243,248,37,131,
+            195,7,114,186,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            13,118,188,1,110,184,145,192,225,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,
+            225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,151,196,226,1,110,185,13,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,13,118,188,2,111,185,152,196,
+            226,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,254,254,255,79,155,206,3,111,185,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,0,108,183,128,183,220,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,242,248,252,35,130,194,9,
+            116,187,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,2,111,185,89,161,209,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,
+            170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,221,236,245,22,122,190,11,116,187,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,9,115,187,35,
+            130,194,236,244,250,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,212,231,242,20,121,190,11,116,187,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,13,118,188,3,111,185,148,194,225,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,230,241,248,24,124,191,
+            11,116,187,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,7,114,186,37,131,194,228,240,248,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,231,247,
+            36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,251,253,254,59,144,201,5,113,185,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,3,112,185,72,151,204,223,237,246,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,210,230,242,195,221,238,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,138,188,222,0,109,184,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,3,112,
+            185,39,132,195,131,184,220,181,213,234,189,218,237,158,200,228,103,169,213,12,116,187,126,181,219,
+            255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,234,243,
+            249,43,135,196,5,112,186,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,8,115,186,0,110,184,11,
+            116,187,13,118,188,4,112,185,0,110,184,0,101,180,132,185,221,255,255,255,255,255,255,194,231,
+            247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,186,215,236,13,118,188,5,
+            113,186,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,
+            188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,12,117,187,12,117,187,9,115,187,
+            0,109,184,54,141,199,212,231,243,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,
+            237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,178,211,234,28,126,192,0,109,184,11,116,187,
+            14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,118,188,14,
+            118,188,14,118,188,14,118,188,11,116,187,0,110,184,16,119,188,117,177,217,238,246,250,255,255,
+            255,255,255,255,255,255,255,194,231,247,36,170,225,35,169,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,25,165,223,122,203,237,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,216,233,244,92,162,210,14,118,188,0,110,184,7,114,186,11,116,
+            187,12,117,187,13,117,188,13,117,188,13,117,188,12,117,187,11,116,187,5,113,185,0,110,184,
+            16,119,189,91,162,210,200,224,240,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,194,
+            231,247,35,170,225,34,169,225,36,170,225,36,170,225,36,170,225,36,170,225,36,170,225,36,170,
+            225,36,170,225,24,165,223,121,203,237,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,200,224,239,114,175,216,50,138,198,20,121,189,11,116,187,5,113,186,5,
+            113,185,6,113,186,13,118,188,23,123,190,63,146,202,131,185,221,206,228,242,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,192,230,247,28,167,224,27,166,224,
+            29,167,224,29,167,224,29,167,224,29,167,224,29,167,224,29,167,224,29,167,224,16,162,222,117,
+            201,236,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,247,250,253,217,234,245,180,212,234,160,201,229,160,201,229,164,204,230,189,218,237,
+            226,239,247,251,253,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,231,246,252,170,222,244,170,221,244,170,222,244,170,222,244,170,222,
+            244,170,222,244,170,222,244,170,222,244,170,222,244,165,220,243,203,235,248,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255
+        };
+        wxImage image( 64, 64, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
+        return bitmap;
+    }
+    if (index == 15)
+    {
+        static const unsigned char data[] = 
+        {
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,223,
+            242,251,200,234,248,203,235,248,203,235,248,201,234,248,214,239,249,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,118,202,236,22,165,
+            223,35,170,225,35,170,225,25,165,224,81,187,231,253,254,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,117,202,236,22,164,223,35,169,225,
+            35,169,225,25,165,224,80,186,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,116,201,236,21,164,223,34,169,225,34,169,225,24,
+            165,224,80,186,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,121,203,236,28,167,224,41,172,226,41,172,226,31,168,225,85,189,
+            232,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,236,248,252,220,241,251,218,240,250,215,240,250,213,239,250,223,243,250,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,223,237,246,177,210,233,141,190,223,123,180,218,119,177,217,166,204,230,255,255,255,
+            220,242,250,222,242,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,172,207,232,75,152,205,
+            20,121,190,0,109,184,30,127,192,52,139,198,32,124,191,75,151,204,255,255,255,116,201,236,28,
+            166,224,73,184,230,139,210,239,228,244,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,234,243,249,83,157,207,0,109,184,0,108,183,19,121,189,176,
+            210,233,245,250,253,254,255,255,247,251,253,232,242,248,255,255,255,118,202,236,21,164,223,28,166,
+            224,20,163,223,51,176,227,196,232,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,251,252,254,83,158,207,0,106,182,12,117,188,10,116,187,21,122,190,217,234,245,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,118,202,236,24,165,223,37,170,225,37,170,225,
+            20,163,223,85,189,232,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,193,219,
+            237,4,112,185,12,116,187,14,118,188,14,118,188,0,110,184,88,160,209,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,118,202,236,24,165,223,37,170,225,37,170,225,27,166,224,80,
+            186,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,158,200,228,0,110,183,
+            13,118,188,14,118,188,14,118,188,5,113,185,48,137,198,250,253,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,118,202,236,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,254,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,183,214,235,0,110,184,11,117,188,14,
+            118,188,14,118,188,0,107,183,85,158,208,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,118,202,236,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,247,251,253,90,161,209,0,107,183,0,109,183,0,107,
+            182,20,121,189,196,222,239,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,118,202,236,
+            24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,250,253,254,167,205,230,117,176,216,131,184,221,216,232,244,
+            255,255,255,255,255,255,255,255,255,249,252,254,246,250,253,255,255,255,119,202,237,24,165,223,37,
+            170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,233,242,249,171,207,232,119,
+            178,217,69,149,203,38,127,192,94,161,209,255,255,255,121,203,237,24,165,223,37,170,225,37,170,
+            225,27,166,224,82,187,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,181,213,235,84,158,207,25,124,191,0,105,181,5,113,186,75,152,
+            205,133,184,221,190,217,236,255,255,255,119,203,237,24,165,223,37,170,225,37,170,225,27,166,224,
+            82,187,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,218,234,
+            244,76,153,205,3,111,185,0,110,184,0,109,184,62,145,201,211,230,243,255,255,255,255,255,255,
+            255,255,255,255,255,255,118,202,236,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,212,230,242,33,129,193,0,108,184,
+            12,117,188,10,116,187,25,124,191,221,235,245,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,118,202,236,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,245,249,252,60,144,201,0,109,183,15,118,188,14,118,188,2,
+            111,184,75,152,205,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,118,202,
+            236,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,178,211,234,1,110,184,13,118,188,14,118,188,14,118,188,1,111,184,81,155,
+            206,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,118,202,236,24,165,223,
+            37,170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,127,182,220,0,108,184,14,118,188,14,118,188,14,118,188,6,113,186,44,135,197,246,250,253,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,118,202,236,24,165,223,37,170,225,37,
+            170,225,27,166,224,82,187,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,120,178,218,
+            0,108,184,14,118,188,14,118,188,14,118,188,13,118,188,4,112,185,161,201,229,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,118,202,236,24,165,223,37,170,225,37,170,225,27,166,
+            224,82,187,231,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,170,207,231,0,109,184,13,
+            118,188,14,118,188,14,118,188,14,118,188,9,115,187,25,125,191,156,198,227,213,231,243,177,210,
+            233,141,189,223,255,255,255,121,203,237,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,245,249,252,71,150,204,0,105,182,11,116,
+            187,14,118,188,14,118,188,15,119,188,9,115,187,3,112,185,10,116,187,0,101,180,100,165,211,
+            255,255,255,120,203,237,24,165,223,37,170,225,37,170,225,27,166,224,82,187,231,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,231,241,248,90,161,209,8,114,186,0,108,183,
+            0,110,184,0,110,184,0,109,184,1,110,184,34,128,193,144,192,224,249,252,253,255,255,255,111,
+            199,235,11,160,221,25,165,223,25,165,223,14,161,222,72,183,230,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,197,222,239,131,185,221,93,163,210,87,
+            160,209,113,175,216,169,206,231,236,245,250,255,255,255,255,255,255,255,255,255,161,218,242,96,193,
+            233,105,197,235,105,197,235,98,194,234,136,209,239,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
+        };
+        wxImage image( 32, 32, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
+        return bitmap;
+    }
+    if (index == 16)
+    {
+        static const unsigned char data[] = 
+        {
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            118,202,236,35,170,225,25,165,224,253,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,116,201,
+            236,34,169,225,24,165,224,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,236,248,252,218,
+            240,250,213,239,250,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,75,152,205,0,109,184,52,139,198,75,151,204,116,201,236,73,184,230,
+            228,244,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,251,
+            252,254,0,106,182,10,116,187,217,234,245,255,255,255,255,255,255,118,202,236,37,170,225,20,163,
+            223,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,158,200,228,
+            13,118,188,14,118,188,48,137,198,255,255,255,255,255,255,118,202,236,37,170,225,27,166,224,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,247,251,253,0,107,
+            183,0,107,182,196,222,239,255,255,255,255,255,255,118,202,236,37,170,225,27,166,224,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,171,207,232,69,149,203,94,161,209,121,203,237,37,170,225,27,166,224,254,254,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,76,153,205,0,110,184,
+            62,145,201,255,255,255,255,255,255,118,202,236,37,170,225,27,166,224,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,60,144,201,15,118,188,2,111,184,255,255,
+            255,255,255,255,255,255,255,118,202,236,37,170,225,27,166,224,254,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,0,108,184,14,118,188,6,113,186,246,250,253,255,
+            255,255,255,255,255,118,202,236,37,170,225,27,166,224,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,0,109,184,14,118,188,14,118,188,25,125,191,213,231,243,
+            141,189,223,121,203,237,37,170,225,27,166,224,254,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,231,241,248,8,114,186,0,110,184,0,109,184,34,128,193,249,252,
+            253,111,199,235,25,165,223,14,161,222,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
+        };
+        wxImage image( 16, 16, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
+        return bitmap;
+    }
+    if (index == 17)
+    {
+        static const unsigned char data[] = 
+        {
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,255,255,255,254,254,254,253,253,253,254,254,254,255,255,254,255,255,254,
+            255,255,254,255,255,254,255,255,254,255,255,254,255,255,254,255,255,254,255,255,254,255,255,254,255,
+            255,254,255,255,254,254,254,254,253,253,253,254,254,254,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,254,254,254,254,253,253,254,254,254,253,255,255,253,255,255,253,255,255,
+            253,255,255,253,255,255,253,255,255,253,255,255,253,255,255,253,255,255,253,255,255,253,255,255,253,
+            255,255,253,255,254,253,254,253,253,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,254,254,254,254,254,254,254,254,254,245,250,252,235,247,251,235,246,251,235,246,251,235,
+            246,251,235,246,251,235,246,251,235,246,251,235,246,251,235,246,251,235,246,251,235,246,251,235,246,
+            251,237,247,251,249,252,253,255,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,255,255,255,255,255,255,251,253,254,193,230,245,123,203,236,118,201,235,121,202,235,121,202,235,
+            121,202,235,121,202,235,121,202,235,121,202,235,121,202,235,121,202,235,121,202,235,117,201,235,136,
+            208,238,215,239,249,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,248,252,254,143,210,239,18,161,221,9,158,220,14,160,221,14,160,221,14,160,
+            221,14,160,221,14,160,221,14,160,221,14,160,221,14,160,221,14,160,221,7,158,220,42,171,225,
+            184,227,244,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,249,252,253,154,214,239,40,170,224,31,167,224,35,169,224,36,169,224,36,169,224,36,
+            169,224,36,169,224,36,169,224,36,169,224,36,169,224,36,169,224,30,166,222,60,179,227,190,229,
+            245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,250,252,253,154,215,239,40,170,223,32,167,223,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,30,166,222,61,179,227,191,230,245,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,
+            252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,
+            154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,
+            239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,
+            170,223,31,167,223,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,36,169,224,29,166,223,61,179,227,191,230,245,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,249,252,253,154,215,239,39,170,224,
+            31,167,223,36,169,224,35,169,224,35,169,224,35,169,224,35,169,224,35,169,224,35,169,224,35,
+            169,224,35,169,224,29,166,223,60,178,227,190,229,245,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,254,255,255,255,255,255,255,249,252,253,146,212,239,25,164,222,17,161,
+            220,21,163,221,20,163,221,20,163,221,20,163,221,20,163,221,20,163,221,20,163,221,20,163,221,
+            20,163,221,15,160,220,48,173,225,186,228,245,255,255,255,255,255,255,254,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,255,255,255,255,254,254,255,
+            255,255,255,255,255,255,254,254,254,255,255,254,250,253,253,177,224,243,94,191,232,87,189,230,91,
+            190,230,90,189,230,90,189,230,90,189,230,90,189,230,90,189,230,90,189,230,90,189,230,91,189,
+            230,87,188,230,109,196,234,205,235,248,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,
+            254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,254,254,254,254,255,255,254,254,254,
+            254,254,254,255,255,255,255,254,254,254,253,253,253,246,251,253,239,248,252,238,247,251,238,248,251,
+            238,248,251,238,247,251,238,248,251,238,247,251,238,247,251,238,248,251,238,247,251,238,247,251,238,
+            247,251,240,248,252,249,252,253,255,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,
+            255,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,
+            255,254,254,254,254,253,253,254,253,253,253,255,254,254,255,255,255,254,255,254,254,254,254,254,254,
+            255,255,255,254,254,254,254,255,255,255,255,255,254,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,254,254,254,253,253,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,253,253,253,254,
+            254,254,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,254,254,254,253,253,254,253,253,
+            253,252,253,253,251,253,253,252,252,253,252,252,253,252,253,253,251,253,253,252,253,253,254,253,253,
+            254,254,254,253,253,253,253,253,253,255,255,254,255,255,255,254,255,254,254,254,253,254,254,255,255,
+            255,255,254,254,254,253,253,253,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,255,255,255,255,255,255,255,255,255,254,254,254,253,253,253,253,253,253,253,253,253,255,254,254,
+            254,254,254,250,252,253,247,250,252,245,249,252,232,242,248,204,227,241,181,213,233,163,203,228,150,
+            194,224,141,189,222,135,186,221,135,186,221,140,189,222,140,190,222,155,197,226,215,231,242,252,253,
+            254,255,255,255,253,253,254,245,250,252,243,250,252,246,251,252,248,252,254,250,253,254,253,254,254,
+            255,254,254,253,253,253,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,255,
+            255,255,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,254,254,254,255,255,255,254,254,254,253,253,253,254,254,254,251,252,253,240,246,250,214,230,
+            242,166,204,229,141,189,222,115,174,215,79,154,205,48,137,196,29,126,191,16,118,188,8,113,185,
+            2,110,184,1,109,183,1,109,183,3,111,184,0,107,182,24,121,188,161,201,228,248,251,253,255,
+            255,255,249,252,254,178,224,243,112,199,234,131,206,237,152,214,240,170,221,242,206,235,246,236,246,
+            251,247,251,253,254,254,255,254,254,254,253,253,253,254,254,254,254,254,254,254,254,254,255,255,255,
+            255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,
+            254,254,254,254,253,253,254,254,254,251,252,253,230,240,247,187,215,235,118,176,216,55,141,198,20,
+            120,188,8,114,185,0,109,183,0,105,181,0,103,181,0,104,180,1,106,181,3,108,183,6,110,
+            184,7,111,185,4,111,184,2,111,184,0,103,181,17,115,186,155,198,226,248,251,253,255,255,255,
+            249,252,253,145,211,238,23,163,221,19,162,221,31,167,223,40,170,225,63,179,227,108,197,233,160,
+            217,240,214,238,248,239,248,252,254,254,254,254,253,253,254,254,254,254,254,254,254,254,254,255,255,
+            255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,254,233,242,249,179,211,232,98,164,210,34,129,192,2,111,184,0,106,181,0,109,183,
+            4,112,184,5,112,184,6,113,185,20,120,188,42,133,195,68,148,202,90,161,209,102,167,212,103,
+            168,211,95,163,209,80,155,205,52,136,196,44,132,194,161,202,228,248,251,252,255,255,255,250,252,
+            253,154,215,239,39,170,224,27,165,223,28,166,223,24,165,223,19,162,221,21,162,222,35,169,224,
+            72,183,228,136,208,238,209,236,248,248,252,253,255,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,254,254,255,255,254,219,
+            234,244,119,176,216,32,128,191,0,108,182,0,108,181,6,113,185,13,117,187,15,118,188,13,116,
+            187,13,116,186,57,142,199,133,185,220,188,217,235,220,234,244,235,243,249,239,245,249,238,245,249,
+            235,244,249,229,240,247,204,226,240,170,206,231,207,227,241,250,252,253,255,255,255,250,252,253,154,
+            215,240,40,170,224,32,168,223,38,170,225,37,170,225,37,169,224,33,168,223,25,164,222,21,163,
+            221,28,165,222,74,184,229,173,222,243,242,250,253,255,255,254,254,254,254,254,254,254,254,254,254,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,255,255,255,254,254,254,254,254,254,254,254,254,255,255,254,254,254,254,203,225,239,88,160,207,
+            8,113,185,0,108,182,7,114,185,14,118,187,14,118,187,13,117,187,11,115,186,10,115,186,76,
+            153,205,199,222,238,252,253,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,252,253,254,253,253,253,255,255,254,250,252,253,154,215,239,
+            40,170,223,31,167,223,36,169,224,36,169,224,36,169,224,37,170,224,37,169,224,36,169,224,28,
+            166,222,21,163,221,53,175,226,155,215,240,244,250,253,255,255,254,254,254,254,255,255,255,254,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,
+            254,254,254,254,254,254,254,254,255,254,254,251,252,253,185,214,234,67,147,202,3,112,184,4,111,
+            185,13,117,187,14,117,187,13,117,187,13,117,187,13,117,187,8,114,185,14,117,187,143,191,223,
+            255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,255,255,255,255,255,254,255,255,255,254,254,254,255,255,255,250,252,253,154,215,239,40,170,
+            223,31,167,223,36,169,224,37,170,224,37,170,225,36,169,224,36,169,224,37,169,224,37,169,224,
+            34,168,224,23,163,222,50,174,225,166,220,241,252,253,253,255,254,254,254,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,
+            254,254,254,254,254,254,255,255,255,192,218,236,58,142,199,1,110,184,8,114,186,13,117,187,13,
+            117,187,13,117,187,13,117,187,13,117,187,13,117,187,11,115,186,9,115,185,103,168,212,236,244,
+            249,255,255,255,254,254,254,255,255,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,
+            167,223,36,169,224,37,170,225,36,169,224,36,169,224,37,170,225,36,169,224,36,169,224,36,169,
+            225,35,168,224,23,163,221,84,188,230,218,240,249,255,255,255,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,
+            254,255,255,255,230,240,248,97,164,210,4,111,184,8,114,186,13,117,187,13,117,187,13,117,187,
+            13,117,187,14,118,188,12,116,186,12,116,186,13,117,187,7,113,185,30,127,192,165,203,229,253,
+            254,254,255,255,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,255,255,255,255,255,255,254,254,254,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,
+            36,169,224,36,169,224,37,170,225,37,170,225,36,169,224,36,169,224,36,169,225,36,169,224,36,
+            169,223,28,165,222,63,179,228,195,231,246,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,255,
+            255,255,172,207,231,30,126,191,5,112,185,13,117,187,12,117,187,13,117,187,13,117,187,13,117,
+            187,13,117,187,13,117,187,12,116,186,13,117,187,11,115,186,4,112,184,83,156,206,228,240,247,
+            255,255,255,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,
+            224,37,170,225,37,170,225,36,169,224,37,170,225,36,169,225,36,169,225,36,169,224,35,168,223,
+            29,165,222,65,179,228,195,231,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,237,244,249,
+            115,173,215,9,114,185,10,115,186,13,117,186,13,117,187,13,117,187,13,117,187,14,118,188,13,
+            117,187,14,118,187,12,116,187,12,116,187,13,117,186,5,112,185,32,128,192,180,211,233,255,255,
+            255,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,
+            170,225,37,170,225,37,170,225,36,169,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,
+            222,66,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,255,255,255,213,231,243,73,150,
+            203,6,112,184,11,116,186,13,117,187,13,117,187,13,117,187,13,117,187,14,118,188,14,118,188,
+            13,117,187,13,117,188,13,117,186,13,117,187,9,115,185,12,116,187,124,179,217,243,248,251,255,
+            255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,
+            180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,201,224,240,52,139,197,5,
+            112,184,12,116,186,13,117,187,13,117,188,13,117,188,14,118,188,13,117,187,14,118,187,13,117,
+            188,14,118,187,12,116,187,13,117,188,9,115,185,8,114,186,108,170,213,238,245,250,255,255,255,
+            255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,
+            196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,199,223,239,49,137,196,5,112,184,
+            12,116,186,13,117,187,14,118,188,14,118,188,14,118,188,13,117,187,13,117,187,14,118,188,13,
+            117,186,13,117,188,14,118,188,9,114,185,12,115,186,120,177,216,242,247,251,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,
+            246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,254,255,254,255,254,255,254,254,254,255,255,255,206,227,241,61,144,200,5,112,184,11,116,
+            186,13,117,187,13,117,187,13,117,187,13,117,187,14,118,188,14,118,188,13,117,187,13,117,187,
+            13,117,187,13,117,187,8,114,185,18,119,188,147,193,223,251,252,253,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,254,255,254,255,254,254,254,255,255,255,225,237,246,92,161,208,6,112,184,11,115,186,13,
+            117,186,12,116,186,13,117,187,13,117,187,14,118,188,13,117,187,13,117,187,13,117,187,13,117,
+            187,12,116,186,5,113,185,33,128,192,188,217,236,255,255,255,254,254,254,254,254,254,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,
+            252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            255,255,255,254,254,254,254,254,254,255,255,255,255,159,200,227,18,119,188,6,112,185,13,117,187,
+            13,117,187,13,117,187,14,118,188,14,118,188,13,117,187,14,118,188,13,117,187,13,117,187,12,
+            117,187,2,111,184,62,145,200,217,233,243,255,255,255,254,254,254,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,
+            154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,
+            254,254,254,254,254,254,254,254,255,255,255,237,244,250,108,170,213,5,112,184,7,114,185,13,117,
+            187,14,118,188,14,118,188,14,118,188,14,118,188,13,117,187,13,117,187,13,117,187,4,112,184,
+            18,119,187,153,197,226,255,255,254,255,254,254,254,254,254,255,255,255,254,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,
+            239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,
+            254,254,255,254,254,254,253,253,253,255,255,255,224,236,246,95,163,210,7,113,185,4,112,184,9,
+            114,186,11,115,186,12,117,187,12,116,187,11,116,187,8,114,186,2,111,183,13,117,187,123,180,
+            218,242,247,251,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,250,252,253,154,215,239,40,
+            170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,255,255,255,255,254,254,
+            254,254,254,254,254,254,254,253,253,253,255,255,255,237,244,249,140,189,221,47,135,195,13,116,187,
+            5,113,184,5,112,184,6,111,184,7,113,185,15,118,187,52,139,198,154,197,226,248,251,252,255,
+            255,255,253,253,253,254,254,254,254,254,254,254,254,254,255,255,255,254,254,255,255,255,254,255,255,
+            255,255,255,255,255,255,254,255,255,255,254,254,254,255,255,254,250,252,253,154,215,239,40,170,223,
+            31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,
+            169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,
+            254,254,254,254,254,254,254,254,253,253,253,254,254,254,255,255,255,222,235,245,151,196,226,111,172,
+            213,96,164,209,96,164,210,114,174,215,162,203,229,231,241,247,255,255,255,254,254,254,253,253,253,
+            254,254,254,255,255,255,255,255,255,254,254,254,254,254,253,255,255,254,254,254,255,254,254,254,254,
+            254,254,254,254,255,255,255,254,254,254,253,255,255,254,250,252,253,154,215,239,40,170,223,31,167,
+            223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,
+            35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,
+            254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,254,254,255,255,
+            255,254,254,254,253,254,254,252,253,254,250,252,253,242,247,250,230,240,247,223,236,245,215,231,242,
+            214,231,243,236,244,249,253,254,254,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,
+            169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,
+            223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,
+            255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,254,254,255,
+            254,254,254,255,255,254,254,254,254,255,254,254,255,255,255,252,253,254,248,251,253,241,246,250,215,
+            232,243,187,215,235,162,201,228,135,186,221,104,168,212,83,157,207,73,151,204,62,141,198,71,146,
+            201,176,210,231,249,251,253,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,
+            165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,
+            255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,251,252,253,243,248,251,228,239,247,186,214,234,139,188,221,94,163,209,60,142,200,
+            34,127,192,13,116,187,0,109,183,0,104,180,0,103,180,0,103,180,0,96,177,9,109,182,150,
+            195,224,247,250,252,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,
+            65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,247,250,252,232,
+            241,247,179,211,232,116,176,215,67,147,202,32,126,192,8,113,185,0,106,181,0,106,182,0,108,
+            182,0,109,183,2,110,184,6,113,185,11,116,187,21,122,189,24,123,190,54,141,198,177,210,232,
+            250,252,253,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,
+            228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,255,255,254,255,255,255,245,249,252,219,234,244,153,196,225,80,154,205,
+            25,122,190,4,109,184,0,107,182,0,109,183,6,113,185,10,116,186,8,114,185,7,113,186,16,
+            118,188,43,134,195,85,158,207,126,181,218,161,201,228,186,216,235,209,229,242,239,246,250,253,253,
+            253,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,
+            232,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,255,255,255,246,250,252,215,231,243,142,189,222,57,142,199,14,115,186,0,108,183,2,111,
+            183,8,113,186,13,117,187,14,118,187,11,116,186,6,113,185,24,123,189,68,148,202,135,186,220,
+            200,223,239,236,244,249,246,250,252,255,255,255,255,255,255,255,255,255,255,255,255,253,253,254,255,
+            254,254,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,254,254,255,255,255,
+            231,241,248,145,190,223,55,140,198,11,113,185,0,109,183,6,113,184,10,115,187,14,118,187,13,
+            117,187,13,118,187,10,116,186,9,114,185,63,145,200,159,200,227,226,238,246,251,252,253,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,
+            250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,
+            255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,255,254,255,255,254,203,225,239,92,162,
+            208,15,115,186,0,108,182,8,114,185,13,116,187,14,117,187,13,118,188,13,117,187,13,117,187,
+            11,116,186,5,112,184,56,141,198,194,219,236,255,255,255,255,255,255,255,255,254,255,254,254,254,
+            254,254,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,250,252,
+            253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,
+            254,254,254,254,254,254,254,254,254,255,255,254,253,254,254,182,213,233,58,143,199,2,110,183,7,
+            113,185,12,117,187,13,117,187,14,118,187,13,117,187,12,117,187,13,117,187,13,117,187,7,113,
+            185,27,125,190,157,198,226,253,253,253,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,
+            255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,250,252,253,154,
+            215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,
+            254,254,254,254,255,254,254,252,253,254,179,212,233,49,137,196,0,109,182,10,115,186,13,117,187,
+            13,118,188,13,117,187,13,117,187,14,118,188,13,117,187,13,116,186,11,116,186,7,114,185,95,
+            163,209,235,243,248,255,255,255,253,253,254,255,255,255,254,254,254,254,254,254,254,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,
+            40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,
+            254,254,255,255,255,207,227,241,61,144,200,0,109,183,10,115,186,13,117,187,12,117,187,13,117,
+            187,13,117,187,13,117,187,13,117,187,14,118,188,13,117,187,8,114,185,24,123,190,162,201,228,
+            255,255,255,254,254,253,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,
+            223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            36,169,224,35,168,223,29,165,222,65,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,
+            236,244,249,110,172,214,8,114,186,8,114,185,14,117,187,13,116,187,13,117,187,13,117,187,13,
+            117,187,14,118,188,14,118,188,14,118,188,12,117,187,5,112,185,53,138,198,201,224,239,255,255,
+            255,253,253,254,255,255,255,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,
+            167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,
+            224,35,168,223,29,165,222,66,180,228,196,232,246,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,254,254,249,252,253,165,203,
+            229,28,125,191,4,112,184,13,116,186,13,116,186,13,117,187,13,117,187,13,117,187,14,118,188,
+            13,117,187,14,118,188,14,118,188,12,117,187,4,111,184,73,150,203,221,235,244,255,255,255,254,
+            254,254,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,
+            36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,
+            168,223,29,165,222,64,180,228,194,231,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,230,240,247,90,160,208,4,
+            111,184,10,114,186,13,117,187,12,117,187,13,117,187,13,117,187,13,117,187,14,118,188,14,118,
+            188,14,118,188,14,118,188,12,117,187,4,111,184,78,152,204,224,237,245,255,255,255,254,254,254,
+            254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,
+            224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,
+            29,166,222,61,179,227,191,229,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,254,254,254,255,255,255,254,254,254,254,254,254,252,253,254,185,214,234,42,132,194,3,111,184,
+            13,117,186,13,116,186,13,117,187,13,117,187,13,117,187,14,118,188,13,117,187,14,118,188,14,
+            118,188,14,118,188,12,117,187,4,111,184,73,150,203,220,234,245,255,255,255,254,254,254,254,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,
+            170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,
+            222,61,179,227,191,229,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,254,254,254,254,254,254,255,255,255,242,247,251,137,188,221,16,119,188,6,113,185,13,117,
+            187,12,117,187,13,117,187,13,117,187,13,118,188,14,117,187,14,118,188,13,117,187,14,118,188,
+            14,118,188,13,117,187,5,112,184,57,142,199,205,226,241,255,255,255,253,253,253,255,255,255,255,
+            255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,
+            179,227,191,230,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            254,254,254,254,254,254,255,255,255,235,244,249,108,171,213,6,114,185,8,115,186,13,117,187,14,
+            118,188,13,117,187,13,117,187,14,118,188,13,118,188,14,118,188,14,118,188,13,117,187,14,118,
+            188,13,117,187,7,113,184,31,128,192,176,210,232,255,255,255,254,254,254,254,254,254,254,254,254,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,
+            225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,
+            191,230,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,
+            255,255,255,255,255,255,255,230,241,247,88,159,208,3,111,184,10,115,186,13,117,187,14,118,187,
+            13,118,187,13,118,188,14,117,187,14,118,188,14,118,188,14,118,188,14,118,188,13,117,187,13,
+            117,187,9,114,185,11,116,186,129,183,219,252,253,253,255,255,255,254,254,254,255,255,255,255,255,
+            255,254,254,254,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,
+            255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,
+            170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,
+            245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,224,237,245,81,155,205,2,111,184,11,115,186,13,117,187,14,118,187,14,118,
+            188,14,118,188,13,118,188,14,118,188,14,118,188,13,117,187,14,118,188,13,117,187,13,116,186,
+            12,117,187,4,112,184,67,147,201,216,232,243,255,255,255,254,254,254,254,254,254,254,254,254,255,
+            255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,255,255,
+            255,250,252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,
+            37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,
+            255,255,255,229,239,246,85,158,207,3,111,184,10,115,186,13,117,187,14,118,187,13,117,188,13,
+            117,187,14,118,188,14,118,188,14,118,188,14,118,188,13,117,187,13,117,187,14,118,187,14,118,
+            187,8,114,186,19,120,188,150,195,225,255,254,254,255,255,254,254,254,254,255,255,255,254,254,254,
+            254,254,254,255,255,255,254,254,254,253,253,253,254,254,254,255,255,254,254,254,253,255,255,254,250,
+            252,253,154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,
+            225,37,170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,
+            255,234,243,249,103,169,211,5,113,184,9,115,186,13,117,187,14,118,188,13,117,187,13,117,187,
+            14,118,188,13,117,187,14,118,188,13,117,187,14,118,188,14,118,187,13,117,187,12,116,186,12,
+            117,186,4,112,184,62,144,201,209,229,241,255,255,255,255,255,254,254,253,253,254,254,254,254,254,
+            254,254,253,253,254,254,254,254,254,254,252,253,254,253,253,253,254,253,253,255,255,255,250,252,253,
+            154,215,239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,
+            170,225,37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,253,254,254,255,255,255,243,
+            248,251,140,189,222,18,119,188,5,113,184,13,117,187,12,116,186,13,117,187,14,118,188,13,117,
+            187,14,118,188,13,117,187,14,118,188,14,118,188,13,117,187,13,117,188,13,116,187,13,116,186,
+            10,115,186,13,117,186,92,161,209,196,221,238,251,252,253,251,253,254,253,253,254,253,253,254,251,
+            253,254,250,252,253,227,239,246,183,213,234,209,228,241,250,252,253,255,255,255,250,252,253,154,215,
+            239,40,170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,
+            37,170,225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,255,
+            198,223,239,52,139,198,1,110,183,11,116,186,13,117,187,13,117,188,13,117,187,13,117,187,13,
+            117,187,14,118,188,13,117,187,14,118,187,13,117,188,14,117,187,13,117,187,13,117,186,13,117,
+            186,9,114,185,8,113,185,51,139,198,127,181,218,179,212,233,201,224,239,199,222,238,179,212,233,
+            149,195,225,89,158,207,52,137,196,160,200,227,247,250,252,255,255,255,250,252,253,154,215,239,40,
+            170,223,31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,
+            225,36,169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,239,246,
+            250,122,178,217,11,115,186,7,114,185,14,117,187,12,116,186,13,117,187,13,117,187,13,117,187,
+            13,117,187,14,118,188,13,117,187,14,118,188,13,117,187,13,118,188,12,116,186,12,116,186,13,
+            117,187,9,114,185,2,111,184,12,117,186,36,129,192,52,139,196,51,138,196,37,130,193,19,121,
+            189,0,105,181,15,114,186,155,197,226,248,251,253,255,255,255,250,252,253,154,215,239,40,170,223,
+            31,167,223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,
+            169,224,35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,212,
+            230,242,70,149,202,2,110,183,10,115,186,14,117,187,13,117,187,13,117,187,13,117,187,13,117,
+            187,13,117,187,14,118,188,14,117,188,13,118,188,13,117,187,13,117,187,13,117,187,13,117,187,
+            13,117,187,12,116,187,8,114,185,3,111,184,1,110,183,2,110,183,2,111,184,3,111,183,0,
+            103,180,37,127,192,177,210,232,251,253,253,255,255,255,250,252,253,154,215,239,40,170,223,31,167,
+            223,36,169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,
+            35,168,223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,255,254,254,254,254,254,
+            177,210,232,40,130,194,0,108,182,8,114,185,14,118,188,13,117,187,13,117,187,13,117,187,13,
+            117,187,13,117,188,14,118,187,13,117,188,12,116,187,14,118,187,14,118,188,14,118,188,13,117,
+            187,13,116,187,13,117,187,13,117,187,13,117,187,10,115,186,2,110,184,4,108,183,42,130,193,
+            146,192,224,238,245,250,255,255,255,255,255,255,250,252,253,154,215,239,40,170,223,31,167,223,36,
+            169,224,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,
+            223,29,166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,255,254,247,250,
+            252,170,206,230,68,147,201,10,113,185,0,109,183,10,114,186,13,117,187,14,118,188,13,117,187,
+            13,117,187,13,117,187,13,117,188,13,117,188,13,117,187,13,117,187,14,118,187,14,118,188,13,
+            117,187,13,117,187,11,115,186,2,110,184,3,110,184,36,127,192,100,166,211,187,216,235,246,250,
+            252,255,255,254,253,253,253,255,255,254,250,252,253,154,215,239,40,170,223,31,167,223,36,170,225,
+            37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,37,170,225,36,169,224,35,168,223,29,
+            166,222,61,179,227,191,230,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,255,254,255,
+            255,255,216,232,243,122,179,217,45,133,194,5,111,184,1,108,183,5,112,185,10,116,186,13,117,
+            187,13,117,187,14,118,187,14,118,187,13,117,187,13,117,187,13,117,187,10,115,186,5,111,185,
+            0,108,183,0,108,183,28,123,191,95,163,210,183,213,234,240,246,250,255,255,255,255,255,254,253,
+            253,253,254,254,254,255,255,255,250,252,253,154,215,239,41,171,224,32,168,224,37,169,224,37,169,
+            224,37,169,224,37,169,224,37,169,224,37,169,224,37,169,224,37,169,224,36,169,223,30,166,223,
+            62,179,227,191,230,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,254,254,
+            255,255,255,247,250,252,193,220,237,117,177,216,55,139,198,16,118,188,1,110,184,0,108,182,1,
+            107,182,2,108,182,2,108,183,2,107,183,1,107,182,0,107,182,3,110,184,19,119,189,54,138,
+            198,102,167,211,170,206,230,235,243,248,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,
+            254,254,254,255,255,255,249,252,253,147,212,239,28,165,223,19,162,221,24,164,222,23,164,222,23,
+            164,222,23,164,222,23,164,222,23,164,222,23,164,222,23,164,222,23,164,222,17,161,221,50,175,
+            226,188,228,245,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,255,255,255,246,250,252,201,225,239,158,199,227,120,177,216,91,159,207,69,147,201,
+            55,138,198,51,136,197,57,139,198,69,147,202,90,159,207,122,178,217,160,201,228,202,225,240,241,
+            247,250,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,251,253,253,168,220,242,70,181,228,64,179,227,68,181,228,67,181,228,67,181,228,
+            67,181,228,67,181,228,67,181,228,67,181,228,67,181,228,67,181,228,62,179,227,88,189,231,200,
+            233,246,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,255,255,255,255,255,255,255,255,255,246,249,252,230,240,247,213,231,242,201,224,
+            239,198,222,238,203,225,239,213,231,242,229,240,247,246,250,252,255,255,255,255,255,255,255,255,255,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,254,254,254,255,
+            254,254,253,253,253,230,244,250,203,234,246,201,234,246,203,234,246,203,234,246,203,234,246,203,234,
+            246,203,234,246,203,234,246,203,234,246,203,234,246,203,234,246,201,233,246,209,236,247,239,248,252,
+            255,255,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,255,254,254,
+            254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,
+            254,253,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,
+            254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,254,
+            254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,
+            254,254,254,254,255,255,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,
+            255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,
+            254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,
+            255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,
+            254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,
+            255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,255,255,255,254,255,255,255,254,254,255,255,255,254,255,255,255,254,254,255,
+            255,255,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,255,254,254,254,255,255,254,254,254,255,254,254,254,255,255,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,254,255,
+            255,254,255,255,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,254,254,255,254,254,254,254,254,254,254,254,254,254,254,254,255,255,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,254,254,254,254,254,254,252,253,253,251,252,253,252,252,253,253,253,253,
+            253,253,253,251,252,253,251,252,253,253,253,253,254,254,254,254,254,254,254,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,
+            254,254,255,255,254,254,254,253,253,254,254,254,253,255,255,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,253,253,253,254,254,254,255,255,255,254,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,254,254,254,254,254,254,251,253,254,223,236,245,196,220,237,197,221,237,200,223,238,192,220,
+            236,175,209,232,169,205,230,238,245,249,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,254,254,254,254,254,254,252,253,254,239,248,252,234,245,251,234,246,251,234,246,251,234,246,
+            251,234,246,251,234,246,251,234,246,251,234,246,251,234,246,251,234,246,251,234,246,251,234,246,251,
+            233,246,251,240,249,252,251,252,253,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            254,254,254,255,255,254,248,251,252,191,218,236,144,191,223,117,176,215,71,146,200,51,134,194,34,
+            124,190,30,125,190,214,231,242,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,
+            255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,
+            255,254,254,255,255,255,239,248,252,147,212,239,103,195,232,106,196,233,106,196,233,108,196,233,108,
+            196,233,108,196,233,108,196,233,108,196,233,108,196,233,108,196,233,108,196,233,106,195,233,102,194,
+            232,149,213,239,230,245,250,255,255,255,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,
+            255,255,255,255,252,253,253,230,240,247,220,234,244,159,201,227,30,122,189,0,101,179,0,104,181,
+            9,114,185,211,229,242,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,229,244,251,80,186,230,6,157,219,10,159,220,11,159,220,15,161,220,16,161,221,
+            16,161,221,16,161,221,15,160,221,15,161,221,16,161,221,17,161,221,13,159,220,6,157,219,83,
+            187,230,215,239,249,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,
+            254,254,255,254,254,255,255,255,255,255,255,199,223,239,48,137,197,5,113,185,9,115,186,23,122,
+            189,213,230,242,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,
+            254,254,254,254,254,254,255,255,255,254,254,254,255,255,254,255,255,255,255,254,254,254,253,253,255,
+            255,255,230,244,250,90,190,231,46,173,226,86,188,230,80,186,229,42,171,224,33,167,223,35,168,
+            223,32,167,223,26,165,222,29,166,223,34,168,223,36,169,223,32,167,223,25,165,222,96,192,232,
+            218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,
+            255,255,255,254,254,254,255,255,255,191,219,237,44,135,196,4,111,184,8,114,186,21,121,189,213,
+            230,242,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,254,254,
+            254,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,253,253,
+            253,254,254,254,255,255,255,255,255,255,255,255,255,254,254,255,253,253,254,254,254,253,255,255,255,
+            228,243,250,84,187,230,102,194,233,216,239,249,198,232,246,62,180,227,28,166,222,35,168,223,47,
+            173,226,72,183,229,68,181,228,39,170,224,35,168,224,34,168,224,26,165,222,97,193,232,218,240,
+            249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,
+            254,254,254,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,
+            254,255,255,255,255,255,255,192,219,237,45,135,196,4,111,184,8,114,186,21,121,189,213,230,242,
+            255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,
+            255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,
+            254,254,254,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,255,254,254,247,
+            250,252,209,228,241,182,213,234,178,211,233,168,205,230,210,229,242,250,252,253,255,255,255,227,243,
+            250,83,187,230,108,196,233,232,246,251,209,235,247,62,180,227,27,166,223,29,165,222,98,192,232,
+            197,231,246,160,217,241,47,173,225,26,165,222,34,168,223,25,165,222,96,193,232,218,240,249,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,253,253,
+            254,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,
+            254,254,254,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,255,255,255,192,219,237,45,135,196,4,111,184,8,114,186,21,121,189,213,230,242,255,255,
+            255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,253,254,254,255,255,255,255,255,255,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,
+            255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,254,254,234,242,248,
+            116,174,215,34,126,192,38,130,193,41,131,194,155,197,226,245,249,252,255,255,255,230,244,251,89,
+            189,231,52,174,226,96,192,232,89,189,231,44,172,225,26,165,222,12,159,220,117,200,235,253,253,
+            254,191,229,246,37,169,224,11,159,220,28,166,222,26,165,222,97,193,232,218,240,249,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,
+            254,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,191,219,236,44,135,195,4,111,183,8,114,186,21,121,189,213,230,242,255,255,255,254,
+            254,254,254,254,254,254,254,254,254,254,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,254,254,254,254,253,253,253,255,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,255,255,255,238,245,250,96,159,
+            207,0,97,177,0,107,182,19,118,187,157,199,226,250,252,253,255,255,255,231,245,251,92,191,231,
+            26,165,222,36,169,224,34,167,223,35,168,224,48,174,225,48,173,224,133,206,237,248,252,253,195,
+            230,246,66,180,228,44,171,225,43,172,225,25,164,222,96,192,232,218,240,249,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,254,254,254,254,254,254,253,253,253,255,255,254,255,255,255,245,248,251,216,232,242,194,220,237,
+            190,217,236,206,226,240,227,238,246,240,247,251,255,255,255,255,255,255,253,253,253,254,254,254,254,
+            254,254,254,254,254,255,255,254,255,255,255,246,249,251,211,230,242,192,219,237,210,229,242,252,253,
+            254,196,221,238,45,135,195,4,111,184,8,114,186,21,121,189,213,230,242,255,255,255,254,254,254,
+            253,253,253,255,255,254,255,255,255,248,251,252,221,235,245,194,221,237,188,216,235,202,224,239,223,
+            237,245,241,247,250,255,255,254,255,255,255,255,254,254,243,247,251,215,232,243,210,229,242,222,235,
+            246,222,236,245,214,232,243,219,234,244,253,253,253,254,253,254,218,234,244,189,217,236,198,222,237,
+            228,240,247,255,255,254,255,255,255,253,253,253,251,252,253,238,245,250,207,227,241,88,158,207,0,
+            105,181,6,113,185,24,122,189,141,189,222,224,237,246,245,248,250,229,244,250,87,189,230,68,182,
+            227,167,220,242,138,208,238,49,173,225,135,208,237,204,234,246,222,241,250,252,253,254,238,248,252,
+            208,236,248,194,230,246,118,201,235,24,164,222,91,191,231,219,240,249,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,
+            254,254,254,254,253,255,255,255,248,251,252,189,217,235,116,176,215,96,164,210,112,172,215,100,167,
+            211,67,147,202,69,149,203,104,169,212,175,209,232,244,248,251,254,254,254,253,253,253,253,254,253,
+            255,255,254,251,252,253,198,222,239,114,175,215,75,153,204,98,166,211,110,171,214,165,203,229,180,
+            212,233,50,138,196,4,111,183,8,114,186,21,121,189,213,230,242,255,255,255,254,253,254,255,255,
+            254,254,253,254,202,226,240,126,181,218,95,163,210,107,171,213,106,170,213,76,152,204,65,147,201,
+            102,168,211,172,208,231,238,245,250,255,255,255,217,233,243,128,182,219,88,159,207,76,152,204,67,
+            147,202,47,136,197,102,168,211,224,237,245,169,205,230,114,175,215,105,170,212,62,145,200,77,152,
+            205,151,196,226,238,245,249,255,255,255,243,248,251,164,203,229,90,160,208,45,135,195,4,112,184,
+            11,116,186,17,120,188,70,150,202,108,171,213,175,207,231,224,241,249,86,189,231,95,192,231,237,
+            247,251,204,233,247,55,176,226,126,204,235,196,231,246,217,240,249,252,253,253,237,247,252,199,233,
+            246,185,227,244,115,199,235,24,164,222,91,191,231,219,240,249,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,
+            255,255,255,244,248,251,157,199,226,44,130,193,13,113,185,117,176,216,207,227,241,219,234,244,114,
+            175,215,10,113,185,6,111,183,34,125,190,173,208,231,255,255,255,253,253,253,255,254,254,247,250,
+            252,166,204,230,46,134,195,15,114,185,114,173,214,213,231,243,201,224,239,136,187,221,97,165,210,
+            35,129,193,8,113,185,8,114,186,21,121,189,213,230,242,255,255,255,255,255,254,252,253,254,183,
+            214,234,52,137,196,11,111,184,86,157,206,200,224,239,219,234,244,139,188,222,21,121,189,2,106,
+            182,38,127,192,149,195,224,248,251,252,242,247,251,214,231,243,145,192,223,34,128,192,1,107,182,
+            0,105,181,57,142,199,134,186,220,112,173,215,181,212,233,224,237,246,116,176,216,11,113,185,19,
+            115,186,110,172,213,240,245,250,250,252,253,197,221,238,143,191,223,63,145,201,0,109,183,9,114,
+            186,20,120,188,102,167,211,162,202,229,207,226,240,226,242,249,84,188,231,95,192,232,235,247,251,
+            206,235,248,52,175,226,39,169,224,43,171,224,129,205,237,247,251,253,193,230,246,62,179,228,40,
+            170,224,42,171,224,25,165,222,96,192,232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,207,227,240,73,149,202,0,106,181,0,109,182,99,166,211,225,238,246,255,255,255,185,214,234,
+            28,125,190,5,111,183,1,106,181,130,183,219,252,253,253,255,255,255,252,253,254,184,214,235,43,
+            133,195,0,104,180,32,124,190,181,213,233,255,255,255,255,255,255,231,241,248,108,171,213,14,118,
+            187,10,116,186,8,114,186,21,121,189,213,230,242,255,255,255,255,255,255,223,236,245,84,154,204,
+            0,101,179,6,112,184,74,152,204,222,236,245,255,255,255,204,226,240,58,142,199,0,104,181,5,
+            110,183,101,166,210,231,241,247,255,255,255,255,255,255,189,217,235,47,135,196,2,110,183,6,113,
+            185,19,120,188,95,163,209,201,224,239,251,253,254,253,254,254,191,218,236,29,125,191,2,108,183,
+            11,113,185,120,178,217,255,254,254,252,253,253,228,240,247,97,163,209,0,105,181,6,113,185,25,
+            123,189,154,196,226,245,248,251,255,255,254,229,244,250,81,186,230,94,192,232,235,247,251,206,234,
+            247,51,175,226,26,165,222,19,162,222,118,200,235,247,251,253,188,228,244,42,170,225,19,162,222,
+            31,168,223,25,165,222,96,193,232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,200,
+            225,239,61,141,198,0,97,177,0,97,177,79,154,205,218,233,244,255,255,255,194,220,236,35,129,
+            192,5,112,184,3,109,183,131,184,221,252,253,253,254,254,254,224,237,246,90,160,208,0,108,183,
+            0,110,183,32,127,192,181,212,233,255,255,255,255,254,254,255,255,255,169,206,231,30,126,191,7,
+            113,185,8,115,186,21,121,189,213,230,242,255,255,255,255,255,255,218,233,244,68,143,199,0,92,
+            174,1,103,180,53,139,198,214,231,243,255,255,255,212,231,242,68,148,202,0,105,181,6,112,184,
+            102,167,211,231,240,247,255,255,255,255,255,255,187,216,236,47,135,196,3,111,184,3,110,184,21,
+            120,188,156,198,226,251,252,253,255,255,253,254,254,254,196,221,238,32,128,193,7,114,185,6,111,
+            184,31,122,189,200,223,239,255,255,255,232,241,247,94,161,208,0,105,182,6,113,185,24,122,189,
+            153,196,226,246,250,252,255,255,255,228,243,250,81,186,229,94,192,232,235,247,251,206,234,247,50,
+            175,226,28,167,223,26,164,222,121,201,235,246,251,253,189,228,244,48,173,225,24,164,222,35,168,
+            224,26,165,222,96,193,232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,255,255,237,245,249,
+            145,191,223,56,139,198,75,151,204,190,217,236,248,251,253,255,255,255,179,212,233,31,127,191,6,
+            113,184,3,109,183,132,185,220,253,253,254,253,254,254,193,219,237,31,127,192,1,111,183,4,111,
+            184,31,126,191,179,212,232,255,255,255,254,254,254,255,255,255,192,219,238,45,135,196,4,111,184,
+            8,114,186,21,121,189,213,230,242,255,255,255,255,255,255,247,250,252,165,203,229,56,140,197,63,
+            143,200,166,203,229,249,252,253,248,251,253,197,221,238,60,143,199,0,106,181,6,112,184,103,167,
+            211,232,241,248,255,255,255,255,255,255,186,216,236,47,135,196,3,111,184,0,108,182,50,138,197,
+            210,229,241,254,254,254,255,255,255,254,254,254,194,220,237,31,128,192,6,114,185,10,115,186,10,
+            113,185,129,183,219,255,255,255,232,240,247,93,161,208,0,105,182,6,113,185,24,122,189,153,196,
+            225,246,250,252,255,255,255,228,243,250,81,186,229,94,192,232,235,247,251,206,234,247,50,175,226,
+            28,167,223,25,164,222,121,201,235,246,251,253,189,228,244,48,173,225,24,164,222,35,168,224,26,
+            165,222,96,193,232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,253,253,253,255,255,254,248,250,
+            252,223,237,245,199,223,238,165,203,229,123,179,217,118,177,216,86,158,206,21,121,188,10,115,185,
+            3,108,183,132,185,220,253,253,254,250,252,252,158,200,226,12,116,186,6,113,185,5,112,185,31,
+            126,191,179,212,232,255,255,255,255,255,255,255,255,255,192,219,237,45,135,196,4,111,184,8,114,
+            186,21,121,189,213,230,242,255,255,255,254,253,253,255,255,255,252,253,254,227,238,247,199,222,239,
+            173,208,231,126,181,219,111,172,214,93,163,210,33,128,192,3,110,183,5,112,184,103,167,211,232,
+            241,248,255,255,255,255,255,255,187,216,236,47,135,196,3,111,183,0,108,182,58,143,200,218,232,
+            243,254,254,254,255,255,255,254,254,254,194,220,237,31,128,192,6,114,185,12,116,187,5,112,184,
+            95,164,209,255,255,255,232,241,247,93,161,208,0,105,182,6,113,185,24,122,189,153,196,225,246,
+            250,252,255,255,255,228,243,250,81,186,229,94,192,232,235,247,251,206,234,247,50,175,226,28,167,
+            223,25,164,222,121,201,235,246,251,253,189,228,244,48,173,225,24,164,222,35,168,224,26,165,222,
+            96,193,232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,254,254,254,255,255,255,254,255,255,254,254,254,254,254,254,254,254,254,222,236,245,142,
+            191,222,63,143,200,45,133,194,110,172,214,180,213,234,143,191,223,29,125,190,7,114,184,3,108,
+            183,132,185,220,254,253,254,246,249,251,143,191,222,8,113,185,7,113,185,5,112,185,31,126,191,
+            179,212,232,255,255,255,255,255,255,255,255,255,192,219,236,45,135,195,4,111,183,8,114,186,21,
+            121,189,213,230,242,255,255,255,254,254,254,253,254,254,231,241,247,156,199,226,73,151,202,41,133,
+            194,107,170,213,172,207,231,155,197,226,51,139,197,0,108,182,6,112,184,103,167,211,231,241,248,
+            255,255,255,255,255,255,187,216,236,47,135,196,3,111,183,0,108,182,56,142,200,217,232,243,254,
+            254,254,255,255,255,254,254,254,194,220,237,31,128,192,6,114,185,12,116,187,4,111,183,88,160,
+            207,255,255,255,232,241,247,93,161,208,0,105,182,6,113,185,24,122,189,153,196,225,246,250,252,
+            255,255,255,228,243,250,81,186,229,94,192,232,235,247,251,206,234,247,50,175,226,28,167,223,25,
+            164,222,121,201,235,246,251,253,188,228,244,48,173,225,24,164,222,35,168,224,26,165,222,96,193,
+            232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,254,254,254,254,254,254,255,255,254,214,231,243,92,161,208,0,105,181,
+            4,108,183,131,183,219,241,246,250,255,255,255,199,223,238,34,128,192,5,112,184,2,109,183,132,
+            184,220,253,253,254,249,251,253,159,200,227,12,116,186,4,111,185,5,112,185,31,126,191,179,212,
+            232,255,255,255,254,254,254,255,255,255,193,220,237,45,135,196,4,111,184,8,114,186,21,121,189,
+            213,230,242,255,255,255,255,255,255,223,236,245,97,165,211,2,110,183,0,104,181,97,164,210,237,
+            244,249,255,255,255,219,234,244,68,148,202,0,105,181,6,112,184,102,167,211,231,241,248,255,255,
+            255,255,255,255,187,216,236,47,135,196,3,111,183,0,108,182,57,142,199,218,233,243,254,254,254,
+            254,254,254,254,254,254,194,220,237,31,128,192,7,114,185,11,116,187,7,112,184,110,172,214,255,
+            255,255,232,241,247,93,161,208,0,105,181,6,113,185,24,122,189,153,196,225,246,250,252,255,255,
+            255,230,244,250,81,186,229,94,191,232,235,247,251,206,234,247,50,175,226,28,167,223,25,164,222,
+            120,201,235,246,251,253,188,228,244,47,173,225,24,164,222,35,168,224,26,165,222,96,193,232,218,
+            240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,254,254,254,254,254,254,255,255,255,243,248,252,139,188,222,15,115,186,0,100,178,42,133,
+            195,194,220,238,255,255,255,255,255,255,189,218,236,31,128,192,6,113,185,2,109,183,134,185,220,
+            255,254,254,255,255,255,201,223,239,43,134,195,0,109,183,3,111,184,31,126,191,180,212,233,255,
+            255,255,255,254,254,255,255,255,182,213,234,38,131,193,5,112,184,8,114,186,21,122,189,213,230,
+            242,255,255,255,248,250,252,141,189,222,0,103,180,1,107,182,18,120,188,161,201,228,255,255,255,
+            255,254,254,207,227,241,63,145,201,0,106,181,6,112,184,104,169,212,233,242,248,255,255,255,255,
+            255,255,187,216,236,47,135,196,3,111,184,0,108,183,45,134,195,203,225,239,254,254,254,254,254,
+            253,254,254,254,194,220,237,32,128,192,7,114,185,8,113,185,22,118,187,173,208,231,255,255,255,
+            232,241,247,93,161,208,0,105,182,6,113,185,24,122,189,154,197,226,248,251,252,244,247,250,210,
+            233,245,80,186,229,95,192,231,235,247,251,206,234,247,50,175,226,28,167,223,25,164,222,115,199,
+            235,244,249,253,190,229,244,44,172,225,22,163,222,32,168,223,24,165,222,96,193,232,218,240,249,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,
+            255,255,255,255,255,255,255,255,255,230,241,248,107,169,213,9,110,184,0,108,182,24,123,190,154,
+            197,227,243,248,251,252,253,254,151,196,225,16,118,188,8,114,186,3,109,184,123,180,217,241,247,
+            250,243,248,251,234,242,248,120,178,217,5,111,184,0,107,182,32,127,191,183,214,234,255,255,255,
+            255,255,255,255,255,254,132,184,220,15,118,187,9,115,185,7,114,185,21,122,189,218,233,243,255,
+            255,255,236,244,249,99,163,209,0,99,178,12,117,187,12,116,186,119,178,217,242,248,251,250,252,
+            253,176,210,233,37,130,193,0,107,182,5,112,184,95,164,209,220,235,244,246,249,251,253,254,254,
+            188,216,236,47,135,196,3,111,184,5,112,185,17,117,186,135,186,221,242,247,251,255,255,254,255,
+            255,255,199,222,239,33,128,193,3,111,184,3,109,183,75,152,204,243,248,251,255,255,255,231,240,
+            247,92,160,207,0,105,181,6,113,185,24,123,189,159,199,227,242,247,250,158,198,226,138,192,225,
+            81,186,230,98,193,233,235,247,251,206,235,247,51,175,226,29,166,223,25,164,222,100,194,232,237,
+            247,252,208,236,247,57,177,226,18,162,221,29,167,222,25,165,222,97,193,232,218,240,249,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,254,254,254,255,255,255,239,246,250,130,182,219,14,115,186,0,106,182,0,109,183,58,142,199,
+            143,191,223,158,200,227,104,169,212,30,126,191,4,110,183,1,109,183,57,142,199,126,180,218,174,
+            208,231,251,252,253,209,228,241,64,145,201,0,103,180,22,117,187,161,201,228,250,252,253,238,245,
+            249,180,212,233,83,156,206,14,116,186,3,110,183,1,109,183,11,116,186,186,215,235,224,236,246,
+            241,247,251,127,181,217,2,103,180,5,111,184,2,110,184,41,133,195,140,189,222,168,205,231,116,
+            175,216,42,133,195,1,109,183,0,109,183,44,134,195,113,174,214,169,206,230,241,247,250,191,218,
+            236,47,135,196,2,110,184,8,114,186,22,122,189,81,156,206,169,206,230,234,243,249,248,251,253,
+            178,211,233,22,120,189,0,106,182,52,136,196,194,220,237,255,255,255,255,254,254,233,242,248,94,
+            161,208,0,100,179,3,111,184,15,118,187,108,170,213,147,193,224,101,166,210,157,203,230,88,190,
+            232,98,193,232,237,248,251,211,237,248,52,175,226,29,166,222,28,166,223,64,180,227,202,234,246,
+            245,250,252,155,215,240,108,197,234,102,194,233,54,176,227,93,191,231,217,239,249,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,
+            254,254,255,255,254,255,254,254,199,222,238,78,153,204,15,117,187,8,113,185,6,112,184,37,131,
+            193,110,172,214,193,219,237,139,189,221,32,125,191,10,114,185,11,114,186,44,133,195,162,202,227,
+            251,253,254,251,253,254,184,214,234,77,150,203,28,121,188,79,154,205,155,198,226,147,193,224,140,
+            189,222,149,195,224,73,149,202,37,129,193,41,131,194,43,133,194,103,168,212,144,191,224,248,250,
+            252,208,228,241,76,152,204,18,119,188,9,114,185,8,114,185,37,131,194,98,165,211,176,210,232,
+            160,200,228,48,135,196,8,112,184,7,112,184,32,128,192,142,191,222,245,249,251,190,218,236,47,
+            135,196,2,111,183,0,109,183,61,144,201,152,196,226,123,180,217,145,192,224,167,204,230,91,161,
+            209,30,124,191,75,149,202,181,213,234,255,255,255,255,254,254,255,254,254,246,250,251,138,187,221,
+            14,116,186,7,112,185,11,115,186,28,126,191,65,147,201,159,199,226,223,240,248,89,190,232,85,
+            187,230,210,237,248,186,227,245,50,174,226,30,167,222,34,168,224,32,167,224,112,198,234,212,237,
+            248,245,250,252,238,248,252,204,234,247,89,190,231,87,189,231,215,238,249,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,
+            253,253,254,255,255,254,250,251,252,203,225,239,143,191,223,118,175,215,121,177,216,156,198,227,220,
+            234,244,255,255,255,240,247,250,163,202,228,118,176,215,126,180,218,176,210,232,243,248,250,255,255,
+            254,255,254,254,254,254,254,215,232,243,152,196,225,117,176,215,128,182,218,154,197,226,213,231,243,
+            238,245,249,191,218,236,176,209,232,178,212,233,178,210,232,166,204,229,181,212,233,249,251,253,254,
+            254,254,215,232,243,147,194,224,119,176,215,121,178,216,153,197,225,210,229,241,255,255,255,246,249,
+            252,178,211,233,121,177,215,120,177,215,168,205,230,233,242,248,255,255,255,187,216,236,47,135,196,
+            3,111,183,0,107,182,62,144,201,223,235,244,213,230,242,156,198,226,132,185,220,117,175,215,153,
+            196,226,213,231,243,255,255,255,255,255,254,253,253,253,254,254,254,255,255,254,223,236,245,150,194,
+            224,115,174,215,117,175,215,132,185,220,181,212,234,246,249,251,235,247,252,90,189,232,46,172,225,
+            98,193,232,86,188,231,40,171,225,33,168,223,36,169,224,31,167,223,36,169,224,85,188,231,136,
+            208,237,144,211,239,118,200,234,55,176,226,91,190,231,217,239,249,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,
+            254,253,253,253,255,255,254,255,255,255,251,252,253,240,246,250,244,249,252,255,255,255,255,255,255,
+            254,254,254,255,255,254,254,254,254,241,247,250,246,250,252,255,255,255,255,255,255,253,253,253,253,
+            253,253,255,255,254,255,255,255,254,254,254,239,246,249,234,243,248,247,250,252,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,255,254,254,253,254,254,255,254,254,
+            255,255,255,253,254,254,241,247,250,243,248,251,255,255,254,255,255,255,255,254,254,255,255,255,255,
+            255,254,243,248,251,244,249,251,255,255,255,255,255,255,255,255,255,187,216,236,47,135,196,3,111,
+            183,0,107,182,56,141,199,219,233,244,255,255,255,247,251,252,232,242,248,237,244,249,254,254,254,
+            255,255,255,255,255,254,253,253,253,254,254,254,254,254,254,254,254,254,255,255,255,252,253,253,241,
+            247,250,240,246,250,250,252,253,255,255,255,255,255,255,231,245,251,93,191,232,25,165,222,25,164,
+            222,28,165,223,35,169,224,36,169,224,35,168,223,36,169,223,31,167,223,27,165,223,30,167,223,
+            33,168,223,28,166,222,23,164,222,96,193,232,218,240,249,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,
+            254,254,253,253,255,255,255,255,255,255,255,255,255,254,254,254,253,253,253,254,254,254,254,254,254,
+            254,254,254,254,254,253,255,255,254,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,
+            255,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,255,255,253,253,253,254,254,
+            253,255,255,255,255,255,255,255,255,255,255,254,254,254,254,253,253,253,253,253,253,253,255,255,254,
+            255,255,255,255,255,255,255,255,254,255,254,254,255,255,255,187,216,235,47,135,195,3,111,183,0,
+            108,182,56,141,200,216,232,243,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            253,254,254,253,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,254,254,254,255,255,255,230,245,251,93,191,231,27,165,222,33,168,223,35,
+            169,224,36,168,223,35,169,224,36,169,224,35,168,223,36,169,224,34,168,223,31,167,222,31,167,
+            223,29,166,223,24,164,222,96,193,232,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,255,255,255,254,254,254,255,254,254,255,255,255,188,217,235,48,136,196,4,111,184,0,108,183,
+            58,142,200,219,234,244,254,254,254,255,255,255,254,254,255,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,254,254,
+            254,254,254,254,254,254,254,255,255,255,231,245,251,95,192,232,31,167,223,39,170,224,39,170,225,
+            39,170,224,38,170,224,39,170,225,38,170,224,38,170,225,39,170,224,39,170,224,40,170,225,36,
+            169,224,28,166,223,98,193,233,218,240,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,254,254,
+            254,255,255,255,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,254,254,254,255,255,255,
+            254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,254,254,254,254,254,254,254,254,254,255,
+            255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,
+            254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,255,
+            255,255,254,254,254,254,254,254,255,255,255,195,220,238,43,132,194,0,105,181,0,101,180,53,139,
+            198,227,238,245,255,255,255,255,255,255,254,254,254,253,253,253,253,253,253,255,255,255,254,254,254,
+            254,254,254,254,254,254,254,254,254,255,255,255,254,254,254,254,254,254,255,255,255,254,254,254,254,
+            254,254,255,255,255,255,255,255,229,244,250,78,184,230,6,157,220,14,160,221,16,161,221,16,161,
+            221,16,161,221,16,161,221,16,161,221,15,161,221,16,161,221,16,161,221,16,161,221,12,159,220,
+            5,157,219,82,188,230,215,239,249,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,
+            255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,
+            254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,
+            254,254,254,253,253,254,204,226,240,104,169,212,22,121,189,1,108,182,0,106,181,30,126,191,119,
+            177,216,132,185,220,191,218,236,250,252,253,254,254,254,254,254,254,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,254,235,246,251,117,200,234,62,178,227,69,181,228,70,182,228,70,182,228,70,
+            182,228,70,182,228,70,182,228,70,182,228,70,182,228,70,182,228,70,182,228,67,181,228,62,179,
+            227,121,202,236,224,242,250,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,
+            254,253,253,254,219,233,243,177,210,232,166,204,229,165,204,228,165,204,228,169,206,229,178,211,232,
+            174,208,231,212,230,242,252,252,253,255,255,255,254,254,254,253,253,253,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,
+            254,255,254,254,248,251,252,217,240,248,202,233,247,205,234,247,205,234,247,205,234,247,205,234,247,
+            205,234,247,205,234,247,205,234,247,205,234,247,205,234,247,205,234,247,204,234,247,203,234,247,218,
+            240,249,246,250,252,255,255,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,254,
+            254,253,252,253,253,249,251,253,250,252,253,250,252,253,250,252,253,250,252,253,249,251,252,248,251,
+            252,251,253,253,254,254,254,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,254,254,254,253,
+            253,254,254,254,253,253,254,254,253,254,254,253,254,254,253,254,254,253,254,254,253,254,254,253,254,
+            254,253,254,254,253,254,254,253,254,254,253,254,254,253,254,254,253,254,254,253,254,254,253,254,254,
+            254,254,253,254,254,254,254,254,254,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,253,253,253,
+            254,254,254,254,254,254,254,254,254,255,255,254,254,254,254,254,254,254,255,255,254,255,255,255,255,
+            255,254,254,254,254,253,253,253,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,254,254,254,253,253,253,
+            254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,
+            254,253,253,253,254,254,254,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,163,163,163,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,
+            199,199,199,199,199,199,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,237,
+            237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,
+            238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,
+            237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,
+            237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,
+            238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,
+            237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,
+            237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,
+            238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,
+            237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,
+            237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,
+            238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,
+            237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,
+            237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,238,237,237,
+            238,237,237,238,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,254,
+            254,254,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,237,237,238,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,
+            0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,237,237,238,16,16,140,
+            49,49,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,16,16,140,49,49,
+            156,255,255,255,132,132,198,16,16,140,181,186,222,255,255,255,239,231,239,132,132,198,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,16,16,140,49,49,
+            156,255,255,255,255,255,255,181,186,222,206,214,231,255,255,255,189,198,222,16,16,140,115,115,189,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,
+            0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,237,237,238,16,16,140,49,49,
+            156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,247,115,115,189,154,165,205,255,
+            255,255,115,132,189,16,16,140,181,186,222,255,255,255,16,16,140,68,68,165,255,255,247,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,115,115,189,154,165,205,255,
+            255,255,132,132,198,16,16,140,181,186,222,255,255,255,181,186,222,16,16,140,115,115,189,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,
+            0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,237,237,238,16,16,140,49,49,156,154,
+            165,205,68,68,165,99,101,180,222,222,239,255,255,255,255,255,255,132,132,198,154,165,205,255,255,
+            255,255,255,255,154,165,205,132,132,198,255,255,255,255,255,255,132,132,198,154,165,205,255,255,255,
+            132,132,198,16,16,140,181,186,222,154,165,205,16,16,140,16,16,140,132,132,198,255,255,247,255,
+            255,255,255,255,255,245,245,245,132,132,198,169,179,218,255,255,255,255,255,255,132,132,198,181,186,
+            222,255,255,247,255,255,255,132,132,198,143,153,202,255,255,255,132,132,198,154,165,205,222,222,239,
+            68,68,165,16,16,140,99,101,180,181,186,222,189,198,222,16,16,140,99,101,180,132,132,198,68,
+            68,165,115,132,189,239,231,239,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,
+            0,127,127,127,199,199,199,237,237,238,254,254,254,237,237,238,16,16,140,16,16,140,49,49,156,
+            115,115,189,16,16,140,16,16,140,237,237,238,255,255,255,16,16,140,49,49,156,255,255,255,255,
+            255,255,68,68,165,16,16,140,245,245,245,255,255,255,16,16,140,49,49,156,255,255,255,115,132,
+            189,16,16,140,181,186,222,99,101,180,16,16,140,16,16,140,68,68,165,255,255,247,255,255,255,
+            255,255,255,255,255,255,35,35,148,35,35,148,255,255,247,222,222,239,16,16,140,35,35,148,252,
+            244,244,231,239,247,16,16,140,99,101,180,252,244,244,16,16,140,49,49,156,214,214,239,35,35,
+            148,16,16,140,35,35,148,154,165,205,189,198,222,16,16,140,16,16,140,99,101,180,68,68,165,
+            16,16,140,115,115,189,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,
+            127,127,199,199,199,237,237,238,254,254,254,237,237,238,16,16,140,16,16,140,255,255,247,255,255,
+            255,132,132,198,16,16,140,154,165,205,252,244,244,16,16,140,49,49,156,255,255,255,255,255,255,
+            68,68,165,16,16,140,245,245,245,255,255,255,16,16,140,49,49,156,255,255,255,132,132,198,16,
+            16,140,181,186,222,255,255,247,16,16,140,49,49,156,255,255,247,255,255,255,255,255,255,255,255,
+            255,255,255,255,115,115,189,16,16,140,214,214,239,154,165,205,16,16,140,16,16,140,214,214,239,
+            154,165,205,16,16,140,173,183,199,255,255,255,16,16,140,49,49,156,255,255,247,115,132,189,16,
+            16,140,181,186,222,255,255,247,181,186,222,16,16,140,68,68,165,255,255,255,255,255,247,16,16,
+            140,49,49,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,
+            199,199,199,237,237,238,254,254,254,237,237,238,16,16,140,49,49,156,255,255,255,255,255,255,189,
+            198,222,16,16,140,115,115,189,255,255,255,16,16,140,49,49,156,255,255,255,255,255,255,68,68,
+            165,16,16,140,245,245,245,255,255,255,16,16,140,49,49,156,255,255,247,115,132,189,16,16,140,
+            181,186,222,252,244,244,16,16,140,49,49,156,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,206,214,231,16,16,140,143,153,202,99,101,180,99,101,180,16,16,140,154,165,205,99,101,
+            180,16,16,140,255,255,255,252,244,244,16,16,140,49,49,156,255,255,255,132,132,198,16,16,140,
+            181,186,222,255,255,247,189,198,222,16,16,140,115,115,189,255,255,255,255,255,255,16,16,140,49,
+            49,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,
+            199,237,237,238,254,254,254,237,237,238,16,16,140,35,35,148,255,255,247,255,255,255,181,186,222,
+            16,16,140,115,115,189,255,255,247,16,16,140,49,49,156,255,255,255,255,255,255,68,68,165,16,
+            16,140,245,245,245,255,255,255,16,16,140,49,49,156,255,255,255,132,132,198,16,16,140,181,186,
+            222,255,255,247,16,16,140,49,49,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,247,35,35,148,68,68,165,16,16,140,154,165,205,99,101,180,68,68,165,16,16,140,99,
+            101,180,255,255,247,255,255,255,16,16,140,49,49,156,255,255,255,115,132,189,16,16,140,181,186,
+            222,255,255,255,181,186,222,16,16,140,115,115,189,255,255,255,255,255,247,16,16,140,49,49,156,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,
+            237,238,254,254,254,237,237,238,16,16,140,16,16,140,154,165,205,231,231,247,68,68,165,16,16,
+            140,206,206,231,255,255,247,16,16,140,35,35,148,239,231,239,206,214,231,16,16,140,16,16,140,
+            245,245,245,255,255,247,16,16,140,49,49,156,255,255,255,115,132,189,16,16,140,181,186,222,255,
+            255,247,16,16,140,35,35,148,255,255,247,231,231,247,255,255,255,255,255,255,255,255,255,255,255,
+            255,132,132,198,16,16,140,16,16,140,231,231,231,181,186,222,16,16,140,16,16,140,189,198,222,
+            255,255,255,255,255,255,16,16,140,49,49,156,255,255,255,132,132,198,16,16,140,173,183,199,247,
+            247,255,189,198,222,16,16,140,115,115,189,255,255,255,255,255,255,16,16,140,49,49,156,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,
+            254,254,254,237,237,238,16,16,140,35,35,148,16,16,140,16,16,140,16,16,140,154,165,205,255,
+            255,247,255,255,255,132,132,198,16,16,140,16,16,140,16,16,140,35,35,148,16,16,140,245,245,
+            245,255,255,255,16,16,140,49,49,156,255,255,255,132,132,198,16,16,140,181,186,222,252,244,244,
+            49,49,156,16,16,140,16,16,140,181,186,222,255,255,255,255,255,255,255,255,255,255,255,255,222,
+            222,239,16,16,140,35,35,148,255,255,255,239,231,239,16,16,140,16,16,140,255,255,255,255,255,
+            255,255,255,247,16,16,140,49,49,156,255,255,255,189,198,222,16,16,140,16,16,140,49,49,156,
+            189,198,222,16,16,140,115,115,189,255,255,255,255,255,247,16,16,140,49,49,156,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,
+            254,237,237,238,181,186,222,222,222,239,239,231,239,181,186,222,222,222,239,252,244,244,255,255,255,
+            255,255,255,255,255,247,214,214,239,181,186,222,239,231,239,222,222,239,181,186,222,255,255,255,255,
+            255,247,181,186,222,214,214,239,255,255,247,222,222,239,181,186,222,239,231,239,255,255,255,255,255,
+            255,181,186,222,181,186,222,255,255,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            181,186,222,222,222,239,255,255,255,255,255,255,206,206,231,214,214,239,255,255,247,255,255,255,255,
+            255,255,181,186,222,214,214,239,255,255,247,255,255,255,214,214,239,189,198,222,222,222,239,239,231,
+            239,181,186,222,222,222,239,255,255,255,255,255,255,181,186,222,214,214,239,255,255,247,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,252,244,244,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,
+            0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,
+            0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,
+            0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,252,244,244,229,161,162,212,91,92,202,58,59,222,130,
+            131,249,235,235,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,249,235,235,232,166,166,213,99,99,201,51,51,216,107,107,
+            255,255,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,
+            0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,249,235,235,228,154,155,238,194,194,243,211,211,232,166,166,195,27,28,213,
+            99,99,252,244,244,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,
+            255,255,255,255,252,244,244,249,235,235,249,235,235,252,244,244,255,255,255,255,255,255,252,244,244,
+            233,171,171,249,235,235,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,243,211,211,216,107,107,238,194,194,243,211,211,238,194,194,245,219,219,254,254,
+            254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,
+            127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,243,211,211,247,225,225,255,255,255,255,255,255,254,254,254,228,154,155,190,10,11,
+            237,187,187,255,255,255,255,255,255,255,255,255,252,244,244,220,122,122,255,255,255,255,255,255,254,
+            254,254,241,204,204,212,91,92,210,83,83,243,197,197,255,255,255,252,244,244,220,122,122,218,114,
+            114,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            249,235,235,205,66,67,229,161,162,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,245,219,219,
+            241,204,204,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,
+            127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,252,244,244,195,27,28,212,91,
+            92,255,255,255,255,255,255,255,255,255,232,166,166,190,0,0,249,235,235,255,255,255,255,255,255,
+            255,255,255,216,107,107,228,154,155,255,255,255,255,255,255,249,235,235,245,219,219,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,224,134,
+            134,194,30,33,248,228,228,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,243,211,211,188,6,9,228,154,
+            155,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,
+            199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            254,254,254,249,235,235,247,225,225,254,254,254,255,255,255,255,255,255,255,255,255,255,255,247,254,
+            254,254,255,255,255,255,255,255,252,244,244,249,235,235,255,255,247,255,255,255,255,255,255,255,255,
+            255,249,235,235,249,235,235,255,255,255,255,255,255,255,255,255,255,255,255,252,244,244,247,225,225,
+            255,255,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,212,91,92,200,43,44,249,
+            235,235,255,255,255,249,235,235,208,75,75,190,0,0,243,197,197,255,255,255,255,255,255,252,244,
+            244,212,91,92,249,235,235,255,255,255,255,255,255,255,255,255,252,244,244,252,244,244,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,252,244,244,247,225,225,245,219,219,200,43,44,205,
+            73,74,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,249,235,235,245,219,
+            219,245,219,219,249,235,235,254,254,254,255,255,255,255,255,255,255,255,255,254,254,254,248,228,228,
+            247,225,225,254,254,254,255,255,255,255,255,255,249,235,235,229,161,162,190,0,0,233,171,171,249,
+            235,235,249,235,235,255,255,255,255,255,255,255,255,255,252,244,244,245,219,219,248,228,228,254,254,
+            254,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,
+            237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,241,204,
+            204,208,78,82,200,43,44,226,147,147,254,254,254,255,255,255,255,255,247,220,122,122,241,204,204,
+            255,255,255,255,255,255,237,187,187,202,54,57,234,178,179,255,255,255,255,255,255,238,194,194,205,
+            73,74,208,78,82,249,235,235,255,255,255,254,254,254,243,211,211,210,83,83,208,75,75,247,225,
+            225,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,224,139,139,194,30,33,243,211,211,
+            255,255,255,233,171,171,224,134,134,192,12,12,228,154,155,255,255,255,254,254,254,229,161,162,234,
+            178,179,255,255,255,252,244,244,243,211,211,222,130,131,210,83,83,243,211,211,255,255,255,255,255,
+            255,255,255,255,252,244,244,234,178,179,216,107,107,208,75,75,201,51,51,190,0,0,222,130,131,
+            255,255,255,255,255,255,255,255,255,254,254,254,247,225,225,224,139,139,212,91,92,202,58,59,196,
+            41,43,212,91,92,252,244,244,255,255,255,255,255,255,248,228,228,224,139,139,210,83,83,200,43,
+            44,232,166,166,255,255,255,247,225,225,224,134,134,205,66,67,190,0,0,220,122,122,220,122,122,
+            232,166,166,255,255,255,254,254,254,241,204,204,228,154,155,224,139,139,205,66,67,238,194,194,255,
+            255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,
+            238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,243,211,211,224,134,134,238,
+            194,194,205,66,67,192,22,24,243,211,211,255,255,255,248,228,228,201,51,51,224,134,134,254,254,
+            254,255,255,255,241,204,204,188,6,9,243,197,197,255,255,255,255,255,255,220,122,122,224,139,139,
+            193,15,16,226,147,147,254,254,254,243,211,211,212,91,92,229,161,162,237,187,187,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,229,161,162,193,18,19,238,194,194,252,244,
+            244,218,114,114,243,211,211,200,43,44,218,114,114,255,255,255,252,244,244,216,107,107,252,244,244,
+            255,255,255,241,204,204,232,166,166,195,27,28,196,34,35,249,235,235,255,255,255,255,255,255,255,
+            255,247,224,139,139,229,161,162,252,244,244,252,244,244,224,134,134,190,10,11,234,178,179,255,255,
+            255,255,255,255,255,255,255,241,204,204,216,107,107,245,219,219,254,254,254,245,219,219,194,30,33,
+            213,99,99,255,255,255,255,255,255,249,235,235,213,99,99,234,178,179,252,244,244,196,34,35,202,
+            58,59,255,255,255,255,255,255,255,255,255,213,99,99,194,30,33,255,255,255,255,255,255,255,255,
+            255,255,255,255,245,219,219,210,83,83,252,244,244,255,255,255,228,154,155,241,204,204,255,255,255,
+            255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,243,211,211,252,244,244,255,255,255,
+            237,187,187,192,12,12,226,147,147,255,255,255,238,194,194,193,15,16,208,75,75,255,255,247,255,
+            255,255,222,130,131,212,91,92,252,244,244,255,255,255,254,254,254,252,244,244,252,244,244,208,78,
+            82,195,27,28,238,194,194,226,147,147,252,244,244,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,237,187,187,195,27,28,237,187,187,233,171,171,237,
+            187,187,252,244,244,205,73,74,212,91,92,254,254,254,233,171,171,237,187,187,255,255,255,255,255,
+            255,255,255,255,255,255,255,196,34,35,208,78,82,255,255,255,255,255,255,254,254,254,224,139,139,
+            212,91,92,254,254,254,255,255,255,254,254,254,220,122,122,195,27,28,243,211,211,255,255,255,255,
+            255,255,241,204,204,202,58,59,245,219,219,255,255,255,255,255,255,249,235,235,190,10,11,233,171,
+            171,255,255,255,255,255,247,205,66,67,226,147,147,255,255,255,254,254,254,196,34,35,213,99,99,
+            255,255,255,255,255,255,249,235,235,201,51,51,212,91,92,255,255,255,255,255,255,255,255,255,255,
+            255,255,232,166,166,195,27,28,241,204,204,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,255,255,255,255,255,255,243,211,
+            211,194,30,33,218,114,114,255,255,255,232,166,166,210,83,83,194,30,33,252,244,244,248,228,228,
+            208,78,82,245,219,219,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,234,178,179,190,
+            0,0,212,91,92,249,235,235,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,237,187,187,195,27,28,233,171,171,222,130,131,252,244,244,
+            252,244,244,212,91,92,208,75,75,245,219,219,224,134,134,254,254,254,255,255,255,255,255,255,255,
+            255,255,245,219,219,193,18,19,220,122,122,255,255,255,255,255,255,238,194,194,196,34,35,238,194,
+            194,254,254,254,255,255,255,249,235,235,196,41,43,202,58,59,249,235,235,255,255,255,252,244,244,
+            208,75,75,216,107,107,254,254,254,255,255,255,254,254,254,222,130,131,188,6,9,247,225,225,255,
+            255,255,233,171,171,195,27,28,245,219,219,252,244,244,224,139,139,202,54,57,243,211,211,255,255,
+            255,255,255,255,243,211,211,194,30,33,224,139,139,255,255,255,255,255,255,255,255,255,255,255,255,
+            243,211,211,200,43,44,200,43,44,248,228,228,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,248,228,228,200,
+            43,44,210,83,83,245,219,219,238,194,194,220,122,122,190,0,0,249,235,235,229,161,162,229,161,
+            162,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,243,211,211,193,18,19,
+            205,66,67,249,235,235,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,237,187,187,195,27,28,218,114,114,234,178,179,254,254,254,255,255,
+            255,216,107,107,202,54,57,228,154,155,237,187,187,255,255,255,255,255,255,255,255,255,255,255,255,
+            234,178,179,192,12,12,234,178,179,255,255,255,255,255,255,216,107,107,200,43,44,254,254,254,255,
+            255,255,252,244,244,226,147,147,192,12,12,212,91,92,254,254,254,255,255,255,237,187,187,193,18,
+            19,233,171,171,255,255,255,255,255,255,241,204,204,202,58,59,201,51,51,249,235,235,252,244,244,
+            212,91,92,202,54,57,229,161,162,220,122,122,222,130,131,245,219,219,254,254,254,255,255,255,255,
+            255,255,234,178,179,193,15,16,233,171,171,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,234,178,179,195,27,28,210,83,83,252,244,244,255,255,255,255,255,255,255,255,255,255,255,255,
+            0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,249,235,235,201,51,51,
+            208,75,75,233,171,171,249,235,235,228,154,155,190,0,0,233,171,171,228,154,155,254,254,254,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,252,244,244,224,134,134,218,114,114,190,10,
+            11,237,187,187,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,237,187,187,193,15,16,205,73,74,254,254,254,255,255,255,255,255,255,216,
+            107,107,195,27,28,213,99,99,252,244,244,255,255,255,255,255,255,255,255,255,254,254,254,224,134,
+            134,192,22,24,241,204,204,255,255,255,252,244,244,200,43,44,210,83,83,255,255,255,255,255,255,
+            229,161,162,224,139,139,190,0,0,226,147,147,255,255,255,255,255,255,224,134,134,195,27,28,241,
+            204,204,255,255,255,249,235,235,222,130,131,208,75,75,212,91,92,252,244,244,249,235,235,201,51,
+            51,205,66,67,243,197,197,252,244,244,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            220,122,122,195,27,28,243,211,211,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,
+            254,254,234,178,179,188,6,9,234,178,179,255,255,255,255,255,255,255,255,255,255,255,255,0,0,
+            0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,249,235,235,201,51,51,196,41,
+            43,241,204,204,255,255,255,228,154,155,190,0,0,216,107,107,249,235,235,255,255,255,255,255,255,
+            255,255,255,254,254,254,254,254,254,243,211,211,218,114,114,241,204,204,249,235,235,193,18,19,208,
+            75,75,252,244,244,243,211,211,255,255,247,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,229,161,162,193,15,16,234,178,179,255,255,255,255,255,255,255,255,255,226,147,147,
+            193,15,16,243,211,211,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,210,83,83,201,
+            51,51,248,228,228,243,197,197,234,178,179,194,30,33,210,83,83,254,254,254,224,139,139,222,130,
+            131,226,147,147,190,0,0,241,204,204,249,235,235,232,166,166,218,114,114,195,27,28,241,204,204,
+            245,219,219,218,114,114,243,197,197,202,58,59,222,130,131,255,255,255,252,244,244,205,66,67,201,
+            51,51,249,235,235,255,255,255,255,255,255,245,219,219,237,187,187,255,255,255,255,255,255,208,75,
+            75,196,34,35,252,244,244,252,244,244,247,225,225,255,255,255,252,244,244,254,254,254,255,255,255,
+            252,244,244,202,54,57,238,194,194,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,
+            0,0,0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,235,238,241,95,124,154,64,99,137,64,99,137,64,99,137,64,99,137,
+            64,99,137,64,99,137,64,99,137,142,162,183,255,255,255,249,235,235,202,54,57,218,114,114,254,
+            254,254,255,255,255,228,154,155,196,34,35,245,219,219,255,255,255,255,255,255,255,255,255,255,255,
+            255,238,194,194,196,41,43,208,75,75,241,204,204,254,254,254,255,255,255,220,122,122,193,15,16,
+            205,66,67,228,154,155,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,229,161,162,208,75,75,252,244,244,255,255,255,255,255,255,255,255,255,226,147,147,216,107,
+            107,252,244,244,255,255,255,255,255,255,255,255,255,255,255,255,255,255,247,208,78,82,194,30,33,
+            224,139,139,233,171,171,252,244,244,208,75,75,190,10,11,205,66,67,222,130,131,249,235,235,224,
+            139,139,190,0,0,222,130,131,226,147,147,248,228,228,233,171,171,193,15,16,201,51,51,213,99,
+            99,243,211,211,243,211,211,194,30,33,232,166,166,255,255,255,254,254,254,232,166,166,193,18,19,
+            210,83,83,226,147,147,222,130,131,228,154,155,248,228,228,255,255,255,255,255,255,210,83,83,193,
+            18,19,224,139,139,224,134,134,245,219,219,248,228,228,202,58,59,210,83,83,224,139,139,220,122,
+            122,226,147,147,252,244,244,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,
+            0,0,0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,173,183,199,89,125,161,156,167,184,99,140,181,99,140,181,99,140,181,99,140,
+            181,99,140,181,99,140,181,49,88,127,255,255,255,252,244,244,237,187,187,249,235,235,255,255,255,
+            255,255,255,245,219,219,243,211,211,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,245,
+            219,219,228,154,155,248,228,228,254,254,254,255,255,255,255,255,255,249,235,235,232,166,166,237,187,
+            187,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            245,219,219,243,211,211,255,255,255,255,255,255,255,255,255,255,255,255,245,219,219,248,228,228,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,254,254,254,241,204,204,228,154,155,241,204,
+            204,254,254,254,255,255,255,245,219,219,228,154,155,237,187,187,252,244,244,255,255,255,248,228,228,
+            228,154,155,234,178,179,252,244,244,254,254,254,233,171,171,213,99,99,234,178,179,249,235,235,254,
+            254,254,243,197,197,193,15,16,245,219,219,255,255,255,255,255,255,254,254,254,237,187,187,226,147,
+            147,233,171,171,245,219,219,254,254,254,255,255,255,255,255,255,255,255,255,243,211,211,228,154,155,
+            234,178,179,249,235,235,255,255,255,249,235,235,234,178,179,226,147,147,229,161,162,243,211,211,254,
+            254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,
+            0,127,127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,173,183,199,97,130,164,201,182,188,99,140,181,99,140,181,99,140,181,99,140,181,99,
+            140,181,99,140,181,49,88,127,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,228,154,155,210,83,83,249,235,235,255,255,255,255,255,255,255,255,255,
+            228,154,155,201,51,51,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,
+            127,127,199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,173,183,199,97,130,164,200,189,199,99,140,181,99,140,181,99,140,181,99,140,181,99,140,181,
+            99,140,181,49,88,127,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,243,197,197,190,10,11,243,197,197,255,255,255,255,255,255,255,255,255,254,254,254,210,83,
+            83,229,161,162,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,
+            199,199,199,237,237,238,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,173,
+            183,199,97,130,164,200,189,199,99,140,181,99,140,181,99,140,181,99,140,181,99,140,181,74,115,
+            156,35,75,114,182,193,205,182,193,205,182,193,205,182,193,205,182,193,205,182,193,205,195,207,216,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            228,154,155,190,0,0,233,171,171,254,254,254,255,255,255,255,255,255,237,187,187,226,147,147,252,
+            244,244,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,
+            199,237,237,238,254,254,254,235,238,241,218,224,230,218,224,230,218,224,230,218,224,230,149,166,183,
+            97,130,164,200,189,199,99,140,181,99,140,181,99,140,181,99,140,181,70,111,152,149,158,68,181,
+            182,66,182,182,52,182,182,52,182,182,52,182,182,52,182,182,52,182,182,52,89,114,96,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,245,219,
+            219,202,58,59,200,43,44,224,139,139,238,194,194,238,194,194,237,187,187,252,244,244,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,
+            237,238,245,245,245,123,76,94,136,29,38,136,29,38,136,29,38,136,29,38,93,36,55,97,130,
+            164,200,189,199,99,140,181,99,140,181,99,140,181,99,140,181,62,103,144,199,199,85,245,234,184,
+            255,242,41,255,239,41,255,239,41,255,239,41,255,239,41,255,239,41,107,125,87,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,252,
+            244,244,237,187,187,233,171,171,238,194,194,252,244,244,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,
+            235,238,241,125,27,41,236,152,150,239,57,44,239,19,6,238,20,8,163,28,30,87,123,160,148,
+            163,184,99,140,181,99,140,181,99,140,181,99,140,181,62,103,144,200,199,92,251,236,224,255,242,
+            41,255,239,41,255,239,41,255,239,41,255,239,41,255,239,41,107,125,87,255,255,255,255,255,255,
+            220,145,147,188,6,9,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,
+            0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,
+            0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,
+            190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,
+            0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,
+            0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,
+            190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,
+            0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,
+            0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,
+            190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,220,122,122,255,255,255,255,
+            255,255,255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,235,238,
+            241,125,27,41,243,197,197,242,73,61,238,20,8,238,20,8,180,23,22,66,91,128,70,111,152,
+            70,111,152,70,111,152,70,111,152,70,111,152,44,85,126,200,201,92,247,235,221,255,242,41,255,
+            239,41,255,239,41,255,239,41,255,239,41,255,239,41,107,125,87,255,255,255,227,181,185,190,10,
+            11,190,0,0,190,0,0,192,0,0,188,6,9,202,58,59,204,96,101,201,51,51,188,6,9,
+            190,0,0,190,0,0,190,0,0,190,0,0,192,0,0,190,0,0,192,0,0,190,0,0,190,
+            0,0,190,0,0,190,0,0,190,0,0,192,0,0,195,45,49,205,73,74,196,34,35,196,49,
+            53,191,34,39,190,0,0,192,0,0,192,0,0,188,6,9,187,65,73,196,34,35,205,90,92,
+            190,10,11,192,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,
+            0,0,192,0,0,192,0,0,190,0,0,192,0,0,188,6,9,199,58,61,204,96,101,199,58,
+            61,188,6,9,195,45,49,193,15,16,200,43,44,195,27,28,196,53,57,190,0,0,190,0,0,
+            200,43,44,189,25,27,192,22,24,205,73,74,192,59,66,195,27,28,190,0,0,192,0,0,190,
+            0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,192,0,0,190,0,
+            0,192,0,0,190,0,0,190,0,0,192,0,0,190,0,0,188,6,9,229,161,162,255,255,255,
+            255,255,255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,235,238,241,125,
+            27,41,243,197,197,242,73,61,238,20,8,239,19,6,238,20,8,189,25,27,170,24,29,98,30,
+            51,153,169,186,182,193,205,182,193,205,114,137,160,200,199,92,247,235,221,255,242,41,255,239,41,
+            255,239,41,255,239,41,255,239,41,255,239,41,107,125,87,255,255,255,179,68,77,190,0,0,190,
+            0,0,190,0,0,190,0,0,209,100,105,227,173,177,213,118,122,221,153,157,196,53,57,196,49,
+            53,192,22,24,194,30,33,199,58,61,193,15,16,193,15,16,202,54,57,193,15,16,196,34,35,
+            195,45,49,188,6,9,190,0,0,190,0,0,212,162,169,223,178,183,222,175,180,211,132,138,198,
+            88,95,192,22,24,202,54,57,195,45,49,196,49,53,226,200,206,212,138,143,212,162,169,192,22,
+            24,201,51,51,196,41,43,192,12,12,195,45,49,196,41,43,195,45,49,202,54,57,196,34,35,
+            201,51,51,196,34,35,190,0,0,190,0,0,204,96,101,227,173,177,213,113,116,219,163,168,195,
+            45,49,222,162,165,201,51,51,219,149,154,198,95,104,219,192,198,182,7,13,190,0,0,220,137,
+            140,204,85,90,196,41,43,203,127,134,211,154,163,213,99,99,201,51,51,190,13,16,194,38,42,
+            194,38,42,192,22,24,202,54,57,195,45,49,194,30,33,195,45,49,195,45,49,194,30,33,190,
+            0,0,189,35,40,188,6,9,190,0,0,190,0,0,190,0,0,200,43,44,255,255,255,255,255,
+            255,0,0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,235,238,241,125,27,41,
+            243,197,197,242,73,61,238,20,8,239,19,6,239,19,6,239,19,6,239,19,6,138,32,41,214,
+            221,227,255,255,255,255,255,255,160,176,191,200,199,92,247,235,221,255,242,41,255,239,41,255,239,
+            41,255,239,41,255,239,41,255,239,41,107,125,87,255,255,255,187,19,25,190,0,0,190,0,0,
+            190,0,0,192,12,12,226,169,172,196,49,53,190,0,0,188,6,9,205,73,74,233,202,204,198,
+            88,95,227,177,180,219,149,154,221,153,157,211,126,132,226,185,188,196,70,75,227,197,201,219,149,
+            154,189,25,27,182,7,13,190,0,0,212,162,169,232,191,195,227,177,180,211,132,138,206,107,114,
+            234,178,179,218,142,146,229,210,215,203,119,129,234,220,224,227,181,185,219,163,168,211,126,132,226,
+            165,168,227,177,180,212,106,107,236,211,216,198,95,104,233,202,204,222,162,165,238,221,223,224,157,
+            161,227,177,180,190,10,11,190,0,0,227,177,180,201,51,51,195,27,28,202,58,59,196,41,43,
+            222,162,165,202,58,59,221,153,157,198,95,104,220,195,200,182,7,13,190,0,0,220,137,140,204,
+            85,90,196,49,53,219,163,168,212,162,169,227,181,185,227,173,177,211,132,138,227,197,201,201,96,
+            104,219,163,168,224,157,161,233,206,208,219,133,136,233,202,204,206,107,114,222,175,180,199,58,61,
+            224,157,161,188,6,9,190,0,0,190,0,0,190,0,0,190,0,0,255,255,255,255,255,255,0,
+            0,0,0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,235,238,241,125,32,45,243,197,
+            197,242,73,61,238,20,8,239,19,6,239,19,6,239,19,6,238,20,8,136,29,38,214,221,227,
+            255,255,255,255,255,255,160,176,191,200,199,92,248,235,222,255,242,41,255,239,41,255,239,41,255,
+            239,41,255,239,41,255,239,41,107,125,87,255,255,255,182,21,26,190,0,0,192,0,0,190,0,
+            0,188,6,9,222,162,165,208,78,82,190,0,0,196,41,43,204,85,90,213,141,147,203,92,99,
+            219,133,136,192,12,12,221,189,198,205,66,67,227,173,177,209,100,105,209,100,105,227,181,185,202,
+            54,57,215,178,185,198,75,84,211,154,163,213,99,99,190,10,11,210,121,126,211,126,132,228,188,
+            193,190,0,0,219,157,161,199,85,90,221,184,191,205,113,120,210,121,126,227,173,177,194,38,42,
+            208,93,96,222,162,165,221,184,191,189,25,27,227,173,177,196,41,43,221,189,198,189,35,40,227,
+            173,177,193,18,19,190,0,0,219,163,168,204,85,90,205,81,84,241,204,204,215,144,150,219,157,
+            161,202,58,59,219,157,161,197,93,100,220,195,200,182,7,13,192,0,0,220,137,140,204,85,90,
+            196,53,57,219,163,168,211,154,163,208,78,82,205,73,74,220,179,186,228,188,193,190,10,11,227,
+            181,185,196,34,35,222,130,131,219,133,136,226,165,168,192,12,12,224,157,161,226,185,188,205,73,
+            74,190,0,0,190,0,0,190,0,0,190,0,0,190,0,0,255,255,255,255,255,255,0,0,0,
+            0,0,0,0,0,0,127,127,127,199,199,199,237,237,238,235,238,241,125,27,41,243,197,197,242,
+            73,61,238,20,8,239,19,6,239,19,6,239,19,6,239,19,6,138,30,41,214,221,227,255,255,
+            255,255,255,255,160,176,191,201,198,66,253,242,109,255,239,41,255,239,41,255,239,41,255,239,41,
+            255,239,41,255,239,41,107,125,87,255,255,255,179,68,77,190,0,0,190,0,0,192,0,0,192,
+            0,0,202,58,59,227,173,177,223,172,172,224,157,161,203,92,99,210,121,126,194,30,33,224,157,
+            161,226,165,168,213,118,122,208,93,96,227,173,177,206,107,114,221,153,157,227,173,177,196,41,43,
+            190,13,16,188,6,9,204,131,141,202,54,57,190,0,0,205,104,108,198,88,95,218,142,146,224,
+            157,161,221,184,191,196,70,75,212,162,169,197,93,100,208,93,96,204,85,90,226,169,172,226,165,
+            168,208,75,75,211,154,163,187,19,25,220,145,147,191,34,39,211,154,163,188,28,33,215,144,150,
+            193,15,16,190,0,0,196,53,57,226,169,172,223,172,172,226,165,168,196,34,35,205,90,92,227,
+            181,185,226,169,172,196,53,57,212,162,169,188,6,9,190,0,0,220,122,122,221,184,191,204,131,
+            141,212,138,143,204,131,141,227,177,180,227,173,177,204,96,101,219,163,168,190,0,0,213,118,122,
+            226,165,168,228,188,193,213,113,116,212,138,143,188,6,9,205,81,84,227,177,180,193,15,16,190,
+            0,0,190,0,0,190,0,0,190,0,0,200,43,44,255,255,255,255,255,255,0,0,0,0,0,
+            0,0,0,0,127,127,127,199,199,199,237,237,238,235,238,241,125,27,41,235,130,126,239,50,40,
+            239,19,6,238,20,8,238,20,8,238,20,8,238,20,8,136,29,38,214,221,227,255,255,255,255,
+            255,255,179,194,208,96,120,102,109,128,95,109,128,95,109,128,95,109,128,95,109,128,95,109,128,
+            95,109,128,95,87,119,132,255,255,255,220,179,186,181,12,16,190,0,0,190,0,0,190,0,0,
+            190,0,0,191,18,21,196,41,43,193,18,19,190,10,11,191,18,21,190,0,0,193,15,16,196,
+            34,35,188,6,9,190,10,11,196,34,35,190,10,11,192,22,24,195,27,28,190,0,0,190,0,
+            0,190,0,0,191,18,21,190,10,11,190,0,0,193,15,16,190,10,11,190,10,11,196,34,35,
+            189,25,27,190,10,11,192,22,24,190,13,16,190,13,16,190,0,0,195,27,28,192,22,24,188,
+            6,9,189,25,27,190,0,0,192,22,24,188,6,9,192,22,24,188,6,9,192,22,24,190,0,
+            0,190,0,0,192,0,0,193,18,19,196,41,43,193,18,19,192,0,0,190,0,0,194,38,42,
+            192,22,24,190,0,0,189,25,27,190,0,0,190,0,0,191,18,21,196,34,35,189,25,27,187,
+            19,25,191,18,21,195,27,28,195,27,28,188,6,9,189,25,27,192,0,0,188,6,9,196,34,
+            35,189,25,27,191,18,21,192,22,24,190,0,0,213,113,116,204,85,90,190,0,0,190,0,0,
+            190,0,0,190,0,0,188,6,9,229,161,162,255,255,255,255,255,255,0,0,0,0,0,0,0,
+            0,0,127,127,127,199,199,199,237,237,238,235,238,241,145,123,137,130,75,90,130,75,90,130,75,
+            90,130,75,90,130,75,90,130,75,90,130,75,90,111,80,102,219,219,225,245,245,245,245,245,245,
+            245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,245,
+            245,245,245,245,245,245,245,245,245,245,245,205,161,168,173,65,76,185,63,70,185,63,70,185,63,
+            70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,
+            185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,
+            63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,
+            70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,
+            185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,
+            63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,
+            70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,
+            185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,63,70,185,
+            63,70,185,63,70,185,63,70,185,63,70,191,84,92,187,65,73,185,63,70,185,63,70,185,63,
+            70,197,93,100,227,173,177,245,245,245,245,245,245,245,245,245,0,0,0,0,0,0,0,0,0,
+            127,127,127,199,199,199,222,222,222,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,206,
+            206,206,206,206,206,206,206,206,206,206,206,206,206,206,0,0,0,0,0,0,0,0,0,127,127,
+            127,163,163,163,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,
+            128,128,128,128,128,128,128,128,128,128,128,128,0,0,0,0,0,0,0,0,0,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
+            63,63,63,63,63,63,63,63,63,63,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0
+        };
+        wxImage image( 116, 168, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
+        return bitmap;
+    }
     return wxNullBitmap;
 }
 
@@ -16471,6 +22315,138 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "ccccccaaaaaaaaaaaaaaaaaaaaaacccc"
         };
         wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 32)
+    {
+        static const unsigned char data[] = 
+        {
+            16,16,16,11,11,11,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
+            19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
+            19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
+            19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,10,10,10,23,23,23,7,7,7,0,
+            0,0,19,19,19,37,37,37,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+            32,32,32,32,32,36,36,36,21,21,21,0,0,0,9,9,9,8,8,8,0,0,0,128,128,
+            128,217,217,217,210,210,210,222,222,222,231,231,231,231,231,231,222,222,222,210,210,210,208,208,208,
+            208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,208,
+            208,208,208,208,208,208,208,208,217,217,217,228,228,228,231,231,231,228,228,228,214,214,214,208,208,
+            208,216,216,216,129,129,129,0,0,0,46,46,46,8,8,8,1,1,1,162,162,162,255,255,255,
+            255,255,255,172,172,172,103,103,103,103,103,103,172,172,172,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,215,215,215,122,122,122,99,99,99,133,133,133,239,239,239,255,255,255,255,255,255,
+            160,160,160,0,0,0,69,69,69,8,8,8,1,1,1,158,158,158,255,255,255,101,101,101,9,
+            9,9,0,0,0,0,0,0,9,9,9,104,104,104,247,247,247,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,171,171,171,
+            33,33,33,0,0,0,0,0,0,0,0,0,43,43,43,213,213,213,255,255,255,154,154,154,0,
+            0,0,65,65,65,8,8,8,2,2,2,170,170,170,187,187,187,8,8,8,0,0,0,0,0,
+            0,0,0,0,0,0,0,9,9,9,157,157,157,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,225,225,225,56,56,56,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,79,79,79,255,255,255,156,156,156,0,0,0,65,65,
+            65,8,8,8,2,2,2,177,177,177,115,115,115,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,89,89,89,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,165,165,165,16,16,16,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,32,32,32,246,246,246,160,160,160,0,0,0,65,65,65,8,8,8,
+            2,2,2,177,177,177,106,106,106,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,80,80,80,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,155,155,155,11,11,11,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,27,27,27,241,241,241,160,160,160,0,0,0,65,65,65,8,8,8,2,2,2,173,
+            173,173,161,161,161,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,129,129,
+            129,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,206,206,206,37,37,37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,53,
+            53,53,255,255,255,157,157,157,0,0,0,65,65,65,8,8,8,1,1,1,161,161,161,244,244,
+            244,58,58,58,0,0,0,0,0,0,0,0,0,0,0,0,59,59,59,228,228,228,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,253,
+            253,253,131,131,131,4,4,4,0,0,0,0,0,0,0,0,0,5,5,5,175,175,175,255,255,
+            255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,156,156,156,255,255,255,226,226,226,
+            106,106,106,23,23,23,22,22,22,107,107,107,227,227,227,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,248,248,
+            248,157,157,157,47,47,47,17,17,17,60,60,60,186,186,186,255,255,255,255,255,255,154,154,154,
+            0,0,0,65,65,65,8,8,8,1,1,1,156,156,156,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,247,247,247,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,154,154,154,0,0,0,65,
+            65,65,8,8,8,1,1,1,156,156,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,221,221,221,137,137,137,94,94,94,
+            115,115,115,184,184,184,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,154,154,154,0,0,0,65,65,65,8,8,
+            8,1,1,1,156,156,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,212,212,212,58,58,58,0,0,0,0,0,0,0,0,0,10,
+            10,10,150,150,150,254,254,254,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,
+            156,156,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,250,250,250,108,108,108,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,36,36,
+            36,210,210,210,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,156,156,156,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,223,223,
+            223,60,60,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,7,154,154,154,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,156,156,156,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,221,221,221,57,57,57,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,149,149,149,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,154,154,
+            154,0,0,0,65,65,65,8,8,8,1,1,1,156,156,156,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,247,247,247,93,93,93,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,26,26,26,197,197,197,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,154,154,154,0,0,0,
+            65,65,65,8,8,8,1,1,1,156,156,156,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,192,192,192,27,27,27,0,0,0,0,0,
+            0,0,0,0,0,0,0,125,125,125,250,250,250,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,154,154,154,0,0,0,65,65,65,8,
+            8,8,1,1,1,156,156,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,199,199,199,102,102,102,53,53,53,74,74,74,
+            155,155,155,246,246,246,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,
+            1,156,156,156,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,249,249,249,231,231,231,239,239,239,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,156,156,156,
+            255,255,255,241,241,241,151,151,151,68,68,68,70,70,70,149,149,149,239,239,239,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,254,254,254,195,195,195,93,93,93,59,59,59,108,108,108,213,213,213,255,255,255,
+            255,255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,159,159,159,250,250,250,90,
+            90,90,0,0,0,0,0,0,0,0,0,0,0,0,87,87,87,239,239,239,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            164,164,164,15,15,15,0,0,0,0,0,0,0,0,0,25,25,25,198,198,198,255,255,255,154,
+            154,154,0,0,0,65,65,65,8,8,8,2,2,2,171,171,171,178,178,178,4,4,4,0,0,
+            0,0,0,0,0,0,0,0,0,0,5,5,5,146,146,146,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,222,222,222,45,45,45,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,68,68,68,255,255,255,156,156,156,0,0,
+            0,65,65,65,8,8,8,2,2,2,177,177,177,110,110,110,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,84,84,84,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,159,159,159,14,14,14,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,27,27,27,242,242,242,160,160,160,0,0,0,65,65,65,
+            8,8,8,2,2,2,177,177,177,110,110,110,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,83,83,83,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,160,160,160,13,13,13,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,29,29,29,241,241,241,160,160,160,0,0,0,65,65,65,8,8,8,2,
+            2,2,172,172,172,172,172,172,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,3,3,
+            3,141,141,141,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,212,212,212,45,45,45,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,61,61,61,255,255,255,156,156,156,0,0,0,65,65,65,8,8,8,1,1,1,159,159,
+            159,255,255,255,73,73,73,0,0,0,0,0,0,0,0,0,0,0,0,79,79,79,241,241,241,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,255,146,146,146,12,12,12,0,0,0,0,0,0,0,0,0,28,28,28,191,191,
+            191,255,255,255,154,154,154,0,0,0,65,65,65,8,8,8,1,1,1,158,158,158,255,255,255,
+            243,243,243,128,128,128,75,75,75,73,73,73,129,129,129,242,242,242,255,255,255,255,255,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+            255,255,255,255,175,175,175,84,84,84,69,69,69,94,94,94,203,203,203,255,255,255,255,255,255,
+            156,156,156,0,0,0,67,67,67,8,8,8,0,0,0,150,150,150,255,255,255,248,248,248,255,
+            255,255,244,244,244,242,242,242,255,255,255,248,248,248,244,244,244,244,244,244,244,244,244,244,244,
+            244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,245,245,245,
+            255,255,255,253,253,253,236,236,236,255,255,255,254,254,254,244,244,244,255,255,255,151,151,151,0,
+            0,0,56,56,56,7,7,7,1,1,1,46,46,46,77,77,77,69,69,69,70,70,70,73,73,
+            73,73,73,73,70,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,
+            69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,72,
+            72,72,74,74,74,71,71,71,69,69,69,69,69,69,77,77,77,47,47,47,1,1,1,24,24,
+            24,16,16,16,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+            8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+            8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+            8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,16,16,16
+        };
+        wxImage image( 32, 32, (unsigned char*)data, TRUE );
+        wxBitmap bitmap( image );
         return bitmap;
     }
     return wxNullBitmap;

@@ -151,7 +151,7 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	bPlaceBackTransCheckboxEnabled = FALSE;
 	bPlaceAINotesCheckboxEnabled = FALSE;
 
-	gpApp->GetView()->GetMarkerInventoryFromCurrentDoc(); // populates export arrays with current doc's markers
+	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc(); // populates export arrays with current doc's markers
 
 	// BEW added 25Nov05, to ensure m_exportFilterFlags gets set to a same sized array as
 	// m_exportFilterFlagsBeforeEdit, and with all stored values FALSE (ie. don't filter)

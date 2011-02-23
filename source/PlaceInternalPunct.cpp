@@ -9,7 +9,7 @@
 /// \description	This is the implementation file for the CPlaceInternalPunct class. 
 /// The CPlaceInternalPunct class provides a dialog for the user to manually control placement
 /// of target text punctuation, or the user can ignore the placement. This class is instantiated
-/// from only one place, in the view's MakeLineFourString() function.
+/// from only one place, in the view's MakeTargetStringIncludingPunctuation() function.
 /// \derivation		The CPlaceInternalPunct class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in PlaceInternalPunct.cpp (in order of importance): (search for "TODO")
@@ -142,10 +142,10 @@ void CPlaceInternalPunct::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	// set the source text edit box contents, and ditto for the target text box
 	m_srcPhrase = m_pSrcPhrase->m_srcPhrase;
 	m_tgtPhrase = gpApp->m_targetPhrase; // at the time the Place... dialog is shown, which 
-	// happens from within MakeLineFourString(), the CSourcePhrase memter m_targetStr
+	// happens from within MakeTargetStringIncludingPunctuation(), the CSourcePhrase memter m_targetStr
 	// will not have been updated yet, in fact, that updating is in progress -- and the
 	// only place where the current form of the target text string is to be found, is in
-	// the m_targetPhrase member on the application class. (MakeLineFourString() may also
+	// the m_targetPhrase member on the application class. (MakeTargetStringIncludingPunctuation() may also
 	// be called from within StoreText(), but for KB data insertions & updates, we
 	// suppress its call, so we don't have a need to set m_tgtPhrase here from m_targetStr ever)
 

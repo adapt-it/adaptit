@@ -3,7 +3,7 @@
 /// \file			KBPage.cpp
 /// \author			Bill Martin
 /// \date_created	17 August 2004
-/// \date_revised	15 January 2008
+/// \date_revised	11 May 2010
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CKBPage class. 
@@ -49,6 +49,7 @@
 #include "Adapt_It.h"
 #include "KB.h"
 #include "helpers.h"
+#include "LanguageCodesDlg.h"
 
 /// This global is defined in Adapt_ItView.cpp
 extern bool gbAdaptBeforeGloss;
@@ -69,6 +70,7 @@ BEGIN_EVENT_TABLE(CKBPage, wxPanel)
 	EVT_CHECKBOX(IDC_CHECK_BAKUP_DOC, CKBPage::OnCheckBakupDoc)
 	EVT_RADIOBUTTON(IDC_RADIO_ADAPT_BEFORE_GLOSS, CKBPage::OnBnClickedRadioAdaptBeforeGloss)
 	EVT_RADIOBUTTON(IDC_RADIO_GLOSS_BEFORE_ADAPT, CKBPage::OnBnClickedRadioGlossBeforeAdapt)
+	EVT_BUTTON(ID_BUTTON_LOOKUP_CODES, CKBPage::OnBtnLookupCodes) // whm added 10May10
 END_EVENT_TABLE()
 
 
@@ -86,6 +88,8 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	tempNotLegacySourceTextCopy = FALSE;
 	tempSrcName = _T("");
 	tempTgtName = _T("");
+	tempSrcLangCode = _T("");
+	tempTgtLangCode = _T("");
 
 	// use wxGenericValidator for simple dialog data transfer
 	m_pEditSrcName = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_NAME);
@@ -99,6 +103,15 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 
 	m_pCheckBkupWhenClosing = (wxCheckBox*)FindWindowById(IDC_CHECK_BAKUP_DOC);
 	wxASSERT(m_pCheckBkupWhenClosing != NULL);
+
+	pSrcLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE); // whm added 10May10
+	wxASSERT(pSrcLangCodeBox != NULL);
+
+	pTgtLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE); // whm added 10May10
+	wxASSERT(pTgtLangCodeBox != NULL);
+
+	pButtonLookupCodes = (wxButton*)FindWindowById(ID_BUTTON_LOOKUP_CODES); // whm added 10May10
+	wxASSERT(pButtonLookupCodes != NULL);
 
 	// get the button pointers
 	pRadioAdaptBeforeGloss = (wxRadioButton*)FindWindowById(IDC_RADIO_ADAPT_BEFORE_GLOSS);
@@ -114,7 +127,6 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	wxASSERT(pTextCtrlAsStaticTextBackupsKB != NULL);
 	// Make the wxTextCtrl that is displaying static text have window background color
 	wxColor backgrndColor = this->GetBackgroundColour();
-	//pTextCtrlAsStaticTextBackupsKB->SetBackgroundColour(backgrndColor);
 	pTextCtrlAsStaticTextBackupsKB->SetBackgroundColour(gpApp->sysColorBtnFace);
 }
 
@@ -172,6 +184,36 @@ void CKBPage::OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event))
 //{
 //}
 
+void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10May10
+{
+	// Call up CLanguageCodesDlg here so the user can enter language codes for
+	// the source and target languages which are needed for the LIFT XML lang attribute of 
+	// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
+	CLanguageCodesDlg lcDlg(this); // make the CKBPage the parent in this case
+	lcDlg.Center();
+	// initialize the language code edit boxes with the values currently in
+	// the KBPage's edit boxes (which InitDialog initialized to the current values 
+	// on the App, or which the user manually edited before pressing the
+	// Lookup Codes button).
+	tempSrcLangCode = pSrcLangCodeBox->GetValue();
+	tempTgtLangCode = pTgtLangCodeBox->GetValue();
+	lcDlg.m_sourceLangCode = tempSrcLangCode;
+	lcDlg.m_targetLangCode = tempTgtLangCode;
+	int returnValue = lcDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	// user pressed OK so update the temp variables and the edit boxes
+	tempSrcLangCode = lcDlg.m_sourceLangCode;
+	tempTgtLangCode = lcDlg.m_targetLangCode;
+	// update the language code edit boxes
+	pSrcLangCodeBox->SetValue(tempSrcLangCode);
+	pTgtLangCodeBox->SetValue(tempTgtLangCode);
+}
+
+
 void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 {
 	// Notes: Any changes made to OnOK should also be made to 
@@ -210,6 +252,12 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 			pApp->SaveKB(FALSE); // don't do backup
 		}
 	}
+	// get any final edits of lang codes from edit boxes
+	tempSrcLangCode = pSrcLangCodeBox->GetValue();
+	tempTgtLangCode = pTgtLangCodeBox->GetValue();
+	// update the lang codes values held on the App
+	pApp->m_sourceLanguageCode = tempSrcLangCode;
+	pApp->m_targetLanguageCode = tempTgtLangCode;
 }
 
 void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -225,6 +273,8 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
 	tempSrcName = pApp->m_sourceName;
 	tempTgtName = pApp->m_targetName;
+	tempSrcLangCode = pApp->m_sourceLanguageCode;
+	tempTgtLangCode = pApp->m_targetLanguageCode;
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
@@ -242,6 +292,8 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	m_pCheckLegacySourceTextCopy->SetValue(tempNotLegacySourceTextCopy);
 	m_pEditSrcName->SetValue(tempSrcName);
 	m_pEditTgtName->SetValue(tempTgtName);
+	pSrcLangCodeBox->SetValue(tempSrcLangCode);
+	pTgtLangCodeBox->SetValue(tempTgtLangCode);
 
 	// save names to check for any changes made by user
 	strSaveSrcName = pApp->m_sourceName;

@@ -21,6 +21,7 @@ rem 1. The following copies Documentation files to the "setup Regular" folder
 mkdir "..\setup Regular\"
 copy "AI_USFM.xml" "..\setup Regular\"
 copy "books.xml" "..\setup Regular\"
+copy "AI_UserProfiles.xml" "..\setup Regular\"
 
 @echo on
 rem 2. The following copies Documentation files to the "setup Regular - Minimal" folder
@@ -28,6 +29,7 @@ rem 2. The following copies Documentation files to the "setup Regular - Minimal"
 mkdir "..\setup Regular - Minimal\"
 copy "AI_USFM.xml" "..\setup Regular - Minimal\"
 copy "books.xml" "..\setup Regular - Minimal\"
+copy "AI_UserProfiles.xml" "..\setup Regular - Minimal\"
 
 @echo on
 rem 3. The following copies Documentation files to the "setup Regular - No Html Help" folder
@@ -35,6 +37,7 @@ rem 3. The following copies Documentation files to the "setup Regular - No Html 
 mkdir "..\setup Regular - No Html Help\"
 copy "AI_USFM.xml" "..\setup Regular - No Html Help\"
 copy "books.xml" "..\setup Regular - No Html Help\"
+copy "AI_UserProfiles.xml" "..\setup Regular - No Html Help\"
 
 @echo on
 rem 4. The following copies Documentation files to the "setup Unicode" folder
@@ -42,6 +45,7 @@ rem 4. The following copies Documentation files to the "setup Unicode" folder
 mkdir "..\setup Unicode\"
 copy "AI_USFM.xml" "..\setup Unicode\"
 copy "books.xml" "..\setup Unicode\"
+copy "AI_UserProfiles.xml" "..\setup Unicode\"
 
 @echo on
 rem 5. The following copies Documentation files to the "setup Unicode - Minimal" folder
@@ -49,6 +53,7 @@ rem 5. The following copies Documentation files to the "setup Unicode - Minimal"
 mkdir "..\setup Unicode - Minimal\"
 copy "AI_USFM.xml" "..\setup Unicode - Minimal\"
 copy "books.xml" "..\setup Unicode - Minimal\"
+copy "AI_UserProfiles.xml" "..\setup Unicode - Minimal\"
 
 @echo on
 rem 6. The following copies Documentation files to the "setup Unicode - No Html Help" folder
@@ -56,6 +61,7 @@ rem 6. The following copies Documentation files to the "setup Unicode - No Html 
 mkdir "..\setup Unicode - No Html Help\"
 copy "AI_USFM.xml" "..\setup Unicode - No Html Help\"
 copy "books.xml" "..\setup Unicode - No Html Help\"
+copy "AI_UserProfiles.xml" "..\setup Unicode - No Html Help\"
 
 echo ===================================================
 echo Copy process completed.

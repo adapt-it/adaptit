@@ -70,9 +70,6 @@ public:
 	CSplitDialog(wxWindow* parent); // constructor
 	virtual ~CSplitDialog(void); // destructor // whm make all destructors virtual
 
-// Dialog Data
-	//enum { IDD = IDD_SPLIT_DLG };
-
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
@@ -80,11 +77,8 @@ protected:
 	bool GoToNextChapter_Interactive();
 	void SplitAtPhraseBoxLocation_Interactive();
 	void SplitIntoChapters_Interactive();
-	void MoveFinalEndmarkersToEndOfLastChapter(SPList* WXUNUSED(pDocSrcPhrases), SPList::Node*& pos,
-							ChList* pChaptersList, enum SfmSet currSfmSet); // BEW added 15Aug07 for 3.5.0
 
 public:
-
 
 	wxRadioButton* pSplitAtPhraseBox;
 	wxRadioButton* pSplitAtNextChapter;
@@ -108,11 +102,12 @@ public:
 	bool SplitAtNextChapter_IsChecked();
 	bool SplitIntoChapters_IsChecked();
 	bool CurrentDocSpansMoreThanOneChapter();
-	ChList *DoSplitIntoChapters(wxString WorkingFolderPath,wxString FileNameBase,SPList *SourcePhrases,int *cChapterDigits);
+	ChList *DoSplitIntoChapters(wxString WorkingFolderPath,wxString FileNameBase,
+								SPList *SourcePhrases,int *cChapterDigits);
 	// BEW addition 08Nov05
 	int	GetListItem(wxListBox* pFileList, wxString& s);
 	bool IsRadioButtonSelected(int ID);
 
-	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
+	DECLARE_EVENT_TABLE()
 };
 #endif /* SplitDialog_h */

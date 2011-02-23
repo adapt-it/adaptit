@@ -25,6 +25,7 @@
 // Forward references
 class CMainFrame;
 class CAdapt_ItView;
+class CFreeTrans;
 
 #ifdef _USE_SPLITTER_WINDOW
 class wxSplitterWindow;
@@ -50,7 +51,7 @@ public:
     void OnPaint(wxPaintEvent &WXUNUSED(event));
 	void DoPrepareDC(wxDC& dc); // this is called OnPrepareDC() in MFC
 
-#if wxUSE_GRAPHICS_CONTEXT && __WXMAC__
+#if wxUSE_GRAPHICS_CONTEXT
 	void UseGraphicContext(bool use) {m_useContext = use; Refresh();};
 #endif
 	
@@ -97,7 +98,7 @@ public:
 private:
 	// class attributes
 
-#if wxUSE_GRAPHICS_CONTEXT && __WXMAC__
+#if wxUSE_GRAPHICS_CONTEXT
 	bool m_useContext;
 #endif
 

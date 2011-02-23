@@ -14,6 +14,7 @@
 /// (to be fixed later). For any fixes the user can also check a box to "Auto-fix later
 /// instances the same way." 
 /// \derivation		The CConsistencyCheckDlg class is derived from AIModalDialog.
+/// BEW 9July10, updated for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef ConsistencyCheckDlg_h

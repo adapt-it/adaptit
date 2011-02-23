@@ -49,10 +49,10 @@
 #include "Adapt_It.h"
 #include "Pile.h"
 #include "Layout.h"
+#include "Adapt_ItDoc.h"
 #include "PunctCorrespPage.h"
 #include "FontPage.h"
 #include "CaseEquivPage.h"
-#include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h" 
 #include "helpers.h"
@@ -69,8 +69,8 @@ extern CFontPageWiz* pFontPageWiz;
 /// This global is defined in Adapt_It.cpp.
 extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
-extern bool gbIsGlossing;
-extern wxString translation;
+extern bool			gbIsGlossing;
+extern wxString		translation;
 
 // the following are common functions - used by the CPunctCorrespPageWiz class 
 // and the CPunctCorrespPagePrefs class

@@ -35,7 +35,7 @@
     #pragma interface "Stack.h"
 #endif
 
-typedef char Item[32]; // we'll store 32 char  arrays, each of
+typedef char  Item[32]; // we'll store 32 char  arrays, each of
 					   // which is an xml element tag
 
 // the following typedefs allow my Palm OS integer types to be used unchanged
@@ -70,6 +70,10 @@ public:
 	bool IsFull() const; // true if index top equals MAX
 	bool Push(Item item); // push a Char array onto the stack
 	bool Pop(Item item); // pop the top element into item
+	// whm added below 24May10
+	bool Contains(const Item item); // true if item is contained in the stack
+	bool MyParentsAre(int nThisMany, const Item item_up1, const Item item_up2,
+						const Item item_up3);
 };
 
 #endif

@@ -13,13 +13,8 @@
 /// does not have an equivalent for the CScrolledView in MFC.
 /// \derivation		The CAdapt_ItCanvas class is derived from wxScrolledWindow.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
+//#define _debugLayout
 
 // uncomment out next line in order to turn on wxLogDebug calls in ScrollIntoView()
 //#define DEBUG_ScrollIntoView
@@ -58,10 +53,11 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "Strip.h"
+#include "helpers.h"
 #include "Layout.h"
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
-
+#include "FreeTrans.h"
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
@@ -94,6 +90,7 @@ extern CPile* gpNotePile;
 /// This global is defined in Adapt_It.cpp.
 extern wxPoint gptLastClick;
 
+///GDLC Removed 2010-02-12 because it is no longer used anywhere
 /// This global is defined in Adapt_It.cpp.
 //extern bool gbBundleStartIteratingBack;
 
@@ -114,8 +111,8 @@ extern bool gbSuppressSetup;
 /// This global is defined in PhraseBox.cpp.
 extern wxString translation;
 
-/// This global is defined in Adapt_It.cpp.
-extern wxArrayPtrVoid* gpCurFreeTransSectionPileArray; // new creates on heap in InitInstance, and disposes in ExitInstance
+/// The global gpCurFreeTransSectionPileArray was defined in Adapt_It.cpp, but was changed to a member variable
+/// of the class CFreeTrans. GDLC 2010-02-16
 
 extern bool	gbFindIsCurrent;
 extern bool gbFindOrReplaceCurrent;
@@ -178,7 +175,7 @@ CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame,
 {
 	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' 
 				  // view pointer point to incoming view pointer
-	pFrame = NULL; // pFrame is set in CMainFrame's 
+	pFrame = NULL; // pFrame is set in CMainFrame's creator
 }
 
 CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
@@ -207,7 +204,10 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// adding another buffered layer. Using it here did not affect wxMac's problem
 	// of failure to paint properly after scrolling.
 
-#if wxUSE_GRAPHICS_CONTEXT && __WXMAC__
+	// whm modified conditional test below to include && !__WXGTK__ after finding that
+	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
+	// link errors for "undefined reference wxGCDC::...
+#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__
      wxGCDC gdc( paintDC ) ;
     wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
 #else
@@ -495,6 +495,11 @@ void CAdapt_ItCanvas::DiscardEdits()
 {
 }
 
+// BEW 22Jun10, no changes needed for support of kbVersion 2
+// BEW 12Jan11, changed the setting of ptWedgeBotRight.y to be initialized to the
+// top of the top cell; before this, it was set to the bottom of the strip, and
+// then for a narrow word, a source text click would trick the code into thinking
+// a wedge was clicked when in fact, it wasn't
 void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -502,6 +507,11 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
+
+	// GDLC 2010-02-16 Pointer to the CFreeTrans class because it is needed in OnLButtonDown().
+	// Ideally, the parts of OnLButtonDown() that relate to free translations would be moved
+	// to the CFreeTrans class and this local variable of OnLButtonDown would be removed.
+	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
 
 	wxPoint point;	// MFC passes CPoint point as second parameter to OnLButtonDown; wx gets it from the
 					// wxMouseEvent via GetPosition. Both specify x an y coordinates relative to the upper
@@ -595,7 +605,14 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 		ptWedgeTopLeft.x = pClickedStrip->GetStripRect_CellsOnly().GetLeft();
 		ptWedgeTopLeft.y = pClickedStrip->GetStripRect_CellsOnly().GetTop();
 		ptNoteTopLeft = ptWedgeTopLeft;
-		ptWedgeBotRight = ptWedgeTopLeft;
+		ptWedgeBotRight.x = ptWedgeTopLeft.x;
+		// BEW 12Jan11, changed the setting of ptWedgeBotRight.y to be initialized to the
+		// top of the top cell; before this, it was set to the bottom of the strip, and
+		// then for a narrow word, a source text click would trick the code into thinking
+		// a wedge was clicked when in fact, it wasn't
+		ptWedgeBotRight.y = ptWedgeTopLeft.y; // initialize bottom of wedge (its point)
+											  // to the top of the top cell; we move it
+											  // further up in the stuff below
 		ptNoteBotRight = ptNoteTopLeft;
 		int numPiles;
 
@@ -613,11 +630,8 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                               // ptNoteBotRight.y is already correct
 
 		// get the number of piles in the clicked strip
-#ifdef _ALT_LAYOUT_
-		numPiles = pClickedStrip->GetPileIndicesCount();
-#else
 		numPiles = pClickedStrip->GetPileCount();
-#endif
+
         // do the check only if we have not suppressed showing source text, and only if
         // there actually are piles in the strip (yeah, I know, there has to be; but safety
         // first isn't a bad idea)
@@ -627,16 +641,12 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 			int indexPile;
 			for (indexPile = 0; indexPile < numPiles; indexPile++)
 			{
-#ifdef _ALT_LAYOUT_
-				pPile = pClickedStrip->GetPileByIndexInStrip(indexPile);
-#else
 				pPile = pClickedStrip->GetPileByIndex(indexPile);
-#endif
 				wxASSERT(pPile != NULL);
 
                 // is there anything filtered here - if not, check for a note, if that
                 // fails too, then just continue the loop
-				if (pPile->GetSrcPhrase()->m_markers.Find(filterMkr) >= 0)
+				if (HasFilteredInfo(pPile->GetSrcPhrase()))
 				{
 					// there is some filtered material stored on this 
 					// CSourcePhrase instance
@@ -1186,11 +1196,7 @@ t:	if (pCell == NULL)
 				pEndPile = pCell->GetPile();
 				pCurPile = pAnchor->GetPile();
 				pCurStrip = pCurPile->GetStrip();
-#ifdef _ALT_LAYOUT_
-				nCurPileCount = pCurStrip->GetPileIndicesCount();
-#else
 				nCurPileCount = pCurStrip->GetPileCount();
-#endif
 				nCurPile = pCurPile->GetPileIndex(); // value of m_nPile
 				nCurStrip = pCurStrip->GetStripIndex(); // value of m_nStrip
 
@@ -1242,11 +1248,7 @@ t:	if (pCell == NULL)
 									// there is at least one more pile in this strip, 
 									// so access it
 									nCurPile++; // index of next pile
-#ifdef _ALT_LAYOUT_
-									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);
-#else
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
-#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
@@ -1280,15 +1282,9 @@ t:	if (pCell == NULL)
 									// get the pointer to next strip
 									pCurStrip = pLayout->GetStripByIndex(nCurStrip);
 									// get the pointer to its first pile
-#ifdef _ALT_LAYOUT_
-									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);
-									nCurPileCount = pCurStrip->GetPileIndicesCount(); // update 
-											// so test above remains correct for the strip
-#else
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
 									nCurPileCount = pCurStrip->GetPileCount(); // update 
 											// so test above remains correct for the strip
-#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
 									// get the required cell if it is already selected, 
@@ -1373,11 +1369,7 @@ t:	if (pCell == NULL)
 									// there is at least one previous pile in this strip, 
 									// so access it
 									nCurPile--; // index of previous pile
-#ifdef _ALT_LAYOUT_
-									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);
-#else
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
-#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
@@ -1409,19 +1401,11 @@ t:	if (pCell == NULL)
                                     // of previous strip
 									nCurStrip--; // the previous strip's index
 									pCurStrip = pLayout->GetStripByIndex(nCurStrip); // prev strip 
-#ifdef _ALT_LAYOUT_
-									nCurPileCount = pCurStrip->GetPileIndicesCount(); // update 
-											// this so test above remains correct for the strip
-									nCurPile = nCurPileCount-1; // last in this strip
-									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);  // pointer 
-																			 // to its last pile
-#else
 									nCurPileCount = pCurStrip->GetPileCount(); // update this so 
 													//test above remains correct for the strip
 									nCurPile = nCurPileCount-1; // last in this strip
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);  // pointer 
 																			 // to its last pile
-#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
 									// get the required cell
@@ -1598,7 +1582,13 @@ t:	if (pCell == NULL)
 					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 
 					// make m_bIsCurrentFreeTransSection FALSE on every pile
-					pView->MakeAllPilesNonCurrent(pLayout);
+					pApp->m_pLayout->MakeAllPilesNonCurrent();
+
+					// BEW added 8Apr10, the global wxString translation has to be given
+					// the value for the phrase box at the new location, otherwise the
+					// last location's string will wrongly be put there; we get the value
+					// from the m_adaption member of that CSourcePhrase instance
+					translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 
 					// the PlacePhraseBox() call calls CLayout::RecalcLayout()
 					pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
@@ -1686,7 +1676,7 @@ t:	if (pCell == NULL)
 					}
 
 					// mark the current section
-					pView->MarkFreeTranslationPilesForColoring(gpCurFreeTransSectionPileArray);
+					pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
 					if (pApp->m_nActiveSequNum >= 0 && 
 											pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 					{
@@ -2017,6 +2007,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	// m_bAllowScrolling is also TRUE)
 	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
 #endif
+
+//#ifdef _debugLayout
+//ShowSPandPile(393, 50);
+//ShowSPandPile(394, 50);
+//ShowInvalidStripRange();
+//#endif
 
 	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
 	if (!debugDisableScrollIntoView)

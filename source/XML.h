@@ -57,7 +57,8 @@ const UInt32 hasInternalMarkersMask		= 131072; // position 18
 const UInt32 hasInternalPunctMask		= 262144; // position 19
 const UInt32 footnoteMask				= 524288; // position 20
 const UInt32 footnoteEndMask			= 1048576; // position 21
-const UInt32 paragraphMask			= 2097152; // position 22
+// BEW 8Oct10, repurposed m_bParagraph, so need different name for mask
+//const UInt32 paragraphMask			= 2097152; // position 22
 const UInt32 unusedMask					= 2097152; // position 22
 
 /*
@@ -239,7 +240,6 @@ bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXU
 bool AtSFMEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& WXUNUSED(pStack));
 
-/*
 // Functions used as callbacks for AI_UserProfiles.xml
 bool AtPROFILETag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtPROFILEEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
@@ -253,7 +253,6 @@ bool AtEMAILRptEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack))
 bool AtEMAILRptAttr(CBString& WXUNUSED(tag),CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack));
 bool AtEMAILRptEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtEMAILRptPCDATA(CBString& tag,CBString& pcdata,CStack*& WXUNUSED(pStack));
-*/
 
 // Functions used as callbacks for XML-marked-up Adapt It documents
 bool AtDocTag(CBString& tag,CStack*& WXUNUSED(pStack));
@@ -269,7 +268,6 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUN
 bool AtKBEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
 
-/*
 // Functions used as callbacks for XML-marked-up LIFT files
 // whm added 19May10
 bool AtLIFTTag(CBString& tag,CStack*& WXUNUSED(pStack));
@@ -278,7 +276,7 @@ bool AtLIFTAttr(CBString& WXUNUSED(tag),CBString& WXUNUSED(attrName),
 				CBString& WXUNUSED(attrValue),CStack*& WXUNUSED(pStack));
 bool AtLIFTEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
-*/
+
 // the read and parse functions;
 bool ReadBooks_XML(wxString& path);
 
