@@ -16658,6 +16658,12 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// list as it helps for the user to see all such & handle matched
 				// beginmarker & endmarker pairs the same way)
 				// remove LHS whitespace when done
+				if (!filteredInfoStr.IsEmpty())
+				{
+					// this data has any markers and endmarkers already 'in place'
+					markersPrefix.Trim();
+					markersPrefix += filteredInfoStr;
+				}
 				if (!collBackTransStr.IsEmpty())
 				{
 					// add the marker too
@@ -16727,12 +16733,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					markersPrefix += aSpace + noteStr;
 					markersPrefix += noteEndMkr; // don't need space too
 				}
-				if (!filteredInfoStr.IsEmpty())
-				{
-					// this data has any markers and endmarkers already 'in place'
-					markersPrefix.Trim();
-					markersPrefix += filteredInfoStr;
-				}
+				// BEW 23Feb11 moved filtered into from here to be before coll back trans
 				markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 
 				if (!markersStr.IsEmpty())
@@ -16943,6 +16944,12 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// BEW 11Oct10, additions to the code below to support m_follOuterPunct
 				// and the inline markers from the 4 extra wxString members added to
 				// CSourcePhrase in order to fully support USFM markup standards
+				if (!filteredInfoStr.IsEmpty())
+				{
+					// this data has any markers and endmarkers already 'in place'
+					unfilteredStr.Trim();
+					unfilteredStr += aSpace + filteredInfoStr;
+				}
 				if (!collBackTransStr.IsEmpty())
 				{
 					// add the marker too
@@ -16996,12 +17003,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					unfilteredStr += aSpace + noteStr;
 					unfilteredStr += noteEndMkr; // don't need space too
 				}
-				if (!filteredInfoStr.IsEmpty())
-				{
-					// this data has any markers and endmarkers already 'in place'
-					unfilteredStr.Trim();
-					unfilteredStr += aSpace + filteredInfoStr;
-				}
+				// BEW 23Feb11 moved filtered info to be first above
  				unfilteredStr.Trim(FALSE); // finally, remove any LHS whitespace
            
 				// insert any non-empty unfiltered material "in place" in the strings

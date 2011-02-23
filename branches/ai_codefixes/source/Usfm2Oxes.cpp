@@ -4228,13 +4228,13 @@ bool Usfm2Oxes::ParseSingleSectionIntoSectionParts(SectionInfo* pSectionInfo)
 		if (!buff.IsEmpty())
 		{
 			do {
-#ifdef __WXDEBUG__
-	int xOffset = buff.Find(_T("\\p"));
-	if (xOffset == 0)
-	{
-			int halt_here = 1;
-	}
-#endif
+//#ifdef __WXDEBUG__
+//	int xOffset = buff.Find(_T("\\p"));
+//	if (xOffset == 0)
+//	{
+//			int halt_here = 1;
+//	}
+//#endif
 				bMatched = FALSE; // initialize to FALSE at the start of each iteration
 				SectionPart* pSectionPart = new SectionPart(*(m_arrSectionPartTemplate.Item(4)));
 				//SectionPart* pTemplate = m_arrSectionPartTemplate.Item(4);

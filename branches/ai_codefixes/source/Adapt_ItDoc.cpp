@@ -9116,14 +9116,23 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 	// first, find out if there is an inline binding beginmarker no more than
 	// MAX_MOVED_FORMER_PUNCTS characters ahead of where ptr points on entry; if there
 	// isn't, return an empty string because the caller must then assume that ptr on entry
-	// is pointing at the actual start of the word which is to be parsed
+	// is pointing at the actual start of the word which is to be parsed; if there is,
+	// then make a further check - there must not be a space preceding the marker - if
+	// there is, then return an empty string, because ptr must be pointing at a word to be
+	// parsed
 	int numCharsToCheck = (int)MAX_MOVED_FORMER_PUNCTS;
 	bool bMarkerExists = FALSE;
 	bool bItsAnInlineBindingMarker = FALSE;
 	int count = 1;
 	while (count <= numCharsToCheck)
 	{
-		if (IsMarker(ptr + count))
+		if (IsWhiteSpace(ptr + count))
+		{
+			// white space encountered before a marker was reached, so return the empty
+			// string
+			return squirrel;
+		}
+		else if (IsMarker(ptr + count))
 		{
 			bMarkerExists = TRUE; // we must exit at the first found, we can't look beyond it
 			break;
@@ -9145,7 +9154,8 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 	else
 	{
         // we found a marker, but it has to be an inline binding marker (and not an inline
-        // binding endmarker); so check if it is an inline binding marker - if so we can
+        // binding endmarker); so check if it is an inline binding marker - if so, and
+        // providing there was no preceding whitespace (tested in the loop above), we can
         // test for squirreling some non-restored word initial word-building characters
         // that got moved earlier to precede the inline binding marker, into the squirrel
         // string for safekeeping until the caller needs to insert them at the start of the
