@@ -17376,6 +17376,10 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	Invalidate();
+	canvas->ClearBackground(); // BEW added 23Feb11, because without it, if the layout
+		// direction is changed when scrolled away from the top, the screen is garbled
+		// until a refresh is forced, and the Invalidate() plus Redraw() calls were not
+		// sufficient
 	GetLayout()->Redraw(); // yep, works nicely
 	GetLayout()->PlaceBox();
 }
