@@ -85,6 +85,8 @@ extern wxString charFormatEndMkrs;
 extern wxString embeddedWholeMkrs;
 extern wxString embeddedWholeEndMkrs;
 
+extern CAdapt_ItApp* gpApp;
+
 // *******************************************************************
 // Event handlers
 // *******************************************************************
@@ -329,7 +331,8 @@ void Usfm2Oxes::Initialize()
 	// not included because these belong in the inline set; similarly for \qac and \qac*,
 	// for an acrostic letter within a poetic line (it too is a character style marker);
 	// we'll include \q4 even though it is unlikely to ever occur in data
-	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
+	m_poetryMkrs = gpApp->m_poetryMkrs; // I put these on the app, because 
+										// TokenizeText() would like to use them
 	m_chapterMkrs = _T("\\c \\ca \\ca* \\cl \\cp \\cd ");
 	m_majorOrSeriesMkrs = _T("\\ms \\ms1 \\qa \\ms2 \\ms3 ");
 	m_parallelPassageHeadMkrs = _T("\\r ");

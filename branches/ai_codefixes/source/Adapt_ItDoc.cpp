@@ -13169,12 +13169,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		bHitMarker = FALSE;
-		/*
-		if (pSrcPhrase->m_nSequNumber == 5)
-		{
-			int break_point_here = 1;
-		}
-		*/
+
 		if (IsWhiteSpace(ptr))
 		{
             // advance pointer past the white space (inter-word spaces should be thrown
@@ -13351,6 +13346,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pLastSrcPhrase->m_bEndFreeTrans = TRUE;
 					}
 				}
+
+				// BEW 25Feb11, a new verse should change TextType to verse, and m_bSpecialText
+				// to FALSE, except when a previous poetry marker has set poetry TextType already
+				// Removed because later code will override what we do here, so might as
+				// well not do it
+				//pSrcPhrase->m_bSpecialText = FALSE;	
+				//if (pSrcPhrase->m_curTextType != poetry)
+				//{
+					// the text type is not poetry, so change to it to verse
+				//	pSrcPhrase->m_curTextType = verse;
+				//}
 				continue; // iterate inner loop to check if another marker follows
 			}
 			else if (IsChapterMarker(ptr)) // is it some other kind of marker - 
@@ -13386,6 +13392,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				pUsfmAnalysis = LookupSFM(ptr); // If an unknown marker, pUsfmAnalysis
 												// will be NULL
 
+//#ifdef __WXDEBUG__
+//		if (pSrcPhrase->m_nSequNumber == 139)
+//		{
+//			int break_point_here = 1;
+//		}
+//#endif		
                 // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
                 // TokenizeText enounters previously filtered text (enclosed within
                 // \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
@@ -13422,6 +13434,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // TokenizeText() only deals with beginmarkers. In doc version 5 it never
                 // happens now that an endmarker will be stored in m_markers (in the legacy
                 // parser, that was not true).
+                // BEW 25Feb11, added code to use pUsfmAnalysis looked up to set
+                // m_curTextType and m_bSpecialText which were forgottten here
 				
 				bool bDidSomeFiltering = FALSE;
 
@@ -13433,8 +13447,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// BEW 11Oct10, the block for detecting an inline marker which is not
 				// one of the \f set nor one of the \x set..., if the test succeeds, then
 				// in the block we set needed flags and then break out of the inner loop
+				// 
+                // BEW 25Feb11, we don't want to hand off \va ...\va*, (verse alternate)
+                // nor \vp ...\vp* (verse published) to ParseWord() - which will correctly
+                // handle them as inline binding markers, but leave the number as adaptable
+                // text in the view; instead, these are default filtered in the AI_USFM.xml
+                // file, so we have to test for them here and skip this block if either of
+				// these was what bareMkr is (only if the user unfilters them should their
+				// number be seeable and adaptable)
 				if (pUsfmAnalysis != NULL && pUsfmAnalysis->inLine &&
-					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0)
+					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 && 
+					bareMkr.Find(_T("va")) != 0 && bareMkr.Find(_T("vp")) != 0)
 				{
                     // inline markers are known to USFM, so pUsfmAnalysis will not be
                     // false; the test succeeds if it is not an unknown marker, and is an
@@ -13653,6 +13676,28 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                     // being a non-filtering marker, it can't possibly be \free, and so we
                     // don't have to worry about the filter-related boolean flags in
                     // pSrcPhrase here
+					// BEW 25Feb11, since it's neither inline nor filtering, it will be
+					// stored in m_markers and so is a candidate for changing
+					// m_bSpecialText and m_currTextType, so use the pUsfmAnalysis
+					// obtained above, and compare with pLastSrcPhrase when the latter is
+					// non-NULL
+					// Removed because later code will override what we do here, so might as
+					// well not do it
+					//if (pLastSrcPhrase != NULL)
+					//{
+					//	if (pLastSrcPhrase->m_bSpecialText && !pUsfmAnalysis->special)
+					//	{
+							// we must switch back to non special text colour
+					//		pSrcPhrase->m_bSpecialText = FALSE;
+					//	}
+					//	if (pLastSrcPhrase->m_curTextType != pUsfmAnalysis->textType)
+					//	{
+							// the text type is different, so change to it (a subsequent
+							// marker may change it again though, if there is another to
+							// be parsed after this current one)
+					//		pSrcPhrase->m_curTextType = pUsfmAnalysis->textType;
+					//	}
+					//}
 				}
 				// advance pointer past the marker
 				ptr += itemLen;
@@ -13755,6 +13800,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// ************ New Propagation Code Starts Here ******************
 		bool bTextTypeChanges = FALSE;
 		bool bEndedffexspanUsedToChangedTextType = FALSE;
+		// if not done before ParseWord() was called, do the update here, if needed
 		if (bEnded_f_fe_x_span)
 		{
 			// this block re-establishes verse type, and m_bSpecialText FALSE, after a
@@ -13780,10 +13826,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				int offset = wxNOT_FOUND;
 				int len = 0;
 				wxString wholeMkr; wholeMkr.Empty();
+				bool bContainsPoetryMarker = FALSE; // BEW added 25Feb11
 				while ((offset = tokBuffer.Find(gSFescapechar)) != wxNOT_FOUND) 
 				{
 					tokBuffer = tokBuffer.Mid(offset);
 					wholeMkr = GetWholeMarker(tokBuffer);
+					// check for a poetry marker, set the flag if we find one
+					wxString wholeMkrPlusSpace = wholeMkr + _T(' ');
+					if (pApp->m_poetryMkrs.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+					{
+						// this is a poetry marker (\v may follow, so use the flag
+						// later to prevent poetry TextType from being overridden by verse
+						bContainsPoetryMarker = TRUE;
+					}
 					len = wholeMkr.Len();
 					tokBuffer = tokBuffer.Mid(len);
 				}
@@ -13802,17 +13857,33 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					wxChar* pBufStart = (wxChar*)pChar2;
 					// in the next call NULL is returned if bareMkr is an unknown marker
 					USFMAnalysis* pUsfmAnalysis = LookupSFM(bareMkr); 
-                    // the AnalyseMarker() call looks up the characteristics of the marker
-                    // and assigns TextType, returns m_bSpecialText value, puts appropriate
-                    // text into the m_inform member, deals appropriately with
-                    // pUsfmAnalysis being NULL (returns TRUE, and TextType noType is
-                    // assigned and m_inform gets the marker bracketted with ? and ? before
-                    // and after) etc
-                    pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
+					// the AnalyseMarker() call looks up the characteristics of the marker
+					// and assigns TextType, returns m_bSpecialText value, puts appropriate
+					// text into the m_inform member, deals appropriately with
+					// pUsfmAnalysis being NULL (returns TRUE, and TextType noType is
+					// assigned and m_inform gets the marker bracketted with ? and ? before
+					// and after) etc
+					pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
 														pBufStart, length, pUsfmAnalysis);
+					// if there was a preceding poetry marker for a verse marker,
+					// choose the poetry TextType instead
+					if (bContainsPoetryMarker) 
+					{
+						pSrcPhrase->m_curTextType = poetry;
+						bTextTypeChanges = TRUE;
+					}
 					if (pLastSrcPhrase != NULL)
 					{
-						if (pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType)
+						// BEW 25Feb11, added the 2nd test after the OR, because some
+						// markers (e.g. \d for poetry description) are given in
+						// AI_USFM.xml as TRUE for special text, but TextType of
+						// verse, and so just testing the TextType for a difference
+						// isn't enough, because pLastSrcPhrase might have TRUE for
+						// special text, and need to now change to FALSE, which won't
+						// happen if both last and current have verse TextType - well,
+						// at least not without the extra test I've just added
+						if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
+							(pLastSrcPhrase->m_bSpecialText != pSrcPhrase->m_bSpecialText))
 						{
 							bTextTypeChanges = TRUE;
 						}

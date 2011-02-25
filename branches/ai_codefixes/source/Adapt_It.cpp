@@ -11520,6 +11520,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// *** Initializations above were originally in the Doc in the MFC version ***
 
+	// TokenizeText() makes use of these
+	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
+
 	// *** Initializations below were originally in the View in the MFC version ***
 	
     // Variable initializations below moved here from the View because the wxWidgets'

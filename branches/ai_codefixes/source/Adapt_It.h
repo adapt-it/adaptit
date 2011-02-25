@@ -1799,6 +1799,7 @@ public:
     // Note: CFilterPage maintains a temporary set of the following variables for
     // displaying the GUI state of unknown markers. When the user accepts any changes to
     // the filtering state of unknown markers, these variables on the app are updated.
+    wxString m_poetryMkrs; // USFM ones
 	wxArrayString m_unknownMarkers; // array of unknown whole markers -			
 									// no end markers stored here
 	wxArrayInt	m_filterFlagsUnkMkrs;
