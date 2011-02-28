@@ -5968,12 +5968,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // and commandbar is used in the main frame.
 	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
 	// (intended for Bob Eaton, for shell opening of the application only, for a given doc)
+
 	static const wxCmdLineEntryDesc cmdLineDesc[] = 
 	{
 		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
 		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
 		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		// BEW 28Feb11, moved frm switch to above, it was before the  BEW 12Nov09 line previously
 		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
@@ -5982,8 +5986,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("exports"), _T("exporteddocumentspath"), _T("Lock exported documents path to this path"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
 		// for default adaptation export of adaptation text from a given doc file from
 		// a given project folder is what the next 4 params are
@@ -5999,10 +6001,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{ wxCMD_LINE_NONE }
 	};
 
+
 	// Note: In the MFC version, InitInstance() sets up CCommandLineInfo cmdInfo.
 	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
 	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
 	// OnFileNew() to initiate the doc/view creation process at program startup.
+	// Note: wxWidgets defines argc and argv as uninitialized public variables in App.h
+	// header, so we don't need to define them here
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
 	int itsokay = m_pParser->Parse(); // continue if it fails
@@ -6039,8 +6044,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	*/
 
-	int paramCount = m_pParser->GetParamCount();
-	if (itsokay == 0 && paramCount > 0)
+	int paramCount = m_pParser->GetParamCount(); // this is needed only for commands with params
+
+	if (itsokay == 0)
 	{
 		if (m_pParser->Found(_T("xo")))
 		{
@@ -6106,65 +6112,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			}
 		}
 	}
-
-	// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
-	// for default adaptation export of adaptation text from a given doc file from
-	// a given project folder
-	/*
-	static const wxCmdLineEntryDesc cmdLineDesc2[] = 
-	{
-		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"), _T("export"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\nproject name (must be in doublequotes)"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\ndocument name (in doublequotes if spaces present)"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\noutput folder path (in doublequotes if spaces present)"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_NONE }
-	};
-	m_pParser2 = new wxCmdLineParser(cmdLineDesc2, argc, argv);
-
-	// for testing, set up the following command line - comment out later for Release version
-	//m_pParser2->SetCmdLine(_T("export \42 XX to YY adaptations\42 \42 Ruth.xml\42 \42C:\\Card1\42"));
-
-	int allswell = m_pParser2->Parse(); // allow continued processing if parse failed
-
-	// Note: returning here creates memory leaks, but it is not too serious since the
-	// program is terminating anyway.
-
-	int paramCount2 = m_pParser2->GetParamCount();
-	if (allswell == 0 && paramCount2 == 4)
-	{
-		// got a valid parse for the export command + params
-		m_autoexport_command = m_pParser2->GetParam(0);
-		if (m_autoexport_command == _T("export"))
-		{
-			m_autoexport_projectname = m_pParser2->GetParam(1);
-			m_autoexport_projectname.Trim(FALSE); // remove whitespace from left
-			m_autoexport_projectname.Trim(); // remove whitespace from right
-			m_autoexport_docname = m_pParser2->GetParam(2);
-			m_autoexport_docname.Trim(FALSE); // remove whitespace from left
-			m_autoexport_docname.Trim(); // remove whitespace from right
-			m_autoexport_outputpath = m_pParser2->GetParam(3);
-			m_autoexport_outputpath.Trim(FALSE); // remove whitespace from left
-			m_autoexport_outputpath.Trim(); // remove whitespace from right
-			m_bAutoExport = TRUE;
-		}
-		else
-		{
-			wxMessageBox(_("Command line, export command misspelled; parse failed"));
-			m_bAutoExport = FALSE;
-		}
-	}
-	else if (allswell > 0)
-	{
-		wxMessageBox(_("Command line, export command, parse error"));
-		m_bAutoExport = FALSE;
-	}
-	*/
 
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
