@@ -302,6 +302,9 @@ there was no wedge icon present at that location.
 * If the document was scrolled away from the top, and the user clicked
 the command on the Layout direction which changes the layout direction,
 the window's display was garbled until the next window update.
+* Support for opening Adapt It with command line switches such as 
+-frm (force review mode) has been broken from version 5.2.1 and 
+onwards; it's fixed again now.
 
 ----------------------------------------------
 Version 5.2.4 update 31January2011:

@@ -12018,12 +12018,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // and commandbar is used in the main frame.
 	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
 	// (intended for Bob Eaton, for shell opening of the application only, for a given doc)
+
 	static const wxCmdLineEntryDesc cmdLineDesc[] = 
 	{
 		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
 		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
 		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		// BEW 28Feb11, moved frm switch to above, it was before the  BEW 12Nov09 line previously
 		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
@@ -12032,8 +12036,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("exports"), _T("exporteddocumentspath"), _T("Lock exported documents path to this path"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
 		// for default adaptation export of adaptation text from a given doc file from
 		// a given project folder is what the next 4 params are
@@ -12053,6 +12055,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
 	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
 	// OnFileNew() to initiate the doc/view creation process at program startup.
+	// Note: wxWidgets defines argc and argv as uninitialized public variables in App.h
+	// header, so we don't need to define them here
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
 	int itsokay = m_pParser->Parse(); // continue if it fails
@@ -12089,8 +12093,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	*/
 
-	int paramCount = m_pParser->GetParamCount();
-	if (itsokay == 0 && paramCount > 0)
+	int paramCount = m_pParser->GetParamCount();// this is relevant only to commands with params, like export
+
+	if (itsokay == 0)
 	{
 		if (m_pParser->Found(_T("xo")))
 		{
