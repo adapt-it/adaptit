@@ -1959,6 +1959,8 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 	}
 
 #endif
+	// a dummy comment, I just want to do a new commit to svn to add a further log message
+	// I forgot just now (3Mar11)
 	return bstr;
 }
 
