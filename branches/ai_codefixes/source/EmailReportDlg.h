@@ -20,6 +20,14 @@
     #pragma interface "EmailReportDlg.h"
 #endif
 
+// a helper class for CEmailReportDlg
+class CLogViewer : public wxDialog
+{
+public:
+	CLogViewer(wxWindow* parent); // constructor
+	virtual ~CLogViewer(void); // destructor
+};
+
 class CEmailReportDlg : public AIModalDialog
 {
 public:
@@ -42,16 +50,23 @@ public:
 	bool bSubjectHasUnsavedChanges;
 	bool bYouEmailAddrHasUnsavedChanges;
 	bool bDescriptionBodyHasUnsavedChanges;
+	bool bSendersNameHasUnsavedChanges;
+	bool bPackedDocToBeAttached;
 	wxString templateTextForDescription;
 	wxString saveDescriptionBodyText;
 	wxString saveSubjectSummary;
 	wxString saveMyEmailAddress;
+	wxString saveSendersName;
+	wxString packedDocInBase64;
+	wxString userLogInBase64;
+	CBString userLogInASCII;
 
 	wxString packedDocumentFileName;
 	
 	wxTextCtrl* pTextYourEmailAddr;
 	wxTextCtrl* pTextDeveloperEmails;
 	wxTextCtrl* pTextEmailSubject;
+	wxTextCtrl* pTextSendersName;
 	wxStaticBox* pStaticBoxTextDescription;
 	wxTextCtrl* pTextDescriptionBody;
 	wxCheckBox* pLetAIDevsKnowHowIUseAI;
@@ -86,9 +101,11 @@ protected:
 	void OnYourEmailAddressEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnSubjectSummaryEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnDescriptionBodyEditBoxChanged(wxCommandEvent& WXUNUSED(event));
-	bool DoSaveReportAsXmlFile(bool PromptForSaveChanges);
+	void OnSendersNameEditBoxChanged(wxCommandEvent& WXUNUSED(event));
+	bool DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString nameSuffix, wxString& nameUsed);
 	bool BuildEmailReportXMLFile(wxString filePathAndName,bool bReplaceExistingReport);
 	bool bMinimumFieldsHaveData();
+	wxString FormatSysInfoIntoString();
 
 private:
 	// class attributes
