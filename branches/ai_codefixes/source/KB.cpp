@@ -1525,7 +1525,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		// string literals plus some methods from XML.cpp
 		CBString xmlPrologue;
 		// TODO: Check if it is OK to include the standalone="yes" part of the prologue produced
-		// by GetEncodingStringForSmlFiles() below as <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		// by GetEncodingStringForSmlFiles() below as <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 		m_pApp->GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
 		composeXmlStr = xmlPrologue; // first string in xml file
 		CBString openLiftTag = "<lift version=\"0.13\">";
@@ -3291,9 +3291,12 @@ void CKB::GetForceAskList(KPlusCList* pKeys)
 /// as they often will not be present. We'll not make an attribute for any of these
 /// strings if they are empty - defaults will handle these when the xml is parsed back in.
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW 3Mar11, at Bob Eaton's request, changed from indent using one or more \t (tab char)
+// to "  " (two spaces) per nTabLevel unit instead (to comply with 3-way merge in Chorus)
 ////////////////////////////////////////////////////////////////////////////////////////
 CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 {
+	CBString tabUnit = "  "; // BEW 3Mar11, the two spaces to be used instead of "\t" herein
 	// Constructs
 	// <TU f="boolean" k="source text key (a word or phrase)">
 	// 	<RS n="reference count" a="adaptation (or gloss) word or phrase"/>
@@ -3315,7 +3318,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	aStr.Empty();
 	for (i = 0; i < nTabLevel; i++)
 	{
-		aStr += "\t"; // tab the start of the line
+		aStr += tabUnit; // tab the start of the line
 	}
 	aStr += "<TU f=\"";
 	intStr.Empty(); // needs to start empty, otherwise << will 
@@ -3349,8 +3352,8 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 		int last = nTabLevel + 1;
 		for (j = 0; j < last ; j++)
 		{
-			aStr += "\t"; // tab the start of the line
-			rsTabs += "\t"; // use rsTabs below to avoid a loop each time
+			aStr += tabUnit; // tab the start of the line
+			rsTabs += tabUnit; // use rsTabs below to avoid a loop each time
 		}
 		// construct the element
 		aStr += "<RS n=\""; // reference count
@@ -3445,7 +3448,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	// construct the closing TU tab
 	for (i = 0; i < nTabLevel; i++)
 	{
-		aStr += "\t"; // tab the start of the line
+		aStr += tabUnit; // tab the start of the line
 	}
 	aStr += "</TU>\r\n";
 
@@ -3455,7 +3458,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	aStr.Empty();
 	for (i = 0; i < nTabLevel; i++)
 	{
-		aStr += "\t"; // tab the start of the line
+		aStr += tabUnit; // tab the start of the line
 	}
 	aStr += "<TU f=\"";
 	intStr.Empty(); // needs to start empty, otherwise << will 
@@ -3489,8 +3492,8 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 		int last = nTabLevel + 1;
 		for (j = 0; j < last ; j++)
 		{
-			aStr += "\t"; // tab the start of the line
-			rsTabs += "\t"; // use rsTabs below to avoid a loop each time
+			aStr += tabUnit; // tab the start of the line
+			rsTabs += tabUnit; // use rsTabs below to avoid a loop each time
 		}
 		// construct the element
 		aStr += "<RS n=\"";
@@ -3585,7 +3588,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 	// construct the closing TU tab
 	for (i = 0; i < nTabLevel; i++)
 	{
-		aStr += "\t"; // tab the start of the line
+		aStr += tabUnit; // tab the start of the line
 	}
 	aStr += "</TU>\r\n";
 

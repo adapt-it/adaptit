@@ -861,7 +861,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 											// returned as the last parameter in the signature
 				// for XML output
 				pApp->m_curOutputFilename = strUserTyped + _T(".xml");
-				pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+				pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK");
 			}
 			else
 			{
@@ -908,7 +908,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 					// for XML output
 					pApp->m_curOutputFilename = strUserTyped + _T(".xml");
-					pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+					pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK");
 				} // end of true block for test: if (dlg.ShowModal() == wxID_OK)
 				else
 				{
@@ -4004,7 +4004,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		filenameStr.Remove(0,4); //filenameStr.Delete(0,4); // remove "lmx."
 		filenameStr = MakeReverse(filenameStr);
 		filenameStr += _T(".BAK");
-		filenameStr += _T(".xml"); // produces *.BAK.xml
+		//filenameStr += _T(".xml"); // produces *.BAK.xml BEW removed 3Mar11
 	}
 	gpApp->m_curOutputBackupFilename = filenameStr;
 	gpApp->m_curOutputPath = filename;
@@ -18932,37 +18932,23 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 	}
 	
 	// KB Backup Path (m_curKBBackupPath)
+	// BEW 3Mar11, changed for .BAK rather than .BAK.xml, at Bob Eaton's request
 	if (bKBBackupPath)
 	{
-        // this has a double extension, which is always to be .BAK.xml
+        // this has an extension, which is always to be .BAK
 		wxString thisBackupPath = gpApp->m_curKBBackupPath;
 		thisBackupPath = MakeReverse(thisBackupPath); // reversed
-		int nFound = thisBackupPath.Find(_T('.'));
+		int nFound = thisBackupPath.Find(_T("KAB."));
 		if (nFound != wxNOT_FOUND)
 		{
-			// found outermost (reversed) extension -- remove it and the period
-			thisBackupPath = thisBackupPath.Mid(nFound + 1);
-			// look for another (reversed) extension
-			nFound = thisBackupPath.Find(_T('.'));
-			if (nFound != wxNOT_FOUND)
-			{
-				// found the inner one, so remove this too, but leave its period
-				thisBackupPath = thisBackupPath.Mid(nFound);
-				thisBackupPath = MakeReverse(thisBackupPath);
-				thisBackupPath += _T("BAK.xml"); // period is already present
-			}
-			else
-			{
-				// no inner extension, so reverse back to normal order and add .BAK.xml
-				thisBackupPath = MakeReverse(thisBackupPath);
-				thisBackupPath += _T(".BAK.xml");
-			}
+			// found outermost (reversed) .BAK -- nothing to do except reverse again
+			thisBackupPath = MakeReverse(thisBackupPath);
 		}
 		else
 		{
-			// no extension! Therefore just take the name and add .BAK.xml
+			// no extension! Therefore just take the name and add .BAK
 			thisBackupPath = MakeReverse(thisBackupPath);
-			thisBackupPath += _T(".BAK.xml");
+			thisBackupPath += _T(".BAK");
 		}
 		gpApp->m_curKBBackupPath = thisBackupPath;
 	}
@@ -18987,35 +18973,20 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 	// Glossing KB Backup Path
 	if (bGlossingKBBackupPath)
 	{
-        // this has a double extension, which is always to be .BAK.xml
+        // this has an extension, which is always to be .BAK
 		wxString thisGlossingBackupPath = gpApp->m_curGlossingKBBackupPath;
 		thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath); // reversed
-		int nFound = thisGlossingBackupPath.Find(_T('.'));
+		int nFound = thisGlossingBackupPath.Find(_T("KAB."));
 		if (nFound != wxNOT_FOUND)
 		{
-			// found outermost (reversed) extension -- remove it and the period
-			thisGlossingBackupPath = thisGlossingBackupPath.Mid(nFound + 1);
-			// look for another (reversed) extension
-			nFound = thisGlossingBackupPath.Find(_T('.'));
-			if (nFound != wxNOT_FOUND)
-			{
-				// found the inner one, so remove this too, but leave its period
-				thisGlossingBackupPath = thisGlossingBackupPath.Mid(nFound);
-				thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
-				thisGlossingBackupPath += _T("BAK.xml"); // period is already present
-			}
-			else
-			{
-				// no inner extension, so reverse back to normal order and add .BAK.xml
-				thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
-				thisGlossingBackupPath += _T(".BAK.xml");
-			}
+			// found outermost (reversed) .BAK -- nothing to do but reverse again
+			thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
 		}
 		else
 		{
-			// no extension! Therefore just take the name and add .BAK.xml
+			// no extension! Therefore just take the name and add .BAK
 			thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
-			thisGlossingBackupPath += _T(".BAK.xml");
+			thisGlossingBackupPath += _T(".BAK");
 		}
 		gpApp->m_curGlossingKBBackupPath = thisGlossingBackupPath;
 	}
@@ -19087,7 +19058,7 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 ///                                    of some other filename string (eg. a renamed one)
 /// \remarks
 /// Called from: the Doc's BackupDocument() and DoFileSave().
-/// Insures that the m_curOutputBackupFilename ends with ".BAK.xml". The wx version does
+/// Insures that the m_curOutputBackupFilename ends with ".BAK". The wx version does
 /// not handle the legacy .adt binary file types/extensions. 
 /// BEW 30Apr10, removed second param (the m_bSaveAsXML flag)
 ///////////////////////////////////////////////////////////////////////////////
@@ -19120,10 +19091,9 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 
 	// saving will be done in XML format, so backup filenames must comply with that...
 
-	// add the required extensions; the complying backup filename is always of form:  
-	// *.BAK.xml 
+	// add the required extensions; the complying backup filename is always of form:  *.BAK 
 	thisBackupFilename += _T(".BAK");
-	gpApp->m_curOutputBackupFilename = thisBackupFilename + _T(".xml");
+	//gpApp->m_curOutputBackupFilename = thisBackupFilename + _T(".xml"); BEW removed 3Mar11
 }
 
 ///////////////////////////////////////////////////////////////////////////////

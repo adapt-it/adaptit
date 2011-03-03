@@ -1761,7 +1761,7 @@ public:
 	wxString m_curOutputPath;
 
     /// The m_curOutputBackupFilename member holds the name of a file currently functioning
-    /// as a backup file. The name of the backup file is of the form *.BAK.xml for the wx
+    /// as a backup file. The name of the backup file is of the form *.BAK for the wx
     /// version which only uses the xml files and not binary files.
 	wxString m_curOutputBackupFilename; // BEW added 15Aug05 to get a consistent file 
 										// and path naming protocol
@@ -2391,27 +2391,6 @@ public:
 	wxString	m_curGlossingKBBackupPath;
 	wxString	m_curGlossingKBPath;	// same path as m_curKBPath except for 
 				// filename difference
-
-    // BEW added 13Aug05, alternative names for the KB files and paths -- required because
-    // the KBs might be binary (extensions .KB or .BAK) or XML (extensions .xml or
-    // BAK.xml), and the project config file's saved value for the m_bSaveAsXML flag might
-    // not be in agreement with the content of the KB files on disk (eg. the user could
-    // change the flag value in the interface but then reject saving document and kb with
-    // the new value); so we need to preserve the alternative filenames and paths, so that
-    // if the one is not present when expected, we can check for the other and load it
-    // instead.
-    // whm comment: Since wxWidgets version does not read MFC binary file (CArchive) forms,
-	// the following may not need to be used. 
-    // BEW 25Jul09, they are still needed because they enable the WX versions to read
-    // binary doc and kb files from the legacy MFC version even though we only save in XML,
-    // any such files have their filename extension converted to .xml in the WX versions,
-    // so keep these as they are used in these processes
-	wxString	m_altKBName;
-	wxString	m_altKBPath;
-	wxString	m_altKBBackupPath;
-	wxString	m_altGlossingKBName;
-	wxString	m_altGlossingKBPath;
-	wxString	m_altGlossingKBBackupPath;
 
 	wxArrayString m_acceptedFilesList;	// for use in OnFileRestoreKB function and 
                 // elsewhere, such as consistency check, retranslation report, transforming

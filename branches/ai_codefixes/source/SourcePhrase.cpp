@@ -761,8 +761,13 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 // for m_inlineNonbindingMarkers use iNM
 // for m_inlineNonbindingEndMarkers use iNEM
 // for m_follOuterPunct use fop
+// BEW 3Mar11, changed at Bob Eaton's request from using \t (tab char) for indenting the
+// xml elements, to using "  " (two spaces) for each tabUnit indent - to comply with 3-way
+// merge in Chorus, to prevent the latter from sending the whole document file as the
+// change set; same change made in KB.cpp for the indents for the KB's xml output)
 CBString CSourcePhrase::MakeXML(int nTabLevel)
 {
+	CBString tabUnit = "  "; // BEW added 3Mar11
 	// get the doc version number to be used for this save
 	int docVersion = gpApp->GetDocument()->GetCurrentDocVersion();
 
@@ -790,7 +795,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 
 		bstr += "<S s=\"";
@@ -826,7 +831,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		btemp = MakeFlags(this);
 		bstr += "f=\"";
@@ -857,7 +862,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_precPunct.IsEmpty())
 			{
@@ -945,7 +950,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_markers.IsEmpty())
 			{
@@ -1020,7 +1025,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_freeTrans.IsEmpty())
 			{
@@ -1040,7 +1045,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
-						bstr += "\t"; // tab the start of the line
+						bstr += tabUnit; // tab the start of the line
 					}
 					bStarted = FALSE; // reset, so logic will work for next line
 				}
@@ -1060,7 +1065,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
-						bstr += "\t"; // tab the start of the line
+						bstr += tabUnit; // tab the start of the line
 					}
 					bStarted = FALSE; // reset, so logic will work for any next lines
 				}
@@ -1080,7 +1085,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
-						bstr += "\t"; // tab the start of the line
+						bstr += tabUnit; // tab the start of the line
 					}
 					bStarted = FALSE; // reset, so logic will work for any next lines
 				}
@@ -1109,7 +1114,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1129,7 +1134,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1164,7 +1169,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		bstr += "</S>\r\n";
 
@@ -1176,7 +1181,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 
 		bstr += "<S s=\"";
@@ -1212,7 +1217,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		btemp = MakeFlags(this);
 		bstr += "f=\"";
@@ -1243,7 +1248,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_precPunct.IsEmpty())
 			{
@@ -1311,7 +1316,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			bstr += "m=\"";
 			btemp = gpApp->Convert16to8(m_markers);
@@ -1336,7 +1341,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1356,7 +1361,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1391,7 +1396,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		bstr += "</S>\r\n";
 
@@ -1406,7 +1411,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 
 		bstr += "<S s=\"";
@@ -1442,7 +1447,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		btemp = MakeFlags(this);
 		bstr += "f=\"";
@@ -1473,7 +1478,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_precPunct.IsEmpty())
 			{
@@ -1544,7 +1549,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_markers.IsEmpty())
 			{
@@ -1576,7 +1581,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_freeTrans.IsEmpty())
 			{
@@ -1596,7 +1601,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
-						bstr += "\t"; // tab the start of the line
+						bstr += tabUnit; // tab the start of the line
 					}
 					bStarted = FALSE; // reset, so logic will work for next line
 				}
@@ -1616,7 +1621,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
-						bstr += "\t"; // tab the start of the line
+						bstr += tabUnit; // tab the start of the line
 					}
 					bStarted = FALSE; // reset, so logic will work for any next lines
 				}
@@ -1636,7 +1641,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
-						bstr += "\t"; // tab the start of the line
+						bstr += tabUnit; // tab the start of the line
 					}
 					bStarted = FALSE; // reset, so logic will work for any next lines
 				}
@@ -1665,7 +1670,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1685,7 +1690,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1719,7 +1724,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		bstr += "</S>\r\n";
 
@@ -1732,7 +1737,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 
 		bstr += "<S s=\"";
@@ -1768,7 +1773,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		btemp = MakeFlags(this);
 		bstr += "f=\"";
@@ -1799,7 +1804,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bool bStarted = FALSE;
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			if (!m_precPunct.IsEmpty())
 			{
@@ -1867,7 +1872,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			bstr += "m=\"";
 			btemp = m_markers;
@@ -1892,7 +1897,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1912,7 +1917,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 			for (i = 0; i < nTabLevel; i++)
 			{
-				bstr += "\t"; // tab the start of the line
+				bstr += tabUnit; // tab the start of the line
 			}
 			for (i = 0; i < nCount; i++)
 			{
@@ -1946,7 +1951,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
 		bstr += "</S>\r\n";
 

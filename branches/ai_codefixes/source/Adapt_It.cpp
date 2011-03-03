@@ -17364,6 +17364,7 @@ bool CAdapt_ItApp::SetupDirectories()
 /// and the path and file names for the glossing KB and its backup.
 /// BEW 1Aug09, added a call of this function to view's OnCreate() function to remove a
 /// bug in which the File / New command was erasing the project's KB file.
+/// BEW changed 3Mar11 at Bob Eaton's request, .BAK.xml should be just .BAK
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupKBPathsEtc()
 {
@@ -17371,12 +17372,12 @@ void CAdapt_ItApp::SetupKBPathsEtc()
 	// only XML input &  output
 	m_curKBName = m_curProjectName + _T(".xml");
 	m_curKBPath = m_curProjectPath + PathSeparator + m_curKBName;
-	m_curKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK") + _T(".xml");
+	m_curKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK");
 
 	// now the same stuff for the glossing KB
 	saveName = m_curGlossingKBName;
 	m_curGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".xml");
-	m_curGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK") + _T(".xml");
+	m_curGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -18529,7 +18530,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 			int nFound = str.Find(_T(".BAK"));
 			if ((strEnd == strExt || strEndLower == strExt) && nFound == -1) 
 				pList->Add(str); // add filename to the list, if it's extension is ours,
-								 // but exclude backup document files with ".BAK.xml"
+								 // but exclude backup document files with ".BAK"
 			bWorking = finder.GetNext(&str);
 		}
 	}
@@ -18810,7 +18811,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	f.Flush();
 	//} // end of CWaitDlg block
 
-    // if backing up is desired, we rename the newly saved copy as a *.BAK.xml, then resave
+    // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
     // the glossing knowledge base to the old name again
 	if (bAutoBackup)
 	{
@@ -18889,7 +18890,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	f.Flush();
 	//} // end of CWaitDlg block
 	
-    // if backing up is desired, we rename the newly saved copy as a *.BAK.xml, then resave
+    // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
     // the knowledge base to the old name again
 	if (bAutoBackup)
 	{
@@ -19821,8 +19822,8 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	{
 		if(::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
-            // attempt to rename the glossing backup file to the same name without .BAK
-            // inner extension
+            // attempt to rename the glossing backup file to the same name, .BAK becomes .xml
+            // extension
 			if (!::wxRenameFile(m_curGlossingKBBackupPath,m_curGlossingKBPath))
 			{
 				wxString message;
@@ -19862,8 +19863,8 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	{
 		if(::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
 		{
-			// attempt to rename the backup file to the same name without .BAK inner extension
-			if (!::wxRenameFile(m_curKBBackupPath,m_curKBPath))
+			// attempt to rename the backup file to the same name, .BAK becomes .xml extension
+			if (!::wxRenameFile(m_curKBBackupPath, m_curKBPath))
 			{
 				wxString message;
 				message = message.Format(_(
@@ -20766,7 +20767,7 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 
     // enumerate the document files in the Adaptations folder or the current book folder;
     // and note that internally GetPossibleAdaptionDocuments excludes any files with names
-    // of the form *.BAK.xml (these are backup XML document files, and for each there will
+    // of the form *.BAK (these are backup XML document files, and for each there will
     // be present an *.xml file which has identical content -- it is the latter we
     // enumerate) and also note the result could be an empty m_acceptedFilesList, but have
     // the caller of EnumerateDocFiles check it for no entries in the list
@@ -20833,7 +20834,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 	}
 
     // enumerate the document files in the folder ( excludes any files with names
-    // of the form *.BAK.xml )
+    // of the form *.BAK )
 	GetPossibleAdaptionDocuments(&docNamesList, folderPath);
 
 	// restore the working directory
@@ -20866,7 +20867,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 /// either to add more loadable files, or even some not loadable.
 /// BEW 15Aug10, removed call of EnumerateDocFiles_ParametizedStore() because the latter
 /// internally calls EnumerateDocFiles() and that only enumerates *.xml files which are not
-/// *.BAK.xml files, which is of no help when we want to enumerate what typically are plain
+/// *.BAK files, which is of no help when we want to enumerate what typically are plain
 /// text files. The enumeration is unsorted in the returned array; we do any required
 /// sorting at the point in the application where we call a different function,
 /// RemoveNameDuplicatesFromArray(), defined in helpers.cpp, which has a bool bSorted
@@ -28847,7 +28848,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 	// and a few that don't match - based on the current encoding of Adapt It's source 
 	// font.
 
-	aStr = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n";
+	aStr = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n";
 #else
 
 	

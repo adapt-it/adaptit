@@ -704,7 +704,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 					return FALSE;
 				}
 
-				// now enumerate the files in the target folder (finds *.adt and *.xmx files, but excludes *.BAK.xml ones)
+				// now enumerate the files in the target folder (finds *.adt and *.xmx files, but excludes *.BAK ones)
 				bOK = gpApp->EnumerateDocFiles(pDoc, strFolderPath, TRUE); // TRUE == suppress Which Files dialog
 				if (!bOK)
 				{
