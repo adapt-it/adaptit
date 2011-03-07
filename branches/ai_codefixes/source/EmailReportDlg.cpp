@@ -375,7 +375,7 @@ size_t curl_send_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 	totalBytesSent += size * nmemb;
 	sizeStr << size * nmemb;
 	wxString msg;
-	msg = msg.Format(_T("In curl send callback: sending %s bytes."),sizeStr);
+	msg = msg.Format(_T("In curl send callback: sending %s bytes."),sizeStr.c_str());
 	wxLogDebug(msg);
     return size * nmemb; // Return amount processed
 }
@@ -513,52 +513,60 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 
 		curl_global_init(CURL_GLOBAL_ALL);
 
+		CBString tempStr;
+
 		// Fill in the sender's name field
 		// Note: sendername is used in feedback.php on the adapt-it.org server to receive the senderName POST
+		tempStr = senderName.ToUTF8();
 		curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "sendername",
-					CURLFORM_COPYCONTENTS, senderName.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 
 		// Fill in the comments field
 		// Note: comments is used in feedback.php on the adapt-it.org server to receive the emailBody POST
+		tempStr = emailBody.ToUTF8();
 		curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "emailbody",
-					CURLFORM_COPYCONTENTS, emailBody.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 
 		// Fill in the emailaddr field (email address of sender)
 		// Note: senderemailaddr is used in feedback.php on the adapt-it.org server to receive the senderEmailAddr POST
+		tempStr = senderEmailAddr.ToUTF8();
 		curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "senderemailaddr",
-					CURLFORM_COPYCONTENTS, senderEmailAddr.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 
 		// Fill in the emailsubject field (email subject field)
 		// Note: emailsubject is used in feedback.php on the adapt-it.org server to receive the emailSubject POST
+		tempStr = emailSubject.ToUTF8();
 		curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "emailsubject",
-					CURLFORM_COPYCONTENTS, emailSubject.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 
 		// Fill in the reporttype field (the type of email report, i.e., "Problem" or "Feedback")
 		// Note: reporttype is used in feedback.php on the adapt-it.org server to receive the rptType POST
+		tempStr = rptType.ToUTF8();
 		curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "reporttype",
-					CURLFORM_COPYCONTENTS, rptType.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 
 		// Fill in the sysinfo field (containing system information, version numbers etc.)
 		// Note: sysinfo is used in feedback.php on the adapt-it.org server to receive the systemInfo POST
+		tempStr = systemInfo.ToUTF8();
 		curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "sysinfo",
-					CURLFORM_COPYCONTENTS, systemInfo.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 
 		wxString attachLogNotification;
@@ -569,19 +577,21 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// "Note: No User Log Attached)
 			// Note: attachnote is used in feedback.php on the adapt-it.org server to receive the 
 			// attachNotification POST
+			tempStr = attachLogNotification.ToUTF8();
 			curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "attachlog",
-					CURLFORM_COPYCONTENTS, attachLogNotification.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 			// Fill in the userlog field (containing the contents of the user log file)
 			// Note: userlog is used in feedback.php on the adapt-it.org server to receive the systemInfo POST
+			tempStr = userLogInBase64.ToUTF8();
 			curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "userlog",
 					// TODO: after debugging use the base64 form below [removing the base64_encode() php
 					// function processing in feedback.php file]
-					CURLFORM_COPYCONTENTS, userLogInBase64.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 			
 		}
@@ -592,10 +602,11 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// "Note: No User Log Attached)
 			// Note: attachnote is used in feedback.php on the adapt-it.org server to receive the 
 			// attachNotification POST
+			tempStr = attachLogNotification.ToUTF8();
 			curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "attachlog",
-					CURLFORM_COPYCONTENTS, attachLogNotification.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 		}
 
@@ -603,26 +614,29 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		if (bPackedDocToBeAttached)
 		{
 			attachPackedDocNotification = _T("Packed Document Is Attached:");
+			tempStr = attachPackedDocNotification.ToUTF8();
 			curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "attachdoc",
-					CURLFORM_COPYCONTENTS, attachPackedDocNotification.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 			// Fill in the userlog field (containing the contents of the user log file)
 			// Note: userlog is used in feedback.php on the adapt-it.org server to receive the systemInfo POST
+			tempStr = packedDocInBase64.ToUTF8();
 			curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "packdoc",
-					CURLFORM_COPYCONTENTS, packedDocInBase64.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 		}
 		else
 		{
 			attachPackedDocNotification = _T("Packed Document NOT Attached");
+			tempStr = attachPackedDocNotification.ToUTF8();
 			curl_formadd(&formpost,
 					&lastptr,
 					CURLFORM_COPYNAME, "attachdoc",
-					CURLFORM_COPYCONTENTS, attachPackedDocNotification.ToUTF8(),
+					CURLFORM_COPYCONTENTS, tempStr.GetBuffer(),
 					CURLFORM_END);
 		}
 
