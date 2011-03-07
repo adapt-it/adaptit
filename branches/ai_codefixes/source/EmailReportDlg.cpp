@@ -684,7 +684,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// of if it can also be used this way for Linux and the Mac
 			wxString ca_bundle_path;
 			ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
-			curl_easy_setopt(curl, CURLOPT_CAINFO, ca_bundle_path.ToUTF8()); // tell curl where the curl-ca-bundle.crt file is
+			wxLogDebug(_T("The CA bundle certificate path is: %s"),ca_bundle_path.c_str());
+			curl_easy_setopt(curl, CURLOPT_CAINFO, ca_bundle_path.c_str()); // tell curl where the curl-ca-bundle.crt file is
 
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L); // 1 enables peer verification (SSL) - looks for curl-ca-bundle.crt at path above
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L); // 1 enables host verification (SSL) - verifies the server at adapt-it.org
@@ -700,13 +701,13 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			{
 				bEmailSendSuccessful = FALSE;
 				errorStr = wxString::FromUTF8(error);
-				output = output.Format(_T("Curl result: %d error = %s\n"), res, errorStr);
+				output = output.Format(_T("Curl result: %d error = %s\n"), res, errorStr.c_str());
 			}
 			else
 			{
 				bEmailSendSuccessful = TRUE;
 				errorStr = _T("Success!");
-				output = output.Format(_T("Curl result: %d operation = %s\n"), res, errorStr);
+				output = output.Format(_T("Curl result: %d operation = %s\n"), res, errorStr.c_str());
 			}
 			wxLogDebug(output);
 
@@ -735,7 +736,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString msg1,msg2;
 		msg1 = _("Your email could not be sent at this time.\nAdapt It will save a copy of your report in your work folder (for sending at a later time).");
-		msg2 = msg2.Format(_("Error %d: %s"),curl_result,errorStr);
+		msg2 = msg2.Format(_("Error %d: %s"),curl_result,errorStr.c_str());
 		msg2 = _T("\n\n") + msg2;
 		msg1 = msg1 + msg2;
 		wxMessageBox(msg1,_T(""),wxICON_INFORMATION);
