@@ -683,7 +683,14 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// TODO: determine if we need to conditional compile the next line for the Windows only port
 			// of if it can also be used this way for Linux and the Mac
 			wxString ca_bundle_path;
-			ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
+#ifdef __WXMSW__
+//			ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
+#endif
+#ifdef __WXMAC__
+			ca_bundle_path = pApp->GetDefaultPathForXMLControlFiles();
+			ca_bundle_path += pApp->PathSeparator;
+			ca_bundle_path += _T("curl-ca-bundle.crt");
+#endif
 			wxLogDebug(_T("The CA bundle certificate path is: %s"),ca_bundle_path.c_str());
 			curl_easy_setopt(curl, CURLOPT_CAINFO, ca_bundle_path.c_str()); // tell curl where the curl-ca-bundle.crt file is
 

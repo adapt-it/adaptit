@@ -17375,6 +17375,12 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 #endif
 		}
 	}
+#ifdef __WXMAC__
+	// GDLC Trying various techniques for Mac to avoid garbled displays if the doc is
+	// scrolled away from the start of the doc.
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+	GetLayout()->PlaceBox();
+#else
 	Invalidate();
 	canvas->ClearBackground(); // BEW added 23Feb11, because without it, if the layout
 		// direction is changed when scrolled away from the top, the screen is garbled
@@ -17382,6 +17388,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		// sufficient
 	GetLayout()->Redraw(); // yep, works nicely
 	GetLayout()->PlaceBox();
+#endif
 }
 
 // use this function when user changes, or potentially changes, the RTL checkboxes in

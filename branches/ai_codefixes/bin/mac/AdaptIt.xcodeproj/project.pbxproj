@@ -49,6 +49,7 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
+		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
 		C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */; };
 		C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */; };
@@ -204,6 +205,8 @@
 		C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AdminMoveOrCopy.cpp; path = ../../source/AdminMoveOrCopy.cpp; sourceTree = SOURCE_ROOT; };
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
+		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
+		C8DE45661323679C0030EC9B /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = ../../source/base64.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_Resources.h; path = ../../source/Adapt_It_Resources.h; sourceTree = SOURCE_ROOT; };
 		C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It_wdr.cpp; path = ../../source/Adapt_It_wdr.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_wdr.h; path = ../../source/Adapt_It_wdr.h; sourceTree = SOURCE_ROOT; };
@@ -644,6 +647,8 @@
 		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				C8DE45651323679C0030EC9B /* base64.h */,
+				C8DE45661323679C0030EC9B /* base64.cpp */,
 				C8F830BF0F3FA4AA007579B8 /* System.framework */,
 				C8F830BB0F3FA47D007579B8 /* OpenGL.framework */,
 				C8F830B70F3FA455007579B8 /* IOKit.framework */,
@@ -878,6 +883,7 @@
 				7DCCD18A127FA19000A42526 /* CorGuess.cpp in Sources */,
 				7DCCD18B127FA19000A42526 /* GuesserSettingsDlg.cpp in Sources */,
 				7DCCD1A0128CF1CF00A42526 /* EmailReportDlg.cpp in Sources */,
+				C8DE45671323679C0030EC9B /* base64.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -919,6 +925,7 @@
 					"-liconv",
 					"-lz",
 					"-lwx_mac_static",
+					"-lcurl",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
@@ -966,6 +973,7 @@
 					"-liconv",
 					"-lz",
 					"-lwx_mac_static",
+					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
 				UNSTRIPPED_PRODUCT = NO;
