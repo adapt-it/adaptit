@@ -20355,14 +20355,18 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	else
 		pKB = m_pKB;
 
-	// recover as many m_bAlwaysAsk flag = TRUE instances as possible
-	// from the corrupted KB 
+	// Only offer option when profile settings = 0 (None) KLB 3/11/2011
 	bool bRescueFlags = FALSE;
-	value = wxMessageBox(_(
-"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
-	_T("Restore Knowledge Base..."), wxYES_NO);
-	if (value == wxYES)
-		bRescueFlags = TRUE;
+	if (m_nWorkflowProfile == 0)
+	{
+		// recover as many m_bAlwaysAsk flag = TRUE instances as possible
+		// from the corrupted KB 
+		value = wxMessageBox(_(
+		"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
+		_T("Restore Knowledge Base..."), wxYES_NO);
+		if (value == wxYES)
+			bRescueFlags = TRUE;
+	}
 	KPlusCList keys;
 	if (bRescueFlags)
 	{
@@ -20427,7 +20431,16 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     // suppress the dialog so that all doc files in the book folders get processed
     // whm note: EnumerateDocFiles() has the side effect of changing the current work
     // directory to the passed in m_curAdaptionsPath.
-	bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath);
+	//
+	// Dialog should be suppressed for profile == 1 : klb 3/2011
+	if (m_nWorkflowProfile == 1)
+	{
+		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath, TRUE);
+	}
+	else
+	{
+		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath);
+	}
 	nCount = pList->GetCount(); // the count of doc files (could be zero if all docs are in
 								// Bible book folders only)
 	nDocCount += nCount;
