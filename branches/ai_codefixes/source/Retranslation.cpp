@@ -974,6 +974,7 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 	}
 }
 
+/* BEW deprecatedd 9Mar11
 // pList is a sublist of CSourcePhrase instances, from a reparse of a source text string
 // (typically from calling FromMergerMakeSstr() which re-generates the source of the
 // merger, including all markers and (if we request it, and we would have) all filtered
@@ -1109,8 +1110,9 @@ void CRetranslation::ConvertSublistToARetranslation(SPList* pList, wxString& tgt
 		pSrcPhrase->m_adaption = arrTgtNoPuncts.Item(i);
 		pos = pos->GetNext();
 		i++;
-	} while (pos != NULL);
+	} while (pos != NULL && i < numElements);
 }
+*/
 
 void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 {

@@ -151,11 +151,32 @@ CSourcePhrase::CSourcePhrase()
 	wxASSERT(m_pMedialMarkers != NULL);
 	m_pMedialPuncts = new wxArrayString;
 	wxASSERT(m_pMedialPuncts != NULL);
+//#ifdef __WXDEBUG__
+// Leave this stuff here, commented out -- see comment in destructor for why
+//	wxLogDebug(_T("Creator: address = %x  first array = %x  second array = %x  SPList = %x"),
+//		(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
+//		(unsigned int)this->m_pSavedWords);
+//#endif
 }
 
 CSourcePhrase::~CSourcePhrase()
 {
-
+//#ifdef __WXDEBUG__
+	// Don't remove this, just comment it out when not wanted, it is potentially valuable
+	// because if anyone has a memory lapse and codes "delete pSrcPhrase;" somewhere,
+	// instead of the correct "DeleteSingleSrcPhrase(pSrcPhrase);", then the former will
+	// lead to the two wxArrayString instances on the heap (each 16 bytes) and the one
+	// SPList on the heap (28 bytes) being leaked. This can be detected by this wxLogDebug
+	// call because if the Delete...() function mentioned above is used, the first array,
+	// second array, and SPList values will be written to the Output window each have a 0
+	// (zero) value; but if the values are non-zero, you can be sure there is a "delete
+	// pSrcPhrase;" line somewhere in the code - a breakpoint in this destructor will then
+	// enable you to find where in the code the error is. (Try generate the error with a
+	// short document, to save yourself a lot of tedious button pressing.)
+	//wxLogDebug(_T("Destructor: address = %x  first array = %x  second array = %x  SPList = %x"),
+	//	(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
+	//	(unsigned int)this->m_pSavedWords);
+//#endif
 }
 
 CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor

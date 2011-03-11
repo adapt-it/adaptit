@@ -11205,7 +11205,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		{
 			strFinal += _T(" ") + theWord;
 		}
-		delete pSrcPhrase;
+		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase);
 	} // end of while loop: while (ptr < pEnd)
 
 	*pStr = strFinal; // copy result to caller
@@ -11242,7 +11242,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			{
 				strFinal2 += _T(" ") + theWord2;
 			}
-			delete pSrcPhrase2;
+			pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase2);
 		} // end of while loop: while (ptr2 < pEnd2)
 		if (!strFinal2.IsEmpty())
 		{
@@ -26269,6 +26269,12 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		{
 			pCheckboxIsGlossing->SetValue(FALSE);
 		}
+	}
+
+	// is the document open? If not, return here
+	if (pApp->m_pSourcePhrases->IsEmpty())
+	{
+		return;
 	}
 
     // redraw the layout etc. (Must do it after the flag is toggled, otherwise

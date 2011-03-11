@@ -11067,7 +11067,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//}
 	// end test of GetUniqueIncrementedFileName
 	
-	m_nWorkflowProfile = 0; // default value is for "Novice" unless changed by the
+	m_nWorkflowProfile = 0; // default value is for "None" unless changed by the
 							// value stored in the basic and/or config files.
 
  	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
@@ -15136,19 +15136,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// **** test code fragments here ****
 	 
-	/*
-	int sizeofCStrip = sizeof(CStrip); // 48 bytes
+	/* last test: March 9, 2011
+	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes
 	int sizeofCCell = sizeof(CCell); // 28 bytes
-	int sizeofCSourcePhrase = sizeof(CSourcePhrase); // 96 bytes
+	int sizeofCSourcePhrase = sizeof(CSourcePhrase); // 136 bytes
 	int sizeofwxNode = sizeof(wxNode); // 24 bytes
 	int sizeofwxString = sizeof(wxString); // 4 bytes
 	int sizeofwxArrayInt = sizeof(wxArrayInt); // 12 bytes & its 16 int initial buffer is 4*16 = 64
 	int sizeofwxArrayPtrVoid = sizeof(wxArrayPtrVoid); // 12 bytes
-	int sizeofCLayout = sizeof(CLayout); // 252 bytes
-	int sizeofCKB = sizeof(CKB); // 80 bytes (tested 29May10)
-	int sizeofCRefString = sizeof(CRefString); // 20 bytes
-	int sizeofCTargetUnit = sizeof(CTargetUnit); // 24 bytes
+	int sizeofCLayout = sizeof(CLayout); // 272 bytes
+	int sizeofCKB = sizeof(CKB); // 72 bytes (tested 9Mar11)
+	int sizeofCRefString = sizeof(CRefString); // 28 bytes
+	int sizeofCTargetUnit = sizeof(CTargetUnit); // 16 bytes
+	int sizeofSPList = sizeof(SPList); // 28 bytes
+	int sizeofwxArrayString = sizeof(wxArrayString); // 16 bytes
 	*/
 
 	//int ii = 1; ii = ii;
@@ -17411,83 +17413,81 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 		CAdapt_ItDoc* pDoc = GetDocument();
 		CAdapt_ItView* pView = gpApp->GetView();
 
-        // if the source punctuation was empty and remains so, then don't retokenize or
-        // likewise for target punctuation
-		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && m_punctuation[0].IsEmpty()) ||
-			!(punctPgCommon->m_punctuationBeforeEdit[1].IsEmpty() && m_punctuation[1].IsEmpty()))
+        // if the source punctuation was empty and remains so, then don't retokenize (we check
+        // just the source puncts because it is these that get stripped out in parsing)
+		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && m_punctuation[0].IsEmpty()))
 		{
-			if (punctPgCommon->m_punctuationBeforeEdit[0] != m_punctuation[0] || 
-				punctPgCommon->m_punctuationBeforeEdit[1] != m_punctuation[1])
+			// the source or target punctuation list has changed, so do the retokenization
+			int nOldCount = m_pSourcePhrases->GetCount();
+			int difference = 0;
+
+            // BEW 4Feb11, legacy comment; it is now deprecated - see below
+            // make sure we don't lose the active sourcephrase's contents from the KB
+            // (if the sourcephrase's m_bHasKBEntry is TRUE, then no store will be done
+            // - which is what we'd want because that means it has already been done;
+            // but if FALSE, then the store gets done (which again is what we want,
+            // because the FALSE value means that the active location's KB entry has
+            // already been removed (or its count decremented) and so a re-store is
+            // appropriate now -- because the box location may end up elsewhere
+            // depending on the results of the rebuild process.)
+			// BEW 4Feb11 DO NOT CALL StoreBeforeProceeding() when the punctuation set
+			// or sets is/ are in the process of being changed. If it is called, it
+			// cannot be guaranteed that the target text of the entry being put in the
+			// KB will be correct. See the descriptive header before the definition of
+			// the StoreBeforeProceeding() function for more details why this is
+			// dangerous
+			//pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase()); <<-- it's better
+			//to do no store than to do a possibly bogus one, the user won't see a
+			//bogus KB entry storage, but he will notice a target text in the layout
+			//which may need it's punctuation or word spelling altered - so we'll go
+			//for the safer option. Since the punctuation settings are already
+			//altered, the store if done now, may not have right spelling for tgt text
+
+			wxString strSavePhraseBox = m_targetPhrase;
+            // now do the reparse - the functions which effect the reconstitution of
+            // the doc when punctuation was changed, or when filtering settings were
+            // changed, or both, will progressively update the view's m_nActiveSequNum
+            // value as necessary so that the stored phrase box contents and the final
+            // active location remain in synch.
+			int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
+														FALSE,	// bFilterChange FALSE = no filter changes here
+														FALSE);	// bSfmSetChange FALSE = no sfm set change here
+
+			// set up some safe indices, since the counts could be quite different 
+			// than before
+			difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
+
+            // for refactored layout code, the following suffices because
+			// m_nActiveSequNum remains unchanged within the document; we defer the
+			// RecalcLayout() call to later though
+			CSourcePhrase* pSrcPhrase = NULL;
+			m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
+			pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
+			wxASSERT(pSrcPhrase);
+
+			// remove the KB or GlossingKB entry for this location, depending on the mode
+			// and make the box contents resaveable
+			if (gbIsGlossing)
 			{
-				// the source or target punctuation list has changed, so do the retokenization
-				int nOldCount = m_pSourcePhrases->GetCount();
-				int difference = 0;
-
-                // BEW 4Feb11, legacy comment; it is now deprecated - see below
-                // make sure we don't lose the active sourcephrase's contents from the KB
-                // (if the sourcephrase's m_bHasKBEntry is TRUE, then no store will be done
-                // - which is what we'd want because that means it has already been done;
-                // but if FALSE, then the store gets done (which again is what we want,
-                // because the FALSE value means that the active location's KB entry has
-                // already been removed (or its count decremented) and so a re-store is
-                // appropriate now -- because the box location may end up elsewhere
-                // depending on the results of the rebuild process.)
-				// BEW 4Feb11 DO NOT CALL StoreBeforeProceeding() when the punctuation set
-				// or sets is/ are in the process of being changed. If it is called, it
-				// cannot be guaranteed that the target text of the entry being put in the
-				// KB will be correct. See the descriptive header before the definition of
-				// the StoreBeforeProceeding() function for more details why this is
-				// dangerous
-				//pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase()); <<-- it's better
-				//to do no store than to do a possibly bogus one, the user won't see a
-				//bogus KB entry storage, but he will notice a target text in the layout
-				//which may need it's punctuation or word spelling altered - so we'll go
-				//for the safer option. Since the punctuation settings are already
-				//altered, the store if done now, may not have right spelling for tgt text
-
-				wxString strSavePhraseBox = m_targetPhrase;
-                // now do the reparse - the functions which effect the reconstitution of
-                // the doc when punctuation was changed, or when filtering settings were
-                // changed, or both, will progressively update the view's m_nActiveSequNum
-                // value as necessary so that the stored phrase box contents and the final
-                // active location remain in synch.
-				int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
-															FALSE,	// bFilterChange FALSE = no filter changes here
-															FALSE);	// bSfmSetChange FALSE = no sfm set change here
-
-				// set up some safe indices, since the counts could be quite different 
-				// than before
-				difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
-
-                // for refactored layout code, the following suffices because
-				// m_nActiveSequNum remains unchanged within the document; we defer the
-				// RecalcLayout() call to later though
-				CSourcePhrase* pSrcPhrase = NULL;
-				m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
-				pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
-				wxASSERT(pSrcPhrase);
-
-				// remove the KB or GlossingKB entry for this location, depending on the mode
-				// and make the box contents resaveable
-				if (gbIsGlossing)
+				if (m_pGlossingKB != NULL)
 				{
-					if (m_pGlossingKB != NULL)
-					{
-						m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
-															useTargetPhraseForLookup);
-					}
+					m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+														useTargetPhraseForLookup);
 				}
-				else
-				{
-					if (m_pKB != NULL)
-					{
-						m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
-															useTargetPhraseForLookup);
-					}
-				}
-				m_pLayout->m_bPunctuationChanged = TRUE; // do full rebuild of the layout
-
 			}
+			else
+			{
+				if (m_pKB != NULL)
+				{
+					m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+														useTargetPhraseForLookup);
+				}
+			}
+			// BEW changed 4Mar11, it needs to be set TRUE, if at all, in the OnOK()
+			// call of CPunctCorrespPage class, as that function is always called on
+			// exit of Preferences, and if the punctuation hasn't been changed,
+			// DoPunctuationChanges() should not then be called (doing it here was too late)
+			//m_pLayout->m_bPunctuationChanged = TRUE; // do full rebuild of the layout
 		}
 	}
 	return TRUE;

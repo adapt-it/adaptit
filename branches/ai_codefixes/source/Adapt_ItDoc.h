@@ -127,7 +127,7 @@ protected:
 									wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
 	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
 	int				ClearBuffer();
-	void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
+	//void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList); BEW deprecated 8Mar11
 	CBString		ConstructSettingsInfoAsXML(int nTabLevel); // BEW added 05Aug05 for XML doc output support
 	int				ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, wxString filterList,
 						wxString& wholeMkr, wxString& wholeShortMkr, wxString& endMkr, bool& bHasEndmarker,
@@ -162,8 +162,9 @@ protected:
 	void			RemoveVenturaOptionalHyphens(wxString*& pstr);
 	bool			ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList, 
 								SPList::Node* pos, CSourcePhrase*& pSrcPhrase, wxString& fixesStr);
-	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList, SPList::Node* pos, 
-								 CSourcePhrase*& pSrcPhrase, wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
+	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& WXUNUSED(pList),
+								SPList::Node* WXUNUSED(pos), CSourcePhrase*& pSrcPhrase, 
+								wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
 	bool			ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr);
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,
 							wxString newFilterMarkers, wxString& secondPassFilterStr, enum WhichPass pass);
