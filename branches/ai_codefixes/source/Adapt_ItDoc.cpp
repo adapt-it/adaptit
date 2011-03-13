@@ -17654,9 +17654,13 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
             // matches the count of the instances in pSrcPhrase->m_pSavedWords. So we can
 			// update the merger.
 			SPList::Node* posOwned = pOwnedList->GetFirst(); // i.e. from pSrcPhrase->m_pSavedWords list
-			SPList::Node* posResults = pResultList->GetFirst(); // i.e. from the tokenization above
-			while (posOwned != NULL && posResults != NULL)
+			SPList::Node* posNew = pResultList->GetFirst(); // i.e. from the tokenization above
+			while (posOwned != NULL && posNew != NULL)
 			{
+				CSourcePhrase* pOwnedSrcPhrase = posOwned->GetData();
+				posOwned = posOwned->GetNext();
+				CSourcePhrase* pNewSrcPhrase = posNew->GetData();
+				posNew = posNew->GetNext();
 
 
 
