@@ -1070,7 +1070,65 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize(); // gets the width and height of canvas in pixels
 
 	pDC->DestroyClippingRegion(); // ensure whole client area is drawable
-	
+
+    // BEW 14Mar11, Gerry Andersen reports that occasionally, for an unknown set of user
+    // actions, the display is updated in such a way that the right end of the phrase box
+    // overlaps the start of text in the next pile's adaptation. Noone has ever been able
+    // to reproduce this error on demand, in the last 6 years or so. The specific
+    // screenshot Gerry provided showed a problem I've not ever seen before, the start of
+    // the phrase box was overlapping the end of a merger which immediately preceed it (see
+    // email of 12 Jan 2011).So here I'm attempting a kludge which will hopefully prevent
+    // this, and the more typical occasional problem of the box overlapping what follows,
+    // from happening. The errors are different, & cause isn't clear for either, but it's
+    // clear what happens. The typical error is that the gap left in the layout for the box
+    // isn't wide enough to accomodate the box size. So here I'll test for a box size wider
+    // than the gap left for the box at the active pile, and if so, call whatever is
+    // required to force a wider gap - probably a RecalcLayout() call initiated from a
+    // FixBox() call in which the last param is 1 (ie. base new box size on width of text
+    // in it). Hopefully this test will never yield TRUE, but if it does, the code block
+    // should prevent the overlap Gerry and others have noted as happening occasionally.
+    // The error Gerry reported, is caused by the active pile's left offset being smaller
+    // than the previous pile's left offset plus its m_nWidth value. We can test for the
+    // latter too, and when that happens, force the recalc before the draw.
+	CPile* pActivePile = pApp->m_pActivePile;
+	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
+	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
+	{
+		//int activePileWidth = pActivePile->m_nWidth;
+		wxSize boxSize = pApp->m_pTargetBox->GetSize();
+		int boxWidth = (int)boxSize.y;
+		int layoutGapWidth = pApp->m_pLayout->m_curBoxWidth;
+		if (boxWidth > layoutGapWidth)
+		{
+			wxSize textExtent;
+			wxString currText = pApp->m_pTargetBox->GetValue();
+			pApp->m_pTargetBox->FixBox(this, currText,TRUE,textExtent,1);
+		}
+		else if (pPrevPile != NULL && !pApp->m_bRTL_Layout)
+		{
+			// test for left bound of the phrase box (ie. left x-coord of the active pile)
+			// having a value less than the sum of the left x-coord of the previous pile
+			// plus that piles m_nWidth value. When true, make the above adjustment here
+			// too. The error we are kludging around has only been reported for LTR
+			// layout, so we'll ignore the RTL layout possibility. (I was able to get
+			// control to enter here a couple of times... one time was when I made a three
+			// word phrase of stuff already adapted, but couldn't reproduce the entry.
+			// Another was after I'd made a 3 word merger at immed left of active location
+			// and the merger had a typo needing an extra char to be typed in the target
+			// text, active location was immed. after the phrase, I clicked on the phrase
+			// and added the extra char and then either Enter to advance or clicked at
+			// former active location - and control entered here... so possibly that kind
+			// of thing generates the layout error Gerry reported -- important thing,
+			// though, is that this kludge works and does not cause a noticeable delay)
+			if (pActivePile->Left() < pPrevPile->Left() + pPrevPile->GetWidth())
+			{
+				wxSize textExtent;
+				wxString currText = pApp->m_pTargetBox->GetValue();
+				pApp->m_pTargetBox->FixBox(this, currText,TRUE,textExtent,1);
+			}
+		}
+	}
+
 	// draw the layout
 	GetLayout()->Draw(pDC);
 

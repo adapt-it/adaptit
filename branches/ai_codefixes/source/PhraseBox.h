@@ -67,8 +67,6 @@ protected:
 	bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
 							CPile* pCurPile, bool bIsTransliterateMode = FALSE);
 							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
-	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
-							int nSelector);
 	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect); 
 							// BEW added 24Mar09, to simplify MoveToNextPile()
@@ -89,6 +87,8 @@ public:
 	void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
+	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
+							int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
 	bool LookAhead(CPile* pNewPile);
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);
 	bool OnePass(CAdapt_ItView *pView);

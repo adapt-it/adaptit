@@ -2599,12 +2599,13 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 }
 
 // FixBox() is the core function for supporting box expansion and contraction in various
-// situations, especially when typing into the box; this version detects when
-// adjustment to the layout is required, it calls CLayout::RecalcLayout() to tweak the
-// strips at the active location - that is with input parameter keep_strips_keep_piles. FixBox() is
+// situations, especially when typing into the box; this version detects when adjustment to
+// the layout is required, it calls CLayout::RecalcLayout() to tweak the strips at the
+// active location - that is with input parameter keep_strips_keep_piles. FixBox() is
 // currently called only in the following CPhraseBox functions: OnPhraseBoxChanged() with
 // selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
-// OnEditUndo() with selector 1 passed in.
+// OnEditUndo() with selector 1 passed in, and (BEW added 14Mar11) OnDraw() of
+// CAdapt_ItView.
 // refactored 26Mar09
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 22Jun10, no changes needed for support of kbVersion 2
@@ -2614,7 +2615,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
     // destroys the phrase box and recreates it with a different size, depending on the
     // nSelector value. 
     // nSelector == 0, increment the box width using its earlier value
-    // nSelector == 1, recalculation the box width using the input string extent 
+    // nSelector == 1, recalculate the box width using the input string extent 
     // nSelector == 2, backspace was typed, so box may be contracting 
     // This new version tries to be smarter for deleting text from the box, so that we
     // don't recalculate the layout for the whole screen on each press of the backspace key

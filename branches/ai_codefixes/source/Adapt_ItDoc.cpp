@@ -17548,10 +17548,10 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	// instance in the else block where ReconstituteOneAfterPunctuationChange() is called)
 	if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 	{
-#ifdef __WXDEBUG__
-		wxLogDebug(_T("  ReconsistuteAfterPunctuationChange: 17,734 For Merger:  pSrcPhrase sn = %d  m_srcPhrase = %s"),
-					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
-#endif
+//#ifdef __WXDEBUG__
+//		wxLogDebug(_T("  ReconsistuteAfterPunctuationChange: 17,734 For Merger:  pSrcPhrase sn = %d  m_srcPhrase = %s"),
+//					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+//#endif
 
 		// BEW 10Mar11, the protocol we use for mergers is the following:
 		// (a) we must change the punctuation & src & tgt language members not just of the
@@ -17566,22 +17566,27 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		// (c)We use FromMergerMakeSstr() to get a source text string, srcPhrase, with all
 		// the markers, unfilterings, punctuations etc in their proper place;
 		// (d) We use TokenizeTextString(), passing in pResultList to get returned newly
-		// created CSourcePhrase instances return, having passed in srcPhrase wxString;
+		// created CSourcePhrase instances returned, having passed in srcPhrase wxString;
 		// (e) provided, and only provided, the number of elements in pResultList equals
 		// the element count of pSrcPhrase->m_pSavedWords, we iterate in parallel over
 		// both the latter and the CSourcePhrase instances in pResultList, and copy over
 		// from the latter the changed text and punctuation strings, to the former; we
 		// also obtain from the pResultList's instances, each m_targetStr contents, and
 		// using the new punctuation settings (ie. making a RemovePunctuation() call with
-		// the appropriate punctuation string passed in)calculate a new m_adaption value
-		// for each instance, and we then transfer the m_targetStr and m_adaption values
-		// back to the same members on the equivalent CSourcePhrase instances within the
-		// pSrcPhrase->m_pSavedWords list.
+        // the appropriate punctuation string passed in)calculate a new m_adaption value
+        // for each instance, and we then transfer the m_adaption values back to the same
+        // members on the equivalent CSourcePhrase instances within the
+        // pSrcPhrase->m_pSavedWords list (the m_targetStr values won't have changed)
 		// (f) pSrcPhrase->m_pSavedWords's contents are now up-to-date for the changed
-		// punctuation settings, so we use those instances in a loop, to calculate the
-		// appropriate strings for the owning merged CSourcePhrase instance's m_srcPhrase,
-		// m_key, m_adaption, m_targetStr, m_precPunct, m_follPunct, m_follOuterPunct, and
-		// make those data transfers. 
+		// punctuation settings. The owning merged CSourcePhrase instance's m_srcPhrase
+		// member will not have changed (punctuation settings changes don't add or remove
+		// or alter the location of punctuation and word building characters in the source
+		// text, it just redefines where the boundaries are between "the words" and the
+		// punctuation characters at the start and end of them. So, to get the new value
+		// for the m_adaption member of the merger (ie. of pSrcPhrase), all we need do is
+		// pass pSrcPhrase->m_srcPhrase through RemovePunctuation() using the final
+		// parameter from_target_text so as to do it with the target language's new
+		// punctuation settings (which may, or may not, have changed). 
         // Once (f) is completed, the whole original merged pSrcPhrase has been
         // successfully updated to the new punctuation settings.
 		SPList* pOwnedList = pSrcPhrase->m_pSavedWords; // for convenience's sake
@@ -17655,6 +17660,10 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			// update the merger.
 			SPList::Node* posOwned = pOwnedList->GetFirst(); // i.e. from pSrcPhrase->m_pSavedWords list
 			SPList::Node* posNew = pResultList->GetFirst(); // i.e. from the tokenization above
+			bool bIsFirst = FALSE;
+			bool bIsLast = FALSE;
+			int count = 0;
+			pSrcPhrase->m_pMedialPuncts->Clear(); // we refill it below, in the loop
 			while (posOwned != NULL && posNew != NULL)
 			{
 				CSourcePhrase* pOwnedSrcPhrase = posOwned->GetData();
@@ -17662,270 +17671,106 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				CSourcePhrase* pNewSrcPhrase = posNew->GetData();
 				posNew = posNew->GetNext();
 
+				count++;
+				if (count == 1)
+					bIsFirst = TRUE;
+				if (count == nOriginalCount)
+					bIsLast = TRUE;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-			}
-
-
-
-// *** legacy code is below
-			SPList* pParsedList = new SPList; // for returning the results of parsing 
-											  // each single owned instance
-			bool bParseCountUnchanged = TRUE; // initialize, if we get a FALSE in the
-					// loop below, then we abandon the rebuild and break from the loop
-			while (posOwned != NULL)
-			{
-				SPList::Node* savePos = posOwned;
-				CSourcePhrase* pOwnedSrcPhrase = (CSourcePhrase*)posOwned->GetData();
-				posOwned = posOwned->GetNext();
-				pParsedList->Clear();
-
-				// get any m_targetStr content, if present, so as to put back an appropriate
-				// m_adaption (punctuation-less) string based on it
-				wxString singleTgtStr = pOwnedSrcPhrase->m_targetStr;
-
-				// reconstitute the single owned instance, using the new punctuation
-				// settings (TRUE is the value for the parameter: bool bIsOwned)
-				//bParseCountUnchanged = ReconstituteOneAfterPunctuationChange( pView,
-				//				pSrcPhrase->m_pSavedWords, savePos,pOwnedSrcPhrase,
-				//				fixesStr, pParsedList,TRUE);
-				bParseCountUnchanged = TRUE;
-
-                // which sourcephrase instance(s) we transfer to pOwnedList depends on the
-                // value of bParseCountUnchanged. If the latter is TRUE, then
-                // ReconstituteOneAfterPunctuationChange will have updated the passed in
-                // sourcephrase pOwnedSrcPhrase and so we'll abandon the contents of
-                // pParsedList since the function would not have updated that list's one,
-                // but if the return value was FALSE, the ones in pParsedList will have to
-                // be copied to pOwnedList because they were the ones which the function
-                // updated
-				if (bParseCountUnchanged)
+				// Transfer m_key, m_srcPhrase, from pResultsList's instances, the latter
+				// is built from the reconstituted source text, and so has no adaptation
+				// information. But for m_adaption and m_targetStr for the owned
+				// CSourcePhrase instances' list, we have to take the values in the
+				// instances within pSrcPhrase->m_pSavedWords - their m_targetStr values
+				// (for the values with punctuation), but for the m_adaption values, we'll
+				// have to pass the former through RemovePunctuation() using the
+				// use_target_punctuation enum value. The new values for m_precPunct,
+				// m_follPunct and m_follOuter punct are more tricky - we can transfer
+				// what is in each instance within pResultsList's instances, but only to
+				// each of the instances in pSrcPhrase->m_pSavedWords; and as we do that
+				// we have to use the bIsFirst and bIsLast flags to transfer only the
+				// m_precPunct value from the first, and m_follPunct and m_follOuterPunct
+				// from the last in pResultsList directly to the parent pSrcPhrase's
+				// m_precPunct and m_follPunct and m_follOuterPunct members - but for all
+				// others, they are "medial" to the merger, and so have to be added, in
+				// order encountered, to pSrcPhrase->m_pMedialPuncts wxArrayString.
+				// (m_pMedialMarkers values don't change when doing adjustments for a
+				// change in the punctuation settings, so we can leave what is in
+				// pSrcPhrase unchanged)
+				pOwnedSrcPhrase->m_srcPhrase = pNewSrcPhrase->m_srcPhrase; // this line should be redundant
+				pOwnedSrcPhrase->m_key = pNewSrcPhrase->m_key;
+				wxString anAdaption;
+				wxString aTargetStr = pOwnedSrcPhrase->m_targetStr; // m_targetStr shouldn't have changed
+				anAdaption = aTargetStr;
+				if (!anAdaption.IsEmpty())
 				{
-					// retain the now-modified original -- as long as the above function
-					// generates only a single CSourcePhrase instance, it updates the
-					// passed in one's members, and so we are good for using that - and
-					// this loop can continue. But a FALSE value for bParseCoundUnchanged
-					// must terminate this loop, etc - as explained above
-					pOwnedList->Append(pOwnedSrcPhrase);
-
-					// recreate the m_adaption member, using the changed punctuation settings
-					if (!singleTgtStr.IsEmpty())
-					{
-						pView->RemovePunctuation(this,&singleTgtStr,from_target_text);
-						pOwnedSrcPhrase->m_adaption = singleTgtStr;
-					}
-
-					// delete the unwanted newly created CSourcePhrase in pParsedList
-					DeleteListContentsOnly(pParsedList);
+					pView->RemovePunctuation(this, &anAdaption, from_target_text);
+					pOwnedSrcPhrase->m_adaption = anAdaption;
 				}
 				else
 				{
-					// The ReconstituteOne...() call returning FALSE means that more than
-					// one CSourcePhrase was produced by the internal tokenizing - so for
-					// robustness's sake, we won't use that stuff, but instead just retain
-					// the original unchanged, and alert the user to visual check later
-
-					// delete the unwanted newly parsed sourcephrases in pParsedList
-					DeleteListContentsOnly(pParsedList);
-
-					// also delete the contents of pOwnedList - we can't build from it
-					DeleteListContentsOnly(pOwnedList);
-
-					pView->UpdateSequNumbers(0); // make sure they are in sequence, 
-												 // so next call won't fail
-					if (!gbIsUnstructuredData)
-					{
-						// sequence numbers should be up-to-date
-						fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
-						wxString srcStr = _T(' ');
-						srcStr += pSrcPhrase->m_srcPhrase;
-						fixesStr += srcStr;
-						fixesStr += _T("   ");
-					}
-					// clear and delete the local pParsedList and pOwnedList
-					pParsedList->Clear();
-					delete pParsedList;
-					pOwnedList->Clear();
-					delete pOwnedList;
-
-					// the pResultList list was not used in this block, 
-					// so we can unilaterally clear it here
-					SPList::Node* aPos = pResultList->GetFirst();
-					CSourcePhrase* pASrcPhrase = NULL;
-					while (aPos != NULL)
-					{
-						pASrcPhrase = (CSourcePhrase*)aPos->GetData();
-						aPos = aPos->GetNext();
-						DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
-							// "don't delete its partner pile" as we'll let RecalcLayout()
-							// delete them all quickly en masse later
-					}
-					pResultList->Clear();
-					delete pResultList;
-
-					return FALSE; // exit the loop and return FALSE to the caller
+					pOwnedSrcPhrase->m_adaption.Empty();
 				}
-			} // end of loop for retokenizing the source text of each of the 
-			// owned sourcephrases of pSrcPhrase; if control continues to the code
-			// below, then we are ready to build the updated merger from the list of
-			// updated original CSourcePhrases in original merger, and which are now
-			// stored in pOwnedList
-
-            // pParsedList is no longer needed and any time its contents were retained the
-            // sourcephrase pointers were transferred to pOwnedList and so are managed by
-            // pOwnedList, and the blocks in the loop above will have already deleted any
-            // sourcephrase instances not to be retained, so finish cleaning up
-			pParsedList->Clear();
-			delete pParsedList;
-
-            // do the rebuild -- we need to use the Merge() function in the CSourcePhrase
-            // class, and pass it the new CSourcePhrase instances in pOwnedList - the
-            // iterative calls to Merge build the m_pSavedWords list (where the merging is
-            // done by all but the first of pOwnedList being merged to the first in that
-            // list so that m_pSavedWords is the list in that first CSourcePhrase instance
-            // in the pOwnedList list
-			SPList::Node* pos2 = pOwnedList->GetFirst();
-			wxASSERT(pos2);
-			// we merge the second and all succeeding to the first one
-			CSourcePhrase* pMergedSrcPhr = (CSourcePhrase*)pos2->GetData();
-			pos2 = pos2->GetNext();
-			while (pos2 != NULL)
-			{
-				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
-				pos2 = pos2->GetNext();
-				if (pSP->m_bNotInKB)
-					pSP->m_bNotInKB = FALSE;
-				pMergedSrcPhr->Merge(pView,pSP);
-			}
-
-            // we now have this situation: the original merged sourcephrase (pSrcPhrase) is
-            // due to be abandoned (ie. deleted) but we have rebuilt the sourcephrases in
-            // its m_pSavedWords list, and earlier stored these rebuilt ones in pOwnedList;
-            // the rebuilt ones are actually the same objects as are pointed at by the
-            // pointers in the pSrcPhrase->m_pSavedWords list, and so two lists' pointer
-            // elements are pointing at the one set of heap objects.
-            // 
-            // To get rid of pSrcPhrase we have to therefore first delete any owned
-            // CSourcePhrase instances in the pSrcPhrase->m_pSavedWords list which are NOT
-            // also in the pOwnedList (with our changed 9Mar11 protocol, there are none
-            // which are not also in the pOwnedList) which (due to the merge) are now all
-            // in the pMergedSrcPhr->m_pSavedWords list - and recall that the first in the
-            // latter list is built by the copy constructor (this deep copy becomes the
-            // first in it's m_pSavedWords member, and the others are appended after it by
-            // each subsequent Merge() call) because pMergedSrcPhrase is actually the first
-            // instance that was in pOwnedList - to which all the others were merged in the
-            // block above. We can't therefore just delete all the instances in the
-            // pSrcPhrase->m_pSavedWords list because we'd be deleting some which we must
-            // retain (ie. those which are pointed at by pointers in both lists).
-			pOwnedList->Clear(); // these are all managed elsewhere, either as 
-                                 // pMergedSrcPhr or in the latter's m_pSavedWords list
-			SPList::Node* posOld = pSrcPhrase->m_pSavedWords->GetFirst();
-			wxASSERT(posOld);
-			while (posOld != NULL)
-			{
-				CSourcePhrase* pSrcPhraseOld = (CSourcePhrase*)posOld->GetData();
-				posOld = posOld->GetNext();
-				SPList::Node* posNew = NULL;
-				if (pSrcPhraseOld == pMergedSrcPhr)
+				pOwnedSrcPhrase->m_precPunct = pNewSrcPhrase->m_precPunct;
+				pOwnedSrcPhrase->m_follPunct = pNewSrcPhrase->m_follPunct;
+				pOwnedSrcPhrase->SetFollowingOuterPunct(pNewSrcPhrase->GetFollowingOuterPunct());
+				if (bIsFirst)
 				{
-					// retain this one, so do nothing
-					continue;
+					// first instance in pResultsList; anything in the pResultsList's
+					// m_precPunct from the initial instance has to be copied directly
+					pSrcPhrase->m_precPunct = pOwnedSrcPhrase->m_precPunct; // as set above
+
+                    // but anything in m_follPunct and/or m_follOuterPunct has to be copied
+                    // to pSrcPhrase->m_pMedialPuncts array instead
+					wxString follPunctStr = pNewSrcPhrase->m_follPunct;
+					if (!follPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(follPunctStr);
+					}
+					wxString follOuterPunctStr = pNewSrcPhrase->GetFollowingOuterPunct();
+					if (!follOuterPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(follOuterPunctStr);
+					}
+					bIsFirst = FALSE; // after entered once, prevent re-entry to this block
 				}
-				else // it's not the pMergedSrcPhr, so test for a match in the 
-					 // latter's m_pSavedWords list
+				else if (bIsLast)
 				{
-					posNew = pMergedSrcPhr->m_pSavedWords->Find(pSrcPhraseOld);
-					if (posNew == NULL)
+					// last instance in pResultsList; anything in m_follPunct and/or
+					// m_follOuterPunct has to be copied direct to same members of pSrcPhrase
+					pSrcPhrase->m_follPunct = pOwnedSrcPhrase->m_follPunct; // as set above
+					pSrcPhrase->SetFollowingOuterPunct(pOwnedSrcPhrase->GetFollowingOuterPunct()); // as set above
+
+					// but anything in m_precPunct in the instance from pResultsList, has to 
+					// be copied to pSrcPhrase->m_pMedialPuncts array
+					wxString precPunctStr = pNewSrcPhrase->m_precPunct;
+					if (!precPunctStr.IsEmpty())
 					{
-                        // no matching CSourcePhrase instance was found, so this old one
-                        // can be deleted (control shouldn't enter here, since there should
-                        // be none which are not found)
-						DeleteSingleSrcPhrase(pSrcPhraseOld, FALSE); // don't 
-										// bother to delete its partner pile
-					}
-					else
-					{
-						// there was a match, so we need to retain this one
-						continue;
+						pSrcPhrase->m_pMedialPuncts->Add(precPunctStr);
 					}
 				}
-			}
-            // remove the entries in the old m_pSavedWords list, but leave pointers
-            // alone - anything retained is now managed by the pMergedSrcPhr->m_pSavedWords
-            // list
-			pSrcPhrase->m_pSavedWords->Clear();
-
-			// copy across the passed-in pSrcPhrase's flag values to the new merged
-			// instance 
-			CopyFlags(pMergedSrcPhr,pSrcPhrase);
-
-            // copy the other stuff (m_chapterVerse & m_markers are accumulated by the
-            // Merge() call and the medial lists, if needed, set up; so we have fewer
-            // things to copy here)
-			pMergedSrcPhr->m_curTextType = pSrcPhrase->m_curTextType;
-			pMergedSrcPhr->m_inform = pSrcPhrase->m_inform;
-			pMergedSrcPhr->m_nSequNumber = pSrcPhrase->m_nSequNumber;// maybe 
-													// incorrect, but we don't care
-
-			bool bNotInKB = pSrcPhrase->m_bNotInKB; // preserve for store test below
-            // The m_bHas... booleans need to be made FALSE since this instance is not
-            // yet in the KB (we store it there below, if the original was stored
-            // there)
-			pMergedSrcPhr->m_bHasKBEntry = FALSE;
-			pMergedSrcPhr->m_bHasGlossingKBEntry = FALSE;
-			
-            // the rebuilt sourcephrase instances may not have filled-in m_targetStr
-            // and m_adaption members, so we have to copy pSrcPhrase's (merged) members
-            // to pMergedSrcPhr in order to retain the user's adaptation - and
-            // similarly for the m_gloss member (the m_key member should already be
-            // correct, since it was built by the Merge() calls within the loop, along
-            // with the m_srcPhrase member)
-			targetStr.Trim(TRUE); // trim right end
-			targetStr.Trim(FALSE); // trim left end
-			gloss.Trim(TRUE); // trim right end
-			gloss.Trim(FALSE); // trim left end
-
-			pMergedSrcPhr->m_targetStr = targetStr;
-			pMergedSrcPhr->m_gloss = gloss;
-			adaption = targetStr;
-			// Note, the RemovePunctuation call uses ParseWord(), to get consistent
-			// punctuation handling/parsing across the application
-			pView->RemovePunctuation(this,&adaption,from_target_text);
-			pMergedSrcPhr->m_adaption = adaption;
-
-			// now insert our rebuilt merged sourcephrase preceding the old one
-			pList->Insert(pos,pMergedSrcPhr);
-
-			// and delete the old one, and then remove its list entry
-			DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't bother to delete 
-													  // its partner pile
-			pList->DeleteNode(pos);
-
-			// store its gloss and adaptation entries in the appropriate KBs, 
-			// provided it is appropriate
-			if (!bNotInKB)
-				pView->StoreKBEntryForRebuild(pMergedSrcPhr,
-						pMergedSrcPhr->m_adaption,pMergedSrcPhr->m_gloss);
-
-            // remove pOwnedList and remove its pointers, but don't delete the objects
-            // since they belong to m_pSavedWords in the rebuilt merged sourcephrase; or
-            // they have been inserted into the document's m_pSourcePhrases list - either
-            // way, they must be retained
-			pOwnedList->Clear();
-			delete pOwnedList;
+				else if (!bIsLast && !bIsFirst)
+				{
+					// neither first nor last instance in pResultsList; any punctuation in
+					// such instances' m_precPuncts, m_follPuncts, and/or m_follOuterPuncts
+					// has to be copied to pSrcPhrase->m_pMedialPuncts array
+					wxString precPunctStr = pNewSrcPhrase->m_precPunct;
+					if (!precPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(precPunctStr);
+					}
+					wxString follPunctStr = pNewSrcPhrase->m_follPunct;
+					if (!follPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(follPunctStr);
+					}
+					wxString follOuterPunctStr = pNewSrcPhrase->GetFollowingOuterPunct();
+					if (!follOuterPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(follOuterPunctStr);
+					}
+				}
+			} // end of loop for test: while (posOwned != NULL && posNew != NULL)
 		} // end of TRUE block for test:  if ((int)pResultList->GetCount() == nOriginalCount)
 		else // the reparsed source text has generated a different number of CSourcePhrase instances 
 		{

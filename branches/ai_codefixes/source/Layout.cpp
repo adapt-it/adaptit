@@ -1538,7 +1538,7 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // called whenever the layout has been corrupted by a user action, such as a font change
 // (which clobbers prior text extent values stored in the piles) or a punctuation setting
 // change, etc. RecalcLayout() in the refactored design is a potentially "costly"
-// calculation - if the document is large, the piles and strips for the whole document has
+// calculation - if the document is large, the piles and strips for the whole document have
 // to be recalculated from the data in the current document - (need to consider a progress
 // bar in the status bar in window bottom) The default value of the passed in flag
 // bRecreatePileListAlso is FALSE The ptr value for the passed in pList is usually the

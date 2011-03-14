@@ -238,6 +238,11 @@ contemporary look on all platforms.
 ----------------------------------------------
 Bug fixes in 6.0.0
 ----------------------------------------------
+* For several years, a uer or two has reported an overlap problem of the 
+phrase box with the text either before it, or after it. Noone, including the 
+developers, could reproduce this error at will. We have put in some extra 
+checks and associated 'fix it' code which should make this problem never 
+happen again.
 * Removing a lot of source text near the end of the document and 
 there were several notes in the removed section, the app would crash.
 * Certain standard format markers in the USFM standard were included

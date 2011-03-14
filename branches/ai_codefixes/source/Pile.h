@@ -102,6 +102,7 @@ public:
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();
+	int			GetWidth(); // BEW added 14Mar11
 
 	int			Width();
 	int			Height();

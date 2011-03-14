@@ -240,6 +240,11 @@ bool CPile::GetIsCurrentFreeTransSection()
 	return m_bIsCurrentFreeTransSection;
 }
 
+int CPile::GetWidth()
+{
+	return m_nWidth;
+}
+
 int CPile::Width()
 {
     // Note: for this calculation to return the correct values in all circumstances, the
@@ -405,6 +410,7 @@ int CPile::CalcPileWidth()
 }
 
 //GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+// (0 is contracting, 1 is steadyAsSheGoes, 2 is expanding)
 int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
     // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase
