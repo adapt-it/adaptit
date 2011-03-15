@@ -14235,7 +14235,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// restore it for 6.1.0
 	wxMenu* pItsMenu = NULL;
 	wxMenuItem* pHideThisOxesMenuItem = pMenuBar->FindItem(ID_EXPORT_OXES, &pItsMenu);
-	pItsMenu->Remove(pHideThisOxesMenuItem);
+	if (pItsMenu != NULL) // whm 15Mar11 added test for NULL pointer (might happen if menu item is hidden/removed in user profiles)
+	{
+		pItsMenu->Remove(pHideThisOxesMenuItem);
+	}
 // ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
 
 	// Hide the Glossing check box
