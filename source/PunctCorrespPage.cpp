@@ -49,10 +49,10 @@
 #include "Adapt_It.h"
 #include "Pile.h"
 #include "Layout.h"
+#include "Adapt_ItDoc.h"
 #include "PunctCorrespPage.h"
 #include "FontPage.h"
 #include "CaseEquivPage.h"
-#include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h" 
 #include "helpers.h"
@@ -69,8 +69,8 @@ extern CFontPageWiz* pFontPageWiz;
 /// This global is defined in Adapt_It.cpp.
 extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
-extern bool gbIsGlossing;
-extern wxString translation;
+extern bool			gbIsGlossing;
+extern wxString		translation;
 
 // the following are common functions - used by the CPunctCorrespPageWiz class 
 // and the CPunctCorrespPagePrefs class
@@ -81,7 +81,7 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 	{
 		m_srcPunctStr[i] = _T("");
 		m_tgtPunctStr[i] = _T("");
-		if (i < MAXTWOPUNCTPAIRS) // if (i < 8)
+		if (i < MAXTWOPUNCTPAIRS) // if (i < 10)
 		{
 			m_srcTwoPunctStr[i] = _T("");
 			m_tgtTwoPunctStr[i] = _T("");
@@ -210,6 +210,8 @@ void CPunctCorrespPageCommon::DoInit()
 	// Before this correction, DoPunctuationChanges() was always being called in the OnOk() handler even when no changes were
 	// made to punctuation in Preferences.
 	m_punctuationBeforeEdit[0] = pApp->m_punctuation[0];
+	m_punctuationBeforeEdit[1] = pApp->m_punctuation[1]; //BEW 4Mar11, added, but may not
+								// actually be needed, but it should not be left unset
 
 	int activeSequNum;
 	if (pApp->m_nActiveSequNum < 0)
@@ -228,12 +230,86 @@ void CPunctCorrespPageCommon::DoInit()
 		pView->RemoveSelection();
 	}
 	strSavePhraseBox = pApp->m_targetPhrase;
+	CopyInitialPunctSets(); // fill the m_srcPunctStrBeforeEdit[], m_tgtPunctStrBeforeEdit[], 
+							// etc arrays, so we can compare the items later to see if the
+							// user has changed anything
 }
 
-// The next functions are helpers which make it easy to set or reset the boxes to show either
-// unicode characters (LTR or RTL), or U+nnnn representations (always LTR because they will be shown
-// in natural order, rather than in human script's reading order) These functions added in version
-// 2.2.1 to support the "Show U+nnnn" / "Show Characters" toggle button added in that version.
+// BEW added 4Mar11, so as to prevent a DoPunctuationChanges() call happening merely
+// because, for example, the user entered Preferences, did nothing, and exited
+// Preferences!
+// Call this in PunctCorrespPage's OnOK() function, and only if the return value is TRUE
+// should DoPunctuationChanges() be called.
+bool CPunctCorrespPageCommon::AreBeforeAndAfterPunctSetsDifferent()
+{
+	int index;
+	bool bSomethingIsDifferent = FALSE;
+	for (index = 0; index < MAXPUNCTPAIRS; index++)
+	{
+		if ( !(m_srcPunctStrBeforeEdit[index].IsEmpty() && m_srcPunctStr[index].IsEmpty())
+			&& (m_srcPunctStrBeforeEdit[index] != m_srcPunctStr[index]))
+		{
+			bSomethingIsDifferent = TRUE;
+		}
+		if ( !(m_tgtPunctStrBeforeEdit[index].IsEmpty() && m_tgtPunctStr[index].IsEmpty())
+			&& (m_tgtPunctStrBeforeEdit[index] != m_tgtPunctStr[index]))
+		{
+			bSomethingIsDifferent = TRUE;
+		}
+	}
+	if (bSomethingIsDifferent)
+		return TRUE;
+	for (index = 0; index < MAXTWOPUNCTPAIRS; index++)
+	{
+		if ( !(m_srcTwoPunctStrBeforeEdit[index].IsEmpty() && m_srcTwoPunctStr[index].IsEmpty())
+			&& (m_srcTwoPunctStrBeforeEdit[index] != m_srcTwoPunctStr[index]))
+		{
+			bSomethingIsDifferent = TRUE;
+		}
+		if ( !(m_tgtTwoPunctStrBeforeEdit[index].IsEmpty() && m_tgtTwoPunctStr[index].IsEmpty())
+			&& (m_tgtTwoPunctStrBeforeEdit[index] != m_tgtTwoPunctStr[index]))
+		{
+			bSomethingIsDifferent = TRUE;
+		}
+	}
+	return bSomethingIsDifferent;
+}
+
+
+// call this after the punctuation correspondences page has had its data set up, and
+// before the user has a chance to change anything in the page
+void CPunctCorrespPageCommon::CopyInitialPunctSets()
+{
+	int index;
+	for (index = 0; index < MAXPUNCTPAIRS; index++)
+	{
+		m_srcPunctStrBeforeEdit[index] = m_srcPunctStr[index];
+		m_tgtPunctStrBeforeEdit[index] = m_tgtPunctStr[index];
+	}		
+	for (index = 0; index < MAXTWOPUNCTPAIRS; index++)
+	{
+		m_srcTwoPunctStrBeforeEdit[index].Empty();
+		m_tgtTwoPunctStrBeforeEdit[index].Empty();
+	}
+	for (index = 0; index < MAXTWOPUNCTPAIRS; index++)
+	{
+		if (!m_srcTwoPunctStr[index].IsEmpty())
+		{
+			m_srcTwoPunctStrBeforeEdit[index] = m_srcTwoPunctStr[index];
+		}
+		if (m_tgtTwoPunctStr[index].IsEmpty())
+		{
+			m_tgtTwoPunctStrBeforeEdit[index] = m_tgtTwoPunctStr[index];
+		}
+	}
+}
+
+
+// The next functions are helpers which make it easy to set or reset the boxes to show
+// either unicode characters (LTR or RTL), or U+nnnn representations (always LTR because
+// they will be shown in natural order, rather than in human script's reading order) These
+// functions added in version 2.2.1 to support the "Show U+nnnn" / "Show Characters" toggle
+// button added in that version.
 
 void CPunctCorrespPageCommon::PopulateWithGlyphs()
 // Copies the App's m_punctPairs and m_twopunctPairs char data to the
@@ -267,17 +343,26 @@ void CPunctCorrespPageCommon::PopulateWithGlyphs()
 			m_tgtPunctStr[index] = pApp->m_punctPairs[index].charTgt;
 			m_editTgtPunct[index]->SetValue(m_tgtPunctStr[index]);
 		}
-	}
+	} // end of for loop
 
 	for (index = 0; index < MAXTWOPUNCTPAIRS; index++)
 	{
-		m_srcTwoPunctStr[index] = pApp->m_twopunctPairs[index].twocharSrc[0];
-		m_editSrcTwoPunct[index]->SetValue(m_srcTwoPunctStr[index]);
-		if (pApp->m_twopunctPairs[index].twocharSrc[1] != _T('\0'))
+		// src ones
+		if (pApp->m_twopunctPairs[index].twocharSrc[0] == _T('\0'))
 		{
-			m_srcTwoPunctStr[index] += pApp->m_twopunctPairs[index].twocharSrc[1];
+			m_srcTwoPunctStr[index] = _T(""); // if first was null, second is too, so string is null
 			m_editSrcTwoPunct[index]->SetValue(m_srcTwoPunctStr[index]);
 		}
+		else
+		{
+			m_srcTwoPunctStr[index] = pApp->m_twopunctPairs[index].twocharSrc[0];
+			if (pApp->m_twopunctPairs[index].twocharSrc[1] != _T('\0'))
+			{
+				m_srcTwoPunctStr[index] += pApp->m_twopunctPairs[index].twocharSrc[1];
+				m_editSrcTwoPunct[index]->SetValue(m_srcTwoPunctStr[index]);
+			}
+		}
+		// tgt ones
 		if (pApp->m_twopunctPairs[index].twocharTgt[0] == _T('\0'))
 		{
 			m_tgtTwoPunctStr[index] = _T(""); // if first was null, second is too, so string is null
@@ -292,7 +377,7 @@ void CPunctCorrespPageCommon::PopulateWithGlyphs()
 				m_editTgtTwoPunct[index]->SetValue(m_tgtTwoPunctStr[index]);
 			}
 		}
-	}
+	} // end of for loop
 }
 
 void CPunctCorrespPageCommon::SetupForGlyphs()
@@ -319,7 +404,7 @@ void CPunctCorrespPageCommon::SetupForGlyphs()
 			m_editSrcPunct[i]->SetLayoutDirection(wxLayout_LeftToRight);
 		}
 #endif
-		if (i < MAXTWOPUNCTPAIRS) //if (i < 8)
+		if (i < MAXTWOPUNCTPAIRS) //if (i < 10)
 		{
 			m_editSrcTwoPunct[i]->SetFont(*pApp->m_pDlgSrcFont);
 #ifdef _RTL_FLAGS
@@ -347,7 +432,7 @@ void CPunctCorrespPageCommon::SetupForGlyphs()
 			m_editTgtPunct[j]->SetLayoutDirection(wxLayout_LeftToRight);
 		}
 #endif
-		if (j < MAXTWOPUNCTPAIRS) //if (j < 8)
+		if (j < MAXTWOPUNCTPAIRS) //if (j < 10)
 		{
 			m_editTgtTwoPunct[j]->SetFont(*pApp->m_pDlgTgtFont);
 #ifdef _RTL_FLAGS
@@ -1260,9 +1345,13 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		gpApp->m_pTargetBox->ChangeValue(boxValue);
 		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
 		gpApp->GetView()->Invalidate();
-	}	
+	}
 
-	gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
+	if (punctPgCommon.AreBeforeAndAfterPunctSetsDifferent())
+	{
+		gpApp->m_pLayout->m_bPunctuationChanged = TRUE;
+		gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
+	}
 }
 
 #ifdef _UNICODE

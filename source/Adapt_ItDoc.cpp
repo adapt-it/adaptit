@@ -16,7 +16,7 @@
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
 /////////////////////////////////////////////////////////////////////////////
 
-// dummy comment to force a recompile
+//#define _debugLayout
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -77,6 +77,7 @@
 #include "Cell.h"
 #include "Adapt_ItDoc.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 //#include "ProgressDlg.h" // removed in svn revision #562
 #include "WaitDlg.h"
 #include "XML.h"
@@ -85,17 +86,36 @@
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
 #include "Layout.h"
+#include "FreeTrans.h"
+#include "Notes.h"
 #include "ExportFunctions.h"
 #include "ReadOnlyProtection.h"
+#include "ConsistencyCheckDlg.h"
+#include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
+#include "NavProtectNewDoc.h"
 
-// forward declarations for functions called in tellenc.cpp
-// GDLC Temporary work around for PPC STL library bug
-#if defined(__WXMAC__) && defined(__POWERPC__ )
-// tellenc() not used in PPC builds pending bug fix in PPC STL
-#else
+// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
 const char* tellenc(const char* const buffer, const size_t len);
-#endif
+
+// struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;
+// for glossing we can use the same structure with the understanding that the oldAdaptation
+// and finalAdaptation will in reality contain the old gloss and the final gloss,
+// respectively; and nWords for glossing will always be 1.
+struct	AutoFixRecord
+{
+	wxString	key;
+	wxString	oldAdaptation;
+	wxString finalAdaptation;
+	int		nWords;
+};
+
+// Define type safe pointer lists
+#include "wx/listimpl.cpp"
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called AFList.
+WX_DEFINE_LIST(AFList);
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
@@ -121,11 +141,11 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
 /// this BOM.
-static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
+//static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
 
 /// The UTF-16 byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
 /// in UTF-16 encoding.
-static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
+//static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
 
 #endif
 
@@ -165,7 +185,7 @@ extern bool gbPropagationNeeded;
 extern TextType gPropagationType;
 
 // This global is defined in Adapt_ItView.cpp.  BEW removed 27Jan09
-extern bool gbInhibitLine4StrCall; // see view for reason for this
+extern bool gbInhibitMakeTargetStringCall; // see view for reason for this
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbIsUnstructuredData;
@@ -187,8 +207,10 @@ extern bool  gbForceUTF8; // defined in CDocPage
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
-/// This global is defined in Adapt_It.cpp.
-extern bool  gbSfmOnlyAfterNewlines;
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+// This global is defined in Adapt_It.cpp.
+//extern bool  gbSfmOnlyAfterNewlines;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool  gbDoingInitialSetup;
@@ -247,18 +269,42 @@ extern wxString szAdminProjectConfiguration;
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHackedDataCharWarningGiven;
 
-// support for USFM and SFM Filtering
-// Since these special filter markers will be visible to the user in certain
-// dialog controls such as the CTransferMarkersDlg dialog, I've opted to use 
-// marker labels that should be unique (starting with \~) and yet still 
-// recognizable by containing the word 'FILTER' as part of their names.
+// globals needed due to moving functions here from mainly the view class
+// next group for auto-capitalization support
+extern bool	gbAutoCaps;
+extern bool	gbSourceIsUpperCase;
+extern bool	gbNonSourceIsUpperCase;
+extern bool	gbMatchedKB_UCentry;
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern bool	gbNoGlossCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
 
-/// A marker string used to signal the beginning of filtered material stored in a source phrase's
-/// m_markers member.
+bool	gbIgnoreIt = FALSE; // used when "Ignore it, I will fix it later" button was hit
+							// in consistency check dlg
+
+// whm added 6Apr05 for support of export filtering of sfms and RTF output of the same in
+// the appropriate functions in the Export-Import file, etc. These globals are defined 
+// in ExportSaveAsDlg.cpp
+extern wxArrayString m_exportMarkerAndDescriptions;
+extern wxArrayString m_exportBareMarkers;
+extern wxArrayInt m_exportFilterFlags;
+extern wxArrayInt m_exportFilterFlagsBeforeEdit;
+
+// support for USFM and SFM Filtering
+// Since these special filter markers will be visible to the user in certain dialog
+// controls, I've opted to use marker labels that should be unique (starting with \~) and
+// yet still recognizable by containing the word 'FILTER' as part of their names.
+
+/// A marker string used to signal the beginning of filtered material stored in a source
+/// phrase's m_filteredInfo member.
 const wxChar* filterMkr = _T("\\~FILTER");
 
 /// A marker string used to signal the end of filtered material stored in a source phrase's
-/// m_markers member.
+/// m_filteredInfo member.
 const wxChar* filterMkrEnd = _T("\\~FILTER*");
 
 /////////////////////////////////////////////////////////////////////////////
@@ -275,6 +321,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
+	EVT_MENU(ID_SAVE_AS, CAdapt_ItDoc::OnFileSaveAs)
+	EVT_UPDATE_UI(ID_SAVE_AS, CAdapt_ItDoc::OnUpdateFileSaveAs)
 	EVT_MENU(wxID_OPEN, CAdapt_ItDoc::OnFileOpen)
 	EVT_MENU(ID_TOOLS_SPLIT_DOC, CAdapt_ItDoc::OnSplitDocument)
 	EVT_UPDATE_UI(ID_TOOLS_SPLIT_DOC, CAdapt_ItDoc::OnUpdateSplitDocument)
@@ -286,6 +334,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(ID_FILE_UNPACK_DOC, CAdapt_ItDoc::OnUpdateFileUnpackDoc)
 	EVT_MENU(ID_FILE_PACK_DOC, CAdapt_ItDoc::OnFilePackDoc)
 	EVT_MENU(ID_FILE_UNPACK_DOC, CAdapt_ItDoc::OnFileUnpackDoc)
+	EVT_MENU(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItDoc::OnEditConsistencyCheck)
+	EVT_UPDATE_UI(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItDoc::OnUpdateEditConsistencyCheck)
 	EVT_MENU(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_UPDATE_UI(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_MENU(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages)
@@ -296,12 +346,19 @@ END_EVENT_TABLE()
 // CAdapt_ItDoc construction/destruction
 
 /// **** DO NOT PUT INITIALIZATIONS IN THE DOCUMENT'S CONSTRUCTOR *****
-/// **** ALL INITIALIZATIONS SHOULD BE DONE IN THE APP'S OnInit() METHOD *****
+/// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD ****
+/// **** BE DONE HERE; DO OTHER INITIALIZATIONS IN THE APP'S      *****
+/// **** OnInit() METHOD                                          *****
 CAdapt_ItDoc::CAdapt_ItDoc()
 {
+	m_bHasPrecedingStraightQuote = FALSE; // this one needs to be initialized to
+										  // FALSE every time a doc is recreated
+	m_bLegacyDocVersionForSaveAs = FALSE; // whm added 14Jan11
 	// WX Note: All Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
-	// **** ALL INITIALIZATIONS SHOULD BE DONE IN THE APP (OnInit) ************
+	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD      ****
+	// **** BE DONE HERE; DO OTHER INITIALIZATIONS IN THE APP'S           *****
+	// **** OnInit() METHOD                                               *****
 }
 
 
@@ -394,7 +451,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 				wxMessageBox(_T(
 				"OnNewDocument() failed, when setting current directory to C drive"),
 				_T(""), wxICON_ERROR);
-				return FALSE;
+				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
+							 // you want the doc/view framework to keep working right
 			}
 		}
 	}
@@ -466,10 +524,15 @@ bool CAdapt_ItDoc::OnNewDocument()
 		wxASSERT(pApp->m_pBuffer != NULL);
 		pApp->m_nInputFileLength = 0;
 		wxString filter = _T("*.*");
-		wxString fileTitle = _T(""); // stores name (minus extension) of user's chosen source file
+		wxString fileTitle = _T(""); // stores name (including extension) of user's 
+				// chosen source file; however, when taken into the COutFilenameDlg
+				// dialog below, the latter's InitDialog() call strips off any
+				// filename extension before showing what's left to the user
+		wxString pathName; // stores the path (including filename & extension) to the 
+						   // chosen input source text file to be used for doc create
 
-		// The following wxFileDialog part was originally in GetNewFile(), but moved here 19Jun09 to
-		// consolidate file error message processing.
+        // The following wxFileDialog part was originally in GetNewFile(), but moved here
+        // 19Jun09 to consolidate file error message processing.
 		wxString defaultDir;
 		if (gpApp->m_lastSourceFileFolder.IsEmpty())
 		{
@@ -480,153 +543,330 @@ bool CAdapt_ItDoc::OnNewDocument()
 			defaultDir = gpApp->m_lastSourceFileFolder;
 		}
 
-		wxFileDialog fileDlg(
-			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-			_("Input Text File For Adaptation"),
-			defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
-			_T(""),		// default filename
-			filter,
-		wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-					// GDLC wxOPEN deprecated in 2.8
-		fileDlg.Centre();
-		// open as modal dialog
-		int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
-		if (returnValue == wxID_CANCEL)
-		{
-			// user cancelled, so cancel the New... command
-			// IDS_USER_CANCELLED
-			wxMessageBox(_(
-"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
-			_T(""), wxICON_INFORMATION);
-
-			// check if there was a document current, and if so, reinitialize everything
-			if (pView != 0)
-			{
-				pApp->m_pTargetBox->SetValue(_T(""));
-				delete pApp->m_pBuffer;
-				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-				pView->Invalidate();
-				// BEW added next line 16Nov09 for following reason:
-                // the flag is set TRUE in OnFileNew(), before handing control over to
-                // wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
-                // called -- this is okay if the user chooses a file to use for creating a
-                // new document, but if he cancels out of the file dialog, the cancel
-                // block's code (which is right here) didn't clear bUserSelectedFileNew to
-                // FALSE, which lead to an error, so we here do this fix
-				pApp->bUserSelectedFileNew = FALSE;	
-				GetLayout()->PlaceBox();
-			}
-            //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
-            //doc/view black box on which we rely, leading to our event handlers
-            //failing to be called, so return TRUE instead
-			return TRUE;
-		}
-		else // must be wxID_OK 
-		{
-			wxString pathName;
-			pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
-			fileTitle = fileDlg.GetFilename(); // just the file name
-
-			wxFileName fn(pathName);
-			wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
-
-            // get the file, and it's length (which includes null termination byte/s) whm
-            // modified 18Jun09 GetNewFile() now returns an enum getNewFileState (see
-            // Adapt_It.h) which more specifically reports the success or error state
-            // encountered in getting the file for input. It now uses a switch() structure.
-			switch(GetNewFile(pApp->m_pBuffer,pApp->m_nInputFileLength,pathName))
-			{
-			case getNewFile_success:
-			{
-				wxString tempSelectedFullPath = fileDlg.GetPath();
-
-				// wxFileDialog.GetPath() returns the full path with directory and filename. We
-				// only want the path part, so we also call ::wxPathOnly() on the full path to
-				// get only the directory part.
-				gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
+		// BEW addition, 15Aug10, test for user navigation protection feature turned on,
+		// and if so, show the monocline list of files in the Source Data folder only,
+		// otherwise, show the standard File Open dialog, wxFileDialog, supplied by
+		// wxWidgets which allows the user to navigate the hierarchical file/folder system
+		// BEW 22Aug10, included m_bShowAdministratorMenu in the test, so that we don't
+		// make the administrator have the Source Data folder restriction and
+		// navigation-protection feature be force on him when the Administrator menu is
+		// visible. I've also put a conditional compile here so that when the developer is
+		// debugging, he can choose which behaviour he wants for testing purposes
+		bool bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();
+		bool bUserNavProtectionInForce = FALSE;
+#ifdef __WXDEBUG__
+		// un-comment out the next line to have navigation protection for loading source
+		// text files turned on when debugging only provided the administrator menu is not
+		// showing - this is the way it is in the distributed application, that is, even
+		// if user navigation protection is on, making the administrator menu visible will
+		// override the 'on' setting so that the legacy File Open dialog is used; and
+		// making the administrator menu invisible again automatically restores user
+		// navigation protection to being 'on'
 		
-                // Check if it has an \id line. If it does, get the 3-letter book code. If
-                // a valid code is present, check that it is a match for the currently
-                // active book folder. If it isn't tell the user and abort the <New
-                // Document> operation, leaving control in the Document page of the wizard
-                // for a new attempt with a different source text file, or a change of book
-                // folder to be done and the same file reattempted after that. If it is a
-                // matching book code, continue with setting up the new document.
-				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+		//if (bUseSourceDataFolderOnly && !gpApp->m_bShowAdministratorMenu)
+
+		// un-comment out the next line to have navigation protection for loading source
+		// text files turned on when debugging, whether or not administrator menu is
+		// visible; and comment out the line above
+		bUserNavProtectionInForce = FALSE; // use this for allowing or suppressing
+		// the COutputFilenameDlg further below, depending on whether the legacy
+		// File New dialog is used, or the NavProtectNewDoc's dialog, respectively
+		
+		if (bUseSourceDataFolderOnly)
+#else
+		if (bUseSourceDataFolderOnly && !gpApp->m_bShowAdministratorMenu)
+#endif
+		{
+            // This block encapsulates user file/folder navigation protection, by showing
+            // to the user only all, or a subset of, the files in the monocline list of
+            // files in the folder named "Source Data" within the current project's folder.
+            // All the user can do is either Cancel, or select a single file to be loaded
+            // as a new adaptation document, no navigation functionality is provided here
+            bUserNavProtectionInForce = TRUE;
+
+			gpApp->m_sortedLoadableFiles.Clear(); // we always recompute the array every
+                // time the user tries to create a new document, because the administrator
+                // may have added new source text files to the 'Source Data' folder since
+                // the time of the last document creation attempt
+			gpApp->EnumerateLoadableSourceTextFiles(gpApp->m_sortedLoadableFiles,
+								gpApp->m_sourceDataFolderPath, filterOutUnloadableFiles);
+
+			// now remove any array entries which have their filename title part
+			// clashing with a document filename's title part (and book mode may be
+			// currently on, so if it is we get the list of doc filenames from the
+			// currently active bible book folder); to do this, first calculate the path
+			// to the storage folder for the documents, and enumerate their filenames to a
+			// wxArrayString local array, then call RemoveNameDuplicatesFromArray() to
+			// compare the file titles and remove the duplicates
+			wxString docsPath;
+			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+			{
+				docsPath = gpApp->m_bibleBooksFolderPath; // path to a book folder within 
+														  // the "Adaptations" folder
+			}
+			else
+			{
+				docsPath = gpApp->m_curAdaptionsPath; // path to the "Adaptations" 
+													  // folder of the project
+			}
+			wxArrayString arrDocFilenames;
+			gpApp->EnumerateDocFiles_ParametizedStore(arrDocFilenames,docsPath);
+			// the following call removes any items from the first param's array which
+			// have a duplicate file title for a filename in the second param's array;
+			// the TRUE parameter is bSorted, we want the final list which the user sees
+			// to be in alphabetical order (for Windows, a caseless compare is done, for
+			// other operating systems, a case-sensitive compare is done - see the
+			// sortCompareFunc() in helpers.cpp)
+			RemoveNameDuplicatesFromArray(gpApp->m_sortedLoadableFiles, arrDocFilenames,
+												TRUE, excludeExtensionsFromComparison);
+			wxString strSelectedFilename;
+			strSelectedFilename.Empty();
+
+			// BEW 16Aug10, Note: we create the only and only instance of m_pNavProtectDlg here
+			// rather than in the app's OnInit() function, because we want the dialog
+			// handler's InitDialog() function called each time the dialog is to be shown using
+			// ShowModal() so that the two buttons will be initialized correctly
+			wxWindow* docWindow = GetDocumentWindow(); 
+			gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow); 
+            
+			// display the dialog, it's list of filenames is monocline & no navigation
+			// capability is provided
+			if (gpApp->m_pNavProtectDlg->ShowModal() == wxID_CANCEL)
+			{
+				// the user has hit the Cancel button
+				wxASSERT(strSelectedFilename.IsEmpty());
+				wxMessageBox(_(
+"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+				_T(""), wxICON_INFORMATION);
+
+				// check if there was a document current, and if so, reinitialize everything
+				if (pView != 0)
 				{
-					// do the test only if Book Mode is turned on
-					wxString strIDMarker = _T("\\id");
-					int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
-					if ( pos != -1)
+					delete gpApp->m_pNavProtectDlg;
+					gpApp->m_pNavProtectDlg = NULL;
+					pApp->m_pTargetBox->SetValue(_T(""));
+					delete pApp->m_pBuffer;
+					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pView->Invalidate();
+					GetLayout()->PlaceBox();
+				}
+                //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+                //doc/view black box on which we rely, leading to our event handlers
+                //failing to be called, so return TRUE instead
+				return TRUE;
+			}
+			else
+			{
+				// the user has hit the "Input file" button
+				strSelectedFilename = gpApp->m_pNavProtectDlg->GetUserFileName();
+				wxASSERT(!strSelectedFilename.IsEmpty());
+
+				// the dialog handler can now be deleted and its point set to NULL
+				delete gpApp->m_pNavProtectDlg;
+				gpApp->m_pNavProtectDlg = NULL;
+
+				// create the path to the selected file (m_sourceDataFolderPath is always
+				// defined when the app enters a project, as a folder "Source Data" which
+				// is a direct child of the folder m_curProjectPath)
+				pathName = gpApp->m_sourceDataFolderPath + gpApp->PathSeparator + strSelectedFilename;
+				wxASSERT(::wxFileExists(pathName));
+
+				// set fileTitle to the selected file's name (including extension, as the
+				// latter will be removed later below)
+				fileTitle = strSelectedFilename;
+			}
+		} // end of TRUE block for test: if (bUseSourceDataFolderOnly)
+		else
+		{
+            // This block uses the legacy wxFileDialog call, which allows the user to
+            // navigate the folder hierarchy to find loadable source text files anywhere
+            // within any volume accessible to the system, there is no user navigation
+            // protection in force if control enters this block
+			wxFileDialog fileDlg(
+				(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+				_("Input Text File For Adaptation"),
+				defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
+				_T(""),		// default filename
+				filter,
+			wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+						// GDLC wxOPEN deprecated in 2.8
+			fileDlg.Centre();
+			// open as modal dialog
+			int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
+			if (returnValue == wxID_CANCEL)
+			{
+                // user cancelled, so cancel the New... command, or <New Document> choice,
+                // as the case may be -- either user choice will have caused
+                // OnNewDocument() to be called
+				wxMessageBox(_(
+"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+				_T(""), wxICON_INFORMATION);
+
+				// check if there was a document current, and if so, reinitialize everything
+				if (pView != 0)
+				{
+					pApp->m_pTargetBox->SetValue(_T(""));
+					delete pApp->m_pBuffer;
+					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pView->Invalidate();
+					GetLayout()->PlaceBox();
+				}
+                //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+                //doc/view black box on which we rely, leading to our event handlers
+                //failing to be called, so return TRUE instead
+				return TRUE;
+			}
+			else // must be wxID_OK 
+			{
+				pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
+				fileTitle = fileDlg.GetFilename(); // just the file name (including any extension)
+			} // end of else wxID_OK
+			  // & fileDlg goes out of scope here
+		} // end of else block for test: if (bUseSourceDataFolderOnly)
+
+        // If control gets to here, (and it cannot do so if the user hit the Cancel
+        // button), we've pathName and fileTitle wxString variables set ready for creating
+        // the new document and getting an output document name from the user (the latter
+        // calls COutFilenameDlg class, and it includes built-in invalid character
+        // protection, and protection from a name conflict)
+		wxFileName fn(pathName);
+		wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
+
+        // get the file, and it's length (which includes null termination byte/s) whm
+        // modified 18Jun09 GetNewFile() now returns an enum getNewFileState (see
+        // Adapt_It.h) which more specifically reports the success or error state
+        // encountered in getting the file for input. It now uses a switch() structure.
+		switch(GetNewFile(pApp->m_pBuffer,pApp->m_nInputFileLength,pathName))
+		{
+		case getNewFile_success:
+		{
+			//wxString tempSelectedFullPath = fileDlg.GetPath(); BEW changed 15Aug10 to
+			// remove the second call to fileDlg.GetPath() here, as pathName has the path
+			wxString tempSelectedFullPath = pathName;
+
+			// wxFileDialog.GetPath() returns the full path with directory and filename. We
+			// only want the path part, so we also call ::wxPathOnly() on the full path to
+			// get only the directory part.
+			gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
+	
+            // Check if it has an \id line. If it does, get the 3-letter book code. If
+            // a valid code is present, check that it is a match for the currently
+            // active book folder. If it isn't tell the user and abort the <New
+            // Document> operation, leaving control in the Document page of the wizard
+            // for a new attempt with a different source text file, or a change of book
+            // folder to be done and the same file reattempted after that. If it is a
+            // matching book code, continue with setting up the new document.
+			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+			{
+				// do the test only if Book Mode is turned on
+				wxString strIDMarker = _T("\\id");
+				int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
+				if ( pos != -1)
+				{
+					// the marker is in the file, so we need to go ahead with the check, but first
+					// work out what the current book folder is and then what its associated code is
+					wxString aBookCode = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->bookCode;
+					wxString seeNameStr = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->seeName;
+					gbMismatchedBookCode = FALSE;
+
+					// get the code by advancing over the white space after the \id marker, and then taking
+					// the next 3 characters as the code
+					const wxChar* pStr = gpApp->m_pBuffer->GetData();
+					wxChar* ptr = (wxChar*)pStr;
+					ptr += pos;
+					ptr += 4; // advance beyond \id and whatever white space character is next
+					while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
 					{
-						// the marker is in the file, so we need to go ahead with the check, but first
-						// work out what the current book folder is and then what its associated code is
-						wxString aBookCode = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->bookCode;
-						wxString seeNameStr = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->seeName;
-						gbMismatchedBookCode = FALSE;
+						// advance over any additional space, newline, carriage return or tab
+						ptr++;
+					}
+					wxString theCode(ptr,3);	// make a 3-letter code, but it may be rubbish as we can't be
+												// sure there is actually a valid one there
 
-						// get the code by advancing over the white space after the \id marker, and then taking
-						// the next 3 characters as the code
-						const wxChar* pStr = gpApp->m_pBuffer->GetData();
-						wxChar* ptr = (wxChar*)pStr;
-						ptr += pos;
-						ptr += 4; // advance beyond \id and whatever white space character is next
-						while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
+					// test to see if the string contains a valid 3-letter code
+					bool bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, theCode);
+					if (bMatchedBookCode)
+					{
+						// it matches one of the 67 codes known to Adapt It, so we need to check if it
+						// is the correct code for the active folder; if it's not, tell the user and
+						// go back to the Documents page of the wizard; if it is, just let processing 
+						// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
+						if (theCode != aBookCode)
 						{
-							// advance over any additional space, newline, carriage return or tab
-							ptr++;
-						}
-						wxString theCode(ptr,3);	// make a 3-letter code, but it may be rubbish as we can't be
-													// sure there is actually a valid one there
-
-						// test to see if the string contains a valid 3-letter code
-						bool bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, theCode);
-						if (bMatchedBookCode)
-						{
-							// it matches one of the 67 codes known to Adapt It, so we need to check if it
-							// is the correct code for the active folder; if it's not, tell the user and
-							// go back to the Documents page of the wizard; if it is, just let processing 
-							// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
-							if (theCode != aBookCode)
-							{
-								// the codes are different, so the document does not belong in the active folder
-								wxString aTitle;
-								// IDS_INVALID_DATA_BOX_TITLE
-								aTitle = _("Invalid Data For Current Book Folder");
-								wxString msg1;
-								// IDS_WRONG_THREELETTER_CODE_A
-								msg1 = msg1.Format(_(
+							// the codes are different, so the document does not belong in the active folder
+							wxString aTitle;
+							// IDS_INVALID_DATA_BOX_TITLE
+							aTitle = _("Invalid Data For Current Book Folder");
+							wxString msg1;
+							// IDS_WRONG_THREELETTER_CODE_A
+							msg1 = msg1.Format(_(
 "The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"),
-												theCode.c_str(),seeNameStr.c_str());
-								wxString msg2;
-								//IDS_WRONG_THREELETTER_CODE_B
-								msg2 = _(
+								theCode.c_str(),seeNameStr.c_str());
+							wxString msg2;
+							//IDS_WRONG_THREELETTER_CODE_B
+							msg2 = _(
 "\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code.");
-								msg1 += msg2; // concatenate the messages
-								wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
-								gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
+							msg1 += msg2; // concatenate the messages
+							wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
+							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
 
-								return FALSE; // returns to OnWizardFinish() in DocPage.cpp
-							}
-						}
-						else
-						{
-							// not a known code, so we'll assume we accessed random text after the \id marker,
-							// and so we just let processing proceed & the user can live with whatever happens
-							;
+							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if 
+										// that claim always is true, then no harm will be done;
+										// but if it returns FALSE to the wxWidgets doc/view
+										// framework, it partially clobbers the latter -- this can be
+										// tested by returning FALSE here and then clicking the Open
+										// icon button on the toolbar -- if that bypasses our event
+										// handlers and just directly opens the "Select a file"
+										// wxWidgets dialog, then the app is unstable and New and Open
+										// whether on the File menu or as toolbar buttons will not
+										// work right. In that case, we would need to return TRUE
+										// here, not FALSE. For now, I'll let the FALSE value remain.)
 						}
 					}
 					else
 					{
-						// if the \id marker is not in the source text file, then it is up to the user
-						// to keep the wrong data from being stored in the current book folder, so all
-						// we can do for that situation is to let processing proceed
+						// not a known code, so we'll assume we accessed random text after the \id marker,
+						// and so we just let processing proceed & the user can live with whatever happens
 						;
 					}
 				}
+				else
+				{
+					// if the \id marker is not in the source text file, then it is up to the user
+					// to keep the wrong data from being stored in the current book folder, so all
+					// we can do for that situation is to let processing proceed
+					;
+				}
+			}
 
-				// get a suitable output filename for use with the auto-save feature
-				wxString strUserTyped;
+			// get a suitable output filename for use with the auto-save feature
+			// BEW 23Aug10, changed so that if user navigation protection is in force,
+			// this dialog is not put up, and so the user will have no chance to change
+			// the filename title to anything different that the filename title of the
+			// input source text file used to create the dialog. This inability to change
+			// the filename makes the filename list's bleeding behaviour work reliably as
+			// the user successively creates documents - until when all docs have been
+			// created that can be created from the files in the Source Data folder, the
+			// list will be empty
+			wxString strUserTyped;
+			if (bUserNavProtectionInForce)
+			{
+				// don't let the user have any chance to alter the filename
+				strUserTyped = fileTitle; // while the RHS suggests it's a fileTitle, it's
+                        // actually still got the filename extension on it (if there was
+                        // one there originally); it doesn't get removed until
+                        // SetDocumentWindowTitle() is called below
+				// remove any extension user may have typed -- we'll keep control ourselves
+				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
+											// returned as the last parameter in the signature
+				// for XML output
+				pApp->m_curOutputFilename = strUserTyped + _T(".xml");
+				pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK");
+			}
+			else
+			{
+				// legacy behaviour, the file title can be user-edited or typed to be
+				// anything he wants
 				COutputFilenameDlg dlg(GetDocumentWindow());
 				dlg.Centre();
 				dlg.m_strFilename = fileTitle;
@@ -635,18 +875,16 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// get the filename
 					strUserTyped = dlg.m_strFilename;
 					
-					// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
-					// with bad characters in it.
+                    // The COutputFilenameDlg::OnOK() handler checks for duplicate file
+                    // name or a file name with bad characters in it.
 					// abort the operation if user gave no explicit or bad output filename
 					if (strUserTyped.IsEmpty())
 					{
 						// warn user to specify a non-null document name with valid chars
-						// IDS_EMPTY_OUTPUT_FILENAME
 						if (strUserTyped.IsEmpty())
 							wxMessageBox(_(
 "Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."),
-										_T(""),wxICON_INFORMATION);
-
+							_T(""),wxICON_INFORMATION);
 
 						// reinitialize everything
 						pApp->m_pTargetBox->ChangeValue(_T(""));
@@ -655,33 +893,29 @@ bool CAdapt_ItDoc::OnNewDocument()
 						pApp->m_curOutputFilename = _T("");
 						pApp->m_curOutputPath = _T("");
 						pApp->m_curOutputBackupFilename = _T("");
-						pApp->m_altOutputBackupFilename = _T("");
 						pView->Invalidate(); // our own
 						GetLayout()->PlaceBox();
-						return FALSE;
+						//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+						//doc/view black box on which we rely, leading to our event handlers
+						//failing to be called, so return TRUE instead
+						return TRUE;
 					}
 
-					// remove any extension user may have typed -- we'll keep control ourselves
-					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
-												// returned as the last parameter in the signature
+					// remove any extension user may have typed -- we'll keep control
+					// ourselves
+					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name 
+										// is returned as the last parameter in the signature
 
-					// BEW changed 06Aug06, and again 15Aug05
-					if (gpApp->m_bSaveAsXML) // always true in the wx version
-					{
-						// for XML output
-						pApp->m_curOutputFilename = strUserTyped + _T(".xml");
-						pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
-						// also make the alternate name be defined, in case DoFileSave() needs it
-						pApp->m_altOutputBackupFilename = strUserTyped + _T(".BAK");
-					}
-				}
+					// for XML output
+					pApp->m_curOutputFilename = strUserTyped + _T(".xml");
+					pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK");
+				} // end of true block for test: if (dlg.ShowModal() == wxID_OK)
 				else
 				{
 					// user cancelled, so cancel the New... command too
-					// IDS_NO_OUTPUT_FILENAME
 					wxMessageBox(_(
 "Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."),
-								_T(""), wxICON_INFORMATION);
+						_T(""), wxICON_INFORMATION);
 
 					// reinitialize everything
 					pApp->m_pTargetBox->ChangeValue(_T(""));
@@ -692,259 +926,280 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputBackupFilename = _T("");
 					pView->Invalidate();
 					GetLayout()->PlaceBox();
-					return FALSE;
-				}
+					//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+					//doc/view black box on which we rely, leading to our event handlers
+					//failing to be called, so return TRUE instead
+					return TRUE;
+				} // end of else block for test: if (dlg.ShowModal() == wxID_OK)
+			} // end of else block for test: if (bUserNavProtectionInForce)
 
-				// BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
-				// the window title
-				// Set the document's path to reflect user input; the destination folder will
-				// depend on whether book mode is ON or OFF; likewise for backups if turned on
-				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-				{
-					pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
-						+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-													 // config files
-				}
-				else
-				{
-					pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
-						+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-													 // config files
-				}
+            // BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
+            // the window title
+			// Set the document's path to reflect user input; the destination folder will
+			// depend on whether book mode is ON or OFF; likewise for backups if turned on
+			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+			{
+				pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
+						+ pApp->m_curOutputFilename; // to send to the app when saving
+													 // m_lastDocPath to config files
+			}
+			else
+			{
+				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
+						+ pApp->m_curOutputFilename; // to send to the app when saving
+													 // m_lastDocPath to config files
+			}
 
-				SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
-				Modify(FALSE);
+			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
+			Modify(FALSE);
 
-				// remove any optional hyphens in the source text for use by Ventura Publisher
-				// (skips over any <-> sequences, and gives new m_pBuffer contents & new 
-				// m_nInputFileLength value)
-				RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
+            // BEW added 26Aug10. In case we are loading a marked up file we earlier
+            // exported, our custom markers in the exported output would have been changed
+            // to \z-prefixed forms, \zfree, \zfree*, \znote, etc. Here we must convert
+            // back to our internal marker forms, which lack the 'z'. (The z was to support
+            // Paratext import of data containing 3rd party markers unknown to
+            // Paratext/USFM.)
+			ChangeParatextPrivatesToCustomMarkers(*pApp->m_pBuffer);
+			
+           // remove any optional hyphens in the source text for use by Ventura Publisher
+            // (skips over any <-> sequences, and gives new m_pBuffer contents & new
+            // m_nInputFileLength value)
+			RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
 
-                // whm wx version: moved the following OverwriteUSFMFixedSpaces and
-                // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
-                // if user requires, change USFM fixed spaces (marked by the !$
-                // two-character sequence) to a pair of spaces - this does not change the
-                // length of the data in the buffer
-				if (gpApp->m_bChangeFixedSpaceToRegularSpace)
-					OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
+			// whm wx version: moved the following OverwriteUSFMFixedSpaces and
+            // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
+            // if user requires, change USFM fixed spaces (marked by the ~ character) to a space - this does not change the
+            // length of the data in the buffer
+			if (gpApp->m_bChangeFixedSpaceToRegularSpace)
+				OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
 
-                // Change USFM discretionary line breaks // to a pair of spaces. We do this
-                // unconditionally because these types of breaks are not likely to be
-                // located in the same place if allowed to pass through to the target text,
-                // and are usually placed in the translation in the final typesetting
-                // stage. This does not change the length of the data in the buffer.
-				OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
+            // Change USFM discretionary line breaks // to a pair of spaces. We do this
+            // unconditionally because these types of breaks are not likely to be
+            // located in the same place if allowed to pass through to the target text,
+            // and are usually placed in the translation in the final typesetting
+            // stage. This does not change the length of the data in the buffer.
+			OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
 
 	#ifndef __WXMSW__
 	#ifndef _UNICODE
-				// whm added 12Apr2007
-				OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
+			// whm added 12Apr2007
+			OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
 	#endif
 	#endif
-				// BEW 16Dec10, added needed code to set gCurrentSfmSet to the current value
-				// of the project's SfmSet. This code has been lacking from version 3 onwards
-				// to 5.2.3 at least
-				if (gpApp->gCurrentSfmSet != gpApp->gProjectSfmSetForConfig)
-				{
-					// the project's setting is not the same as the current setting for the
-					// doc (the latter is either UsfmOnly if the app has just been launched,
-					// as that is the default; or if there was some previous doc open, it has
-					// the same value as that previous doc had)
-					gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
-				}
+			// BEW 16Dec10, added needed code to set gCurrentSfmSet to the current value
+			// of the project's SfmSet. This code has been lacking from version 3 onwards
+			// to 5.2.3 at least
+			if (gpApp->gCurrentSfmSet != gpApp->gProjectSfmSetForConfig)
+			{
+				// the project's setting is not the same as the current setting for the
+				// doc (the latter is either UsfmOnly if the app has just been launched,
+				// as that is the default; or if there was some previous doc open, it has
+				// the same value as that previous doc had)
+				gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
+			}
 
-				// parse the input file
-				int nHowMany;
-				nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
-										(int)pApp->m_nInputFileLength);
+			// parse the input file
+			int nHowMany;
+			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
+									(int)pApp->m_nInputFileLength);
 
-                // Get any unknown markers stored in the m_markers member of the Doc's
-                // source phrases whm ammended 29May06: Bruce desired that the filter
-                // status of unk markers be preserved for new documents created within the
-                // same project within the same session, so I've changed the last parameter
-                // of GetUnknownMarkersFromDoc from setAllUnfiltered to
-                // useCurrentUnkMkrFilterStatus.
-				GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, 
-										&gpApp->m_filterFlagsUnkMkrs, 
-										gpApp->m_currentUnknownMarkersStr, 
-										useCurrentUnkMkrFilterStatus);
+            // Get any unknown markers stored in the m_markers member of the Doc's
+            // source phrases whm ammended 29May06: Bruce desired that the filter
+            // status of unk markers be preserved for new documents created within the
+            // same project within the same session, so I've changed the last parameter
+            // of GetUnknownMarkersFromDoc from setAllUnfiltered to
+            // useCurrentUnkMkrFilterStatus.
+			GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, 
+									&gpApp->m_filterFlagsUnkMkrs, 
+									gpApp->m_currentUnknownMarkersStr, 
+									useCurrentUnkMkrFilterStatus);
 
 	#ifdef _Trace_UnknownMarkers
-				TRACE0("In OnNewDocument AFTER GetUnknownMarkersFromDoc (setAllUnfiltered) call:\n");
-				TRACE1(" Doc's unk mrs from arrays  = %s\n", GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
-				TRACE1(" m_currentUnknownMarkersStr = %s\n", m_currentUnknownMarkersStr);
+			TRACE0("In OnNewDocument AFTER GetUnknownMarkersFromDoc (setAllUnfiltered) call:\n");
+			TRACE1(" Doc's unk mrs from arrays  = %s\n", GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
+			TRACE1(" m_currentUnknownMarkersStr = %s\n", m_currentUnknownMarkersStr);
 	#endif
 
-				// calculate the layout in the view
-				int srcCount;
-				srcCount = pApp->m_pSourcePhrases->GetCount(); // unused
-				if (pApp->m_pSourcePhrases->IsEmpty())
-				{
-					// IDS_NO_SOURCE_DATA
-					wxMessageBox(_(
+			// calculate the layout in the view
+			int srcCount;
+			srcCount = pApp->m_pSourcePhrases->GetCount(); // unused
+			if (pApp->m_pSourcePhrases->IsEmpty())
+			{
+				// IDS_NO_SOURCE_DATA
+				wxMessageBox(_(
 "Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."),
-								_T(""), wxICON_EXCLAMATION);
+					_T(""), wxICON_EXCLAMATION);
 
-					// restore everything
-					pApp->m_pTargetBox->ChangeValue(_T(""));
-					delete pApp->m_pBuffer;
-					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-					pView->Invalidate();
-					GetLayout()->PlaceBox();
-					return FALSE;
-				}
+				// restore everything
+				pApp->m_pTargetBox->ChangeValue(_T(""));
+				delete pApp->m_pBuffer;
+				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+				pView->Invalidate();
+				GetLayout()->PlaceBox();
+				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
+							 // you want the doc/view framework to keep working right
+			}
 
-				// try this for the refactored layout design....
-				CLayout* pLayout = GetLayout();
-				pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
-							// UpdateTextHeights() and calls other relevant setters
+			// try this for the refactored layout design....
+			CLayout* pLayout = GetLayout();
+			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+						// UpdateTextHeights() and calls other relevant setters
 #ifdef _NEW_LAYOUT
-				bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
-				bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #endif
-				if (!bIsOK)
+			if (!bIsOK)
+			{
+				// unlikely to fail, so just have something for the developer here
+				wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"),
+				_T(""), wxICON_STOP);
+				wxASSERT(FALSE);
+				wxExit();
+			}
+
+			// mark document as modified
+			Modify(TRUE);
+
+			// show the initial phraseBox - place it at the first empty target slot
+			pApp->m_pActivePile = GetPile(0);
+
+			pApp->m_nActiveSequNum = 0;
+			bool bTestForKBEntry = FALSE;
+			CKB* pKB;
+			if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
+							  // but I will code for safety, since it can be handled okay
+			{
+				bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry;
+				pKB = pApp->m_pGlossingKB;
+			}
+			else
+			{
+				bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry;
+				pKB = pApp->m_pKB;
+			}
+			if (bTestForKBEntry)
+			{
+				// it's not an empty slot, so search for the first empty one & do it there; but if
+				// there are no empty ones, then revert to the first pile
+				CPile* pPile = pApp->m_pActivePile;
+				pPile = pView->GetNextEmptyPile(pPile);
+				if (pPile == NULL)
 				{
-					// unlikely to fail, so just have something for the developer here
-					wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"),
-					_T(""), wxICON_STOP);
-					wxASSERT(FALSE);
-					wxExit();
-				}
-
-				// mark document as modified
-				Modify(TRUE);
-
-				// show the initial phraseBox - place it at the first empty target slot
-				pApp->m_pActivePile = GetPile(0);
-
-				pApp->m_nActiveSequNum = 0;
-				bool bTestForKBEntry = FALSE;
-				CKB* pKB;
-				if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
-								  // but I will code for safety, since it can be handled okay
-				{
-					bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry;
-					pKB = pApp->m_pGlossingKB;
+					// there was none, so we must place the box at the first pile
+					pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+					pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+					pView->Invalidate();
+					pApp->m_nActiveSequNum = 0;
+					gnOldSequNum = -1; // no previous location exists yet
+					// get rid of the stored rebuilt source text, leave a space there instead
+					if (pApp->m_pBuffer)
+						*pApp->m_pBuffer = _T(' ');
+					return TRUE;
 				}
 				else
 				{
-					bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry;
-					pKB = pApp->m_pKB;
+					pApp->m_pActivePile = pPile;
+					pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 				}
-				if (bTestForKBEntry)
-				{
-					// it's not an empty slot, so search for the first empty one & do it there; but if
-					// there are no empty ones, then revert to the first pile
-					CPile* pPile = pApp->m_pActivePile;
-					pPile = pView->GetNextEmptyPile(pPile);
-					if (pPile == NULL)
-					{
-						// there was none, so we must place the box at the first pile
-						pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-						pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
-						pView->Invalidate();
-						pApp->m_nActiveSequNum = 0;
-						gnOldSequNum = -1; // no previous location exists yet
-						// get rid of the stored rebuilt source text, leave a space there instead
-						if (pApp->m_pBuffer)
-							*pApp->m_pBuffer = _T(' ');
-						return TRUE;
-					}
-					else
-					{
-						pApp->m_pActivePile = pPile;
-						pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
-					}
-				}
-
-				// BEW added 10Jun09, support phrase box matching of the text colour chosen
-				if (gbIsGlossing && gbGlossingUsesNavFont)
-				{
-					pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
-				}
-				else
-				{
-					pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
-				}
-
-				// set initial location of the targetBox
-				pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
-				translation = pApp->m_targetPhrase;
-				pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-				pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
-
-				// save old sequ number in case required for toolbar's Back button - in this case 
-				// there is no earlier location, so set it to -1
-				gnOldSequNum = -1;
-
-				// set the initial global position variable
-				break;
-			}// end of case getNewFile_success
-			case getNewFile_error_at_open:
-			{
-				wxString strMessage;
-				strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
-				wxMessageBox(strMessage,_T(""), wxICON_ERROR);
-				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
-				break;
 			}
-			case getNewFile_error_opening_binary:
+
+			// BEW added 10Jun09, support phrase box matching of the text colour chosen
+			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
-                // A binary file - probably not a valid input file such as a MS Word doc.
-                // Notify user that Adapt It cannot read binary input files, and abort the
-                // loading of the file.
-				wxString strMessage = _(
-				"The file you selected for input appears to be a binary file.");
-				if (fnExtensionOnly.MakeUpper() == _T("DOC"))
-				{
-					strMessage += _T("\n");
-					strMessage += _(
-					"Adapt It cannot use Microsoft Word Document (doc) files as input files.");
-				}
-				else if (fnExtensionOnly.MakeUpper() == _T("ODT"))
-				{
-					strMessage += _T("\n");
-					strMessage += _(
-					"Adapt It cannot use OpenOffice's Open Document Text (odt) files as input files.");
-				}
-				strMessage += _T("\n");
-				strMessage += _("Adapt It input files must be plain text files.");
-				wxString strMessage2;
-				strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-				strMessage2 += _T("\n");
-				strMessage2 += strMessage;
-				wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
-				break;
+				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
 			}
-			case getNewFile_error_no_data_read:
+			else
 			{
-				// we got no data, so this constitutes a read failure
-				wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
-				break;
+				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 			}
-			case getNewFile_error_unicode_in_ansi:
+
+			// set initial location of the targetBox
+			pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
+			translation = pApp->m_targetPhrase;
+			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+			pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
+
+			// save old sequ number in case required for toolbar's Back button - in this case 
+			// there is no earlier location, so set it to -1
+			gnOldSequNum = -1;
+
+			// set the initial global position variable
+			break;
+		}// end of case getNewFile_success
+		case getNewFile_error_at_open:
+		{
+			wxString strMessage;
+			strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
+			wxMessageBox(strMessage,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			break;
+		}
+		case getNewFile_error_opening_binary:
+		{
+            // A binary file - probably not a valid input file such as a MS Word doc.
+            // Notify user that Adapt It cannot read binary input files, and abort the
+            // loading of the file.
+			wxString strMessage = _(
+			"The file you selected for input appears to be a binary file.");
+			if (fnExtensionOnly.MakeUpper() == _T("DOC"))
 			{
-				// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
-				// user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
-				// file.
-				wxString strMessage = _("The file you selected for input is a Unicode file.");
-				strMessage += _T("\n");
-				strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
 				strMessage += _T("\n");
 				strMessage += _(
-				"You should install and use the Unicode version of Adapt It to process Unicode text files.");
-				wxString strMessage2;
-				strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-				strMessage2 += _T("\n");
-				strMessage2 += strMessage;
-				wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
-				break;
+				"Adapt It cannot use Microsoft Word Document (doc) files as input files.");
 			}
-			}// end of switch()
-		} // end of else wxID_OK
+			else if (fnExtensionOnly.MakeUpper() == _T("ODT"))
+			{
+				strMessage += _T("\n");
+				strMessage += _(
+				"Adapt It cannot use OpenOffice's Open Document Text (odt) files as input files.");
+			}
+			strMessage += _T("\n");
+			strMessage += _("Adapt It input files must be plain text files.");
+			wxString strMessage2;
+			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+			strMessage2 += _T("\n");
+			strMessage2 += strMessage;
+			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			break;
+		}
+		case getNewFile_error_ansi_CRLF_not_in_sequence:
+		{
+            // this error cannot occur, because the code where it may be generated is
+            // never entered for a GetNewFile() call made in OnNewDocument, but the
+            // compiler needs a case for this enum value otherwise there is a warning
+            // generated
+			wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
+			_T(""),wxICON_ERROR);
+			break;
+		}
+		case getNewFile_error_no_data_read:
+		{
+			// we got no data, so this constitutes a read failure
+			wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+			break;
+		}
+		case getNewFile_error_unicode_in_ansi:
+		{
+			// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
+			// user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
+			// file.
+			wxString strMessage = _("The file you selected for input is a Unicode file.");
+			strMessage += _T("\n");
+			strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
+			strMessage += _T("\n");
+			strMessage += _(
+			"You should install and use the Unicode version of Adapt It to process Unicode text files.");
+			wxString strMessage2;
+			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+			strMessage2 += _T("\n");
+			strMessage2 += strMessage;
+			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			break;
+		}
+		}// end of switch()
 	}// end of if (bKBReady)
 	
 	// get rid of the stored rebuilt source text, leave a space there instead (the value of
@@ -998,32 +1253,31 @@ bool CAdapt_ItDoc::OnNewDocument()
     // something we want to do each time a doc is created (or opened) - if the local user
     // already has ownership for writing, no change is done and he retains it; but if he
     // had read only access, and the other person has relinquished the project, then the
-    // local user will now get ownership. 
-    // BEW modified 18Nov09: there is an OnFileNew() call made in OnInit() at application
-    // initialization time, and control goes to wxWidgets CreateDocument() which internally
-    // calls its OnNewDocument() function which then calls Adapt_ItDoc::OnNewDocument().
-    // If, in OnInit() we here, therefore, allow SetReadOnlyProtection() to be called,
-    // we'll end up setting read-only access off when the application is the only instance
-    // running and accessing the last used project folder (and OnInit() then has to be
-    // given code to RemoveReadOnlyProtection() immediately after the OnFileNew() call,
-    // because the latter is bogus, it is just to get the wxWidgets doc/view framework set
-    // up, and the "real" access of a project folder comes later, after OnInit() ends and
-    // OnIdle() runs and so the start working wizard runs, etc. All this is fine until we
-    // do the following: the user starts Adapt It and opens a certain project; then the
-    // user starts a second instance of Adapt It and opens the same project -- when this
-    // second process runs, and while still within the OnInit() function, it detects that
-    // the read-only protection file is currently open - and it is unable to remove it
-    // because this is not the original process (although a 'bogus' one) that obtained
-    // ownership of the project - and our code then aborts the second running Adapt It
-    // instance giving a message that it is going to abort. This is unsatisfactory because
-    // we want anyone, whether the same user or another, to be able to open a second
-    // instance of Adapt It in read-only mode to look at what is being done, safely, in the
-    // first running instance. Removing another process's open file is forbidden, so the
-    // only recourse is to prevent the 'bogus' OnFileNew() call within OnInit() from
-    // creating a read-only protection file here in OnNewDocument() if the call of the
-    // latter is caused from within OnInit(). We can do this by having an app boolean
-    // which is TRUE during OnInit() and FALSE thereafter. We'll call it:
-    // m_bControlIsWithinOnInit
+    // local user will now get ownership. BEW modified 18Nov09: there is an OnFileNew()
+    // call made in OnInit() at application initialization time, and control goes to
+    // wxWidgets CreateDocument() which internally calls its OnNewDocument() function which
+    // then calls Adapt_ItDoc::OnNewDocument(). If, therefore, we here allow
+    // SetReadOnlyProtection() to be called while control is within OnInit(), we'll end up
+    // setting read-only access off when the application is the only instance running and
+    // accessing the last used project folder (and OnInit() then has to be given code to
+    // RemoveReadOnlyProtection() immediately after the OnFileNew() call, because the
+    // latter is bogus, it is just to get the wxWidgets doc/view framework set up, and the
+    // "real" access of a project folder comes later, after OnInit() ends and OnIdle() runs
+    // and so the start working wizard runs, etc. All that is fine until the user does the
+    // following: the user starts Adapt It and opens a certain project; then the user
+    // starts a second instance of Adapt It and opens the same project -- when this second
+    // process runs, and while still within the OnInit() function, it detects that the
+    // read-only protection file is currently open - and it is unable to remove it because
+    // this is not the original process (although a 'bogus' one) that obtained ownership of
+    // the project - and our code then aborts the second running Adapt It instance giving a
+    // message that it is going to abort. This is unsatisfactory because we want anyone,
+    // whether the same user or another, to be able to open a second instance of Adapt It
+    // in read-only mode to look at what is being done, safely, in the first running
+    // instance. Removing another process's open file is forbidden, so the only recourse is
+    // to prevent the 'bogus' OnFileNew() call within OnInit() from creating a read-only
+    // protection file here in OnNewDocument() if the call of the latter is caused from
+    // within OnInit(). We can do this by having an app boolean which is TRUE during
+    // OnInit() and FALSE thereafter. We'll call it:   m_bControlIsWithinOnInit
 	if (!pApp->m_bControlIsWithinOnInit)
 	{
 		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
@@ -1045,17 +1299,1079 @@ bool CAdapt_ItDoc::OnNewDocument()
 /// Called from: the doc/view framework when wxID_SAVE event is generated. Also called from
 /// CMainFrame's SyncScrollReceive() when it is necessary to save the current document before
 /// opening another document when sync scrolling is on.
-/// OnFileSave simply calls DoFileSave().
+/// OnFileSave simply calls DoFileSave() and the latter sets an enum value of normal_save
+/// 
+/// BEW changed 28Apr10 A failure might be due to the Open call failing, in which case the
+/// document's file is probably unchanged, or an unknown error, in which case the
+/// document's file may have been truncated to zero length by the f.Open call done
+/// beforehand. So we need code added in order to recover the document; also we have to
+/// handle the possibility that the document may not yet have ever been saved, which
+/// changes what we need to do in the event of failure.
+/// BEW 29Apr10, added a public DoFileSave_Protected() file which returns boolean, because
+/// the DoFileSave() function was called in a number of places and it was dangerous if it
+/// failed (data would be lost), so I wrapped it with data protection code and called the
+/// new function DoFileSave_Protected(), and put that in place of the other throughout the
+/// app.
+/// BEW 16Apr10, added enum, for support of Save As... menu item as well as Save
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event)) 
 {
-	// I have done my own OnFileSave override because the MFC version, while appearing to work
-	// correctly (no exceptions thrown, correct full path, disk activity when expected, etc.)
-	// did not write a file to the destination folder. The folder shows all files, including
-	// hidden ones, but remained empty. Nor was the written file anywhere else on the disk. A
-	// shortcut to the file gets created in C:\Windows\Recent, with correct path to where the
-	// file should be, but it is not there (ie. in the Adaptations folder). So I will do my own.
-	DoFileSave(TRUE); // TRUE - show wait/progress dialog - don't care about return value here
+	// not interested in the returned boolean from the following call, for OnFileSave() call
+	DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
+}
+
+// a smarter wrapper for DoFileSave(), to replace where that is called in various places
+// Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),
+// OnSaveModified() and OnFilePackDoc(), the Doc's OnEditConsistencyCheck() and
+// DoConsistencyCheck(), and SplitDialog's SplitAtPhraseBoxLocation_Interactive() and
+// DoSplitIntoChapters(). Created 29Apr10.
+bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
+{
+	wxString pathToSaveFolder;
+	wxULongLong originalSize = 0;
+	wxULongLong copiedSize = 0;
+	bool bRemovedSuccessfully = TRUE;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+	bool bOutputFileExists = ::wxFileExists(gpApp->m_curOutputPath);
+	wxString prefixStr = _T("tempSave_"); // don't localize this, it's never seen
+	wxString newNameStr = prefixStr + gpApp->m_curOutputFilename;
+	wxString newFileAbsPath = pathToSaveFolder + gpApp->PathSeparator + newNameStr;
+	bool bCopiedSuccessfully = TRUE;
+	if (bOutputFileExists)
+	{
+		// make a unique renamed copy which acts as a temporary backup in case of failure
+		// in the call of DoFileSave()
+		bCopiedSuccessfully = ::wxCopyFile(gpApp->m_curOutputPath, newFileAbsPath);
+		wxASSERT(bCopiedSuccessfully);
+		wxFileName fn(gpApp->m_curOutputPath);
+		originalSize = fn.GetSize();
+		if (bCopiedSuccessfully)
+		{
+			wxFileName fnNew(newFileAbsPath);
+			copiedSize = fnNew.GetSize();
+			wxASSERT( copiedSize == originalSize);
+		}
+	}
+	// the call below to DoFileSave() requires that there be an active location - check,
+	// and and if the box is at the doc end and not visible, then put it at the end of
+	// the document before going on
+	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
+	{
+		int sequNumAtEnd = gpApp->GetMaxIndex();
+		gpApp->m_pActivePile = GetPile(sequNumAtEnd);
+		gpApp->m_nActiveSequNum = sequNumAtEnd;
+		wxString boxValue;
+		if (gbIsGlossing)
+		{
+			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		}
+		else
+		{
+			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+			translation = boxValue;
+		}
+		gpApp->m_targetPhrase = boxValue;
+		gpApp->m_pTargetBox->ChangeValue(boxValue);
+		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
+		gpApp->GetView()->Invalidate();
+	}
+
+    // SaveType enum value (2nd param) for the following call is default: normal_save BEW
+    // added type, renamed filename, and bUserCancelled params 20Aug10, because they are
+    // needed for when this DoFileSave() function is called in OnFileSaveAs(), however
+    // other than the normal_save 2nd param, they are not needed when the call is here,
+    // within DoFileSave_Protected() and so here we make no use here of the last two
+    // returned values
+	wxString renamedFilename; renamedFilename.Empty();
+	bool bUserCancelled = FALSE;
+	bool bSuccess = DoFileSave(bShowWaitDlg,normal_save,&renamedFilename,bUserCancelled);
+	if (bSuccess)
+	{
+		if (bOutputFileExists && bCopiedSuccessfully)
+		{
+			// remove the temporary backup, the original was saved successfully
+			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+			wxASSERT(bRemovedSuccessfully);
+		}
+		return TRUE;
+	}
+	else // handle failure
+	{
+		wxASSERT(!bUserCancelled); // DoFileSave_Protected shows no GUI, 
+								   // so bUserCancelled should be FALSE
+		if (bOutputFileExists)
+		{
+			if (bCopiedSuccessfully)
+			{
+                // something failed, but we have a backup to fall back on. Determine if the
+                // original remains untruncated, if so, retain it and remove the backup; if
+                // not, remove the original and rename the backup to be the original
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize == originalSize)
+					{
+						// we are in luck, the original is still good, so remove the backup
+						bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+					else
+					{
+						// the size is different, therefore the original was truncated, so
+						// restore the document file using the backup renamed
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+						bool bRenamedSuccessfully;
+						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
+						wxASSERT(bRenamedSuccessfully);
+					}
+				}
+				wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION);
+			}
+			else // the original was not copied
+			{
+                // with no backup copy to fall back on, we have to do the best we can;
+                // check if the original is still on disk: it may be, and untouched, or it
+                // may be, but truncated; in the former case, if its size is unchanged, the
+                // just retain it; but if the size is less, we must remove the truncated
+                // fragment and tell the user to do an immediate File / Save
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				bool bOutOfLuck = FALSE;
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize < originalSize)
+					{
+						// we are out of luck, the original is truncated
+						bOutOfLuck = TRUE;
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+				}
+				if (bOutOfLuck || !bSomethingOfThatNameExists)
+				{
+					// warn user to do a file save now while the doc is still in memory
+					wxString msg;
+					msg = msg.Format(_("Something went wrong. The adaptation document's file on disk was lost or destroyed. If the document is still visible, please click the Save command on the File menu immediately."));
+					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+				}
+			}
+		}
+		else // there was no original already saved to disk when OnFileSaveAs() was invoked
+		{
+			// either there is no original on disk still, or, there may be a truncated
+			// save, either way, we must remove anything there..
+			bool bTruncatedFragmentExists = ::wxFileExists(gpApp->m_curOutputPath);
+			if (bTruncatedFragmentExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+				wxASSERT(bRemovedSuccessfully);
+				// warn user to do a file save now while the doc is still in memory
+				wxString msg;
+				msg = msg.Format(_("Something went wrong. The adaptation document was not saved to disk. Please click the Save command on the File menu immediately, and if the error persists, try the Save As... command instead - if that does not work, you are out of luck and the open document will not be saved, so shut down and start again."));
+				wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+			}
+		}
+	}
+	return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return TRUE if file was successfully saved; FALSE otherwise ( the return value
+///         may not be used by some functions which call this one, such as OnFileSave()
+///         or OnFileSaveAs() )
+/// \param	bShowWaitDlg	 -> if TRUE the wait/progress dialog is shown, otherwise it 
+///                             is not shown
+/// \param  type             -> an enum value, either normal_save or, save_as, depending
+///                             whether the user chose Save or Save As... command, respectively
+/// \param  pRenamedFilename -> pointer to a string which is the new filename (it may 
+///                             have an attached extension which our code will remove 
+///                             and replace with .xml), if the user requested a rename,
+///                             but will be (default) NULL if no renamed filename was
+///                             supplied, or if the user chose Save command.
+/// \param  bUserCancelled   <- ref to boolean, to tell caller when the return was due to
+///                             user clicking the Cancel button in the OnFileSaveAs()
+///                             function, however most calls (8 of the 9) are made from
+///                             DoFileSave_Protected() and the latter makes no use of the
+///                             values returned in the 3rd and 4th params.
+/// \remarks
+/// Called from: the Doc's OnFileSaveAs(); also called within DoFileSave_Protected() where
+/// the latter is called from the following 8 functions: the App's DoAutoSaveDoc(),
+/// OnFileSave(), OnSaveModified() and OnFilePackDoc(), the Doc's OnEditConsistencyCheck()
+/// and DoConsistencyCheck(), and SplitDialog's SplitAtPhraseBoxLocation_Interactive() and
+/// DoSplitIntoChapters().
+/// Saves the current document and KB files in XML format and takes care of the necessary 
+/// housekeeping involved.
+/// Ammended for handling saving when glossing or adapting.
+/// BEW modified 13Nov09, if the local user has only read-only access to a remote
+/// project folder, the local user must not be able to cause his local copy of the 
+/// remote document to be saved to the remote user's disk; if that could happen, the
+/// remote user would almost certainly lose some of his edits
+/// BEW 16Apr10, added SaveType param, for support of Save As... menu item
+/// BEW 20Aug10, changed 2nd and 3rd params to have no default, and added the bool
+/// reference 4th param (needed for OnFileSaveAs())
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, 
+							  wxString* pRenamedFilename, bool& bUserCancelled)
+{
+	bUserCancelled = FALSE;
+
+	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
+	// save is a normal_save, but if a Save As... was asked for, the user may be about to
+	// choose a legacy doc version number for the save, in which case the call of the
+	// wxFileDialog below may result in a different value being set by the code further
+	// below 
+	RestoreCurrentDocVersion();  // assume the default
+	m_bLegacyDocVersionForSaveAs = FALSE; // initialize private member
+	m_bDocRenameRequestedForSaveAs = FALSE; // initialize private member
+	bool bDummySrcPhraseAdded = FALSE;
+	SPList::Node* posLast = NULL;
+
+	// prepare for progress dialog
+	int counter;
+	counter = 0;
+	int nTotal = 0;
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxString msgDisplayed;
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+
+	// refactored 9Mar09
+	wxFile f; // create a CFile instance with default constructor
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+	if (pApp->m_bReadOnlyAccess)
+	{
+		return TRUE; // let the caller think all is well, even though the save is suppressed
+	}
+
+    CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
+	
+	// make the working directory the "Adaptations" one; or the current Bible book folder
+	// if the m_bBookMode flag is TRUE
+
+	// There are at least three ways within wxWidgets to change the current
+	// working directory:
+	// (1) Use ChangePathTo() method of the wxFileSystem class,
+	// (2) Use the static SetCwd() method of the wxFileName class,
+	// (3) Use the global namespace method ::wxSetWorkingDirectory()
+	// We'll regularly use ::wxSetWorkingDirectory()
+	bool bOK;
+	wxString pathToSaveFolder; // use this with Save As... to prevent a change of working directory
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+	{
+		// save to the folder specified by app's member  m_bibleBooksFolderPath
+		bOK = ::wxSetWorkingDirectory(pApp->m_bibleBooksFolderPath);
+		pathToSaveFolder = pApp->m_bibleBooksFolderPath;
+	}
+	else
+	{
+		// do legacy save, to the Adaptations folder
+		bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptionsPath);
+		pathToSaveFolder = pApp->m_curAdaptionsPath;
+	}
+	if (!bOK)
+	{
+        // BEW changed 23Apr10, I've never know the working directory set call to fail if a
+        // valid path is supplied, so this would be an extraordinary situation - to proceed
+        // may or may not result in a valid save, but we risk a crash, so we should play
+        // save and abort the save attempt. But the message should not be localizable as it
+        // is almost certain that it will never be seen.
+		wxMessageBox(_T(
+		"Failed to set the current working directory. The save operation was not attempted."),
+		_T(""), wxICON_EXCLAMATION);
+		m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+		m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+		return FALSE;
+	}
+
+
+    // if the phrase box is visible and has the focus, then its contents will have been
+    // removed from the KB, so we must restore them to the KB, then after the save is done,
+    // remove them again; but only provided the pApp->m_targetBox's window exists
+    // (otherwise GetStyle call will assert)
+	bool bNoStore = FALSE;
+	bOK = FALSE;
+
+	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
+	// should be a sufficient test. 
+    // BEW 6July10, code added for handling situation when the phrase box location has just
+    // been made a <Not In KB> one (which marks all CRefString instances for that key as
+    // m_bDeleted set TRUE and also stores a <Not In KB> for that key in the adaptation KB)
+    // and then the user saves or closes and saves the document. Without this extra code,
+    // the block immediatly below would re-store the active location's adaptation string
+    // under the same key, thereby undeleting one of the deleted CRefString entries in the
+    // KB for that key -- so we must prevent this happening by testing for m_bNotInKB set
+    // TRUE in the CSourcePhrase instance there and if so, inhibiting the save
+    bool bInhibitSave = FALSE;
+
+    // BEW changed 26Oct10 to remove the wxASSERAT because if the phrasebox went past the
+    // doc end, and the user wants a save or saveAs, then this assert will trip; so we have
+    // to check and get start of doc as default active location in such a situation
+	//wxASSERT(pApp->m_pActivePile != NULL); // whm added 18Aug10
+	if (pApp->m_pActivePile == NULL)
+	{
+		// phrase box is not visible, put it at sequnum = 0 location
+		pApp->m_nActiveSequNum = 0;
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		pApp->GetView()->Jump(pApp,pSrcPhrase);
+	}
+	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (pApp->m_pTargetBox != NULL)
+	{
+		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
+		{
+			if (!gbIsGlossing)
+			{
+				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase,pApp->m_targetPhrase);
+				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
+			}
+			gbInhibitMakeTargetStringCall = TRUE;
+			if (gbIsGlossing)
+			{
+				bOK = pApp->m_pGlossingKB->StoreText(pActiveSrcPhrase,pApp->m_targetPhrase);
+			}
+			else
+			{
+				// do the store, but don't store if it is a <Not In KB> location
+				if (pActiveSrcPhrase->m_bNotInKB)
+				{
+					bInhibitSave = TRUE;
+					bOK = TRUE; // need this, otherwise the message below will get shown
+					// set the m_adaption member of the active CSourcePhrase instance,
+					// because not doing the StoreText() call means it would not otherwise
+					// get set; the above MakeTargetStringIncludingPunctuation() has
+					// already set the m_targetStr member to include any punctuation
+					// stored or typed
+					pActiveSrcPhrase->m_adaption = pApp->m_targetPhrase; // punctuation was removed above
+				}
+				else
+				{
+					bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase,pApp->m_targetPhrase);
+				}
+			}
+			gbInhibitMakeTargetStringCall = FALSE;
+			if (!bOK)
+			{
+				// something is wrong if the store did not work, but we can tolerate the error 
+				// & continue
+				wxMessageBox(_(
+"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
+				_T(""),wxICON_EXCLAMATION);
+				bNoStore = TRUE;
+			}
+			else
+			{
+				if (gbIsGlossing)
+				{
+					pActiveSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+				}
+				else
+				{
+					if (!bInhibitSave)
+					{
+						pActiveSrcPhrase->m_bHasKBEntry = TRUE;
+					}
+					else
+					{
+						bNoStore = TRUE;
+					}
+				}
+			}
+		}
+	}
+
+	// get the path correct, including correct filename extension (.xml) and the backup
+    // doc filenames too; the m_curOutputPath returns is the full path, that is, it ends
+    // with the contents of the returned m_curOutputFilename value built in; the third
+    // param may be useful in some contexts (see OnFileSave() and OnFileSaveAs()), but not
+    // here
+	wxString unwantedPathToSaveFolder;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath,
+							unwantedPathToSaveFolder); // we don't use 3rd param here
+	if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
+	{
+		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
+					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
+	}
+
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+
+	// prologue (Changed BEW 02July07 at Bob Eaton's request)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
+	DoWrite(f,aStr);
+
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
+
+	// in case file rename is wanted... from the Save As dialog
+	wxString theNewFilename = _T("");
+	bool bFileIsRenamed = FALSE;
+
+	// if Save As... was chosen, its dialog should be shown here because the xml from this
+	// point on needs to know which docVersion number to use
+	if (type == save_as)
+	{
+		// get a file dialog (note: the user may ask for a save done with a legacy doc
+		// version number in this dialog)
+		wxString defaultDir = pathToSaveFolder; // set above
+		wxString filter;
+		filter = _("New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||"); 
+		wxString filename = gpApp->m_curOutputFilename;
+
+retry:	bFileIsRenamed = FALSE;
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Save As"),
+			defaultDir,	// an empty string would cause it to use the current working directory
+			filename,	// the current document's filename
+			filter, // the SaveType option - currently there are two, default is doc version 5, the other is doc version 4
+			wxFD_SAVE ); // don't want wxFD_OVERWRITE_PROMPT as part of the style param
+						 // because if user changes filename, we'll save with the new
+						 // name and after verifying the file is on disk and okay, we'll
+						 // silently remove the old version, so that there is only one
+						 // file with the document's data after a save of any kind
+		fileDlg.Centre();
+
+		// make the dialog visible
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			// user cancelled, while this is not strictly a failure we return FALSE
+			// because the original will have been truncated, and so the caller must
+			// restore it
+			RestoreCurrentDocVersion(); // ensure a subsequent save uses latest doc version number
+			m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+			m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+			f.Close();
+			bUserCancelled = TRUE; // inform the caller that the user hit the Cancel button
+			return FALSE; 
+		}
+
+		// check that the user did not change the folder's path, the user must not be able
+		// to do this in Adapt It, the location for saving documents is fixed and the
+		// pathToSaveFolder has been set to whatever it is for this session
+		wxFileName fn(fileDlg.GetPath());
+		wxString usersChosenFolderPath = fn.GetPath();
+		if (pathToSaveFolder != usersChosenFolderPath)
+		{
+			// warn user to try again
+			wxString msg;
+			msg = msg.Format(_("You must not use the Save As... dialog to change where Adapt It stores its document files. You can only rename the file, or make a different 'Save as type' choice, or both."));
+			wxMessageBox(msg,_("Folder Change Is Not Allowed"),wxICON_WARNING);
+			goto retry;
+		}
+
+        // Determine if a file rename is wanted and ensure there is no name clash; for a
+        // clash, reenter the dialog and start afresh after warning the user, if no clash,
+        // set a boolean because we will do the rename **AFTER** document backup (which may
+        // or may not be wanted), at the end of the calling function (renames are only
+        // possible from a call of the OnFileSaveAs() function. (And document backup will
+        // also do the needed backup file renaming at the end of the BackupDocument()
+        // function -- fortunately, BackupDocument() uses an independent
+        // m_curOutputBackupFilename (an app member currently, but that may change soon so
+        // as to be on the doc class) and so the backup document file and its path updating
+        // can be done completely within BackupDocument() without affecting the delay of
+        // renaming the document until control returns to OnFileSaveAs(); and we'll leave
+        // OnFileSaveAs to do the needed path updates for the renamed doc file.)
+		theNewFilename = fileDlg.GetFilename();
+		if (theNewFilename != filename)
+		{
+			// check for illegal characters in the user's typed new filename (this code
+			// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
+			wxString fn = theNewFilename;
+			wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
+			wxString scanned = SpanExcluding(fn, illegals);
+			if (scanned != fn)
+			{
+				// there is at least one illegal character,; beep and show the illegals to the
+				// user and then re-enter the dialog to start over from scratch; illegals
+				// are characters such as:  :?*\"\|/<>
+				::wxBell();
+				wxString message;
+				message = message.Format(
+_("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."),illegals.c_str());
+				wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION);
+				theNewFilename.Empty();
+				goto retry;
+			}
+
+			// check for a name conflict
+			if (FilenameClash(theNewFilename))
+			{
+				wxString msg;
+				msg = msg.Format(_("The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another."));
+				wxMessageBox(msg,_("Conflicting Filename"),wxICON_WARNING);
+				theNewFilename.Empty();
+				goto retry;
+			}
+			else
+			{
+				bFileIsRenamed = TRUE; // theNewFilename has the renamed filename string
+			}
+		}
+		if (bFileIsRenamed)
+		{
+			m_bDocRenameRequestedForSaveAs = TRUE; // set the private member, as the caller
+												   // will need this flag for updating
+												   // the window Title, and caller will
+												   // restore its default FALSE value
+			if (theNewFilename.IsEmpty())
+			{
+				// can't use an empty string as a filename, so stick with the current one,
+				// return to the caller an empty string so that no rename is done
+				pRenamedFilename->Empty();
+			}
+			else
+			{
+				// we've a string to return to caller for it to set up the new filename;
+				// but first make sure we have an .xml extension on the new filename
+				wxString thisFilename = theNewFilename;
+				thisFilename = MakeReverse(thisFilename);
+				wxString extn = thisFilename.Left(4);
+				extn = MakeReverse(extn);
+				if (extn.GetChar(0) == _T('.'))
+				{
+					// we can assume it is an extension because it begins with a period
+					if (extn != _T(".xml"))
+					{
+						thisFilename = thisFilename.Mid(4); // remove the .adt extension or whatever
+						thisFilename = MakeReverse(thisFilename);
+						thisFilename += _T(".xml"); // it's now *.xml
+					}
+					else
+					{
+						thisFilename = MakeReverse(thisFilename); // it's already *.xml
+					}
+					*pRenamedFilename = thisFilename;
+				}
+				else // extn doesn't begin with a period
+				{
+					// assume the user didn't add and extension and that what we cut off
+					// was part of his filetitle, so add .xml to what he typed
+					theNewFilename += _T(".xml");
+					*pRenamedFilename = theNewFilename;
+				}
+			}
+		}
+		else
+		{
+			pRenamedFilename->Empty();  // tells caller no rename is wanted
+		}
+		// delay any requested doc file rename to the end of the calling function...
+		
+        // get the docVersion number the user wants used for the save, an index value of 0
+        // always uses the VERSION_NUMBER as currently set, but index values 1 or higher
+        // select a legacy docVersion number (which gives different XML structure)
+        // (currently the only other index value supported is 1, which maps to doc version
+        // 4) Don't permit the possibility of a File Type change until the tests above
+        // leading to reentrancy have been passed successfully
+		int filterIndex = fileDlg.GetFilterIndex();
+		SetDocVersion(filterIndex);
+
+		// Execution control now takes one of two paths: if the user chose filterIndex ==
+		// 0 item, which is VERSION_NUMBER's docVersion (currently == 5), then the code
+		// for a norm Save is to be executed (except that in the Save As.. dialog he may
+		// have also requested a document rename, in which case a block at the end of this
+		// function will do that as well, as well as for when he makes the docVersion 4
+		// choice). But if he chose filterIndex == 1 item, this is for docVersion set to
+		// DOCVERSION4 (always == 4), in which case extra work has to be done - deep
+		// copies of CSourcePhrase need to be created, and passed to a conversion function
+		// FromDocVersion5ToDocVersion4() and the XML built from the converted deep copy
+		// (to prevent corrupting the internal data structures which are docVersion5
+		// compliant)
+		m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
+		
+		if (m_bLegacyDocVersionForSaveAs)
+		{
+			// Saving in doc version 4 may require the addition of a doc-final dummy
+			// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
+			// but only when needed, and remove it when done. It's needed if the very last
+			// CSourcePhrase instance has a non-empty m_endMarkers member.
+			posLast = gpApp->m_pSourcePhrases->GetLast();
+			CSourcePhrase* pLastSrcPhrase = posLast->GetData();
+			wxASSERT(pLastSrcPhrase != NULL);
+			if (!pLastSrcPhrase->GetEndMarkers().IsEmpty())
+			{ 
+				// we need a dummy one at the end
+				bDummySrcPhraseAdded = TRUE;
+				int aCount = gpApp->m_pSourcePhrases->GetCount();
+				CSourcePhrase* pDummyForLast = new CSourcePhrase;
+				gpApp->m_pSourcePhrases->Append(pDummyForLast);
+				pDummyForLast->m_nSequNumber = aCount;
+			}
+		}
+	} // end of TRUE block for test: if (type == save_as)
+
+	// place the <Settings> element at the start of the doc (this has to know what the
+	// user chose for the SaveType, so this call has to be made after the
+	// SetDocVersion() call above - as that call sets the doc's save state which
+	// remains in force until changed, or restored by a RestoreCurrentDocVersion() call
+	aStr = ConstructSettingsInfoAsXML(1); // internally sets the docVersion attribute
+							// to whatever is the current value of m_docVersionCurrent
+	DoWrite(f,aStr);
+
+	// setup the progress dialog
+	nTotal = gpApp->m_pSourcePhrases->GetCount();
+	msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
+	if (bShowWaitDlg)
+	{
+		// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
+		// progress dialog here (not done in the MFC version)
+		//wxProgressDialog progDlg(_("Saving File"),
+		pProgDlg = new wxProgressDialog(_("Saving File"),
+						msgDisplayed,
+						nTotal,    // range
+						gpApp->GetMainFrame(),   // parent
+						//wxPD_CAN_ABORT |
+						//wxPD_CAN_SKIP |
+						wxPD_APP_MODAL |
+						wxPD_AUTO_HIDE //| -- try this as well
+						//wxPD_ELAPSED_TIME |
+						//wxPD_ESTIMATED_TIME |
+						//wxPD_REMAINING_TIME
+						//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+						);
+	}
+
+	// process through the list of CSourcePhrase instances, building an xml element from
+	// each
+	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+
+	// Branch and loop according to which doc version number is wanted. For a File / Save
+	// it is VERSION_NUMBER's docVersion, also that is true for a Save As... in which the
+	// top item (the default) was chosen as the filterIndex value of 0; but for a
+	// filterIndex value of 1, the choice was for a legacy save (only DOCVERSION4 is
+	// supported so far), and in this latter case, and only in this latter case, does
+	// m_bLegacyDocVersionForSaveAs have a value of TRUE
+	if (m_bLegacyDocVersionForSaveAs)
+	{
+		// user chose a legacy xml doc build, and so far there is only one such
+		// choice, which is docVersion == 4
+		wxString endMarkersStr; endMarkersStr.Empty();
+		wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
+		wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
+		while (pos != NULL)
+		{
+			if (bShowWaitDlg)
+			{
+				counter++;
+				if (counter % 1000 == 0) 
+				{
+					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
+					pProgDlg->Update(counter,msgDisplayed);
+				}
+			}
+			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			// get a deep copy, so that we can change the data to what is compatible with
+			// doc version 4 without corrupting the pSrcPhrase which remains in doc
+			// version 5
+			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+			pDeepCopy->DeepCopy();
+			
+			// do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
+			// passed in non-empty, the endmarkers are inserted internally at the start of
+			// pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
+			// inserted in the first instance of pDeepCopy->m_pSavedWords's m_markers
+			// member too); and before returning it must check for endmarkers stored on
+			// pDeepCopy (whether a merger or not makes no difference in this case) and
+			// reset endMarkersStr to whatever endmarker(s) are found there - so that the
+			// next iteration of the caller's loop can place them on the next pDeepCopy
+			// passed in. (FromDocVersion5ToDocVersion4() leverages the fact that the
+			// legacy code for docVersion 4 xml construction knows nothing about the new
+			// members m_endMarkers, m_freeTrans, etc - so as long as pDeepCopy's
+			// m_markers member is reset correctly, and m_endMarkers's content is returned
+			// to the caller for placement on the next iteration, the legacy xml code will
+			// build correct docVersion 4 xml from the docVersion 5 CSourcePhrase instances)
+			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
+										&inlineBindingEndMkrs);
+
+			pos = pos->GetNext();
+			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
+			DeleteSingleSrcPhrase(pDeepCopy,FALSE); // FALSE means "don't try delete a partner pile"
+			DoWrite(f,aStr);
+		}
+	}
+	else // use chose a normal docVersion 5 xml build
+	{
+		// this is identical to what the File / Save choice does, for building the
+		// doc's XML, for VERSION_NUMBER (currently == 5) for docVersion
+		while (pos != NULL)
+		{
+			if (bShowWaitDlg)
+			{
+				counter++;
+				if (counter % 1000 == 0) 
+				{
+					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
+					pProgDlg->Update(counter,msgDisplayed);
+				}
+			}
+			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pos = pos->GetNext();
+			aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+			DoWrite(f,aStr);
+		}
+	}
+
+	// doc closing tag
+	aStr = xml_adaptitdoc;
+	aStr = openBraceSlash + aStr; //"</" + aStr;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
+
+	// close the file
+	f.Flush();
+	f.Close();
+
+	// remove the dummy that was appended, if we did append one in the code above
+	if (type == save_as && m_bLegacyDocVersionForSaveAs)
+	{	
+		if (bDummySrcPhraseAdded)
+		{
+			posLast = gpApp->m_pSourcePhrases->GetLast();
+			CSourcePhrase* pDummyWhichIsLast = posLast->GetData();
+			wxASSERT(pDummyWhichIsLast != NULL);
+			gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
+		}
+	}
+
+	// recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath,
+	// because the path computed at the end of OnOpenDocument() will have been invalidated
+	// if the filename extension was changed by code earlier in DoFileSave()
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	{
+		gpApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + 
+									gpApp->PathSeparator + gpApp->m_curOutputFilename;
+	}
+	else
+	{
+		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath + 
+									gpApp->PathSeparator + gpApp->m_curOutputFilename;
+	}
+	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was 
+												   // used for this save operation
+	if (bShowWaitDlg)
+	{
+		progMsg = _("Please wait while Adapt It saves the KB...");
+		pProgDlg->Pulse(progMsg); // more general message during KB save
+	}
+
+	// Do the document backup if required (This call supports a docVersion 4 choice, and
+	// also a request to rename the document; by internally accessing the private members
+	// bool	m_bLegacyDocVersionForSaveAs, and bool m_bDocRenameRequestedForSaveAs either
+	// or both of which may have been changed from their default values of FALSE depending
+	// on the execution path through the code above
+	if (gpApp->m_bBackupDocument)
+	{
+		bool bBackedUpOK;
+		if (bFileIsRenamed)
+		{
+			bBackedUpOK = BackupDocument(gpApp, pRenamedFilename);
+		}
+		else
+		{
+		bBackedUpOK = BackupDocument(gpApp); // 2nd param is default NULL (no rename wanted)
+		}
+		if (!bBackedUpOK)
+		{
+			wxMessageBox(_(
+			"Warning: the attempt to backup the current document failed."),
+			_T(""), wxICON_EXCLAMATION);
+		}
+	}
+
+    // Restore the latest document version number, in case the save done above was actually
+    // a Save As... using an earlier doc version number. Must not restore earlier than
+    // this, as a call of BackupDocument() will need to know what the user's chosen state
+    // value currently is for docVersion.
+	RestoreCurrentDocVersion();
+
+	Modify(FALSE); // declare the document clean
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator + 
+			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
+	else
+		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator + 
+			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
+
+	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
+	// file, so must store both KBs, since the user could have altered both since the last
+	// save
+	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
+	gpApp->StoreKB(FALSE);
+	
+	// remove the phrase box's entry again (this code is sensitive to whether glossing is on
+	// or not, because it is an adjustment pertaining to the phrasebox contents only, to undo
+	// what was done above - namely, the entry put into either the glossing KB or the normal KB)
+	if (pApp->m_pTargetBox != NULL)
+	{
+		if (pApp->m_pTargetBox->IsShown() && 
+			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox && !bNoStore)
+		{
+			wxString emptyStr = _T("");
+			if (gbIsGlossing)
+			{
+				if (!bNoStore)
+				{
+					pApp->m_pGlossingKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(),
+													emptyStr, useGlossOrAdaptationForLookup);
+				}
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+			}
+			else
+			{
+				if (!bNoStore)
+				{
+					pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+													emptyStr, useGlossOrAdaptationForLookup);
+				}
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+			}
+		}
+	}
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
+	if (m_bLegacyDocVersionForSaveAs)
+	{
+		wxString msg;
+		wxString appVerStr;
+		appVerStr = pApp->GetAppVersionOfRunningAppAsString();
+		msg = msg.Format(_("This document (%s) is now saved on disk in the older (version 3, 4, 5) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."),gpApp->m_curOutputFilename.c_str(),appVerStr.c_str());
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	}
+	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+	return TRUE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param	event	-> wxCommandEvent (unused)
+/// \remarks
+/// Called from: the doc/view framework when wxID_SAVEAS event is generated. Also called from
+/// CMainFrame's SyncScrollReceive() when it is necessary to save the current document before
+/// opening another document when sync scrolling is on.
+/// OnFileSaveAs simply calls DoFileSave() and the latter sets an enum value of save_as
+/// 
+/// BEW changed 28Apr10 A failure might be due to the Open call failing, in which case the
+/// document's file is unchanged, or to the user clicking the Cancel buton in the Save As
+/// dialog, in which case the document's file will have been truncated to zero length by
+/// the f.Open call done before the Save As dialog was opened. So we need code added in
+/// order to recover the document, if either was the case; also we have to handle the
+/// possibility that the document may not yet have ever been saved, which changes what we
+/// need to do in the event of failure.
+/// BEW 16Apr10, added enum, for support of Save As... menu item as well as Save
+/// BEW 20Aug10, changed so that the temporary file with derived name
+/// "tempSave_<filename>.xml" is saved in the project folder, and restored from there if
+/// needed. Doing this means that the GUI never reveals it to the user, which is how it
+/// should behave.
+///////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event)) 
+{
+	SaveType saveType = save_as;
+	wxString renamedFilename; renamedFilename.Empty();
+	wxString* pRenamedFilename = &renamedFilename;
+
+	wxString pathToSaveFolder;
+	wxULongLong originalSize = 0;
+	wxULongLong copiedSize = 0;
+	bool bRemovedSuccessfully = TRUE;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+	bool bOutputFileExists = ::wxFileExists(gpApp->m_curOutputPath); // original doc file
+
+	// BEW 20Aug, make the folder for saving the temporary backup copy renamed file be the
+	// project folder - as the GUI is never opened on this folder while doing SaveAs()
+	wxString prefixStr = _T("tempSave_"); // don't localize this, it's never seen
+	wxString newNameStr = prefixStr + gpApp->m_curOutputFilename;
+	wxString newFileAbsPath = gpApp->m_curProjectPath + gpApp->PathSeparator + newNameStr;
+	bool bCopiedSuccessfully = TRUE;
+	if (bOutputFileExists)
+	{
+		// make a unique renamed copy which acts as a temporary backup in case of failure
+		// in the call of DoFileSave(), put the copy in the project folder
+		bCopiedSuccessfully = ::wxCopyFile(gpApp->m_curOutputPath, newFileAbsPath);
+		wxASSERT(bCopiedSuccessfully);
+		wxFileName fn(gpApp->m_curOutputPath);
+		originalSize = fn.GetSize();
+		if (bCopiedSuccessfully)
+		{
+			wxFileName fnNew(newFileAbsPath);
+			copiedSize = fnNew.GetSize();
+			wxASSERT( copiedSize == originalSize);
+		}
+	}
+	// in the following call, if pRenamedFilename returns an empty string, then no rename has been
+	// requested; first param, value being TRUE, means "show wait/progress dialog"
+	bool bUserCancelled = FALSE; // it's initialized to FALSE inside the DoFileSave() call to
+	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled); 
+	if (bSuccess)
+	{
+		if (bOutputFileExists && bCopiedSuccessfully)
+		{
+			// remove the temporary backup, the original was saved successfully
+			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+			wxASSERT(bRemovedSuccessfully);
+		}
+
+		// we do the rename only provided the save was successful (there won't be a
+		// filename clash because that was checked for and prevented within DoFileSave())
+		if (!pRenamedFilename->IsEmpty())
+		{
+			// a rename is wanted, set up its path and do the rename
+			wxString newAbsPath = pathToSaveFolder + gpApp->PathSeparator + renamedFilename;
+			bool bSuccess = ::wxRenameFile(gpApp->m_curOutputPath, newAbsPath);
+			if (bSuccess)
+			{
+				// update the m_curOutputFilename accordingly, and reset the path to this
+				// doc file
+				gpApp->m_curOutputFilename = renamedFilename;
+				ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+			}
+		}
+
+		if (m_bDocRenameRequestedForSaveAs)
+		{
+			// the above ValidateFilenameAndPath() will have reset m_curOutputPath to have
+			// the renamed filename in it, so we can use the latter here - to reset the
+			// filename Title in the document's window -- next bit of code pinched from
+			// OnWizardFinish()
+			wxString docPath = gpApp->m_curOutputPath;
+			wxDocTemplate* pTemplate = GetDocumentTemplate();
+			wxASSERT(pTemplate != NULL);
+			wxString typeName,fpath,fname,fext;
+			typeName = pTemplate->GetDescription(); // should be "Adapt It" or "Adapt It Unicode"
+			wxFileName fn(docPath);
+			fn.SplitPath(docPath,&fpath,&fname,&fext);
+			//pFrame->SetTitle(fname + _T(" - ") + typeName);
+			SetTitle(fname + _T(" - ") + typeName); // use the doc's call, not frame's
+			SetFilename(gpApp->m_curOutputPath,TRUE); // TRUE = notify all views
+
+			// a refresh of the status bar info would be appropriate here too
+			gpApp->RefreshStatusBarInfo();
+		}
+	}
+	else // handle failure, or a user cancel button click
+	{
+		if (bOutputFileExists)
+		{
+			if (bCopiedSuccessfully)
+			{
+				// something failed (either f.Open() failed, or user Cancelled); but we
+				// have a backup to fall back on. Determine if the original remains
+				// untruncated, if so, retain it and remove the backup; if not, remove the
+				// original and rename the backup to be the original and copy it to the
+				// same folder as the original was in
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize == originalSize)
+					{
+						// we are in luck, the original is still good, so remove the backup
+						bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+					else
+					{
+						// the size is different, therefore the original was truncated, so
+						// restore the document file using the backup renamed, & move it
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+						bool bRenamedSuccessfully;
+						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
+						wxASSERT(bRenamedSuccessfully); // and it is moved at the same time
+						// I'm not sure if it leaves the renamed file in the project
+						// folder?, probably not, but just in case... I'll test for it and
+						// if it is there, have it deleted
+						if (::wxFileExists(newFileAbsPath))
+						{
+							// it's still in the project folder, so get rid of it (ignore
+							// returned boolean)
+							::wxRemoveFile(newFileAbsPath);
+						}
+					}
+				}
+				if (!bUserCancelled)
+				{
+					// user did not hit the Cancel button, so the returned FALSE value was
+					// due to a processing error - inform the user, but keep the app alive
+					wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""),
+					wxICON_EXCLAMATION);
+				}
+			}
+			else // the original was not copied with a "tempSave_" name prefix, to project folder
+			{
+				// with no backup copy to fall back on, we have to do the best we can;
+				// check if the original is still on disk: it may be, and untouched, or it
+				// may be, but truncated due to the user cancelling the dialog; in the
+				// former case, if its size is unchanged, then just retain it; but if the
+				// size is less, we must remove the truncated fragment and tell the user
+				// to do an immediate File / Save
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				bool bOutOfLuck = FALSE;
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize < originalSize)
+					{
+						// we are out of luck, the original is truncated
+						bOutOfLuck = TRUE;
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+				}
+				if (bOutOfLuck || !bSomethingOfThatNameExists)
+				{
+					// warn user to do a file save now while the doc is still in memory
+					wxString msg;
+					msg = msg.Format(_("Something went wrong, so the document protection failed.\nThe adaptation document's file on disk was lost or destroyed, but the document in memory is still good.\nPlease click the Save command on the File menu immediately."));
+					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+				}
+			}
+		}
+		else // there was no original already saved to disk when OnFileSaveAs() was invoked
+		{
+            // either there is no original on disk still, or, there is a truncated save -
+            // which happens if the user cancelled from the Save As dialog, because a
+            // little of the document file's xml was created, and the file specifier then
+            // closed prematurely by the cancel
+			bool bTruncatedFragmentExists = ::wxFileExists(gpApp->m_curOutputPath);
+			if (bTruncatedFragmentExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+				wxASSERT(bRemovedSuccessfully);
+			}
+		}
+
+		// tell the user that if a filename rename was requested, it could not be done
+		if (!pRenamedFilename->IsEmpty() && !bUserCancelled)
+		{
+			wxString msg;
+			msg = msg.Format(_("Because the Save As was not successful, the file rename you requested could not be done."));
+			wxMessageBox(msg,_("Rename Not Done"),wxICON_WARNING);
+		}
+	}
+	m_bDocRenameRequestedForSaveAs = FALSE; // restore default
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1115,7 +2431,6 @@ void CAdapt_ItDoc::ValidateFilenameAndPath(wxString& curFilename, wxString& curP
 	curPath = pathForSaveFolder + gpApp->PathSeparator + curFilename;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \return nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
@@ -1151,6 +2466,46 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);	
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// Enables or disables menu and/or toolbar items associated with the wxID_SAVEAS
+/// identifier. If Vertical Editing is in progress the File Save As... menu item is always
+/// disabled, and this handler returns immediately. Otherwise, the item is enabled if the
+/// KB exists, and if m_pSourcePhrases has at least one item in its list, and IsModified()
+/// returns TRUE; otherwise the item is disabled.
+/// BEW modified 13Nov09, if the local user has only read-only access to a remote
+/// project folder, do not let him save his local copy of the remote document to the
+/// remote machine, otherwise the remote user is almost certainly to lose some edits
+///////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event) 
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// whm 14Jan11 removed the && IsModified() test below. Save As should be available
+	// whether the document is "dirty" or not.
+	//if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
+	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);	
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the document is successfully opened, otherwise FALSE.
@@ -1252,8 +2607,7 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	
+	wxASSERT(pApp != NULL);	
 	if (gbVerticalEditInProgress)
 	{
 		// don't allow doc closure until the vertical edit is finished
@@ -1268,7 +2622,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		// free translation mode is on, so we must first turn it off
-		gpApp->GetView()->OnAdvancedFreeTranslationMode(event);
+		gpApp->GetFreeTrans()->OnAdvancedFreeTranslationMode(event);
 	}
 	
 	bUserCancelled = FALSE; // default
@@ -1307,6 +2661,10 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	bUserCancelled = FALSE;
 	CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
 	wxASSERT(pView != NULL);
+	pView->RemoveSelection(); // required, else if a selection exists and user closes doc and
+			// does a Rebuild Knowledge Base, the m_selection array will retain hanging
+			// pointers, and Rebuild Knowledge Base's RemoveSelection() call will cause a
+			// crash
 	pView->ClobberDocument();
 
 	// delete the buffer containing the filed-in source text
@@ -1367,31 +2725,44 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the document is successfully backed up, otherwise FALSE.
-/// \param	pApp	-> currently unused
+/// \param	pApp	         -> currently unused
+/// \param  pRenamedFilename -> points to NULL (the default value), but if a valid
+///                             different filename was supplied by the user in the 
+///                             Save As dialog, then it points to the wxString which
+///                             holds that name (the caller will have verified 
+///                             beforehand that it is a valid filename))
 /// \remarks
 /// Called by the Doc's DoFileSave() function.
 /// BEW added 23June07; do no backup if gbDoingSplitOrJoin is TRUE;
 /// these operations could produce a plethora of backup docs, especially for a
 /// single-chapters document split, so we just won't permit splitting, or joining
 /// (except for the resulting joined file), or moving to generate new backups.
+/// If rename is requested, we hold off on it to the very end because it will be the case
+/// that any pre-existing backup will have the old filename, so we do the backup with the
+/// old name, and only after that do we handle the rename. (We don't support renames nor
+/// backing up when doing Split Document or Join Document either.)
+/// BEW changed 29Apr10, to allow a rename option from user's use of the rename
+/// functionality within the Save As dialog
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
+bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename)
 {
 	if (gbDoingSplitOrJoin)
 		return TRUE;
 
 	wxFile f; // create a CFile instance with default constructor
-	wxString altFilename;
 
 	// make the working directory the "Adaptations" one; or a bible book folder 
 	// if in book mode
+	wxString basePath;
 	bool bOK;
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
+		basePath = gpApp->m_bibleBooksFolderPath;
 		bOK = ::wxSetWorkingDirectory(gpApp->m_bibleBooksFolderPath);
 	}
 	else
 	{
+		basePath = gpApp->m_curAdaptionsPath;
 		bOK = ::wxSetWorkingDirectory(gpApp->m_curAdaptionsPath);
 	}
 	if (!bOK)
@@ -1410,30 +2781,35 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 		return FALSE;
 	}
 
-	// BEW changed 15Aug05 & changed again on 23Jun07
-	// m_curOutputBackupFilename and m_altOutputBackupFilename, are both defined before
-	// BackupDocument() is called -- but they can not be in compliance with the
-	// m_bSaveAsXML value, so we ensure it now. (DoFileSave() has already made this call,
-	// so it is redundant for saves to have it here, but because there may be other
-	// control paths to the BackupDocument() function, the safest thing to do is to
-	// ensure compliance immediately before the filename strings need to be used
+    // make sure the backup filename complies too (BEW added 23June07) -- the function sets
+    // m_curOutputBackupFilename based on the passed in filename string
 
-	// make sure the backup filenames comply too (BEW added 23June07) -- the function
-	// sets m_curOutputBackupFilename and m_altOutputBackupFilename based on the
-	// passed in filename string, and the current m_bSaveAsXML value; but we cannot
-	// be certain a backup with an alternative type's name will not have been already
-	// saved, so we save the current values of these filenames too so we can check for
-	// that possibility too -- that is, any backup file with the same filetitle has to
-	// go, and the BackupDocument() can be certain to write only a fully compliant type
-	wxString strSavePrimary = gpApp->m_curOutputBackupFilename;
-	wxString strSaveAlternate = gpApp->m_altOutputBackupFilename;
-	MakeOutputBackupFilenames(gpApp->m_curOutputFilename,gpApp->m_bSaveAsXML);
+    // BEW changed 29Apr10, MakeOutputBackupFilenames() will reset
+    // m_curOutputBackupFilename and if there is to be a filename rename done below, we
+    // would lose the old value of m_curOutputBackupFilename; so we store the latter so
+    // that we can be sure to remove the old backup file if it exists on disk (it won't
+    // exist, for example, if the use has only just turned on document backups), and then
+    // we'll use m_curOutputBackupFilename's contents, whether renamed or not, to create
+    // the wanted backup file
+	bool bOldBackupExists = FALSE;
+	wxString saveOldFilename = gpApp->m_curOutputBackupFilename;
+	if (pRenamedFilename == NULL)
+	{
+		// no rename is requested, so go ahead with the legacy call
+		MakeOutputBackupFilenames(gpApp->m_curOutputFilename);
+	}
+	else
+	{
+		// a rename is requested, so the first param should be the new filename
+		MakeOutputBackupFilenames(*pRenamedFilename);
+	}
 
-	// now we know all the possibilities, so remove any which have the file title
-	wxString aFilename = strSavePrimary;
+	// remove the old backup
+	wxString aFilename = saveOldFilename;
 	if (wxFileExists(aFilename))
 	{
 		// this backed up document file is on the disk, so delete it
+		bOldBackupExists = TRUE;
 		if (!::wxRemoveFile(aFilename))
 		{
 			wxString s;
@@ -1444,58 +2820,9 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 			// do nothing else, let the app continue
 		}
 	}
-	else
-	{
-		aFilename = strSaveAlternate;
-		if (wxFileExists(aFilename))
-		{
-			// this backed up document file (of alternate name) is on the disk, so delete it
-			if (!::wxRemoveFile(aFilename))
-			{
-			wxString s;
-				s = s.Format(_(
-	"Could not remove the backed up document file: %s; the application will continue"),
-				aFilename.c_str());
-				wxMessageBox(s, _T(""), wxICON_EXCLAMATION);
-				// do nothing else, let the app continue
-			}
-		}
-	}
-	aFilename = gpApp->m_curOutputBackupFilename; // try again, with the compliant 
-            // backup filenames (if we have already removed a backup file in the above
-            // block, this will do nothing
-	if (wxFileExists(aFilename))
-	{
-		// this backed up document file is on the disk, so delete it
-		if (!::wxRemoveFile(aFilename))
-		{
-			wxString s;
-			s = s.Format(_(
-	"Could not remove the backed up document file: %s; the application will continue"),
-			aFilename.c_str());
-			wxMessageBox(s, _T(""), wxICON_EXCLAMATION);
-			// do nothing else, let the app continue
-		}
-	}
-	else
-	{
-		aFilename = gpApp->m_curOutputBackupFilename;
-		if (wxFileExists(aFilename))
-		{
-			// this backed up document file (of alternate name) is on the disk,
-			// so delete it
-			if (!::wxRemoveFile(aFilename))
-			{
-			wxString s;
-				s = s.Format(_(
-	"Could not remove the backed up document file: %s; the application will continue"),
-				aFilename.c_str());
-				wxMessageBox(s, _T(""), wxICON_EXCLAMATION);
-				// do nothing else, let the app continue
-			}
-		}
-	}
-	// the new backup will have the name which is in m_curOutputBackupFilename
+
+	// the new backup will have the name which is now in m_curOutputBackupFilename,
+	// whether based on the original filename, or a user-renamed filename
 	int len = gpApp->m_curOutputBackupFilename.Length();
 	if (gpApp->m_curOutputBackupFilename.IsEmpty() || len <= 4)
 	{
@@ -1517,40 +2844,71 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 		"Could not open a file stream for backup, in BackupDocument(), for file %s"),
 		gpApp->m_curOutputBackupFilename.c_str());
 		wxMessageBox(s,_T(""),wxICON_EXCLAMATION);
+		// if f failed to Open(), we've just lost any earlier backup file we already had;
+		// well, we could build some protection code but we'll not bother as failure to
+		// Open() is unlikely, and it's only a backup which gets lost - presumably the doc
+		// file itself is still good
 		return FALSE; 
 	}
 
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: 
+			// deprecated conversion from string constant to 'char*'"
+
+	// prologue (BEW changed 02July07 to use Bob's huge switch in the
+	// GetEncodingStrongForXmlFiles() function which he did, to better support
+	// legacy KBs & doc conversions in SILConverters conversion engines)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
+	DoWrite(f,aStr);
+
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n 
+								// so we don't need to add them here
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n";
+	DoWrite(f,aStr);
+
+	// place the <Settings> element at the start of the doc
+	aStr = ConstructSettingsInfoAsXML(1);
+	DoWrite(f,aStr);
+
+	// add the list of sourcephrases
+	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+
+	if (m_bLegacyDocVersionForSaveAs)
 	{
-		CSourcePhrase* pSrcPhrase;
-		CBString aStr;
-		CBString openBraceSlash = "</"; // to avoid "warning: 
-				// deprecated conversion from string constant to 'char*'"
+		// user chose a legacy xml doc build, and so far there is only one such
+		// choice, which is docVersion == 4
+		wxString endMarkersStr; endMarkersStr.Empty();
+		wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
+		wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
+		while (pos != NULL)
+		{
+			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+            // get a deep copy, so that we can change the data to what is compatible
+            // with docc version 4 without corrupting the pSrcPhrase which remains in
+            // doc version 5
+			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+			pDeepCopy->DeepCopy();
+			
+			// see comments in DoFileSave()
+			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
+										&inlineBindingEndMkrs);
 
-		// prologue (BEW changed 02July07 to use Bob's huge switch in the
-		// GetEncodingStrongForXmlFiles() function which he did, to better support
-		// legacy KBs & doc conversions in SILConverters conversion engines)
-		gpApp->GetEncodingStringForXmlFiles(aStr);
-		DoWrite(f,aStr);
-
-		// add the comment with the warning about not opening the XML file in MS WORD 
-		// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-		// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-		// the latter goes into an infinite loop when the file is being parsed in.
-		aStr = MakeMSWORDWarning(); // the warning ends with \r\n 
-									// so we don't need to add them here
-		// doc opening tag
-		aStr += "<";
-		aStr += xml_adaptitdoc;
-		aStr += ">\r\n";
-		DoWrite(f,aStr);
-
-		// place the <Settings> element at the start of the doc
-		aStr = ConstructSettingsInfoAsXML(1);
-		DoWrite(f,aStr);
-
-		// add the list of sourcephrases
-		SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+			pos = pos->GetNext();
+			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
+			DeleteSingleSrcPhrase(pDeepCopy,FALSE); // FALSE means "don't try delete a partner pile"
+			DoWrite(f,aStr);
+		}
+	}
+	else // use chose a normal docVersion 5 xml build
+	{
 		while (pos != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -1558,21 +2916,44 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 			aStr = pSrcPhrase->MakeXML(1);
 			DoWrite(f,aStr);
 		}
+	}
+	// doc closing tag
+	aStr = xml_adaptitdoc;
+	aStr = openBraceSlash + aStr; //"</" + aStr;
+	aStr += ">\r\n";
+	DoWrite(f,aStr);
 
-		// doc closing tag
-		aStr = xml_adaptitdoc;
-		aStr = openBraceSlash + aStr; //"</" + aStr;
-		aStr += ">\r\n";
-		DoWrite(f,aStr);
-
-		// close the file
-		f.Close();
-		f.Flush();
-	}	
+	// close the file
+	f.Close();
+	f.Flush();
 	if (bFailed)
 		return FALSE;
 	else
 		return TRUE;
+}
+
+int CAdapt_ItDoc::GetCurrentDocVersion()
+{
+	return m_docVersionCurrent;
+}
+
+void CAdapt_ItDoc::RestoreCurrentDocVersion()
+{
+	m_docVersionCurrent = (int)VERSION_NUMBER; // VERSION_NUMBER is #defined in AdaptitConstants.h
+}
+
+void CAdapt_ItDoc::SetDocVersion(int index)
+{	
+	switch (index)
+	{
+	default: // default to the current doc version number
+	case 0:
+		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 5 in AdaptitConstant.h
+		break;
+	case 1:
+		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstant.h
+		break;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1601,7 +2982,6 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 		bstr += "\t"; // tab the start of the line
 	}
 	bstr += "<Settings docVersion=\"";
-	tempStr.Empty();
     // wx note: The itoa() operator is Microsoft specific and not standard; unknown to g++
     // on Linux/Mac. The wxSprintf() statement below in Unicode build won't accept CBString
     // or char numStr[24] for first parameter, therefore, I'll simply do the int to string
@@ -1609,7 +2989,9 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
     // to UTF-8 with Bruce's Convert16to8() method. [We could also do it here directly with
     // wxWidgets' conversion macros rather than calling Convert16to8() - see the
     // Convert16to8() function in the App.]
-	tempStr << (int)VERSION_NUMBER; // tempStr is UTF-16
+	tempStr.Empty();
+    // BEW 19Apr10, changed next line for support of Save As... command
+	tempStr << GetCurrentDocVersion(); // tempStr is UTF-16
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add versionable schema number string
 
@@ -1685,7 +3067,8 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	// operator here as I did in the Unicode build block above, so the code below should be the same
 	// as that for the Unicode version except for the Unicode version's use of Convert16to8().
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << (int)VERSION_NUMBER;
+    // BEW 19Apr10, changed next line for support of Save As... command
+	tempStr << GetCurrentDocVersion();
 	numStr = tempStr;
 	bstr += numStr; // add versionable schema number string
 	bstr += "\" sizex=\"";
@@ -2146,643 +3529,19 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return TRUE if file was successfully saved; FALSE otherwise
-/// \param	bShowWaitDlg	-> if TRUE the wait/progress dialog is shown, otherwise it is not shown
-/// \remarks
-/// Called from: the App's DoAutoSaveDoc(), the Doc's OnFileSave(), OnSaveModified() and
-/// OnFilePackDoc(), the View's OnEditConsistencyCheck() and DoConsistencyCheck(), and
-/// SplitDialog's SplitAtPhraseBoxLocation_Interactive() and DoSplitIntoChapters().
-/// Saves the current document and KB files in XML format and takes care of the necessary 
-/// housekeeping involved.
-/// Ammended for handling saving when glossing or adapting.
-/// BEW modified 13Nov09, if the local user has only read-only access to a remote
-/// project folder, the local user must not be able to cause his local copy of the 
-/// remote document to be saved to the remote user's disk; if that could happen, the
-/// remote user would almost certainly lose some of his edits
-///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
-{
-
-	// refactored 9Mar09
-	wxFile f; // create a CFile instance with default constructor
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-
-	if (pApp->m_bReadOnlyAccess)
-	{
-		return TRUE; // let the caller think all is well, evene though the save is suppressed
-	}
-
-    CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
-	
-	// make the working directory the "Adaptations" one; or the current Bible book folder
-	// if the m_bBookMode flag is TRUE
-
-	// There are at least three ways within wxWidgets to change the current
-	// working directory:
-	// (1) Use ChangePathTo() method of the wxFileSystem class,
-	// (2) Use the static SetCwd() method of the wxFileName class,
-	// (3) Use the global namespace method ::wxSetWorkingDirectory()
-	// We'll regularly use ::wxSetWorkingDirectory()
-	bool bOK;
-	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
-	{
-		// save to the folder specified by app's member  m_bibleBooksFolderPath
-		bOK = ::wxSetWorkingDirectory(pApp->m_bibleBooksFolderPath);
-	}
-	else
-	{
-		// do legacy save, to the Adaptations folder
-		bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptionsPath);
-	}
-	if (!bOK)
-	{
-		// ??? Should we just return FALSE or give the user the following error message ???
-		// Comment out the error message below if it is redundant
-		wxMessageBox(_(
-		"Failed to set the current directory to the Adaptations folder. Command aborted."),
-		_T(""), wxICON_EXCLAMATION);
-		return FALSE;
-	}
-
-    // if the phrase box is visible and has the focus, then its contents will have been
-    // removed from the KB, so we must restore them to the KB, then after the save is done,
-    // remove them again; but only provided the pApp->m_targetBox's window exists
-    // (otherwise GetStyle call will assert)
-	bool bNoStore = FALSE;
-	bOK = FALSE;
-
-	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
-	// should be a sufficient test. 
-	if (pApp->m_pTargetBox != NULL)
-	{
-		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
-		{
-			if (!gbIsGlossing)
-			{
-				pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
-			}
-			gbInhibitLine4StrCall = TRUE;
-			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
-			if (!bOK)
-			{
-				// something is wrong if the store did not work, but we can tolerate the error 
-				// & continue
-				// IDS_KB_STORE_FAIL
-				wxMessageBox(_(
-"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-				_T(""),wxICON_EXCLAMATION);
-				bNoStore = TRUE;
-			}
-			else
-			{
-				if (gbIsGlossing)
-					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
-				else
-					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
-			}
-		}
-	}
-
-	bool bFailed = FALSE;
-	
-	// ensure the extension is what it should be (what was opened may be a file of different
-	// type than what is to be output now, and if so then the extension must be brought into
-	// line with what the value of the m_bSaveAsXML flag happens to be, that is, .xml if that
-	// flag is TRUE, or .adt if it is FALSE)
-	wxString thisFilename = gpApp->m_curOutputFilename;
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
-	{
-		// we want an .xml extension - make it so if it happens to be .adt
-		thisFilename = MakeReverse(thisFilename);
-		wxString extn = thisFilename.Left(3);
-		extn = MakeReverse(extn);
-		if (extn != _T("xml"))
-		{
-			thisFilename = thisFilename.Mid(3); // remove the adt extension
-			thisFilename = MakeReverse(thisFilename);
-			thisFilename += _T("xml"); // it's now *.xml
-		}
-		else
-			thisFilename = MakeReverse(thisFilename); // it's already *.xml
-	}
-
-	gpApp->m_curOutputFilename = thisFilename;	// m_curOutputFilename now complies with the 
-												// m_bSaveAsXML flag's value
-
-	// make sure the backup filenames comply too (BEW added 23June07)
-	MakeOutputBackupFilenames(gpApp->m_curOutputFilename,gpApp->m_bSaveAsXML);
-
-	// the m_curOutputPath member can be redone now that m_curOutputFilename is what is wanted
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-	{
-		gpApp->m_curOutputPath = gpApp->m_bibleBooksFolderPath + 
-									gpApp->PathSeparator + gpApp->m_curOutputFilename;
-	}
-	else
-	{
-		gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + 
-									gpApp->PathSeparator + gpApp->m_curOutputFilename;
-	}
-
-
-    // m_curOutputFilename was set when user created the doc; or it an existing doc was
-    // read back in, then code above will have made the extension conform to the
-    // m_bSaveAsXML flag's value if it had the other extension (ie. binary when xml is
-    // wanted, or xml when binary is wanted)
-	if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
-	{
-		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
-					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
-	}
-
-	CSourcePhrase* pSrcPhrase;
-	CBString aStr;
-	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
-
-	// prologue (Changed BEW 02July07 at Bob Eaton's request)
-	gpApp->GetEncodingStringForXmlFiles(aStr);
-	DoWrite(f,aStr);
-
-	// add the comment with the warning about not opening the XML file in MS WORD 
-	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-	// the latter goes into an infinite loop when the file is being parsed in.
-	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
-
-	// doc opening tag
-	aStr += "<";
-	aStr += xml_adaptitdoc;
-	aStr += ">\r\n"; // eol chars OK for cross-platform???
-	DoWrite(f,aStr);
-
-	// place the <Settings> element at the start of the doc
-	aStr = ConstructSettingsInfoAsXML(1);
-	DoWrite(f,aStr);
-
-	int counter;
-	counter = 0;
-	int nTotal = gpApp->m_pSourcePhrases->GetCount();
-	wxString progMsg = _("%s  - %d of %d Total words and phrases");
-	wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = (wxProgressDialog*)NULL;
-	if (bShowWaitDlg)
-	{
-#ifdef __WXMSW__
-		// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
-		// progress dialog here (not done in the MFC version)
-		//wxProgressDialog progDlg(_("Saving File"),
-		pProgDlg = new wxProgressDialog(_("Saving File"),
-						msgDisplayed,
-						nTotal,    // range
-						gpApp->GetMainFrame(),   // parent
-						//wxPD_CAN_ABORT |
-						//wxPD_CAN_SKIP |
-						wxPD_APP_MODAL |
-						// wxPD_AUTO_HIDE | -- try this as well
-						wxPD_ELAPSED_TIME |
-						wxPD_ESTIMATED_TIME |
-						wxPD_REMAINING_TIME
-						| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-						);
-
-#else
-		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-		// notification on wxGTK and wxMAC
-		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 4;	// 4 "Please wait while Adapt It Saves the File..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
-	}
-	// add the list of sourcephrases
-	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-	while (pos != NULL)
-	{
-		if (bShowWaitDlg)
-		{
-#ifdef __WXMSW__
-			counter++;
-			if (counter % 1000 == 0) 
-			{
-				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
-				pProgDlg->Update(counter,msgDisplayed);
-			}
-#endif
-		}
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-		aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
-		DoWrite(f,aStr);
-	}
-
-	// doc closing tag
-	aStr = xml_adaptitdoc;
-	aStr = openBraceSlash + aStr; //"</" + aStr;
-	aStr += ">\r\n"; // eol chars OK for cross-platform???
-	DoWrite(f,aStr);
-
-	// close the file
-	f.Close();
-	f.Flush();
-
-	// We won't worry about any .adt files in WX version
-
-    // recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath,
-    // because the path computed at the end of OnOpenDocument() will have been invalidated
-    // if the filename extension was changed by code earlier in DoFileSave()
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-	{
-		gpApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + 
-									gpApp->PathSeparator + gpApp->m_curOutputFilename;
-	}
-	else
-	{
-		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath + 
-									gpApp->PathSeparator + gpApp->m_curOutputFilename;
-	}
-	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was 
-												   // used for this save operation
-	if (bShowWaitDlg)
-	{
-#ifdef __WXMSW__
-		progMsg = _("Please wait while Adapt It saves the KB...");
-		pProgDlg->Pulse(progMsg); // more general message during KB save
-#endif
-	}
-	// do the document backup if required
-	if (gpApp->m_bBackupDocument)
-	{
-		bool bBackedUpOK = BackupDocument(gpApp);
-		if (!bBackedUpOK)
-			//IDS_DOC_BACKUP_FAILED
-			wxMessageBox(_(
-			"Warning: the attempt to backup the current document failed."),
-			_T(""), wxICON_EXCLAMATION);
-	}
-
-	Modify(FALSE); // declare the document clean
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator + 
-			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
-	else
-		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator + 
-			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
-
-    // the KBs (whether glossing KB or normal KB) must always be kept up to date with a
-    // file, so must store both KBs, since the user could have altered both since the last
-    // save
-
-	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
-	gpApp->StoreKB(FALSE);
-	
-	// remove the phrase box's entry again (this code is sensitive to whether glossing is on
-	// or not, because it is an adjustment pertaining to the phrasebox contents only, to undo
-	// what was done above - namely, the entry put into either the glossing KB or the normal KB)
-	if (pApp->m_pTargetBox != NULL)
-	{
-		if (pApp->m_pTargetBox->IsShown() && 
-			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox && !bNoStore)
-		{
-			CRefString* pRefString;
-			if (gbIsGlossing)
-			{
-				if (!bNoStore)
-				{
-					pRefString = pView->GetRefString(pView->GetKB(), 1,
-											pApp->m_pActivePile->GetSrcPhrase()->m_key,
-											pApp->m_pActivePile->GetSrcPhrase()->m_gloss);
-					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(), 1);
-				}
-				pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-			}
-			else
-			{
-				if (!bNoStore)
-				{
-					pRefString = pView->GetRefString(pView->GetKB(),
-											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-											pApp->m_pActivePile->GetSrcPhrase()->m_key,
-											pApp->m_pActivePile->GetSrcPhrase()->m_adaption);
-					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(),
-											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords);
-				}
-				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-			}
-		}
-	}
-
-#ifdef __WXMSW__
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
-#endif
-
-	if (bFailed)
-		return FALSE;
-	else
-		return TRUE;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \return TRUE if file was successfully saved; FALSE otherwise
-/// \param	bShowWaitDlg	 -> if TRUE the wait/progress dialog is shown, otherwise it 
-///                             is not shown
-/// \param  pathName         -> path of the incoming docV5 document that will be converted
-/// \remarks
-/// Called from: 
-/// This function is only called when the application (5.2.4) detects that a KB and
-/// document are being loaded that contains the newer version 6.x.x KB (v2) and document 
-/// (v5) format. It unilaterally saves them in the older KB (v1) and document (v4) xml
-/// format, and stays quiet until such time as the 5.2.4 app encounters another project
-/// and document that has v6 format. After DoLegacyFileSave the application continues in 
-/// all respects as the 5.2.x legacy application. 
-/// whm Note: This function only gets called when there is no document displaying and
-/// no phrase box located so, I'm not worrying about code for dealing with the state
-/// of phrase box contents, etc.
-///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::DoLegacyFileSave(bool bShowWaitDlg,wxString pathName)
-{
-	bool bDummySrcPhraseAdded = FALSE;
-	SPList::Node* posLast = NULL;
-
-	// prepare for progress dialog
-	int counter;
-	counter = 0;
-	int nTotal = 0;
-	wxString progMsg = _("%s  - %d of %d Total words and phrases");
-	wxString msgDisplayed;
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
-
-	wxFile f; // create a CFile instance with default constructor
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CAdapt_ItView* pView;
-	pView = (CAdapt_ItView*) GetFirstView();
-	wxASSERT(pView != NULL);
-	
-	if (pApp->m_bReadOnlyAccess)
-	{
-		return TRUE; // let the caller think all is well, even though the save is suppressed
-	}
-
-	wxFileName fn(pathName);
-	wxString fullFileName;
-	fullFileName = fn.GetFullName();
-	wxString pathOnly;
-	pathOnly = fn.GetPath();
-
-	gpApp->m_curOutputPath = pathName;
-	gpApp->m_curOutputFilename = fullFileName;
-
-	// TODO: See DoFileSave_Protected() in 6.0.0 and build some similar protections here.
-	// because the f.Open() call below wipes out the existing document file on disk
-
-	if (!f.Open(gpApp->m_curOutputPath,wxFile::write))
-	{
-		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
-					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
-	}
-
-	CSourcePhrase* pSrcPhrase;
-	CBString aStr;
-	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
-
-	// prologue (Changed BEW 02July07 at Bob Eaton's request)
-	gpApp->GetEncodingStringForXmlFiles(aStr);
-	DoWrite(f,aStr);
-
-	// add the comment with the warning about not opening the XML file in MS WORD 
-	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-	// the latter goes into an infinite loop when the file is being parsed in.
-	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
-
-	// doc opening tag
-	aStr += "<";
-	aStr += xml_adaptitdoc;
-	aStr += ">\r\n"; // eol chars OK for cross-platform???
-	DoWrite(f,aStr);
-
-	// whm Note: We don't need a file dialog since we are using the same file names,
-	// path, etc that the v6 data has. We are also doing the equivalent of a Save As...
-	// with a Save As filter value of 1 (Legacy docV4 format). Since there is no file
-	// dialog, we also don't worry about the user having changed the folder or file
-	// name, name clashes, etc.
-
-	// Legacy documents (5.2.4 and earlier) use docVersion number 4
-
-	// Saving in doc version 4 may require the addition of a doc-final dummy
-	// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
-	// but only when needed, and remove it when done. It's needed if the very last
-	// CSourcePhrase instance has a non-empty m_endMarkers member.
-	posLast = gpApp->m_pSourcePhrases->GetLast();
-	CSourcePhrase* pLastSrcPhrase = posLast->GetData();
-	wxASSERT(pLastSrcPhrase != NULL);
-	if (!pLastSrcPhrase->m_endMarkers.IsEmpty())
-	{ 
-		// we need a dummy one at the end
-		bDummySrcPhraseAdded = TRUE;
-		int aCount = gpApp->m_pSourcePhrases->GetCount();
-		CSourcePhrase* pDummyForLast = new CSourcePhrase;
-		gpApp->m_pSourcePhrases->Append(pDummyForLast);
-		pDummyForLast->m_nSequNumber = aCount;
-	}
-
-	// place the <Settings> element at the start of the doc
-	aStr = ConstructSettingsInfoAsXML(1);
-	DoWrite(f,aStr);
-
-	// setup the progress dialog
-	nTotal = gpApp->m_pSourcePhrases->GetCount();
-	msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
-	if (bShowWaitDlg)
-	{
-		// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
-		// progress dialog here (not done in the MFC version)
-		//wxProgressDialog progDlg(_("Saving File"),
-		pProgDlg = new wxProgressDialog(_("Saving File"),
-						msgDisplayed,
-						nTotal,    // range
-						gpApp->GetMainFrame(),   // parent
-						//wxPD_CAN_ABORT |
-						//wxPD_CAN_SKIP |
-						wxPD_APP_MODAL |
-						wxPD_AUTO_HIDE //| -- try this as well
-						//wxPD_ELAPSED_TIME |
-						//wxPD_ESTIMATED_TIME |
-						//wxPD_REMAINING_TIME
-						//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-						);
-	}
-
-	// process through the list of CSourcePhrase instances, building an xml element from
-	// each
-	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-
-	wxString endMarkersStr; endMarkersStr.Empty();
-	wxString inlineNonbindingEndMkrs; inlineNonbindingEndMkrs.Empty();
-	wxString inlineBindingEndMkrs; inlineBindingEndMkrs.Empty();
-	while (pos != NULL)
-	{
-		if (bShowWaitDlg)
-		{
-			counter++;
-			if (counter % 1000 == 0) 
-			{
-				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
-				pProgDlg->Update(counter,msgDisplayed);
-			}
-		}
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		// get a deep copy, so that we can change the data to what is compatible with
-		// doc version
-		CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
-		pDeepCopy->DeepCopy();
-		
-		// do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
-		// passed in non-empty, the endmarkers are inserted internally at the start of
-		// pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
-		// inserted in the first instance of pDeepCopy->m_pSavedWords's m_markers
-		// member too); and before returning it must check for endmarkers stored on
-		// pDeepCopy (whether a merger or not makes no difference in this case) and
-		// reset endMarkersStr to whatever endmarker(s) are found there - so that the
-		// next iteration of the caller's loop can place them on the next pDeepCopy
-		// passed in. (FromDocVersion5ToDocVersion4() leverages the fact that the
-		// legacy code for docVersion 4 xml construction knows nothing about the new
-		// members m_endMarkers, m_freeTrans, etc - so as long as pDeepCopy's
-		// m_markers member is reset correctly, and m_endMarkers's content is returned
-		// to the caller for placement on the next iteration, the legacy xml code will
-		// build correct docVersion 4 xml from the docVersion 5 CSourcePhrase instances)
-		FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
-									&inlineBindingEndMkrs);
-
-		pos = pos->GetNext();
-		aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
-		DeleteSingleSrcPhrase(pDeepCopy,FALSE); // FALSE means "don't try delete a partner pile"
-		DoWrite(f,aStr);
-	}
-
-	// doc closing tag
-	aStr = xml_adaptitdoc;
-	aStr = openBraceSlash + aStr; //"</" + aStr;
-	aStr += ">\r\n"; // eol chars OK for cross-platform???
-	DoWrite(f,aStr);
-
-	// close the file
-	f.Flush();
-	f.Close();
-
-	// remove the dummy that was appended, if we did append one in the code above
-	if (bDummySrcPhraseAdded)
-	{
-		posLast = gpApp->m_pSourcePhrases->GetLast();
-		CSourcePhrase* pDummyWhichIsLast = posLast->GetData();
-		wxASSERT(pDummyWhichIsLast != NULL);
-		gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
-	}
-
-	// having used the converted pDeepCopy instances to create the docV4 XML document and
-	// having saved it to disk, we now need to set the current doc version to 4, and
-	// reload the just-saved file -- doing so control won't enter an infinite loop because
-	// being now docV4, a different path though OnOpenDocument() will be taken
-	SetLoadedDocVersion(4);
-	// clobber the existing in-RAM document first though, it's deficient anyway, as its
-	// unconverted (the call always returns TRUE, so we won't bother with the return value)
-	DeleteContents(); // of the doc
-	// reload doc
-	bool bReadOK = ReadDoc_XML(pathName,this);
-	if (!bReadOK)
-	{
-		// we don't expect this to ever fail... but do something anyway and let processing
-		// continue
-		wxString s;
-		s = _(
-"Reloading the document after converting it to the legacy format did not succeed.\nThis error is unexpected. Shut down Adapt It and then start a new session.\nIf this error persists, contact the developers, and attach the document file.");
-		wxMessageBox(s, _T(""), wxICON_ERROR);
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
-		return FALSE;
-	}
-
-
-	// recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath,
-	// because the path computed at the end of OnOpenDocument() will have been invalidated
-	// if the filename extension was changed by code earlier in DoFileSave()
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-	{
-		gpApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + 
-									gpApp->PathSeparator + gpApp->m_curOutputFilename;
-	}
-	else
-	{
-		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath + 
-									gpApp->PathSeparator + gpApp->m_curOutputFilename;
-	}
-	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was 
-												   // used for this save operation
-	if (bShowWaitDlg)
-	{
-		progMsg = _("Please wait while Adapt It saves the KB...");
-		pProgDlg->Pulse(progMsg); // more general message during KB save
-	}
-
-	// Do the document backup if required. 
-	if (gpApp->m_bBackupDocument)
-	{
-		bool bBackedUpOK;
-		bBackedUpOK = BackupDocument(gpApp); // 2nd param is default NULL (no rename wanted)
-		if (!bBackedUpOK)
-		{
-			wxMessageBox(_(
-			"Warning: the attempt to backup the current document failed."),
-			_T(""), wxICON_EXCLAMATION);
-		}
-	}
-
-    // whm Note: RestoreCurrentDocVersion() not needed for DoLegacyFileSave.
-
-	Modify(FALSE); // declare the document clean
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator + 
-			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
-	else
-		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator + 
-			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
-
-	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
-	// file, so must store both KBs, since the user could have altered both since the last
-	// save
-	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
-	gpApp->StoreKB(FALSE);
-	
-	// whm Note: No phrase box adjustments needed
-
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
-	return TRUE;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if file at path was successfully saved; FALSE otherwise
 /// \param	path	-> path of the file to be saved
 /// \remarks
-/// Called from: the App's DoTransformationsToGlosses( ) in order to save another project's 
+/// Called from: the App's DoTransformationsToGlosses( ) in order to save another project's
 /// document, which has just had its adaptations transformed into glosses in the current
 /// project. The full path is passed in - it will have been made an *.xml path in the
 /// caller.
-/// We don't have to worry about the view, since the document is not visible during any part of the 
-/// transformation process.
-/// We return TRUE if all went well, FALSE if something went wrong; but so far the caller makes no
-/// use of the returned Boolean value and just assumes the function succeeded.
-/// The save is done to a Bible book folder when that is appropriate, whether or not book mode is
-/// currently in effect.
+/// We don't have to worry about the view, since the document is not visible during any
+/// part of the transformation process.
+/// We return TRUE if all went well, FALSE if something went wrong; but so far the caller
+/// makes no use of the returned Boolean value and just assumes the function succeeded.
+/// The save is done to a Bible book folder when that is appropriate, whether or not book
+/// mode is currently in effect.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 {
@@ -2799,54 +3558,51 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 		return FALSE;
 	}
 
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: 
+				// deprecated conversion from string constant to 'char*'"
+
+	// prologue (BEW changed 02July07)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
+	DoWrite(f,aStr);
+
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so 
+								// we don't need to add them here
+
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n"; // eol chars OK in cross-platform version ???
+	DoWrite(f,aStr);
+
+	// place the <Settings> element at the start of the doc
+	aStr = ConstructSettingsInfoAsXML(1);
+	DoWrite(f,aStr);
+
+	// add the list of sourcephrases
+	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+	while (pos != NULL)
 	{
-		CSourcePhrase* pSrcPhrase;
-		CBString aStr;
-		CBString openBraceSlash = "</"; // to avoid "warning: 
-					// deprecated conversion from string constant to 'char*'"
-
-		// prologue (BEW changed 02July07)
-		gpApp->GetEncodingStringForXmlFiles(aStr);
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
 		DoWrite(f,aStr);
-	
-		// add the comment with the warning about not opening the XML file in MS WORD 
-		// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-		// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-		// the latter goes into an infinite loop when the file is being parsed in.
-		aStr = MakeMSWORDWarning(); // the warning ends with \r\n so 
-									// we don't need to add them here
-	
-		// doc opening tag
-		aStr += "<";
-		aStr += xml_adaptitdoc;
-		aStr += ">\r\n"; // eol chars OK in cross-platform version ???
-		DoWrite(f,aStr);
-
-		// place the <Settings> element at the start of the doc
-		aStr = ConstructSettingsInfoAsXML(1);
-		DoWrite(f,aStr);
-
-		// add the list of sourcephrases
-		SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-		while (pos != NULL)
-		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
-			aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
-			DoWrite(f,aStr);
-		}
-
-		// doc closing tag
-		aStr = xml_adaptitdoc;
-		aStr = openBraceSlash + aStr; //"</" + aStr;
-		aStr += ">\r\n"; // eol chars OK in cross-platform version ???
-		DoWrite(f,aStr);
-
-		// close the file
-		f.Close();
-		f.Flush();
 	}
+
+	// doc closing tag
+	aStr = xml_adaptitdoc;
+	aStr = openBraceSlash + aStr; //"</" + aStr;
+	aStr += ">\r\n"; // eol chars OK in cross-platform version ???
+	DoWrite(f,aStr);
+
+	// close the file
+	f.Close();
+	f.Flush();
 	if (bFailed)
 		return FALSE;
 	else
@@ -2932,6 +3688,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 
 	prompt = prompt.Format(_("The document %s has changed. Do you want to save it? "),name.c_str());
 	int result = wxMessageBox(prompt, _T(""), wxYES_NO | wxCANCEL); //AFX_IDP_ASK_TO_SAVE
+	wxCommandEvent dummyEvent; // BEW added 29Apr10
 	switch (result)
 	{
 	case wxCANCEL:
@@ -2939,7 +3696,10 @@ bool CAdapt_ItDoc::OnSaveModified()
 
 	case wxYES:
 		// If so, either Save or Update, as appropriate
-		bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog	
+        // BEW changed 29Apr10, DoFileSave_Protected() protects against loss of the
+        // document file, which is safer
+		//bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog	
+		bUserSavedDoc = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog	
 		if (!bUserSavedDoc)
 		{
 			wxMessageBox(_("Warning: document save failed for some reason.\n"),
@@ -3125,6 +3885,9 @@ bool CAdapt_ItDoc::OnSaveModified()
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) 
 {
+	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
+	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
+
 	// refactored 10Mar09
 	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc 
 	
@@ -3163,9 +3926,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	extension.MakeLower();
 	wxASSERT(extension[0] == _T('.')); // check it really is an extension
 	bool bWasXMLReadIn = TRUE;
-	SetLoadedDocVersion(4); // whm 12Jan11 assume DocV4. Even if < 4 it doesn't matter
-							// since we are only going to call DoLegacyFileSave() if > 4.
-							// Added for automatic conversion of 6.0.0 data to 5.2.4
 
 	bool bBookMode;
 	bBookMode = gpApp->m_bBookMode; // for debugging only. 01Oct06
@@ -3183,21 +3943,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	fname = MakeReverse(fname);
 	wxString extensionlessName;
 
-    // Note: the m_bSaveAsXML flag could be TRUE or FALSE; so the user may well have opened
-    // a binary file when xml saves are wanted, or opened an xml file when binary saves are
-    // wanted. Our approach here is to just assume that what he chose to open is
-    // appropriate for the m_bSaveAsXML flag value, even if it isn't, and we set up the
-    // m_curOutputFilename, m_curOutputPath, and the backup filename & alternate filenames
-    // with the same assumptions. We actually do the check for compliance with the
-    // m_bSaveAsXML flag's value in DoFileSave() and there we make any needed switches of
-    // filename extension and reconstruct the path, and so forth to for the backup
-    // filenames (BEW added note 23June07 after scratching my head in perplexity for a long
-    // while because the code had gone cold. I've also added a MakeOutputBackupFilenames()
-    // to the doc class to help get these backup filenames correct in all circumstances
-    // where BackupDocument() is called, as I found that it was not being done right for
-    // Split Document and/or Join Document, nor in DoFileSave() -- the new function looks
-    // at the m_bSaveAsXML value and grabs m_curOutputFilename, and makes backup filenames
-    // which comply)
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
@@ -3234,36 +3979,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			}
 			return TRUE; // return TRUE to allow the user another go at it
 		}
-		// whm added 12Jan11 Test of doc version here with conversion of DocV5
-		// to DocV4 and KBv2 to KBv1 if necessary. 
-		// Determine if we've loaded a docV5 project and document, and if so,
-		// call DoLegacyFileSave() to convert it and to DocV5 to DocV4 (and KB to KBv1).
-		if (GetLoadedDocVersion() > 4)
-		{
-			// TODO: Should we notify the user that Adapt It is going to convert the document for use in
-			// this version of Adapt It? If not the following three lines should be commented out.
-			wxString msg;
-			wxString appVerStr;
-			appVerStr = gpApp->GetAppVersionOfRunningAppAsString();
-			msg = msg.Format(_("This document (%s) was created with a newer version of Adapt It.\nAdapt It will now convert it for use in this version (%s) of Adapt It."),fullFileName.c_str(),appVerStr.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
-			// Do the conversion from the newer document format, back to doc version 4;
-			// DoLegacyFileSave() does this job, it reads in the new format, converts it
-			// to the legacy storage structures, writes out the XML in docV4 format,
-			// resets the doc version to "4", and then re-loads the converted XML which
-			// has now become a standard docV4 xml file. The process should not fail, but
-			// just in case we attempt to do nothing and let the user make up his own mind
-			// what to do next - we provide a message which suggests a shut down, then a
-			// new session, but if the error persists to contact the developers and attach
-			// the errant document (to the email). DoLegacyFileSave() is called nowhere
-			// else besides here
-			bool bNoFailure = DoLegacyFileSave(TRUE,thePath);
-			if (bNoFailure == FALSE)
-			{
-				DeleteContents(); // anything of the doc read in so far
-				return TRUE; // let the user try something else
-			}
-		}
 	}
 
 	if (gpApp->m_bWantSourcePhrasesOnly) return TRUE; // Added by JF.  
@@ -3275,11 +3990,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// update the window title
 	SetDocumentWindowTitle(fname, extensionlessName);
 
-	// set the document's member for storing the filename etc - according to what the
-	// extension was on the chosen doc, then use UpdateFilenamesAndPaths() to get everything
-	// in agreement with the m_bSaveAsXML flag's value, since this value and the extension on
-	// the read in file may not be in agreement (eg. the flag may be TRUE, but the user may
-	// have clicked an .adt document produced by a legacy version of the app)
 	wxFileName fn(filename);
 	wxString filenameStr = fn.GetFullName(); //GetFileName(filename);
 	if (bWasXMLReadIn)
@@ -3294,41 +4004,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		filenameStr.Remove(0,4); //filenameStr.Delete(0,4); // remove "lmx."
 		filenameStr = MakeReverse(filenameStr);
 		filenameStr += _T(".BAK");
-		filenameStr += _T(".xml"); // produces *.BAK.xml
+		//filenameStr += _T(".xml"); // produces *.BAK.xml BEW removed 3Mar11
 	}
 	gpApp->m_curOutputBackupFilename = filenameStr;
 	gpApp->m_curOutputPath = filename;
 
-    // we also calculate the alternate backup name too, because it is possible that the
-    // backup file is binary when the doc is xml, or vise versa, or both may be the same
-    // type; so we must allow the backup one to be either type, and compute
-    // m_curOutputBackupFilename and m_altOutputBackupFilename to allow for either
-    // possibility
-	wxString thisBackupFilename = gpApp->m_curOutputBackupFilename;
-	if (bWasXMLReadIn)
-	{
-		// m_curOutputBackupFilename is of the form *.BAK.xml
-		thisBackupFilename = MakeReverse(thisBackupFilename);
-		int nFound = thisBackupFilename.Find(_T('.'));
-		wxString extn = thisBackupFilename.Left(nFound);
-		extn = MakeReverse(extn);
-		if (extn != _T("xml"))
-		{
-			// it found BAK at the end
-			thisBackupFilename = MakeReverse(thisBackupFilename);
-			gpApp->m_altOutputBackupFilename = thisBackupFilename;// the *.BAK filename is the alternative
-		}
-		else
-		{
-			// found xml at the end
-			thisBackupFilename = thisBackupFilename.Mid(4); // remove the ".xml" (reversed) at the start
-			thisBackupFilename = MakeReverse(thisBackupFilename);
-			gpApp->m_altOutputBackupFilename = thisBackupFilename; // alternative now has the form *.BAK
-		}
-	}
-    // filenames and paths for the doc and any backup are now what they should be - which
-    // might be different w.r.t. extensions from what the user actually used when opening
-    // the doc
+    // filenames and paths for the doc and any backup are now guaranteed to be 
+    // what they should be
 	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = pApp->GetView();
 //#ifdef __WXDEBUG__
@@ -3387,19 +4069,21 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// unless we here set up the required directory structures and load the document's KB
 	if (pApp->m_pKB == NULL)
 	{
-		//ensure we have the right KB & project (the parameters SetupDirectories() needs are
-		// stored in the document, so will be already serialized back in; and our override of
-		// CWinApp's OnOpenRecentFile() first does a CloseProject (which ensures m_pKB gets set to 
-		// null) before OnOpenDocument is called. WX Note: We override CMainFrame's OnMRUFile().
-		// If we did not come via a File... MRU file choice,
-		// then the m_pKB will not be null and the following call won't be made. The 
-		// SetupDirectories call has everything needed in order to silently change the project to
-		// that of the document being opened
-		// note; if gbAbortMRUOpen is TRUE, we can't open this document because it was saved
-		// formerly in folder mode, and folder mode has become disabled (due to a bad file read of
-		// books.xml or a failure to parse the XML document therein correctly) The gbAbortMRUOpen
-		// flag is only set true by a test within SetupDirectories() - and we are interested only in this
-		// after a click of an MRU item on the File menu.
+        //ensure we have the right KB & project (the parameters SetupDirectories() needs
+        //are stored in the document, so will be already serialized back in; and our
+        //override of CWinApp's OnOpenRecentFile() first does a CloseProject (which ensures
+        //m_pKB gets set to null) before OnOpenDocument is called. 
+        //WX Note: We override CMainFrame's OnMRUFile().
+        // If we did not come via a File... MRU file choice, then the m_pKB will not be
+        // null and the following call won't be made. The SetupDirectories call has
+        // everything needed in order to silently change the project to that of the
+        // document being opened
+        // Note; if gbAbortMRUOpen is TRUE, we can't open this document because it was
+        // saved formerly in folder mode, and folder mode has become disabled (due to a bad
+        // file read of books.xml or a failure to parse the XML document therein correctly)
+        // The gbAbortMRUOpen flag is only set true by a test within SetupDirectories() -
+        // and we are interested only in this after a click of an MRU item on the File
+        // menu.
 		pApp->SetupDirectories();
 		if (gbViaMostRecentFileList)
 		{
@@ -3422,7 +4106,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
             // so restore these after the call (project config file is not updated until
             // project exitted, and so the user could have changed the mode or the book
             // folder from what is in the config file)
-			pApp->GetProjectConfiguration(pApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
+			gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
 															   // is set to what it should be,
 															   // and same for gSFescapechar
 			gpApp->m_bBookMode = bSaveFlag;
@@ -3464,7 +4148,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		{
 			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 		}
-
 
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // selector = 2, because we
 			// were not at any previous location, so inhibit the initial StoreText call,
@@ -3520,8 +4203,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		{
 			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
 		}
-		// original code below
-		//bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,projectConfigFile);
 	}
 
 	// wx version addition:
@@ -3540,8 +4221,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
-	// Note: Tests of the MFC version show that OnInitialUpdate() should not be
-	// called at all from OnOpenDocument()
 
 	// BEW added 12Nov09, do the auto-export here, if asked for, and shut
 	// down the app before returning; otherwise, continue for normal user
@@ -3564,7 +4243,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		target.Empty();
 		int nTextLength;
 		nTextLength = RebuildTargetText(target);
-		FormatMarkerBufferForOutput(target);
+		FormatMarkerBufferForOutput(target, targetTextExport);
 		target = RemoveMultipleSpaces(target);
 
 		// now write out the exported data string
@@ -3699,6 +4378,7 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// OnCustomEventAdaptationsEdit(), and OnCustomEventGlossesEdit().
 /// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
 /// list.
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso)
 {
@@ -3753,6 +4433,12 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
+//#ifdef __WXDEBUG__
+//				wxString msg;
+//				msg = msg.Format(_T("Deleting    %s    at sequnum =  %d"),
+//					pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+//				wxLogDebug(msg);
+//#endif
 				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // FALSE is the
 					// value for bDoPartnerPileDeletionAlso, because it is
 					// more efficient to delete them later en masse with a call
@@ -3783,6 +4469,10 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 /// 
 /// Clears and deletes any m_pMedialMarkers, m_pMedialPuncts and m_pSavedWords before deleting
 /// pSrcPhrase itself.
+/// BEW 11Oct10, to support doc version 5's better handling of USFM fixedspace symbol ~,
+/// we also must delete instances storing word1~word2 kind of content - if ~ is present,
+/// then m_pSavedWords will contain two child CSourcePhrase pointers also to be deleted -
+/// fortunately no code changes are needed to handle this.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso)
 {
@@ -3823,7 +4513,9 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 	// will never have medial puctuation nor medial markers nor will they store
 	// any saved minimal phrases since they are CSourcePhrase instances for single
 	// words only (nor will it point to any CRefString instances) (but these will
-	// have SPList instances on heap, so must delete those)
+	// have SPList instances on heap, so must delete those) 
+	// BEW note, 11Oct10, this block will also handle deletion of conjoined words using
+	// USFM fixedspace symbol, ~
 	if (pSrcPhrase->m_pSavedWords != NULL)
 	{
 		if (pSrcPhrase->m_pSavedWords->GetCount() > 0)
@@ -3970,6 +4662,7 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 	CLayout* pLayout = GetLayout();
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed
 									 // in pSrcPhrase
+
 	PileList::Node* aPosition = NULL;
 	CPile* aPilePtr = NULL;
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
@@ -4039,8 +4732,9 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 			CStrip* pLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
 			pLastStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 			int nStripIndex = pLastStrip->GetStripIndex();
-			// BEW changed 20Jan11
-			AddUniqueInt(pLayout->GetInvalidStripArray(), nStripIndex); 
+			// BEW 20Jan11, changed to only add unique index values to the array
+			AddUniqueInt(pLayout->GetInvalidStripArray(), nStripIndex); // this array makes
+									// it easy to quickly compute which strips are invalid
 		}
 		// now do the append
 		posPile = pPiles->Append(pNewPile); // do this only after aPilePtr is calculated
@@ -4093,7 +4787,7 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		}
 
 		// mark the strip invalid and put the parent strip's index into 
-		// CLayout::m_invalidStripArray
+		// CLayout::m_invalidStripArray if it is not in the array already
 		MarkStripInvalid(pPile);
 	}
 	else
@@ -4137,9 +4831,9 @@ void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 	CStrip* pStrip = pChangedPile->GetStrip();
 	pStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 	int nStripIndex = pStrip->GetStripIndex();
-	// BEW changed 20Jan11
-	AddUniqueInt(pInvalidStripArray, nStripIndex); 
-	// this array makes it easy to quickly compute which strips are invalid
+	// BEW 20Jan11, changed to only add unique index values to the array
+	AddUniqueInt(pInvalidStripArray, nStripIndex); // this array makes it easy to quickly
+												   // compute which strips are invalid
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -4211,22 +4905,23 @@ void CAdapt_ItDoc::SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList*
 	delete pSrcPhrase;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// \return nothing
-/// \param		pSrcPhrase -> the source phrase to be deleted
-/// \param		pOtherList -> another list of source phrases
-/// \remarks
-/// Called from: the Doc's ReconstituteAfterPunctuationChange().
-/// This function calls DeleteSingleSrcPhrase() but only if pSrcPhrase is not found in
-/// pOtherList. ConditionallyDeleteSrcPhrase() deletes pSrcPhrase conditionally - the
-/// condition is whether or not its pointer is present in the pOtherList. If it occurs in
-/// that list, it is not deleted (because the other list has to continue to manage it), but
-/// if not in that list, it gets deleted. (Don't confuse this function with
-/// SmartDeleteSingleSrcPhrase() which also similarly deletes dependent on not being
-/// present in pOtherList - in that function, it is not the passed in sourcephrase which is
-/// being considered, but only each of the sourcephrase instances in its m_pSavedWords
-/// member's sublist).
-///////////////////////////////////////////////////////////////////////////////
+/* deprecated 8Mar11
+// /////////////////////////////////////////////////////////////////////////////
+// \return nothing
+// \param		pSrcPhrase -> the source phrase to be deleted
+// \param		pOtherList -> another list of source phrases
+// \remarks
+// Called from: the Doc's ReconstituteAfterPunctuationChange().
+// This function calls DeleteSingleSrcPhrase() but only if pSrcPhrase is not found in
+// pOtherList. ConditionallyDeleteSrcPhrase() deletes pSrcPhrase conditionally - the
+// condition is whether or not its pointer is present in the pOtherList. If it occurs in
+// that list, it is not deleted (because the other list has to continue to manage it), but
+// if not in that list, it gets deleted. (Don't confuse this function with
+// SmartDeleteSingleSrcPhrase() which also similarly deletes dependent on not being
+// present in pOtherList - in that function, it is not the passed in sourcephrase which is
+// being considered, but only each of the sourcephrase instances in its m_pSavedWords
+// member's sublist).
+// /////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList)
 {
 	SPList::Node* pos = pOtherList->Find(pSrcPhrase);
@@ -4241,34 +4936,105 @@ void CAdapt_ItDoc::ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPLis
 		DeleteSingleSrcPhrase(pSrcPhrase);
 	}
 }
+*/
+
+// transfer info about punctuation which got changed, but which doesn't get transferred to
+// the original pSrcPhrase (here, pDestSrcPhrase) from the new one resulting from the
+// tokenization, for a conjoined pair (the new one is pFromSrcPhrase), unless we do it herein
+void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase)
+{
+	CSourcePhrase* pDestWord1SPh = NULL;
+	CSourcePhrase* pDestWord2SPh = NULL;
+	CSourcePhrase* pFromWord1SPh = NULL;
+	CSourcePhrase* pFromWord2SPh = NULL;
+	SPList::Node* destPos = pDestSrcPhrase->m_pSavedWords->GetFirst();
+	pDestWord1SPh = destPos->GetData();
+	destPos = pDestSrcPhrase->m_pSavedWords->GetLast();
+	pDestWord2SPh = destPos->GetData();
+	SPList::Node* fromPos = pFromSrcPhrase->m_pSavedWords->GetFirst();
+	pFromWord1SPh = fromPos->GetData();
+	fromPos = pFromSrcPhrase->m_pSavedWords->GetLast();
+	pFromWord2SPh = fromPos->GetData();
+	pDestWord1SPh->m_precPunct = pFromWord1SPh->m_precPunct; // copy any m_precPunct to list's first one
+	pDestSrcPhrase->m_precPunct = pFromWord1SPh->m_precPunct; // put it also at top level
+	pDestWord2SPh->m_follPunct = pFromWord2SPh->m_follPunct; // copy any 2nd word's m_follPunct to list's second one
+	pDestSrcPhrase->m_follPunct = pFromWord2SPh->m_follPunct; // put it also at top level
+	// handle transfer of m_follOuterPunct data
+	pDestWord2SPh->SetFollowingOuterPunct(pFromWord2SPh->GetFollowingOuterPunct());
+	pDestSrcPhrase->SetFollowingOuterPunct(pFromWord2SPh->GetFollowingOuterPunct()); // put it also at top level
+	// the "outer" ones are handled, the "inner ones" are next - these are stored only on
+	// the instances in each top level's m_pSavedWords list, and so we don't also copy
+	// them to the top level
+	pDestWord1SPh->m_follPunct = pFromWord1SPh->m_follPunct;
+	// we do the next line, be it should always just be copying empty string to empty string
+	pDestWord1SPh->SetFollowingOuterPunct(pFromWord1SPh->GetFollowingOuterPunct());
+	pDestWord2SPh->m_precPunct = pFromWord2SPh->m_precPunct;
+
+	// that handles the punctuation, now we must copy across any stored inline markers; in
+	// a fixedspace conjoining, we store these only at the m_pSavedWords level, not at the
+	// top level
+	// First, do the inline ones for the first CSourcePhrase instance in m_pSavedWords
+	pDestWord1SPh->SetInlineBindingEndMarkers(pFromWord1SPh->GetInlineBindingEndMarkers());
+	pDestWord1SPh->SetInlineBindingMarkers(pFromWord1SPh->GetInlineBindingMarkers());
+	pDestWord1SPh->SetInlineNonbindingMarkers(pFromWord1SPh->GetInlineNonbindingMarkers());
+	pDestWord1SPh->SetInlineNonbindingEndMarkers(pFromWord1SPh->GetInlineNonbindingEndMarkers());
+	// Second, do the inline ones for the second CSourcePhrase instance in m_pSavedWords
+	pDestWord2SPh->SetInlineBindingEndMarkers(pFromWord2SPh->GetInlineBindingEndMarkers());
+	pDestWord2SPh->SetInlineBindingMarkers(pFromWord2SPh->GetInlineBindingMarkers());
+	pDestWord2SPh->SetInlineNonbindingMarkers(pFromWord2SPh->GetInlineNonbindingMarkers());
+	pDestWord2SPh->SetInlineNonbindingEndMarkers(pFromWord2SPh->GetInlineNonbindingEndMarkers());
+
+	// the caller will have already transferred data for m_markers and m_endMarkers at the
+	// top level; here we have to copy the first to pDestWord1SPh, and the second to pDestWord2SPh
+	pDestWord1SPh->m_markers = pDestSrcPhrase->m_markers;
+	pDestWord2SPh->SetEndMarkers(pDestSrcPhrase->GetEndMarkers());
+
+	// the lower level m_key members will need to be updated too, pFromSrcPhrase's lower
+	// level instances have the new values which need to be transferred to the lower level
+	// instances in pDestSrcPhrase
+	pDestWord1SPh->m_key = pFromWord1SPh->m_key;
+	pDestWord2SPh->m_key = pFromWord2SPh->m_key;
+	// that should do it!
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return TRUE to indicate to the caller all is OK. Except for a retranslation, return FALSE to 
-///			indicate to the caller that fixesStr must have a reference added, and the new 
-///			CSourcePhrase instances must, in the m_pSourcePhrases list, replace the pSrcPhrase 
-///			instance passed in.
+/// \return     TRUE to indicate to the caller all is OK (the pSrcPhrase was updated),
+///             otherwise return FALSE to indicate to the caller that fixesStr must have
+///             a reference added, and the new CSourcePhrase instances must be abandoned
+///             and the passed in pSrcPhrase retained unchanged
 /// \param		pView		-> pointer to the View
-/// \param		pList		-> pointer to m_pSourcePhrases
-/// \param		pos			-> the iterator position locating the passed in pSrcPhrase pointer
+/// \param		pList		-> pointer to m_pSourcePhrases (its use herein is deprecated)
+/// \param		pos			-> the iterator position locating the passed in pSrcPhrase 
+///                            pointer (its use herein is deprecated)
 /// \param		pSrcPhrase	<- pointer of the source phrase
-/// \param		fixesStr	-> currently unused
+/// \param		fixesStr	-> (its use herein is deprecated, the caller adds to it if
+///                            FALSE is returned)
 /// \param		pNewList	<- the parsed new source phrase instances
 /// \param		bIsOwned	-> specifies whether or not the pSrcPhrase passed in is one which is 
-///								owned by another sourcephrase instance or not (ie. TRUE means that 
-///								it is one of the originals stored in an owning CSourcePhrase's 
-///								m_pSavedWords list member, FALSE means it is not owned by another 
-///								and so is a candidate for adaptation/glossing and entry of its
-///								data in the KB; owned ones cannot be stored in the KB - at least 
-///								not while they continue as owned ones)
+///                            owned by another sourcephrase instance or not (ie. TRUE
+///                            means that it is one of the originals stored in an owning
+///                            CSourcePhrase's m_pSavedWords list member, FALSE means it
+///                            is not owned by another and so is a candidate for
+///                            adaptation/glossing and entry of its data in the KB;
+///                            owned ones cannot be stored in the KB - at least not
+///                            while they continue as owned ones)
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterPunctuationChange()
 /// Handles one pSrcPhrase and ignores the m_pSavedWords list, since that is handled within
-/// the ReconstituteAfterPunctuationChange() function for the owning srcPhrase with m_nSrcWords > 1.
-/// For the return value, see ReconstituteAfterPunctuationChange()'s return value - same deal applies here.
+/// the ReconstituteAfterPunctuationChange() function for the owning srcPhrase with
+/// m_nSrcWords > 1. For the return value, see ReconstituteAfterPunctuationChange()'s
+/// return value - same deal applies here.
+/// BEW 11Oct10 (actually 21Jan11) modified to use FromSingleMakeSstr(), and to use the
+/// TokenizeText() parser - but using target text and punctuation in order to obtain the
+/// punctuation-less target text
+/// BEW 8Mar11, changed so as not to try inserting new CSourcePhrase instances if the
+/// pSrcPhrase passed in results in numElements > 1 in the TokenizeTextString() call
+/// below, but just to leave pSrcPhrase unchanged in that case, abandon the new instances,
+/// and return FALSE to have the caller put an appropriate entry in fixesStr
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, 
-						SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
-						wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
+		SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos), CSourcePhrase*& pSrcPhrase, 
+		wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
 {
 	// BEW added 5Apr05
 	bool bHasTargetContent = TRUE; // assume it has an adaptation, clear below if not true
@@ -4286,17 +5052,43 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	wxString gloss; // copy of m_gloss member
 	key.Empty(); adaption.Empty(); gloss.Empty();
 
-	// setup the srcPhrase, targetStr and gloss strings - we must handle glosses too regardless of the current mode
-	// (whether adapting or not)
+    // setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
+    // regardless of the current mode (whether adapting or not)
 	int numElements = 1; // default
-	srcPhrase = pSrcPhrase->m_srcPhrase; // this member has all the source 
-										 // punctuation, if any on this word or phrase
+	wxString mMarkersStr;
+	wxString xrefStr;
+	wxString filteredInfoStr;
+	// BEW 21Jan11, changed to reconstruct srcPhrase using FromSingleMakeSstr() - which
+	// will generate any binding markers, non-binding inline markers, and punctuation from
+	// what is stored in pSrcPhrase, in their correct places
+	bool bAttachFilteredInfo = TRUE;
+	bool bAttach_m_markers = TRUE;
+	bool bDoCount = FALSE;
+	bool bCountInTargetText = FALSE;
+
+//#ifdef __WXDEBUG__
+	//int halt_here = 0;
+	//if (pSrcPhrase->m_nSequNumber >= 1921) // was 397 when [Apos was in the \x ... \x* xref
+	//if (pSrcPhrase->m_nSequNumber >= 397) // was 1921 when debugging for the heap corruption bug
+	//{
+	//	halt_here = 1;
+	//}
+	//wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5076  pSrcPhrase sn = %d  m_srcPhrase = %s"),
+	//				pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+//#endif
+
+	srcPhrase = FromSingleMakeSstr(pSrcPhrase, bAttachFilteredInfo, bAttach_m_markers, 
+					mMarkersStr, xrefStr, filteredInfoStr, bDoCount, bCountInTargetText);	
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
+	{
 		bHasTargetContent = FALSE;	// use to suppress copying of source punctuation 
 									// to an adaptation not yet existing
+	}
 	else
+	{
 		targetStr = pSrcPhrase->m_targetStr; // likewise, has punctuation, if any
+	}
 
     // handle placeholders - these have elipsis ... as their m_key and m_srcPhrase
     // members, and so there is no possibility of punctuation changes having any effect
@@ -4308,31 +5100,51 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	CSourcePhrase* pNewSrcPhrase;
 	SPList::Node* newpos;
 	if (bPlaceholder)
-		goto b;
+	{
+		// the adaptation, and gloss if any, is already presumably what the user wants, 
+		// so we'll just remove punctuation from the adaptation, and set the relevant members
+		// (m_targetStr is already correct) - but only provided there is an existing adaptation
+		pSrcPhrase->m_gloss = gloss;
+		// remove any initial or final spaces before using it
+		targetStr.Trim(TRUE); // trim right end
+		targetStr.Trim(FALSE); // trim left end
+		if (bHasTargetContent)
+		{
+			adaption = targetStr;
+			// Note: RemovePunctuation() calls ParseWord() in order to give consistent
+			// punctuation stripping with parsing text, src or tgt, in the rest of the app
+			pView->RemovePunctuation(this, &adaption, from_target_text);
+			pSrcPhrase->m_adaption = adaption;
+
+			// update the KBs (both glossing and adapting KBs) provided it is 
+			// appropriate to do so
+			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
+				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
+		}
+		return TRUE;
+	}
 
     // BEW 8Jul05: a pSrcPhrase with empty m_srcPhrase and empty m_key can't produce
     // anything when passed to TokenizeTextString, and so to prevent numElements being
     // set to zero we must here detect any such sourcephrases and just return TRUE -
     // for these punctuation changes can produce no effect
-	if (pSrcPhrase->m_srcPhrase.IsEmpty() || pSrcPhrase->m_key.IsEmpty())
+	if (pSrcPhrase->m_srcPhrase.IsEmpty() && pSrcPhrase->m_key.IsEmpty())
 		return TRUE; // causes the caller to use pSrcPhase 'as is'
 
     // reparse the srcPhrase string - if we get a single CSourcePhrase as the result,
     // we have a simple job to complete the rebuild for this passed in pSrcPhrase; if
-    // we get more than one, we'll have to abandon the adaptation or gloss and set up
-    // the flags etc accordingly, and return the two or more new instances to the
-    // caller - the caller will know what to do (eg. we might be processing an owned
-    // original CSourcePhrase instance from a former merge, and if so we'd want to
-    // collect all sibling new CSourcePhrase instances so the caller could abandon the
-    // merge and insert the collected instances into m_pSourcePhrases; and that's a
-    // different scenario from being at the top level already for a pSrcPhrase with
-    // m_pSavedWords empty and which has returned more than one new instance from the
-    // reparse - the caller will distinguish these and act accordingly)
-	
-	// important, ParseWord() doesn't work right if the first character is a space
+	// we get more than one, we'll have to do something smarter... actually, it's too
+	// complex to be smart, so we'll rely on visual editing after the fact to fix problems
+	// that may have arisen
 	srcPhrase.Trim(TRUE); // trim right end
 	srcPhrase.Trim(FALSE); // trim left end
 	numElements = pView->TokenizeTextString(pNewList, srcPhrase,  pSrcPhrase->m_nSequNumber);
+//#ifdef __WXDEBUG__
+	//if (halt_here == 1)
+	//{
+	//	wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5145  numElements = %d "),numElements);
+	//}
+//#endif
 	wxASSERT(numElements >= 1);
 	pNewSrcPhrase = NULL;
 	newpos = NULL;
@@ -4345,157 +5157,101 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
         // punctuation. The simplest direction for this copy is to copy from the parsed
         // new source phrase instance back to the original, since only m_key,
         // m_adaption, m_targetStr, precPunct and follPunct can possibly be different
-        // in the new parse
+		// in the new parse; it's unlikely m_srcPhrase will have changed, but just in case
+		// I'll copy that too
 		fpos = pNewList->GetFirst();
 		pNewSrcPhrase = fpos->GetData();
+
+		// BEW changed 10Mar11, so as to not copy anything other than the things affected,
+		// as noted in the comment above. I'll leave the old code, which copied everything
+		// redundantly, just in case I later change my mind.
+		/* deprecated 10Mar11
+		// first, copy over the flags
+		CopyFlags(pNewSrcPhrase,pSrcPhrase); // copies boolean flags from param2 to param1
+
+		// next, info not handled by ParseWord()
+		pSrcPhrase->m_curTextType = pNewSrcPhrase->m_curTextType;
+		pSrcPhrase->m_inform = pNewSrcPhrase->m_inform;
+		pSrcPhrase->m_chapterVerse = pNewSrcPhrase->m_chapterVerse;
+		pSrcPhrase->m_markers = pNewSrcPhrase->m_markers;
+		pSrcPhrase->m_nSequNumber = pNewSrcPhrase->m_nSequNumber;
+		*/
+		// next the text info and m_markers member
+		pSrcPhrase->m_srcPhrase = pNewSrcPhrase->m_srcPhrase;
 		pSrcPhrase->m_key = pNewSrcPhrase->m_key;
 		pSrcPhrase->m_precPunct = pNewSrcPhrase->m_precPunct;
 		pSrcPhrase->m_follPunct = pNewSrcPhrase->m_follPunct;
-
+		/* deprecated 10Mar11
+		pSrcPhrase->m_markers = pNewSrcPhrase->m_markers;
+		*/ 
+		// finally, the new docV5 members...
+		pSrcPhrase->SetFollowingOuterPunct(pNewSrcPhrase->GetFollowingOuterPunct());
+		/* deprecated 10Mar11
+		pSrcPhrase->SetInlineBindingEndMarkers(pNewSrcPhrase->GetInlineBindingEndMarkers());
+		pSrcPhrase->SetInlineBindingMarkers(pNewSrcPhrase->GetInlineBindingMarkers());
+		pSrcPhrase->SetInlineNonbindingMarkers(pNewSrcPhrase->GetInlineNonbindingMarkers());
+		pSrcPhrase->SetInlineNonbindingEndMarkers(pNewSrcPhrase->GetInlineNonbindingEndMarkers());
+		pSrcPhrase->SetEndMarkers(pNewSrcPhrase->GetEndMarkers());
+		pSrcPhrase->SetNote(pNewSrcPhrase->GetNote());
+		pSrcPhrase->SetFreeTrans(pNewSrcPhrase->GetFreeTrans());
+		pSrcPhrase->SetCollectedBackTrans(pNewSrcPhrase->GetCollectedBackTrans());
+		pSrcPhrase->SetFilteredInfo(pNewSrcPhrase->GetFilteredInfo());
+		*/
 		// the adaptation, and gloss if any, is already presumably what the user wants, 
 		// so we'll just remove punctuation from the adaptation, and set the relevant members
 		// (m_targetStr is already correct) - but only provided there is an existing adaptation
-b:		pSrcPhrase->m_gloss = gloss;
+		/* deprecated 10Mar11
+		pSrcPhrase->m_gloss = gloss;
+		*/
 		// remove any initial or final spaces before using it
 		targetStr.Trim(TRUE); // trim right end
 		targetStr.Trim(FALSE); // trim left end
+		pSrcPhrase->m_targetStr = targetStr;
 		if (bHasTargetContent)
 		{
 			adaption = targetStr;
-			pView->RemovePunctuation(this,&adaption,from_target_text); // 1 = from tgt
+			pView->RemovePunctuation(this,&adaption,from_target_text);
 			pSrcPhrase->m_adaption = adaption;
 
 			// update the KBs (both glossing and adapting KBs) provided it is 
 			// appropriate to do so
 			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
-				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
+				pView->StoreKBEntryForRebuild(pSrcPhrase, pSrcPhrase->m_adaption, pSrcPhrase->m_gloss);
 		}
-
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			// it's a conjoined pair, so there is more data to be transferred for the
+			// instances in m_pSavedWords member (this actually transfers heaps of stuff
+			// redundantly, but fixedspace conjoinings are so rare, it's not worth the
+			// bother of making the adjustments to eliminate the redundant transfers)
+			TransferFixedSpaceInfo(pSrcPhrase, pNewSrcPhrase);
+		}
+//#ifdef __WXDEBUG__
+		//if (halt_here == 1)
+		//{
+		//	wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5532  NORMAL situation, return TRUE "));
+		//}
+//#endif
 		return TRUE;
 	}
 	else
 	{
-        // oops, somehow we got more than a single sourcephrase instance -- we'll have
-        // to transfer the legacy information (such as filtered stuff, markers, etc) to
-        // the first of the new instances here, and then return to the caller so it can
-        // have those instances inserted into the document's list in place of the
-        // original single instance. (User will need to manually edit at this location
-        // later on.) All CSourcePhrase instances handled in this block have to be
-        // marked as m_bHasKBEntry == FALSE, and m_bHasGlossingKBEntry == FALSE too,
-        // since the user will have to readapt/regloss later for these ones.
-		CSourcePhrase* pSPnew = NULL;
-		SPList::Node* pos2 = pNewList->GetFirst();
-		bool bIsFirst = TRUE;
-		bool bIsLast = FALSE;
-		while (pos2 != NULL)
-		{
-			pSPnew = (CSourcePhrase*)pos2->GetData(); // m_srcPhrase, m_key, 
-                        // m_precPunct, m_follPunct, m_nSrcWords are set, but it has no
-                        // idea what context it belongs to and so all other flags and
-                        // strings have to be copied from the original pSrcPhrase
-                        // passed in, but we copy only to the new first instance of
-                        // pSPnew, and for subsequent ones just propagate what is
-                        // necessary to those
-			pos2 = pos2->GetNext();
-			if (pos2 == NULL)
-				bIsLast = TRUE;
-			if (bIsFirst)
-			{
-                // copying everything to the first instance ensures that the source
-                // text's original order of characters is not violated despite the
-                // reparse generating unexpected additional sourcephrase instances; so
-                // first copy all the original's flag values
-				CopyFlags(pSPnew,pSrcPhrase);
-
-                // copy the other stuff, except for the sublists (since m_pSavedWords,
-                // m_pMedialPuncts, and m_pMedialMarkers we must leave for the caller
-                // to handle, since these pertain only to a passed in pSrcPhrase which
-                // is a merged one - so the caller will need extra apparatus to handle
-                // such instances correctly; moreover, those three lists are always
-                // empty for owned instances and for non-owned instances which are not
-                // merged, so it is safe to ignore them here)
-				pSPnew->m_curTextType = pSrcPhrase->m_curTextType;
-				pSPnew->m_inform = pSrcPhrase->m_inform;
-				pSPnew->m_chapterVerse = pSrcPhrase->m_chapterVerse;
-				pSPnew->m_markers = pSrcPhrase->m_markers;
-				pSPnew->m_nSequNumber= pSrcPhrase->m_nSequNumber;
-
-
-				bIsFirst = FALSE;
-			}
-			else
-			{
-				// for non-first instances, copy the essential members which 
-				// require propagation
-				pSPnew->m_bRetranslation = pSrcPhrase->m_bRetranslation;
-				pSPnew->m_bSpecialText = pSrcPhrase->m_bSpecialText;
-				pSPnew->m_curTextType = pSrcPhrase->m_curTextType;
-
-                // in the case of a <Not In KB> instance (whether merged or not) we
-                // preserve that flag value and propagate it to each new instance, but
-                // retranslations work differently - see below
-				pSPnew->m_bNotInKB = pSrcPhrase->m_bNotInKB;
-
-				// the m_bFirstOfType cannot possibly be set TRUE on any of the 
-				// non-first new instances
-				pSPnew->m_bFirstOfType = FALSE;
-
-			}
-            // set up booleans which record that the instance is the last of a
-            // retranslation or footnote; and handle m_bBoundary likewise, since
-            // boundaries are 'at the end' kind of things
-			if (pSrcPhrase->m_bEndRetranslation && !bIsLast)
-				pSPnew->m_bEndRetranslation = FALSE; // a TRUE value will move to the last in the series
-			if (pSrcPhrase->m_bEndRetranslation && bIsLast)
-				pSPnew->m_bEndRetranslation = TRUE;
-			if (pSrcPhrase->m_bFootnoteEnd && !bIsLast)
-				pSPnew->m_bFootnoteEnd = FALSE; // a TRUE value will move to the last in the series
-			if (pSrcPhrase->m_bFootnoteEnd && bIsLast)
-				pSPnew->m_bFootnoteEnd = TRUE;
-			if (pSrcPhrase->m_bBoundary && !bIsLast)
-				pSPnew->m_bBoundary = FALSE; // a TRUE value would move to the last in the series
-			if (pSrcPhrase->m_bBoundary && bIsLast)
-				pSPnew->m_bBoundary = TRUE;
-
-            // ensure that the "Has..." boolean values are FALSE, since we have
-            // abandoned the gloss and adaptation strings
-			pSPnew->m_bHasKBEntry = pSrcPhrase->m_bHasKBEntry;
-			pSPnew->m_bHasGlossingKBEntry = pSrcPhrase->m_bHasGlossingKBEntry;
-		} // end of loop for iterating over the new CSourcePhrase instances 
-		  // resulting from the reparse
-
-        // Note: a changed number of CSourcePhrase instances is okay if the original is
-        // from a retranslation - we then return TRUE. This is because retranslations
-        // don't care how many CSourcePhrase instances comprise them, so adding an
-        // extra one or more is immaterial - hence we can treat this situation as if it
-        // was normal
-		if (bRetranslation)
-		{
-            // since we will return TRUE from this block rather then FALSE, the caller
-            // will not replace the original pSrcPhrase with the newly parsed ones - so
-            // we must do that job here instead
-			SPList::Node* pos3 = pNewList->GetFirst();
-			while (pos3 != NULL)
-			{
-				CSourcePhrase* pSP = (CSourcePhrase*)pos3->GetData();
-				pos3 = pos3->GetNext();
-				pList->Insert(pos,pSP); // insert before the passed in 
-										// POSITION in original list
-			}
-			DeleteSingleSrcPhrase(pSrcPhrase); // delete the old one
-			pList->DeleteNode(pos); // remove its element from m_pSourcePhrases or 
-									// whatever was the passed in list
-			return TRUE; // tell caller all is okay
-		}
-		return FALSE;	// except for a retranslation, we always return FALSE from 
-                        // this block so the caller will know that fixesStr must have a
-                        // reference added, and the new CSourcePhrase instances must,
-                        // in the m_pSourcePhrases list, replace the pSrcPhrase
-                        // instance passed in
-	}
+		// BEW 8Mar11, deprecated the code for replacing pSrcPhrase with the two or more
+		// tokenized instances resulting from the punctuation change - it's better to just
+		// accept pSrcPhrase unchanged, add a ref to fixesStr in the caller, and return
+		// FALSE to ensure that happens. (Caller cleans up pNewList, so can just return
+		// here without any prior cleanup.)
+//#ifdef __WXDEBUG__
+		//if (halt_here == 1)
+		//{
+		//	wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5247  In the numElements > 1 BLOCK in the loop, before returning FALSE "));
+		//}
+//#endif
+		return FALSE;
+	} // end of else block for test: if (numElements == 1)
 }
 
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
 /// \return		FALSE if the rebuild fails internally at one or more locations so that the 
 ///				user must later inspect the doc visually and do something corrective at such 
 ///				locations; TRUE if the rebuild was successful everywhere.
@@ -4506,12 +5262,20 @@ b:		pSrcPhrase->m_gloss = gloss;
 /// Called from: the Doc's RetokenizeText().
 /// Rebuilds the document after a filtering change is indicated. The new document reflects
 /// the new filtering changes.
-///////////////////////////////////////////////////////////////////////////////
+/// BEW added 18May05
+/// BEW (?)refactored 18Mar09
+/// BEW 20Sep10, old code expected filtered info to only be in m_markers, so for
+/// docVersion 5 the code for unfiltering needs to use m_filteredInfo instead; similarly
+/// for the code for filtering (that is, store in m_filteredInfo, not m_markers)
+/// BEW 22Sep10, finished updated for support of docVersion 5 (significant changes
+/// required, and I expanded the comments considerably to make the logic easier to follow,
+/// but I didn't remove the goto statements)
+/// BEW 11Oct10, radically rewrote the inner loop and got rid of gotos (except one) and
+/// used RebuildSourceText() call to construct the filteredStr -- which saves mobs of code
+//////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 													SPList*& pList, wxString& fixesStr)
 {
-	// refactored 18Mar09
-	// BEW added 18May05
 	// Filtering has changed
 	bool bSuccessful = TRUE;
 	wxString endingMkrsStr; // BEW added 25May05 to handle endmarker sequences like \fq*\f*
@@ -4535,7 +5299,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	}
 	int nOldCount = 0;
 
-#ifdef __WXMSW__
 	wxString progMsg = _("Pass 1 - File: %s  - %d of %d Total words and phrases");
 	wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nOldTotal);
     wxProgressDialog progDlg(_("Processing Filtering Change(s)"),
@@ -4545,24 +5308,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                             //wxPD_CAN_ABORT |
                             //wxPD_CAN_SKIP |
                             wxPD_APP_MODAL |
-                            // wxPD_AUTO_HIDE | -- try this as well
-                            wxPD_ELAPSED_TIME |
-                            wxPD_ESTIMATED_TIME |
-                            wxPD_REMAINING_TIME
-                            | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                            wxPD_AUTO_HIDE //| -- try this as well
+                            //wxPD_ELAPSED_TIME |
+                            //wxPD_ESTIMATED_TIME |
+                            //wxPD_REMAINING_TIME
+                            //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                             );
-#else
-	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-	// notification on wxGTK and wxMAC
-	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
 
 	// BEW added 29Jul09, turn off CLayout Draw() while strips and piles could get
 	// inconsistent with each other
@@ -4593,6 +5344,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// define some useful flags which will govern the code blocks to be entered
 	bool bUnfilteringRequired = TRUE;
 	bool bFilteringRequired = TRUE;
+	// next two can have no markers but a single space, so the IsEmpty() test won't be
+	// valid unless any whitespace preceding the markers is removed - which, of course,
+	// removes any whitespace which comprises the whole content of either
+	strMarkersToBeFiltered.Trim(FALSE); // trim whitespace off left end
+	strMarkersToBeUnfiltered.Trim(FALSE); // trim whitespace off left end
 	if (strMarkersToBeFiltered.IsEmpty())
 		bFilteringRequired = FALSE;
 	if (strMarkersToBeUnfiltered.IsEmpty())
@@ -4626,6 +5382,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	wxString preStr;
 	wxString remainderStr;
 	SPList* pSublist = new SPList;
+	// BEW 20Sep10, for docVersion 5, the former tests of m_markers become tests of
+	// m_filteredInfo, and restorage  to preStr uses content only from that
 
 	// do the unfiltering pass through m_pSourcePhrases
 	int curSequNum = -1;
@@ -4637,10 +5395,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		{
 			SPList::Node* oldPos = pos;
 			pSrcPhrase = (CSourcePhrase*)pos->GetData(); // just gets the pSrcPhrase
+
+//#ifdef __WXDEBUG__
+			//wxString theWord;
+			//wxLogDebug(_T("* Unfiltering *: At sequNum = %d  m_srcPhrase =  %s"),pSrcPhrase->m_nSequNumber,pSrcPhrase->m_srcPhrase);
+//#endif
+
 			pos = pos->GetNext(); // moves the pointer/iterator to the next node
 			curSequNum = pSrcPhrase->m_nSequNumber;
 			bDidSomeUnfiltering = FALSE;
-
 			SPList::Node* prevPos = oldPos;
 			pLastSrcPhrase = prevPos->GetData(); // abandon; this one is the pSrcPhrase one
 			prevPos = prevPos->GetPrevious();
@@ -4668,20 +5431,23 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 
 			// acts on ONE instance of pSrcPhrase only each time it loops, but in so doing
 			// it may add many by removing FILTERED status for a series of sourcephrase instances
-			if (!pSrcPhrase->m_markers.IsEmpty()) // do nothing when m_markers is empty
+			// (all such will be in m_filteredInfo, notes, free trans, and collected back
+			// trans are not unfilterable)
+			if (!pSrcPhrase->GetFilteredInfo().IsEmpty()) // do nothing when m_filteredInfo is empty
 			{
 				// m_markers often has an initial space, which is a nuisance, so check and remove
-				// it if present
+				// it if present (this can remain here, the change, if done, is benign)
 				if (pSrcPhrase->m_markers[0] == _T(' '))
 					pSrcPhrase->m_markers = pSrcPhrase->m_markers.Mid(1);
 
-				// loop across any filtered substrings in m_markers, until no more are found
-				while ((offset = FindFromPos(pSrcPhrase->m_markers,filterMkr,offset)) != -1)
+				// loop across any filtered substrings in m_filteredInfo, until no more are found
+				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1)
 				{
 					// get the next one, its prestring and remainderstring too; on return start
 					// will contain the offset to \~FILTER and end will contain the offset to the
 					// character immediately following the space following the matching \~FILTER*
-					mkr = GetNextFilteredMarker(pSrcPhrase->m_markers,offset,start,end);
+					wxString theFilteredInfo = pSrcPhrase->GetFilteredInfo();
+					mkr = GetNextFilteredMarker(theFilteredInfo,offset,start,end);
 					if (mkr.IsEmpty())
 					{
 						// there was an error here... post a reference to its location
@@ -4700,30 +5466,22 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					// get initial material into preStr, if any
 					if (offset > 0)
 					{
-						// get the marker information which is not filtered material - this stuff
-						// will be transfered to the m_markers member of the first CSourcePhrase
-						// instance in the first unfiltered string we extract -- and we may append
-						// to it in blocks below; but if we dont find a marker to unfilter, the
-						// stuff put into preStr will be abandoned because m_markers on the sourcephrase
-						// will not have been altered
-						preStr += pSrcPhrase->m_markers.Mid(offsetNextSection,offset - offsetNextSection);
+                        // get the marker information which is not to-be-unfiltered
+                        // filtered material - this stuff will be transfered to the
+                        // m_filteredInfo member of the first CSourcePhrase instance in the
+                        // first unfiltered string we extract -- and we may append to it in
+                        // blocks below; but if we dont find a marker to unfilter, the
+                        // stuff put into preStr will be abandoned because m_filteredInfo
+                        // on the sourcephrase will not have been altered
+						preStr += pSrcPhrase->GetFilteredInfo().Mid(offsetNextSection,offset - offsetNextSection);
 						offsetNextSection = offset; // update, since this section has been (potentially) moved
 					}
 
-                    // Depending on what Bill thinks we should do, we can either
-                    // universally exclude unknown markers from being filtered (for safety,
-                    // they should default to being shown in the main window when the doc
-                    // is first created), in which case pSfm == NULL would be sufficient
-                    // for determining we have found an unknown marker, and such a marker
-                    // would not be able to be got into the strMarkersToBeUnfiltered string
-                    // from the GUI (we are about to test for inclusion in this string
-                    // below, and later to get pSfm too),
-					//
-                    // OR, unknown markers will be ALL possible candidates for
-                    // filtering/unfiltering, and so we'd have to determine whether or not
-                    // this marker is in strMarkersToBeUnfiltered - and if it is then we'd
+                    // Unknown markers will ALL be possible candidates for filtering and
+                    // unfiltering, and so we'd have to determine whether or not this
+                    // marker is in strMarkersToBeUnfiltered - and if it is then we'd
                     // unfilter it, even though pSfm would be NULL when we try to create
-                    // the pointer. I'll code for the latter protocol.
+                    // the pointer.
 
                     // determine whether or not the marker we found is one of those
                     // designated for being unfiltered (ie. its content made visible in the
@@ -4733,10 +5491,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					if (strMarkersToBeUnfiltered.Find(mkrPlusSpace) == -1)
 					{
                         // it's not one we need to unfilter, so append it, its content, and
-                        // the bracking \~FILTER and \~FILTER* markers, as is, to preStr
+                        // the bracketing \~FILTER and \~FILTER* markers, as is, to preStr
 						wxASSERT(offset == start);
 						wxASSERT(end > start);
-						wxString appendStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						//wxString appendStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						wxString appendStr = pSrcPhrase->GetFilteredInfo().Mid(offset, end - start);
 						preStr += appendStr;
 						offsetNextSection = end; // update, this section is deemed moved
 					}
@@ -4745,37 +5504,38 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                         // we have found a marker with content needing to be unfiltered, so
                         // do so (note: the unfiltering operation will consume some of the
                         // early material, or perhaps all the material, in
-                        // pSrcPhase->m_markers; so we will shorten the latter before we
+                        // pSrcPhase->m_filteredInfo; so we will shorten the latter before we
                         // iterate after having done the unfilter for this marker
 						bDidSomeUnfiltering = TRUE; // used for updating navText on original pSrcPhrase when done
 						bWeUnfilteredSomething = TRUE; // used for reseting initial conditions in inner loop
-						pSublist->Clear(); //pSublist->RemoveAll(); // clear list in preparation for Tokenizing
+						pSublist->Clear(); // clear list in preparation for Tokenizing
 						wxASSERT(offset == start);
 						wxASSERT(end > start);
-						wxString extractedStr = pSrcPhrase->m_markers.Mid(offset, end - start);
+						wxString extractedStr = pSrcPhrase->GetFilteredInfo().Mid(offset, end - start);
 
 #ifdef _Trace_RebuildDoc
-						TRACE2("UNFILTERING: gCurrentSfmSet %d STRING: %s\n", gpApp->gCurrentSfmSet, extractedStr);
+						//TRACE2("UNFILTERING: gCurrentSfmSet %d STRING: %s\n", gpApp->gCurrentSfmSet, extractedStr);
 #endif
 
 						extractedStr = RemoveAnyFilterBracketsFromString(extractedStr); // we'll tokenize this
                         // note, extractedStr will lack a trailing space if there is a
                         // contentless filtered marker in the passed in string, so we need
-                        // to test & if needed adjust m_markers below
-						remainderStr = pSrcPhrase->m_markers.Mid(end); // remainder, from end of \~FILTER*
+                        // to test & if needed adjust m_filteredInfo below
+						remainderStr = pSrcPhrase->GetFilteredInfo().Mid(end); // remainder, from end of \~FILTER*
 						if (remainderStr[0] == _T(' '))
 							remainderStr = remainderStr.Mid(1); // remove an initial space if there is one
 						offsetNextSection = end; // update, this section is to be 
 												 // unfiltered (on this pass at least)
-						// tokenize the substring
+						// tokenize the substring (using this we get its inline marker handling for free)
 						wxASSERT(extractedStr[0] == gSFescapechar);
 						int count = pView->TokenizeTextString(pSublist,extractedStr,pSrcPhrase->m_nSequNumber);
 						bool bIsContentlessMarker = FALSE;
 						
-						USFMAnalysis* pSfm = NULL;	// whm moved here from below to insure it is initialized before
-													// call to AnalyseMarker
+						USFMAnalysis* pSfm = NULL;	// whm moved here from below to insure it is
+													// initialized before call to AnalyseMarker
 
-                        // if the unfiltered section ended with an endmarker, then the
+						// 20Sep10 -- this comment needs qualifying -- see below it...
+						// if the unfiltered section ended with an endmarker, then the
                         // TokenizeText() parsing algorithm will create a final
                         // CSourcePhrase instance with m_key empty, but the endmarker
                         // stored in its m_markers member. This last sourcephrase is
@@ -4792,6 +5552,12 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                         // the unknown marker; so we have to take this special case into
                         // consideration too - we don't want to end up inserting this
                         // spurious sourcephrase into the doc's list.
+                        // 
+                        // BEW 20Sep10 note on the above comment; docVersion 5 tokenization
+                        // stores an endmarker now on the CSourcePhrase which ends the
+                        // content, not on the next in line, so the check is no longer
+                        // needed; but the comment about the empty unknown marker remains
+                        // valid
 						bGotEndmarker = FALSE; // if it remains false, the endmarker was 
 											   // omitted in the source
 						bool bHaventAClueWhatItIs = FALSE; // if it's really something
@@ -4810,9 +5576,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									// m_markers should end with a space, so check and add one if necessary
 									// transfer of an endmarker is required, or it may not be an endmarker
 									// but a contentless marker - use a bool to track which it is
+									// BEW 20Sep10, it won't ever now be an endmarker, but
+									// it could be an unknown marker (see comments above)
 									wxString endmarkersStr = pTailSrcPhrase->m_markers;
 									curPos = endmarkersStr.Find(_T('*'));
-									if (curPos == -1)
+									if (curPos == wxNOT_FOUND)
 									{
 										// it's not an endmarker, but a contentless (probably unknown) marker
 										bIsContentlessMarker = TRUE;
@@ -4847,7 +5615,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                                     // placed .Mid on endmarkerStr since wxString:Find
                                     // doesn't have a start position parameter.
 									curPos = FindFromPos(endmarkersStr,_T('*'),curPos + 1);
-									if (curPos == -1)
+									if (curPos == wxNOT_FOUND)
 									{
                                         // we did not find an asterisk, so ignore the rest
                                         // (we are not likely to ever enter this block)
@@ -4890,10 +5658,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									pSublist->Erase(lastOne);
 
 									// delete the memory block to prevent a leak, update the count
-									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete the partner pile
+									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete a 
+																	// non-existent partner pile
 									count--;
 								} // end of block for detecting the parsing of an endmarker
-							}
+							} // end of TRUE block for test: if (pTailSrcPhrase)
 						}
 
 						// make the marker accessible, minus its backslash
@@ -4910,7 +5679,7 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
 						}
 						else
 						{
-							if (curPos != -1)
+							if (curPos != wxNOT_FOUND)
 							{
                                 // there is an asterisk, but it may be in the text rather
                                 // than an endmarker, so check it is part of a genuine
@@ -4918,9 +5687,11 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
                                 // bareMarker's USFMAnalysis, since some endmarkers can be
                                 // optional)
 								int nStart = curPos + 1; // point past it
-								curPos = FindFromPos(extractedStr,gSFescapechar,nStart); // find the next backslash
+								// find the next backslash
+								curPos = FindFromPos(extractedStr,gSFescapechar,nStart);
 								wxString possibleEndMkr = extractedStr.Mid(nStart, curPos - nStart);
-								possibleEndMkr = MakeReverse(possibleEndMkr); // if an endmarker, this should equal bareMarker
+								possibleEndMkr = MakeReverse(possibleEndMkr); // if an 
+												// endmarker, this should equal bareMarker
 								bHasEndMarker = bareMarker == possibleEndMkr;
 							}
 						}
@@ -4930,7 +5701,6 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
                         // AnalyseMarker) 
                         // whm moved code block that was here down past the
                         // h: label
-
 						{	// this extra block extends for the next 28 lines. It avoids the bogus 
 							// warning C4533: initialization of 'f_iter' is skipped by 'goto h'
 							// by putting its code within its own scope
@@ -4942,16 +5712,16 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
 						if (bFound)
 						{
 							pSfm = f_iter->second;
-							// if it was not found, then pSfm will remain NULL, and we know it
-							// must be an unknown marker
+                            // if it was not found, then pSfm will remain NULL, and we know
+                            // it must be an unknown marker
 						}
 						else
 						{
 							pSfm = (USFMAnalysis*)NULL;
 						}
 
-						// we'll need this value for the first of the parsed sourcephrases from the
-						// extracted text for unfiltering
+                        // we'll need this value for the first of the parsed sourcephrases
+                        // from the extracted text for unfiltering
 						bool bWrap;
 						if (bFound)
 						{
@@ -5022,13 +5792,31 @@ h:						bool bIsInitial = TRUE;
                                     //  result we must set up remainderStr to have preStr
                                     //  plus this marker and space plus remainderStr's
                                     //  previous content, in that order
-									wxString s = preStr;
-									s += pSP->m_markers;
-									s += remainderStr;
-									remainderStr = s;
+                                    //  
+									//  BEW 20Sep10; preStr and remainderStr for
+									//  docVersion 5 are now associated with
+									//  m_filteredInfo; but the unknown marker - being at
+									//  the tail of a set of CSourcePhrases comprising a
+									//  single one with no m_key content, does have
+									//  to go into the pSrcPhrase's (NOT pSP's)
+									//  m_markers member - preceding what is already
+									//  there, and we must deal with preStr and
+									//  remainderStr here because we break out of the loop
+									//  at the end of this block
+									pSrcPhrase->m_markers = pSP->m_markers + pSrcPhrase->m_markers;
+									// handle the filtered info that remains, if any
+									wxString aString;
+									if (!preStr.IsEmpty())
+										aString = preStr;
+									if (!remainderStr.IsEmpty())
+										aString += remainderStr;
+									if (!aString.IsEmpty())
+										pSrcPhrase->SetFilteredInfo(aString);
+									else
+										pSrcPhrase->SetFilteredInfo(_T(""));
 									nWhich = 0;
 									DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory; 
-														// don't delete the partner pile
+										// & FALSE means don't delete a non-existent partner pile
 									pSublist->Clear();
 									break;
 								}
@@ -5094,29 +5882,39 @@ h:						bool bIsInitial = TRUE;
 										pSP->m_bFootnote = TRUE;
 								}
 
+								// BEW 20Sep10, the comment below applied to the legacy
+								// version, not to docVersion 5, the docVersion 5 comment
+								// follows it...
                                 // add any m_markers material to be copied from the parent
                                 // (this stuff, if any, is in preStr, and it must be added
                                 // BEFORE the current m_markers material in order to
                                 // preserve correct source text ordering of previously
                                 // filtered stuff)
+                                // For docVersion 5:
+                                // Put any m_filteredInfo material to be copied from the
+                                // parent (this stuff, if any, is in preStr, and it must be
+                                // put here in order to preserve correct source text
+                                // ordering of previously filtered stuff); remainderStr's
+                                // material, if any, must go instead into the CSourcePhrase
+                                // following the unfiltered material, that is, into the
+                                // pSrcPhrase's m_filteredInfo member - we do that below,
+                                // outside this loop after it completes
 								if (!preStr.IsEmpty())
 								{
-									pSP->m_markers = preStr + pSP->m_markers;
+									pSP->SetFilteredInfo(preStr);
 								}
 
                                 // completely redo the navigation text, so it accurately
                                 // reflects what is in the m_markers member of the
                                 // unfiltered section
-
 #ifdef _Trace_RebuildDoc
-								TRACE1("UNFILTERING: for old navText: %s\n", pSP->m_inform);
+								//TRACE1("UNFILTERING: for old navText: %s\n", pSP->m_inform);
 #endif
-
 								pSP->m_inform = RedoNavigationText(pSP);
 
 								pSPprevious = pSP; // set pSPprevious for the next iteration, for propagation
 								bIsInitial = FALSE;
-							}
+							} // end of TRUE block for test: if (bIsInitial)
 
 							// when not the 0th iteration, we need to propagate the flags, 
 							// texttype, etc
@@ -5155,7 +5953,7 @@ h:						bool bIsInitial = TRUE;
 							}
 						} // end of while loop for pSublist elements
 
-                       // now insert the completed CSourcePhrase instances into the
+                        // now insert the completed CSourcePhrase instances into the
                         // m_pSourcePhrases list preceding the oldPos POSITION
 						pos2 = pSublist->GetFirst();
 						while (pos2 != NULL)
@@ -5167,13 +5965,15 @@ h:						bool bIsInitial = TRUE;
 							pList->Insert(oldPos,pSP); // m_pSourcePhrases will manage these now
 						}
 
-                        // remove the moved and unfiltered part from pSrcPhrase->m_markers,
+                        // remove the moved and unfiltered part from pSrcPhrase->m_filteredInfo,
                         // so that the next iteration starts with the as-yet-unhandled text
                         // material in that member (this stuff was stored in the local
                         // wxString remainderStr above) - but if there was an unfiltered
                         // endmarker, we'll later also have to put that preceding this
                         // stuff as well
-						pSrcPhrase->m_markers = remainderStr; // this could be empty, and usually would be
+						// BEW 20Sep10, unfiltered endmarkers are handled already in the
+						// tokenizing, so we won't later need to handle them
+						pSrcPhrase->SetFilteredInfo(remainderStr); // this could be empty, and usually would be
 						if (bIsContentlessMarker)
 						{
 							pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
@@ -5182,7 +5982,8 @@ h:						bool bIsInitial = TRUE;
 
 						pSublist->Clear(); // clear the local list (but leave the memory chunks in RAM)
 
- 						wxLogDebug(_T("Loc doc4603 INNER LOOP ; before SequNum Update: curSequNum %d ,  SN = %d"), curSequNum, gpApp->m_nActiveSequNum);
+ //wxLogDebug(_T("Loc doc4603 INNER LOOP ; before SequNum Update: curSequNum %d ,  SN = %d"), curSequNum, gpApp->m_nActiveSequNum);
+						
 						// update the active sequence number on the view
 						// BEW changed 29Jul09, the test needs to be > rather than >=,
 						// because otherwise a spurious increment by 1 can happen at the
@@ -5201,16 +6002,43 @@ h:						bool bIsInitial = TRUE;
 					{
 						bWeUnfilteredSomething = FALSE; // reset for next iteration of inner loop
 
-                        // now it's time to put in the endmarker and space at the beginning
-                        // of m_markers, if we found one - (both bGotEndmarker and
-                        // bHasEndMarker must both be TRUE if we actually did find a valid
-                        // endmarker)
-						if (bGotEndmarker && bHasEndMarker)
+                        // BEW added 8Mar11, I forgot to remove the unfiltered info from
+                        // the saved originals of a merger! If the pSrcPhrase at oldPos is
+                        // a merger, then the first of the stored original list of
+                        // CSourcePhrase instances will also store in its m_filteredInfo
+                        // member the same filtered information - do we must check here,
+                        // and if filterMkr is within that instances m_filteredInfo, we
+                        // must replace its m_filteredInfo content with remainderStr as set
+                        // above
+						CSourcePhrase* pSrcPhraseTopLevel = oldPos->GetData();
+						// we deliberately check for a non-empty m_pSavedWords list,
+						// rather than looking at m_nSrcWords; we want our test to handle
+						// fixedspace (~) pseudo-merger conjoining, as well as a real merger
+						if (!pSrcPhraseTopLevel->m_pSavedWords->IsEmpty())
 						{
-                            // BEW changed 26May06 to handle endmarker sequences reliably
-                            // as well as single endmarkers as before...
-							// copy to here the one or more endmarkers that we stored earlier
-							pSrcPhrase->m_markers = endingMkrsStr + pSrcPhrase->m_markers;
+							// it's either a merger, or a fixedspace conjoining of two; in
+							// either case, any filtered info can only be on the first in
+							// the m_pSavedWords list
+							SPList::Node* posOriginalsList = pSrcPhraseTopLevel->m_pSavedWords->GetFirst();
+							if (posOriginalsList != NULL)
+							{
+								CSourcePhrase* pFirstOriginal = posOriginalsList->GetData();
+								wxASSERT(pFirstOriginal != NULL);
+								wxString firstOriginalFilteredInfo = pFirstOriginal->GetFilteredInfo();
+								if (!firstOriginalFilteredInfo.IsEmpty())
+								{
+									int anOffset = firstOriginalFilteredInfo.Find(mkr); // is the
+										// just-unfiltered marker also within this stored filtered material?
+									if (anOffset != wxNOT_FOUND)
+									{
+										// it's present, so it has to be removed, as it was
+										// from the parent - we do this by simply replacing
+										// the content with the parent's altered content for
+										// this member
+										pFirstOriginal->SetFilteredInfo(remainderStr);
+									}
+								}
+							}
 						}
 
 						// do the setup for next iteration of the loop
@@ -5227,7 +6055,7 @@ h:						bool bIsInitial = TRUE;
 						// iteration of inner loop
 						offset = offsetNextSection;
 					}
-				}
+				} // end of while loop
 			}
 
 			if (bDidSomeUnfiltering)
@@ -5239,19 +6067,29 @@ h:						bool bIsInitial = TRUE;
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 			}
 
-#ifdef __WXMSW_
-			// update progress bar every 20 iterations
+			// update progress bar every 200 iterations
 			++nOldCount;
-			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
-				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
+				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),
+												nOldCount,nOldTotal);
 				progDlg.Update(nOldCount,msgDisplayed);
 			}
-#endif
 
 			endingMkrsStr.Empty();
 		} // loop end for checking each pSrcPhrase for presence of material to be unfiltered
 
+        // check for an orphan carrier of filtered info at the end of the document, which
+        // has no longer got any filtered info, and if that is the case, remove it from the
+        // document
+		SPList::Node* posLast = pList->GetLast();
+		CSourcePhrase* pLastSrcPhrase = posLast->GetData();
+		if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->GetFilteredInfo().IsEmpty())
+		{
+			// it needs to be deleted
+			gpApp->GetDocument()->DeleteSingleSrcPhrase(pLastSrcPhrase); // delete it and its partner pile
+			pList->Erase(posLast);
+		}
 	} // end block for test bUnfilteringRequired
 
 	// reinitialize the variables we need
@@ -5280,19 +6118,13 @@ h:						bool bIsInitial = TRUE;
             // ReconstituteAfterFilteringChange goes out of scope
 			pSublist->Clear();
 			delete pSublist;
-
-			// BEW added 29Jul09, turn back on CLayout Draw() so drawing of the view
-			// can now be done -- no, do it at end of second_pass
-			//GetLayout()->m_bInhibitDraw = FALSE;
-
+			pSublist = NULL;
 			return 0;
 		}
 		nOldCount = 0;
 
-#ifdef __WXMSW_
 		progMsg = _("Pass 2 - File: %s  - %d of %d Total words and phrases");
 		msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nOldCount);
-#endif
 
         // the following variables are for tracking how the active sequence number has to
         // be updated after each span of material designated for filtering is filtered out
@@ -5320,8 +6152,11 @@ h:						bool bIsInitial = TRUE;
 		wxString tempStr;
 		preStr.Empty(); // store in here m_markers content (from first pSrcPhrase) 
                         // which precedes a marker for filtering out
-		remainderStr.Empty(); // store here the filtering marker and anything which 
-                              // follows it (from first pSrcPhrase)
+		remainderStr.Empty(); // store here anything in m_markers which follows
+                              // the to-be-filtered marker (from first pSrcPhrase)
+		wxString strFilteredStuffToCarryForward; // put already filtered stuff which
+				// is stored on the first CSourcePhrase of a to-be-filtered section
+				// in here, and at the end of the inner loop, deal with it
 		while (pos != NULL)
 		{
             // acts on ONE instance of pSrcPhrase only each time it loops, but in so doing
@@ -5331,25 +6166,24 @@ h:						bool bIsInitial = TRUE;
             // the sourcephrase immediately after the section just filtered out
 			SPList::Node* oldPos = pos;
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+
 			pos = pos->GetNext();
 			curSequNum = pSrcPhrase->m_nSequNumber;
-			bool bGotEndmarker = FALSE; // need this to be set TRUE when we get one,
-                    // since we must delay accumulating it into filteredStr until just
-                    // before we add the final \~FILTER* bracketing endmarker (ie, after
-                    // accumulating the last sourcephrase instance's m_srcPhrase member's
-                    // contents)
 			nCurActiveSequNum = gpApp->m_nActiveSequNum;
-			wxString embeddedMkr;
-			wxString embeddedEndMkr;
+			//wxString embeddedMkr;
+			//wxString embeddedEndMkr;
 
+			// BEW 21Sep10, docVersion 5 changes some of the requirements below, as noted...
             // loop until we find a sourcephrase which is a candidate for filtering - such
             // a one will satisfy all of the following requirements:
 			// 1. m_markers is not empty
 			// 2. m_markers has at least one marker in it (look for gSFescapechar)
-			// 3. the candidate marker, if there are more than one in m_markers, must not 
-            //       be enclosed by \~FILTER and \~FILTER* markers (the stuff between these
-            //       is filtered already)
-			// 4. the candidate marker will NEVER be an endmarker
+			// 3. the candidate marker, will be in m_markers currently, (because in
+			//       docVersion 5 anything filtered which is potentially unfilterable is 
+			//       stored in the m_filteredInfo member, bracketed there by \~FILTER and
+			//       \~FILTER* markers)
+			// 4. the candidate marker will NEVER be an endmarker (docVersion 5 stores
+			//      them now in the m_endMarkers member)
 			// 5. the marker's USFMAnalysis struct's filter member is currently set to TRUE
 			//		(note: markers like xk, xr, xt, xo, fk, fr, ft etc which are inline 
             //      between \x and its matching \x* or \f and its matching \f*, etc, are
@@ -5373,17 +6207,15 @@ h:						bool bIsInitial = TRUE;
 			if (pSrcPhrase->m_markers.IsEmpty())
 			{
 
-#ifdef __WXMSW__
 				// the following copied from bottom of loop to here in order to 
 				// remove the goto c; and label
 				++nOldCount;
-				if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 				{
 					msgDisplayed = progMsg.Format(progMsg,
 						gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 						progDlg.Update(nOldCount,msgDisplayed);
 				}
-#endif
 
 				continue;
 			}
@@ -5397,25 +6229,24 @@ h:						bool bIsInitial = TRUE;
 			markersStr = pSrcPhrase->m_markers;
 			bool bIsUnknownMkr = FALSE;
 			int nStartingOffset = 0;
+			wxChar backslash[2] = {gSFescapechar,_T('\0')};
 g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
-						markersStr,strMarkersToBeFiltered,wholeMkr,wholeShortMkr,endMkr,
-						bHasEndmarker,bIsUnknownMkr,nStartingOffset);
-			if (filterableMkrOffset == -1)
+						markersStr, strMarkersToBeFiltered, wholeMkr, wholeShortMkr, endMkr,
+						bHasEndmarker, bIsUnknownMkr, nStartingOffset);
+			if (filterableMkrOffset == wxNOT_FOUND)
 			{
-                // either wholeMkr is not filterable, or its not in strMarkersToBeFiltered,
-                // or its an endmarker -- if so, just iterate to the next sourcephrase
+                // either wholeMkr is not filterable, or its not in strMarkersToBeFiltered
+                // -- if so, just iterate to the next sourcephrase
 
-#ifdef __WXMSW__
 				// the following copied from bottom of loop to here in order to remove the 
 				// goto c; and label
 				++nOldCount;
-				if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 				{
 					msgDisplayed = progMsg.Format(progMsg,
 						gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 						progDlg.Update(nOldCount,msgDisplayed);
 				}
-#endif
 
 				continue;
 			}
@@ -5423,7 +6254,37 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // if we get there, it's a marker which is to be filtered out, and we know its
             // offset - so set up preStr and remainderStr so we can commence the filtering
             // properly...
-			//
+            
+            // Question: What if we filter a section containing within it filtered
+            // information? Answer: This is not possible, except if there is filtered
+            // information stored on the CSourcePhrase which has the wholeMkr in its
+            // m_markers member -- in that case and that case alone, the to-be-filtered
+            // section CAN contain filtered material which is to remain filtered -- if so,
+            // we must carry that already filtered information forward along with the
+            // to-be-filtered material eventually placed after it (to preserve the correct
+            // order of the information should all be unfiltered).
+            // SFM and USFM markup does not permit marker nesting, except for \f and \x,
+            // and we've a TextType and special code to handle such information as wholes,
+            // and so there will never be nesting of filtered information within the Adapt
+            // It document; but the CSourcePhrase instance with the filterable marker is
+            // the exception -- because if filtered markers all happened to stack at the
+            // one CSourcePhrase, then unfiltering and refiltering must restore that
+            // stacking in m_filteredInfo and do it in the correct order. So we have to
+            // check now for this special case, and any m_filteredInfo content there has to
+            // be carried forward.... the next line of code does it
+			strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo(); // could be empty
+#ifdef __WXDEBUG__
+				//if (pSrcPhrase->m_nSequNumber >= 27)
+				//{
+				//	wxString theSrcPhrase = pSrcPhrase->m_srcPhrase;
+				//}
+#endif
+			
+			// BEW 21Sep10 -- read the next two paragraphs carefully, because for
+			// docVersion 5 the protocols described in them need changing slightly - the
+			// variations will be explained after these two paragraphs...
+			// 
+            // Legacy comments (when filtered info was all stored in m_markers):
             // We have to be careful here, we can't assume that .Mid(filterableMkrOffset)
             // will deliver the correct remainderStr to be stored till later on, because a
             // filterable marker like \b could be followed by an unfiltered marker like \v,
@@ -5446,30 +6307,39 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // unknown and unfiltered marker when PngOnly is the SFM set, to \~FILTER \b
             // \~FILTER* when the user changes to the UsfmOnly set, or the UsfmAndPng set.
             // Similarly for other contentless markers.
+            // 
+			// Variations for docVersion 5: \~FILTER and \~FILTER* no longer will appear
+			// in the CSourcePhrase m_markers member; \b and similar markers can still
+			// appear there, and the protocols for this and other contentless filterable
+			// markers are unchanged. If we encounter such a marker, we do not bracket it
+			// with \~FILTER and \~FILTER* in the m_markers member, but rather move it to
+			// the end of the m_filteredInfo member and provide \~FILTER and \~FILTER*
+			// bracketing markers for it there instead.
 			int itsLen = wholeMkr.Length();			
 			int nOffsetToNextBit = filterableMkrOffset + itsLen;
 			if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
-				(nFound = FindFromPos(markersStr,gSFescapechar,nOffsetToNextBit)) != -1) 
+				(nFound = FindFromPos(markersStr,backslash,nOffsetToNextBit)) != wxNOT_FOUND) 
 			{
                 // there is a following SF marker which is not a \f or \x (the latter two
                 // can have a following marker within their scope, so whether that happens
                 // or not, they are not to be considered as contentless), so the current
                 // one cannot have any text content -- this follows from the fact that the
-                // text content of a marker cannot appear in m_markers unless it has been
-                // filtered out earlier (in which case it will be bracketed by filterMkr
-                // and filterMkrEnd), so if we find another marker then we know the
-                // previous one is contentless.
+                // text content of a marker cannot appear in m_markers (because in
+                // docVersion 5 filtered markers are now not stored in m_markers, but in
+                // m_filteredInfo), so if we find another marker using the FindFromPos()
+                // call then we know the one found at the ContainsMarkerToBeFiltered() call
+                // is a contentless marker.
+                // Also, docVersion 5's storage in the CSourcePhrase implies that if a
+                // marker which has content visible in the interlinear main window display
+                // is encountered in m_markers, then it will be the last marker in
+                // m_markers - this fact makes further assumptions below, safe to make
 
-				// extract the marker, including its following space
+				// extract the marker (marker only, no following space included)
 				wxString contentlessMkr = markersStr.Mid(filterableMkrOffset,
 											nOffsetToNextBit - filterableMkrOffset);
                 // wx version note: Since we require a read-only buffer we use GetData
                 // which just returns a const wxChar* to the data in the string.
 				const wxChar* ptr = contentlessMkr.GetData();
-                // BEW changed 05Oct05, because GetFilteredItemBracketed call with wholeMkr
-                // as the first parameter results in the SF marker in wholeMkr being
-                // overwritten by the temp string's contents internally; so I changed the
-                // function to not have the first parameter anymore
 				
 				// whm added two lines below because wxStringBuffer needs to insure buffer 
 				// ends with null char
@@ -5481,8 +6351,9 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				temp = GetFilteredItemBracketed(ptr,itsLen); // temp lacks a final space
 				temp += _T(' '); // add the required trailing space
 
-				// now replace the contentless marker with the bracketed contentless marker
-				//markersStr.Delete(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
+				// BEW 21Sep10, new code needed here for docVersion 5 - we have to remove
+				// the contentless marker from the m_markers string (and chuck it away), and put the
+				// bracketed version of it, stored in temp, into the end of m_filteredInfo
 				markersStr.Remove(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
 				// for an unknown reason it does not delete the space, so I have to test and
 				// if so, delete it
@@ -5493,36 +6364,56 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 					markersStr.Remove(filterableMkrOffset,1); // delete extra space 
 															  // if one is here
 				}
-				markersStr = InsertInString(markersStr,filterableMkrOffset,temp);
-
-				// now update the m_markers member to contain this marker 
+				// now update the m_filteredInfo member to contain this marker 
 				// appropriately filtered
+				wxString filteredStr = pSrcPhrase->GetFilteredInfo();
+				filteredStr += temp;
+				pSrcPhrase->SetFilteredInfo(filteredStr);
+				// update the local string populated above, since we've added to m_filteredInfo
+				strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo();
+				// update the m_markers member with the shorter markersStr contents
 				pSrcPhrase->m_markers = markersStr;
-
+				
                 // get the navigation text set up correctly (the contentless marker just
                 // now filtered out should then no longer appear in the nav text line)
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 
-				// advance beyond this just-filtered contentless marker's location 
-				// and try again
-				int tempLen = temp.Length();
-				nStartingOffset = nOffsetToNextBit - itsLen + tempLen - 1;
+                // advance beyond this just-filtered contentless marker's location and try
+                // again 
+                // BEW 21Sep10, for docVersion 5 the calculation is different (simpler)
+				nStartingOffset = nFound; // point at the next marker found at 
+										  // the above FindFromPos() call
 				goto g;
 			}
 			else
 			{
-				// there is no following SF marker, so the current one may be 
-				// assumed to have content
+                // there is no following SF marker, so the current one may be assumed to
+                // have content currently visible in the interlinear display
 				;
 			}
 			preStr = markersStr.Left(filterableMkrOffset); // this stuff we 
-														// accumulate later on
+						// accumulate for later on -- it will later go to the CSourcePhrase
+						// which follows the instances about to be filtered out; in
+						// docVersion 5 I can't think of anything that might be in preStr
+						// and so it is likely to always be empty, but just in case it
+						// isn't, we must preserve whatever is there & transfer it
 			remainderStr = markersStr.Mid(filterableMkrOffset); // this stuff is the 
-                                // beginning of the filtered text, ie. marker and whatever
-                                // follows
+                        // marker for the stuff we are about to filter, and there may 
+                        // be other following markers - such as \p or \v etc which need
+                        // to be accumulated and forwarded to the CSourcePhrase which
+                        // follows the instances about to be filtered out (in docVersion
+                        // 5, remainderStr won't ever have any filtered content data,
+                        // but only markers and possibly a verse or chapter number)
+						// We now must remove the marker we found, and retain anything
+						// which remains other than spaces
+			remainderStr = remainderStr.Mid(itsLen); // itsLen is the length of wholeMkr
+			remainderStr.Trim(FALSE); // trim off any initial spaces, or if only spaces 
+									  // remain, then this will empty remainderStr
+									  
+
+			/* I don't think this next bit is needed any longer
 			bareMkr = wholeMkr.Mid(1); // remove the backslash, we already know 
 									   // it has no final *
-
             // it is not valid to have formed a prefix like \f or \x if the marker from
             // which it is being formed is already only a single character preceded by a
             // backslash, so if this is the case then make WholeShortMkr, and shortMkr,
@@ -5547,49 +6438,29 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // \x - anything else will be forced to an empty string, so that the code for
             // determining the ending sourcephrase will not wrongly result in loop
             // iteration when loop ending should happen
+             */
 
             // okay, we've found a marker to be filtered, we now have to look ahead to find
             // which sourcephrase instance is the last one in this filtering sequence - we
             // will assume the following:
+            // BEW 21Sep10: the following protocols are valid also for docVersion 5
 			// 1. unknown markers never have an associated endmarker - so their extent ends 
-            //      when a subsequent marker is encounted with a TextType different than
-            //      none
-			// 2. if the marker has an endmarker, then any other markers to be skipped over 
-            //      before the endmarker is encountered will have the same one-character
-            //      prefix, eg. f for footnotes (since other markers acceptable in
-            //      footnotes are \fk, \fr, \ft etc - all begin with \f), x for cross
-            //      references, (and so no other markers will appear in such sections - but
-            //      if they do, then our code will still be ok so long as their TextType is
-            //      none - because these will get skipped, otherwise such markers will
-            //      terminate the section prematurely, & some of the content would remain
-            //      unfiltered)
+			//      when a subsequent marker is encounted which is not an inline one, and
+			//      is found in m_markers - the owning CSourcePhrase instance is NOT in
+			//      the filterable span     
+			// 2. if the marker has an endmarker, then any other markers are skipped over -
+			//      we just look for the matching endmarker as the last marker in m_endMarkers
+			//      member - that owning CSourcePhrase instance would then be the last in the
+			//      span
 			// 3. filterable markers which lack an endmarker will end their content when the 
-            //      next marker is encountered which has the following properties, (1) its
-            //      inLine value is FALSE, or if inLine is TRUE then (2) its TextType value
-            //      is anything other than none (none is an enum with value 6)
+			//      next marker is encountered in a subsequent CSourcePhrase instance
+			//      whose m_markers member contains that marker - which must not be an
+			//      inline one (easily satisfied, since docV5 NEVER stores inline markers
+			//      in m_markers, with the exception of \f, \fe or \x)
 			// 4. markers which have an optional endmarker will end using criterion 3. above,
             //      unless the marker at that location has its first two characters
             //      identical to wholeShortMkr - in which case the section will end when
             //      the first marker is encountered for which that is not so
-
-			// we can commence to build filteredStr now
-			filteredStr = filterMkr; // add the \~FILTER beginning marker
-			filteredStr += _T(' '); // add space
-			filteredStr += remainderStr; // add the marker etc (it may be followed by others,
-								// eg. \f could be followed by space and then \fr and space)
-			if (pSrcPhrase->m_srcPhrase.IsEmpty())
-			{
-				// this should not ever be the case, but we'll code defensively so 
-				// we don't get consecutive spaces
-				;
-			}
-			else
-			{
-				filteredStr += pSrcPhrase->m_srcPhrase + _T(' '); // m_srcPhrase NEVER 
-																  // ends with a space
-			}
-			// NOTE: we'll deal with preStr when we set up pUnfilteredSrcPhrase's 
-			// m_markers member later on
 
 			// we can now partly or fully determine where the active location is in 
 			// relation to this location
@@ -5609,398 +6480,139 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				bBoxAfter = TRUE;
 			}
 			nStartLocation = pSrcPhrase->m_nSequNumber;
+			// NOTE: we'll deal with preStr when we set up pUnfilteredSrcPhrase's 
+			// m_markers member later on; likewise for anything still in remainderStr
 
-            // destroy this pSrcPhrase, but leave its pointer in pList until all in this
-            // section are dealt with (then use posStart and posEnd to remove their
-            // pointers from pList - ie from m_pSourcePhrases)
 			posStart = oldPos; // preserve this starting location for later on
 
-            // enter an inner loop which accumulates the filtered marker's source text
-            // contents (& replacing any m_markers content if non-empty) until the end of
-            // the section for filtering is determined
+			// we can commence to build filteredStr now (Note: because filtering stores a
+			// string, rather than a sequence of CSoucePhrase instances, any adaptations
+			// will be thrown away irrecoverably. We could change this in the future, but
+			// it would be a major core change and require a docVersion 6 and a
+			// significant redevelopment effort; but it would be a better model.)
+			filteredStr = filterMkr; // add the \~FILTER beginning marker
+			filteredStr += _T(' '); // add space
+			CSourcePhrase* pSrcPhraseFirst = new CSourcePhrase(*pSrcPhrase);
+			pSrcPhraseFirst->DeepCopy();
+			pSublist->Append(pSrcPhraseFirst); // we've already got the first to go in
+										  // the sublist, so put it there and then loop
+										  // to get the rest
+			// Enter an inner loop which has as it's sole purpose finding which
+			// CSourcePhrase instance at pos or beyond is the last one for filtering out
+			// as part of the current filterable span. In the loop we make deep copies in
+			// order to create a sublist of accepted within-the-span CSourcePhrase
+			// instances; we then use UpdateSequNumbers() to renumber from 0 those
+			// instances in the sublist, and then after the loop ends we process all the
+			// sublist's contents in one hit by using the ExportFunctions.cpp function,
+			// RebuildSourceText(), passing in a pointer to the sublist. Doing it this way
+			// means that we have one place only for reconstituting the source text,
+			// giving us consistency, and we get the inline markers handling done 'for
+			// free' rather than having to add it to the complex code this approach replaces.
+            // 
+            // BEW 7Dec10:
+			// Question: What if we filter a section where there is a note, or free
+			// translation or a collected backtranslation? 
+			// Answer: note information is irreversibly lost. Free and / or collected back
+			// translation information halts parsing, so we retain those. (Legacy code
+			// didn't retain those though.)
 			SPList::Node* pos2; // this is the 'next' location
-			CSourcePhrase* pSrcPhr;
-			CSourcePhrase* pSrcPhraseNext; // this could have in its m_markers the 
-										   // endmarker which ends the section
+			CSourcePhrase* pSrcPhr; // we look for a section-ending matching endmarker
+									// in this one, if we don't find one, we try the
+									// m_markers member of pSrcPhraseNext instead; if
+									// we find a matching endmarker, pSrcPhrase would be
+									// WITHIN and at the end of the filterable section
+			CSourcePhrase* pSrcPhraseNext; // this could have in its m_markers member 
+										   // a non-inline marker which ends the section
+										   // that is, this one would NOT be part of the
+										   // filterable section
 			SPList::Node* savePos2 = NULL;
-			bool bHasEmbeddedMarker = FALSE;
-			bool bNeedEmbeddedEndMarker = FALSE;
-			bool bAddRemovedEmbeddedEndMarker = FALSE;
-
+			bool bAtEnd = FALSE; // use this for filtered section's end (set TRUE when
+								 // we are at the final CSourcePhrase instance which is
+								 // to be filtered out, in the loop below
+			bool bAtDocEnd = FALSE; // BEW added 11Oct10, needed, as doc end needs to
+								// be known, if reached, so we can append a carrier
+								// CSourcePhrase for the filtered material there
+			// put our deep copies of the span's CSourcePhrase instances in pSublist (see
+			// above, it's on the heap)
+			// Initialize pSrcPhr, to avoid a compiler warning after the loop
+			pSrcPhr = (CSourcePhrase*)pos->GetData(); // redundant, avoids the warning later
 			for (pos2 = pos; pos2 != NULL; )
 			{
 				savePos2 = pos2;
 				pSrcPhr = (CSourcePhrase*)pos2->GetData();
-				pos2 = pos2->GetNext();
+				pos2 = pos2->GetNext(); // advance to next Node of the passed in pList
 				wxASSERT(pSrcPhr);
-				bool bAtEnd = FALSE;
-
-                // If there are embedded markers in this section, such as keyword markers
-                // (\k \k*) or italics or bold etc, these have endmarkers - but the marker
-                // which prompted this section for filtering may not take an endmarker (and
-                // so the bHasEndmarker flag will continue FALSE for each sourcephrase
-                // dealt with), so the endmarkers on embedded markers will require special
-                // code to handle the embedding properly. We do it here by having a block
-                // which will test for such embedded markers and do the required handling
-                // before the code block for bHasEndmarker gets to look at the content of
-                // m_markers, and our code here has to do whatever adjustments to m_markers
-                // are required (such as removing a matching endmarker from the start of
-                // m_markers and resaving m_markers on pSrcPhrase without the endmarker) so
-                // that the code which follows this section only has to deal with decisions
-                // relating to the span being filtered and its marker (and potential
-                // endmarker). We assume any embedded markers occur without any other
-                // marker, and don't embed within another such pair (if that happens, it
-                // would defeat our code below); and the only embedded markers this code
-                // block is going to handle are those with TextType == none
-				int embeddedOffset;
-				int embeddedItemLen;
-				if (!pSrcPhr->m_markers.IsEmpty()) // skip if there is nothing in m_markers
-				{
-					wxString embMkrs = pSrcPhr->m_markers;
-					embeddedOffset = embMkrs.Find(gSFescapechar);
-					if (embeddedOffset >= 0) // there is a marker in m_markers
-					{
-						int len = embMkrs.Length();
-                        // wx version note: Since we require a read-only buffer we use
-                        // GetData which just returns a const wxChar* to the data in the
-                        // string.
-						const wxChar* pChar = embMkrs.GetData();
-						wxChar* pBufStart = (wxChar*)pChar;
-						wxChar* pEnd;
-						pEnd = (wxChar*)pChar + len;
-						wxASSERT(*pEnd == _T('\0'));
-
-						embeddedItemLen = ParseMarker(pBufStart + embeddedOffset);
-						wxString strMkr(pChar + embeddedOffset, embeddedItemLen);
-						embeddedMkr = strMkr;
-
-						// if its an endmarker, then this block is not interested in it
-						strMkr = MakeReverse(strMkr);
-						if (strMkr[0] != _T('*')) // exit block if it's an endmarker
-						{
-							wxString bareMkr = embeddedMkr.Mid(1);
-							USFMAnalysis* pStruct = LookupSFM(bareMkr);
-							if (pStruct != NULL) // exit block if the marker 
-												 // is an unknown one
-							{
-                                // we can now determine if this is an embedded marker which
-                                // requires an endmarker -- since the point of this code
-                                // block to to handle such ones (the rest of the code
-                                // already handles other possibilities)
-								if (pStruct->inLine && (pStruct->textType == none) && 
-									!pStruct->endMarker.IsEmpty())
-								{
-                                    // we don't have to actually move the m_markers
-                                    // contents anywhere in this block because it gets done
-                                    // by code at the end of the inner loop anyway, but we
-                                    // do here need to set the bool values which enable the
-                                    // embedded endmarker, once encountered, to be removed
-                                    // from the begining of the pSrcPhrase->m_markers which
-                                    // has it as its first marker
-									bHasEmbeddedMarker = TRUE;
-									bNeedEmbeddedEndMarker = TRUE;
-									bAddRemovedEmbeddedEndMarker = FALSE; // this gets set 
-														// in next block eventually 
-								}
-							}
-						}
-					}
-				}
-                // unilaterally check for the matching embedded endmarker on the 'next'
-                // sourcephrase whenever the above block exits with bHasEmbeddedMarker TRUE
-                // and bNeedEmbeddedEndMarker TRUE, remembering that 'next' might be well
-                // down the track after several more sourcephrases have been processed
-				if (bHasEmbeddedMarker && bNeedEmbeddedEndMarker)
-				{
-					CSourcePhrase* pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
-					wxASSERT(pSrcPhraseNext);
-					if (!pSrcPhraseNext->m_markers.IsEmpty())
-					{
-						embeddedEndMkr = embeddedMkr + _T("*"); // construct the matching 
-																// embedded endmarker
-						int curPos = pSrcPhraseNext->m_markers.Find(embeddedEndMkr);
-
-                        // we are only interested in the endmarker being initial in
-                        // m_markers, that's the only way it can be doing the job of ending
-                        // off an embedded marker section
-						if (curPos == 0) // when TRUE, it's the one we want at the 
-										 // start where we expect it
-						{
-                            // since we know it's the matching endmarker for one which is
-                            // inLine == TRUE and has TextType of none, we don't need to
-                            // access the USFMAnalysis struct, but we do need to enable the
-                            // flag which will govern the delayed addition of the endmarker
-                            // to the being-accumulated filteredStr wxString text (it's to
-                            // be done after the current pSrcPhr's m_srcPhrase member has
-                            // been added to filteredStr - which is done further below);
-                            // and we have to remove the embeddedEndMkr from
-                            // pSrcPhraseNext's m_markers member now, (keeping it for later
-                            // on), so it won't be present when the inner loop's code has
-                            // to handle finishing off the current section being filtered
-                            // so that the whole lot can receive the final \~FILTER*
-                            // bracking marker
-							bAddRemovedEmbeddedEndMarker = TRUE; // cleared to FALSE again 
-                                    // after the delayed addition to filteredStr has been
-                                    // done (below)
-							int len = embeddedEndMkr.Length();
-                            // remove it, and any space which may follow (and if that's the
-                            // only marker present, that would clear m_markers as well)
-							pSrcPhraseNext->m_markers.Remove(0,len);
-							while (pSrcPhraseNext->m_markers[0] == _T(' '))
-								pSrcPhraseNext->m_markers = pSrcPhraseNext->m_markers.Mid(1);
-							// embeddedEndMkr preserves the marker itself for later on 
-							// when the addition happens
-						}
-					}
-				}
-
-                // check to determine if we require an endmarker, and look for it at the
-                // sourcephrase beyond the current one - this would be a NULL pointer if
-                // pos2 was advanced beyond the end of the m_pSourcePhrases list, which
-                // would be a valid criterion for terminating the section anyway;
-                // otherwise, we are interested to know if there is the matching endmarker
-                // at the start of pSrcPhraseNext's m_markers wxString member; otherwise we
-                // are interested in whether or not pSrcPhr's m_markers string contains
-                // another marker - if so, we are at the end
+				bAtEnd = FALSE;
+				bAtDocEnd = FALSE;
+				posEnd = pos2; // on exit of the loop, posEnd will be where 
+							   // pSrcPhraseNext is located, or NULL if we reached
+							   // the end of the document
 				if (pos2 == NULL)
 				{
-					// we are at the end of the doc, and at the end of the section for 
-					// filtering out
-					bAtEnd = TRUE;
+					// we've come to the doc end, and that forces the span end too with
+					// pSrcPhrase as the last one (and so we'll need an ophan created
+					// later in order to "carry" the filtered information)
 					pSrcPhraseNext = NULL;
 				}
-				else if (bHasEndmarker)
+				else
 				{
-                    // the marker in wholeMkr should have a matching endmarker, but beware,
-                    // some such markers can optionally have the matching endmarker
-                    // omitted, so we can't rely on it being present - that means that the
-                    // failure to detect the endmarker on pSrcPhraseNext is not an
-                    // indication that the loop should continue, but rather we have to
-                    // allow the block at label d: below to be done in case the endmarker
-                    // was omitted and we really are at the end of the section for
-                    // filtering
 					pSrcPhraseNext = (CSourcePhrase*)pos2->GetData();
-					wxASSERT(pSrcPhraseNext);
-					int curPos = pSrcPhraseNext->m_markers.Find(endMkr);
-					if (curPos == -1)
-					{
-                        // pSrcPhraseNext does not contain the matching endmarker, so check
-                        // out the possibility that it was merely omitted
-						goto e;
-					}
-					else
-					{
-                        // pSrcPhraseNext does contain the matching endmarker, so we must
-                        // extract it and any preceding nested endmarker (such as \fq*
-                        // before \f*) from the m_markers string (updating the latter to
-                        // not have it any longer) and later add it to the end of
-                        // filteredStr after the m_srcPhrase member's contents of
-                        // pSrcPhrase (NOT pSrcPhraseNext) have been accumulated at label
-                        // d: below
-						bAtEnd = TRUE;
-						bGotEndmarker = TRUE; // used below to add the endmarker after 
-                            // m_srcPhrase is added because if we do it here it would be
-                            // too early in filteredStr
-
-						wxString nextMarkersStr = pSrcPhraseNext->m_markers;
-						wxASSERT(!nextMarkersStr.IsEmpty());
-
-                        // the endmarker will usually be first, but it may have a nested
-                        // endmarker before it, so we must take the endmarker and any
-                        // nested preceding one as a substring, remove it and store in
-                        // endingMkrsStr so we can add it later in the section commencing
-                        // at label d: below.
-						nFound = curPos;
-						int lenEndMkr = endMkr.Length();
-						nFound += lenEndMkr; // nFound now is the offset to first 
-											 // character after endMkr
-						endingMkrsStr = nextMarkersStr.Left(nFound); // store all that 
-																	 // stuff till later
-						nextMarkersStr = nextMarkersStr.Mid(nFound); // remove it from 
-																	 // nextMarkersStr
-                        // if there is a following space after endMkr, we will accumulate
-                        // it too, but any extra spaces after that we'll throw away (BEW
-                        // 25May06)
-						if (nextMarkersStr[0] == _T(' '))
-						{
-							endingMkrsStr += _T(' ');
-							nextMarkersStr = nextMarkersStr.Mid(1);
-						}
-						while (nextMarkersStr[0] == _T(' '))
-						{
-                            // remove any additional initial spaces (since we've already
-                            // normalized, we can be certain that \r or \n will not be
-                            // there)
-							nextMarkersStr = nextMarkersStr.Mid(1);
-						}
-						pSrcPhraseNext->m_markers = nextMarkersStr; // update pSrcPhraseNext
-					}
 				}
-				else // there is no endmarker on the 'next' sourcephrase, so check 
-					 // if the current one is the end
+
+				// check first for a halt to scanning caused by finding the required
+				// matching endmarker for the contents of wholeMkr. If no match is found
+				// (as would be the case if wholeMkr is not an SFM which has a pairing
+				// endmarker defined), then the pSrcPhraseNext instance needs to be
+				// checked - in it's m_markers member, for a halt-causing beginmarker - if
+				// one such is not found, the m_markers content will be accumulated on the
+				// next iteration into the source text being accumulated and scanning will
+				// continue until a halt is achieved
+				if (HasMatchingEndMarker(wholeMkr,pSrcPhr))
 				{
-                    // the marker in wholeMkr does not have a matching endmarker, so we are
-                    // looking for a sourcephrase instance which has a stored marker
-                    // different than in wholeMkr; and because there is no matching
-                    // endmarker, the condition reduces to any sourcephrase instance whose
-                    // m_markers string is non-empty and contains the marker which is
-                    // inLine == FALSE, or if that is TRUE, then TextType is not equal to
-                    // none --- except when we get here from the block above which checks
-                    // for an endmarker in pSrcPhraseNext and did not find it, in which
-                    // case we may still be at the end, so we use the above criteria as
-                    // well, and if a shortened marker form exists we must allow for that
-                    // possibility here too (these we would need to skip over and so filter
-                    // them out plus their content - but code above ensures that the only
-                    // short markers which get to here are \f or \x, anything else would
-                    // give errors in in the logic below)
-e:					if (pSrcPhr->m_markers.IsEmpty())
+					// halt here, this pSrcPhr is last in the filterable span
+					bAtEnd = TRUE;
+					// we may or may not be at the end of the document, check
+					if (pSrcPhraseNext == NULL)
 					{
-						// this can't be the sourcephrase instance which is the end of the 
-						// section for filtering
-						goto d; // accumulate this instance's source text 
-								// into the string being filtered
+						bAtDocEnd = TRUE;
 					}
-					if (pSrcPhr->m_markers.Find(gSFescapechar) != -1)
-					{
-                        // its m_markers member has at least one marker in it, so we are
-                        // potentially at the end (so we'll assume we are not at the end if
-                        // the wholeShortMkr exists, and is in this m_markers member;
-                        // otherwise we could be at the end and so we have to make more
-                        // careful tests to determine if that is so - by looking at inLine,
-                        // and TextType)
-						if (wholeShortMkr.IsEmpty())
-						{
-                            // we might be at the end, because there's no shortened marker
-                            // to look for, -- so check it out
-							bAtEnd = IsEndingSrcPhrase(gpApp->gCurrentSfmSet, pSrcPhr->m_markers);
-							if (!bAtEnd)
-							{
-								// accumulate the m_markers material here, m_srcPhrase is 
-								// done below
-								filteredStr += pSrcPhr->m_markers;
-							}
-						}
-						else
-						{
-							// the shortened marker form exists, so check for its presence
-							if (pSrcPhr->m_markers.Find(wholeShortMkr) == -1)
-							{
-								// the wholeShortMkr is absent, so we might be at the end 
-								// - so check it out
-								bAtEnd = IsEndingSrcPhrase(gpApp->gCurrentSfmSet, pSrcPhr->m_markers);
-								if (!bAtEnd)
-								{
-									// accumulate the m_markers material here, m_srcPhrase 
-									// is done below
-									filteredStr += pSrcPhr->m_markers;
-								}
-							}
-							else
-							{
-                                // we found a marker with a matching short form, so we must
-                                // handle it appropriately (ie. accumulate it and allow
-                                // iteration to continue by leaving bAtEnd remain FALSE)
-								filteredStr += pSrcPhr->m_markers;
-							}
-						}
-					}
-					else
-					{
-                        // its m_markers has some non-marker content - this should not
-                        // happen, but we'll code defensively and permit iteration of the
-                        // loop
-						filteredStr += pSrcPhr->m_markers; // accumulate whatever it is
-					}
+					break;
 				}
-
-				// accumulate source text substring being filtered out
-d:				if (!bAtEnd || bGotEndmarker)
+				else if (pSrcPhraseNext != NULL)
 				{
-                    // note, if we entered here because bGotEndmarker was TRUE, then bAtEnd
-                    // will also be TRUE (and the endmarker will have been detected in the
-                    // pSrcPhraseNext's m_markers member, which means that the current
-                    // pSrcPh instance has m_srcPhrase text needing to be accumulated now,
-                    // and code further on will extract the endmarker from pSrcPhraseNext
-                    // and accumulate it too)
-					filteredStr += pSrcPhr->m_srcPhrase + _T(' '); // BEW 26May06 the space 
-																   // added here is benign
-
-                    // if we have encountered an embedded marker stretch with an endmarker,
-                    // then we'll have looked ahead to the next sourcephrase and determine
-                    // if it has the required embeddedEndMkr, and set a flag to tell us so
-                    // when we get here - use the flag now to add the closing embedded
-                    // endmarker text (when the flag is TRUE, the 'next' sourcephrase has
-                    // already had that initial embeddedEndMkr removed from its m_markers
-                    // string); and adding the endmarker must also clear the flags, in case
-                    // there are several subspans of embedded markers
-					if (bAddRemovedEmbeddedEndMarker)
+					if (IsEndingSrcPhrase(gpApp->gCurrentSfmSet, pSrcPhraseNext))
 					{
-						filteredStr += embeddedEndMkr + _T(' ');// BEW 26May06 the space 
-                                // added here is benign because if the embedded end marker
-                                // was placed in the source prior to final punctuation,
-                                // then the punctuation will be detached an in its own
-                                // CSourcePhrase with empty m_key, and code elsewhere in
-                                // the app will detect detached & isolated final
-                                // punctuation following an endmarker (embedded or not) and
-                                // remove the space so as to tuck the final punctuation
-                                // back up to where it should be - that is, immediately
-                                // after the endmarker. This kind of adjustment is done at
-                                // export time, and also for RTF interlinear exports.
-						bAddRemovedEmbeddedEndMarker = FALSE;
-						bHasEmbeddedMarker = FALSE;
-						bNeedEmbeddedEndMarker = FALSE;
+						// this 'next' CSourcePhrase instance causes a halt, and is not
+						// itself to be within the filterable span, so the present
+						// pSrcPhr instance is last in the span
+						bAtEnd = TRUE;  // and bAtDocEnd remains FALSE
+						break;
 					}
+					// a FALSE value in the above test means that scanning should
+					// continue, so just fall through to the code below which makes and
+					// appends to the sublist the required deep copy of pSrcPhr
 				}
-				else if ((bAtEnd && bHasEndmarker && !bGotEndmarker) || 
-							(bAtEnd && !bHasEndmarker))
+				else // pSrcPhraseNext does not exist (the pointer is NULL)
 				{
-					// don't accumulate here if either test succeeds, because we will have 
-					// got here either:
-					// (a) we expected an endmarker on pSrcPhraseNext (bHasEndmarker is TRUE) 
-                    // but did not actually find one there; so an extra iteration of the
-                    // loop has been done and then the code at e: has determined that on
-                    // the former 'next' sourcephrase which has now become the current one
-                    // (ie. pSrcPh) there is a marker in its m_markers member which halts
-                    // scanning;
-					// or
-					// (b) we don't expect an endmarker (bHasEndmarker is FALSE), and the code
-                    // at e: has determined that the current sourcephrase (pSrcPh) has a
-                    // marker which halts scanning (bAtEnd == TRUE).
-					//
-                    // Both scenario (a) or (b) result in a halt, but with the scan having
-                    // gone one iteration too far - by that we mean that we don't want to
-                    // accumulate the m_srcPhrase text on the pSrcPh which is current at
-                    // this time because it is a sourcephrase which is not to be filtered -
-                    // it is in fact the first one of the next section when scanning
-                    // resumes. However, pos2 has been updated beyond the current location
-                    // -- so we have to reset it to the earlier location in order that the
-                    // outer loop will take off from the correct POSITION in the list.
-					pos2 = savePos2; // adjust pos2 to be at the current location, not the 
-									 // next one
+					// so pSrcPhr is the last CSourcePhrase instance in the document
+					bAtEnd = TRUE;
+					bAtDocEnd = TRUE;
+					break;
 				}
+				// if control has not broken out of the loop, then we must continue
+				// scanning over more CSourcePhrase instances till we halt; but first we
+				// must create the needed deep copy and append it to the sublist
+				CSourcePhrase* pSrcPhraseCopy = new CSourcePhrase(*pSrcPhr); // a shallow copy
+				pSrcPhraseCopy->DeepCopy(); // now it's a deep copy of pSrcPhrase
+				pSublist->Append(pSrcPhraseCopy);
+			} // end of for loop: for (pos2 = pos; pos2 != NULL; )
 
-				// are we at the end sourcephrase instance for this section?
-				if (bAtEnd)
-				{
-					if (bGotEndmarker)
-					{
-                        // BEW changed 25May06; accumulate the endmarker, or endmarker and
-                        // a preceding nested endmarker, and a following space (if there
-                        // was one, it will be already in endingMkrsStr), since we located
-                        // the endmarker earlier but set bGotEndmarker to TRUE so we could
-                        // accumulate the endmarker, or endmarker pair, here rather than
-                        // earlier when we found it on the 'next' sourcephrase
-						filteredStr += endingMkrsStr;
-						endingMkrsStr.Empty(); // ready for potential next iteration
-					}
-					bAtEnd = FALSE;
-					break; // exit the inner loop
-				}
-				// iterate the inner loop, if bAtEnd was not set TRUE
-			} // end of inner loop, for searching for the place where to end the 
-			  // filtered section
-			posEnd = pos2; // valid assignment, even if pos2 is NULL because the 
-						   // end of the doc was reached
+			// do the final needed deep copy of pSrcPhrase and append to the sublist
+			CSourcePhrase* pSrcPhraseCopy = new CSourcePhrase(*pSrcPhr); // a shallow copy
+			pSrcPhraseCopy->DeepCopy(); // now it's a deep copy of pSrcPhrase
+			pSublist->Append(pSrcPhraseCopy);
+			// get the sequence numbers in the stored instances consecutive from 0
+			UpdateSequNumbers(0, pSublist);
 
             // complete the determination of where the active location is in relation to
             // this filtered section, and work out the active sequ number adjustment needed
@@ -6029,30 +6641,63 @@ d:				if (!bAtEnd || bGotEndmarker)
 										   // being filtered
 				}
 			}
-			bool bPosEndNull = posEnd == NULL ? TRUE : FALSE;
+			bool bPosEndNull = posEnd == NULL ? TRUE : FALSE; // used below to work out
+											// where to set the final active location
 
-			// add the bracketing end filtermarker \~FILTER*, and a final space
+			// here 'export' the src text into a wxString, and then append that to 
+			// filteredStr
+			wxString strFilteredStuff;
+			strFilteredStuff.Empty();
+			if (!pSublist->IsEmpty())
+			{
+				int textLen = RebuildSourceText(strFilteredStuff, pSublist);
+				textLen = textLen; // to avoid a compiler warning
+				// remove any initial whitespace
+				strFilteredStuff.Trim(FALSE);
+			}
+			else
+			{
+				// we don't ever expect such an error, so an English message will do
+				wxString msg;
+				wxBell();
+				msg = msg.Format(_T("Filtering the content for marker %s failed.\nDeep copies were not stored.\nSome source text data has been lost at sequNum %d.\nDo NOT save the document, exit, relaunch and try again."),
+					wholeMkr.c_str(), nStartLocation);
+				wxMessageBox(msg,_T(""), wxICON_ERROR);
+				// put a message into the document so it is easy to track down where it
+				// went wrong
+				strFilteredStuff = _T("THIS IS WHERE THE FAILURE TO STORE DEEP COPIES OCCURRED. ");
+			}
+			filteredStr += strFilteredStuff;
+
+			// add the bracketing end filtermarker \~FILTER*
+			filteredStr.Trim(); // don't need a final space before \~FILTER*
 			filteredStr += filterMkrEnd;
-			filteredStr += _T(' ');
+
+			// delete the sublist's deep copied CSourcePhrase instances
+			bool bDoPartnerPileDeletionAlso = FALSE; // there are no partner piles to delete
+			DeleteSourcePhrases(pSublist, bDoPartnerPileDeletionAlso);
+			pSublist->Clear(); // ready it for a later filtering out
 
             // remove the pointers from the m_pSourcePhrases list (ie. those which were
             // filtered out), and delete their memory chunks; any adaptations on these are
             // lost forever, but not from the KB unless the latter is rebuilt from the
             // document contents at a later time
-			SPList::Node* pos3; //POSITION pos3;
+			SPList::Node* pos3; // use this to save the old location so as to delete the 
+								// old node once the iterator has moved past it
 			int filterCount = 0;
 			for (pos2 = posStart; (pos3 = pos2) != posEnd; )
 			{
 				filterCount++;
 				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
 				pos2 = pos2->GetNext();
-				DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory, don't delete 
-												  // the partner pile
+				DeleteSingleSrcPhrase(pSP,TRUE); // don't leak memory, do also delete their
+							// partner piles, as the latter should exist for information
+							// unfiltered up to now and therefore was visible in the view
 				pList->DeleteNode(pos3);
 			}
 
             // update the sequence numbers on the sourcephrase instances which remain in
-            // the list and reset nAfterLocation and nStartLocation accordingly
+            // the document's list and reset nAfterLocation and nStartLocation accordingly
 			UpdateSequNumbers(0);
 			nAfterLocation = nStartLocation;
 			nStartLocation = nStartLocation > 0 ? nStartLocation - 1: 0;
@@ -6103,6 +6748,17 @@ d:				if (!bAtEnd || bGotEndmarker)
             // store the filtered content in its m_markers member, and add it to the tail
             // of the doc. A filtered section at the end of the document will manifest by
             // pos2 being NULL on exit of the above loop
+            // BEW 22Sep10, changes for docVersion 5:
+			// (1) preStr and remainderStr will need to be inserted at the start of the
+			// pUnfilteredSrcPhrase's m_markers member, if either or both are non-empty
+			// (they'll almost certainly be both empty)
+			// (2) filteredStr has to be appropriately stored, it no longer is embedded in
+			// pUnfilteredSrcPhrase's m_markers member, but at the START of its
+			// m_filteredInfo member (to preserve the order of source text information
+			// across filtering/unfiltering changes)
+			// (3) the new storage for already filtered stuff being carried forward, the
+			// string strFilteredStuffToCarryForward, has to be handled here too (it
+			// could, of course, be an empty string)
 			CSourcePhrase* pUnfilteredSrcPhrase = NULL;
 			if (posEnd == NULL)
 			{
@@ -6124,21 +6780,59 @@ d:				if (!bAtEnd || bGotEndmarker)
 			// in the correct order
 			tempStr = pUnfilteredSrcPhrase->m_markers; // hold this stuff temporarily, 
 							// as we must later add it to the end of everything else
-			if (tempStr[0] == _T(' ')) tempStr = tempStr.Mid(1); // lop off any initial
-															// space (it's superfluous)
+			tempStr.Trim(FALSE); // this is easier than the above line
 			pUnfilteredSrcPhrase->m_markers = preStr; // any previously assumulated 
 													  // filtered info, or markers
-			pUnfilteredSrcPhrase->m_markers += filteredStr; // append the newly 
-															// filtered material
+			// BEW 22Sep10 added next 3 lines
+			pUnfilteredSrcPhrase->m_markers.Trim();
+			pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
+			pUnfilteredSrcPhrase->m_markers += remainderStr;
+			pUnfilteredSrcPhrase->m_markers.Trim(FALSE); // delete contents 
+												// if only spaces are present
+			if (!tempStr.IsEmpty())
+			{
+				pUnfilteredSrcPhrase->m_markers.Trim();
+				pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
+				// append whatever was originally on this srcPhrase::m_markers member
+				pUnfilteredSrcPhrase->m_markers += tempStr;
+			}
 
-#ifdef _Trace_RebuildDoc
-			TRACE1("FILTERING: starting with old m_inform: %s\n", tempStr);
-			TRACE1("FILTERING: adding preStr: %s\n", preStr);
-			TRACE2("FILTERING: gCurrentSfmSet %d STRING: %s\n", gpApp->gCurrentSfmSet, filteredStr);
-#endif
+            // insert any already filtered stuff we needed to carry forward before the newly
+			// filtered material (because if it was unfiltered, it would appear in the
+			// view before it, and so we must retain that order)
+			if (!strFilteredStuffToCarryForward.IsEmpty())
+			{
+				//(in the legacy code, this bit of work was done by remainderStr, because
+				//filtered info was all in m_markers; but for docVersion 5 that was
+				//inappropriate -- so I retained remainderStr only for contentless markers stuff
+				//which might come after the marker to be filtered out, and stored already
+				//filtered stuff in strFilteredStuffToCarryForward)
+				filteredStr = strFilteredStuffToCarryForward + filteredStr;
+			}
+			// we've carried the already filtered info forward, so make sure it goes no further
+			strFilteredStuffToCarryForward.Empty();
 
-			pUnfilteredSrcPhrase->m_markers += tempStr; // append whatever was originally 
-										// on this srcPhrase in its m_markers member
+            // insert the newly filtered material (and any carried forward filtered info
+            // which we appended above) to the start of m_filteredInfo on the CSourcePhrase
+            // which follows the filtered out section - that one might have filtered material
+            // already, so we have to check and take the appropriate branch (Note: if the
+            // stuff being filtered precedes stuff already filtered, then filtered
+            // information can stack up in a single CSourcePhrase's m_filteredInfo member
+            // -- but this is unlikely as it would require an instance of the filterable
+            // marker in successive subspans of CSourcePhrases in the document, and that
+            // would not constitute good USFM markup - but we can handle it if it does
+            // happen.)
+			wxString filteredStuff = pUnfilteredSrcPhrase->GetFilteredInfo();
+			if (filteredStuff.IsEmpty())
+			{
+				pUnfilteredSrcPhrase->SetFilteredInfo(filteredStr);
+			}
+			else
+			{
+				filteredStuff = filteredStr + filteredStuff;
+				pUnfilteredSrcPhrase->SetFilteredInfo(filteredStuff);
+			}
+
 			preStr.Empty();
 			remainderStr.Empty();
 
@@ -6155,18 +6849,19 @@ d:				if (!bAtEnd || bGotEndmarker)
 				pos = posEnd; // this could be the start of a consecutive section 
 							  // for filtering out
 			}
-			// update progress bar every 20 iterations
-//c:			
-#ifdef __WXMSW__
+			// update progress bar every 200 iterations (1000 is a bit too many)
+			
 			++nOldCount;
-			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
+			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
 				msgDisplayed = progMsg.Format(progMsg,
 					gpApp->m_curOutputFilename.c_str(),nOldCount,nOldTotal);
 					progDlg.Update(nOldCount,msgDisplayed);
 			}
-#endif
 		} // end of loop for scanning contents of successive pSrcPhrase instances
+		
+		// remove the progress indicator window
+		progDlg.Destroy();
 
         // prepare for update of view... locate the phrase box approximately where it was,
         // but if that is not a valid location then put it at the end of the doc
@@ -6176,20 +6871,6 @@ d:				if (!bAtEnd || bGotEndmarker)
 
 	} // end of block for bIsFilteringRequired == TRUE
 
-    // BEW changed 29Jul09: do this call unilaterally, bBoxLocationDestroyed is not set
-    // TRUE in as many circumstances as we would want, and in the caller use a test of
-    // bFilterChangeInDoc being TRUE to suppress resetting phrase box contents using
-    // strSavePhraseBox's string value, since we set it here instead - we assume the box
-    // location changed and we'll use the m_adaption member at the new location, but if
-    // that turns out to be the old active location, the caller will instead use the saved
-    // phrase box contents (because m_adaption won't have been set at the time we needed to
-    // save the box contents, so we can't use m_adaption there)
-    /*
-	if (bBoxLocationDestroyed)
-	{
-		gpApp->GetSafePhraseBoxLocationUsingList(pView);
-	}
-	*/
     // GetSavePhraseBoxLocationUsingList calculates a safe location (ie. not in a
     // retranslation), sets the view's m_nActiveSequNumber member to that value, and
     // calculates and sets m_targetPhrase to agree with what will be the new phrase box
@@ -6206,9 +6887,8 @@ d:				if (!bAtEnd || bGotEndmarker)
 	{
 		pSublist->Clear();
 		delete pSublist;
+		pSublist = NULL;
 	}
-
-
 	// BEW added 29Jul09, turn back on CLayout Draw() so drawing of the view
 	// can now be done
 	GetLayout()->m_bInhibitDraw = FALSE;
@@ -6296,300 +6976,6 @@ void CAdapt_ItDoc::SetFilename(const wxString& filename, bool notifyViews)
     }
 }
 
-int CAdapt_ItDoc::GetLoadedDocVersion()
-{
-	return m_nLoadedDocV5;
-}
-
-void CAdapt_ItDoc::SetLoadedDocVersion(int nDocVer)
-{
-	m_nLoadedDocV5 = nDocVer;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \return		enum getNewFileState indicating success or error state when reading the file.
-/// \param		pstrBuffer	<- a wxString which receives the text file once loaded
-/// \param		nLength		<- the length of the loaded text file
-/// \param		pathName	-> path and name of the file to read into pstrBuffer
-/// \remarks
-/// Called from: the Doc's OnNewDocument().
-/// Opens and reads a standard format input file into our wxString buffer pstrBuffer which 
-/// is used by the caller to tokenize and build the in-memory data structures used by the 
-/// View to present the data to the user. Note: the pstrBuffer is null-terminated.
-///////////////////////////////////////////////////////////////////////////////
-enum getNewFileState CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, 
-											  wxUint32& nLength, wxString pathName)
-{
-    // Bruce's Note on GetNewFileBaseFunct():
-    // BEW changed 8Apr06: to remove alloca()-dependence for UTF-8 conversion... Note: the
-    // legacy (ie. pre 3.0.9 version) form of this function used Bob Eaton's conversion
-    // macros defined in SHConv.h. But since ATL 7.0 has introduced 'safe' heap buffer
-    // versions of conversion macros, these will be used here. (If Adapt_It.cpp's
-    // Conver8to16(), Convert16to8(), DoInputConversion() and ConvertAndWrite() are
-    // likewise changed to the safe macros, then SHConv.h could be eliminated from the
-    // app's code entirely. And, of course, whatever the export functionalities use has to
-    // be checked and changed too...)
-    // 
-    // whm revised 19Jun09 to simplify (via returning an enum value) and move error
-    // messages and presentation of the standard file dialog back to the caller
-    // OnNewDocument. The tellenc.cpp encoding detection algorithm was also incorporated to
-    // detect encodings, detect when an input file is actually a binary file (i.e., Word
-    // documents are binary); detect when the Regular version attempts to load a Unicode
-    // input file; and detect and properly handle when the user inputs a file with 8-bit
-    // encoding into the Unicode version (converting it as much as possible - similarly to
-    // what the legacy MFC app did). The revision also eliminates some memory leaks that
-    // would happen if the routine returned prematurely with an error.
-
-	// wxWidgets Notes: 
-	// 1. See MFC code for version 2.4.0 where Bruce needed to monkey
-	//    with the call to GetNewFile() function using GetNewFileBaseFunct()
-	//    and GetNewFileUsingPtr() in order to get the Chinese localized
-	//    version to correctly load resources. I've not implemented those
-	//    changes to GetNewFile's behavior here because the wxWidgets version
-	//    handles all resources differently.
-	// 2. GetNewFile() is called by OnNewDocument() in order to get a
-	//    standard format input file into our wxString buffer pstrBuffer
-	//    which is used by the caller to tokenize and build the in-memory
-	//    data structures used by the View to present the data to the user.
-	//    It also remembers where the input file came from by storing its
-	//    path in m_lastSourceFileFolder.
-
-	// get a CFile and check length of file
-	// Since the wxWidgets version doesn't use exceptions, we'll
-	// make use of the Open() method which will return false if
-	// there was a problem opening the file.
-	wxFile file;
-	if (!file.Open(pathName, wxFile::read))
-	{
-		return getNewFile_error_at_open;
-	}
-
-	// file is now open, so find its logical length (always in bytes)
-	nLength = file.Length(); // MFC has GetLength()
-
-    // whm Design Note: There is no real need to separate the reading of the file into
-    // Unicode and non-Unicode versions. In both cases we could use a pointer to wxChar to
-    // point to our byte buffer, since in in Unicode mode we use char* and in ANSI mode,
-    // wxChar resolves to just char* anyway. We could then read the file into the byte
-    // buffer and use tellenc only once before handling the results with _UNICODE
-    // conditional compiles.
-
-#ifndef _UNICODE // ANSI version, no unicode support 
-
-	// create the required buffer and then read in the file (no conversions needed)
-	// BEW changed 8Apr06; use malloc to remove the limitation of the finite stack size
-	wxChar* pBuf = (wxChar*)malloc(nLength + 1); // allow for terminating null byte 
-	memset(pBuf,0,nLength + 1);
-	wxUint32 numRead = file.Read(pBuf,(wxUint32)nLength);
-	pBuf[numRead] = '\0'; // add terminating null
-	nLength += 1; // allow for terminating null (sets m_nInputFileLength in the caller)
-	
-	// The following source code is used by permission. It is taken and adapted
-	// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
-	// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
-
-	init_utf8_char_table();
-	const char* enc = tellenc(pBuf, numRead - 1); // don't include null char at buffer end
-	if (!(enc) || strcmp(enc, "unknown") == 0)
-	{
-		gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
-	}
-	else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
-	{
-		gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-	}
-	else if (strcmp(enc, "windows-1252") == 0)
-	{
-		gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
-	}
-	else if (strcmp(enc, "ascii") == 0)
-	{
-		// File was all pure ASCII characters, so assume same as Latin1
-		gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-	}
-	else if (strcmp(enc, "utf-8") == 0
-		|| strcmp(enc, "utf-16") == 0
-		|| strcmp(enc, "utf-16le") == 0
-		|| strcmp(enc, "ucs-4") == 0
-		|| strcmp(enc, "ucs-4le") == 0)
-	{
-		free((void*)pBuf);
-		return getNewFile_error_unicode_in_ansi;
-	}
-	else if (strcmp(enc, "binary") == 0)
-	{
-		free((void*)pBuf);
-		return getNewFile_error_opening_binary;
-	}
-	else if (strcmp(enc, "gb2312") == 0)
-	{
-		gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
-	}
-	else if (strcmp(enc, "cp437") == 0)
-	{
-		gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
-	}
-	else if (strcmp(enc, "big5") == 0)
-	{
-		gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
-	}
-	
-	*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
-						// buffer is destroyed
-	
-	free((void*)pBuf);
-
-#else	// Unicode version supports ASCII, ANSI (but may not be rendered right 
-    // when converted using CP_ACP), UTF-8, and UTF-16 input (code taken from Bob Eaton's
-    // modifications to AsyncLoadRichEdit.cpp for Carla Studio) We use a temporary buffer
-    // allocated on the stack for input, and the conversion macros (which allocated another
-    // temp buffer on the stack), to end up with UTF-16 for interal string encoding BEW
-    // changed 8Apr06, requested by Geoffrey Hunt, to remove the file size limitation
-    // caused by using the legacy macros, which use alloca() to do the conversions in a
-    // stack buffer; the VS 2003 macros are size-safe, and use malloc for long strings.
-	wxUint32 nNumRead;
-	bool bHasBOM = FALSE;
-
-	wxUint32 nBuffLen = (wxUint32)nLength + sizeof(wxChar);
-	char* pbyteBuff = (char*)malloc(nBuffLen);
-
-	memset(pbyteBuff,0,nBuffLen);
-	nNumRead = file.Read(pbyteBuff,nLength);
-	nLength = nNumRead + sizeof(wxChar);
-
-	// now we have to find out what kind of encoding the data is in, and set the 
-	// encoding and we convert to UTF-16 in the DoInputConversion() function
-	if (nNumRead <= 0)
-	{
-		// free the original read in (const) char data's chunk
-		free((void*)pbyteBuff);
-		return getNewFile_error_no_data_read;
-	}
-    // check for UTF-16 first; we allow it, but don't expect it (and we assume it would
-    // have a BOM)
-	if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
-	{
-		// it's UTF-16
-		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
-		bHasBOM = TRUE;
-	}
-	else
-	{
-		// see if it is UTF-8, whether with or without a BOM; if so,
-		if (!memcmp(pbyteBuff,szBOM,nBOMLen))
-		{
-			// the UTF-8 BOM is present
-			gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-			bHasBOM = TRUE;
-		}
-		else
-		{
-			if (gbForceUTF8)
-			{
-				// the app is mucking up the source data conversion, so the user wants
-				// to force UTF8 encoding to be used
-				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-			}	
-			else
-			{
-                // The MFC version uses Microsoft's IMultiLanguage2 interface to detect
-                // whether the file buffer contains UTF-8, UTF-16 or some form of 8-bit
-                // encoding (using GetACP()), but Microsoft's stuff is not cross-platform,
-                // nor open source.
-                // 
-                // One possibility for encoding detection is to use IBM's International
-                // Components for Unicode (icu) under the LGPL. This is a very large, bulky
-                // library of tools and would considerably inflate the size of Adapt It's
-                // distribution.
-				
-                // The following source code is used by permission. It is taken and adapted
-                // from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei
-                // <wuyongwei@gmail.com>. See tellenc.cpp source file for Copyright,
-                // Permissions and Restrictions.
-
-// GDLC Temporary work around for PPC STL library bug
-#if defined(__WXMAC__) && defined(__POWERPC__ )
-//[code here would build for PowerPC Macs only]
-				const char* enc = "utf-8";
-				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-#else
-				init_utf8_char_table();
-				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
-#endif
-				if (!(enc) || strcmp(enc, "unknown") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
-				}
-				else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-				}
-				else if (strcmp(enc, "windows-1252") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
-				}
-				else if (strcmp(enc, "ascii") == 0)
-				{
-					// File was all pure ASCII characters, so assume same as Latin1
-					gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-				}
-				else if (strcmp(enc, "utf-8") == 0) // Only valid UTF-8 sequences
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-				}
-				else if (strcmp(enc, "utf-16") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
-				}
-				else if (strcmp(enc, "utf-16le") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
-				}
-				else if (strcmp(enc, "ucs-4") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF32;
-				}
-				else if (strcmp(enc, "ucs-4le") == 0)
-				{
-					 gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE;
-				}
-				else if (strcmp(enc, "binary") == 0)
-				{
-					// free the original read in (const) char data's chunk
-					free((void*)pbyteBuff);
-					return getNewFile_error_opening_binary;
-				}
-				else if (strcmp(enc, "gb2312") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
-				}
-				else if (strcmp(enc, "cp437") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
-				}
-				else if (strcmp(enc, "big5") == 0)
-				{
-					gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
-				}
-			}
-		}
-	}
-
-	// do the converting and transfer the converted data to pstrBuffer (which then 
-	// persists while doc lives)
-	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
-
-	// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
-	// the count)
-	nLength = pstrBuffer->Length() + 1; // # of UTF16 characters + null character 
-											// (2 bytes)
-	// free the original read in (const) char data's chunk
-	free((void*)pbyteBuff);
-
-#endif
-	file.Close();
-	return getNewFile_success;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a pointer to the running application (CAdapt_ItApp*)
@@ -6659,7 +7045,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 /// the View's DetachedNonQuotePunctuationFollows(), FormatMarkerBufferForOutput(),
 /// FormatUnstructuredTextBufferForOutput(), DoExportInterlinearRTF(), DoExportSrcOrTgtRTF(),
 /// DoesTheRestMatch(), ProcessAndWriteDestinationText(), ApplyOutputFilterToText(),
-/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef().
+/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(), 
+/// IsFixedSpaceAhead() and from Usfm2Oxes ParseMarker_Content_Endmarker()
 /// Parses through a buffer's whitespace beginning at pChar.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
@@ -6686,10 +7073,14 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
 /// Upon entry pChar must point to a filtering marker determined by a prior call to 
 /// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging to the 
 /// parent marker.
+/// BEW 9Sep10 removed need for papram pBufStart, since only IsMarker() used to use it as
+/// its second param and with docVersion 5 changes that become unnecessary, so for now
+/// I've resorted to the identity assignment hack to avoid the compiler warning
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 									wxChar *pBufStart, wxChar *pEnd)
 {
+	pBufStart = pBufStart; // a hack to avoid compiler warning
 	// whm added 10Feb2005 in support of USFM and SFM Filtering support
 	// BEW ammended 10Jun05 to have better parse termination criteria
 	// Used in TokenizeText(). For a similar named function used
@@ -6718,7 +7109,8 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 	}
 	while (ptr != pEnd)
 	{
-		if (IsMarker(ptr,pBufStart))
+		//if (IsMarker(ptr,pBufStart)) BEW changed 7Sep10
+		if (IsMarker(ptr))
 		{
 			if (IsCorresEndMarker(wholeMkr,ptr,pEnd))
 			{
@@ -6790,82 +7182,6 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the number of characters parsed
-/// \param		wholeMkr	-> the whole marker (including backslash) to be parsed
-/// \param		pChar		-> pointer to the backslash character at the beginning of the marker
-/// \param		pBufStart	-> pointer to the start of the buffer
-/// \param		pEnd		-> pointer at the end of the buffer
-/// \remarks
-/// Called from: the Doc's DoMarkerHousekeeping().
-/// Parses through the filtered material beginning at the initial backslash of \~FILTER
-/// and ending when ptr points just past the asterisk of the corresponding \~FILTER* end marker.
-/// Upon entry pChar must point to a \~FILTER marker  as determined by a prior call 
-/// to IsFilteredBracketMarker().
-/// ParseFilteredMarkerText advances the ptr until ptr points just past a
-/// corresponding \~FILTER* end marker.
-///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::ParseFilteredMarkerText(const wxString wholeMkr, wxChar *pChar, 
-									wxChar *pBufStart, wxChar *pEnd)
-{
-	// whm added 10Feb2005 in support of USFM and SFM Filtering support
-	// This function differs from ParseFilteringSFM() in that this
-	// ParseFilteredMarkerText() expects to be pointing to a programatically
-	// added \~FILER marker as would be the case in DoMarkerHouseKeeping().
-	// Upon entry pChar must point to a \~FILTER marker determined
-	// by prior call to IsFilteredBracketMarker().
-	// ParseFilteredMarkerText advances the ptr until the following
-	// conditions is true:
-	// 1. ptr points just past a corresponding \~FILTER* end marker.
-	int	length = 0;
-	int endMkrLength = 0;
-	wxChar* ptr = pChar;
-	if (ptr < pEnd)
-	{
-		// advance pointer one to point past wholeMkr's initial backslash
-		length++;
-		ptr++;
-	}
-	while (ptr != pEnd)
-	{
-		if (IsMarker(ptr,pBufStart))
-		{
-			if (IsCorresEndMarker(wholeMkr,ptr,pEnd))
-			{
-				// it is the corresponding end marker so parse it
-				// Since end markers may not be followed by a space we cannot
-				// use ParseMarker to reliably parse the endmarker, so
-				// we'll just add the length of the end marker to the length
-				// of the filtered text up to the end marker
-				endMkrLength = wholeMkr.Length() + 1; // add 1 for *
-				return length + endMkrLength;
-			}
-		}
-		length++;
-		ptr++;
-	}
-	return length;
-}
-
-/* // currently unused
-///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if the character pointed to by pChar is a number, FALSE otherwise.
-/// \param		pChar		-> pointer to the first character to be examined
-/// \remarks
-/// Called from: 
-/// Determines if the character at pChar is a number. Called after determining that a character
-/// sequence was a verse marker followed by whitespace.
-///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::IsVerseNumber(wxChar *pChar)
-{
-	// test for digits
-	if (wxIsdigit(*pChar) == 0)
-		return FALSE;
-	else
-		return TRUE;
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of numeric characters parsed
 /// \param		pChar		-> pointer to the first numeric character
 /// \remarks
@@ -6927,9 +7243,10 @@ bool CAdapt_ItDoc::IsVerseMarker(wxChar *pChar, int& nCount)
 /// \param		pChar		-> a pointer to the first character to be examined (a backslash)
 /// \param		pEnd		-> a pointer to the end of the buffer
 /// \remarks
-/// Called from: the Doc's GetMarkersAndTextFromString() and DoMarkerHousekeeping(), 
+/// Called from: the Doc's GetMarkersAndTextFromString() 
 /// Determines if the marker being pointed at is a \~FILTER marking the beginning of filtered
 /// material.
+/// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -6954,6 +7271,7 @@ bool CAdapt_ItDoc::IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd)
 /// Called from: the Doc's GetMarkersAndTextFromString().
 /// Determines if the marker being pointed at is a \~FILTER* marking the end of filtered
 /// material.
+/// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -6987,6 +7305,7 @@ bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 /// marker is at the end of a string ParseMarker won't crash (TCHAR(0) won't help at the end
 /// of the buffer here because _istspace which is called from IsWhiteSpace() only recognizes
 /// 0x09 ?0x0D or 0x20 as whitespace for most locales.
+/// BEW 1Feb11, added test for forbidden marker characters using app::m_forbiddenInMarkers
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 {
@@ -7007,13 +7326,14 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
     // TODO: add a wxChar* pEnd parameter so that tests for the end of the buffer can be
     // made to prevent any such problems. The addition of the test for null seems to work
     // for the time being.
+    // whm ammended 7June06 to halt if another marker is encountered before whitespace
+    // BEW ammended 11Oct10 to halt if a closing bracket ] follows the (end)marker
 	int len = 0;
 	wxChar* ptr = pChar; // was wchar_t
 	wxChar* pBegin = ptr;
-	while (!IsWhiteSpace(ptr) && *ptr != _T('\0')) // whm added test for *ptr != _T('\0') 24Nov07
+	while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 	{
-		if (ptr != pBegin && *ptr == gSFescapechar) // whm ammended 7June06 to halt if another marker is
-													// encountered before whitespace
+		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']'))) 
 			break; 
 		ptr++;
 		len++;
@@ -7031,18 +7351,190 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 /// Called from: the Doc's GetMarkersAndTextFromString().
 /// Returns the whole marker by parsing through an existing marker until either whitespace is
 /// encountered or another backslash is encountered.
+/// BEW fixed 10Sep10, the last test used forward slash, and should be backslash
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd) // whm added 18Feb05
 {
 	int len = 0;
 	wxChar* ptr = pChar;
-	while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('/'))
+	//while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('/'))
+	while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('\\'))
 	{
 		ptr++;
 		len++;
 	}
 	return wxString(pChar,len);
 }
+
+// return TRUE if the quotation character at pChar is either " or '
+bool CAdapt_ItDoc::IsStraightQuote(wxChar* pChar)
+{
+	if (gpApp->m_bDoubleQuoteAsPunct)
+	{
+		if (*pChar == _T('\"')) return TRUE; // ordinary double quote
+	}
+	if (gpApp->m_bSingleQuoteAsPunct)
+	{
+		if (*pChar == _T('\'')) return TRUE; // ordinary single quote
+	}
+	return FALSE;
+}
+
+bool CAdapt_ItDoc::IsFootnoteInternalEndMarker(wxChar* pChar)
+{
+	wxString endMkr = GetWholeMarker(pChar);
+	if (endMkr[0] != gSFescapechar)
+		return FALSE;
+	if (endMkr == _T("\\fig*"))
+		return FALSE;
+	wxString reversed = MakeReverse(endMkr);
+	if (reversed[0] != _T('*'))
+		return FALSE;
+	else
+	{
+		reversed = reversed.Mid(1); // remove initial *
+		endMkr = MakeReverse(reversed); // now \f should be first 2 characters
+									// if it is an internal footnote endmarker
+		int length = endMkr.Len();
+		if (length < 3)
+			return FALSE; // it could be \f at best, and that is not enough
+		if (endMkr.Find(_T("\\f")) != 0)
+			return FALSE; // \f has to be at the start of the marker, to qualify
+		endMkr = endMkr.Mid(2); // chop off the initial \f
+		if (endMkr.Len() > 0)
+		{
+            // if it has any content left, then it is an internal footnote endmarker,
+            // any other value disqualifies it
+			return TRUE;
+		}
+	}
+	return FALSE; 
+}
+
+bool CAdapt_ItDoc::IsCrossReferenceInternalEndMarker(wxChar* pChar)
+{
+	wxString endMkr = GetWholeMarker(pChar);
+	if (endMkr[0] != gSFescapechar)
+		return FALSE;
+	wxString reversed = MakeReverse(endMkr);
+	if (reversed[0] != _T('*'))
+		return FALSE;
+	else
+	{
+		reversed = reversed.Mid(1); // remove initial *
+		endMkr = MakeReverse(reversed); // now \x should be first 2 characters
+							// if it is an internal crossReference endmarker
+		int length = endMkr.Len();
+		if (length < 3)
+			return FALSE; // it could be \x at best, and that is not enough
+		if (endMkr.Find(_T("\\x")) != 0)
+			return FALSE; // \x has to be at the start of the marker, to qualify
+		endMkr = endMkr.Mid(2); // chop off the initial \x
+		if (endMkr.Len() > 0)
+		{
+			// if it has any content left, then it is an internal crossReference
+			// endmarker, any other value disqualifies it
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+bool CAdapt_ItDoc::HasMatchingEndMarker(wxString& mkr, CSourcePhrase* pSrcPhrase)
+{
+	wxString endMkrs = pSrcPhrase->GetEndMarkers();
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+        // check for one of the 'footnote end' markers, the only endmarkers in the PNG 1998
+        // marker set
+		if (endMkrs.IsEmpty())
+		{
+			return FALSE;
+		}
+		if (endMkrs == _T("\\fe") || endMkrs == _T("\\F"))
+		{
+			// it's one of those two, so if mkr is \f, we've got a match
+			wxString mkrPlusSpace = mkr + _T(' ');
+			if (mkrPlusSpace == _T("\\f "))
+			{
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+	}
+	// the UsfmOnly set must be currently in use; the matching endmarker, if it exists,
+	// must be in m_endMarkers and it will be the last one if that member stores more than
+	// one
+	wxString endmarkers = pSrcPhrase->GetEndMarkers();
+	if (endmarkers.IsEmpty())
+	{
+		return FALSE; // empty m_endMarkers member, so no match is possible
+	}
+	wxString wholeEndMkr = GetLastMarker(endmarkers);
+	wxASSERT(!wholeEndMkr.IsEmpty());
+	if (mkr + _T('*') == wholeEndMkr)
+	{
+		// we have a match
+		return TRUE;
+	}
+	return FALSE; // no match
+}
+
+// This is an overload for the one below it with wxChar* pChar as param. str must commence
+// with the endmarker being tested. I don't have a use for this overloaded version as yet.
+/*
+bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxString str)
+{
+	const wxChar* pBuf = str.GetData();
+	wxChar* pChar = (wxChar*)pBuf;
+	return IsFootnoteOrCrossReferenceEndMarker(pChar);
+}
+*/
+
+// NOTE: the endmarker for endnote is included in the test, so while the name of this
+// function suggests only \f* and \x* return TRUE, \fe* will also return TRUE
+// BEW 7Dec10, added check for \fe or \f when SFM set is PngOnly
+bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
+{
+	wxString endMkr = GetWholeMarker(pChar);
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		// check for 'footnote end' markers, the only endmarkers in the PNG 1998
+		// marker set
+		if (endMkr == _T("\\fe") || endMkr == _T("\\F"))
+			return TRUE;
+	}
+	if (endMkr == _T("\\fig*"))
+		return FALSE;
+	if (endMkr == _T("\\fe*"))
+	{
+		// we include a test for the endmarker of an endnote in this function, because we
+		// want the handling for \f* and \fe* to be the same  - either, if found, should
+		// be stored in m_endMarkers, and either can have outer punctuation following it
+		return TRUE;
+	}
+	if (endMkr[0] != gSFescapechar)
+		return FALSE;
+	wxString reversed = MakeReverse(endMkr);
+	if (reversed[0] != _T('*'))
+		return FALSE;
+	else
+	{
+		reversed = reversed.Mid(1); // remove initial *
+		endMkr = MakeReverse(reversed); // now \x or \f should be first 2
+										// characters if it is to quality
+		int length = endMkr.Len();
+		if (length > 2)
+			return FALSE; // what remains is more than \x or \f, so disqualified
+		if ((endMkr.Find(_T("\\x")) == 0) || (endMkr.Find(_T("\\f")) == 0))
+			return TRUE; // what remains is either \x or \f, so it qualifies
+	}
+	return FALSE;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing to an opening quote mark
@@ -7104,6 +7596,77 @@ bool CAdapt_ItDoc::IsAmbiguousQuote(wxChar* pChar)
 	return FALSE;
 }
 
+// BEW 15Dec10, changes needed to handle PNG 1998 marker set's \fe and \F
+bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
+{
+	if (gpApp->gCurrentSfmSet == PngOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
+	{
+		// in the PNG 1998 set, there is no marker for endnotes, and cross references were
+		// not included in the standard but inserted manually from a separate file, and so
+		// there is no \x nor any endmarker for a cross reference either; there were only
+		// two marker synonyms for ending a footnote, \fe or \F
+		wxString fnoteEnd1 = _T("\\fe");
+		wxString fnoteEnd2 = _T("\\F");
+		wxString endmarkers = pSrcPhrase->GetEndMarkers();
+		if (endmarkers.IsEmpty())
+			return FALSE;
+		if (endmarkers.Find(fnoteEnd1) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (endmarkers.Find(fnoteEnd2) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+	}
+	else
+	{
+		wxString fnoteEnd = _T("\\f*");
+		wxString endnoteEnd = _T("\\fe*");
+		wxString crossRefEnd = _T("\\x*");
+		wxString endmarkers = pSrcPhrase->GetEndMarkers();
+		if (endmarkers.IsEmpty())
+			return FALSE;
+		if (endmarkers.Find(fnoteEnd) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (endmarkers.Find(endnoteEnd) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (endmarkers.Find(crossRefEnd) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if pChar is pointing to a closing curly quote mark
+/// \param		pChar		-> a pointer to the character to be examined
+/// \remarks
+/// Called from: the Doc's ParseWord().
+/// Determines is the character being examined is some sort of non-straight closing quote
+/// mark, that is, not one of ' or ". So a closing curly quote mark may be a right angle
+/// wedge >, or a Unicode closing quote char L'\x201D' or L'\x2019'.
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsClosingCurlyQuote(wxChar* pChar)
+{
+	// include legacy '>' as in SFM standard, as well as smart quotes
+	// but not normal double-quote, nor single-quote
+	if (*pChar == _T('>')) return TRUE; // right wedge
+#ifdef _UNICODE
+	if (*pChar == L'\x201D') return TRUE; // unicode Right Double Quotation Mark
+	if (*pChar == L'\x2019') return TRUE; // unicode Right Single Quotation Mark
+#else // ANSI version
+	if ((unsigned char)*pChar == 148) return TRUE; // Right Double Quotation Mark
+	if ((unsigned char)*pChar == 146) return TRUE; // Right Single Quotation Mark
+#endif
+	return FALSE;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing to a closing quote mark
 /// \param		pChar		-> a pointer to the character to be examined
@@ -7138,65 +7701,1450 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 	return FALSE;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// \return		the number of characters parsed
-/// \param		pChar			-> a pointer to the first character of ordinary text to be parsed
-/// \param		precedePunct	<- a wxString returned with accumulated preceding punctuation
-/// \param		followPunct		<- a wxString returned with accumulated following punctuation
-/// \param		nospacePuncts	-> a wxString which contains the source punctuation set with all 
-///									spaces removed to help do the parsing of any punctuation 
-///									immediately attached to the word (either before or after)
+//////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param	span		           -> span of characters extracted from the text buffer
+///                                   by the FindParseHaltLocation() function; we parse this
+/// \param  wordProper             <- the word itself [see a) below]
+/// \param  firstFollPuncts	       <- any punctuation characters (out-of-place ones, [see b)
+///                                   below])
+/// \param	nEndMkrsCount          <- how many inline binding endmarkers there are in the
+///                                   span string [this is known to the caller beforehand]
+/// \param	inlineBindingEndMarkers <- one of more inline binding endmarkers following the
+///                                    wordProper in the span string
+/// \param  secondFollPuncts        <- normal "following punctuation" which, if an inline
+///                                    binding endmarker is present, should (if the USFM
+///                                    markup is correctly done) follow the marker [Note:
+///                                    if there is no inline binding endmarker present,
+///                                    only firstFollPuncts will have punctuation chars in
+///                                    it, and they will be in standard position (of course)]
+/// \param  ignoredWhiteSpaces      <- one or more characters of whitespace - because
+///                                    Adapt It normalizes most \n and \r characters out of
+///                                    the data (using space instead) typically this will just
+///                                    be one of more spaces, but we don't rely on that being
+///                                    true
+/// \param  wordBuildersForPostWordLoc <- For storing one or more wordbuilding characters
+///                                    which are at the end of m_follPunct because they were
+///                                    formerly punctuation but the user has changed the
+///                                    punctuation set and now they are word-building ones
+///                                    (the caller will restore them to their word-final
+///                                    location)
+/// \param  spacelessPuncts          -> the (spaceless) punctuation set being used (usually
+///                                    src punctuation, but target punctuation can be passed
+///                                    if we want to parse target text for some reason - in
+///                                    which case span should contain target text) Note, if
+///                                    we want space to be part of the punctuation set, we
+///                                    must add it here explicitly in a local string before
+///                                    doing anything else
 /// \remarks
-/// Called from: the Doc's TokenizeText(), the View's RemovePunctuation(), DoExportSrcOrTgtRTF(),
-/// ProcessAndWriteDestinationText().
-/// Parses a word of ordinary text, intelligently handling (and accumulating) characters defined
-/// as punctuation.
+/// Called from: IsFixedSpaceAhead()
+/// FindParseHaltLocation() is used within IsFixedSpaceAhead() (itself within ParseWord()
+/// called from TokenizeText()) to extract characters from the input buffer until a
+/// halting location is reached - which could be at a ~ fixedspace marker, or if certain
+/// other post-word data is encountered. That defines a span of characters which commence
+/// with the characters of the word being parsed, but which could end with quite complex
+/// possibilities. This ParseSpanBackwards() function parsed from the end of that span,
+/// backwards towards its start, extracting each information type which it returns via the
+/// signature's parameters. The material being parsed, in storage order (in a RTL script
+/// this would be rendered RTL, not LTR of course, but both are stored in LTR order) may
+/// be this:
+/// a) the word proper (it may contain embedded punctuation which must remain invisible to
+/// our parsers, that's why we parse backwards - we expect to reach characters at the end
+/// of the word before the backwards parse has a chance to hit an embedded punct character)
+/// b) out-of-place (for canonical USFM markup) following punctuation (which may contain
+/// embedded space - such as for closing curly quote sequences)
+/// c) inline binding endmarker(s) (we allow for more than one - we'll extract them as a
+/// sequence and not try to remove any unneeded spaces between them - they normally would
+/// have no space between any such pair) -- the FindParseHaltLocation() knows how many such
+/// markers it scanned over to get to the halt location, and it returned a count for that,
+/// and so we pass in that count value in the nEndMkrsCount param
+/// d) more following punctuation (this is in the canonical location if there is an inline
+/// binding marker present - punctuation should only follow such an endmarker in good USFM
+/// markup, never precede it -- so the caller will coalesce the out of place puncts with
+/// the in place puncts, to restore good USFM markup [white space between word and puncts,
+/// keep it if present, because some languages require space between word and puncts at
+/// either end.
+/// e) some white space - this would be ignorable, and we'll return it so that the caller
+/// can get it's iterator position set correctly, but the caller will then just ignore any
+/// such white space returned
+/// BEW created 11Oct10 (actually 27Jan11), to support the improved USFM parser build into
+/// doc version 5 
+/// BEW 2Feb11, added a string to signature for storing punctuation characters that have
+/// changed their status to being word-building
+//////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper, 
+		wxString& firstFollPuncts, int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+		wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+		wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
+{
+	// initialize
+	wordProper.Empty(); firstFollPuncts.Empty(); inlineBindingEndMarkers.Empty();
+	secondFollPuncts.Empty(); ignoredWhiteSpaces.Empty(); 
+	wordBuildersForPostWordLoc.Empty(); // potentially used when parsing the first or
+										// second word of a conjoined pair, or when
+										// parsing a non-conjoined word
+	// reverse the string
+	if (span.IsEmpty())
+	{
+		wxBell();
+		wxMessageBox(_T("Error: in ParseSpanBackwards(), input string 'span' is empty"));
+		return;
+	}
+	int length = span.Len();
+	wxString str = MakeReverse(span);
+
+	// check we have a non-empty punctuation characters set - if it's empty, we can skip
+	// parsing for punctuation characters
+	bool bPunctSetNonEmpty = TRUE;
+	wxString punctSet; punctSet.Empty();
+	if (spacelessPuncts.IsEmpty())
+	{
+		bPunctSetNonEmpty = FALSE;
+	}
+	else
+	{
+		// we need space to be in the punctuation set, so add it to a local string and use the
+		// local string thereafter; we don't add it if there are no punctuation characters set
+		punctSet = spacelessPuncts + _T(' ');
+	}
+
+	// get access to the wxString's buffer - then iterate across it, collecting the
+	// substrings as we go
+	const wxChar* pBuffer = str.GetData();
+	wxChar* p = (wxChar*)pBuffer;
+	wxChar* pEnd = p + length;
+	wxChar* pStartHere = p;
+	int punctsLen2 = 0;
+	int punctsLen1 = 0;
+	int ignoredWhitespaceLen = 0;
+	int bindingEndMkrsLen = 0;
+
+	// first get any ignorable whitespace
+	ignoredWhitespaceLen = ParseWhiteSpace(p);
+	if (ignoredWhitespaceLen > 0)
+	{
+		wxString ignoredSpaceRev(p, p + ignoredWhitespaceLen);
+		ignoredWhiteSpaces = MakeReverse(ignoredSpaceRev); // normal order
+		pStartHere = p + ignoredWhitespaceLen; // advance starting location
+	}
+    // next, any punctuation characters -- we'll put them in secondFollPuncts string
+	// whether of not nEndMkrsCount is zero (because this is where we'd expect good USFM
+	// markup to have them); skip this step if there are no punctuation characters defined
+	p = pStartHere;
+	wxString puncts; puncts.Empty();
+	if (bPunctSetNonEmpty)
+	{
+		// allow \n and \r to be parsed over too (ie. whitespace, not just space),
+		// space character is already in punctSet, so no need to add an explicit test;
+		// Note, the loop will also end if it encounters what used to be a word-building
+		// character which, due to user changing punctuation set, it became a punctuation
+		// character and so got pulled off the word's end and stored in m_follPunct, but
+		// subsequent to that the user again changed the punctuation set making it back
+		// into a word building character - so that it is still in m_follPunct at its end
+		// (it may be the only character in m_follPunct), and so we will have to test for
+		// this and store it and any like it in a special string,
+		// wordBuildersForPostWordLoc, to return such characters to the caller for
+		// placement there back at the end of the parsed word
+		while (p < pEnd)
+		{
+			if (punctSet.Find(*p) != wxNOT_FOUND ||  *p == _T('\n') || *p == _T('\r'))
+				puncts += *p++;
+			else
+				break;
+		}
+        // add the puncts to secondFollPuncts, if any were found -- note, there could be a
+        // space (it's not necessarily bad USFM markup, some languages require it) at the
+        // end of the (reversed)substring -- we'll collect it & retain it if present
+		if (!puncts.IsEmpty())	
+		{
+			secondFollPuncts = MakeReverse(puncts); // normal order
+			punctsLen2 = secondFollPuncts.Len();
+			puncts.Empty(); // in case we reuse it for a subsequent inline binding endmarker
+			pStartHere = pStartHere + punctsLen2; // advance starting location
+		}
+	}
+	// now, however many (reversed) inline binding endmarkers were found to be present --
+	// since any such are reversed, and because there are no inline markers in the PNG
+	// 1998 SFM marker set, we know that asterisk * must be the first character
+	// encountered if a marker is present...
+    // since we parse backwards we could use the version of ParseMarker() that is in
+    // helpers.cpp, in a loop, because it checks for initial * and so can find reversed
+    // USFM endmarkers, however the easiest way is to assume that the nEndMkrsCount value
+    // passed in is correct, and just use FindFromPos() in a loop - searching for a
+    // backslash on each iteration. Until the latter proves to be non-robust, that will
+    // suffice
+	// Note: we know that the marker or markers to be parsed next are all inline
+	// binding endmarkers - that was verified in the prior call of
+	// FindParseHaltLocation() which did the requisite test and set nEndMkrsCount
+	p = pStartHere;
+
+    // it's possible that changed punctuation resulted in a word-final character moving to
+    // be in m_follPunct; this is benign except when there was also an inline binding
+    // endmarker present - because Adapt It will restore the character to after the inline
+    // marker, thinking it is to remain as punctuation, and if it is now no longer in the
+    // punctuation set being used, then it needs to be stored for the caller to process it,
+    // and the parsing point set to follow it before further parsing takes place. Test and
+    // do that now. There could be more than one. 
+	wxString nowWordBuilding; nowWordBuilding.Empty();
+	bool bStoredSome = FALSE;
+	if (nEndMkrsCount > 0 && *p != _T('*') && punctSet.Find(*p) == wxNOT_FOUND)
+	{
+		while (*p != _T('*') && punctSet.Find(*p) == wxNOT_FOUND)
+		{
+			bStoredSome = TRUE;
+			nowWordBuilding += *p;
+			p++;
+			pStartHere = p;
+		}
+	}
+	// any additional puncts which are between where p points and the * of the reversed
+	// marker have to be taken to the end of the word - this will "bury" any such as
+	// word-internal punctuation -- this is the cost we pay for refusing to generate a
+	// pair of CSourcePhrase instances from a single instance when the user changes
+	// punctuation settings - otherwise, we get potential messes, and this 'solution' is
+	// the best compromise. 
+	// To generate data to illustrate this, a sequence like \k extreme\k* is useful, 
+    // make m and e become punctuation characters, then unmake e as a punctuation
+    // (returning it to word-building status) -- when the reverse parse comes to the eme
+    // 3-char sequence, the first e goes to the end of the word, but m continuing as
+    // punctuation blocks the loop above, leaving 2-char sequence, me, before the * of the
+    // reversed \k* endmarker. If we don't also move that "me" sequence to the end of the
+    // word, the wxASSERT below would trip, and that "m" character would cause the
+    // generation, of a second CSourcePhrase, and a rather unhelpful mess at that point in
+    // the document. We have to get p pointing at * before we continue the parse.
+	if (!nowWordBuilding.IsEmpty() && *p != _T('*'))
+	{
+		// grab and append the rest
+		while (*p != _T('*'))
+		{
+			nowWordBuilding += *p;
+			p++;
+		}
+	}
+	if (!nowWordBuilding.IsEmpty())
+	{
+		wordBuildersForPostWordLoc = MakeReverse(nowWordBuilding); // return these to
+				// IsFixedSpaceAhead() which in turn will return these to ParseWord() where,
+                // if the string is not empty, they'll be appended to the word; ptr will
+                // get updated in IsFixedSpaceAhead() I think, as probably will the len
+                // value, if this function was called from there, else in
+                // FinishOffConjoinedWordsParse() if called from the latter
+    }
+	// p should now be pointing at an * if nEndMkrsCount is not zero
+#ifdef __WXDEBUG__
+	if (nEndMkrsCount > 0)
+	{
+		wxASSERT(*p == _T('*'));
+	}
+#endif
+	if (nEndMkrsCount > 0)
+	{
+		int lastPos = 0;
+		wxString aReversedSpan(p, pEnd);
+		int index;
+		for (index = 0; index < nEndMkrsCount; index++)
+		{
+			// use the helpers.cpp function: int FindFromPos(const wxString& inputStr, 
+			// const wxString& subStr, int startAtPos), it allows us to find several
+			// instances of a substring within the string
+			lastPos = FindFromPos(aReversedSpan,_T("\\"),lastPos);
+			lastPos++; // include the backslash marker
+		}
+		wxString theBindingEndMarkers(p, p + lastPos);
+		bindingEndMkrsLen = theBindingEndMarkers.Len();
+		inlineBindingEndMarkers = MakeReverse(theBindingEndMarkers); // normal order
+		pStartHere = p + bindingEndMkrsLen; // advance starting location
+	}
+    // next, any pre-marker punctuation characters in the unreversed string -- we'll put
+    // them in firstFollPuncts string whether of not nEndMkrsCount is zero (because if
+    // there was no inline binding endmarker just parsed, we'd have already collected all
+    // the punctuation characters which follow the word; so any collected now must not have
+    // been collected because of an intervening inline binding endmarker; but skip this
+    // step if there are no punctuation characters defined
+	p = pStartHere;
+	if (bPunctSetNonEmpty)
+	{
+		// allow \n and \r to be parsed over too (ie. whitespace, not just space),
+		// space character is already in punctSet, so no need to add an explicit test
+		while (p < pEnd)
+		{
+			if (punctSet.Find(*p) != wxNOT_FOUND ||  *p == _T('\n') || *p == _T('\r'))
+				puncts += *p++;
+			else
+				break;
+		}
+        // add the puncts to firstFollPuncts, if any were found -- note, there could be a
+        // space (it's not necessarily bad USFM markup, some languages require it) at the
+        // end of the (reversed)substring -- we'll collect it & retain it if present
+		if (!puncts.IsEmpty())	
+		{
+			firstFollPuncts = MakeReverse(puncts); // normal order
+			punctsLen1 = firstFollPuncts.Len();
+			puncts.Empty();
+			pStartHere = pStartHere + punctsLen1; // advance starting location
+		}
+	}
+
+	
+	// finally, what remains is the word proper (it could have embedded punctuation
+	// 'invisible' to our parsing algorithms - it's invisible provided it has a
+	// non-punctuation character both before and after it)
+	p = pStartHere;
+	wxString theReversedWord(p, pEnd);
+	wordProper = MakeReverse(theReversedWord);
+
+#ifdef __WXDEBUG__
+	int wordLen = wordProper.Len();
+	int storedRevertedPunctsLen = wordBuildersForPostWordLoc.Len();
+	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 + 
+				ignoredWhitespaceLen + storedRevertedPunctsLen == length);
+#endif
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if ~ conjoins the word and the next, FALSE if there is no such
+///             conjoining
+/// \param		ptr			    <-> ref to the pointer to the next character to be parsed
+///                                (it will be the first character of word about to be
+///                                parsed)
+/// \param      pEnd            -> pointer to first char past the end of the buffer
+///                                (to ensure we don't overrun buffer end)
+/// \param		pWdStart	    <- ptr value when function is just entered
+/// \param	    pWdEnd          <- points at the first character past the last character
+///                                of the first word parsed over
+/// \param	    punctBefore     <- any punctuation (it can have space within, provided
+///                                that it does not end with a space) which follows
+///                                the word (*** this should always be empty, because the
+///                                caller has already parsed over initial punctuation, and
+///                                so this member never gets filled) -- remove later on ***
+/// \param      endMkr          <- any inline binding endmarker, if present
+/// \param      spacelessPuncts -> the (spaceless) punctuation set to be used herein
+/// \remarks
+/// Called from: ParseWord()
+/// ******************************************************** NOTE *********************
+/// NOTE: (this is now different, see next paragraph!) our parsing algorithms for scanning
+/// words which are conjoined by ~ assumes that there is no punctuation within the word
+/// proper - so xyz:abc would NOT be parsed as a single word; our general parser,
+/// ParseWord() DOES handle this type of thing as a single word, but for word1~word2 type
+/// of conjoining, word1 and word2 must have no internal punctuation. For the moment, we
+/// feel this is a satisfactory simplification, because use of ~ in actual data is rare (no
+/// known instances in a decade of Adapt It use), and so too is the use of punctuation as a
+/// word-building character.
+/// 
+/// BEW 25Jan11: ***BIGGER NOTE**** I've left the above NOTE here, at the time it seemed a
+/// reasonable simplification. But user's dynamic changes to punctuation settings proved
+/// it be it's archilles heel. The early code used ScanExcluding() to parse over the word
+/// proper, and if there is embedded punctuation (as there might be if a file is loaded
+/// while inadequate punctuation settings were in effect), then the internal punctuation
+/// can become visible to such a scan - and cause a disastrous result. The correct way to
+/// handle scanning a word is to honour the fact that there may be internal punctuation
+/// which must remain "unseen" by any scanning process - the way to do that is to scan
+/// inward over punctuation from the start of the word, until a non-punct is reached, and
+/// for scanning at the end of the word, reverse the word and scan inwards in the reversed
+/// string until a non-punct is reached, and then undo the reversals. So to do these scans,
+/// ScanIncluding() is to be used from either end, WE MUST NOT SCAN ACROSS THE WORD ITSELF
+/// LOOKING FOR PUNCTUATION AT THE OTHER END OF IT. Instead, scan in from either end. That
+/// gives us the problem of determining where the "other end" is before we can do the
+/// reversal of what lies between and then do the scan in. If there is a ~ fixed space, we
+/// can use that as defining the other end. But if there is no fixed space (~) present, we
+/// have to define the other end as whitespace or a backslash (ie. ignore punctuation for
+/// determining where the other end is). In support of these observations the code will be 
+/// re-written below.
+/// ******************************************************** END NOTE *****************
+/// When the scanning ptr points at a word, we don't know whether the word will be a
+/// singleton, or the first word of a pair conjoined by USFM ~ fixed space marker. We
+/// support punctuation and inline binding markers before or after ~ too, so these
+/// substrings may be present. The caller needs to know if it has to handle the word about
+/// to be parsed as a conjoined pair, or not. To find this out, we first try to find if ~
+/// is present. If it is, that's the dividing point between a conjoined pair (and we return
+/// TRUE eventually). If there is no such character (we return FALSE eventually), it's not
+/// a conjoined pair and the end of the word will be determined by scanning back from later
+/// whitespace or a later marker. A ] character also is considered as an end point for the
+/// word. We pass in references to the start and end locations for the word, etc, so that
+/// the useful info we learn as we parse does not have to be reparsed in the caller. If
+/// TRUE is returned, another function in the caller will be called in order to complete
+/// the delimitation of the conjoined word pair, as far as the final character of the
+/// second word. The ptr value returned must be, if ~ was detected, following the character
+/// ~. If FALSE is returned, we've a normal word parsing, and the caller will only use the
+/// pWdEnd value - resetting the caller's ptr variable to that location, since the caller
+/// can successfully parse on from that point (this would mean throwing information away
+/// about following punctuation, but that is a small matter because the latter is low
+/// frequency in the text, and the caller will reparse that information quickly anyway).
+/// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
+//////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
+	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
+	wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
+{	
+	wxChar* p = ptr; // scan with p, so that we can return a ptr value which is at
+					 // the place we want the caller to pick up from (and that will
+					 // be determined by what we find herein)
+	wxString FixedSpace = _T("~");
+	punctBefore.Empty();
+	endMkr.Empty();
+	pWdStart = ptr;
+	// Find where ~ is, if present; we can't just call .Find() in the string defined by
+	// ptr and pEnd, because it could contain thousands of words and a ~ may be many
+	// hundreds of words ahead. Instead, we must scan ahead, parsing over any ignorable
+	// white space, until we come to either ~, or non-ignorable whitespace, or a closing
+	// bracket (]) - halting immediately before any such character. We need a function for
+	// this and it can return, via its signature, what the specific halt condition was. If
+	// we halt due to ] or whitespace, then we infer that we do not have conjoining of the
+	// word being defined from the parse. We also may parse over an inline binding
+	// endmarker, (perhaps more than one), these don't halt parsing - but we'll return the
+	// info in the signature, along with a count of how many such markers we parsed over.
+	wxChar* pHaltLoc = NULL;
+	bool bFixedSpaceIsAhead = FALSE;
+	bool bFoundInlineBindingEndMarker = FALSE;
+	bool bFoundFixedSpaceMarker = FALSE;
+	bool bFoundClosingBracket = FALSE;
+	bool bFoundHaltingWhitespace = FALSE;
+	int nFixedSpaceOffset = -1;
+	int nEndMarkerCount = 0;
+	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
+					&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+	bFixedSpaceIsAhead = bFoundFixedSpaceMarker;
+	wxString aSpan(ptr,pHaltLoc); // this could be up to ~, or a [ or ], or a whitespace
+
+	// we know whether or not we found a USFM fixedspace marker, what we do next depends
+	// on whether we did or not
+	wxString wordProper; // emptied at start of ParseSpanBackwards() call below
+	wxString firstFollPuncts; // ditto
+	wxString inlineBindingEndMarkers; // ditto
+	wxString secondFollPuncts; // ditto
+	wxString ignoredWhiteSpaces; // ditto
+	// if ptr is already at pEnd (perhaps punctuation changes made a short word into all
+	// puncts), then no point in calling ParseSpanBackwards() and generating a message
+	// about an empty span, instead code to jump the call
+	if (!aSpan.IsEmpty())
+	{
+		ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+						inlineBindingEndMarkers, secondFollPuncts, 
+						ignoredWhiteSpaces, wordBuildersForPostWordLoc, 
+						spacelessPuncts);
+	}
+	else
+	{
+		wordProper.Empty();
+		firstFollPuncts.Empty();
+		nEndMarkerCount = 0;
+		secondFollPuncts.Empty();
+		ignoredWhiteSpaces.Empty();
+		wordBuildersForPostWordLoc.Empty();
+		inlineBindingEndMarkers.Empty();
+	}
+	// now use the info extracted to set the IsFixedSpaceAhead() param values ready
+	// for returning to ParseWord()
+	if (bFixedSpaceIsAhead)
+	{
+		// now use the info extracted to set the IsFixedSpaceAhead() param values ready
+		// for returning to ParseWord()
+
+		// first, pWdEnd -- this will be the length of wordProper after pWdStart
+		pWdEnd = pWdStart + wordProper.Len();
+
+		// second, punctuation which follows the word but precedes the fixed space; if
+		// there is correct markup and there is an inline binding endmarker, it would all be
+		// after that marker (or markers, if there is more than one here), but user markup
+		// errors might have some or all before such a marker - if so, we move the
+		// before-marker puncts to be immediately after the endmarker(s) and append
+		// whatever is already after the endmarkers. We won't remove any initial whitespace
+		// before the puncts, as that would be inappropriate -- some languages'
+		// punctuation conventions are to have a space between the word and preceding or
+		// following punctuation - so if there is space there, we must retain it 
+		if (nEndMarkerCount == 0)
+		{
+			// all the punctuation is together in secondFollPuncts, if there is any at all
+			if (secondFollPuncts.IsEmpty())
+			{
+				punctBefore.Empty();
+			}
+			else
+			{
+				punctBefore = secondFollPuncts;
+			}
+		}
+		else
+		{
+			// handle any out-of-place puncts (will be in firstFollPuncts if there is any)
+			// first, and then append any which follows the inline binding endmarker() to it
+			if (firstFollPuncts.IsEmpty())
+			{
+				punctBefore.Empty();
+			}
+			else
+			{
+				punctBefore = firstFollPuncts;
+			}
+			if (!secondFollPuncts.IsEmpty())
+			{
+				punctBefore += secondFollPuncts;
+			}
+		}
+
+		// third, the contents for endMkr; there could be space(s) in the string, and
+		// they should be removed as they contribute nothing except to make things more
+		// complicated than is necessary for rendinging the markup for publishing, so we
+		// remove them
+		endMkr.Empty();
+		if (!inlineBindingEndMarkers.IsEmpty())
+		{
+			while (inlineBindingEndMarkers.Find(_T(' ')) != wxNOT_FOUND)
+			{
+				// remove all spaces, leaving only the one or more inline binding endmarkers
+				inlineBindingEndMarkers.Remove(inlineBindingEndMarkers.Find(_T(' ')),1); 
+			}
+			endMkr = inlineBindingEndMarkers;
+		}
+
+		// last, since ~ is not in aSpan but immediately after it, set ptr to point past
+		// the ~ fixedspace character
+		ptr = ptr + nFixedSpaceOffset + 1;
+	} // end of TRUE block for test: if (bFixedSpaceIsAhead)
+	else
+	{
+		punctBefore.Empty(); // forget what we know about following punctuation
+		endMkr.Empty(); // forget what we know about following inline binding endmarkers
+
+		// first, pWdEnd -- this will be the length of wordProper after pWdStart
+		// [ Note: wordProper will be shorter, if punctuation char(s) have just been
+		// reverted to word-building ones - they are carried back to the caller in the
+		// wordBuildersForPostWordLoc string, so as to to mess up the Len() counts here,
+		// it is the caller that will append them to the word at the appropriate time]
+		pWdEnd = pWdStart + wordProper.Len();
+
+		// last, reset ptr to point where pWdEnd points -- for when we've not found any
+		// fixed space, we let the caller do the final punctuation & endmarkers parsing etc
+		ptr = pWdEnd;
+		return FALSE; // tell the caller that no fixedspace was encountered
+	} // end of else block for test: if (bFixedSpaceIsAhead)
+	return TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+/// \return		                   nothing
+/// \param		ptr			   <-> ref to the pointer to the next character to be parsed
+///                                (it will be the first character after ~ character pair)
+/// \param      pEnd            -> pointer to first char past the end of the buffer
+///                                (to ensure we don't overrun buffer end)
+/// \param		pWord2Start	    <- points at where 2nd of conjoined words starts (actual word)
+/// \param	    pWord2End       <- points at the first character past the last character
+///                                of the second of the conjoined words parsed over
+/// \param	    punctAfter      <- any punctuation (it can have space within, provided
+///                                that it does not end with a space) which follows ~ and
+///                                precedes the second (conjoined) word
+/// \param      bindingMkr      <- any inline binding beginmarker, if present
+/// \remarks
+/// Called from: ParseWord()
+/// ******************************************************** NOTE *********************
+/// NOTE: our parsing algorithms for scanning words which are conjoined by ~ assumes that
+/// there is no punctuation within the word proper - so xyz:abc would NOT be parsed as a
+/// single word; our general parser, ParseWord() DOES handle this type of thing as a single
+/// word, but for word1~word2 type of conjoining, word1 and word2 must have no internal
+/// punctuation. For the moment, we feel this is a satisfactory simplification, because
+/// use of ~ in actual data is rare (no known instances in a decade of Adapt It use), and
+/// so too is the use of punctuation as a word-building character.
+/// ******************************************************** END NOTE *****************
+/// On input, we know we have a USFM ~ marker conjoining two words (the words may have
+/// punctuation before or after and inline binding marker and endmarker wrapping too), and
+/// this function does the parsing from the character following ~ to the end of the
+/// second word proper - but it does NOT attempt to parse into any following punctuation
+/// or binding endmarker which may follow the second word - the caller will do that. When
+/// ready to return, ptr must be set to point at whatever character following the end of
+/// the second word. If the completion of the parse encounters any or all of, in the
+/// following order, preceding punctuation before the second word (it may legally contain
+/// space, eg. between nested quote symbols), or an inline binding beginmarker, these are
+/// stored in the relevant strings in the signature to return their values to the caller.
+/// The caller then has to use the returned ptr value to work out how many characters were
+/// parsed over, update the callers len (length) value, and then parse on over anything
+/// which may lie beyond the end of the second word (such as final punctuation, etc).
+/// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
+/// BEW refactored 28Jan11, to parse 'inwards' from the ends, rather than across the word
+/// BEW 2Feb11, added 4 more strings to signature, to return punctuation pulled off ends
+/// of the word due to word-building status becoming punctuation status (2 of them), or to
+/// return word-building characters to be added to ends of the word due to punctuation
+/// status becoming changed to word-building status (because user used Preferences
+/// Punctuation tab to dynamically change the punctuation settings)
+//////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
+		wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr, 
+		wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
+		wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc, 
+		wxString& spacelessPuncts)
+{
+	// Note: the punctAfter param is "punctuation after the ~ fixedspace, which, since
+	// this function is only used to parse the second of two conjoined words, is also the
+	// preceding punctuation for the second of the two words (it is NOT the *'punctuation
+	// after the second word' - the latter will be determined in the caller, ParseWord())
+	wxChar* p = ptr;
+	punctAfter.Empty();
+	bindingMkr.Empty();
+	pWord2Start = NULL;
+	pWord2End = NULL;
+	int length = 0;
+	// this two for punctuation returning to word-building status
+	wordBuildersFor2ndPreWordLoc.Empty();
+	wordBuildersFor2ndPostWordLoc.Empty();
+	// this two for word-building characters becoming punctuation characters
+	newPunctFrom2ndPreWordLoc.Empty();
+	newPunctFrom2ndPostWordLoc.Empty();
+	// the FinishOffConjoinedWordsParse() needs all 4, of these, but for the first word or
+	// a conjoined pair, or the only word when parsing a word not conjoined, the
+	// equivalent tweaks and storage is scattered over several functions - in ParseWord(),
+	// in IsFixedSpaceAhead() and in ParseSpanBackwards().
+
+	// we need a punctuation string which includes space
+	wxString punctuation = spacelessPuncts + _T(' ');
+	if (p < pEnd)
+	{
+		// check out the possibility of word-initial punctuation preceding word2's
+		// characters, and beware there may be detached opening quote, and so we can't
+		// assume there won't be a space within the punctuation string (if there is a
+		// punctuation string, that is)   
+		punctAfter = SpanIncluding(p, pEnd, punctuation);
+		length = punctAfter.Len();
+		if (length > 0)
+		{
+			p = p + length;
+		}
+		// we've stopped because either we have come to a beginmarker, or to the
+		// second word of the conjoined pair, or to the end of the buffer, or to a former
+		// punctuation character which has just become a word-building one, and so is not
+		// in the punctuation set
+		if (p >= pEnd)
+		{
+			// this would be totally unexpected, all we can do is set the pointers to the
+			// end and start of the second word to point where pEnd points, and return
+			pWord2Start = p;
+			pWord2End = p;
+			ptr = p;
+			return;
+		}
+		else
+		{
+			// there's more, so check out what is next - could be the start of the word,
+			// or an inline binding beginmarker (could even be a sequence of these)
+			// BEW 28Jan11, changed to using IsMarker() because it tests for \ followed by
+			// a single alphabetic character, and so we don't have \ followed by space
+			// giving a false positive
+			// BEW 3Feb11, *p might be a punctuation character made into a word-building
+			// one by the user just having altered the punctuation settings -- so if
+			// inline marker(s) follow, such a character will need to end up at the start of the
+			// word -- that is, jump the marker. We have a function for handling this
+			// check etc.
+			wordBuildersFor2ndPreWordLoc = SquirrelAwayMovedFormerPuncts(p, pEnd, spacelessPuncts);
+			if (!wordBuildersFor2ndPreWordLoc.IsEmpty())
+			{
+				// advance pointer p, to point beyond the one or more puncts which are now
+				// word-building and needing to be moved later on to start of the word proper
+				size_t numChars = wordBuildersFor2ndPreWordLoc.Len();
+				p += numChars;
+			}
+
+			// when we get here, p must be pointing at the marker if it is present, or at
+			// the word proper if no marker is present
+			bindingMkr.Empty();
+			while (IsMarker(p))
+			{
+				wxString aBindingMkr = GetWholeMarker(p);
+				length = aBindingMkr.Len();
+				wxString mkrPlusSpace = aBindingMkr + _T(' ');
+				if (gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
+				{
+					// it is a beginmarker of the inline binding type (what USFM calls
+					// 'Special Markers'), and so we need to deal with it - we store these
+					// with their trailing space
+					bindingMkr += mkrPlusSpace; // caller will store returned string(s) in
+											    // m_inlineBindingMarkers member
+					p += length;
+					length = ParseWhiteSpace(p); // get past the whitespace after the marker
+												 // (it might not be a single character)
+					p += length;
+				}
+				else
+				{
+					// the marker is not the expected inline binding beginmarker, this
+					// constitutes a USFM markup error. We can't process it as if it were
+					// a binding marker, because it may be a marker preceding the next
+					// word in the data and not conjoined, so we'll just return what we have
+					// and put ptr back preceding any punctuation we may have found -- and
+					// since we've not changed ptr yet, all we need do is return
+					return;
+				}
+			} // end of loop for test: while (IsMarker(p))
+
+            // We are potentially at the start of word2; the user may have changed
+            // punctuation settings in such a way that one or more characters at the start
+            // of the word have just become punctuation characters - we have to store these
+            // in a string to return them to the caller (where they will be added to the
+            // m_precPunct member of secondWord after any other puncts already in there) --
+            // note that doing this means that if the source text is reconstituted, any
+            // such puncts would move to being immediately preceding an inline binding
+			// marker(s) if one or more of the latter precede the word). We must check
+			// here for any such and remove them to the passed in storage string, and
+			// advance our parsing pointer, p, to point beyond them ready to setting
+			// pWord2Start further below.
+			while (spacelessPuncts.Find(*p) != wxNOT_FOUND)
+			{
+				// *p is a punctuation character now, so store it and advance p
+				newPunctFrom2ndPreWordLoc += *p++;
+			}
+			
+			// we are at the start of word2, we can't scan over it using SpanExcluding()
+			// because if there is embedded punctuation, it would foul the integrity of
+			// the parse; so use FindParseHaltLocation() and ParseSpanBackwards() as the
+			// IsFixedSpaceAhead() function does - this combination adhere's to our
+			// word-parsing protocol, which is to parse inwards from either end, never
+			// across it
+			pWord2Start = p;
+			ptr = p;
+
+            // Find a halting location which is beyond the currently to-be-parsed word, but
+            // not past the start of information which belongs to the following of what
+            // could be thousands of words. Instead, we must scan ahead, parsing over any
+            // ignorable white space, until we come to either ~, or non-ignorable
+            // whitespace, or a closing bracket (]) - halting immediately before any such
+            // character. We need a function for this and it can return, via its signature,
+            // what the specific halt condition was. We also may parse over an inline
+            // binding endmarker, (perhaps more than one), these don't halt parsing - but
+            // we'll return the info in the signature, along with a count of how many such
+            // markers we parsed over. We don't use much of what we find, just the
+            // wordProper, because we let the caller handle everything to be parsed from
+            // the end of the wordProper onwards
+			wxChar* pHaltLoc = NULL;
+			bool bFoundInlineBindingEndMarker = FALSE;
+			bool bFoundFixedSpaceMarker = FALSE;
+			bool bFoundClosingBracket = FALSE;
+			bool bFoundHaltingWhitespace = FALSE;
+			int nFixedSpaceOffset = -1;
+			int nEndMarkerCount = 0;
+			pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
+							&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+							&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+			wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a 
+										  // whitespace or a beginmarker
+			// now parse backwards to extract the span's info
+			wxString wordProper; // emptied at start of ParseSpanBackwards() call below
+			wxString firstFollPuncts; // ditto
+			wxString inlineBindingEndMarkers; // ditto
+			wxString secondFollPuncts; // ditto
+			wxString ignoredWhiteSpaces; // ditto
+			ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+								inlineBindingEndMarkers, secondFollPuncts, ignoredWhiteSpaces,
+								wordBuildersFor2ndPostWordLoc, spacelessPuncts);
+            // now use the info extracted to set the FinishedOffConjoinedWordsParse() param
+			// values ready for returning to ParseWord() -- all we want is wordProper --
+			// note, if there is one or more now-word-building-characters in the
+			// wordBuildersFor2ndPostWordLoc string, they are passed back to the caller
+			// via the signature and will be appended to secondWord there, and the
+			// caller's ptr value incremented by however many there are (we don't do it
+			// here because it would return a wrong location for ptr and pWord2End to the
+			// caller)
+			newPunctFrom2ndPostWordLoc = firstFollPuncts; // new puncts pulled of end of word
+			length = wordProper.Len();
+			pWord2End = ptr + length;
+			ptr = pWord2End;
+		} // end of else block for test: if (p >= pEnd)
+	} // end of TRUE block for test: if (p < pEnd)
+}
+
 ///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
-													wxString& nospacePuncts)
-// returns number of characters parsed over.
-//
-// From version 1.4.1 and onwards, we must choose which code we use according to the
-// gbSfmOnlyAfterNewlines flag; when TRUE, any standard format marker escape characters
-// which do not follow a newline are not assumed to belong to a sfm, and so we treat them
-// in such cases as ordinary word-building characters (on the assumption we are dealing
-// with a hacked legacy encoding in which the escape character is an alphabetic glyph in
-// the font)
-// BEW 17 March 2005 -- additions to the signature, and additional functions used...
-// Accumulate preceding punctuation into precedPunct, following punctuation into
-// followPunt, use the nospacePuncts string which contains the source set with all spaces
-// removed to help do the parsing of any punctuation immediately attached to the word
-// (either before or after) and IsOpeningQuote() and IsClosingQuote() to parse over any
-// preceding or following detached quotation marks (of various kinds, including SFM < or >
-// wedges)
+/// \return		the number of characters parsed over
+/// \param  ptr            -> pointer to the next wxChar to be parsed (it should
+///                           point at the starting character of the word proper,
+///                           and after preceding punctuation for that word (if any)
+/// \param  pEnd		   -> a pointer to the first character beyond the input 
+///                           buffer's end (could be tens of kB ahead of ptr)
+///                           marker, or an inline binding marker)
+/// \param	pbFoundInlineBindingEndMarker   <- ptr to boolean, its name explains it; there
+///                                    might be two or more in sequence, so a count of how
+///                                    many of these there are is return in nEndMarkerCount
+/// \param	pbFoundInlineNonbindingEndMarker <- ptr to boolean, its name explains it; these
+///                                    are rare and only one will be at any one CSourcePhrase
+/// \param	pbFoundFixedSpaceMarker <- ptr to boolean, TRUE if ~ encountered at or before
+///                                    the halting location (~ IS the halting location
+///                                    provided it precedes non-ignorable whitespace)
+/// \param	pbFoundBracket          <- ptr to boolean, TRUE if ] or [ encountered (either
+///                                    halts the scan, if it precedes ~ or whitespace)
+/// \param  pbFoundHaltingWhitespace <- ptr to bool, TRUE if space or \n or \r encountered
+///                                    and that whitespace is not ignorable (see comments
+///                                    below for a definition of what is ignorable whitespace)
+/// \remarks
+/// Called from: the Doc's IsFixedSpaceAhead().
+/// The IsFixedSpaceAhead() function, which is mission critical for delimiting a parsed
+/// word or conjoined pair of words in the ParseWord() function, requires a smart subparser
+/// which looks ahead for a fixed space marker (~), but only looks ahead a certain distance
+/// - ensuring the parsing pointer does not encroach into material which belows to any of
+/// the words which follow. This is that subparser. In doing it's job, it may parse over
+/// whitespace which is ignorable, and possibly one or more inline binding endmarkers. 
+/// The halting conditions are:
+/// a) finding non-ignorable whitespace
+/// b) finding ~ (the fixed space marker of USFM)
+/// c) finding a closing bracket, ] or an opening bracket [
+/// d) finding a begin-marker, or an endmarker which is not an inline binding one
+/// We return, via the signature, information about the data types parsed over, to help
+/// the caller to do it's more definitive parsing and data storage more easily. 
+/// The following conditions define ignorable whitespace for the scanning process:
+/// i)  immediately after an inline binding endmarker - provided what follows the whitespace
+///     is either ] or ~ or another inline binding endmarker or punctuation which is a 
+///     closing quote or closing doublequote
+/// ii) between non-punctuation and an immediately following inline binding endmarker
+/// iii)after punctuation, provided a closing quote or closing doublequote follows
+/// No punctuation set is passed in, because this function deliberately does not
+/// distinguish between punctuation and word-building characters -- halt location is
+/// determined solely by ~ or [ or ] or certain SF markers.
+/// BEW 11Oct10, (actually created 25Jan11)
+//////////////////////////////////////////////////////////////////////////////////
+wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
+											bool* pbFoundInlineBindingEndMarker,
+											bool* pbFoundFixedSpaceMarker,
+											bool* pbFoundClosingBracket,
+											bool* pbFoundHaltingWhitespace,
+											int& nFixedSpaceOffset,
+											int& nEndMarkerCount)
+{
+	wxChar* p = ptr; // scan with p
+	wxChar* pHaltLoc = ptr; // initialize to the start of the word proper
+	enum SfmSet whichSFMSet = gpApp->gCurrentSfmSet;
+	wxChar fixedSpaceChar = _T('~');
+	// intialize return parameters
+	*pbFoundInlineBindingEndMarker = FALSE;
+	*pbFoundFixedSpaceMarker = FALSE;
+	*pbFoundClosingBracket = FALSE;
+	*pbFoundHaltingWhitespace = FALSE;
+	nFixedSpaceOffset = -1;
+	nEndMarkerCount = 0;
+	wxString lastEndMarker; lastEndMarker.Empty();
+	int offsetToEndOfLastBindingEndMkr = -1;
+	// scan ahead, looking for the halt location prior to a following word or
+	// end-of-buffer
+	while (p < pEnd)
+	{
+		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
+		{
+			// if none of those, then it's part of the word, or part of punctuation which
+			// follows it, so keep scanning
+			p++;
+		}
+		else
+		{
+			// it's one of those - handle each possibility appropriately
+			if (*p == fixedSpaceChar)
+			{
+				nFixedSpaceOffset = (int)(p - ptr);
+				*pbFoundFixedSpaceMarker = TRUE;
+				break;
+			}
+			else if (*p == _T(']') || *p == _T('['))
+			{
+				*pbFoundClosingBracket = TRUE;
+				break;
+			}
+            // if neither of the above, it must be one of the other conditions - try
+            // endmarkers next; if it is one, and if it is an inline binding marker, we
+            // note the fact and continue scanning; but other endmarkers halt scanning
+            // (including the non-binding inline ones, like \wj*)
+			if (IsMarker(p))
+			{
+				wxString wholeMkr = GetWholeMarker(p);
+				int offset = wholeMkr.Find(_T('*'));
+				if (whichSFMSet == PngOnly)
+				{
+					// this is a sufficient condition for determining that there is no ~
+					// conjoining (endmarkers in this set are only \F or \fe - either is a
+					// footnote end, and there would not be conjoining across that kind of
+					// a boundary) and so we are at the end of a word for sure, so return
+					break;
+				}
+				else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
+				{
+					if (offset == wxNOT_FOUND)
+					{
+						//  there is no asterisk in the marker, so it is not an endmarker
+						//  - it must then be a beginmarker, and they halt scanning
+						break;
+					}
+					else
+					{
+						// it's an endmarker, but we parse over only those which are
+						// inline binding ones, otherwise the marker halts scanning
+						wxString beginMkr = wholeMkr;
+						beginMkr = beginMkr.Truncate(beginMkr.Len() - 1); // remove 
+											// the * (we are assuming the asterisk was at
+											// the end where it should be)
+						wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
+						int offset2 = gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace);
+						if (offset2 == wxNOT_FOUND)
+						{
+							// it's not one of the space-delimited markers in the fast access
+							// string of inline binding beginmarkers, so it halts scanning
+							break;
+						}
+						else
+						{
+							// it's an inline binding endmarker, so we scan over it and
+							// let the caller handle it when parsing backwards to find the
+							// end of the text part of the word just parsed over
+							*pbFoundInlineBindingEndMarker = TRUE;
+							lastEndMarker = wholeMkr;
+							nEndMarkerCount++;
+							unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
+							offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
+							p = p + markerLen;
+						}
+					}
+				} // end of else block for test: if (whichSFMSet == PngOnly)
+			} // end of TRUE block for test: if (IsMarker(p))
+			else if (IsWhiteSpace(p))
+			{
+				// it's whitespace - some such can just be ignored, others constitute the
+				// end of the word or word plus punctuation (and possibly binding
+				// endmarker(s)) and so constitute grounds for halting - determine which
+				// is the case 
+				// first, handle condition (i) in the remarks of the function description
+				if (*pbFoundInlineBindingEndMarker == TRUE && p == (ptr + offsetToEndOfLastBindingEndMkr))
+				{
+                    // The iterator, p, is pointing at a whitespace character immediately
+                    // following an inline binding marker just parsed over. This halts
+                    // scanning except when this whitespace (or several whitespace
+                    // characters) is followed by ~ or one of [ or ], or another inline
+                    // binding endmarker -- check these subconditions out, if one of them
+                    // is satisfied, then advance p to the ~ or [ or ] and halt there, but
+                    // if another inline binding endmarker follows, advance p to its start
+                    // and let the scanning loop continue
+					int whitespaceSpan = ParseWhiteSpace(p);
+					if (*(p + whitespaceSpan) == fixedSpaceChar)
+					{
+						// there is a fixedspace marker following, so return with p
+						// pointing at it, etc
+						p = p + whitespaceSpan;
+						nFixedSpaceOffset = (int)(p - ptr);
+						*pbFoundFixedSpaceMarker = TRUE;
+						break;
+					}
+					else if (*(p + whitespaceSpan) == _T(']') || *(p + whitespaceSpan) == _T('['))
+					{
+						// there is an opening or closing bracket following the
+						// whitespace(s), this halts scanning and also means there is no
+						// conjoining (the whitespace is ignorable)
+						p = p + whitespaceSpan;
+						break;
+					}
+					else if (IsMarker(p + whitespaceSpan))
+					{
+						// it's a marker -- if it is an inline binding endmarker, then
+						// jump over it, etc, and continue scanning, otherwise, it halts
+						// scanning (and might as well halt at the space where p currently
+						// is if that is the case)
+						wxString wholeMkr = GetWholeMarker(p + whitespaceSpan);
+						int offset = wholeMkr.Find(_T('*'));
+						if (whichSFMSet == PngOnly)
+						{
+							// this is a sufficient condition for determining that there is no ~
+							// conjoining (endmarkers in this set are only \F or \fe - either is a
+							// footnote end, and there would not be conjoining across that kind of
+							// a boundary) and so we are at the end of a word for sure, so return
+							*pbFoundHaltingWhitespace = TRUE;
+							break;
+						}
+						else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
+						{
+							if (offset == wxNOT_FOUND)
+							{
+								//  there is no asterisk in the marker, so it is not an endmarker
+								//  - it must then be a beginmarker, and they halt scanning
+								*pbFoundHaltingWhitespace = TRUE;
+								break;
+							}
+							else
+							{
+								// it's an endmarker, but we parse over only those which are
+								// inline binding ones, otherwise the marker halts scanning
+								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+													// the * (we are assuming the asterisk was at
+													// the end where it should be)
+								wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
+								int offset2 = gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace);
+								if (offset2 == wxNOT_FOUND)
+								{
+									// it's not one of the space-delimited markers in the fast access
+									// string of inline binding beginmarkers, so it halts scanning
+									*pbFoundHaltingWhitespace = TRUE;
+									break;
+								}
+								else
+								{
+									// it's an inline binding endmarker, so we scan over it and
+									// let the caller handle it when parsing backwards to find the
+									// end of the text part of the word just parsed over,
+									// continue iterating
+									*pbFoundInlineBindingEndMarker = TRUE;
+									nEndMarkerCount++;
+									unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
+									p = p + whitespaceSpan; // point p at the start of the binding endmarker 
+									offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
+									p = p + markerLen;
+								}
+							}
+						} // end of else block for test: if (whichSFMSet == PngOnly)
+					} // end of TRUE block for test: else if (IsMarker(p + whitespaceSpan))
+					else if (IsClosingCurlyQuote(p + whitespaceSpan))
+					{
+						// it's a closing curly quote, or a > chevron -- so scan over it &
+						// continue 
+						p = p + whitespaceSpan;
+					}
+					else
+					{
+						// any other punctuation coming after a space or spaces should be
+						// considered as opening punctuation for the following word, so
+						// halt now
+						*pbFoundHaltingWhitespace = TRUE;
+						break;
+					}
+
+				} // end of TRUE block for test: if (*pbFoundInlineBindingEndMarker == TRUE && 
+				  //                                 p == (ptr + offsetToEndOfLastBindingEndMkr))
+				else
+				{
+					// subcondition (i) does not apply, so now test for subcondition (ii)
+					// -- between something and a following inline binding endmarker
+					int whitespaceSpan = ParseWhiteSpace(p);
+					if (IsMarker(p + whitespaceSpan))
+					{
+						// it's a marker -- if it is an inline binding endmarker, then
+						// jump over it, etc, and continue scanning, otherwise, it halts
+						// scanning (and might as well halt at the space where p currently
+						// is if that is the case)
+						wxString wholeMkr = GetWholeMarker(p + whitespaceSpan);
+						int offset = wholeMkr.Find(_T('*'));
+						if (whichSFMSet == PngOnly)
+						{
+							// this is a sufficient condition for determining that there is no ~
+							// conjoining (endmarkers in this set are only \F or \fe - either is a
+							// footnote end, and there would not be conjoining across that kind of
+							// a boundary) and so we are at the end of a word for sure, so return
+							*pbFoundHaltingWhitespace = TRUE;
+							break;
+						}
+						else // must be UsfmOnly or UsfmAndPng - we assume UsfmOnly
+						{
+							if (offset == wxNOT_FOUND)
+							{
+								//  there is no asterisk in the marker, so it is not an endmarker
+								//  - it must then be a beginmarker, and they halt scanning
+								*pbFoundHaltingWhitespace = TRUE;
+								break;
+							}
+							else
+							{
+								// it's an endmarker, but we parse over only those which are
+								// inline binding ones, otherwise the marker halts scanning
+								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+													// the * (we are assuming the asterisk was at
+													// the end where it should be)
+								wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
+								int offset2 = gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace);
+								if (offset2 == wxNOT_FOUND)
+								{
+									// it's not one of the space-delimited markers in the fast access
+									// string of inline binding beginmarkers, so it halts scanning
+									*pbFoundHaltingWhitespace = TRUE;
+									break;
+								}
+								else
+								{
+									// it's an inline binding endmarker, so we scan over it and
+									// let the caller handle it when parsing backwards to find the
+									// end of the text part of the word just parsed over,
+									// continue iterating
+									*pbFoundInlineBindingEndMarker = TRUE;
+									nEndMarkerCount++;
+									unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
+									p = p + whitespaceSpan; // point p at the start of the binding endmarker 
+									offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
+									p = p + markerLen;
+								}
+							}
+						} // end of else block for test: if (whichSFMSet == PngOnly)
+					} // end of TRUE block for test: else if (IsMarker(p + whitespaceSpan))
+					else 
+					{
+						// subcondition (ii) doesn't apply, so try subconditon (iii) --
+						// this boils down to testing for a closing (curly) quote or >
+						// wedge after the whitespace, if we find that ignore the space
+						// and continue scanning, otherwise we halt here
+						int whitespaceSpan = ParseWhiteSpace(p);
+						if (IsClosingCurlyQuote(p + whitespaceSpan))
+						{
+							// this space(s) is/are to be ignored, continue scanning
+							p = p + whitespaceSpan;
+						}
+						else
+						{
+							// none of the subconditions for regarding this space as ignorable are
+							// satisfied, so halt here
+							*pbFoundHaltingWhitespace = TRUE;
+							break;
+						}
+					}
+				} // end of else block for test: if (*pbFoundInlineBindingEndMarker == TRUE && 
+				  //                                 p == (ptr + offsetToEndOfLastBindingEndMkr))
+			} // end of TRUE block for test: else if (IsWhiteSpace(p))
+			else
+			{
+				// it's not whitespace -- control should never enter here, but if it does,
+				// then halt for safety's sake
+				break;
+			}	
+		} // end of else block for test: if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
+	}
+	pHaltLoc = p;
+	return pHaltLoc;
+}
+
+wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts)
+{
+	wxString squirrel; squirrel.Empty();
+	// first, find out if there is an inline binding beginmarker no more than
+	// MAX_MOVED_FORMER_PUNCTS characters ahead of where ptr points on entry; if there
+	// isn't, return an empty string because the caller must then assume that ptr on entry
+	// is pointing at the actual start of the word which is to be parsed; if there is,
+	// then make a further check - there must not be a space preceding the marker - if
+	// there is, then return an empty string, because ptr must be pointing at a word to be
+	// parsed
+	int numCharsToCheck = (int)MAX_MOVED_FORMER_PUNCTS;
+	bool bMarkerExists = FALSE;
+	bool bItsAnInlineBindingMarker = FALSE;
+	int count = 1;
+	while (count <= numCharsToCheck)
+	{
+		if (IsWhiteSpace(ptr + count))
+		{
+			// white space encountered before a marker was reached, so return the empty
+			// string
+			return squirrel;
+		}
+		else if (IsMarker(ptr + count))
+		{
+			bMarkerExists = TRUE; // we must exit at the first found, we can't look beyond it
+			break;
+		}
+		else
+		{
+			count++;
+		}
+	}
+	// did we find a marker?
+	if (!bMarkerExists)
+	{
+		// no marker within the allowed small span of following characters (3 is
+		// MAX_MOVED_FORMER_PUNCTS value -- see AdaptItConstants.h) so the caller must
+		// assume that ptr is the actual start of the word - it will deduce that fact if
+		// the returned string is empty
+		return squirrel;
+	}
+	else
+	{
+        // we found a marker, but it has to be an inline binding marker (and not an inline
+        // binding endmarker); so check if it is an inline binding marker - if so, and
+        // providing there was no preceding whitespace (tested in the loop above), we can
+        // test for squirreling some non-restored word initial word-building characters
+        // that got moved earlier to precede the inline binding marker, into the squirrel
+        // string for safekeeping until the caller needs to insert them at the start of the
+        // word to be parsed
+		wxString wholeMkr = GetWholeMarker(ptr + count);
+		// if it's an endmarker, return, we've not the situation we expect could happen
+		if (wholeMkr[wholeMkr.Len() - 1] == _T('*'))
+		{
+			// it's an endmarker - return
+			return squirrel;
+		}
+		wxString bareMkr = wholeMkr.Mid(1); // remove the initial backslash
+		USFMAnalysis* pUsfmAnalysis = LookupSFM(bareMkr);
+		if (pUsfmAnalysis == NULL)
+		{
+			// it's an unknown marker, therefore not an inline binding marker
+			return squirrel; // caller will have to assume the char(s) at ptr are start of a word
+		}
+		else
+		{
+			wxString wholeMkrPlusSpace = wholeMkr + _T(' ');
+			if (gpApp->m_inlineBindingMarkers.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+			{
+				// we've found a valid beginmarker from the set of inline binding markers
+				bItsAnInlineBindingMarker = TRUE;
+			}
+		}
+	}
+	if (!bItsAnInlineBindingMarker)
+	{
+		squirrel.Empty();
+		return squirrel;
+	}
+	wxChar* pNewEnd = ptr + count; // where the inline binding marker commences
+	// now move each of them up to the marker, to squirrel string, provided they are not
+	// in the punctuation set -- do this only if an inline binding marker was found ahead
+	// of the characters at issue (because it's only such a marker that caused the move of
+	// the former word-building char to become a punt in the first place, so it's only
+	// from that kind of movement round the marker that we need a recovery mechanism for)
+	while (bItsAnInlineBindingMarker && ptr < pNewEnd && ptr < pEnd && 
+			spacelessPuncts.Find(*ptr) == wxNOT_FOUND)
+	{
+		squirrel += *ptr++;
+	}
+	if (bItsAnInlineBindingMarker && !squirrel.IsEmpty() && *ptr != gSFescapechar)
+	{
+		// there is at least one more moved here when it became punctuation, but it
+		// remains as punctuation still... so to enable the caller to get the parsing ptr
+		// to point at the marker's backslash when we return, we have to grab all the
+		// rest, whether punctuation or not, and squirrel them away too. This can result
+		// in punctuation being "buried" in word-medial location. We can't help this, it's
+		// the price we pay for having one CSourcePhrase under punctuation changes
+		// generate just one altered CSourcePhrase -- if not, we'll get more than one and
+		// then things get messy
+		while (*ptr != gSFescapechar)
+		{
+			squirrel += *ptr++;
+		}
+	}
+	return squirrel;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		the number of characters parsed over
+/// \param		pChar			-> a pointer to the next character to be parsed (it
+///                                could be the first character of theWord, or
+///                                preceding punctuation, or an inline non-binding
+///                                marker, or an inline binding marker)
+/// \param      pEnd            -> pointer to first char past the end of the buffer
+/// \param		pSrcPhrase	   <-> ptr to the CSourcePhrase instance we are building
+/// \param	spacelessPuncts     -> punctuation characters set used herein, spaces removed
+/// \param	boundarySet	        -> same as spacelessSrcPunct but also with comma removed
+/// \param inlineNonbindingMrks -> space-delimited markers, \wj \qt \sls \tl \fig
+///	\param bIsInlineNonbindingMkr -> TRUE if pChar points at one of the above 5 mkrs								 
+///	\param bIsInlineBindingMkr  -> TRUE if pChar points at any of the other lineline
+///	                               markers (but not any from the footnote or
+///	                               crossReference set, which start with \f or \x,
+///	                               respectively)
+/// \remarks
+/// Called from: the Doc's TokenizeText(), the View's RemovePunctuation(),
+/// DoExportSrcOrTgtRTF(), ProcessAndWriteDestinationText().
+/// Parses a word of ordinary text, intelligently handling (and accumulating) characters
+/// defined as punctuation, and dealing with any inline markers and endmarkers. The legacy
+/// version of this function tried to intelligently handle sequences of straight
+/// singlequote and straight doublequote following the word; but we no longer do that - we
+/// assume good USFM markup, and expect either chevrons or curly quotes, not straight ones
+/// - but we'll handle straight ones in sequence following the word only while no space
+/// occurs between them - after that, any further one will be assumed to be at the start
+/// of the next CSourcePhrase instance (if that is a bad assumption, the user can edit the
+/// source text to make the quotes curly ones, and then the parse will be redone right).
+/// 
+/// BEW 11Oct10, changed for docVersion5, to support inline markers and following
+/// punctuation which may occur both before and after endmarkers. Also, entry to
+/// ParseWord() is potentially earlier - as soon as an inline marker is encountered which
+/// is neither \f nor \x; and more processing is done within the function rather than
+/// returning strings to the caller for the caller to set up the pSrcPhrase from what is
+/// returned. We leave m_markers for the caller to add to pSrcPhrase, since we've already
+/// collected it's contents in the tokBuffer string; so here we just support the following
+/// protocols and the variations mentioned below - in order of occurrence:
+/// (1) Preceding theWord (theWord is whatever punctuation-less word we want to parse)
+/// a)m_markers (in caller) b)m_inlineNonbindingMkrs c) m_precPunct d) m_inlineBindingMkrs
+/// (2) Following theWord:
+/// a)m_inlineBindingEndMkrs b) m_follPunct c) m_endMarkers d) m_follOuterPunct
+/// e) m_inlineNonbindingEndMarkers
+/// We expect information after theWord to comply with the order above. However, we parse
+/// without comment the following variations:
+/// (i) following punctuation preceding a) -- but we'll export in the above order
+/// (ii) inline non-binding endmarkers which occur preceding d) -- but we'll export in the
+/// above order 
+/// Note: the parser now supports ~ USFM fixed space conjoining of a word pair (but not
+/// sequences or 3 words or more), and it will parse punctuation before or after (or both)
+/// the ~ symbol and also any inline binding marker or endmarker occuring with either of
+/// the conjoined words. The word~word conjoined pair are treated as a pseudo-merger.
+/// Therefore, if the user does not want to retain the conjoining he can undo the merger
+/// and he's just have two normal CSourcePhrase instances in sequence, storing those two
+/// words separately, and punctuation on each where it should be. To restore the conjoining
+/// would require selecting the two words and doing an "Edit Source Text" operation to
+/// restore ~ to its place between them.
+/// We also support [ and ] brackets delimiting material considered possibly
+/// non-canonical. The parent, TokenizeText(), handles [, but we must handle ] within
+/// ParseWord(). If ] is encountered (but we don't check within ~ conjoined pairs because
+/// it is not a reasonable assumption that ] would occur between such a conjoining) then
+/// we must immediately halt parsing, as that wordform and markers and puncts, etc, is
+/// then deemed finished, so that on return to TokenizeText() ptr will be pointing at the
+/// ] character, and then the latter function will do the parse of the closing ] symbol -
+/// assigning it to an orphan CSourcePhrase, storing it in its m_follPunct member. This
+/// protocol for handling ] works the same way regardless of whether or not the ]
+/// character is designated a punctuation character - we treat it as if it was, even if not.
+///////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItDoc::ParseWord(wxChar *pChar,
+		wxChar* pEnd,
+		CSourcePhrase* pSrcPhrase, 
+		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
+		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
+		bool& bIsInlineNonbindingMkr, 
+		bool& bIsInlineBindingMkr)
 {
 	int len = 0;
 	wxChar* ptr = pChar;
-    // first, parse over any preceding punctuation, bearing in mind it may have sequences
-    // of single and/or double opening quotation marks with one or more spaces between
-    // each. We want to accumulate all such punctuation, and the spaces in-place, into the
-    // precedePunct CString. We assume only left quotations and left wedges can be set off
-    // by spaces from the actual word and whatever preceding punctuation is on it. We make
-    // the same assumption for punctuation following the word - but in that case there
-    // should be right wedges or right quotation marks. We'll allow ordinary (vertical)
-    // double quotation, and single quotation if the latter is being considered to be
-    // punctuation, even though this weakens the integrity of out algorithm - but it would
-    // only be compromised if there were sequences of vertical quotes with spaces both at
-    // the end of a word and at the start of the next word in the source text data, and
-    // this would be highly unlikely to ever occur.
+	int itemLen;
+	wxString emptyStr = _T("");
+	wxString aSpace = _T(" ");
+	wxString theSymbol = _T("~"); // USFM fixedspace symbol
+	USFMAnalysis* pUsfmAnalysis = NULL;
+	wxString bareMkr;
+	wxString bareEndMkr;
+	wxString wholeMkr;
+	wxString wholeEndMkr;
+	wxString wholeMkrPlusSpace;
+	bool bExitParseWordOnReturn = FALSE;
+	int nFound = wxNOT_FOUND;
 	bool bHasPrecPunct = FALSE;
 	bool bHasOpeningQuote = FALSE;
+	bool bParsedInlineBindingMkr = FALSE;
+	wxString finalPunctBeforeFixedSpaceSymbol;
+	wxString precedingPunctAfterFixedSpaceSymbol;
+	finalPunctBeforeFixedSpaceSymbol.Empty();
+	precedingPunctAfterFixedSpaceSymbol.Empty();
+	CSourcePhrase* pSrcPhrWord1 = NULL;
+	CSourcePhrase* pSrcPhrWord2 = NULL;
+	int nHowManyWhites = 0;
+	wxChar* pMaybeWhitesStart = NULL;
+	wxChar* pMaybeWhitesEnd = NULL;
+	wxString wordBuildersForPreWordLoc;
+	wxString wordBuildersForPostWordLoc; wordBuildersForPostWordLoc.Empty();
+	// next pair for use with the second word in a conjoined pair, when a punct is being
+	// restored to word-building status
+	wxString wordBuildersFor2ndPreWordLoc;
+	wxString wordBuildersFor2ndPostWordLoc; wordBuildersFor2ndPostWordLoc.Empty();
+	// next pair for use with the second word in a conjoined pair, when a word-building
+	// character has just been made a punct character
+	wxString newPunctFrom2ndPreWordLoc;
+	wxString newPunctFrom2ndPostWordLoc; newPunctFrom2ndPostWordLoc.Empty();
 
+	// the first possibility to deal with is that we may be pointing at an inline
+	// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
+	// have provided a boolean telling us we are pointing at one
+	if (bIsInlineNonbindingMkr)
+	{
+		// we are pointing at one of these five markers, handle this situation...
+		pUsfmAnalysis = LookupSFM(ptr);
+		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+		bareMkr = emptyStr;
+		bareMkr = pUsfmAnalysis->marker;
+		wholeMkr = gSFescapechar + bareMkr;
+		wholeMkrPlusSpace = wholeMkr + aSpace;
+		wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
+#ifndef __WXDEBUG__
+		inlineNonbindingMrks.IsEmpty(); // does nothing, but avoids compiler warning
+#endif
+		itemLen = wholeMkr.Len();
+
+		// store the whole marker, and a following space
+		pSrcPhrase->SetInlineNonbindingMarkers(wholeMkrPlusSpace);
+
+		// point past the inline non-binding marker, and then parse
+		// over the white space following it, and point past that too
+		ptr += itemLen;
+		len += itemLen;
+		itemLen = ParseWhiteSpace(ptr);
+		ptr += itemLen;
+		len += itemLen;
+		wxASSERT(ptr < pEnd);
+	}
+	else
+	{
+		// we are not pointing at one of the five
+		pSrcPhrase->SetInlineNonbindingMarkers(emptyStr);
+	}
+	bIsInlineNonbindingMkr = FALSE; // it's passed by ref, so clear the value 
+									// otherwise next entry will fail
+	// what might ptr be pointing at now? One of the following 3 possibilities:
+	// 1. punctuation which needs to be stored in m_precPunct, or
+	// 2. an inlineBindingMkr, such as \k or \w etc, or
+	// 3. the first character of the word to be stored as m_key in pSrcPhrase
+	// The first to check for is punctuation, then inlineBinbdingMkr; however, if the
+	// bIsInlineBindingMkr flag was passed in as TRUE, then there won't be punctuation
+	// preceding the inlineBindingMkr which ptr points at - so we must check the flag and
+	// deal with that marker now (because there might be bad USFM markup with punctuation
+	// following such a marker, so we'll handle that and put things back together in
+	// correct order in an export, if the markup is indeed incorrect in this way)
+	itemLen = 0;
+	if (bIsInlineBindingMkr)
+	{
+		pUsfmAnalysis = LookupSFM(ptr);
+		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+		bareMkr = emptyStr;
+		bareMkr = pUsfmAnalysis->marker;
+		wholeMkr = gSFescapechar + bareMkr;
+		wholeMkrPlusSpace = wholeMkr + aSpace;
+		wxASSERT(pUsfmAnalysis->inLine == TRUE);
+		itemLen = wholeMkr.Len();
+
+		// store the whole marker, and a following space
+		pSrcPhrase->SetInlineBindingMarkers(wholeMkrPlusSpace);
+		bParsedInlineBindingMkr = TRUE;
+
+        // point past the inline binding marker, and then parse over the white space
+        // following it, and point past that too
+		ptr += itemLen;
+		len += itemLen;
+		itemLen = ParseWhiteSpace(ptr);
+		ptr += itemLen;
+		len += itemLen;
+		wxASSERT(ptr < pEnd);
+	}
+	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value 
+								 // otherwise next entry will fail
+
+	// what might ptr be pointing at now? If the above block actually stored a marker,
+	// then we'd expect to be pointing at the word proper'a first character. But...
+	// there may be incorrect markup, and punctuation could be next. And if we didn't
+	// enter the above block, then punctuation could be next, and then an inline binding
+	// marker could follow that, so the following 3 possibilities still apply:
+	// 1. punctuation which needs to be stored in m_precPunct, or
+	// 2. an inlineBindingMkr, such as \k or \w etc, or
+	// 3. the first character of the word to be stored as m_key in pSrcPhrase
+	// The first to check for is punctuation, then inlineBinbdingMkr
+
+    // first, parse over any 'detached' preceding punctuation, bearing in mind it may have
+    // sequences of single and/or double opening quotation marks with one or more spaces
+    // between each. We want to accumulate all such punctuation, and the spaces in-place,
+    // into the precedePunct CString. We assume only left quotations and left wedges can be
+    // set off by spaces from the actual word and whatever preceding punctuation is on it.
+    // We make the same assumption for punctuation following the word - but in that case
+    // there should be right wedges or right quotation marks. We'll allow ordinary
+    // (vertical) double quotation, and single quotation if the latter is being considered
+    // to be punctuation, even though this weakens the integrity of out algorithm - but it
+    // would only be compromised if there were sequences of vertical quotes with spaces
+    // both at the end of a word and at the start of the next word in the source text data,
+    // and this would be highly unlikely to ever occur.
 	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr))
 	{
+		// check if a straight quote is in the preceding punctuation - setting the boolean
+		// true will help us decide if a straight quote following the word belongs to the
+		// word as final punctuation, or to the next word as opening punctuation.
+		bool bStraightQuote = IsStraightQuote(ptr);
+		if (bStraightQuote)
+			m_bHasPrecedingStraightQuote = TRUE; // a public boolean of CAdapt_ItDoc class
+				// which gets cleared to default FALSE at the start of each new verse, and
+				// also after having been used to help decide who owns a straight quote 
+				// which was detected following the word being parsed
+
         // this block gets us over all detached preceding quotes and the spaces which
         // detach them; we exit this block either when the word proper has been reached, or
         // with ptr pointing at some non-quote punctuation attached to the start of the
-        // word. In the latter case, the next block will parse across any such punctuation
-        // until the word proper has been reached.
+        // word, or with ptr pointing at an inline bound marker. In the event we exist
+        // pointing at non-quote punctuation, the next block will parse across any such
+        // punctuation until the word proper has been reached, or until an inline bound mkr
+        // is reached.
 		if (IsWhiteSpace(ptr))
 		{
-			precedePunct += _T(' '); // normalize while we are at it
+			pSrcPhrase->m_precPunct += _T(' '); // normalize while we are at it
 			ptr++;
 		}
 		else
@@ -7207,474 +9155,1943 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
                 // detached non-quote punctuation being spanned in this current block. That
                 // is, we want "... word1 ! "word2" word3 ..." to be handled that way,
                 // instead of being parsed as "... word1 ! " word2" word3 ..." for example
-			precedePunct += *ptr++;
+			pSrcPhrase->m_precPunct += *ptr++;
 		}
 		len++;
 	}
-	int nFound = -1;
-	while (!IsEnd(ptr) && (nFound = nospacePuncts.Find(*ptr)) >= 0)
+	// when control reaches here, we may be pointing at further punctuation having
+	// iterated across some data in the above loop, or be pointing at the first character
+	// of the word, or be pointing at the backslash of an inline binding marker - so
+	// handle these possibilities
+	if (IsMarker(ptr))
 	{
-        // the test checks to see if the character at the location of ptr belongs to the
-        // set of source language punctuation characters (with space excluded from the
-        // latter) - as long as the nFound value is positive we are parsing over
-        // punctuation characters
-		precedePunct += *ptr++;
-		len++;
+        // we are pointing at an inline marker - it must be one with inLine TRUE, that is,
+        // an inline binding marker; beware, we can have \k \w word\w*\k*, and so we could
+        // be pointing at the first of a pair of them, so we can't assume there will be
+        // only one every time
+		//while (*ptr == gSFescapechar)
+		while (IsMarker(ptr))
+		{
+			// parse across as many as there are, and the obligatory white space following
+			// each - normalizing \n or \r to a space at the same time
+			pUsfmAnalysis = LookupSFM(ptr);
+			wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+			bareMkr = emptyStr;
+			bareMkr = pUsfmAnalysis->marker;
+			wholeMkr = gSFescapechar + bareMkr;
+			wholeMkrPlusSpace = wholeMkr + aSpace;
+			wxASSERT(pUsfmAnalysis->inLine == TRUE);
+			itemLen = wholeMkr.Len();
+
+			// store the whole marker, and a following space
+			pSrcPhrase->AppendToInlineBindingMarkers(wholeMkrPlusSpace);
+			bParsedInlineBindingMkr = TRUE;
+
+			// shorten the buffer to point past the inline binding marker, and then parse
+			// over the white space following it, and shorten the buffer to exclude that too
+			ptr += itemLen;
+			len += itemLen;
+			itemLen = ParseWhiteSpace(ptr);
+			ptr += itemLen;
+			len += itemLen;
+			wxASSERT(ptr < pEnd);
+		}
+		// once control gets to here, ptr should be pointing at the first character of the
+		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
+		// after a binding inline marker, but because of the possibility of user markup
+		// error, we'll allow it. It's not that we can't deal with it; it's just
+		// inappropriate markup. So we won't have a wxASSERT() here. Also, when
+		// ParseWord() is being called to rebuild a doc after user changed punctuation
+		// settings, this can produce exceptions (see below) to the expectation we are now
+		// at the start of the word to be parsed.
 	}
-	if (precedePunct.Length() > 0)
-		bHasPrecPunct = TRUE;
-	wxChar* pWordProper = ptr; // where the first character of the word starts
-    // we've come to the word proper. We have to parse over it too, but be careful of the
-    // fact that punctuation might be within it (eg. boy's) - so we parse to a space or
-    // other determinate indicator of the end of the word, and then accumulate final
-    // punctuation both preceding that space and following it - provided the latter is
-    // right quotation marks or a right wedge (and we'll assume that ordinary vertical
-    // double quote or apostrophe goes with the word which precedes, so long as there was
-    // preceding punctuation found - otherwise we'll assume it belongs with the next word
-    // to be parsed) We also don't card if there is a gFSescapechar in the next section -
-    // we can assume it is being used as a word building character quite safely, because we
-    // don't have to consider the possibility of such a character being the start of a
-    // following (U)SFM until after the next white space character has been parsed over.
-
-    // BEW changed 10Apr06, to remove the "&& *ptr != gSFescapechar" from the while's test,
-    // and to put it instead in the code block with TRUE and FALSE code blocks, so as to
-    // properly handle parsing across a backslash when the gbSfmOnlyAfterNewlines flag is
-    // TRUE
-	wxChar* pPunctStart = 0;
-	wxChar* pPunctEnd = 0;
-	bool bStarted = FALSE;
-	while (!IsEnd(ptr) && !IsWhiteSpace(ptr))
+	else
 	{
-        // BEW added 25May06; detecting a SF marker immediately following final punctuation
-        // would cause return to the caller from within the loop, without the followPunct
-        // CString having any chance to get final punctuation characters put in it. So now
-        // we have to detect when final punctuation commences, set pPunctStart there, and
-        // set pPunctEnd to where it ends, so that if we have to return to the caller
-        // early, we can check for these pointers being different and copy what lies
-        // between them into followPunct, so that the caller can properly remove the
-        // following punctuation and set up m_key correctly. (Detached punctuation will not
-        // break this algorithm because it will already have been put into precedePunct)
-		if ((nFound = nospacePuncts.Find(*ptr)) >= 0)
+		// the legacy parser's code still applies here - to finish parsing over any
+		// non-quote punctuation which precedes the word
+		while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
 		{
-			// we found a (following) punctuation character
-			if (bStarted)
-			{
-				// we've already found at least one, so set pPunctEnd to the current 
-				// location
-				pPunctEnd = ptr + 1;
-			}
-			else
-			{
-				// we've not found one yet, so set both pointers to this location & 
-				// turn on the flag
-				bStarted = TRUE;
-				pPunctStart = ptr;
-				pPunctEnd = ptr + 1;
-			}
-		}
-		else
-		{
-            // we did not find (following) punctuation at this location - what we do here
-            // depends on whether we've already found at least one such, or not; it could
-            // be a SF escape char here, so we must leave bTurnedON TRUE,
-			if (bStarted)
-			{
-                // we have found one earlier, so we must set the ending pointer here (tests
-                // below will determine whether this section is word-internal and to be
-                // ignored, or actually extends to the location at which word parsing ends
-                // - in which case we don't want to ignore it)
-				pPunctEnd = ptr;
-			}
-			else
-			{
-                // we've not started spanning (following) punctuation yet, so update both
-                // pointers to this location (BEW 23Feb07 added +1; this block is not very
-                // important as these values get overridden, but adding +1 makes the value
-                // correct because ptr here is pointing at a non-punctuation character and
-                // if there is a punctuation character it cannot be at ptr, it may or may
-                // not be at ptr + 1, and the iteration of the parse will determine that or
-                // not)
-				pPunctStart = ptr + 1;
-				pPunctEnd = ptr + 1;
-			}
+            // the test checks to see if the character at the location of ptr belongs to
+            // the set of source language punctuation characters (with space excluded from
+            // the latter) - as long as the nFound value is positive we are parsing over
+            // punctuation characters
+			pSrcPhrase->m_precPunct += *ptr++;
+			len++;
 		}
 
-        // advance over the next character, or if the user wants USFM fixed space !$
-        // sequence retained as a conjoiner, then check for it and advance instead by two
-        // if such a sequence is at ptr; but if the gbSfmOnlyAfterNewlines flag is TRUE and
-        // we are pointing at a backslash, then parse over it too (ie. don't interpret it
-        // as the beginning of a valid SFM)
-		if (*ptr != gSFescapechar)
+		// handle the undoing of the above block's code when the user has changed his mind and
+		// reverted punctuation character(s) to being word-building ones
+		wordBuildersForPreWordLoc = SquirrelAwayMovedFormerPuncts(ptr, pEnd, spacelessPuncts);
+		// if we actually squirreled some away, then we must advance ptr over them, and update
+		// len value
+		if (!wordBuildersForPreWordLoc.IsEmpty())
 		{
-			// we are not pointing at a backslash...
-
-			if (!gpApp->m_bChangeFixedSpaceToRegularSpace && wxStrncmp(ptr,_T("!$"),2) == 0)
-			{
-				ptr += 2;
-				len += 2;
-			}
-			else
-			{
-				ptr++;
-				len++;
-			}
-
-            // if we are started and not pointing at white space either, then turn off and
-            // reset the pointers for a following punctuation span
-			if (bStarted && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
-			{
-				// the punctuation span was word-internal, so we forget about it
-				bStarted = FALSE;
-				pPunctStart = ptr;
-				pPunctEnd = ptr;
-			}
+			size_t theirLength = wordBuildersForPreWordLoc.Len();
+			ptr += theirLength;
+			len += theirLength;
+			// we will insert that prior to the word where theWord wxString is created below,
+			// and for when dealing with ~ fixedspaced conjoining, where wxString firstWord is
+			// defined
 		}
-		else
+        // when the above loop exits, and any squirreling required has been done, ptr may
+        // be pointing at the word, or at a preceding inline binding marker, like \k (for
+        // keyword) or \w (for a wordlist word) or various other markers - many of which
+        // are character formatting ones, like italics (\it), etc -- so handle the
+        // possibility of one or more inline binding markers here within this else block,
+        // so that when the else block is exited, we are pointing at the first character of
+        // the actual word
+		if (IsMarker(ptr))
 		{
-            // we are pointing at a backslash, so either we have come to a SFM and parsing
-            // of the word must halt, or it is a backslash which is to not be interpretted
-            // as the onset of an SFM - the gbSfmOnlyAfterNewlines flag tells us which is
-            // the case except when a word with backslash as its first character happens
-            // (accidently) to be at the start of a line (we'll not check for when it
-            // accidently may start the file - that's too unlikely to bother about), so for
-            // such a possibility we'll do a USFMAnalysis lookup and if we detect one of
-            // the markers, we'll assume that it's a valid SFM and halt parsing, if not a
-            // known marker we'll let the gbSfmOnlyAfterNewlines flag decide.
-			if (gbSfmOnlyAfterNewlines)
+            // we are pointing at an inline marker - it must be one with inLine TRUE and
+            // TextType none and not one of the 5 mentioned above, that is, an inline
+            // binding marker
+            // (beware, we can have \k \w word\w*\k*, and so we could be pointing at the
+            // first of a pair of them, so we can't assume there will be only one every
+            // time)
+			while (IsMarker(ptr))
 			{
-				// the flag is on, so parse over the backslash provided it and what follows
-				// is not identified as a character string identical to a known SFM
-				USFMAnalysis* pUsfmAnalysis = LookupSFM(ptr);
-				if (pUsfmAnalysis != NULL)
+                // parse across as many as there are, and the obligatory white space
+                // following each - normalizing \n or \r to a space at the same time
+				pUsfmAnalysis = LookupSFM(ptr);
+				if (pUsfmAnalysis == NULL)
 				{
-					// it's a known marker, so halt right here
-					goto m; // a little further down
+					// must not be an unknown marker, tell the user to fix the input data
+					// and try again
+					wxString wholeMkr2 = GetWholeMarker(ptr);
+					wxString msgStr;
+					msgStr = msgStr.Format(
+_("Adapt It does not recognise this marker: %s which is in the input file.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
+					wholeMkr2.c_str());
+					wxMessageBox(msgStr, _T(""), wxICON_ERROR);
+					abort();
+					return 0;
+				}
+				bareMkr = emptyStr;
+				bareMkr = pUsfmAnalysis->marker;
+				wholeMkr = gSFescapechar + bareMkr;
+				wholeMkrPlusSpace = wholeMkr + aSpace;
+				if (pUsfmAnalysis->inLine == FALSE)
+				{
+					// it's not an inline marker, so abort
+					wxString msgStr;
+					msgStr = msgStr.Format(
+_("This marker: %s  follows punctuation but is not an inline marker.\nIt is not one of the USFM Special Text and Character Styles markers.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
+					wholeMkr.c_str());
+					wxMessageBox(msgStr, _T(""), wxICON_ERROR);
+					abort();
+					return 0;
+				}
+				itemLen = wholeMkr.Len();
+
+				// store the whole marker, and a following space
+				pSrcPhrase->AppendToInlineBindingMarkers(wholeMkrPlusSpace);
+				bParsedInlineBindingMkr = TRUE;
+
+                // point past the inline binding marker, and then parse over the white
+                // space following it, and point past that too
+				ptr += itemLen;
+				len += itemLen;
+				itemLen = ParseWhiteSpace(ptr);
+				ptr += itemLen;
+				len += itemLen;
+				wxASSERT(ptr < pEnd);
+			}
+            // once control gets to here, ptr should be pointing at the first character of
+            // the actual word for saving in m_key of pSrcPhrase ... well, usually.
+		}
+	} // end of else block for test: if (IsMarker(ptr))
+	// determine if we've found preceding punctuation
+	if (pSrcPhrase->m_precPunct.Len() > 0)
+		bHasPrecPunct = TRUE;
+
+	// this is where the first character of the word possibly starts...
+	
+	// BEW 31Jan11, it is possible that a dynamic punctuation change has just made one or
+	// more of the former word-initial character/characters into punctuation
+	// characters, and if that is the case, then our algorithm won't handle it without
+	// something extra here if control has just parsed over an inline binding marker - so
+	// test for this and do additional checks, removing any punctuation characters from
+	// where ptr is pointing if they are in the being-used punctuation set, and moving
+	// them to the m_precPunct member, and setting bHasPrecPunct if any such are moved.
+	// [Note: removing a punctuation character from the punctuation set dynamically isn't a
+	// problem, as it returns then to the word-building set, and when parsing the
+	// reconstituted string, the parser will halt earlier, so that the non-word-building
+	// character(s) are at the new starting point for the word proper - for this scenario,
+	// no new code is needed.]
+	// Note: when we put the new punctuation character into m_precPunct, we are producing
+	// a connundrum for later on if the user changes his mind about that character's
+	// punctuation status, because in the presence of an inline binding marker, the former
+	// punctuation character then becomes pre-marker rather than pre-word, so we'll need
+	// additional code (it's above, where pre-word non-quote puncts have finished being
+	// parsed over) for that situation which will squirrel such characters away and
+	// restore them to word-initial position later on when the word is actually defined
+	if (bParsedInlineBindingMkr)
+	{
+		int offset = wxNOT_FOUND;
+		while ((offset = spacelessPuncts.Find(*ptr)) != wxNOT_FOUND)
+		{
+			// we've a newly-defined initial punctuation character to move to m_precPunct
+			bHasPrecPunct = TRUE;
+			pSrcPhrase->m_precPunct += *ptr;
+			ptr++;
+			len++;
+		}
+	}
+
+	// we are now a the first character of the word
+	wxChar* pWordProper = ptr;
+	// the next four variables are for support of words separated by ~ fixed space symbol
+	wxChar* pEndWordProper = NULL;
+	wxChar* pSecondWordBegins = NULL;
+	wxChar* pSecondWordEnds = NULL;
+	bool bMatchedFixedSpaceSymbol = FALSE;
+
+    // We've come to the word proper. We now parse over it. Punctuation might be within it
+    // (eg. boy's) - so we parse to a space or backslash or other determinate indicator of
+    // the end of the word - such as word final punctuation. How do we distinguish medial
+    // from final punctuation? We'll assume that medial punctuation is never a backslash,
+    // is most likely to be a single punctuation character (such as a hyphen), or the ~
+    // USFM fixedspace character, and that medial space never occurs. So for a punctuation
+    // character to be medial, the next character must not be white space nor backslash,
+    // and usually it won't be another punctuation character either - but we'll allow one
+    // or more of the latter to be medial provided the punctuation character sequence
+    // doesn't terminate at a backslash or whitespace. The intention of this section of the
+    // parser is to get ptr to point at the first character following the end of the word -
+    // which could be punctuation, whitespace, or an inline binding endmarker, or a ]
+    // bracket - a later section of this word parser function will deal with those
+    // post-word possibilities.
+	wxChar* pPunctStart = NULL;
+	wxChar* pPunctEnd = NULL;
+	bool bStartedPunctParse = FALSE;
+    // Better ~ parsing requires we parse word1<puncts2>~<puncts3>word2 when there is a ~
+    // fixed space symbol conjoining, within a dedicated function -- and we need a test to
+    // determine when ~ is present which gives TRUE or FALSE even though ptr is still
+    // pointing at word1 -- so we'll need a function returning bool to parse over word1 and
+    // its following <punct2> substring (the latter may be empty) to get to the ~ and
+    // return TRUE if ~ is indeed present. Then we can return what we've found, and use the
+    // returned bool to have a block in which a 'completion' function parses over
+    // <punct3> and word2, ending with ptr pointing at the first character following word2
+    // (it could be punctuation, a space, or a marker). Then we can have an else block to
+    // do the word parse when no ~ is present. When either block ends, parsing can continue
+    // with what follows word, or what follows word2 when there is ~ conjoining. (It is too
+    // late to detect the ~ only after the word-parsing loop has been exitted, because we
+    // won't be able at that time to get the second word of the conjoined pair parsed.) We
+    // don't need any more than 2 extra local variables to store information parsed as
+    // side-effects of our test function, and from the completion function. Just
+    // inlineBindingEndMkrBeforeFixedSpace, and inlineBindingMkrAfterFixedSpace.
+	wxString inlineBindingEndMkrBeforeFixedSpace;
+	wxString inlineBindingMkrAfterFixedSpace;
+	wxChar* savePtr = ptr;
+	/*
+	if (pSrcPhrase->m_nSequNumber == 5)
+	{
+		int break_point_here = 1;
+	}
+	*/
+	// in the next call, if ~ is found, ptr returns pointing at whatever follows it, but
+	// if ~ is not found, then ptr returns pointing at whatever pEndWordProper points at
+	// (which is usually space, or endmarker, or punctuation)
+	bMatchedFixedSpaceSymbol = IsFixedSpaceAhead(ptr, pEnd, pWordProper, pEndWordProper, 
+				finalPunctBeforeFixedSpaceSymbol, inlineBindingEndMkrBeforeFixedSpace,
+				wordBuildersForPostWordLoc, spacelessPuncts); // the punctuationSet 
+												// passed in has all spaces removed
+	if (bMatchedFixedSpaceSymbol)
+	{
+        // It's a pair of words conjoined by ~, so complete the parse of what follows the ~
+        // symbol, the IsFixedSpaceAhead() function exits with ptr pointing at the first
+        // character following ~
+		int nChangeInLenValue = ptr - savePtr;
+		len += nChangeInLenValue;
+		savePtr = ptr;
+		FinishOffConjoinedWordsParse(ptr, pEnd, pSecondWordBegins, pSecondWordEnds,
+				precedingPunctAfterFixedSpaceSymbol, inlineBindingMkrAfterFixedSpace,
+				newPunctFrom2ndPreWordLoc, newPunctFrom2ndPostWordLoc,
+				wordBuildersFor2ndPreWordLoc, wordBuildersFor2ndPostWordLoc,
+				spacelessPuncts);
+		nChangeInLenValue = ptr - savePtr;
+		// if word-building characters have become punctuation, ptr may not be pointing at
+		// the end of the word, so augment it by the number of characters in the string
+		// newPunctFrom2ndPostWordLoc to get it's correct location
+		ptr += newPunctFrom2ndPostWordLoc.Len();
+		// update len
+		len += nChangeInLenValue; // note, if ptr and pSecondWordBegins point at different
+								  // locations, then the number of word-initial characters
+								  // which have just become punctuation due to the user just
+								  // having changed the punctuation settings, have already 
+								  // been included in the update for len, hence we don't do
+								  // it again below -- see below for a note to this effect
+								  // there also (yep, this stuff is VERY complex)
+        // bStartedPunctParse is still FALSE, and we must NOT make it become TRUE here
+        // because variables in code blocks below for when it is TRUE are not alive when
+        // control comes through here
+	}
+	else
+	{
+		// it's not ~ conjoined words, so the word parsing loop begins instead, and ptr
+		// will be pointing at the first character past the end of the word (which could
+		// be following punctuation for the word), or at a ] if there was no following
+		// punctuation for the word, or at buffer end (there could be former punctuation,
+		// but now reverted to word-building characters, in wordBuildersForPostWordLoc
+		// too, which are being held over for placement on the end of the word once we've
+		// defined its string below somewhere)
+		int nChangeInLenValue = ptr - savePtr;
+		len += nChangeInLenValue;
+		// we might have come to a closing bracket, ], and if so we must parse no further
+		// but sign off on the current CSourcePhrase, and return to the caller so that
+		// its ptr value will point at the ] symbol.
+		if (*ptr == _T(']') || *ptr == _T('['))
+		{
+			// following punctuation won't be present if we exited with ptr pointing at a
+			// ] character, so just set pSrcPhrase members accordingly and return len
+			// value; similarly, if the input text had a word with no punctuation
+			// following it and the next line starts with [\v then we'll get to this point
+			// with ptr pointing at [, and so we must finish up the same way in this
+			// circumstance and return control to the caller (ie. to TokenizeText())
+			wxString theWord(pWordProper,nChangeInLenValue);
+			if (!wordBuildersForPreWordLoc.IsEmpty())
+			{
+				// put the former punct(s) moved to m_precPunct earlier, but now reverted
+				// back to word-building characters, back at the start of the word - if
+				// there were any such found
+				theWord = wordBuildersForPreWordLoc + theWord;
+				//wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
+				len += wordBuildersForPreWordLoc.Len();
+			}
+			if (!wordBuildersForPostWordLoc.IsEmpty())
+			{
+				// put the former punct(s) moved to m_follPunct earlier, but now reverted
+				// back to word-building characters, back at the end of the word - if
+				// there were any such found
+				theWord += wordBuildersForPostWordLoc;
+				len += wordBuildersForPostWordLoc.Len();
+			}
+			pSrcPhrase->m_key = theWord;
+			// now m_srcPhrase except for ending punctuation - of which there is none present
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+			}
+			pSrcPhrase->m_srcPhrase += theWord;
+			return len;
+		}
+		pEndWordProper = ptr;
+		// Note, we may still have exited IsFixedSpaceAhead() because we came to a ]
+		// bracket, but having parsed one or more following punctuation characters first.
+		// In this case we returned with ptr pointing at word end (i.e. the start of the
+		// following punctuation), so we must parse forward again, below, over those
+		// punctuation characters a second time to get to the ] character which determines
+		// our return point - so that's why we keep looking for presence of ] below
+		//while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
+		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
+		{
+			// check if we are pointing at a punctuation character (it can't be a ]
+			// character because we've bled out that possibility in the preceding block)
+			if ((nFound = spacelessPuncts.Find(*ptr)) != wxNOT_FOUND)
+			{
+				// we found a punctuation character - it could be medial, or word final, so we
+				// have to parse on to determine which is the case
+				if (bStartedPunctParse)
+				{
+					// we've already found at least one, so set pPunctEnd to the location
+					// following the punctuation character we are point at 
+					pPunctEnd = ptr + 1;
 				}
 				else
 				{
-					// it's not a known marker, so assume its a word-building character & 
-					// keep parsing
-
-                    // if we are turned on and not pointing at white space either, then
-                    // turn off and reset the pointers for a following punctuation span
-					if (bStarted)
-					{
-						// the punctuation span was word-internal, so we forget about it
-						bStarted = FALSE;
-						pPunctStart = ptr;
-						pPunctEnd = ptr;
-					}
-					// move on & iterate
-					ptr++;
-					len++;
+					// we've not started parsing any punctuation yet, so set the pointer
+					// to the word end as determined up to this point & turn on
+					// the flag
+					pEndWordProper = ptr; // we are potentially at the end of the
+										  // first word
+					bStartedPunctParse = TRUE;
+					pPunctStart = ptr;
+					pPunctEnd = ptr + 1;
 				}
+			}
+
+			// advance over the character we are pointing at, whether it is part of the
+			// word or a punctuation character
+			ptr++;
+			len++;
+			
+			// check for a closing bracket
+			if (*ptr == _T(']'))
+			{
+				// We may be past some following punctuation and have come to a ] bracket
+				// - this must terminate parsing, so a word-medial ] character will split
+				// the word into two parts - which probably is the correct behaviour to
+				// support, since ] within the body of a word seems crazy. So check for ]
+				// and if we are pointing at it, we must terminate the parse, set
+				// pSrcPhrase members not yet set, and return len so that the caller's ptr
+				// is pointing at the ] bracket.
+				size_t punctSpan = (size_t)(ptr - pEndWordProper);
+				wxString follPuncts(pEndWordProper,punctSpan);
+				pSrcPhrase->m_follPunct = follPuncts;
+				wxString theWord(pWordProper,nChangeInLenValue);
+				if (!wordBuildersForPreWordLoc.IsEmpty())
+				{
+					// put the former punct(s) moved to m_precPunct earlier, but now reverted
+					// back to word-building characters, back at the start of the word - if
+					// there were any such found
+					theWord = wordBuildersForPreWordLoc + theWord;
+					len += wordBuildersForPreWordLoc.Len();
+				}
+				if (!wordBuildersForPostWordLoc.IsEmpty())
+				{
+					// put the former punct(s) moved to m_follPunct earlier, but now reverted
+					// back to word-building characters, back at the end of the word - if
+					// there were any such found
+					theWord += wordBuildersForPostWordLoc;
+					len += wordBuildersForPostWordLoc.Len();
+				}
+				pSrcPhrase->m_key = theWord;
+				// now m_srcPhrase except for ending punctuation - of which there is none present
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+				}
+				pSrcPhrase->m_srcPhrase += theWord;
+				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+				return len;
+			}
+			// are we at the end of word-medial punctuation? (but not at buffer end)
+			//if (bStartedPunctParse && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar)
+			if (bStartedPunctParse && !IsWhiteSpace(ptr) && !IsMarker(ptr)
+				&& (nFound = spacelessPuncts.Find(*ptr)) == wxNOT_FOUND && !IsEnd(ptr))
+			{
+                // Punctuation parsing had started, we are not pointing at a white space
+                // nor a backslash, nor at a punctuation character (nor ]) - so we
+                // must be pointing at a character of the word we are parsing... hence the
+                // punctuation span was word-internal, so we forget about it
+				bStartedPunctParse = FALSE;
+				pPunctStart = NULL;
+				pPunctEnd = NULL;
+				if (bMatchedFixedSpaceSymbol)
+				{
+					pSecondWordEnds = NULL; // it's not to be set yet
+				}
+				else
+				{
+					pEndWordProper = NULL; // it's not to be set yet
+				}
+			}
+		} // end of loop: while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
+
+	} // end of else block for test: if (bMatchedFixedSpaceSymbol)
+
+	// control should exit the above block with ptr pointing at the first character
+	// following the last word parsed (word being a stretch of text which is not
+	// punctuation, whitespace or a marker)
+	if (pEndWordProper == NULL && !bMatchedFixedSpaceSymbol)
+	{
+		pEndWordProper = ptr;
+	}
+	if (bMatchedFixedSpaceSymbol && pSecondWordEnds == NULL)
+	{
+		pSecondWordEnds = ptr;
+	}
+	if (bMatchedFixedSpaceSymbol)
+	{
+		// create the children & store them
+		pSrcPhrWord1 = new CSourcePhrase;
+		pSrcPhrWord2 = new CSourcePhrase;
+		pSrcPhrase->m_pSavedWords->Append(pSrcPhrWord1);
+		pSrcPhrase->m_pSavedWords->Append(pSrcPhrWord2);
+		pSrcPhrase->m_nSrcWords = 2;
+		if (bHasPrecPunct)
+		{
+			pSrcPhrWord1->m_precPunct = pSrcPhrase->m_precPunct;
+		}
+		// other members of these will get their content from code further below, and
+		// more explanatory comments are there too to help complete the picture
+	}
+
+    // When we exit the above word-parsing loop, we included punctuation in the parse
+    // because it may have been word-medial punctuation, so if bStartedPunctParse is still
+    // TRUE, then the punctuation we parsed occurred following the word, or following the
+    // second word of a pair of words separated by ~ the fixedspace symbol in USFM. We must
+    // store such punctuation in the m_follPunct member of pSrcPhrase (even if we are
+    // pointing at the backslash of an inline binding endmarker - that scenario would be a
+    // markup error in all likelihood because character formatting and keyword etc markers
+    // should not include punctuation in their scope; anyway, we'll store the punctuation
+    // and on an export locate it following the endmarker (i.e. auto-correcting and hoping
+    // that's really what would be wanted); if there is no inline binding endmarker
+    // following then there is no problem -- however, we may have stopped at a space and
+    // there could be detached additional punctuation (only closing quotes though) so we
+    // must check for any such and append those we find until we come to a non-quote
+    // punctuation or an inline non-binding endmarker, or an \f* or \x* or \fe* endmarker.
+    // After the latter we have to check for further punctuation too, providing there is no
+    // whitespace between the punctuation and the preceding \f* or \x* or \fe* or any other
+    // endmarker within m_endMarkers - such 'outer' punctuation we must store in the
+    // m_follOuterPunct member. All of the above is complex, so we will tackle it in up to
+    // 5 sequential stages, to keep our algorithms comprehensible.
+	
+	// The first thing to do is handle any following punctuation's storage, and set up
+	// m_key and m_srcPhrase members, and take into account the possibility that ~ may
+	// conjoin a word pair when doing the latter. We have enough information to set the
+	// m_key member, but not the m_srcPhrase member because the latter requires we have
+	// determined all the final punctuation and we've not done that yet - so do what we
+	// can do now, we can only do the internal part of m_srcPhrase here; however as we get
+	// bits of the final punctuation characters, we'll append them to m_srcPhrase as we go.
+	size_t length1 = 0;
+	size_t length2 = 0;
+	if (bMatchedFixedSpaceSymbol)
+	{
+		// NOTE: we are assuming ~ only ever joins TWO words in sequence, never 3 or more
+		length1 = pEndWordProper - pWordProper;
+		wxString firstWord(pWordProper,length1);
+        // adjustments to firstWord for tranferring a punctuation character or characters
+        // which by user action in Preferences have now become word-building and were
+        // relocated preceding an inline binding beginmarker and/or following an inline
+        // binding endmarker, must be done here and the len value updated; no adjustment is
+        // needed if the relevant string returned from IsFixedSpaceAhead() and from a call
+        // of SquirrelAwayMovedFormerPuncts() early in ParseWord() has no content
+		if (!wordBuildersForPreWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_precPunct earlier, but now reverted
+			// back to word-building characters, back at the start of the word - if
+			// there were any such found
+			firstWord = wordBuildersForPreWordLoc + firstWord;
+			len += wordBuildersForPreWordLoc.Len();
+		}
+		if (!wordBuildersForPostWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_follPunct earlier, but now reverted
+			// back to word-building characters, back at the end of the word - if
+			// there were any such found
+			firstWord += wordBuildersForPostWordLoc;
+			len += wordBuildersForPostWordLoc.Len();
+			// don't empty this one, we may need it later below
+		}
+		length2 = pSecondWordEnds - pSecondWordBegins;
+		wxString secondWord(pSecondWordBegins, length2);
+        // adjustments to secondWord for tranferring a punctuation character or characters
+        // which by user action in Preferences have now become word-building and were
+        // relocated preceding an inline binding beginmarker and/or following an inline
+        // binding endmarker, must be done here and the len value updated; no adjustment is
+        // needed if the relevant string returned from FinishOffConjoinedWordsParse() has
+        // no content
+		if (!wordBuildersFor2ndPreWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_precPunct earlier, but now reverted
+			// back to word-building characters, back at the start of the word - if
+			// there were any such found
+			secondWord = wordBuildersFor2ndPreWordLoc + secondWord;
+			//len += wordBuildersFor2ndPreWordLoc.Len(); Don't do this here, because any
+			//such characters have already been counted above, because they lie in the span
+			//from ptr up to pWord2End, after FinishOffConjoinedWordParse() has returned
+		}
+		if (!wordBuildersFor2ndPostWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_follPunct earlier, but now reverted
+			// back to word-building characters, back at the end of the word - if
+			// there were any such found
+			secondWord += wordBuildersFor2ndPostWordLoc;
+			len += wordBuildersFor2ndPostWordLoc.Len();
+			// don't empty this one, we may need it later below
+		}
+		pSrcPhrase->m_key = firstWord;
+		pSrcPhrase->m_key += theSymbol; // theSymbol is ~
+		pSrcPhrase->m_key += secondWord;
+		// an inline binding beginmarker on the parent also needs to be stored on word1
+		if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+		{
+			pSrcPhrWord1->SetInlineBindingMarkers(pSrcPhrase->GetInlineBindingMarkers());
+		}
+		// now m_srcPhrase except for ending punctuation
+		if (!pSrcPhrase->m_precPunct.IsEmpty())
+		{
+			pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+		}
+		pSrcPhrase->m_srcPhrase += firstWord;
+		if (!finalPunctBeforeFixedSpaceSymbol.IsEmpty())
+		{
+			pSrcPhrWord1->m_follPunct = finalPunctBeforeFixedSpaceSymbol;
+			// also add it to m_srcPhrase being built up
+			pSrcPhrase->m_srcPhrase += finalPunctBeforeFixedSpaceSymbol;
+		}
+		pSrcPhrase->m_srcPhrase += theSymbol; // theSymbol is ~
+		if (!precedingPunctAfterFixedSpaceSymbol.IsEmpty())
+		{
+			pSrcPhrWord2->m_precPunct = precedingPunctAfterFixedSpaceSymbol;
+			// also add it to m_srcPhrase being built up
+			pSrcPhrase->m_srcPhrase += precedingPunctAfterFixedSpaceSymbol;
+		}
+        // BEW added 2Feb11, if a word-building character at secondWord's start has
+        // become punctuation, it has to be added to m_precPunct for that word's
+        // CSourcePhrase & len incremented; there could be more than one such
+		if (!newPunctFrom2ndPreWordLoc.IsEmpty())
+		{
+			pSrcPhrWord2->m_precPunct += newPunctFrom2ndPreWordLoc;
+			//len += newPunctFrom2ndPreWordLoc.Len(); We must not add to the len value
+			//like this here - an explanation is appropriate. Back when nChangeInLenValue
+			//was calculated, it was computed from the ptr location (at word start before
+			//any now-punctuation character due to user's punct changes was saved and
+			//skipped over, so nChangeInLenValue already includes the len value for this
+			//one or more characters, if in fact ptr and pSecondWordBegins don't point at
+			//the same location (if they do, the user didn't make any punct changes that
+			//resulted in any character at the start of the second word becoming punctuation)
+			
+			// also add the new punctuation char(s) to m_srcPhrase being built up
+			pSrcPhrase->m_srcPhrase += newPunctFrom2ndPreWordLoc;
+		}
+
+		pSrcPhrase->m_srcPhrase += secondWord;
+		// add any final punctuation to pSrcPhrase->m_srcPhrase further below
+		
+		// if we found an inline binding endmarker before the ~, store it - we can only
+		// store it in the embedded CSourcePhrase which is first (the parent can't
+		// distinguish such medial markers, so we don't try - we don't want a placement
+		// dialog to show)
+		if (!inlineBindingEndMkrBeforeFixedSpace.IsEmpty())
+		{
+			pSrcPhrWord1->SetInlineBindingEndMarkers(inlineBindingEndMkrBeforeFixedSpace);
+		}
+		// if we found an inline binding marker after the ~, store it - we can only
+		// store it in the embedded CSourcePhrase which is second
+		if (!inlineBindingMkrAfterFixedSpace.IsEmpty())
+		{
+			pSrcPhrWord2->SetInlineBindingMarkers(inlineBindingMkrAfterFixedSpace);
+		}
+		
+		// next, the parent, pSrcPhrase, now needs to have the m_key and m_srcPhrase
+		// members set on each of its children instances, in case the user unmerges later
+		// on
+		pSrcPhrWord1->m_key = firstWord;
+		pSrcPhrWord2->m_key = secondWord;
+		pSrcPhrWord1->m_srcPhrase = pSrcPhrase->m_precPunct; // parent's m_precPunct
+		pSrcPhrWord1->m_srcPhrase += firstWord;
+		pSrcPhrWord1->m_srcPhrase += finalPunctBeforeFixedSpaceSymbol;
+        // now for secondWord, after the ~ symbol, except we don't know about any possible
+        // final puncts on the former as yet
+		pSrcPhrWord2->m_srcPhrase = precedingPunctAfterFixedSpaceSymbol;
+		// append any former word-initial character just now having become punctuation but
+		// don't increment len value because we've counted it above already
+		if(!newPunctFrom2ndPreWordLoc.IsEmpty())
+		{
+			pSrcPhrWord2->m_srcPhrase += newPunctFrom2ndPreWordLoc;
+		}
+		pSrcPhrWord2->m_srcPhrase += secondWord;
+
+		// add any final punctuation to pSrcPhrWord2->m_srcPhrase further below; however,
+		// if the user just changed the punctuation settings such that the end of the
+		// secondWord had one or more word-building characters that have just become final
+		// punctuation characters, they will be in newPunctFrom2ndPostWordLoc and will
+		// need to be put at the start of secondWord's CSourcePhrase's m_follPunct member,
+		// and len incremented so that the parsing pointer is in sync with what was parsed
+		// over - then later, the normal puncts (if any) can be appended
+		if (!newPunctFrom2ndPostWordLoc.IsEmpty())
+		{
+			len += newPunctFrom2ndPostWordLoc.Len();
+			pSrcPhrWord2->m_follPunct = newPunctFrom2ndPostWordLoc;
+			// don't empty newPunctFrom2ndPostWordLoc in case we need it later to
+			// increment ptr value without doing a further len increment
+			
+			// append it also to pSrcPhrase->m_srcPhrase which is being built up, and also
+			// to pSrcPhrWord2->m_srcPhrase, which will then have further parsed following
+			// punctuation appended in the blocks below if there is more present in the buffer
+			pSrcPhrWord2->m_srcPhrase += newPunctFrom2ndPostWordLoc;
+			pSrcPhrase->m_srcPhrase += newPunctFrom2ndPostWordLoc;
+		}
+		// At this point, the tweaks for the user's changing non-puncts to puncts, or
+		// adding a new punct, are done -- only potentially more post-word stuff, such as
+		// endmarkers and more punctuation is to be checked for below, as now ptr is in
+		// sync with len
+	}
+	else // bMatchedFixedSpaceSymbol is FALSE
+	{
+		length1 = pEndWordProper - pWordProper;
+		wxString theWord(pWordProper,length1);
+		if (!wordBuildersForPreWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_precPunct earlier, but now reverted
+			// back to word-building characters, back at the start of the word - if
+			// there were any such found
+			theWord = wordBuildersForPreWordLoc + theWord;
+			len += wordBuildersForPreWordLoc.Len();
+			wordBuildersForPreWordLoc.Empty(); // make sure it can't be used again
+		}
+		if (!wordBuildersForPostWordLoc.IsEmpty())
+		{
+			// put the former punct(s) moved to m_follPunct earlier, but now reverted
+			// back to word-building characters, back at the end of the word - if
+			// there were any such found
+			theWord += wordBuildersForPostWordLoc;
+			len += wordBuildersForPostWordLoc.Len();
+			// don't delete the wordBuildersForPostWordLoc string, we need it later in
+			// order to get ptr to skip any characters in it when our parsing ptr gets to
+			// be just past the last inline binding endmarker, if any
+		}
+		pSrcPhrase->m_key = theWord;
+		// now m_srcPhrase except for ending punctuation
+		if (!pSrcPhrase->m_precPunct.IsEmpty())
+		{
+			pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
+		}
+		pSrcPhrase->m_srcPhrase += theWord;
+		// add any final punctuation further below
+	} // end of else block for test: if (bMatchedFixedSpaceSymbol)
+
+	bool bThrewAwayWhiteSpaceAfterWord = FALSE;
+	if (bStartedPunctParse)
+	{
+        // Parsing of final punctuation started while parsing the word proper, so it is
+        // likely that there is no inline binding endmarker after the word. We'll not
+        // assume that however, and so if there is we'll again check for punctuation after
+        // it and append to any collected beforehand (that means that export would put both
+        // lots after the inline binding marker, where we think it should be anyway)
+		size_t length = pPunctEnd - pPunctStart;
+		wxString finalPunct(pPunctStart,length);
+		pSrcPhrase->m_follPunct += finalPunct;
+		pSrcPhrase->m_srcPhrase += finalPunct;  // append what we have so far, more									   									  
+												// may be appended further below
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			pSrcPhrWord2->m_srcPhrase += finalPunct;
+			pSrcPhrWord2->m_follPunct += finalPunct;
+		}
+
+        // Collect any additional detached quotes and intervening spaces, stopping at the
+        // next marker, or the first non-endquote punctuation character. If straight quote
+        // or straight doublequote (' or ") is found, it would be ambiguous whether it is
+        // an opening quote for the next word in the buffer, or part of the final
+        // punctuation on the currently parsed over word - so we'll distinguish these as
+        // follows: straight quote or doublequote before an endmarker will be part of the
+        // current following punctuation; and any such immediately after \f* or \x* with no
+        // intervening space will be treated as belonging to m_follOuterPunct, in any other
+        // situation the straight quote will be assumed to be initial punctuation for what
+        // follows and so will not be part of the data for this call of ParseWord()
+        bExitParseWordOnReturn = FALSE;
+		wxString additions; additions.Empty();
+		// in next call, FALSE is bPutInOuterStorage
+		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
+					bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
+		{
+			pSrcPhrWord2->m_follPunct += additions;
+			pSrcPhrWord2->m_srcPhrase += additions;
+		}
+		if (bExitParseWordOnReturn)
+		{
+			// m_srcPhrase has been updated with any additional final punctuation within
+			// the above call, so just return len to the caller 
+			return len;
+		} 
+	} // end of TRUE block for test: if (bStartedPunctParse)
+	else
+	{
+		// Parsing over punctuation was not commenced while parsing the word proper, so
+		// ptr may now be pointing at whitespace, or a marker (endmarker or, although very
+		// unlikely, even a beginmarker). Whichever is the case, if pointing at
+		// whitespace, it is not required for anything, and we can parse over it and throw
+		// it away until we come to something we need to deal with.
+		int saveLen = len;
+		len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
+		if (len > saveLen)
+		{
+			// some whites were thrown away
+			bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've 
+							// started into parsing of following puncts & endmarkers
+		}
+	}
+
+	// Before we check for markers, we can get to this point having parsed a word which
+	// has a space following it. There could be detached punctuation now, which belongs to
+	// the start of the next word to be parsed, so before we assume we are dealing with
+	// endmarkers for the current word, check this out and return if so. Check for ] too.
+	if (*ptr == _T(']'))
+	{
+		return len;
+	}
+	if (bThrewAwayWhiteSpaceAfterWord)
+	{
+		// the most likely thing is that we've halted at punctuation or begin marker for
+		// the next word to be parsed, or the start of the next word itself. But if we
+		// have come to closing quotes or endmarkers, we'll let parsing continue on the
+		// assumption the user had a bogus space after the word which shouldn't be there
+		if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
+		{
+			// if it's opening quotes punctuation, then definitely return
+			if (IsOpeningQuote(ptr))
+			{
+				return len;
 			}
 			else
 			{
-				// the flag is off, so every backslash is to be interpretted as an SFM,
-				// so halt parsing early, that is, right here; and return the len value....
-				// But before we return, if detection of (following) punctuation was turned
-				// on and the end of it is at the current location (ie. preceding SF escape
-				// character), then we have to put the final punctuation into followPunct
-				// so the caller can do what it has to do with word-final punctuation
-				// whm 26Feb10. Removed the (wxUint32) casts from the pPunctEnd and pPunctStart
-				// pointers in the if test and assignment of numChars below. They are not needed
-				// for correct pointer math. The math works correctly without dividing by
-				// sizeof(wxChar). I verified this by testing on both Unicode and ANSI builds.
-				// While enclosing everything in (wxUint32) casts also works, it does NOT
-				// work if the app is compiled for 64 bit systems - a fact reported by David 
-				// Gardner who successfully compiled the sources for 64-bit AMD64, but only
-				// by removing the (wxUint32) casts.
-//m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 
-//					&& pPunctEnd == ptr)
-m:				if (bStarted && (pPunctEnd - pPunctStart) > 0 
-					&& pPunctEnd == ptr)
+                // some languages can have opening punctuation other than quotes, so if it
+                // is other punctuation characters, the situation is ambiguous. Our
+                // solution is to look ahead for the first char past the puncts, if that is
+                // an endmarker or a ] closing bracket we'll keep the punctuation as
+                // following puncts for the current pSrcPhrase, but any other option -
+                // we'll just return without advancing over the puncts.
+				if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
 				{
-					// there is word-final punctuation content to be dealt with
-					// BEW modified 23Feb07; when working in Unicode, UTF-16 characters are
-					// two bytes long, so setting numChars to the pointer difference will
-					// double the correct value; we have to therefore divide by sizeof(wxChar)
-					// to get numChars right in regular and unicode apps
-					// whm 26Feb10 see note above the if statement.
-					//int numChars = (int)((wxUint32)pPunctEnd - (wxUint32)pPunctStart) / 
-					//						(wxUint32)sizeof(wxChar);
-					int numChars = (int)(pPunctEnd - pPunctStart); // / sizeof(wxChar);
-					wxString finals(pPunctStart,numChars);
-					followPunct = finals;
+					// it's some sort of nonquote punctuation (IsOpeningQuote() call above
+					// returns true even if straight quote or double quote is matched)
+					wxChar* ptr2 = ptr;
+					int countThem = 0;
+					while (spacelessPuncts.Find(*ptr2) != wxNOT_FOUND && *ptr2 != _T(']'))
+					{
+						ptr2++;
+						countThem++;
+					}
+					if (IsEndMarker(ptr2, pEnd) || *ptr2 == _T(']'))
+					{
+						// we'll treat is as following puncts for our current pSrcPhrase
+						// and return if we came to ], otherwise parse on...
+						wxString finalPuncts(ptr, countThem);
+						pSrcPhrase->m_follPunct += finalPuncts;
+						pSrcPhrase->m_srcPhrase += finalPuncts;
+						// also do it for the secondWord's CSourcePhrase when ~ is conjoining
+						if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+						{
+							pSrcPhrWord2->m_follPunct += finalPuncts;
+							pSrcPhrWord2->m_srcPhrase += finalPuncts;
+						}
+						len += countThem;
+						ptr += countThem;
+						if (*ptr == _T(']'))
+						{
+							return len;
+						}
+						// let processing continue within this call of ParseWord()
+					}
+					else
+					{
+						// Nah, must belong to what follows on next ParseWord() call
+						return len;
+					}
+				}
+				else
+				{
+					// if we enter here, the usual scenario is that a word doesn't have
+					// any following punctuation and we've just parsed over white space -
+					// we could return now, except that it wouldn't be apppropriate to do
+					// so if what we are pointing at is an endmarker which ends a TextType
+					// (such as a footnote, endnote or crossReference in USFM, or a
+					// footnote in PNG 1998 SFM set). The code for detecting the endmarker
+					// in the caller uses that detection to end the TextType for the
+					// earlier stuff, change to the next TextType, or if there's no begin
+					// marker present, reinstore 'verse' and m_bSpecialText = FALSE for
+					// the CSourcePhrase instances which will follow. So we must check for
+					// the endmarker here (we care only about m_endMarkers content here,
+					// because only what's in that member can disrupt the TextType
+					// propagating in order to start a new value thereafter) and make sure
+					// it gets stored before we return
+					wxString theEndMarker;
+					theEndMarker.Empty();
+					if (IsEndMarkerRequiringStorageBeforeReturning(ptr, &theEndMarker))
+					{
+						int aLength = theEndMarker.Len();
+						ptr += aLength;
+						len += aLength;
+						// get the marker stored
+						pSrcPhrase->AddEndMarker(theEndMarker);
+					}
+					return len;
+				}
+			}
+		} // end of TRUE block for test: if (!IsClosingCurlyQuote(ptr) && !IsEndMarker(ptr, pEnd))
+	} // end of TRUE block for test: if (bThrewAwayWhiteSpaceAfterWord)
+
+    // Next, there might be an inline binding endmarker (or even a pair of them), parse
+    // over these and store them in m_inlineBindingEndMarkers if so. Any punctuation
+    // between such can be thrown away. Alternatively, there may be endmarkers internal to
+    // a footnote, endnote or crossReference which are to be parsed over, and stored in
+	// m_endMarkers. Handle these possibilities. A ] bracket may follow the former, check
+	// and if so, return with ptr pointing at it.
+    bool bInlineBindingEndMkrFound = FALSE;
+	if (IsEndMarker(ptr, pEnd))
+	{
+		// there could be more than one in sequence, so loop to collect each
+		int saveLen;
+		wxString endMarker; // initialized to empty string at start of ParseInlineEndMarkers()
+		do {
+			saveLen = len;
+			bool bBindingEndMkrFound = FALSE;
+			len = ParseInlineEndMarkers(ptr, pEnd, pSrcPhrase, 
+										gpApp->m_inlineNonbindingEndMarkers, len, 
+										bBindingEndMkrFound, endMarker);
+			if (bBindingEndMkrFound)
+			{
+				bInlineBindingEndMkrFound = TRUE; // preserve TRUE value for when loop exits
+			}
+			// handle ~ conjoining
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !endMarker.IsEmpty())
+			{
+				// there are child pSrcPhrase instances to update
+				if (bBindingEndMkrFound)
+				{
+					// store the binding endmarker in m_inlineBindingEndMkr
+					pSrcPhrWord2->AppendToInlineBindingEndMarkers(endMarker);
+				}
+				else
+				{
+					// store the footnote or endnote or crossReference internal endmarker
+					// in the m_endMarkers member
+					pSrcPhrWord2->AddEndMarker(endMarker);
+				}
+			}
+			// check for ] marker, if we are pointing at it, update len and return
+			if (*ptr == _T(']'))
+			{
+				return len;
+			}
+            // if we found an endmarker, there might be a bogus space following it which is
+            // entirely unneeded and should be omitted, because any whitespace after an
+            // inline binding endmarker is a nuisance - so check for it and remove it,
+            // because if another follows, the loop must start with ptr pointing at a
+            // backslash
+			if (bBindingEndMkrFound && IsWhiteSpace(ptr))
+			{
+				len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len); 
+			}
+		} while (len > saveLen); // repeat as long as there was ptr advancement each time
+
+        // Once we have got past the one or more endmarkers, there could be following
+        // punctuation which we try parse over in the code below. However, if a punctuation
+        // character has reverted to being word-building, and it got moved to
+        // post-endmarker position, it will have been restored (and counted in the len
+        // value update done earlier) to its post word location. But the ParseWord()
+        // parsing pointer ptr will now be pointing at however many such there are - it or
+        // they, as the case may be, are still stored in the wordBuildersForPostWordLoc
+        // string, which because we haven't returned, is still not emptied. So here we must
+        // get the length of what we put into the wordBuildersForPostWordLoc string from
+        // the character sequence and advance ptr by that much, and if it is we advance
+        // over it WITHOUT INCREMENTING the len value - as that is already done above;
+        // after this block is done, ptr must be left pointing at any genuine punctuation,
+        // or space or whatever
+        if (!wordBuildersForPostWordLoc.IsEmpty())
+		{
+			ptr += wordBuildersForPostWordLoc.Len();
+
+		}
+		// do the same adjustment if we are at this point having parsed the secondWord of
+		// a conjoined word pair, and there is punctuation that has be reverted back to
+		// being word-building and it occurs after the endmarker
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			if (!wordBuildersFor2ndPostWordLoc.IsEmpty())
+			{
+				ptr += wordBuildersFor2ndPostWordLoc.Len();
+
+			}
+		}	
+	}
+
+	// What now? Final punctuation may already have been collected and stored. But if we
+	// just parsed over at least one inline binding endmarker, this type of marker should
+	// preceded final punctuation, so we would need to have a further attempt to collect
+	// final punctuation now - because if there are final puncts, that's where we'd expect
+	// them to be. (If there's final puncts before the inline binding marker, wrongly, and
+	// also some after it, then we'll just concatenate all those puncts to the one storage
+	// location on pSrcPhrase, and so in an export they'd all be shown after the inline
+	// binding marker (thereby auto-correcting, or so we think it should be done). If,
+	// however, we are pointing at whitespace, we have a tricky situation. It could
+	// indicate that parsing for the current word should end. On the other hand, it might
+	// just be bad markup and either an inline non-binding endmarker (such as \wj*) might
+	// follow (and the latter could conceivably even have punctuation before it which
+	// would need to then be treated as final punctuation for the current word; or there
+	// could be \f* \x* or \fe* still to come -- in these cases the whitespace is
+	// unnecessary and probably unhelpful and should be ignored. This calls for some
+	// tricky parsing and delays of the decisions about what to do until all the ducks are
+	// lined up.
+	//wxChar* pWhiteSpaceStarts = ptr; 
+	//pWhiteSpaceStarts = pWhiteSpaceStarts; // avoid compiler warning
+	wxChar* pWhiteSpaceEnds = ptr;
+	int nWhiteSpaceSpan = 0;
+	if (IsWhiteSpace(ptr))
+	{
+		// delineate the span of this substring of whitespace
+		ptr++;
+		pWhiteSpaceEnds = ptr;
+		nWhiteSpaceSpan = 1;
+		while (IsWhiteSpace(ptr))
+		{
+			ptr++;
+			nWhiteSpaceSpan++;
+			pWhiteSpaceEnds = ptr;
+		}
+		// delay our decision about what to do with this whitespace, but if we halted at ]
+		// then return and throw away this whitespace, but return updated len value so
+		// that caller's ptr will be pointing at the ] bracket
+		if (*ptr == _T(']'))
+		{
+			len += nWhiteSpaceSpan;
+			return len;
+		}
+	}
+	bool bGotSomeMorePuncts = FALSE; // set TRUE if we find some more in the next bit
+
+	//If ptr points at punctuation, start collecting it
+	bool bMorePunctsHaveBeenAccepted = FALSE;
+	wxChar* pMorePunctsStart = ptr;
+	wxChar* pMorePunctsEnd = ptr;
+	int nMorePunctsSpan = 0;
+    // Note, if parsing of the 'following' punctuation was not commenced in the main loop
+    // above -- as will be the case when bMatchedFixedSpaceSymbol is TRUE - as the main
+    // loop is then exited and expects punct parsing to completed later on, it is here
+    // that that punctuation first gets a chance to be parsed. The algorithm here was no
+    // designed around supporting ~ conjoining's needs, and so if we parse punctuation
+    // following the second word of such a conjoining in the following block, we'll
+    // need, once the parsing of the puncts halts, a test for bMatchedFixedSpaceSymbol ==
+    // TRUE in order to assign the matched final punctuation to the pSrcPhrase->m_follPunct
+    // member, and to the same member in pSrcPhrWord2 - otherwise the ParseWord() function
+    // will end without doing these assignments
+	if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
+	{
+		// ptr is pointing at punctuation. It could belong to the next word to be parsed,
+		// as preceding punctuation for it, or to the current word as final punctuation if
+		// an endmarker follows - so collect the punctuation but delay our decision about
+		// what to do with it until we can work out later if an endmarker follows or not.
+		// But if we halt at a ] bracket, any punctuation parsed over is deemed to belong
+		// to the current word being parsed.
+		nMorePunctsSpan = 1;
+		ptr++;
+		pMorePunctsEnd = ptr;
+		bGotSomeMorePuncts = TRUE;
+		while (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd && *ptr != _T(']'))
+		{
+			nMorePunctsSpan++;
+			ptr++;
+			pMorePunctsEnd = ptr;
+		}
+		// if we got to the buffer end, accept the punctuation, store and return; likewise
+		// if we got to a ] bracket
+		if (ptr == pEnd || *ptr == _T(']'))
+		{
+			wxString moreFinalPuncts(pMorePunctsStart,nMorePunctsSpan);
+			pSrcPhrase->m_follPunct += moreFinalPuncts;
+			pSrcPhrase->m_srcPhrase += moreFinalPuncts;
+			// also do it for the secondWord's CSourcePhrase when ~ is conjoining
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				pSrcPhrWord2->m_follPunct += moreFinalPuncts;
+				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
+			}
+			len += nMorePunctsSpan;
+			if (nWhiteSpaceSpan > 0)
+				len += nWhiteSpaceSpan;
+			return len;
+		}
+        // we could now be pointing at white space, and there may be detached endquotes we
+        // need to collect as final punctuation too - but if that is the case, there should
+        // not have been any whitespace preceding the collected punctuation - that is,
+        // nWhiteSpaceSpan should be zero, AND bInlineBindingEndMkrFound should be TRUE. So
+        // if those tests are satisfied, then we'll accept the punctuation as valid, and
+        // attempt to find any detached endquotes; but if both are not satisfied, we won't
+        // attempt to find detached endquotes as in all probability there should not be any
+        // (and if there were, the USFM markup is badly formed) and defer any decisions
+        // until we know the situation with possible following endmarkers. 
+        // We also do this block if we've been handling a ~ conjoined word pair and have
+        // just parsed some final punctuation for the second word of the pair
+		if ((nWhiteSpaceSpan == 0 && bInlineBindingEndMkrFound) || bMatchedFixedSpaceSymbol)
+		{
+			wxString moreFinalPuncts(pMorePunctsStart,nMorePunctsSpan);
+            // add the extra final puncts
+			pSrcPhrase->m_follPunct += moreFinalPuncts;
+			pSrcPhrase->m_srcPhrase += moreFinalPuncts;
+			// also do it for the secondWord's CSourcePhrase when ~ is conjoining
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				pSrcPhrWord2->m_follPunct += moreFinalPuncts;
+				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
+			}
+			bMorePunctsHaveBeenAccepted = TRUE; // this block can leave ptr at a
+					// different location, but that shouldn't matter. We need this
+					// boolean so we can later prevent storing the extra punctuation twice
+
+			// now attempt any detached ones - we'll have to reset ptr for this parse
+			bExitParseWordOnReturn = FALSE;
+			int nOldLen = len;
+			wxString additions; additions.Empty();
+			// in next call, FALSE is bPutInOuterStorage
+			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
+					bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
+			{
+				pSrcPhrWord2->m_follPunct += additions;
+				pSrcPhrWord2->m_srcPhrase += additions;
+			}
+			// m_srcPhrase has been updated with any additional final punctuation within
+			// the above call, so just return len to the caller after updating it
+			if (bExitParseWordOnReturn)
+			{
+				// since we must now return, the tentative former decisions have to become
+				// concrete, so do the arithmetic to get len value correct (if not
+				// returning here, the arithmetic is done further down in ParseWord() when
+				// more is known about endmarkers etc)
+				if (nWhiteSpaceSpan > 0)
+				{
+					len += nWhiteSpaceSpan;
+				}
+				if (bMorePunctsHaveBeenAccepted && nMorePunctsSpan > 0)
+				{
+					len += nMorePunctsSpan;
 				}
 				return len;
 			}
+			if (len > nOldLen)
+			{
+				pMorePunctsEnd = ptr; // may need this value below, so make sure it is correct
+			}
+		}
+	} // end of TRUE block for test: if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
+
+	// we might now be pointing at inline non-binding endmarker, or the endmarker for a
+	// footnote, endnote or crossReference. There might be a small possibility that we get
+	// here with ptr pointing at whitespace - just in case, remove any such before doing
+	// our tests for the above
+	bool bNotEither = FALSE; // default value (yes, it should be false for the default)
+	int olderLen = len;
+	pMaybeWhitesStart = ptr; // this will be null if control bypasses here
+	pMaybeWhitesEnd = ptr; // this will be null only if control bypasses here
+	if (IsWhiteSpace(ptr))
+	{
+		len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
+		nHowManyWhites = len - olderLen;
+		if (nHowManyWhites > 0)
+		{
+			pMaybeWhitesEnd = ptr; // preserve the location of the end
 		}
 	}
-    // now, work backwards first - we may have stopped at a space and there could have been
-    // several punctuation characters parsed over by the previous while loop; we don't have
-    // to count these ones, so long as followPunct ends up containing all following
-    // punctuation
-	wxChar* pBack = ptr;
-	do {
-		--pBack; // point to the previous character
-		if (pBack < pWordProper) break; // ptr did not advance in the previous while block, 
-										// so break out
-		if (IsClosingQuote(pBack) || (nFound = nospacePuncts.Find(*pBack)) >= 0)
-		{
-			// it is a punctuation character - either one of the closing quote ones or
-			// or apostrophe is being treated as punctuation and it is an apostrophe; OR
-			// it is one of the spaceless source language set
-			wxString s = *pBack;
-			followPunct = s + followPunct; // accumulate in text order
-		}
-	} while ( pBack > pWordProper && (IsClosingQuote(pBack) || nFound >= 0));
-    // now parse forward from the location where we started parsing backwards - it's from
-    // here on we have to be careful to allow for the possibility that the gSFescapechar
-    // might or might not be an indicator of a new standard format marker being in the
-    // source text stream; and we have to continue counting the characters we successfully
-    // parse over. We parse over a small chunk until we determine we must halt. We don't
-    // commit to the contents of the small chunk until we are sure we have parsed over at
-    // least one genuine detached closing quote.
-
-    // BEW note added on 10Apr06, the comment that it is here that gSFescapechar is
-    // relevant is not correct; if ptr is pointing at a backslash, the stuff below does not
-    // allow it to be parsed over, but only treated as an SFM onset - so I have to add the
-    // checking for ignoring backslashes when gbSfmOnlyAfterNewlines is TRUE be done in the
-    // loop above! The code below is therefore a bit more convoluted than it need be, but
-    // I'll leave the sleeping dog to lie.
-
-	if (IsEnd(ptr))
-		return len; // we are at the end of the source data, so can't parse further
-	wxString smchunk;
-	smchunk.Empty();
-	int nChunkLen = 0;
-	bool bFoundDetachedRightQuote = FALSE;
-	if (gbSfmOnlyAfterNewlines)
+	if (IsFootnoteOrCrossReferenceEndMarker(ptr)) // this test includes a check for endnote endmarker
 	{
-        // treat the escape character as if it is an alphabetic word-building character and
-        // so don't test for it as a loop ending criterion
-		if (!IsEnd(ptr))
+		// store it in m_endMarkers, and then check for any outer following punctuation
+		// immediately following it (must be IMMEDIATELY following, no white space
+		// between) and parse over any such as 'outer' following punctuation until a space
+		// or non-punct character is reached (we can't assume it is endquotes, it could be
+		// anything). Before we do that, our delayed decisions above are to be delayed no
+		// longer - we must accept any 'more puncts' that we found, and throw away any
+		// whitespace we parsed over preceding them
+		if (nWhiteSpaceSpan > 0)
 		{
-			goto c;
+			// ignore it, but add the count of its whitespace characters to len
+			len += nWhiteSpaceSpan;
+		}
+		if (nHowManyWhites > 0)
+		{
+			len += nHowManyWhites;
+		}
+		if (bGotSomeMorePuncts && nMorePunctsSpan > 0)
+		{
+			len += nMorePunctsSpan;
+		}
+		if (bGotSomeMorePuncts && !bMorePunctsHaveBeenAccepted)
+		{
+			wxString moreFinalPuncts(pMorePunctsStart,nMorePunctsSpan);
+			pSrcPhrase->m_follPunct += moreFinalPuncts;
+			pSrcPhrase->m_srcPhrase += moreFinalPuncts;
+			len += nMorePunctsSpan;
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				pSrcPhrWord2->m_follPunct += moreFinalPuncts;
+				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
+			}
+		}
+		// now the \f* or \x* or \fe*
+		wxString endMarker = GetWholeMarker(ptr);
+		int itsLen = endMarker.Len();
+		pSrcPhrase->AddEndMarker(endMarker);
+		len += itsLen;
+		ptr += itsLen;
+		// now any outer punctuation...
+		// *********** NOTE PROTOCOL CHANGE HERE ****************
+		// Instead of just collecting until a space, there may be detached puncts after
+		// \f* or \x* (or \fe*) and so we should check, and there could even be an inline
+		// non-binding marker like \wj* following that, so we'll need to do the call for
+		// trying to collect additional detached puncts and check for a non-binding inline
+		// endmarker too. So the same delay tactics apply as we did earlier
+		// ******   end note about protocol change   ********
+		
+		if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
+		{
+			// there is at least one, parse over as many as their are until non-punct
+			// character is found, store the result in m_follOuterPunct
+			wxString outerPuncts; outerPuncts.Empty();
+			while (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
+			{
+				outerPuncts += *ptr;
+				ptr++;
+				len++;
+			}
+			pSrcPhrase->SetFollowingOuterPunct(outerPuncts);
+			pSrcPhrase->m_srcPhrase += outerPuncts;
+			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+			{
+				pSrcPhrWord2->SetFollowingOuterPunct(outerPuncts);
+				pSrcPhrWord2->m_srcPhrase += outerPuncts;
+			}
+		}
+		if (*ptr == _T(']'))
+		{
+			// we must return
+			return len;
+		}
+		// now handle the possibility of more (outer) detached punctuation characters,
+		// before a further endmarker....
+		bool bPutInOuterStorage = TRUE;
+
+        // Collect any additional detached quotes and intervening spaces, stopping at the
+        // next marker, or the first non-endquote punctuation character. If straight quote
+        // or straight doublequote (' or ") is found, it would be ambiguous whether it is
+        // an opening quote for the next word in the buffer, or part of the final
+        // punctuation on the currently parsed over word - so we'll distinguish these as
+        // follows: straight quote or doublequote before an endmarker will be part of the
+        // current following punctuation; and any such immediately after \f* or \x* with no
+        // intervening space will be treated as belonging to m_follOuterPunct, in any other
+        // situation the straight quote will be assumed to be initial punctuation for what
+        // follows and so will not be part of the data for this call of ParseWord()
+        bExitParseWordOnReturn = FALSE;
+		wxString additions; additions.Empty();
+		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
+						bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, 
+						bPutInOuterStorage);
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty() &&
+			!bExitParseWordOnReturn)
+		{
+			pSrcPhrWord2->m_follPunct += additions;
+			pSrcPhrWord2->m_srcPhrase += additions;
+		}
+		if (bExitParseWordOnReturn)
+		{
+			// m_srcPhrase has been updated with any additional final punctuation within
+			// the above call, so just return len to the caller; ptr is updated too
+			return len;
+		} 
+
+		// if we didn't return to the caller, then there must be an inline non-binding
+		// endmarker to grab - get it, store, update len and ptr & then return
+		if (IsEndMarker(ptr, pEnd))
+		{
+			wxString endmkr = GetWholeMarker(ptr);
+			wxString endmkrPlusSpace = endmkr + aSpace;
+			if (inlineNonbindingEndMrks.Find(endmkrPlusSpace) != wxNOT_FOUND)
+			{
+				wxString alreadyGot = pSrcPhrase->GetInlineNonbindingEndMarkers();
+				alreadyGot += endmkr;
+				pSrcPhrase->SetInlineNonbindingEndMarkers(alreadyGot);
+				int length = endmkr.Len();
+				len += length;
+				ptr += length;
+			}
+		}
+		// IsEndMarker() knows to halt at ] so if that happened, ptr and len will be such
+		// that the caller's ptr will point at the ] bracket character
+		return len;
+	}
+	else if (IsMarker(ptr))
+	{
+		if (IsEndMarker(ptr,pEnd))
+		{
+			wxString wholeMkr = GetWholeMarker(ptr);
+			wxString wholeMkrPlusSpace = wholeMkr + aSpace;
+			if (inlineNonbindingEndMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+			{
+				// There is an inline non-binding endmarker, so it needs to be parsed and
+				// stored on pSrcPhrase now; and after this we assume any punctuation will
+				// belong to whatever word follows as part of its preceding punctuation.
+				//   ****************** NOTE ADDITIONAL PROTOCOL NOTE *****************
+				// However, life is never simple. It is possible to get \qt* following by
+				// punctuation followed by \wj*, that is two inline non-binding endmarkers
+				// with intervening space. So we must delay our choice again, parse any
+				// following punctuation until we halt at non-punctuation, and if that
+				// non-punctuation is another inline non-binding endmarker, we must store
+				// on the current pSrcPhrase - and the punctuation before it must go in
+				// m_follOuterPunct. On an export, we must check for two inline
+				// non-binding endmarkers in m_inlineNonbindingEndMarkers; and if there
+				// are such, and m_follOuterPunct has punctuation in it, we will assume
+				// that always it belongs between any such pair, and no spaces are to go
+				// in the export text there.
+				// BEW 2Dec10 -- having written the above, I don't intend to ever
+				// implement this in exports until someone complains. I think the
+				// possibility that there would be following punctuation in such an
+				// environment would be zero. It would be a USFM markup error if it were
+				// so. 
+				//             ********* END PROTOCOL NOTE ***********
+                // So, having entered this block, now we know that any of the 'more
+                // punctuation' from earlier one where we delayed our decision, if there is
+                // some, we must accept it all as belonging to our current pSrcPhrase as
+                // following punctuation - so deal with that first before parsing over the
+                // endmarker we just found.
+				if (nWhiteSpaceSpan > 0)
+				{
+					// ignore it, but add the count of its whitespace characters to len
+					len += nWhiteSpaceSpan;
+				}
+				if (nHowManyWhites > 0)
+				{
+					len += nHowManyWhites;
+				}
+				if (bGotSomeMorePuncts && nMorePunctsSpan > 0)
+				{
+					len += nMorePunctsSpan;
+				}
+				if (bGotSomeMorePuncts && !bMorePunctsHaveBeenAccepted)
+				{
+					wxString moreFinalPuncts(pMorePunctsStart,nMorePunctsSpan);
+					pSrcPhrase->m_follPunct += moreFinalPuncts;
+					pSrcPhrase->m_srcPhrase += moreFinalPuncts;
+					len += nMorePunctsSpan;
+					if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+					{
+						pSrcPhrWord2->m_follPunct += moreFinalPuncts;
+						pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
+					}
+				}
+				// now the inline non-binding endmarker just found
+				int itsLen = wholeMkr.Len();
+				pSrcPhrase->SetInlineNonbindingEndMarkers(wholeMkr);
+				if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+				{
+					pSrcPhrWord2->SetInlineNonbindingEndMarkers(wholeMkr);
+				}
+				len += itsLen;
+				ptr += itsLen;
+				// check for ptr pointing at ] bracket, return if it is
+				if (*ptr == _T(']'))
+				{
+					return len;
+				}
+				// as noted above, check for additional punctuation, but no spaces must be
+				// before it; and after it, that's the end unless there is another inline
+				// non-binding endmarker, and if so then after that is the end!
+				wxChar* pLastPunctsStart = ptr;
+				wxChar* pLastPunctsEnd = ptr;
+				int nCountLastPuncts = 0;
+				while (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && ptr < pEnd
+						&& *ptr != _T(']'))
+				{
+					nCountLastPuncts++;
+					ptr++;
+					pLastPunctsEnd = ptr;
+				}
+				// if the halt was because we came to a ] bracket, accumulate the
+				// punctuation and return
+				if (*ptr == _T(']'))
+				{
+					if (nCountLastPuncts > 0)
+					{
+						wxString lastPuncts(pLastPunctsStart,nCountLastPuncts);
+						wxString outers = pSrcPhrase->GetFollowingOuterPunct();
+						outers += lastPuncts;
+						pSrcPhrase->SetFollowingOuterPunct(outers);
+						pSrcPhrase->m_srcPhrase += lastPuncts; // update m_srcPhrase for the view
+						len += nCountLastPuncts; // ptr is already at this location
+					}
+					return len;
+				}
+				// not pointing at ] bracket, so check... did we get to a second endmarker?
+				if (IsEndMarker(ptr, pEnd))
+				{
+					wxString wholeMkr = GetWholeMarker(ptr);
+					wxString wholeMkrPlusSpace = wholeMkr + aSpace;
+					if (inlineNonbindingEndMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+					{
+						// it's a second non-binding endmarker, deal with it & any
+						// preceding punctuation (store as outer punctuation)
+						if (nCountLastPuncts > 0)
+						{
+							wxString lastPuncts(pLastPunctsStart,nCountLastPuncts);
+							wxString outers = pSrcPhrase->GetFollowingOuterPunct();
+							outers += lastPuncts;
+							pSrcPhrase->SetFollowingOuterPunct(outers);
+							pSrcPhrase->m_srcPhrase += lastPuncts; // update m_srcPhrase for the view
+							len += nCountLastPuncts; // ptr is already at this location
+						}
+						// now the final inline non-binding endmarker
+						int length = wholeMkr.Len();
+						wxString enders = pSrcPhrase->GetInlineNonbindingEndMarkers();
+						enders += wholeMkr;
+						pSrcPhrase->SetInlineNonbindingEndMarkers(enders);
+						len += length;
+						ptr += length;
+						return len;
+					}
+					else
+					{
+						// it' an endmarker, but not an inline non-binding one, this is probably
+						// a USFM markup error - so just return and let the caller deal
+						// with it
+						ptr = pLastPunctsStart;
+						return len;
+					}
+				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
+
+				return len;
+			} // end of TRUE block for test: 
+			  // if (inlineNonbindingEndMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+			else
+			{
+				// dunno what is going on, posibly a markup error, so end the ParseWord()
+				// parse
+				bNotEither = TRUE;
+			}
+		} // end of TRUE block for test: if (IsEndMarker(ptr,pEnd))
+		else
+		{
+			bNotEither = TRUE;
+		}
+	} // end of TRUE block for test: else if (IsMarker(ptr))
+	if (bNotEither)
+	{
+		// our delayed decisions above need be delayed no longer - establish now where ptr
+		// should be and what value len should have, and return len
+		if (bMorePunctsHaveBeenAccepted)
+		{
+			// if this is the case, we have to count the white space and the 'more puncts'
+			// in the parse span, and return with ptr pointing at pMorePunctsEnd
+			len += nWhiteSpaceSpan;
+			len += nHowManyWhites;
+			len += nMorePunctsSpan;
+			ptr = pMorePunctsEnd;
+			return len;
 		}
 		else
 		{
-			goto d;
+			// we can't risk including any 'more punctuation' in pSrcPhrase because it is
+			// far more likely it is preceding punctuation for the next word, so end the
+			// parse where the white space ends
+			ptr = pWhiteSpaceEnds; // ptr is at least here
+			len += nWhiteSpaceSpan; // count the white space (remember, could be zero)
+			if (nHowManyWhites > 0 && pMaybeWhitesEnd != NULL)
+			{
+				len += nHowManyWhites;
+				ptr = pMaybeWhitesEnd;
+			}
+			return len;
+		}
+	} // end TRUE block for test: if (bNotEither)
+	return len;
+}
+
+/// returns     TRUE if the marker is \f* or \fe* or \x* for USFM set, or if PNG 1998 set
+///             is current, if the marker is \F or \fe
+/// ptr        ->  the scanning pointer for the parse
+/// pWholeMkr  <-  ptr to the endmarker string, empty if there is no marker at ptr
+/// Called when ptr has possibly reached an endmarker following parsing of the word (and
+/// possibly some following whitespace, the case when there was following puncts and ptr
+/// points past them will be handled somewhere else probably). The intention of this function
+/// is to alert the caller that any endmarker which should be stored in m_endMarkers and which
+/// is currently being pointed at by ptr, must be flagged as present (so the caller can
+/// then get it stored in m_endMarkers before returning from the caller to TokenizeText().
+/// This function is very specific to making the ParseWord() parser work properly, so is
+/// private in the document class. It the sfm set is PNG 1998 one, and the marker is \fe,
+/// elsewhere in the app we default to assuming \fe is a USFM marker, since it is in both
+/// sets with different meaning. Here we have a problem, if the set is the combined
+/// UsfmAndPng, because it could then be a footnote endmarker of PNG 1998 set, or an
+/// endnote beginmarker of the USFM set - and either could occur in the context where the
+/// parser's ptr is currently at, so that's no help. So we'll require the set to be
+/// explicitly PngOnly before we interpret it as the former. If it's UsfmAndPng, we'll
+/// interpret it as the latter - and it that gives a false parse, then too bad. People
+/// should be using only Usfm by now anyway!
+bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr)
+{
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		//if (*ptr == gSFescapechar)
+		if (IsMarker(ptr))
+		{
+			(*pWholeMkr) = GetWholeMarker(ptr);
+			if (*pWholeMkr != _T("\\fe") && *pWholeMkr != _T("\\F"))
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			(*pWholeMkr).Empty();
+			return FALSE;
 		}
 	}
 	else
 	{
-        // treat the escape character as indicating the presence of a (U)SFM, so test for
-        // it as a loop ending criterion
-		wxChar* ptr2;
-		wxChar* ptr3;
-a:		if (!IsEnd(ptr) && *ptr != gSFescapechar)
+		// it's either USFM set or UsfmAndPng set --  treat both as if USFM
+		//if (*ptr == gSFescapechar)
+		if (IsMarker(ptr))
 		{
-c:			if	(IsWhiteSpace(ptr))
+			(*pWholeMkr) = GetWholeMarker(ptr);
+			if (*pWholeMkr != _T("\\f*") && *pWholeMkr != _T("\\fe*") && *pWholeMkr != _T("\\x*"))
 			{
-				smchunk += _T(' '); // we may as well normalize to space 
-									// while we are at it
-				ptr++; // accumulate it and advance pointer then iterate
-				goto a;
-			}
-			else
-			{	
-				// it's not white space, so what is it?
-				if (IsClosingQuote(ptr))
-				{
-                    // it's one of the closing quote characters (but " or ' are ambiguous,
-                    // so test further because " or ' might be preceding punctuation on a
-                    // following word not yet parsed)
-					if (IsAmbiguousQuote(ptr))
-					{
-                        // it's one of the two ambiguous ones; we'll assume this does not
-                        // belong with our word if there was no preceding punctuation, or
-                        // if there was preceding punctuation but we have already found at
-                        // least one closing curly quote, or if bHasOpeningQuote is FALSE,
-                        // otherwise we'll accept it as a detached following quote mark
-						if (bHasPrecPunct)
-						{
-							if (!bHasOpeningQuote)
-							{
-                                // there was no opening quote on this word, but the word
-                                // may be the end of a quoted section and so we must test
-                                // further
-								if (bFoundDetachedRightQuote)
-								{
-                                    // a detached right quote was found earlier, so we
-                                    // should stop the iteration right here, and not
-                                    // accumulate the non-curly quote symbol because it is
-                                    // unlikely it would associate to the left
-									goto g;
-								}
-								else
-								{
-                                    // we only know where was opening punctuation and no
-                                    // detached closing quote has yet been found, so we
-                                    // need to apply the tests in the next block to decide
-                                    // what to do with the ambiguous quote at ptr; OR
-                                    // control got directed here from the bHasOpeningQuote
-                                    // == FALSE block and we've not found a detached right
-                                    // quote earlier, so we must make our final decision
-                                    // based on the tests in the block below
-									goto e;
-								}
-							}
-							else // next block is where the 'final' decisions will be 
-                                 // made (only one option iterates from within the next
-                                 // battery of tests)
-							{
-                                // there was an opening quote on this word, or control was
-                                // directed here from the block immediately above; so this
-                                // ambiguous quote may be a closing one, or it could belong
-                                // to the next word - so we must test further
-e:								ptr2 = ptr;
-								ptr2++; // point at the next character
-								if (IsWhiteSpace(ptr2))
-								{
-                                    // *ptr is bracketed by white space either side, so it
-                                    // could associate either to the left or two the right
-                                    // - so we must make some assumptions: we assume it is
-                                    // detached quote for the current (ie. to the left)
-                                    // word if the next character past ptr2 is not
-                                    // punctuation (if it's a white space we jump it and
-                                    // test again), if it is punctuation we assume the
-                                    // quote at ptr associates to the right, and if the
-                                    // character at ptr2 is not white space we assume we
-                                    // have moved into the preceding punctuation of a
-                                    // following word and so associate the quote at ptr
-                                    // rightwards
-									ptr2++; // point beyond the white space
-
-									// skip over any additional white spaces
-									while (IsWhiteSpace(ptr2)) {ptr2++;} 
-
-									// find out what the first non-whitespace character is
-									if (nospacePuncts.Find(*ptr2) == -1)
-									{
-                                        // the character at ptr2 is not punctuation, so we
-                                        // will assume the character at ptr associates to
-                                        // the left; if ptr2 is actually at the end of the
-                                        // data (eg, when rebuilding a sourcephrase for
-                                        // document rebuild) then this is also accomodated
-                                        // by the same decision
-f:										bFoundDetachedRightQuote = TRUE;
-										smchunk += *ptr++; // accumulate it, advance pointer
-										goto a; // and iterate
-									}
-									else
-									{
-                                        // it is punctuation at ptr2, so we could have a
-                                        // series of detached quotes which associate left,
-                                        // or a series which associates right. To
-                                        // distinguish these we will favour rightmost
-                                        // association if there is a next word with initial
-                                        // punctuation; otherwise we'll assume we should
-                                        // associate leftwards
-										ptr3 = ptr2;
-										ptr3++; // point at next char (it could be space, etc)
-										if (IsEnd(ptr3)) goto f; // associate leftwards & iterate
-										if (IsWhiteSpace(ptr3))
-										{
-											while (IsWhiteSpace(ptr3)) {ptr3++;} // skip any others
-											if (IsEnd(ptr3)) goto f;
-											if (nospacePuncts.Find(*ptr3) == -1)
-											{
-												// it's not punctuation
-												goto f; // iterate
-											}
-											else
-											{
-                                                // it's punctuation; so we'll limit the
-                                                // nesting of tests to a max of two
-                                                // detached ambiguous quotes, so we will
-                                                // here examine what follows - if it is a
-                                                // space or the end of the data we will
-                                                // assume it is the last of detached
-                                                // punctuation associating to the left;
-                                                // anything else, we'll have the quote at
-                                                // ptr associated rightwards
-												ptr3++;
-												if (IsEnd(ptr3) || IsWhiteSpace(ptr3))
-													goto f; // iterate
-											}
-										}
-										// bale out (ie. associate right)
-g:										followPunct += smchunk;
-										nChunkLen = smchunk.Length();
-										len += nChunkLen;
-										return len;
-									}
-								}
-								else
-								{
-                                    // it was not whitespace, so we assume the quote
-                                    // character at ptr must associate to the right, so
-                                    // bale out; however, if we are at the end of the text
-                                    // (eg. when doing document rebuild) then associating
-                                    // rightwards is impossible and we then associate to
-                                    // the left
-									if (IsEnd(ptr2))
-									{
-                                        // associate it to the left, that is, it is part of
-                                        // the currently being parsed word
-										bFoundDetachedRightQuote = TRUE;
-										smchunk += *ptr++; // accumulate it, advance pointer
-										goto a; // and iterate
-									}
-									// if not at the end, then assume it belongs to the 
-									// next word
-									goto g;
-								}
-							} // end of the "final battery of tests" block
-						}
-						else // bHasPredPunct was FALSE
-						{
-                            // there was no opening punctuation on our parsed word, but the
-                            // ambiguous quote at ptr could still be a closing quote, or it
-                            // could be a quote belonging to the next word - so additional
-                            // tests are required
-							goto e;
-						}
-					}
-					else
-					{
-                        // it's a genuine curly closing quote or a right wedge, either way
-                        // this is detached punctuation belonging to the previous word, so
-                        // we must accumulate it & iterate
-						bFoundDetachedRightQuote = TRUE;
-						smchunk += *ptr++; // accumulate it, and advance to the 
-										   // next character
-						goto a; // iterate
-					}
-				}
-				else
-				{
-					// it's not one of the possible closing quotes, so we have to stop 
-					// iterating
-b:					wxString spaceless = smchunk;
-					while (spaceless.Find(_T(' ')) != -1)
-					{
-						spaceless.Remove(spaceless.Find(_T(' ')),1);
-					}
-					if (smchunk.Length() > 0 && bFoundDetachedRightQuote)
-					{
-						// there is something to accumulate
-						followPunct += smchunk;
-						nChunkLen = smchunk.Length();
-						len += nChunkLen;
-						return len;
-					}
-					else
-					{
-						// there is nothing worth accumulating
-						return len;
-					}
-				}
+				return FALSE;
 			}
 		}
 		else
 		{
-			// we are at the end or at the start of a (U)SFM, so we cannot iterate further
-d:			goto b;
-		}	
+			(*pWholeMkr).Empty();
+			return FALSE;
+		}
 	}
+	return TRUE;
+}
+
+// returns     the updated value of len, agreeing with where ptr is on return
+// ptr            <->  the scanning pointer for the parse
+// pEnd            ->  first character past the end of the data buffer we are parsing
+// pSrcPhrase     <->  where we are storing information parsed, here it is final
+//                     punctuation to be appended to its m_follPunct member
+// len             ->  the len value before ptr is advanced in this internal scan
+// bInlineBindingEndMkrFound <-> input FALSE, and returned as TRUE if an inline binding
+//                               endmarker was detected and parsed over & stored (we
+//                               use the TRUE value in the caller to enable a second
+//                               attempt to collect final punctuation following such a
+//                               marker)
+// endMkr          <-  the endmarker parsed over, in case the caller needs it
+// Called when ptr has reached an endmarker following parsing of the word (and possibly
+// also having parsed over punctuation too). There are two kinds of endmarker parse we need
+// to handle here; first kind is parsing over one or more sequential inline binding
+// endmarkers, that is, not \f* or \x* nor any of the 5 in the m_inlineNonbindingEndMarkers
+// set. Any of these we will store in the m_inlineBindingEndMarkers member of pSrcPhrase.
+// The other kind of endmarkers we must deal with are those internal to footnotes or
+// crossReferences (but not \f* nor \x* which terminate those info types). These endmarkers
+// in the case of footnotes start with \f and end with *, and for crossReferences, start
+// with \x and end with *, and each has other characters between the \f and *, or the \x
+// and *. These are \fdc* and \fm*, and we can include \fe* too (for endnotes); & for
+// crossReferences, \xot* \xnt* \xdc* -- these are to be stored in the m_endMarkers member
+// (as will \f* and \x* when we parse them further along in the caller).
+// If this function finds neither kind of marker, ptr and len are returned unchanged to the
+// caller, and further possibilities are then tried. If it finds either kind of marker or
+// sequence of same, these are parsed over, stored, and ptr and len returned updated, with
+// ptr pointing at the first character following (typically a space, or final punctuation)
+int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
+		CSourcePhrase*& pSrcPhrase, wxString& inlineNonBindingEndMkrs, int len,
+		bool& bInlineBindingEndMkrFound, wxString& endMkr)
+{
+	endMkr.Empty();
+	if (!IsMarker(ptr) || !IsEndMarker(ptr, pEnd))
+	{
+		// do no parse if we are not pointing to a marker, and if we are, do no parse if
+		// what we are pointing at is not an endmarker
+		return len;
+	}
+	else
+	{
+		// we exclude \f* \fe* or \x* from consideration in this function, we'll handle
+		// them later in the caller's parse at the point where either inline non-binding
+		// endmarkers or one of \f* \fe* or \x* may possibly occur - as this will give
+		// better outcomes for self-correcting bad punctuation markup
+		if (!IsFootnoteOrCrossReferenceEndMarker(ptr))
+		{
+			// it's not one of \f* \fe* or \x*; and we also in the function do not parse
+			// over any of the 5 inline non-binding endmarkers (\wj* \qt* \sls* \tl*
+			// \fig*) so test for these and exit without doing anything if we are pointing
+			// at one of them
+			wxString wholeEndMkr = GetWholeMarker(ptr);
+			wxString wholeEndMkrPlusSpace = wholeEndMkr + _T(" ");
+			int length = wholeEndMkr.Len();
+			if (inlineNonBindingEndMkrs.Find(wholeEndMkrPlusSpace) == wxNOT_FOUND)
+			{
+				// There are two possibilities... distinguish between & process ...
+                // (1) we are pointing at an inline binding endmarker so parse it, store,
+                // and return (there may be more than one, so the caller will repeat the
+                // call until the len value returned is equal to what was input - which is
+                // a sufficient test for parsing over nothing during the call)
+				// (2) we are pointing at an inline endmarker internal to a footnote,
+				// endnote or crossReference - and if that is the case, parse it, store,
+				// and return to the caller -- again, the caller receiving a len value
+				// equal to what was input indicates the caller's loop must end
+				if (IsCrossReferenceInternalEndMarker(ptr) || IsFootnoteInternalEndMarker(ptr))
+				{
+					// possibility (2) obtains
+					pSrcPhrase->AddEndMarker(wholeEndMkr);
+				}
+				else
+				{
+					// possibility (1) obtains
+					pSrcPhrase->AppendToInlineBindingEndMarkers(wholeEndMkr);
+					bInlineBindingEndMkrFound = TRUE;
+				}
+				endMkr = wholeEndMkr;
+				len += length;
+				ptr += length;
+			}
+		} // end of TRUE block for test: if (!IsFootnoteOrCrossReferenceEndMarker(ptr))
+	} // end of else block for test: if (!IsMarker(ptr) || !IsEndMarker(ptr, pEnd))
+	return len;
+}
+
+// returns     the updated value of len, agreeing with where ptr is on return
+// ptr            <->  the scanning pointer for the parse
+// pEnd            ->  first character past the end of the data buffer we are parsing
+// pSrcPhrase     <->  where we are storing information parsed, here it is final
+//                     punctuation to be appended to its m_follPunct member
+// spacelessPuncts ->  the punctuation set being used (either source puncts, or target ones)
+// len             ->  the len value before ptr is advanced in this internal scan
+// bExitOnReturn  <-   return TRUE if ParseWord() should be exited on return 
+// bHasPrecedingStraightQuote <-> default is FALSE, the boolean passed in is stored
+//                                on the CAdapt_ItDoc class with public access; and
+//                                is set TRUE if a straight quote (" or ') is detected
+//                                in TokenizeText() when parsing punctuation preceding
+//                                a word. The matching closing straight quote could be
+//                                many word parses further on, and so we leave it set
+//                                until one of the following happens, whichever is first:
+//                                a new verse is started, or, its TRUE value is used to
+//                                assign ownership of ' or " to the currently being parsed
+//                                word as its final punctuation, or part of its final 
+//                                punctuation (if there are more than one, we'll assign them
+//                                all - which could lead to a misparse if an opening
+//                                straight quote occurs prior to the next word - it's
+//                                opening quote would wrongly be put in the following puncts
+//                                of the preceding word -- but probably this would never
+//                                happen in practice [we hope])
+// Called after a sequence of word-final punctuation ends at space - there could be
+// additional detached endquotes, single or double - this function collects these, stores
+// them appropriately in pSrcPhrase, and advances len and ptr to the end of the material
+// parsed over.
+// BEW created 11Oct10
+// BEW 2Dec10 added ] character as cause to return, ptr should be pointing at it on return                
+int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
+					CSourcePhrase*& pSrcPhrase, wxString& spacelessPuncts, 
+					int len, bool& bExitOnReturn, bool& bHasPrecedingStraightQuote,
+					wxString& additions, bool bPutInOuterStorage)
+{
+    wxChar* pPunctStart = ptr;
+	wxChar* pPunctEnd = ptr;
+	size_t counter = 0;
+	bool bFoundClosingQuote = FALSE;
+	wxChar* pLocation_OK = ptr; // every time we parse over curly endquotes, we 
+								// set this pointer to the location after the 
+								// acceptable quote character, but we won't update
+								// it if we come to a straightquote character 
+	while (!IsEnd(ptr) && (IsWhiteSpace(ptr) || IsClosingQuote(ptr)) && !IsMarker(ptr)
+			&& *ptr != _T(']'))
+	{
+		if (IsClosingQuote(ptr))
+		{
+			bFoundClosingQuote = TRUE;
+			// now determine if it is a curly endquote or right chevron, and if so
+			// then it is definitely to be included in the following punctuation of
+			// the current pSrcPhrase
+			if (IsClosingCurlyQuote(ptr))
+			{
+				// mark the location following it
+				pLocation_OK = (ptr + 1);
+			}
+		}
+		counter++;
+		ptr++;
+		pPunctEnd = ptr;
+		// if the punctuation end is also pEnd, then tell the caller not to parse further
+		// on return
+		if (IsEnd(pPunctEnd))
+		{
+			bExitOnReturn = TRUE;
+		}
+	}
+	// on exit of the loop we are either at buffer end, or backslash of a marker, or a ]
+    // closing bracket, or some character which is not whitespace nor a closing quote
+    // (IsClosingQuote() also tests for a straightquote or doublequote, so
+    // IsCLosingCurlyQuote() was also used as it does not test for straight ones)
+    if (bFoundClosingQuote)
+	{
+		// we matched something more than just whitespace and the something is
+		// curly endquote(s) and possibly a straight one (or more than one) - pLocation_OK
+		// will point at the character following the last curly endquote scanned over, so
+		// only white space and one or more straight quotes can follow that location
+		if (IsEndMarker(ptr, pEnd) || IsEnd(ptr))
+		{
+            // an endmarker is what ptr points at now, or the buffer's end, so we'll accept
+            // everything as valid final punctuation for the current pSrcPhrase; and if not
+            // at buffer end then further parsing is needed in the caller because there may
+            // be more markers and punctuation to be handled for the end of the current
+            // word
+ 			if (IsEnd(ptr))
+			{
+				// may have been set above, but no harm in making the test again & setting
+				// it here again
+				bExitOnReturn = TRUE;
+			}
+            wxString finalPunct(pPunctStart,counter);
+			if (bPutInOuterStorage)
+			{
+				pSrcPhrase->AddFollOuterPuncts(finalPunct);
+			}
+			else
+			{
+				pSrcPhrase->m_follPunct += finalPunct;
+			}
+ 			pSrcPhrase->m_srcPhrase += finalPunct; // add any punct'n
+			additions += finalPunct; // accumulate here, so that the caller can add any
+									 // additions to secondWord of ~ conjoining, in the
+									 // m_srcPhrase and m_follPunct members; note this
+									 // setting of additions is done whether fixedspace
+									 // was encountered or not, but the caller makes
+									 // this safe by checking that pSrcPhrase has a
+									 // fixedspace before trying to use this variable's
+									 // contents
+            // what ptr points at now could be an inline non-binding endmarker (like \wj*)
+            // or one of \f* or \x* (or even an inline binding endmarker with misplaced
+            // punctuation before it which we are now parsing over) - so while our parse of
+            // the punctuation in this function halts, the caller's parse must continue
+            // over potential endmarkers further on, and there could be outer following
+            // punctuation too
+			len += counter;
+		} // end of TRUE block for test: if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
+		else
+		{
+            // ptr is not pointing at the start of a marker; the situation is somewhat
+            // ambiguous - the difficulty here is that we may have some ending
+            // punctuation parsed over which belongs to the final punctuation of the
+            // current pSrcPhrase, followed by some initial punctuation (it can only be
+            // straight singlequote or straight doublequote) which belongs to the start
+            // of the next word to be parsed - so we'll accept only up to where
+            // pLocation_OK points as belonging to final punctuation of pSrcPhrase, and
+            // anything after that belongs to the next call of ParseWord() as initial
+			// punctuation for that call's word; however if bHasPrecedingStraightQuote is
+			// TRUE, then we'll accept the whole lot, because we assume that any straight
+			// quotes match any found earlier somewhere.
+			size_t shortCount = 0;
+			if (pLocation_OK > pPunctStart)
+			{
+				// we found at least one curly endquote, so work out if they all were
+				// curly endquotes that we parsed over (and accept them all) or if
+				// only some of them were (we accept only those up to pLocation_OK,
+				// and if any quotes follow we assume they belong to the next word -
+				// unless bHasPrecedingStraightQuote is TRUE)
+				shortCount = pLocation_OK - pPunctStart;
+				if (shortCount < counter)
+				{
+					// we parsed over non-curly (& non-right-chevron) non-endquote
+					// quote character lying beyond pLocation_OK, or, we may have just
+					// whitespace following pLocation_OK -- handle these possibilities
+					wxString finalPunct(pPunctStart,shortCount);
+					if (bPutInOuterStorage)
+					{
+						pSrcPhrase->AddFollOuterPuncts(finalPunct);
+					}
+					else
+					{
+						pSrcPhrase->m_follPunct += finalPunct;
+					}
+					pSrcPhrase->m_srcPhrase += finalPunct;
+					additions += finalPunct; 
+					size_t theRest = pPunctEnd - pLocation_OK;
+					wxString remainder(pLocation_OK,theRest);
+					wxString minusEndingSpaces = remainder.Trim();
+					if (minusEndingSpaces.IsEmpty())
+					{
+						// there was only whitespace in remainder, so we can include
+						// it in the parsed over data span & tell the caller to return
+						len += counter;
+						bExitOnReturn = TRUE;
+						return len;
+					}
+					else
+					{
+						// remainer has some nonwhitespace content, but that must
+						// belong (we assume) to the next word's parse, so set the ptr
+						// location to be pLocation_OK; but if bHasPrecedingStraightQuote
+						// is TRUE, accept it all
+						if (bHasPrecedingStraightQuote)
+						{
+							if (bPutInOuterStorage)
+							{
+								pSrcPhrase->AddFollOuterPuncts(remainder);
+							}
+							else
+							{
+								pSrcPhrase->m_follPunct += remainder;
+							}
+							pSrcPhrase->m_srcPhrase += remainder;
+							additions += remainder; 
+							ptr += theRest;
+							len += (int)theRest;
+							bHasPrecedingStraightQuote = FALSE; // we've made a decision
+									// based on it's TRUE value, so we must now restore
+									// its default FALSE value in case further matching
+									// of preceding and following straight quotes is 
+									// required in the parse of further words
+						}
+						else
+						{
+							ptr = pLocation_OK;
+							len += shortCount;
+							bExitOnReturn = TRUE;
+							return len;
+						}
+					}
+				}
+				else
+				{
+					// shortCount and counter are the same value, so we accept it all
+					// and we must tell the caller to return because ptr is not pointing
+					// at a marker but something else which is not a quote symbol.
+					// Possibly it could be other punctuation ptr is pointing at, and if
+					// it is so without any spaces, then we should accept it as belonging
+					// to the end of the current final punctuation - so accumulate it
+					// until space or non-puncts are encountered. But check for ] first,
+					// if pointing at that, (it's defaulted as punctuation) don't
+					// accumulate it but return instead
+					wxString finalPunct(pPunctStart,counter);
+					if (bPutInOuterStorage)
+					{
+						pSrcPhrase->AddFollOuterPuncts(finalPunct);
+					}
+					else
+					{
+						pSrcPhrase->m_follPunct += finalPunct;
+					}
+					pSrcPhrase->m_srcPhrase += finalPunct;
+					additions += finalPunct; 
+					len += counter;
+					// are we pointing at ] bracket?
+					if (*ptr == _T(']'))
+					{
+						// we must return
+						bExitOnReturn = TRUE;
+						return len;
+					}
+					// else, accumulate any more puncts until space or non-punct or a
+					// ] bracket is reached
+					while (ptr < pEnd && (spacelessPuncts.Find(*ptr) != wxNOT_FOUND)
+						&& *ptr != _T(']'))
+					{
+						wxString aPunct = *ptr;
+						if (bPutInOuterStorage)
+						{
+							pSrcPhrase->AddFollOuterPuncts(aPunct);
+						}
+						else
+						{
+							pSrcPhrase->m_follPunct += *ptr;
+						}
+						pSrcPhrase->m_srcPhrase += *ptr;
+						additions += *ptr; 
+						len++;
+						ptr++;
+					}
+					bExitOnReturn = TRUE;
+					return len;
+				}
+			} // end of TRUE block for test: if (pLocation_OK > pPunctStart)
+			else
+			{
+                // pLocation_OK has not advanced from pPunctStart where we started this
+                // parse, so we didn't find any curly endquotes; so count all the punct and
+                // whitespace parsed over as belonging to a later word -- and ptr is not
+                // pointing at an endmarker, but if might be pointing at ] closing bracket,
+                // so either way we must be done & can return after we finish off the
+                // pSrcPhrase members; however, if bHasPrecedingStraightQuote is TRUE, then
+                // we assume that only straight quotes were in the parse and that they
+                // should be included as following punctuation for the current word. This
+                // might be a faulty decsion if some belong to the current word and some to
+                // the following word yet to be parsed, but our code can't reasonably be
+                // made smart enough to decide where to make the division - and so we'll
+                // just hope that that situation won't ever occur.
+				if (bHasPrecedingStraightQuote || *ptr == _T(']'))
+				{
+					// take the lot
+					if (counter > 0)
+					{
+						wxString finalPunct(pPunctStart,counter);
+						if (bPutInOuterStorage)
+						{
+							pSrcPhrase->AddFollOuterPuncts(finalPunct);
+						}
+						else
+						{
+							pSrcPhrase->m_follPunct += finalPunct;
+						}
+ 						pSrcPhrase->m_srcPhrase += finalPunct;
+						additions += finalPunct;
+						len += counter;
+						return len;
+					}
+				}
+				else
+				{
+					// reject the lot
+					ptr = pPunctStart; // restore ptr to location where we started from 
+					bExitOnReturn = TRUE;
+					return len;
+				}
+			} // end of else block for test: if (pLocation_OK > pPunctStart)
+		} // end of else block for test: if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
+	} // end of TRUE block for test: if (bFoundClosingQuote)
+	else if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
+	{
+		if (counter > 0)
+		{
+			if (IsEnd(ptr))
+			{
+				// ensure that if ptr is at pEnd, the caller does not parse further
+				bExitOnReturn = TRUE;
+			}
+            // an endmarker is what ptr points at now, or the buffer's end, so we'll accept
+            // everything as valid final punctuation for the current pSrcPhrase; and if not
+            // at buffer end then further parsing is needed in the caller because there may
+            // be more markers and punctuation to be handled for the end of the current
+            // word
+            wxString finalPunct(pPunctStart,counter);
+			pSrcPhrase->m_follPunct += finalPunct;
+ 			pSrcPhrase->m_srcPhrase += finalPunct; // add any punct'n
+			additions += finalPunct; // accumulate here, so that the caller can add any
+									 // additions to secondWord of ~ conjoining, in the
+									 // m_srcPhrase and m_follPunct members
+            // what ptr points at now could be an inline non-binding endmarker (like \wj*)
+            // or one of \f* or \x* (or even an inline binding endmarker with misplaced
+            // punctuation before it which we are now parsing over) - so while our parse of
+            // the punctuation in this function halts, the caller's parse must continue
+            // over potential endmarkers further on, and there could be outer following
+            // punctuation too
+			len += counter;
+		} // end of TRUE block for test: if (counter > 0)
+		else
+		{
+			// nothing extra, so return, but continue parsing in ParseWord() on return
+			ptr = pPunctStart; // restore ptr to location where we started from 
+			bExitOnReturn = FALSE;
+			return len;
+		}
+	}
+	else if (*ptr == _T(']'))
+	{
+		// accept everything up to that point
+		if (counter > 0)
+		{
+			wxString finalPunct(pPunctStart,counter);
+			if (bPutInOuterStorage)
+			{
+				pSrcPhrase->AddFollOuterPuncts(finalPunct);
+			}
+			else
+			{
+				pSrcPhrase->m_follPunct += finalPunct;
+			}
+			pSrcPhrase->m_srcPhrase += finalPunct;
+			additions += finalPunct;
+			len += counter;
+			bExitOnReturn = TRUE;
+			return len;
+		}
+	}
+	else
+	{
+		// we either didn't parse over anything, including white space; or we only
+		// parsed over whitespace -- the latter is of no interest (we let the caller
+		// advance over it)
+		ptr = pPunctStart; // restore ptr to location where we started from 
+		bExitOnReturn = TRUE;
+		return len;
+	} // end of else block for test: if (bFoundClosingQuote)
+	return len;
+}
+
+// returns the new updated value for len, and ptr, after parsing over any whitespace
+int CAdapt_ItDoc::ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int len)
+{
+	wxChar* pParseStartLoc = ptr;
+	wxChar* pParseHaltLoc = NULL;
+	while (IsWhiteSpace(ptr) && ptr < pEnd)
+	{
+		ptr++;
+	}
+	pParseHaltLoc = ptr;
+	if (pParseHaltLoc > pParseStartLoc)
+	{
+		len += (int)(pParseHaltLoc - pParseStartLoc);
+	}
+	return len;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -7812,10 +11229,19 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 /// DoExportInterlinearRTF(), ParseFootnote(), ParseEndnote(), ParseCrossRef(), 
 /// ProcessAndWriteDestinationText(), ApplyOutputFilterToText(), IsCharacterFormatMarker(),
 /// DetermineRTFDestinationMarkerFlagsFromBuffer().
-/// Returns the whole standard format marker including the initial backslash and any ending asterisk.
+/// Returns the whole standard format marker including the initial backslash and any ending
+/// asterisk. 
+/// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
+/// at a backslash - so test and return the empty string. (Better this way for OXES support)
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 {
+	//if (*pChar != gSFescapechar)
+	if (!IsMarker(pChar))
+	{
+		wxString s; s.Empty();
+		return s;
+	}
 	// whm added 10Feb2005 in support of USFM and SFM Filtering support
 	// returns the whole marker including backslash and any ending *
 	wxChar* ptr = pChar;
@@ -7833,9 +11259,16 @@ wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 /// Returns the whole standard format marker including the initial backslash and any ending
 /// asterisk. Internally uses ParseMarker() just like the version of GetWholeMarker() that
 /// uses a pointer to a buffer.
+/// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
+/// at a backslash - so test and return the empty string. (Better this way for OXES support)
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxString str)
 {
+	if (str[0] != gSFescapechar)
+	{
+		wxString s; s.Empty();
+		return s;
+	}
 	// BEW added 2Jun2006 for situations where a marker is at the start of a CString
 	// returns the whole marker including backslash and any ending *
 	int len = str.Length();
@@ -7910,17 +11343,18 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param		pMkrList	<- a wxArrayString that holds standard format markers and 
-///								associated parsed from the input string str
+///							   associated content parsed from the input string str
 /// \param		str			-> the string containing standard format markers and associated text 
 /// \remarks
 /// Called from: the Doc's GetUnknownMarkersFromDoc(), the View's GetMarkerInventoryFromCurrentDoc(),
-/// CPlaceInternalMarkers::InitDialog(), CTransferMarkersDlg::InitDialog(), and
-/// CViewFilteredMaterialDlg::InitDialog().
+/// CPlaceInternalMarkers::InitDialog().
 /// Scans str and collects all standard format markers and their associated text into 
-/// pMkrList, one marker and associated text per array item.
+/// pMkrList, one marker and associated content text per array item (and final endmarker
+/// if there is one).
+/// whm added str param 18Feb05
+/// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, 
-											   wxString str) // whm added 18Feb05
+void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str) 
 {
 	// Populates a wxArrayString containing sfms and their associated
 	// text parsed from the input str. pMkrList will contain one list item for
@@ -7933,7 +11367,7 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList,
 	wxChar* pEnd = (wxChar*)pBuf + nLen; // cast necessary because pBuf is const
 	wxASSERT(*pEnd == _T('\0')); // whm added 18Jun06
 	wxChar* ptr = (wxChar*)pBuf;
-	wxChar* pBufStart = (wxChar*)pBuf; // cast necessary because pBuf is const
+	//wxChar* pBufStart = (wxChar*)pBuf; // BEW 9Sep10, IsMarker() call no longer needs this
 	wxString accumStr = _T("");
 	// caller needs to call Clear() to start with empty list
 	while (ptr < pEnd)
@@ -7963,7 +11397,8 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList,
 			pMkrList->Add(accumStr);
 			accumStr.Empty();
 		}
-		else if (IsMarker(ptr,pBufStart))
+		//else if (IsMarker(ptr,pBufStart))
+		else if (IsMarker(ptr))
 		{
 			// It's a non-filtered sfm. Non-filtered sfms can be followed by
 			// a corresponding markers or no end markers. We'll parse and 
@@ -8038,16 +11473,24 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 	// remove any .xml or .adt which the user may have added to the passed in filename
 	wxString rev = typedName;
 	rev = MakeReverse(rev);
+
+	// BEW note 26Apr10, .adt extensions occurred on in versions 1-3, but there is no harm
+	// in leaving this line unremoved and similarly the test a little further below 
 	wxString adtExtn = _T(".adt");
+
 	wxString xmlExtn = _T(".xml");
 	adtExtn = MakeReverse(adtExtn);
 	adtExtn = MakeReverse(adtExtn);
+
+    // BEW note 26Apr10, these next 6 lines could be removed for versions 4.0.0 onwards,
+    // but we'll leave them is they waste very little time, and do no harm
 	offset = rev.Find(adtExtn);
 	if (offset == 0)
 	{
 		// it's there, so remove it
 		rev = rev.Mid(4);
 	}
+
 	offset = rev.Find(xmlExtn);
 	if (offset == 0)
 	{
@@ -8080,12 +11523,17 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 			}
 			else
 			{
-				// same length, and the search string lacks .adt or .xml, so this
-				// is unlikely to be a clash, but we'll return TRUE and give a
-				// beep as well
-				::wxBell();
-				gpApp->m_acceptedFilesList.Clear();
-				return TRUE;
+                // BEW changed 26Apr10, (to include a 'shorter' option) same length or
+                // shorter; if equal then this is a clash and we'll return TRUE and give a
+                // beep as well; but if shorter, then it's a different name & we'll accept
+                // it by falling through and returning FALSE
+                if (docNameLen == len)
+				{ 
+					// it's the same name
+					::wxBell();
+					gpApp->m_acceptedFilesList.Clear();
+					return TRUE;
+				}
 			}
 		}
 	}
@@ -8175,6 +11623,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// Looks up the bareMkr in the MapSfmToUSFMAnalysisStruct hash map. If the marker has an
 /// association in the map it returns a pointer to the USFMAnalysis struct. NULL is
 /// returned if the marker could not be found in the hash map.
+/// BEW 10Apr10, no changes for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 {
@@ -8376,13 +11825,52 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 /// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(), 
 /// ApplyOutputFilterToText(), ParseMarkerAndAnyAssociatedText(), IsMarkerRTF(), and in
 /// Usfm2Oxes class
-/// Determines if pChar is pointing at a standard format marker in the given buffer.
+/// Determines if pChar is pointing at a standard format marker in the given buffer
+/// BEW 26Jan11, added test for character after the backslash, that it is alphabetic (this
+/// prevents spurious TRUE returns if a \ is followed by whitespace)
+/// BEW 31Jan11, made it smarter still
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 {
+    // also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an
+    // alphabetic one; and in response to issues Bill raised in any email on Jan 31st about
+    // spurious marker match positives, make the test smarter so that more which is not a
+    // genuine marker gets rejected (and also, use IsMarker() in ParseWord() etc, rather
+    // than testing for *ptr == gSFescapechar)
 	if (*pChar == gSFescapechar)
 	{
+		// reject \n but allow the valid USFM markers \nb \nd \nd* \no \no* \ndx \ndx*
+		if (*(pChar + 1) == _T('n'))
+		{
+			if (IsAnsiLetter(*(pChar + 2)))
+			{
+				// assume this is one of the allowed USFM characters listed in the above
+				// comment
+				return TRUE;
+			}
+			else if (IsWhiteSpace(pChar + 2)) // see helpers.cpp for definition
+			{
+				// it's an \n escaped linefeed indicator, not an SFM
+				return FALSE;
+			}
+			else
+			{
+                // the sequence \n followed by some nonalphabetic character nor
+                // non-whitespace character is unlikely to be a value SFM or USFM, so
+                // return FALSE here too -- if we later want to make the function more
+                // specific, we can put extra tests here
+                return FALSE;
+			}
+		}
+		else if (!IsAnsiLetter(*(pChar + 1)))
+		{
+			return FALSE;
+		}
+		else
+		{
+			// after the backslash is an alphabetic character, so assume its a valid marker
 			return TRUE;
+		}
 	}
 	else
 	{
@@ -8391,94 +11879,24 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
-/// \param		pChar		-> a pointer to a character in a buffer
-/// \param		pBufStart	<- a pointer to the start of the buffer
-/// \remarks
-/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
-/// GetMarkerAndTextFromString(), TokenizeText(), DoMarkerHousekeeping(), the View's
-/// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(), 
-/// ApplyOutputFilterToText(), ParseMarkerAndAnyAssociatedText(), IsMarkerRTF().
-/// Determines if pChar is pointing at a standard format marker in the given buffer. If
-/// pChar is pointing at a backslash, further tests are made if gbSfmOnlyAfterNewlines is
-/// TRUE. In that case, it is only considered to be a marker if it is immediately preceded
-/// by a newline character. Additional checks are also made if the marker is an inline
-/// marker (see comments within the function for details).
-///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::IsMarker(wxChar *pChar, wxChar* pBufStart)
+bool CAdapt_ItDoc::IsMarker(wxString& mkr)
 {
-	// from version 1.4.1 onwards, we have to allow for contextually defined
-	// sfms. If the gbSfmOnlyAfterNewlines flag is TRUE, then sfms are only
-	// identified as such when a newline precedes the sfm escape character (a backslash)
-
-    // BEW changed 10Apr06, because the legacy algorithm (pre 3.0.9) did not allow for the
-    // fact that inLine markers may or may not occur in the source text with a newline
-    // preceding but are valid SFMs nevertheless, so a smarter test is called for
-	if (*pChar == gSFescapechar)
-	{
-		// pointing at a potential SFM, so check the flag which asks for markers
-		// only to be defined if they follow newlines
-		if (gbSfmOnlyAfterNewlines)
-		{
-			// the flag is turned on, but we'll have to pass this marker through as a
-			// valid marker, unilaterally, if it is an inLine marker - because these can
-			// be not line initial yet the source file still is marked up correctly; so
-			// check for the inLine == TRUE value, by looking up the marker in its 
-			// USFMAnalysis struct & checking the inLine value
-			USFMAnalysis* pUsfmAnalysis = LookupSFM(pChar);
-			if (pUsfmAnalysis == NULL)
-			{
-				// it is not a known marker, so treat it as an unknown marker only
-				// provided a newline precedes it; otherwise, it's an instance of
-				// backslash which we want to ignore for marker identification purposes
-				goto a;
-			}
-			if (pUsfmAnalysis->inLine)
-			{
-				// we don't care whether or not newline precedes, its a valid SFM
-				return TRUE;
-			}
-			else
-			{
-				// its not inLine == TRUE, so now it can be a valid SFM only provided
-				// it follows a newline
-a:				if (IsPrevCharANewline(pChar,pBufStart))
-				{
-					return TRUE; // well-formed SFM file, marker is at start of line
-				}
-				else
-				{
-                    // marker is not at the start of the line - it's either a malformed SFM
-                    // file, or the 'marker' is not to be interpretted as an SFM so that
-                    // the backslash is treated as part of the word
-					return FALSE;
-				}
-			}
-		}
-		else
-		{
-			// the flag is not turned on, so this backslash is to be interpretted
-			// as starting an SFM
-			return TRUE;
-		}
-	}
-	else
-	{
-		// not pointing at a backslash, so it is not a marker
-		return FALSE;
-	}
+	const wxChar* pConstBuff = mkr.GetData();
+	wxChar* ptr = (wxChar*)pConstBuff;
+	return IsMarker(ptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also an end 
 ///				marker (ends with an asterisk), FALSE otherwise.
 /// \param		pChar	-> a pointer to a character in a buffer
-/// \param		pEnd	<- a pointer to the end of the buffer
+/// \param		pEnd	-> a pointer to the end of the buffer
 /// \remarks
 /// Called from: the Doc's GetMarkersAndTextFromString(), AnalyseMarker(), the View's
 /// FormatMarkerBufferForOutput(), DoExportInterlinearRTF(), ProcessAndWriteDestinationText().
 /// Determines if the marker at pChar is a USFM end marker (ends with an asterisk). 
+/// BEW added to it, 11Feb10, to handle SFM endmarkers \F or \fe for 'footnote end'
+/// BEw added 11Oct10, support for halting at ] bracket
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -8489,12 +11907,26 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 	// 2. ptr points to a space (return FALSE)
 	// 3. ptr points to another marker (return FALSE)
 	// 4. ptr points to a * (return TRUE)
+	// 5. ptr points to a ]
+	
+	// First, handle the PngOnly special case of \fe or \F footnote end markers
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		wxString tempStr1(ptr,2);
+		if (tempStr1 == _T("\\F"))
+			return TRUE;
+		wxString tempStr2(ptr,3);
+		if (tempStr2 == _T("\\fe"))
+			return TRUE;
+	}
+
+	// neither of those, so must by USFM endmarker if it is one at all
 	while (ptr < pEnd)
 	{
 		ptr++;
 		if (*ptr == _T('*'))
 			return TRUE;
-		else if (*ptr == _T(' ') || *ptr == gSFescapechar)
+		else if (*ptr == _T(' ') || *ptr == gSFescapechar || *ptr == _T(']'))
 			return FALSE;
 	}
 	return FALSE;
@@ -8565,9 +11997,9 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing at a standard format marker which is also a
 ///				corresponding end marker for the specified wholeMkr, FALSE otherwise.
-/// \param		wholeMkr	-> a wxString containing the 
+/// \param		wholeMkr	-> a wxString containing the marker (including backslash)
 /// \param		pChar		-> a pointer to a character in a buffer
-/// \param		pEnd		<- a pointer to the end of the buffer
+/// \param		pEnd		-> a pointer to the end of the buffer
 /// \remarks
 /// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
 /// GetMarkersAndTextFromString(), the View's ParseFootnote(), ParseEndnote(),
@@ -8591,8 +12023,8 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 	{
 		wxString tempStr = GetWholeMarker(ptr);
 		// debug
-		int len;
-		len = tempStr.Length();
+		//int len;
+		//len = tempStr.Length();
 		// debug
 		if (tempStr == _T("\\fe") || tempStr == _T("\\F"))
 		{
@@ -8602,7 +12034,8 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 
 	// not a PngOnly footnote situation so do regular USFM check 
 	// for like a marker ending with * 
-	for (int i = 0; i < (int)wholeMkr.Length(); i++)
+	int wholeMkrLen = wholeMkr.Length(); // only needs to be calculated once
+	for (int i = 0; i < wholeMkrLen; i++)
 	{
 		if (ptr < pEnd)
 		{
@@ -8621,6 +12054,11 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 	}
 	// the marker at pChar has an asterisk on it so we have the corresponding end marker
 	return TRUE;
+}
+
+bool CAdapt_ItDoc::IsLegacyDocVersionForFileSaveAs()
+{
+	return m_bLegacyDocVersionForSaveAs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -8714,22 +12152,27 @@ wxString& CAdapt_ItDoc::AppendFilteredItem(wxString& dest,wxString& src)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the wxString starting at ptr and composed of itemLen characters after enclosing
-///				the string between \~FILTER and \~FILTER* markers.
+/// \return		the wxString starting at ptr and composed of itemLen characters 
+///             after enclosing the string between \~FILTER and \~FILTER* markers.
 /// \param		ptr			-> a pointer to a character in a buffer
-/// \param		itemLen		-> the number of buffer characters to use in composing the bracketed string
+/// \param		itemLen		-> the number of buffer characters to use in composing the 
+///                            bracketed string
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(), TokenizeText().
 /// Constructs the string starting at ptr (whose length is itemLen in the buffer); then
-/// makes the string a "filtered" item by bracketing it between \~FILTER ... \~FILTER* markers.
+/// makes the string a "filtered" item by bracketing it between \~FILTER ... \~FILTER*
+/// markers. The passed in string may be just a marker (contentless, and having no
+/// following space), or a marker followed by a space and some text content (and possibly
+/// then a space and then possibly an endmarker as well)
+/// BEW 21Sep10, no change needed for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 {
-	// whm added 11Feb05; BEW changed 06Oct05 to simpify a little and remove the unneeded first argument
-	// (which was a CString&  -- because it was being called with wholeMkr supplied as that
-	// argument's string, which was clobbering the marker in the caller)
-	// bracket filtered info with unique markers \~FILTER and \~FILTER*
-	//wxString src;
+    // whm added 11Feb05; BEW changed 06Oct05 to simpify a little and remove the unneeded
+    // first argument (which was a CString& -- because it was being called with wholeMkr
+    // supplied as that argument's string, which was clobbering the marker in the caller)
+    // bracket filtered info with unique markers \~FILTER and \~FILTER*
+	// wxString src;
 	wxString temp(ptr,itemLen);
 	temp.Trim(TRUE); // trim right end
 	temp.Trim(FALSE); // trim left end
@@ -8737,7 +12180,6 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 	wxString temp2;
 	temp2 << filterMkr << _T(' ') << temp << _T(' ') << filterMkrEnd;
 	temp = temp2;
-
 	return temp;
 }
 
@@ -8750,6 +12192,7 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 /// that exist in the string. Strips out multiple sets of bracketing filter markers if found
 /// in the string. If src does not have any \~FILTER and \~FILTER* bracketing markers, src is
 /// returned unchanged. Trims off any remaining space at left end of the returned string.
+/// BEW 22Feb10, no changes for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 {
@@ -8997,12 +12440,12 @@ x:			++pNext;
 /// \param		pstr	<- the wxString buffer 
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), 
-/// Removes any existing fixed space !$ sequences in pstr by overwriting the sequence 
-/// with spaces. The processed text is returned by reference in pstr. 
-/// This function call would normally be followed by a call to RemoveMultipleSpaces() to
-/// remove any remaining multiple spaces. In our case, the subsequent call of
-/// TokenizeText() in OnNewDocument() discards any extra spaces left by
-/// OverwriteUSFMFixedSpaces().
+/// Removes any existing fixed space ~ in pstr by overwriting it with a space. The
+/// processed text is returned by reference in pstr. This function call would normally be
+/// followed by a call to RemoveMultipleSpaces() to remove any remaining multiple spaces.
+/// In our case, the subsequent call of TokenizeText() in OnNewDocument() discards any
+/// extra spaces left by OverwriteUSFMFixedSpaces().
+/// BEW 23Nov10, changed to support ~ rather than !$ (the latter is deprecated)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OverwriteUSFMFixedSpaces(wxString*& pstr)
 {
@@ -9016,11 +12459,10 @@ void CAdapt_ItDoc::OverwriteUSFMFixedSpaces(wxString*& pstr)
 	wxChar* ptr = pBuffer;
 	while (ptr < pEnd)
 	{
-		if (wxStrncmp(ptr,_T("!$"),2) == 0)
+		if (*ptr == _T('~'))
 		{
-			// we are pointing at an instance of !$, 
+			// we are pointing at an instance of ~, 
 			// so overwrite it and continue processing
-			*ptr++ = _T(' ');
 			*ptr++ = _T(' ');
 		}
 		else
@@ -9155,24 +12597,151 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 #endif
 #endif
 
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if the passed in (U)SFM marker is \free, \note, or \bt or a derivative
+///             FALSE otherwise
+/// \param		mkr                     ->  the augmented marker (augmented means it ends with a space)
+/// \param      bIsForeignBackTransMkr  <-  default FALSE, TRUE if the marker is \btxxx
+///                                         where xxx is one or more non-whitespace
+///                                         characters (such as \btv 'back trans of
+///                                         verse', \bts 'back trans of subtitle' or
+///                                         whatever - Bob Eaton uses such markers in SAG)
+/// \remarks
+/// Called from: the Doc's TokenizeText().
+/// Test for one of the custom Adapt It markers which require the filtered information to
+/// be stored on m_freeTrans, m_note, or m_collectedBackTrans string members used for 
+/// document version 5 (see docVersion in the xml)
+/// 
+/// BEW modified 19Feb10 for support of doc version = 5. Bob Eaton's markers will be
+/// parsed, and when identified, will be wrapped with filterMkr and filterMkrEnd, and
+/// stored in m_filteredInfo; and got from there for any exports where requested; but
+/// Adapt It will no longer attempt to treat such foreign markers as "collected", it will
+/// just ignore them - but they will be displayed in the Filtered Information dialog.
+/// Adapt It's \bt marker will have its content stored in m_collectedBackTrans member
+/// instead, and without any preceding \bt. So the added parameter allows us to determine
+/// when we are parsing a marker starting with \bt but is not our own because of extra
+/// characters in it.
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr)
+{
+	bIsForeignBackTransMkr = FALSE; // initialize to default value
+	if (mkr == _T("\\free "))
+	{
+		return TRUE;
+	}
+	else if (mkr == _T("\\note "))
+	{
+		return TRUE;
+	}
+	else
+	{
+		int offset = mkr.Find(_T("\\bt"));
+		if (offset == 0)
+		{
+			// check for whether it is our own, or a foreign back trans marker
+			int length = mkr.Len();
+			if (length > 4)
+			{
+				// it has at least one extra character before the final space,
+				// so it is a foreign one
+				bIsForeignBackTransMkr = TRUE;
+			}	
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+// BEW March 2010 for support of doc version 5
+void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr,
+								size_t itemLen, CSourcePhrase* pSrcPhrase)
+{
+	// if it is one of the three custom markers, set the relevent
+	// CSourcePhrase member directly here
+	wxString filterStr(ptr,(size_t)itemLen);
+	size_t len;
+	wxChar aChar;
+	if (mkr == _T("\\free"))
+	{
+		filterStr = filterStr.Mid(6); // start from after "\free "
+		// remove |@number@| string -- don't bother to return the number value because it
+		// is done later in TokenizeText() after this present function returns
+		int nFound = filterStr.Find(_T("|@"));
+		if (nFound != wxNOT_FOUND)
+		{
+			// there is the src word count number substring present, remove it and its
+			// following space
+			int nFound2 = filterStr.Find(_T("@| "));
+			wxASSERT(nFound2 - nFound < 10);
+			filterStr.Remove(nFound, nFound2 + 3 - nFound);
+		}
+		len = filterStr.Len();
+		// end of filterStr will be "\free*" == 6 characters
+		filterStr = filterStr.Left((size_t)len - 6);
+		// it may also end in a space now, so remove it if there
+		filterStr.Trim();
+		// we now have the free translation text, so store it
+		pSrcPhrase->SetFreeTrans(filterStr);
+	}
+	else if (mkr == _T("\\note"))
+	{
+		filterStr = filterStr.Mid(6); // start from after "\note "
+		len = filterStr.Len();
+		// end of filterStr will be "\note*" == 6 characters
+		filterStr = filterStr.Left((size_t)len - 6);
+		// it may also end in a space now, so remove it if there
+		filterStr.Trim();
+		// we now have the note text, so store it
+		pSrcPhrase->SetNote(filterStr);
+	}
+	else
+	{
+		// could be \bt, or longer markers beginning with those 3 chars
+		aChar = filterStr.GetChar(0);
+		while (!IsWhiteSpace(&aChar))
+		{
+			// trim off from the front the marker info, a character at
+			// a time
+			filterStr = filterStr.Mid(1);
+			aChar = filterStr.GetChar(0);
+		}
+		filterStr.Trim(FALSE); // trim any initial white space
+		// it may also end in a space now, so remove it if there
+		filterStr.Trim();
+		// we now have the back trans text, so store it
+		pSrcPhrase->SetCollectedBackTrans(filterStr);
+	}
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
 /// \param		nStartingSequNum	-> the initial sequence number
-/// \param		pList				<- list of source phrases populated with word tokens
+/// \param		pList				<- list of CSourcePhrase instances, each populated with 
+///                                    a word token
 /// \param		rBuffer				-> the buffer from which words are tokenized and stored 
-///										as source phrases in pList
+///									   as CSourcePhrase instances in pList
 /// \param		nTextLength			-> the initial text length
+/// \param      bTokenizingTargetText -> default FALSE, set TRUE if rBuffer contains target
+///                                    text which is to be parsed, using target punctuation,
+///                                    so as to make use of its smarts in separating text,
+///                                    punctuation and inline markers 
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), the View's TokenizeTextString(),
 /// DoExtendedSearch(), DoSrcOnlyFind(), DoTgtOnlyFind(), DoSrcAndTgtFind().
-/// Intelligently parses the input text (rBuffer) and builds a list of source phrases from
-/// the tokens. All the input text's source phrases are analyzed in the process to
-/// determine each source phrase's many attributes and flags, stores any filtered
-/// information in its m_markers member.
+/// Intelligently parses the input text (rBuffer) and builds a list of CSourcePhrase
+/// instances from the tokens. All the input text's source phrases are analyzed in the
+/// process to determine each source phrase's many attributes and flags, stores any
+/// filtered information in its m_filteredInfo member.
+/// BEW Feb10, updated for support of doc version 5 (changes were needed)
+/// BEW 11Oct10, updated for doc version 5 additional changes (better inline marker
+/// support) quite significantly - somewhat simplifying TokenizeText() but completely
+/// rewriting the ParseWord() function it calls -- and the latter potentially consumes more
+/// data on each call. TokenizeText also reworked to handle text colouring better.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
-							   int nTextLength)
-// returns the number of elements in the list pList
+							   int nTextLength, bool bTokenizingTargetText)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -9183,31 +12752,33 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	wxString tokBuffer;
 	tokBuffer.Empty();
 
-    // BEW added 26May06 to support maintaining m_bSpecialText TRUE when between \fq ..
-    // \fq* nested sections within a \f ... \f* footnote section (similarly for nested
-    // sections in \x ... \x* section), otherwise, between \fq* and the next \fq, any text
-    // would otherwise revert to verse TextType and be shown in normal colour, rather than
-    // being either footnote type or crossReference type and being shown in whatever is
-    // m_bSpecialText == TRUE's current colour setting
-	bool bFootnoteIsCurrent = FALSE;
-	bool bCrossRefIsCurrent = FALSE;
+    // BEW 11Oct10, for carrying a post-ParseWord() decision forward to pre-ParseWord()
+    // location on next iteration
+	bool bEnded_f_fe_x_span = FALSE;
 
     // for support of parsing in and filtering a pre-existing free translation (it has to
     // have CSourcePhrase instances have their m_bStartFreeTrans, m_bEndFreeTrans &
     // m_bHasFreeTrans members set TRUE at appropriate places)
 	bool bFreeTranslationIsCurrent = FALSE;
 	int nFreeTransWordCount = 0;
-	bool bFilteredMarkerAlreadyTurnedOffTheFlag = FALSE; // TRUE when filtered \x \x* 
-        // section has had the bCrossRefIsCurrent flag reset to FALSE already, or filtered
-        // \f \f* section has had the bFootnoteIsCurrent flag reset to FALSE already
 
-	wxString spacelessSrcPuncts = pApp->m_punctuation[0];
-	while (spacelessSrcPuncts.Find(_T(' ')) != -1)
+	wxString spacelessPuncts;
+	// BEW 11Jan11, added test here so that the function can be used on target text as
+	// well as on source text
+	if (bTokenizingTargetText)
+	{
+		spacelessPuncts = pApp->m_punctuation[1];
+	}
+	else
+	{
+		spacelessPuncts = pApp->m_punctuation[0];
+	}
+	while (spacelessPuncts.Find(_T(' ')) != -1)
 	{
 		// remove all spaces, leaving only the list of punctation characters
-		spacelessSrcPuncts.Remove(spacelessSrcPuncts.Find(_T(' ')),1); 
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1); 
 	}
-	wxString boundarySet = spacelessSrcPuncts;
+	wxString boundarySet = spacelessPuncts;
 	while (boundarySet.Find(_T(',')) != -1)
 	{
 		boundarySet.Remove(boundarySet.Find(_T(',')),1);
@@ -9223,15 +12794,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
     // in any sourcephrase in the document - if it matches these conditions, we test for \p
     // markers and where such is found, change the preceding space to a newline in the
     // output.
-	//
-    // whm revised 11Feb05 to support USFM and SFM Filtering. When TokenizeText enounters
-    // previously filtered text (enclosed within \~FILTER ... \~FILTER* brackets), it
-    // strips off those brackets so that TokenizeText can evaluate anew the filtering
-    // status of the marker(s) that had been embedded within the filtered text. If the
-    // markers and associated text are still to be filtered (as determined by LookupSFM()
-    // and IsAFilteringSFM()), the filtering brackets are added again. If the markers
-    // should no longer be filtered, they and their associated text are processed normally.
-	// 
 	bool bIsUnstructured = IsUnstructuredPlainText(rBuffer);
 
 	// if unstructured plain text, add a paragraph marker after any newline, to preserve 
@@ -9251,7 +12813,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
         // don't get counted; Bruce commented out the next line 10May08, but I've left it
         // there because I've dealt with and checked that other code agrees with the code
         // as it stands.
-		++nTheLen; // make sure we include space for a null
+		// BEW 30Jan11, I really think this should be commented out, but in the light of
+		// Bill's comment, I'll compromise -- only do this is nDerivedLength and
+		// nTextLength are different & the former more than the latter) -- anyway, I doubt
+		// that it matters either way any more
+		if (nDerivedLength > nTextLength)
+		{
+			++nTheLen; // make sure we include space for a null
+		}
 	}
 	else
 	{
@@ -9268,41 +12837,31 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	wxChar* ptr = (wxChar*)pBuffer;		 // point to start of text
 	wxChar* pBufStart = ptr;	 // preserve start address for use in testing for
 								 // contextually defined sfms
-    // wx Note: the following line in MFC version originally was overwriting the char
-    // position past the end of pBuffer (because nTheLen was incremented in code above or
-    // in the caller. Therefore I have moved the pEndText pointer back one
-	// See MFC version for BEW modification of 10May08 where he left it: 
-	// TCHAR* pEndText = pBuffer + nTheLen - 1; 
 	wxChar* pEnd = pBufStart + rBuffer.Length(); // bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
-
-    // whm moved the OverwriteUSFMFixedSpaces and OverwriteUSFMDiscretionaryLineBreaks
-    // calls out of TokenizeText. They really only need to be called from OnNewDocument
-    // before the call to TokenizeText there.
-
 	wxString temp;		// small working buffer in which to build a string
 	tokBuffer.Empty(); 
 	int	 sequNumber = nStartingSequNum - 1;
 	CSourcePhrase* pLastSrcPhrase = (CSourcePhrase*)NULL; // initially there isn't one
 	bool bHitMarker;
-
 	USFMAnalysis* pUsfmAnalysis = NULL; // whm added 11Feb05
+	bool bIsFreeTransOrNoteOrBackTrans = FALSE;
+	bool bIsForeignBackTrans = FALSE;
+	// BEW added 11Oct10, two booleans for helping with inline mkrs other than \f & \x
+	bool bIsInlineNonbindingMkr = FALSE;
+	bool bIsInlineBindingMkr = FALSE;
 
-	wxString bdrySet = gpApp->m_punctuation[0];
-	// Note: wxString::Remove must have the second param as 1 otherwise it will truncate
-	// the remainder of the string
-	int posn = bdrySet.Find(_T(','),FALSE);
-	while (posn != -1)
-	{
-		bdrySet.Remove(posn,1); // all punct chars except comma are indicators 
-								// of a phrase boundary
-		posn = bdrySet.Find(_T(','),FALSE);
-	}
-	bdrySet = RemoveMultipleSpaces(bdrySet); 
-
+	// the parsing loop commences...
 	while (ptr < pEnd)
 	{
 		// we are not at the end, so we must have a new CSourcePhrase instance ready
+		// BEWARE - for doc version 5, if the end of the buffer has endmarkers, pSrcPhrase
+		// will receive them, but there will be empty m_key and m_srcPhrase members - we
+		// have to test for this possibility and when it happens, move the endmarkers to
+		// the preceding CSourcePhrase's m_endMarkers member, then delete the empty last
+		// CSourcePhrase instance which then is no longer needed (provided it's
+		// m_precPunct member is also empty, if not, we have to leave it to carry that
+		// punctuation)
 		CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 		wxASSERT(pSrcPhrase != NULL);
 		sequNumber++;
@@ -9311,47 +12870,132 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 		if (IsWhiteSpace(ptr))
 		{
+            // advance pointer past the white space (inter-word spaces should be thrown
+            // away, they have no useful role once tokenization has taken place)
 			itemLen = ParseWhiteSpace(ptr);
-			// I've commented out the next line, because I don't want inter-word spaces
-			// entered into the m_markers string, as they are not markers (otherwise, they
-			// get treated as 'phrase-internal markers' when phrases are constructed
-			// AppendItem(buffer,temp,ptr,itemLen); // add white space to buffer
-			ptr += itemLen; // advance pointer past the white space
+			ptr += itemLen; 
+		}
+		// BEW 11Oct10 we need to support [ and ] brackets as markers indicating 'this is
+		// disputed material', and so we will do so by storing [ and ] on their own
+		// CSourcPhrase 'orphan' instances (ie. m_key and m_srcPhrase will be empty), with
+		// [ stored in m_precPunct (and follow it with space(s) only if space()s is in the
+		// data), and store ] in m_follPunct (and include preceding space(s) only if
+		// space(s) is in the input data). We do the above whether or not [ and ] are
+		// specified as punctuation characters or not. They will be considered to be
+		// punctuation characters for this delimitation purpose even if not listed in the
+		// sets of source and target punctuation characters. (Further below, if [ follows
+		// such things as \v 33 then the accumulated m_markers text has to be stored on
+		// an orphaned CSourcePhrase carrying the [ bracket.)
+		if (*ptr == _T('[') || *ptr == _T(']'))
+		{
+			if (*ptr == _T('['))
+			{
+				// we've come to an opening bracket, [
+				pSrcPhrase->m_precPunct = *ptr; // store it here, whether punctuation or not
+				if (IsWhiteSpace(ptr + 1))
+				{
+					// store a following space as well, but just one - any other white
+					// space we'll ignore
+					pSrcPhrase->m_precPunct += _T(" ");
+					ptr += 2; // point past the [ and the first of the following white
+							  // space chars
+				}
+				else
+				{
+					ptr++; // point past the [
+				}
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct; // need this for the [ 
+						// bracket (and its following space if we stored one) to be visible
+				if (pSrcPhrase != NULL)
+				{
+					// put this completed orphan pSrcPhrase into the list
+					pList->Append(pSrcPhrase);
+				}
+				// make this one become the 'last one' of the next iteration
+				pLastSrcPhrase = pSrcPhrase;
+				continue; // iterate
+			}
+			else
+			{
+				// must be a closing bracket,  ]
+				pSrcPhrase->m_follPunct = *ptr; // store it here, whether punctuation or not
+				if (IsWhiteSpace(ptr - 1)) // we can assume ] is not at the start of the input file
+				{
+					// store a preceding space as well, but just one - any other white
+					// space we'll ignore
+					pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
+				}
+				ptr++; // point past the ]
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ] 
+						// bracket (and its preceding space if we stored one) to be visible
+				if (pSrcPhrase != NULL)
+				{
+					// put this completed orphan pSrcPhrase into the list
+					pList->Append(pSrcPhrase);
+				}
+				// make this one become the 'last one' of the next iteration
+				pLastSrcPhrase = pSrcPhrase;
+				continue; // iterate
+			}
 		}
 
 		// are we at the end of the text?
 		if (IsEnd(ptr) || ptr >= pEnd)
 		{
+			// check for an incomplete CSourcePhrase, it may need endmarkers moved, etc
+			if (pSrcPhrase != NULL)
+			{
+				if (pSrcPhrase->m_key.IsEmpty())
+				{
+					if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+					{
+						// there are endmarkers which belong on the previous instance, so
+						// transfer them
+						if (pLastSrcPhrase != NULL)
+						{
+							pLastSrcPhrase->SetEndMarkers(pSrcPhrase->GetEndMarkers());
+						}
+					}
+				}
+			}
 			// BEW added 05Oct05
 			if (bFreeTranslationIsCurrent)
 			{
                 // we default to always turning off a free translation section at the end
                 // of the document if it hasn't been done already
-				if (pLastSrcPhrase)
+				if (pLastSrcPhrase != NULL)
 				{
 					pLastSrcPhrase->m_bEndFreeTrans = TRUE;
 				}
 			}
-
-			delete pSrcPhrase->m_pSavedWords;
-			pSrcPhrase->m_pSavedWords = (SPList*)NULL;
-			delete pSrcPhrase->m_pMedialMarkers;
-			pSrcPhrase->m_pMedialMarkers = (wxArrayString*)NULL;
-			delete pSrcPhrase->m_pMedialPuncts;
-			pSrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
-			delete pSrcPhrase;
-			pSrcPhrase = (CSourcePhrase*)NULL;
-			goto d;
+			// delete only if there is nothing in m_precPunct
+			if (pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // don't try partner pile deletion
+			}
+			tokBuffer.Empty();
+			break;
 		}
 
+		// BEW 11Oct10, use an inner loop... rather than gotos
 		// are we pointing at a standard format marker?
-b:		if (IsMarker(ptr,pBufStart))
+		while (IsMarker(ptr))
 		{
-			bHitMarker = TRUE;
+			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before 
+									// checking which marker it is
+			bIsForeignBackTrans = FALSE;
+			bHitMarker = TRUE; // set whenever a marker of any type is reached
+			bIsInlineNonbindingMkr = FALSE; // ensure it is initialized
+			bIsInlineBindingMkr = FALSE; // ensure it is initialized
+
 			int nMkrLen = 0;
 			// its a marker of some kind
 			if (IsVerseMarker(ptr,nMkrLen))
 			{
+                // starting a new verse, clear the following flag to FALSE so that it
+                // has a chance to work helpfully for the parse of this verse
+				m_bHasPrecedingStraightQuote = FALSE;
+
 				// its a verse marker
 				if (nMkrLen == 2)
 				{
@@ -9367,8 +13011,11 @@ b:		if (IsMarker(ptr,pBufStart))
 				}
 
 				itemLen = ParseWhiteSpace(ptr);
+				// temp returns the string at ptr with length itemLen, and the same string
+				// is appended to tokBuffer as well (usually we just want tokBuffer, but
+				// temp is available if we need the substring at ptr for any other purpose)
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add white space to buffer
-				ptr += itemLen; // point at verse number
+				ptr += itemLen; // point at verse number or verse string eg. "3b"
 
 				itemLen = ParseNumber(ptr);
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add number (or range eg. 3-5) to buffer
@@ -9379,9 +13026,6 @@ b:		if (IsMarker(ptr,pBufStart))
 
 				// set pSrcPhrase attributes
 				pSrcPhrase->m_bVerse = TRUE;
-				if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
-					pSrcPhrase->m_curTextType = verse;
-				pSrcPhrase->m_bSpecialText = FALSE;
 
 				itemLen = ParseWhiteSpace(ptr); // past white space after the marker
 				AppendItem(tokBuffer,temp,ptr,itemLen);  // add it to the buffer
@@ -9401,10 +13045,20 @@ b:		if (IsMarker(ptr,pBufStart))
 					}
 				}
 
-				goto b; // check if another marker follows:
+				// BEW 25Feb11, a new verse should change TextType to verse, and m_bSpecialText
+				// to FALSE, except when a previous poetry marker has set poetry TextType already
+				// Removed because later code will override what we do here, so might as
+				// well not do it
+				//pSrcPhrase->m_bSpecialText = FALSE;	
+				//if (pSrcPhrase->m_curTextType != poetry)
+				//{
+					// the text type is not poetry, so change to it to verse
+				//	pSrcPhrase->m_curTextType = verse;
+				//}
+				continue; // iterate inner loop to check if another marker follows
 			}
-			else if (IsChapterMarker(ptr)) // some other kind of marker - 
-										   // perhaps its a chapter marker?
+			else if (IsChapterMarker(ptr)) // is it some other kind of marker - 
+										   // perhaps it's a chapter marker?
 			{
 				// its a chapter marker
 				tokBuffer << gSFescapechar;
@@ -9423,96 +13077,149 @@ b:		if (IsMarker(ptr,pBufStart))
 
 				// set pSrcPhrase attributes
 				pSrcPhrase->m_bChapter = TRUE;
-				pSrcPhrase->m_bVerse = TRUE; // always have verses following a chapter
-				if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
-					pSrcPhrase->m_curTextType = verse;
-				pSrcPhrase->m_bSpecialText = FALSE;
-
+				
 				itemLen = ParseWhiteSpace(ptr); // parse white space following the number
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
 				ptr += itemLen; // point past it
 
-				goto b; // check if another marker follows
+				continue; // iterate inner loop to check if another marker follows
 			}
 			else
 			{
 				// neither verse nor chapter, but some other marker
-				pUsfmAnalysis = LookupSFM(ptr); // NULL if unknown marker
+				pUsfmAnalysis = LookupSFM(ptr); // If an unknown marker, pUsfmAnalysis
+												// will be NULL
 
-			
-                // if we filter something out, we must delay advancing over that stuff
-                // because we want AnalyseMarker() to set the m_inform member of the
-                // currently being built pSrcPhrase to whatever nav text is appropriate for
-                // the filtered marker, but AnalyseMarker() also sets the TextType and
-                // m_bSpecialText members - which then would get set to whatever was
-                // filtered, which would be inappropriate. Often this is not a problem
-                // because another marker follows, and these parameters get reset to what
-                // is appropriate for the text in the document at that location; but if
-                // there is no other marker to do that, then the wrong text type gets set,
-                // and the text might be also set to special text colour - for example, a
-                // \note ... \note* sequence, which can occur anywhere, would result in the
-                // text type being wrongly set to note type, and the text colour to special
-                // text's colour. To prevent this we look at the pLastSrcPhrase instance
-                // and save it's TextType and m_bSpecialText value, and if filtering is
-                // done, then after AnalyseMarkers() has done its job we restore the
-                // TextType and m_bSpecialText values that were in force earlier than the
-                // filtered section. BEW added 08June05
-				enum TextType saveType;
-				bool bSaveSpecial;
-				if (pLastSrcPhrase)
-				{
-					saveType = pLastSrcPhrase->m_curTextType;
-					bSaveSpecial = pLastSrcPhrase->m_bSpecialText;
-				}
-				else
-				{
-					// at doc start, we'll assume verse
-					saveType = verse;
-					bSaveSpecial = FALSE;
-				}
+//#ifdef __WXDEBUG__
+//		if (pSrcPhrase->m_nSequNumber == 139)
+//		{
+//			int break_point_here = 1;
+//		}
+//#endif		
+                // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
+                // TokenizeText enounters previously filtered text (enclosed within
+                // \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
+                // TokenizeText can evaluate anew the filtering status of the marker(s)
+                // that had been embedded within the filtered text. If the markers and
+                // associated text are still to be filtered (as determined by LookupSFM()
+                // and IsAFilteringSFM()), the filtering brackets are added again. If the
+                // markers should no longer be filtered, they and their associated text are
+                // processed normally.
+
+				// BEW comment 11Oct10, this block handles filtering. In the legacy
+				// version of TokenizeText() propagation of TextType was also handled
+				// here, resulting in a spagetti mishmash of code. I've taken out the
+				// propagation code and put it after the ParseWord() call, so that what is
+				// done here is simpler - just handling any needed filtering.
+                 
+                // BEW 11Oct10, A note about how we handle inline markers, other than those
+                // beginning with \f (footnote type) or \x (crossReference type), is
+                // appropriate. While not a USFM distinction, for Adapt It's purposes we
+                // view these as coming in two subtypes - binding ones (these bind more
+                // closely to the word than punctuation, eg \k \k*, \w \w*, etc) and
+                // non-binding ones (only 5, \wj \wj*, \tl \tl*, \sls \sls*, \qt \qt*, and
+                // \fig \fig*) which are 'outer' to punctuation - that is, punctuation
+                // binds more closely to the word than these. We want ParseWord() to handle
+                // parsing once any of the non-\f and non-\x inline markers are
+                // encountered, and we don't want any of these to insert its TextType value
+                // into the document in m_curTextType anywhere at all, in doc version 5. So
+                // we check for these marker subtypes and process accordingly if any such
+                // has just been come to. Such markers are never filtered nor filterable,
+                // we just want to ignore them as much as possible, but reconstitute them
+                // correctly to the exported text when an export has been requested. Also,
+                // these are the marker types which very often have endmarkers, and we want
+                // ParseWord() to take over all processing of endmarkers, so that
+                // TokenizeText() only deals with beginmarkers. In doc version 5 it never
+                // happens now that an endmarker will be stored in m_markers (in the legacy
+                // parser, that was not true).
+                // BEW 25Feb11, added code to use pUsfmAnalysis looked up to set
+                // m_curTextType and m_bSpecialText which were forgottten here
+				
 				bool bDidSomeFiltering = FALSE;
 
-                // check if we have located an SFM designated as one to be filtered
-                // pUsfmAnalysis is populated regardless of whether it's a filter marker or
-                // not. If an unknown marker, pUsfmAnalysis will be NULL
+				wxString wholeMkr = GetWholeMarker(ptr);
+				wxString augmentedWholeMkr = wholeMkr + _T(' '); // prevent spurious matches
+				wxString bareMkr = wholeMkr.Mid(1); // chop off the initial backslash
+				int anOffset = wxNOT_FOUND;
 
-                // BEW changed 26May06; because of the following scenario. Suppose \y is in
-                // the source text. This is an unknown marker, and if the app has not seen
-                // this marker yet or, if it has, and the user has not nominated it as one
-                // which is to be filtered out, then it will not be listed in the
-                // fast-access string gCurrentFilterMarkers. Earlier versions of
-                // TokenizeText() did not examine the contents of gCurrentFilterMarkers
-                // when parsing source text, consequently, when the app is in the state
-                // where \y as been requested to be filtered out (eg. as when user opens a
-                // document which has that marker and in which it was filtered out; or has
-                // created a document earlier in which \y occurred and he then requested it
-                // be filtered out and left that setting intact when creating the current
-                // document (which also has an \y marker)) then the current document
-                // (unless we do something different than before) would not look at
-                // gCurrentFilterMarkers and so not filter it out when, in fact, it should.
-                // Moreover this can get worse. Firstly, because the
-                // IsAFilteringUnknownSFM() call in AnalyseMarker looks at
-                // m_currentUnknownMarkersStr, it detects that \y is currently designated
-                // as "to be filtered" - and so refrains from placing "?\y? in the m_inform
-                // member of the CSourcePhrase where the (unfiltered) unknown marker starts
-                // (and it has special text colour, of course). So then the user sees a
-                // text colour change and does not know why. If the unknown marker happens
-                // to occur after some other special text, such as a footnote, then (even
-                // worse) both have the same colour and the text in the unknown marker
-                // looks like it is part of the footnote! Yuck.
-                // 
+				// BEW 11Oct10, the block for detecting an inline marker which is not
+				// one of the \f set nor one of the \x set..., if the test succeeds, then
+				// in the block we set needed flags and then break out of the inner loop
+				// 
+                // BEW 25Feb11, we don't want to hand off \va ...\va*, (verse alternate)
+                // nor \vp ...\vp* (verse published) to ParseWord() - which will correctly
+                // handle them as inline binding markers, but leave the number as adaptable
+                // text in the view; instead, these are default filtered in the AI_USFM.xml
+                // file, so we have to test for them here and skip this block if either of
+				// these was what bareMkr is (only if the user unfilters them should their
+				// number be seeable and adaptable)
+				if (pUsfmAnalysis != NULL && pUsfmAnalysis->inLine &&
+					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 && 
+					bareMkr.Find(_T("va")) != 0 && bareMkr.Find(_T("vp")) != 0)
+				{
+                    // inline markers are known to USFM, so pUsfmAnalysis will not be
+                    // false; the test succeeds if it is not an unknown marker, and is an
+                    // inline marker, but not one of the inline markers which begin with
+                    // \x or \f; these are the ones which we immediately hand off to
+                    // ParseWord() to deal with
+					
+					// the hand-off takes place outside the loop, so set the flags we need
+					// to know beforehand, they are needed for ParseWord()'s signature
+					anOffset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
+					if (anOffset != wxNOT_FOUND)
+					{
+						bIsInlineNonbindingMkr = TRUE;
+						bIsInlineBindingMkr = FALSE;
+					}
+					else
+					{
+						bIsInlineNonbindingMkr = FALSE;
+						bIsInlineBindingMkr = TRUE;
+					}
+					break; // break out of the inner loop, to get to ParseWord()
+				}
+				
+                // this is the legacy code block, simplified - for handling all other
+                // markers other than those we've bled out in the above block
+				// BEW 11Oct10, removed code for propagating TextType and m_bSpecialText
+				// from here, as we do it after ParseWord() call now
+				
+				// check if we have located an SFM designated as one to be filtered
+				// pUsfmAnalysis is populated regardless of whether it's a filter marker
+				// or not. If an unknown marker, pUsfmAnalysis will be NULL
+
+				// BEW changed 26May06; because of the following scenario. Suppose \y is in
+				// the source text. This is an unknown marker, and if the app has not seen
+				// this marker yet or, if it has, and the user has not nominated it as one
+				// which is to be filtered out, then it will not be listed in the
+				// fast-access string gCurrentFilterMarkers. Earlier versions of
+				// TokenizeText() did not examine the contents of gCurrentFilterMarkers
+				// when parsing source text, consequently, when the app is in the state
+				// where \y as been requested to be filtered out (eg. as when user opens a
+				// document which has that marker and in which it was filtered out; or has
+				// created a document earlier in which \y occurred and he then requested it
+				// be filtered out and left that setting intact when creating the current
+				// document (which also has an \y marker)) then the current document
+				// (unless we do something different than before) would not look at
+				// gCurrentFilterMarkers and so not filter it out when, in fact, it should.
+				// Moreover this can get worse. Firstly, because the
+				// IsAFilteringUnknownSFM() call in AnalyseMarker looks at
+				// m_currentUnknownMarkersStr, it detects that \y is currently designated
+				// as "to be filtered" - and so refrains from placing "?\y? in the m_inform
+				// member of the CSourcePhrase where the (unfiltered) unknown marker starts
+				// (and it has special text colour, of course). So then the user sees a
+				// text colour change and does not know why. If the unknown marker happens
+				// to occur after some other special text, such as a footnote, then (even
+				// worse) both have the same colour and the text in the unknown marker
+				// looks like it is part of the footnote! Yuck.
+				// 
                 // The solution is to ensure that TokenizeText() gets to look at the
                 // contents of gCurrentFilterMarkers every time a new doc is created, and
                 // if it finds the marker listed there, to ensure it is filtered out. It's
                 // no good appealing to AnalyseMarker(), because it just uses what is in
                 // pUsfmAnalysis, and that comes from AI_USFM.xml, which by definition,
-                // never lists unknown markers. (That's why they ARE unknown, just in case
-                // you are having a bad day!) So the changes in the next few lines fix all
-                // this - the test after the || had to be added.
-
-				wxString wholeMkr = GetWholeMarker(ptr);
-				wxString augmentedWholeMkr = wholeMkr + _T(' '); // prevent spurious matches
-				// If an unknown marker, pUsfmAnalysis will be NULL
+                // never lists unknown markers. So the changes in the next few lines fix
+                // all this - the test after the || had to be added.
 				if (IsAFilteringSFM(pUsfmAnalysis) || 
 					(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1))
 				{
@@ -9520,49 +13227,40 @@ b:		if (IsMarker(ptr,pBufStart))
 					itemLen = ParseFilteringSFM(wholeMkr,ptr,pBufStart,pEnd);
 
 					// get filtered text bracketed by \~FILTER and \~FILTER*
-                    // BEW changed 05Oct05, because GetFilteredItemBracketed call with
-                    // wholeMkr as the first parameter results in the SF marker in wholeMkr
-                    // being overwritten by the temp string's contents internally, so I
-                    // rewrote the function and removed the first parameter from the
-                    // signature (the new version is no slower, because while it has to
-                    // copy the local string to return it, the old version did an internal
-                    // copy anyway and I've removed that)
-					temp = GetFilteredItemBracketed(ptr,itemLen);
-
-                    // BEW added 06Jun06; if we just filtered out a footnote or cross
-                    // reference, then code later on for turning off bFootnoteIsCurrent
-                    // when \f* is encountered, or for turning off bCrossRefIsCurrent when
-                    // \x* is encountered, will not be activated because
-                    // ParseFilteringSFM() will have consumed the \f* or \x* endmarker, so
-                    // we must test what wholeMkr is again here and turn off these flags
-                    // when either marker has been filtered -- wholeMkr still has the
-                    // beginning marker, so test for that, not the endmarker
-					if (wholeMkr == _T("\\f"))
+					bIsFreeTransOrNoteOrBackTrans = IsMarkerFreeTransOrNoteOrBackTrans(
+													augmentedWholeMkr,bIsForeignBackTrans);
+					if (bIsForeignBackTrans)
 					{
-						bFootnoteIsCurrent = FALSE;
-						bFilteredMarkerAlreadyTurnedOffTheFlag = TRUE;
+                        // it's a back translation type of marker of foreign origin (extra
+                        // chars after the t in \bt) so we just tuck it away in
+                        // m_filteredInfo
+						temp = GetFilteredItemBracketed(ptr,itemLen);
 					}
-					if (wholeMkr == _T("\\x"))
+					else if (bIsFreeTransOrNoteOrBackTrans)
 					{
-						bCrossRefIsCurrent = FALSE;
-						bFilteredMarkerAlreadyTurnedOffTheFlag = TRUE;
+						SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
+						wxString aTempStr(ptr,itemLen);
+						temp = aTempStr; // don't need to wrap with \~FILTER etc, get just
+						// enough for the code below to set the value between |@ and @|
+					}
+					else
+					{
+                        // other filterable markers go in m_filteredInfo, and have to be
+                        // wrapped with \~FILTER and \~FILTER* and put into m_filteredInfo
+						temp = GetFilteredItemBracketed(ptr,itemLen);
 					}
 
-                    // BEW added 05Oct05; CSourcePhrase class has new BOOL attributes in
-                    // support of notes, backtranslations and free translations, so we have
-                    // to set these at appropriate places in the parse.
-
-                    // We may be at some free translation's anchor pSrcPhrase, having just
-                    // set up the filter string to be put into m_markers; and if so, this
-                    // string will contain a count of the number of following words to
-                    // which the free translation applies; and this count will be
-                    // bracketted by |@ (bar followed by @) at the start and @|<space> at
-                    // the end, so we can search for these and if found, we extract the
-                    // number string and remove the whole substring because it is only
-                    // there to inform the parse operation and we don't want it in the
-                    // constructed document. We use the count to determine which pSrcPhrase
-                    // later encountered is the one to have its m_bEndFreeTrans member set
-                    // TRUE.
+					// We may be at some free translation's anchor pSrcPhrase, having just
+					// set up the filter string to be put into m_markers; and if so, this
+					// string will contain a count of the number of following words to
+					// which the free translation applies; and this count will be
+					// bracketted by |@ (bar followed by @) at the start and @|<space> at
+					// the end, so we can search for these and if found, we extract the
+					// number string and remove the whole substring because it is only
+					// there to inform the parse operation and we don't want it in the
+					// constructed document. We use the count to determine which pSrcPhrase
+					// later encountered is the one to have its m_bEndFreeTrans member set
+					// TRUE.
 					int nFound = temp.Find(_T("|@"));
 					if (nFound != -1)
 					{
@@ -9577,26 +13275,32 @@ b:		if (IsMarker(ptr,pBufStart))
 						// now remove the substring
 						temp.Remove(nFound, nFound2 + 3 - nFound);
 
-                        // now check for a word count value of zero -- we would get this if
-                        // the user, in the project which supplied the exported text data,
-                        // free translated a section of source text but did not supply any
-                        // target text (if a target text export was done -- the same can't
-                        // happen for source text of course). When such a \free field
-                        // occurs in the data, there will be no pSrcPhrase to hang it on,
-                        // because the parser will just collect all the empty markers into
-                        // m_markers; so when we get a count of zero we should throw away
-                        // the propagated free translation & let the user type another if
-                        // he later adapts this section
+						// now check for a word count value of zero -- we would get this if
+						// the user, in the project which supplied the exported text data,
+						// free translated a section of source text but did not supply any
+						// target text (if a target text export was done -- the same can't
+						// happen for source text of course). When such a \free field
+						// occurs in the data, there will be no pSrcPhrase to hang it on,
+						// because the parser will just collect all the empty markers into
+						// m_markers; so when we get a count of zero we should throw away
+						// the propagated free translation & let the user type another if
+						// he later adapts this section
 						if (nFreeTransWordCount == 0)
 						{
 							temp.Empty();
 						}
 					}
 
-                    // we can append the temp string to buffer now, because any count
-                    // within it has just been removed
-					AppendFilteredItem(tokBuffer,temp); // temp might have been emptied 
-												// because of a zero nFreeTransWordCount
+                    // BEW added 05Oct05; CSourcePhrase class has new BOOL attributes in
+                    // support of notes, backtranslations and free translations, so we have
+                    // to set these at appropriate places in the parse.
+					if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
+					{
+						// other filtered stuff needs to be saved here (not later), it has
+						// been wrapped with \~FILTER and \~FILTER*; there is no need to
+						// use a delimiting space between the filter markers
+						pSrcPhrase->AddToFilteredInfo(temp);
+					}
 					if (wholeMkr == _T("\\note"))
 					{
 						pSrcPhrase->m_bHasNote = TRUE;
@@ -9606,9 +13310,9 @@ b:		if (IsMarker(ptr,pBufStart))
 						// a free translation section is current
 						if (wholeMkr == _T("\\free"))
 						{
-                            // we've arrived at the start of a new section of free
-                            // translation -- we should have already turned it off, but
-                            // since we obviously haven't we'll do so now
+							// we've arrived at the start of a new section of free
+							// translation -- we should have already turned it off, but
+							// since we obviously haven't we'll do so now
 							if (nFreeTransWordCount != 0)
 							{
 								bFreeTranslationIsCurrent = TRUE; // turn on this flag to 
@@ -9638,275 +13342,528 @@ b:		if (IsMarker(ptr,pBufStart))
 						}
 						else
 						{
-                            // for any other marker, if the section is not already turned
-                            // off, then just propagate the free translation section to
-                            // this sourcephrase too
+							// for any other marker, if the section is not already turned
+							// off, then just propagate the free translation section to
+							// this sourcephrase too
 							pSrcPhrase->m_bHasFreeTrans = TRUE;
 						}
 					}
 					else
 					{
-                        // no free translation section is currently in effect, so check to
-                        // see if one is about to start
+						// no free translation section is currently in effect, so check to
+						// see if one is about to start
 						if (wholeMkr == _T("\\free"))
 						{
 							bFreeTranslationIsCurrent = TRUE; // turn on this flag to inform 
-                                // parser in subsequent iterations that one is current
+								// parser in subsequent iterations that one is current
 							pSrcPhrase->m_bHasFreeTrans = TRUE;
 							pSrcPhrase->m_bStartFreeTrans = TRUE;
 						}
 					}
-				}
+				} // end of filtering block
 				else
 				{
-                    // BEW added comment 21May05: it's not a filtering one, so the marker's
-                    // contents (if any) will be visible and adaptable. The code here will
-                    // ensure the marker is added to the buffer variable, and eventually be
-                    // saved in m_markers; but for endmarkers we have to suppress their use
-                    // for display in the navigation text area - we must do that job in
-                    // AnalyseMarker() below.
+					// BEW added comment 21May05: it's not a filtering one, so the marker's
+					// contents (if any) will be visible and adaptable. The code here will
+					// ensure the marker is added to the tokBuffer variable, and eventually be
+					// saved in m_markers; but for endmarkers we have to suppress their use
+					// for display in the navigation text area - we must do that job in
+					// AnalyseMarker() below - after the ParseWord() call.
 					itemLen = ParseMarker(ptr);
 					AppendItem(tokBuffer,temp,ptr,itemLen);
                     // being a non-filtering marker, it can't possibly be \free, and so we
-                    // don't have to worry about the filter BOOL values in pSrcPhrase here
+                    // don't have to worry about the filter-related boolean flags in
+                    // pSrcPhrase here
+					// BEW 25Feb11, since it's neither inline nor filtering, it will be
+					// stored in m_markers and so is a candidate for changing
+					// m_bSpecialText and m_currTextType, so use the pUsfmAnalysis
+					// obtained above, and compare with pLastSrcPhrase when the latter is
+					// non-NULL
+					// Removed because later code will override what we do here, so might as
+					// well not do it
+					//if (pLastSrcPhrase != NULL)
+					//{
+					//	if (pLastSrcPhrase->m_bSpecialText && !pUsfmAnalysis->special)
+					//	{
+							// we must switch back to non special text colour
+					//		pSrcPhrase->m_bSpecialText = FALSE;
+					//	}
+					//	if (pLastSrcPhrase->m_curTextType != pUsfmAnalysis->textType)
+					//	{
+							// the text type is different, so change to it (a subsequent
+							// marker may change it again though, if there is another to
+							// be parsed after this current one)
+					//		pSrcPhrase->m_curTextType = pUsfmAnalysis->textType;
+					//	}
+					//}
 				}
-
-				// set default pSrcPhrase attributes
-                // BEW added 26May06 to support maintaining proper text type and colour
-                // across text between nested special text marker subsections; BEW added
-                // extra bFilteredMarkerAlreadyTurnedOffTheFlag test, so that after having
-                // turned off one of these earlier, we don't here turn it back on when we
-                // shouldn't. We only want this block to turn a flag on when the marker
-                // concerned was not filtered out
-				if (!bFilteredMarkerAlreadyTurnedOffTheFlag)
-				{
-                    // if the marker was not filtered, then permit this block to set one of
-                    // the two flags if the marker was \f or \x (we later could have a
-                    // third flag for endnotes with embedded marker subsections, but won't
-                    // do so till someone complains)
-					if (wholeMkr == _T("\\f"))
-						bFootnoteIsCurrent = TRUE;
-					if (wholeMkr == _T("\\f*"))
-						bFootnoteIsCurrent = FALSE;
-					if (wholeMkr == _T("\\x"))
-						bCrossRefIsCurrent = TRUE;
-					if (wholeMkr == _T("\\x*"))
-						bCrossRefIsCurrent = FALSE;
-				}
-				else
-				{
-					// if we skipped the above block, we must now clear the flag to 
-					// its default value
-					bFilteredMarkerAlreadyTurnedOffTheFlag = FALSE;
-				}
-				if (pSrcPhrase->m_curTextType != poetry)
-					pSrcPhrase->m_curTextType = verse; // assume verse unless 
-								// AnalyseMarker changes it, or the block after it
-
-                // analyse the marker and set fields accordingly, but not when we have just
-                // filtered out the currently-being-processed marker and its contents - we
-                // don't want to show any nav text for filtered markers and these must not
-                // have the chance to alter the m_bSpecialText value either
-				if (!bDidSomeFiltering)
-					pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase,pLastSrcPhrase,
-														(wxChar*)ptr,itemLen,pUsfmAnalysis);
-	
-                // BEW 26May06,for when there is the possibility of nested marker sections
-                // which don't have the TextType of none, we want to prevent defaulting to
-                // verse type and not special text, so deal with those here
-				if (bCrossRefIsCurrent || bFootnoteIsCurrent)
-				{
-					if (bFootnoteIsCurrent)
-					{
-						pSrcPhrase->m_bSpecialText = TRUE;
-						pSrcPhrase->m_curTextType = footnote;
-					}
-					if (bCrossRefIsCurrent)
-					{
-						pSrcPhrase->m_bSpecialText = TRUE;
-						pSrcPhrase->m_curTextType = crossReference;
-					}
-				}
-
 				// advance pointer past the marker
 				ptr += itemLen;
 
-                // reset text parameters to what was in effect before, if filtering was
-                // done for the marker just identified BEW added 08June05
-				if (bDidSomeFiltering)
-				{
-					pSrcPhrase->m_bSpecialText = bSaveSpecial;
-					pSrcPhrase->m_curTextType = saveType;
-				}
-
 				itemLen = ParseWhiteSpace(ptr); // parse white space following it
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
-				ptr += itemLen; // point past it
+				ptr += itemLen; // advance ptr past its following whitespace
 
-				goto b; // check if another marker follows
+				continue; // iterate the inner loop to check if another marker follows
+
+			} // BEW added 11Oct10, end of else block for test for inline mrk,
+			  // this else block has the legacy code for the pre-11Oct10 versions
+			  
+		} // end of inner loop, while (IsMarker(ptr)), BEW 11Oct10
+		
+		// Back in the outer loop now. We have one of the following two situations: 
+		// (1) ptr is not pointing at an inline marker that we need to handle within
+		// ParseWord(), so it may be pointing at punctuation or a word of text to be
+		// parsed; or
+		// (2) ptr is pointing at an inline marker we need to handle within ParseWord()
+		// because these can have non-predictable interactions with punctuation,
+		// especially punctuation which follows the wordform, and ParseWord() has the
+		// smarts for dealing with all the possibilities that may occur. (It NEVER happens
+		// that an ordinary marker will occur between the inline one and the word proper,
+		// so we can safely hand off to ParseWord() knowing the inner loop above is
+		// finished for this particular pSrcPhrase.)
+		// (3) ptr is pointing at a [ opening bracket which needs to be stored on the
+		// current pSrcPhrase (in its m_precPunct member, along with any following space
+		// if one is present in the input file after the [ bracket) along with any
+		// m_markers content already accumulated - we must do that before parsing further
+		// because 'further' would then belong to the next CSourcePhrase instance
+		
+		// bleed out the ptr pointing at [ bracket situation
+		if (*ptr == _T('['))
+		{
+			pSrcPhrase->m_precPunct = *ptr;
+			pSrcPhrase->m_srcPhrase = *ptr;
+			ptr++;
+			if (IsWhiteSpace(ptr))
+			{
+				// also store a following single space, if there was some white space
+				// following (this is so that SFM export will reproduce the space)
+				pSrcPhrase->m_precPunct += _T(" ");
+				ptr++;
+			}
+			if (!tokBuffer.IsEmpty())
+			{
+				pSrcPhrase->m_markers = tokBuffer;
+				tokBuffer.Empty();
+			}
+			// store the pointer in the SPList (in order of occurrence in text)
+			if (pSrcPhrase != NULL)
+			{
+				pList->Append(pSrcPhrase);
+			}
+
+			// make this one be the "last" one for next time through
+			pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
+			continue;
+		}
+		// not pointing at [ so do the parsing of the word - including puncts and inline
+		// markers
+#ifdef __WXDEBUG__
+//		if (pSrcPhrase->m_nSequNumber == 49)
+//		{
+//			int breakpt_here = 1;
+//		}
+#endif
+		// the TokenizeText() caller determines whether spacelessPuncts contains the
+		// m_punctuation[0] source puncts set, or m_punctuation[1] target set; typically,
+		// it is the source set, but we do use an override of the TokenizeTextString()
+		// with a boolean at the end, when we explicitly want to parse target text - in
+		// that case, the boolean is TRUE and the target puncts set get passed to
+		// TokenizeText() which then removes spaces (whichever set it receives, it removes
+		// spaces before passing the punctuation characters themselves to TokenizeText())
+		// - if any functions within ParseWord() require space to be in the passed-in set
+		// of punctuation characters, they can add an explicit space when they first run
+		itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
+							pApp->m_inlineNonbindingMarkers,
+							pApp->m_inlineNonbindingEndMarkers,
+							bIsInlineNonbindingMkr, bIsInlineBindingMkr);
+		ptr += itemLen; // advance ptr over what we parsed
+
+        // We do NormalizeToSpaces() only on the string of standard format markers which
+        // we store on sourcephrase instances in m_markers, it's not needed elsewhere in
+        // CSourcePhrase storage members.
+		tokBuffer = NormalizeToSpaces(tokBuffer);
+
+		// In the next call, doc version 4 would put all filtered and non-filted marker
+		// stuff into m_markers, but version 5 saves filtered stuff in m_filteredInfo
+		// and free translations, notes and collected back translations (each without
+		// any markers, just the bare text) in member variables m_freeTrans, m_note,
+		// and m_collectedBackTrans, before getting to this point, and inline markers in
+		// four special members as well, preceding and following, depending on whether
+		// they are binding or non-binding. So, for doc version 5 tokBuffer will have
+		// within it only the beginmarkers accumulated from the parse before the
+		// ParseWord() call takes place.
+		pSrcPhrase->m_markers = tokBuffer;
+
+		// ************ New Propagation Code Starts Here ******************
+		bool bTextTypeChanges = FALSE;
+		bool bEndedffexspanUsedToChangedTextType = FALSE;
+		// if not done before ParseWord() was called, do the update here, if needed
+		if (bEnded_f_fe_x_span)
+		{
+			// this block re-establishes verse type, and m_bSpecialText FALSE, after a
+			// footnote, endnote or crossReference has ended - it will stay set unless
+			// there is a marker in tokBuffer, which the next block will analyse, to
+			// establish possibly different values
+			pSrcPhrase->m_curTextType = verse;
+			pSrcPhrase->m_bSpecialText = FALSE;
+			bEnded_f_fe_x_span = FALSE; // once the TRUE value is used, it must default
+										// back to FALSE
+			bTextTypeChanges = TRUE;
+			pSrcPhrase->m_bFirstOfType = TRUE;
+			bEndedffexspanUsedToChangedTextType = TRUE;
+
+		}
+		if (!tokBuffer.IsEmpty())
+		{
+			// set TextType and m_bSpecialText according to what the type and special text
+			// value are for the last marker in tokBuffer
+			if (tokBuffer.Find(gSFescapechar) != wxNOT_FOUND)
+			{
+				// there is a marker there
+				int offset = wxNOT_FOUND;
+				int len = 0;
+				wxString wholeMkr; wholeMkr.Empty();
+				bool bContainsPoetryMarker = FALSE; // BEW added 25Feb11
+				while ((offset = tokBuffer.Find(gSFescapechar)) != wxNOT_FOUND) 
+				{
+					tokBuffer = tokBuffer.Mid(offset);
+					wholeMkr = GetWholeMarker(tokBuffer);
+					// check for a poetry marker, set the flag if we find one
+					wxString wholeMkrPlusSpace = wholeMkr + _T(' ');
+					if (pApp->m_poetryMkrs.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
+					{
+						// this is a poetry marker (\v may follow, so use the flag
+						// later to prevent poetry TextType from being overridden by verse
+						bContainsPoetryMarker = TRUE;
+					}
+					len = wholeMkr.Len();
+					tokBuffer = tokBuffer.Mid(len);
+				}
+				// m_markers doesn't store endmarkers in docversion 5, so we know it must
+				// be a beginmarker, or an empty string; if it is a beginmarker, it might
+				// be an unknown (ie. not definied in AI_USFM.xml) marker, such as \y, and
+				// so we must detect any such and ensure the text they mark is coloured
+				// with the current m_bSpecialText = TRUE colour (default is red)
+				if (len > 1)
+				{
+					wxString bareMkr = wholeMkr.Mid(1);
+					int length = wholeMkr.Len();
+					const wxChar* pChar2 = wholeMkr.GetData();
+					wxChar* pEnd;
+					pEnd = (wxChar*)pChar2 + length;
+					wxChar* pBufStart = (wxChar*)pChar2;
+					// in the next call NULL is returned if bareMkr is an unknown marker
+					USFMAnalysis* pUsfmAnalysis = LookupSFM(bareMkr); 
+					// the AnalyseMarker() call looks up the characteristics of the marker
+					// and assigns TextType, returns m_bSpecialText value, puts appropriate
+					// text into the m_inform member, deals appropriately with
+					// pUsfmAnalysis being NULL (returns TRUE, and TextType noType is
+					// assigned and m_inform gets the marker bracketted with ? and ? before
+					// and after) etc
+					pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
+														pBufStart, length, pUsfmAnalysis);
+					// if there was a preceding poetry marker for a verse marker,
+					// choose the poetry TextType instead
+					if (bContainsPoetryMarker) 
+					{
+						pSrcPhrase->m_curTextType = poetry;
+						bTextTypeChanges = TRUE;
+					}
+					if (pLastSrcPhrase != NULL)
+					{
+						// BEW 25Feb11, added the 2nd test after the OR, because some
+						// markers (e.g. \d for poetry description) are given in
+						// AI_USFM.xml as TRUE for special text, but TextType of
+						// verse, and so just testing the TextType for a difference
+						// isn't enough, because pLastSrcPhrase might have TRUE for
+						// special text, and need to now change to FALSE, which won't
+						// happen if both last and current have verse TextType - well,
+						// at least not without the extra test I've just added
+						if ((pLastSrcPhrase->m_curTextType != pSrcPhrase->m_curTextType) ||
+							(pLastSrcPhrase->m_bSpecialText != pSrcPhrase->m_bSpecialText))
+						{
+							bTextTypeChanges = TRUE;
+						}
+					}
+				}
+				else
+				{
+					bTextTypeChanges = FALSE;
+				}
 			}
 		}
 		else
 		{
-			// not a marker
-			if (!bHitMarker)
+			if (!bEndedffexspanUsedToChangedTextType)
 			{
-                // if no marker was hit, we can assume that the text characteristics are
-                // continuing unchanged, so copy from earlier word/phrase to this one
-				if (pLastSrcPhrase != NULL)
+				// the bEnded_f_fe_x_span flag was not TRUE, and so was not used to cause
+				// the above block to be entered and default verse, and non-special text
+				// to be re-established there; and so, we allow the fact that tokBuffer
+				// (which sets m_markers content) being empty to signal to the code below
+				// (by the bTextTypeChanges value being cleared to FALSE) that it is okay
+				// below to copy the values off of pLastSrcPhrase
+				bTextTypeChanges = FALSE;
+			}
+		}
+		tokBuffer.Empty();
+		// implement the decisions regarding propagation made above...
+		bool bTextTypeChangeBlockEntered = FALSE;
+		if (pLastSrcPhrase != NULL)
+		{
+			// propagate or change the TextType and m_bSpecialText
+			if (bTextTypeChanges)
+			{
+				// text type and specialText value are set above, so this block won't
+				// change the value established above shortly after the ParseWord() call
+				// returns; & we must restore the default value for the flag
+				bTextTypeChanges = FALSE;
+				bTextTypeChangeBlockEntered = TRUE;
+				pSrcPhrase->m_bFirstOfType = TRUE;
+			}
+			else if (IsTextTypeChangingEndMarker(pSrcPhrase))
+			{
+				// the test is TRUE if pSrcPhase in its m_endMarkers member contains one
+				// or \f* or \fe* or \x*; we set the bEnded_f_fe_x_span flag here only,
+				// because it is the next word to be parsed that actually has the changed
+				// TextType value etc - the TRUE value of the flag is detected above after
+				// ParseWord() returns, and causes default to verse TextType and
+				// m_bSpecialText FALSE - and subsequent code then may change it if
+				// necessary.
+				bEnded_f_fe_x_span = TRUE;
+				// propagation from pLastSrcPhrase to pSrcPhrase is required here, because
+				// this one's TextType isn't changed
+				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
+				pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+
+				// Finally, we have to do one task which in the legacy parser was done in
+				// AnalyseMarker(). If \f* is stored on pSrcPhrase, then we have to set
+				// the flag m_bFootnoteEnd to TRUE (so that CPile::DrawNavTextInfoAndIcons(
+				// wxDC* pDC) can add the "end fn" text to pSrcPhrase->m_inform, for
+				// display in the nav text area of the view) -- note, \fe in m_endMarkers
+				// can only be the PNG SFM 1998 footnote endmarker, not USFM endnote
+				// beginmarker) likewise \F must be from the same 1998 set if found there
+				if ((pSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) || 
+					(pSrcPhrase->GetEndMarkers().Find(_T("\\fe")) != wxNOT_FOUND) ||
+					(pSrcPhrase->GetEndMarkers().Find(_T("\\F")) != wxNOT_FOUND))
 				{
-					pSrcPhrase->CopySameTypeParams(*pLastSrcPhrase);
-					// CopySameTypeParams copies these members:
-					// 	m_curTextType, m_bSpecialText and m_bRetranslation
-					
-                    // BEW 26May06,for when there is the possibility of nested marker
-                    // sections which don't have the TextType of none, we want to prevent
-                    // defaulting to verse type and not special text, so deal with those
-                    // here
-					if (bCrossRefIsCurrent || bFootnoteIsCurrent)
-					{
-						if (bFootnoteIsCurrent)
-						{
-							pSrcPhrase->m_bSpecialText = TRUE;
-							pSrcPhrase->m_curTextType = footnote;
-						}
-						if (bCrossRefIsCurrent)
-						{
-							pSrcPhrase->m_bSpecialText = TRUE;
-							pSrcPhrase->m_curTextType = crossReference;
-						}
-					}
+					pSrcPhrase->m_bFootnoteEnd = TRUE;
 				}
 			}
-
-			// must be a word or special text - anyway, we have to adapt it
-			// BEW changed the code below, 17 March 2005, to improve parsing 
-			// of < << punctuation, etc
-			wxString precStr = _T("");
-			wxString follStr = _T("");
-			itemLen = ParseWord(ptr, precStr,follStr,spacelessSrcPuncts);
-
-            // from version 1.4.1 and onwards we will do NormalizeToSpaces() only on the
-            // string of standard format markers which we store on sourcephrase instances,
-            // and this is done after marker interpretation is finished (interpretation
-            // optionally needs newlines to be retained in the source text string) - this
-            // allows us to have normalization where we need it (ie. in the markers only)
-            // without eliminating the needed newlines from the data - we do the
-            // normalization now because we must store the stuff accumulated (ie. markers
-            // and filtered info) into m_markers next, since we've broken out the next
-            // actual adaptable word from the source text stream at the ParseWord() call
-            // above.
-			//
-            // From March 17, 2005 we also normalize any white space between detached
-            // preceding or or following quotation punctuation marks - this is done within
-            // the ParseWord() call above.
-			
-			tokBuffer = NormalizeToSpaces(tokBuffer);
-			pSrcPhrase->m_markers = tokBuffer;
-			tokBuffer.Empty(); //strLen = ClearBuffer();
-
-			// BEW added 30May05, to remove any initial space that may be in m_markers 
-			// from the parse
-			if (pSrcPhrase->m_markers.GetChar(0) == _T(' '))
-				pSrcPhrase->m_markers = pSrcPhrase->m_markers.Mid(1);
-
-            // ParseWord(), the new version, has returned the preceding and following text
-            // strings, so we don't need to do any punctuation stripping. Instead, set the
-            // relevant members directly, once we work out the lengths of the substrings
-            // involved
-			wxString strPunctuatedWord(ptr,itemLen);
-			// in case some \n or \r characters managed to squeeze through, trim them off 
-			// before using the string
-			while (strPunctuatedWord.Find(_T('\n')) != -1)
+			else
 			{
-				strPunctuatedWord.Remove(strPunctuatedWord.Find(_T('\n')),1);
-			}    
-			while (strPunctuatedWord.Find(_T('\r')) != -1) 
-			{
-				strPunctuatedWord.Remove(strPunctuatedWord.Find(_T('\r')),1);
+				// don't propagate values from pLastSrcPhrase if the TRUE block for
+				// bTextTypeChanges was entered - when that block is entered, a new
+				// TextType and possibly a change of m_bSpecialText value is commencing
+				// and we don't want the new values wiped out here by overwriting with
+				// those from pLastSrcPhrase
+				if (!bTextTypeChangeBlockEntered)
+				{
+					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
+					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType;
+				}
 			}
-			pSrcPhrase->m_srcPhrase = strPunctuatedWord;
-			// now do the key and punctuation substrings
-			int aLength = precStr.Length();
-			if (aLength > 0)
-			{
-				pSrcPhrase->m_precPunct = precStr;
-			}
-			wxString spanned(ptr,itemLen);
-			spanned = spanned.Mid(aLength); // get the remainder after preceding 
-											// punctuation is skipped over
-			ptr += aLength; // point to start of the word proper
-			itemLen -= aLength; // reduce itemLen by the size of the preceding 
-								// punctuation substring
-			// get the length of the following punctuation substring
-			aLength = follStr.Length();
-			int wordLen = itemLen - aLength;
-			wxASSERT(wordLen >= 0);
-			wxString theWord(ptr,wordLen);
-			pSrcPhrase->m_key = theWord;
-			ptr += wordLen;
-			aLength = follStr.Length();
-			if (aLength > 0)
-			{
-				pSrcPhrase->m_follPunct = follStr;
+		}
+		// ************ New Propagation Code Ends Here ******************
 
-                // BEW added 04Nov05, because I forgot to set boundaries when I redesigned
-                // the algorithm for parsing in a source text file...
-				// determine if the m_bBoundary flag needs to be set, and do so
-				wxChar anyChar = follStr[0]; // get the first punctuation character,
-											 // any will do
-				if (boundarySet.Find(anyChar) != -1)
+		// BEW added 30May05, to remove any initial space that may be in m_markers 
+		// from the parse
+		if (pSrcPhrase->m_markers.GetChar(0) == _T(' '))
+			pSrcPhrase->m_markers.Trim(FALSE);
+
+		// BEW 11Oct10, Handle setting of the m_bBoundary flag here, rather than in
+		// ParseWord() itself
+		if (!pSrcPhrase->m_follPunct.IsEmpty() || 
+			!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		{
+			wxChar anyChar;
+			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			{
+				anyChar = pSrcPhrase->m_follPunct[0]; // any char of punct will do
+				if (boundarySet.Find(anyChar) != wxNOT_FOUND)
 				{
                     // we found a non-comma final punctuation character on this word, so we
                     // have to set a boundary here
 					pSrcPhrase->m_bBoundary = TRUE;
+					// if this pSrcPhrase stores a conjoined word pair using USFM fixed
+					// space symbol ~ then the boundary flag on the last child in the
+					// m_pSavedWords member also needs to be set
+					if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+					{
+						SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetLast();
+						CSourcePhrase* pWord2 = pos->GetData();
+						pWord2->m_bBoundary = TRUE;
+					}
 				}
 			}
-			itemLen = aLength;
-			ptr += itemLen;
+			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+			{
+				anyChar = (pSrcPhrase->GetFollowingOuterPunct())[0];
+				if (boundarySet.Find(anyChar) != wxNOT_FOUND)
+				{
+                    // we found a non-comma final punctuation character on this word, so we
+                    // have to set a boundary here
+					pSrcPhrase->m_bBoundary = TRUE;
+					// if this pSrcPhrase stores a conjoined word pair using USFM fixed
+					// space symbol ~ then the boundary flag on the last child in the
+					// m_pSavedWords member also needs to be set
+					if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+					{
+						SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetLast();
+						CSourcePhrase* pWord2 = pos->GetData();
+						pWord2->m_bBoundary = TRUE;
+					}
+				}
+			}
+		}
 
-			// get rid of any final spaces which make it through the parse
-			pSrcPhrase->m_follPunct.Trim(TRUE); // trim right end
-			pSrcPhrase->m_follPunct.Trim(FALSE); // trim left end 
+		// get rid of any final spaces which make it through the parse -- shouldn't be any
+		// now, but no harm in doing the check etc
+		pSrcPhrase->m_follPunct.Trim(TRUE); // trim right end
+		pSrcPhrase->m_follPunct.Trim(FALSE); // trim left end
 
-            // handle propagation of the m_bHasFreeTrans flag, and termination of the free
-            // translation section by setting m_bEndFreeTrans to TRUE, when we've counted
-            // off the requisite number of words parsed - there will be one per
-            // sourcephrase when parsing; we do this only when bFreeTranslationIsCurrent is
-            // TRUE
+		// BEW 11Oct10, do trim for the new m_follOuterPunct member
+		wxString follOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
+		if (!follOuterPunct.IsEmpty())
+		{
+			follOuterPunct.Trim(TRUE); // trim right end
+			follOuterPunct.Trim(FALSE); // trim left end
+			pSrcPhrase->SetFollowingOuterPunct(follOuterPunct);
+		}
+
+        // handle propagation of the m_bHasFreeTrans flag, and termination of the free
+        // translation section by setting m_bEndFreeTrans to TRUE, when we've counted
+        // off the requisite number of words parsed - there will be one per
+        // sourcephrase when parsing; we do this only when bFreeTranslationIsCurrent is
+        // TRUE
+		// BEW 11Oct10, now that we have better support for fixedspace ~ markup, we have
+		// to count 2 words for any m_key which contains the ~ symbol
+		if (bFreeTranslationIsCurrent)
+		{
+			if (nFreeTransWordCount != 0)
+			{
+				// decrement the count
+				nFreeTransWordCount--;
+				if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+				{
+					// decrement by an additional one, if possible
+					if (nFreeTransWordCount > 0)
+					{
+						nFreeTransWordCount--; // because m_key is word~word
+					}
+				}
+				pSrcPhrase->m_bHasFreeTrans = TRUE;
+				if (nFreeTransWordCount == 0)
+				{
+                    // we decremented to zero, so we are at the end of the current free
+                    // translation section, so set the flags accordingly
+					pSrcPhrase->m_bEndFreeTrans = TRUE; // indicate 'end of section'
+					bFreeTranslationIsCurrent = FALSE; // indicate next sourcephrase 
+                        // is not in the section (but a \free marker may turn it back
+                        // on at next word)
+				}
+				
+			}
+		}
+		// BEW added comment 11Oct10, the comment below was for the legacy parser, but it
+		// is still apt if the new ParseWord() returns leaving some punctuation at the end
+		// of the buffer - unlikely, but we can't rule it out. So keep this stuff.
+		// 
+        // If endmarkers are at the end of the buffer, code further up will have put them
+        // into the m_endMarkers member of pLastSrcPhrase, and any punctuation following
+        // that would be in the m_precPunt member of pSrcPhrase, but if the buffer end has
+        // been reached, m_key in pSrcPhrase will be empty. So, providing m_precPunct is
+        // empty, pSrcPhrase is not a valid CSourcePhrase instance. We need to check and
+        // remove it.
+        // But a complication is the possibility of filtered information at the end of the
+        // parse buffer - it would be in the m_filteredInfo member. Our solution for this
+        // complication is: don't remove the pSrcPhrase here - so if parsing a source text
+        // file, the widow CSourcePhrase will just remain at the document end but be
+        // unseen, while if we are parsing just-edited source text in OnEditSourceText(),
+        // we can leave the widow there after moving endmarkers of it, because
+        // OnEditSourceText() will later call
+        // TransportWidowedFilteredInfoToFollowingContext() and if there is a following
+        // context, the transfer can be done, but if not, we must just leave the source
+        // phrase there in the document to carry the filtered information.
+        // 
+        // A further complication of similar kind is when the user types in non-endmarker
+        // information at the end of the string. When editing the source text, this will
+        // end up in m_markers but m_key will be empty, and so we need to leave it to
+        // TransportWidowedFilteredInfoToFollowingContext() to handle transfer of this
+        // information to the following context, or if there is no following context, in
+        // this case we abandon the marker info typed because it would make no sense to
+        // keep it - that's what to do whether we are at the document end when parsing in a
+        // new source text USFM text file, or when editing source text - the
+        // gbVerticalEditInProgress global boolean can help in testing for this.
+        wxString someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
+		bool bHasFilteredInfo = !someFilteredInfo.IsEmpty();
+		bool bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
+		if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_precPunct.IsEmpty())
+		{
+			if ( (!bHasFilteredInfo && !bHasNonEndMarkers) ||
+				(!bHasFilteredInfo && bHasNonEndMarkers && !gbVerticalEditInProgress))
+			{
+				// remove it if it is not a carrier for filtered information in its
+				// m_filteredInfo member (see the more detailed explanation above) nor
+				// non-endmarkers information in its m_markers member; OR, it has no
+				// filtered information but it does have non-endmarkers in m_markers
+				// but vertical edit (ie. we aren't in OnEditSourceText()) is not
+				// current (ie. we are creating a document by parsing in a USFM plain
+				// text file). The other possibilities can be left for
+				// TransportWidowedFilteredInfoToFollowingContext() in
+				// OnEditSourceText() to work out, and do deletion of of the carrier if
+				// warranted.
+				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
+														  // delete a partner pile'
+				pSrcPhrase = NULL;
+			}
 			if (bFreeTranslationIsCurrent)
 			{
-				if (nFreeTransWordCount != 0)
+				// we default to always turning off a free translation section at the end
+				// of the document if it hasn't been done already
+				if (pLastSrcPhrase != NULL)
 				{
-					// decrement the count
-					nFreeTransWordCount--;
-					pSrcPhrase->m_bHasFreeTrans = TRUE;
-					if (nFreeTransWordCount == 0)
+					if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
 					{
-                        // we decremented to zero, so we are at the end of the current free
-                        // translation section, so set the flags accordingly
-						pSrcPhrase->m_bEndFreeTrans = TRUE; // indicate 'end of section'
-						bFreeTranslationIsCurrent = FALSE; // indicate next sourcephrase 
-                            // is not in the section (but a \free marker may turn it back
-                            // on at next word)
+						pLastSrcPhrase->m_bEndFreeTrans = TRUE;
+
+                        // BEW 11Oct10, and for ~ fixedspace support, set the same flag in
+                        // the last child instance
+						if (IsFixedSpaceSymbolWithin(pLastSrcPhrase))
+						{
+							SPList::Node* pos = pLastSrcPhrase->m_pSavedWords->GetLast();
+							CSourcePhrase* pWord2 = pos->GetData();
+							pWord2->m_bEndFreeTrans = TRUE;
+						}
 					}
-					
 				}
 			}
+		} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() && 
+		  //                                 pSrcPhrase->m_precPunct.IsEmpty())
 
-			// store the pointer in the SPList (in order of occurrence in text)
+		// store the pointer in the SPList (in order of occurrence in text)
+		if (pSrcPhrase != NULL)
+		{
 			pList->Append(pSrcPhrase);
+		}
 
-			// make this one be the "last" one for next time through
-			pLastSrcPhrase = pSrcPhrase;
-		}// end of else when not a marker
-	}; // end of while (ptr < pEndText)
+		// make this one be the "last" one for next time through
+		pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
 
-d:	tokBuffer.Empty();
+	} // end of while (ptr < pEndText)
 
 	// fix the sequence numbers, so that they are in sequence with no gaps, from the
 	// beginning 
+	tokBuffer.Empty();
 	AdjustSequNumbers(nStartingSequNum,pList);
+
+	// ensure pSrcPhrase->m_srcPhrase has no trailing spaces (a few CR LFs at the end
+	// of the plain text input file find their way into the trailing text of the last
+	// pSrcPhrase's m_srcPhrase member - so easiest thing to do is just clobber them here
+	SPList::Node* pos = pList->GetLast();
+	CSourcePhrase* pSrcPhraseVeryLast = pos->GetData();
+	pSrcPhraseVeryLast->m_srcPhrase.Trim();
+
 	return pList->GetCount();
 }
 
@@ -9914,7 +13871,7 @@ d:	tokBuffer.Empty();
 /// \return		nothing
 /// \param		useSfmSet		-> an enum of type SfmSet: UsfmOnly, PngOnly, or UsfmAndPng
 /// \param		pUnkMarkers		<- a wxArrayString that gets populated with unknown (whole) markers,
-///									always poopulated in parallel with pUnkMkrsFlags.
+///									always populated in parallel with pUnkMkrsFlags.
 /// \param		pUnkMkrsFlags	<- a wxArrayInt of flags that gets populated with ones or zeros, 
 ///									always populated in parallel with pUnkMarkers.
 /// \param		unkMkrsStr		-> a wxString containing the current unknown (whole) markers within
@@ -9926,13 +13883,13 @@ d:	tokBuffer.Empty();
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), CFilterPageCommon::AddUnknownMarkersToDocArrays()
 /// and CFilterPagePrefs::OnOK().
-/// Scans all the doc's source phrase m_markers members and inventories
-/// all the unknown markers used in the current document; it stores all unique
-/// markers in pUnkMarkers, stores a flag (1 or 0) indicating the filtering status
-/// of the marker in pUnkMkrsFlags, and maintains a string called unkMkrsStr which 
-/// contains the unknown markers delimited by following spaces.
-/// An unknown marker may occur more than once in a given document, but is only 
-/// stored once in the unknown marker inventory arrays and string. 
+/// Scans all the doc's source phrase m_markers and m_filteredInfo members and inventories
+/// all the unknown markers used in the current document; it stores all unique markers in
+/// pUnkMarkers, stores a flag (1 or 0) indicating the filtering status of the marker in
+/// pUnkMkrsFlags, and maintains a string called unkMkrsStr which contains the unknown
+/// markers delimited by following spaces.
+/// An unknown marker may occur more than once in a given document, but is only stored once
+/// in the unknown marker inventory arrays and string.
 /// The SetInitialFilterStatus enum values can be used as follows:
 ///	  The setAllUnfiltered enum would gather the unknown markers into m_unknownMarkers 
 ///      and set them all to unfiltered state in m_filterFlagsUnkMkrs (currently
@@ -9946,6 +13903,7 @@ d:	tokBuffer.Empty();
 ///     the filter state of an unknown marker in the Doc, i.e., set m_filterFlagsUnkMkrs 
 ///     to TRUE if the unknown marker in the Doc was within \~FILTER ... \~FILTER* brackets, 
 ///     otherwise sets the flag in the array to FALSE.
+/// BEW 24Mar10 updated for support of doc version 5 (some changes were needed)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 											wxArrayString* pUnkMarkers,
@@ -10003,7 +13961,6 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 	MapSfmToUSFMAnalysisStruct::iterator iter;
 	SPList::Node* posn;
 	posn = pList->GetFirst();
-	wxASSERT(posn != NULL);
 	CSourcePhrase* pSrcPhrase;
 	while (posn != 0)
 	{
@@ -10011,9 +13968,9 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 		pSrcPhrase = (CSourcePhrase*)posn->GetData();
 		posn = posn->GetNext();
 		wxASSERT(pSrcPhrase);
-		if (!pSrcPhrase->m_markers.IsEmpty())
+		if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetFilteredInfo().IsEmpty())
 		{
-			// m_markers for this source phrase has content to examine
+			// m_markers and/or m_filteredInfo for this source phrase has content to examine
 			pMarkerList->Empty(); // start with an empty marker list
 
             // The GetMarkersAndTextFromString function below fills the CStringList
@@ -10022,7 +13979,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
             // Filtered material enclosed within \~FILTER...\~FILTER* brackets will also be
             // listed as a single item (even though there may be other markers embedded
             // within the filtering brackets.
-			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers);
+			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
 
             // Now iterate through the strings in pMarkerList, check if the markers they
             // contain are known or unknown.
@@ -10207,8 +14164,8 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///												is encountered, otherwise FALSE (no propagation 
 ///												needed)
 /// \remarks
-/// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and 
-/// CTransferMarkersDlg::OnOK()
+/// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and OnEditSourceText(),
+/// and also from XML's MurderTheDocV4Orphans()
 /// There are two uses for this function:
 ///   (1) To do navigation text, special text colouring, and TextType value cleanup 
 ///         after the user has edited the source text - which potentially allows the user
@@ -10224,6 +14181,11 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///         the navigation text and text colouring and (cryptic) TextType assignments.
 /// NOTE: m_FilterStatusMap.Clear(); is done early in DoMarkerHousekeeping(), so the prior
 ///         contents of the former will be lost.
+/// BEW 24Mar10, updated for support of doc version 5(changes needed - just a block of code
+/// removed)
+/// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 11Oct10 (actually 6Jan11) added code for closing off a TextType span because of
+/// endmarker content within m_endMarkers - I missed doing this in the earlier tweaks
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired)
@@ -10304,6 +14266,8 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 		bInvalidLast = TRUE; // only possible if user edited source text at the very 
                              // first sourcephrase in the doc iterate over each
                              // sourcephrase instance in the sublist
+    bool bStartDefaultTextTypeOnNextIteration = FALSE;
+	bool bSkipPropagation = FALSE;
 	while (pos != 0) // pos will be NULL if the pL list is empty
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -10311,6 +14275,82 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 		wxASSERT(pSrcPhrase);
 		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =, 
 									  // so we must clear its contents first
+
+		// BEW 11Oct10 (actually 6Jan11) endmarkers in docV5 are no longer stored at the
+		// start of the next CSourcePhrase's m_markers member, but on the current
+		// CSourcePhrase which ends the actual TextType span. Therefore, interating
+		// through the list we'll come to an m_endMarkers which ends a span such as a
+		// footnote, endnore or cross reference before we come to the CSourcePhrase
+		// instance which follows and for which m_bFirstOfType for the new TextType value
+		// will be TRUE. So check here for non-empty m_endMarkers member (other storage of
+		// markers, the inline types, doesn't affect TextType, so we can ignore those and
+		// only need examine m_endMarkers), and if it contains \f* or \x* or \fe* for
+		// USFM 2.x marker set, or \fe or \F for PNG 1998 marker set, then we must end the
+		// type on the current pSrcPhrase (ie. it is the last with the current TextType
+		// value) and tell the code that the next iteration of the loop must commence a
+		// new TextType - which we'll default to 'verse' type, and m_bSpecialText = FALSE
+		// -- the next iteration can then change to some other type if the next
+		// iteration's pSrcPhrase->m_markers contains a final marker which changes the
+		// TextType - the code for doing that is already in place below. How we'll tell
+		// the code what to do on the next iteration will be done with a new local
+		// boolean, bStartDefaultTextTypeOnNextIteration -- which we'll set TRUE if one of
+		// the endmarkers of either set is found in m_endMarkers of the current instance;
+		// We'll also need a bSkipPropagation flag, default FALSE, but when set TRUE, it causes
+		// a skip of the code further down which propagates from the last CSourcePhrase
+		// instance when m_markers is empty -- which is typically the case after an
+		// endnote, footnote or cross reference
+		bSkipPropagation = FALSE; // default value
+		if (bStartDefaultTextTypeOnNextIteration)
+		{
+			// a switch to default TextType is requested - do it here, then let the code
+			// below override the value we set here if m_markers has a last marker which
+			// requires a different TextType value
+			pSrcPhrase->m_curTextType = verse;
+			pSrcPhrase->m_bSpecialText = FALSE;
+			pSrcPhrase->m_bFirstOfType = TRUE;
+			// m_inform has be cleared to default empty above, code further below may put
+			// something in it (if m_markers is non-empty)
+			bStartDefaultTextTypeOnNextIteration = FALSE; // restore default bool value
+			bSkipPropagation = TRUE; // used about 70 lines below, to skip a code block
+									 // for propagating from the previous instance, which
+									 // is not wanted when we have already closed of a
+									 // TextType span on the previous iteration (see the
+									 // code block immediately below)
+		}
+		if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+		{
+			wxArrayString array;
+			array.Clear();
+			pSrcPhrase->GetEndMarkersAsArray(&array);
+			size_t count = array.GetCount();
+			if (count > 0)
+			{
+				wxString wholeEndMkr; wholeEndMkr.Empty();
+				wholeEndMkr = array.Item(count - 1); // get the last one, if there is more than one
+									// for instance, it may have \ft*\f* in the old way of
+									// doing USFM
+				wxASSERT(!wholeEndMkr.IsEmpty());
+				if (gpApp->gCurrentSfmSet == UsfmOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
+				{
+					if (wholeEndMkr == _T("\\f*") || wholeEndMkr == _T("\\fe*") ||
+						wholeEndMkr == _T("\\x*"))
+					{
+						// it's the end of either a footnote, endnote or cross reference
+						bStartDefaultTextTypeOnNextIteration = TRUE;
+					}
+				}
+				else
+				{
+					// must be PngOnly
+					if (wholeEndMkr == _T("\\fe") || wholeEndMkr == _T("\\F"))
+					{
+                        // it's the end of a footnote (either the \fe marker or the \F
+                        // marker can end a footnote in the legacy marker set)
+						bStartDefaultTextTypeOnNextIteration = TRUE;
+					}
+				}
+			}
+		}
 
 		// get any marker text into mkrBuffer
 		mkrBuffer = pSrcPhrase->m_markers;
@@ -10345,13 +14385,22 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 			}
 			else
 			{
-				pSrcPhrase->m_bFirstOfType = FALSE;
-				pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the 
-																// earlier instance's type
-				pSrcPhrase->m_inform.Empty();
-				pSrcPhrase->m_chapterVerse.Empty();
-				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate the
-																			 // previous value
+				if (!bSkipPropagation)
+				{
+					// if no skipping of this propagation code is wanted, then do the
+					// propagation from the earlier instance; when bSkipPropagation is
+					// TRUE, we skip because in code above we've closed of a TextType span
+					// already and so this pSrcPhrase is the first of a new TextType span,
+					// which defaults to verse and not special text in the absence of a
+					// marker to specify otherwise 
+					pSrcPhrase->m_bFirstOfType = FALSE;
+					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the 
+																	// earlier instance's type
+					pSrcPhrase->m_inform.Empty();
+					pSrcPhrase->m_chapterVerse.Empty();
+					// propagate the previous value
+					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; 
+				}
 			}
 		}
 		else
@@ -10390,8 +14439,8 @@ x:				while (ptr < pEndMkrBuff)
 					}
 
 					// are we pointing at a standard format marker?
-b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1 
-												 // contextual sfms
+b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1 
+									   // contextual sfms
 					{
 						bHitMarker = TRUE;
 						// its a marker of some kind
@@ -10432,9 +14481,11 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 
 							// set pSrcPhrase attributes
 							pSrcPhrase->m_bVerse = TRUE;
-							if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes 
-																	 // before \v
-							pSrcPhrase->m_curTextType = verse;
+							if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
+							{
+								// if its already poetry, don't change it
+								pSrcPhrase->m_curTextType = verse;
+							}
 							pSrcPhrase->m_bSpecialText = FALSE;
 
 							itemLen = ParseWhiteSpace(ptr); // past white space which is 
@@ -10443,27 +14494,6 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 							ptr += itemLen; // point past the white space
 
 							goto b; // check if another marker follows:
-						}
-						// whm added for USFM and SFM Filtering support
-						else if (IsFilteredBracketMarker(ptr,pEndMkrBuff))
-						{
-                            // When doing marker housekeeping, we'll just skip over any
-                            // filtered material residing in m_markers. All such filtered
-                            // material in m_markers is marked or bracketed between special
-                            // markers \~FILTER and \~FILTER* by TokenizeText when text is
-                            // input. ParseFilteredMarkerText below advances the pointer to
-                            // point past the end-of-filtered-text marker \~FILTER* which
-                            // prevents it from being seen again by AnalyseMarker.
-							itemLen = ParseFilteredMarkerText(filterMkr,ptr,pBufStart,pEndMkrBuff);
-							AppendItem(gpApp->buffer,temp,ptr,itemLen);
-							ptr += itemLen;
-
-							itemLen = ParseWhiteSpace(ptr); // past any white space after 
-															// the filtered material
-							AppendItem(gpApp->buffer,temp,ptr,itemLen); // add it to the buffer
-							ptr += itemLen; // point past the white space
-
-							goto b; // check if another marker follows
 						}
 						else
 						{
@@ -10491,9 +14521,10 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 								pSrcPhrase->m_bChapter = TRUE;
 								pSrcPhrase->m_bVerse = TRUE; // always have verses following a 
 															 // chapter
-								if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes 
-																		 // before \v
+								if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
+								{
 									pSrcPhrase->m_curTextType = verse;
+								}
 								pSrcPhrase->m_bSpecialText = FALSE;
 
 								itemLen = ParseWhiteSpace(ptr); // parse white space following 
@@ -10631,6 +14662,378 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if no errors; FALSE if an error occurred
+/// \param		exportPathUsed		<- a wxString to return the path/name of the packed
+///                                 document to the caller
+/// \param      bInvokeFileDialog -> TRUE (default) presents the wxFileDialog; FALSE 
+///                                 uses the <current doc name>.aip
+/// \remarks
+/// Called from: the Doc's OnFilePackDocument() and EmailReportDlg::OnBtnAttachPackedDoc.
+/// Assembles the raw contents that go into an Adapt It Packed Document into the packByteStr
+/// which is a CBString byte buffer. 
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog)
+{
+	CBString packByteStr; 
+	wxString packStr;
+	packStr.Empty();
+
+    // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
+    // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
+    // check that it is matching; and if not, warn user that continuing the unpack might
+    // not result in properly encoded text in the docment (but allow him to continue,
+    // because if source and target text are all ASCII, the either app can read the packed
+    // data from the other and give valid encodings in the doc when unpacked.)
+	//
+    // whm Note: The legacy logic doesn't work cross-platform! The sizeof(char) and
+    // sizeof(w_char) is not constant across platforms. On Windows sizeof(char) is 1 and
+    // sizeof(w_char) is 2; but on all Unix-based systems (i.e., Linux and Mac OS X) the
+    // sizeof(char) is 2 and sizeof(w_char) is 4. We can continue to use '1' to indicate
+    // the file was packed by an ANSI version, and '2' to indicate the file was packed by
+    // the Unicode app for back compatibility. However, the numbers cannot signify the size
+    // of char and w_char across platforms. They can only be used as pure signals for ANSI
+    // or Unicode contents of the packed file. Here in OnFilePackDoc we will save the
+    // string _T("1") if we're packing from an ANSI app, or the string _T("2") if we're
+    // packing from a Unicode app. See DoUnpackDocument() for how we can interpret "1" and
+    // "2" in a cross-platform manner.
+	//
+#ifdef _UNICODE
+	packStr = _T("2");
+#else
+	packStr = _T("1");
+#endif
+
+	packStr += _T("|*0*|"); // the zeroth unique delimiter
+
+	// get source and target language names, or whatever is used for these
+	wxString curSourceName;
+	wxString curTargetName;
+	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName, 
+											curSourceName, curTargetName);
+
+    // get the book information (mode flag, disable flag, and book index; as ASCII string
+    // with colon delimited fields)
+	wxString bookInfoStr;
+	bookInfoStr.Empty();
+	if (gpApp->m_bBookMode)
+	{
+		bookInfoStr = _T("1:");
+	}
+	else
+	{
+		bookInfoStr = _T("0:");
+	}
+	if (gpApp->m_bDisableBookMode)
+	{
+		bookInfoStr += _T("1:");
+	}
+	else
+	{
+		bookInfoStr += _T("0:");
+	}
+	if (gpApp->m_nBookIndex != -1)
+	{
+		bookInfoStr << gpApp->m_nBookIndex;
+	}
+	else
+	{
+		bookInfoStr += _T("-1");
+	}
+
+	wxLogNull logNo; // avoid spurious messages from the system
+
+	// update and save the project configuration file
+	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
+	// BEW added flag to the following test on 25Nov09
+	if (!gpApp->m_curProjectPath.IsEmpty() && !gpApp->m_bReadOnlyAccess)
+	{
+		if (gpApp->m_bUseCustomWorkFolderPath && !gpApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (gpApp->m_bLockedCustomWorkFolderPath)
+				bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = gpApp->WriteConfigurationFile(szAdminProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
+		}
+		// original code below
+		//bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
+	}
+	// we don't expect any failure here, so an English message hard coded will do
+	if (!bOK)
+	{
+		wxMessageBox(_T(
+		"Writing out the configuration file failed in OnFilePackDoc, command aborted\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+
+	// get the size of the configuration file, in bytes
+	wxFile f;
+	wxString configFile = gpApp->m_curProjectPath + gpApp->PathSeparator + 
+									szProjectConfiguration + _T(".aic");
+	int nConfigFileSize = 0;
+	if (f.Open(configFile,wxFile::read))
+	{
+		nConfigFileSize = f.Length();
+		wxASSERT(nConfigFileSize);
+	}
+	else
+	{
+		wxMessageBox(_T(
+	"Getting the configuration file's size failed in OnFilePackDoc, command aborted\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+	f.Close(); // needed because in wx we opened the file
+
+	// save the doc as XML
+	bool bSavedOK = TRUE;
+	// BEW added test on 25Nov09, so documents can be packed when user has read only access
+	// BEW changed 29Apr10, to use DoFileSave_Protected() rather than DoFileSave() because the
+	// former gives better protection against data loss in the event of file truncation
+	// due to a processing error.
+	if (!gpApp->m_bReadOnlyAccess)
+	{
+		//bSavedOK = DoFileSave(TRUE);
+		bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+	}
+
+	// construct the absolute path to the document as it currently is on disk; if the
+	// local user has read-only access, the document on disk may not have been recently
+	// saved. (Read-only access must not force document saves on a remote user
+	// who has ownership of writing permission for data in the project; otherwise, doing
+	// so could cause data to be lost)
+	wxString docPath;
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	{
+		docPath = gpApp->m_bibleBooksFolderPath;
+	}
+	else
+	{
+		docPath = gpApp->m_curAdaptionsPath;
+	}
+	docPath += gpApp->PathSeparator + gpApp->m_curOutputFilename; // it will have .xml extension
+
+	// get the size of the document's XML file, in bytes
+	int nDocFileSize = 0;
+	if (f.Open(docPath,wxFile::read))
+	{
+		nDocFileSize = f.Length();
+		wxASSERT(nDocFileSize);
+	}
+	else
+	{
+		wxMessageBox(_T(
+	"Getting the document file's size failed in OnFilePackDoc, command aborted\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+	f.Close(); // needed for wx version which opened the file to determine its size
+
+	// construct the composed information required for the pack operation, as a wxString
+	packStr += curSourceName;
+	packStr += _T("|*1*|"); // the first unique delimiter
+	packStr += curTargetName;
+	packStr += _T("|*2*|"); // the second unique delimiter
+	packStr += bookInfoStr;
+	packStr += _T("|*3*|"); // the third unique delimiter
+	packStr += gpApp->m_curOutputFilename;
+	packStr += _T("|*4*|"); // the fourth unique delimiter
+
+    // set up the byte string for the data, taking account of whether we have unicode data
+    // or not
+#ifdef _UNICODE
+	packByteStr = gpApp->Convert16to8(packStr);
+#else
+	packByteStr = packStr.c_str();
+#endif
+
+	// from here on we work with bytes, and so use CBString rather than wxString for the data
+
+	if (!f.Open(configFile,wxFile::read))
+	{
+		// if error, just return after telling the user about it -- English will do, 
+		// it shouldn't happen
+		wxString s;
+		s = s.Format(_T(
+"Could not open a file stream for project config, in OnFilePackDoc(), for file %s"),
+		gpApp->m_curProjectPath.c_str());
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	int nFileLength = nConfigFileSize; // our files won't require more than 
+									   // an int for the length
+
+    // create a buffer large enough to receive the whole lot, allow for final null byte (we
+    // don't do anything with the data except copy it and resave it, so a char buffer will
+    // do fine for unicode too), then fill it
+	char* pBuff = new char[nFileLength + 1];
+	memset(pBuff,0,nFileLength + 1);
+	int nReadBytes = f.Read(pBuff,nFileLength);
+	if (nReadBytes < nFileLength)
+	{
+		wxMessageBox(_T(
+		"Project file read was short, some data missed so abort the command\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	f.Close(); // assume no errors
+
+	// append the configuration file's data to packStr and add the next 
+	// unique delimiter string
+	packByteStr += pBuff;
+	packByteStr += "|*5*|"; // the fifth unique delimiter
+
+	// clear the buffer, then read in the document file in similar fashion & 
+	// delete the buffer when done
+	delete[] pBuff;
+	if (!f.Open(docPath,wxFile::read))
+	{
+		// if error, just return after telling the user about it -- English will do, 
+		// it shouldn't happen
+		wxString s;
+		s = s.Format(_T(
+"Could not open a file stream for the XML document as text, in OnFilePackDoc(), for file %s"),
+		docPath.c_str());
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	nFileLength = nDocFileSize; // our files won't require more than an int for the length
+	pBuff = new char[nFileLength + 1];	
+	memset(pBuff,0,nFileLength + 1);
+	nReadBytes = f.Read(pBuff,nFileLength);
+	if (nReadBytes < nFileLength)
+	{
+		wxMessageBox(_T(
+		"Document file read was short, some data missed so abort the command\n"),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE; 
+	}
+	f.Close(); // assume no errors
+	packByteStr += pBuff;
+	delete[] pBuff;
+
+	// whm Pack design notes for future consideration:
+	// 1. Initial design calls for the packing/compression of a single Adapt It document
+	//    at a time. With the freeware zip utils provided by Lucian Eischik (based on zlib
+	//    and info-zip) it would be relatively easy in the future to have the capability of
+	//    packing multiple files into the .aip zip archive.
+	// 2. Packing/zipping can be accomplished by doing it on external files (as done below)
+	//    or by doing it in internal buffers (in memory).
+	// 3. If in future we want to do the packing/zipping in internal buffers, we would do it
+	//    with the contents of packByteStr after this point in OnFilePackDoc, and before
+	//    the pBuf is written out via CFile ff below.
+	// 4. If done in a buffer, after compression we could add the following Warning statement 
+	//    in uncompressed form to the beginning of the compressed character buffer (before 
+	//    writing it to the .aip file): "|~WARNING: DO NOT ATTEMPT TO CHANGE THIS FILE WITH 
+	//    AN EDITOR OR WORD PROCESSOR! IT CAN ONLY BE UNCOMPRESSED WITH THE UNPACK COMMAND
+	//    FROM WITHIN ADAPT IT VERSION 3.X. COMPRESSED DATA FOLLOWS:~|" 
+	//    The warning would serve as a warning to users if they were to try to load the file
+	//    into a word processor, not to edit it or save it within the word processor,
+	//    otherwise the packed file would be corrupted. The warning (without line breaks
+	//    or quote marks) would be 192 bytes long. When the file would be read from disk
+	//    by DoUnpackDocument, this 192 byte warning would be stripped off prior to
+	//    uncompressing the remaining data using the zlib tools.
+	
+    // whm 22Sep06 update: The wx version now uses wxWidget's built-in wxZipOutputStream
+    // facilities for compressing and uncompressing packed documents, hence, it no longer
+    // needs the services of Lucian Eischik's zip and unzip library. The wxWidget's zip
+    // format is based on the same free-ware zlib library, so there should be no problem
+    // zipping and unzipping .aip files produced by the MFC version or the WX version.
+
+	// make a suitable default output filename for the packed data
+	wxString exportFilename = gpApp->m_curOutputFilename;
+	int len = exportFilename.Length();
+	exportFilename.Remove(len-3,3); // remove the xml extension
+	exportFilename += _T("aip"); // make it a *.aip file type
+	wxString exportPath;
+	wxString defaultDir;
+	defaultDir = gpApp->m_curProjectPath;
+	if (bInvokeFileDialog)
+	{
+		wxString filter;
+
+		// get a file Save As dialog for Source Text Output
+		filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
+
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Filename For Packed Document"),
+			defaultDir,
+			exportFilename,
+			filter,
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
+			// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
+		fileDlg.Centre();
+
+		// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
+		// do it) Probably the project folder would be best.
+		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
+
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			// user cancelled file dialog so return to what user was doing previously, because
+			// this means he doesn't want the Pack Document... command to go ahead
+			return FALSE; 
+		}
+
+		// get the user's desired path
+		exportPath = fileDlg.GetPath();
+	}
+	else
+	{
+		exportPath = defaultDir + gpApp->PathSeparator + exportFilename;
+	}
+
+	// get the length of the total byte string in packByteStr (exclude the null byte)
+	int fileLength = packByteStr.GetLength();
+
+    // wx version: we use the wxWidgets' built-in zip facilities to create the zip file,
+    // therefore we no longer need the zip.h, zip.cpp, unzip.h and unzip.cpp freeware files
+    // required for the MFC version.
+	// first, declare a simple output stream using the temp zip file name
+	// we set up an input file stream from the file having the raw data to pack
+	wxString tempZipFile;
+	wxString nameInZip;
+    int extPos = exportPath.Find(_T(".aip"));
+	tempZipFile = exportPath.Left(extPos);
+	extPos = exportFilename.Find(_T(".aip"));
+	nameInZip = exportFilename.Left(extPos);
+	nameInZip = nameInZip + _T(".aiz");
+	
+	wxFFileOutputStream zippedfile(exportPath);
+	// then, declare a zip stream placed on top of it (as zip generating filter)
+	wxZipOutputStream zipStream(zippedfile);
+    // wx version: Since our pack data is already in an internal buffer in memory, we can
+    // use wxMemoryInputStream to access packByteStr; run it through a wxZipOutputStream
+    // filter and output the resulting zipped file via wxFFOutputStream.
+	wxMemoryInputStream memStr(packByteStr,fileLength);
+	// create a new entry in the zip file using the .aiz file name
+	zipStream.PutNextEntry(nameInZip);
+	// finally write the zipped file, using the data associated with the zipEntry
+	zipStream.Write(memStr);
+	if (!zipStream.Close() || !zippedfile.Close() || 
+		zipStream.GetLastError() == wxSTREAM_WRITE_ERROR) // Close() finishes writing the 
+													// zip returning TRUE if successfully
+	{
+		wxString msg;
+		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
+		wxMessageBox(msg,_T(""),wxICON_ERROR);
+	} 
+
+	exportPathUsed = exportPath;
+    return TRUE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// \return		the value of the m_bSpecialText member of pSrcPhrase
 /// \param		pSrcPhrase		<- a pointer to the source phrase instance on 
 ///									which this marker will be stored
@@ -10687,7 +15090,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 		if (pLast)
 		{
 			// set the global, and it will stay set until an endmarker or a footnote
-			// endmarker makes use of it, and then clears it to FALSE
+			// endmarker makes use of it, and then clears it
 			gPreviousTextType = pLast->m_curTextType;
 		}
 		else
@@ -10772,16 +15175,8 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
     // NULL we can assume that it's an unknown type, so we'll treat it as special text as
     // did the legacy app, and will assign similar default values to pLast and pThis.
 
-    // In the legacy app paragraphs (\p) had a unique m_bParagraph set TRUE and was the
-    // only marker that did not set m_bFirstOfType to TRUE
-	if (strMkr == _T("p"))
-	{
-		pThis->m_bParagraph = TRUE; // insure backwards compatibility even
-									// if not used in legacy app
-	}
-
 	// pUsfmAnalysis will be NULL for unknown marker
-	bool bEndMarkerForTextTypeNone = FALSE;
+	//bool bEndMarkerForTextTypeNone = FALSE;
 	bool bIsFootnote = FALSE;
 	if (pUsfmAnalysis)
 	{
@@ -10800,6 +15195,15 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
         // specified in AI_USFM.xml (or default strings embedded in program code when
         // AI_USFM.xml is not available); we set a default here, but the special cases
         // further down may set different values
+        // 
+        // BEW note 11Oct10: if AnalyseMarker() is called more than once for the same
+        // marker, then this next block appends the navigationText value to m_inform once
+        // per call; so if we leave it as is (which is what I'm doing for the present), we
+        // must ensure that code only calls it once per marker -- TokenizeText() changes is
+        // a place to watch out for carefully; otherwise, change it to search for
+        // navigationText in m_inform and not add it on subsequent calls if it is already
+        // stored there.
+		
 		pThis->m_curTextType = pUsfmAnalysis->textType;
 		if (pUsfmAnalysis->inform && !bEndMarker)
 		{
@@ -10862,6 +15266,17 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 			else
 			{
 				// we are dealing with an endmarker
+				
+				// BEW 11Oct10 ************* NOTE ****************
+				// This else block won't be entered for doc version 5, because we only
+				// call AnalyseMarker() on markers in m_markers and no longer will
+				// endmarkers be stored in m_markers -- so things done here have to be
+				// done elsewhere in the code, if at all.
+				// The only thing we must compensate for is to find a suitable place
+				// within TokenizeText() for setting the m_bFootnoteEnd flag TRUE when \f*
+				// is stored on pSrcPhrase; as for the code below here, just comment it
+				// out and return default FALSE in order to get a clean compile
+				/*
 				bEndMarkerForTextTypeNone = IsEndMarkerForTextTypeNone(pChar); // see if 
                     // its an endmarker from the marker subset: ord, bd, it, em, bdit, sc,
                     // pro, ior, w, wr, wh, wg, ndx, k, pn, qs ?)
@@ -10895,8 +15310,8 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 					// bleed out the footnote end case 
 					if (bFootnoteEndMarker)
 					{
-						// its the end of a footnote (either png set or usfm set) so retore previous
-						// type 
+                        // its the end of a footnote (either png set or usfm set) so retore
+                        // previous type
 						pLast->m_bFootnoteEnd = TRUE;
 						pThis->m_bFirstOfType = TRUE; // it's going to be something 
 													  // different from a footnote
@@ -10945,6 +15360,8 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 					return pThis->m_bSpecialText; // once we know its value, 
 												  // we must return with it
 				}
+				*/
+				return FALSE;
 			}
 		}
 		return pUsfmAnalysis->special;
@@ -10978,7 +15395,6 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 			pThis->m_inform += str; // str is a whole marker here
 		pThis->m_inform += _T("? ");
 		}
-		//pThis->m_inform.FreeExtra();
 		return TRUE; //ie. assume it's special text
 	}
 }
@@ -11069,10 +15485,12 @@ bool CAdapt_ItDoc::DeleteContents()
 /// subsequently). Doing this is appropriate in EraseKB() because EraseKB() is
 /// called whenever the project is being left by whoever has current ownership
 /// permission.
+/// BEW 28May10, removed TUList, as it is redundant & now unused
+/// BEW 1Jun10, added deletion of CRefStringMetadata instance
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::EraseKB(CKB* pKB)
 {
-	// Empty the map and list and delete their contained objects
+	// Empty the map and delete their contained objects
 	if (pKB != NULL)
 	{
 		// Clear all elements from each map, and delete each map
@@ -11082,42 +15500,35 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 			{
 				if (!pKB->m_pMap[i]->empty())
 				{
+					MapKeyStringToTgtUnit::iterator iter;
+					for (iter = pKB->m_pMap[i]->begin(); iter != pKB->m_pMap[i]->end(); ++iter)
+					{
+						wxString srcKey = iter->first;
+						CTargetUnit* pTU = iter->second;
+						TranslationsList::Node* tnode = NULL;
+						if (pTU->m_pTranslations->GetCount() > 0)
+						{
+							for (tnode = pTU->m_pTranslations->GetFirst(); 
+									tnode; tnode = tnode->GetNext())
+							{
+								CRefString* pRefStr = (CRefString*)tnode->GetData();
+								if (pRefStr != NULL)
+								{
+									pRefStr->DeleteRefString();
+								}
+							}
+						}
+						delete pTU;
+						//pTU = (CTargetUnit*)NULL;
+					}
 					pKB->m_pMap[i]->clear();
 				}
 				delete pKB->m_pMap[i];
 				pKB->m_pMap[i] = (MapKeyStringToTgtUnit*)NULL; // whm added 10May04
 			}
 		}
-
-		// Scan through each CTargetUnit in the m_pTargetUnits list. Delete each 
-		// CRefString in each CTargetUnit's TranslationsList, and delete each
-		// CTargetUnit. 
-		for (TUList::Node* node = pKB->m_pTargetUnits->GetFirst(); 
-				node; node = node->GetNext())
-		{
-			CTargetUnit* pTU = (CTargetUnit*)node->GetData();
-			if (pTU->m_pTranslations->GetCount() > 0)
-			{
-				for (TranslationsList::Node* tnode = pTU->m_pTranslations->GetFirst(); 
-						tnode; tnode = tnode->GetNext())
-				{
-					CRefString* pRefStr = (CRefString*)tnode->GetData();
-					if (pRefStr != NULL)
-					{
-						delete pRefStr;
-						pRefStr = (CRefString*)NULL; // whm added 10May04
-					}
-				}
-			}
-			delete pTU;
-			pTU = (CTargetUnit*)NULL; // whm added 10May04
-		}
-		// Clear the m_pTargetUnits list and delete the list.
-		pKB->m_pTargetUnits->Clear();
-		delete pKB->m_pTargetUnits;
-		pKB->m_pTargetUnits = (TUList*)NULL;
-	
 	}
+
 	if (pKB != NULL)
 	{
 		// Lastly delete the KB itself
@@ -11275,6 +15686,10 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	CPhraseBox* pBox;
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
+// GDLC 2010-03-27 pFreeTrans is now unused in this function
+//	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
+//	wxASSERT(pFreeTrans);
+
 	if (pApp->m_nActiveSequNum == -1)
 		pApp->m_nActiveSequNum = 0;
 	pApp->m_lastDocPath = pApp->m_curOutputPath;
@@ -11463,9 +15878,8 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	{
         // this one will not change, since there are no chapter verse references able to be
         // constructed
-		//IDS_MANUAL_FIXES_NO_REFS
 		fixesStr = _(
-"There were places where automatic rebuilding did not fully succeed and so either adaptations were abandoned, or filtered material not made visible, or visible material not filtered. Please visually check the document and perhaps edit where necessary.");
+			"There were places where automatic rebuilding of the document potentially did not fully succeeded. Visually check and edit where necessary: ");
 	}
 	else
 	{
@@ -11475,7 +15889,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
         // instance
 		// IDS_MANUAL_FIXES_REFS
 		fixesStr = _(
-"Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: ");
+			"Locate the following chapter:verse locations for potential errors in the rebuild of the document. Visually check and edit where necessary: ");
 	}
 
 	int nOldTotal = gpApp->m_pSourcePhrases->GetCount();
@@ -11523,6 +15937,12 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
                 // before we mess with replacing the pSrcPhrase with what was the new
                 // parse's CSourcePhrase instances when automatic rebuild could not be done
                 // correctly
+				// BEW changed 8Mar11 for punctuation reconstitution -- to include the
+				// m_srcPhrase test after the chapter:verse & a delimiting space, and we
+				// don't make any insertions of new CSourcePhrase instances into
+				// m_pSourcePhrases, but wherever FALSE is returned, we just keep the
+				// original pSrcPhrase unchanged and have a reference for where this was
+				// in fixesStr
 				bNeedMessage = TRUE;
 			}
 			// update progress bar every 20 iterations
@@ -11681,8 +16101,14 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
             // add a unique number each time, incremented by one from previous number
             // (starts at 0 when app was launched)
 			gnFileNumber++; // get next value
-			path << gnFileNumber;
-			path << _T(".txt");
+			wxString suffixStr;
+			suffixStr = suffixStr.Format(_T("%d"),gnFileNumber);
+			//suffixStr = _T("1");
+
+			path += suffixStr;
+			path += _T(".txt");
+			//path << suffixStr;
+			//path << _T(".txt");
 		
 			wxLogNull logNo; // avoid spurious messages from the system
 
@@ -11724,7 +16150,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		}
         // display the message - in the case of unstructured data, there will be no list of
         // locations and the user will just have to search the document visually
-		wxMessageBox(fixesStr, _T(""), wxICON_INFORMATION);
+		wxMessageBox(fixesStr, _T(""), wxICON_INFORMATION); 
 	}
 
 	// this is where we need to have the layout updated. We will do the whole lot, that is,
@@ -11743,8 +16169,13 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param		nFirstSequNum	-> the number to use for the first source phrase in pList
+/// \param      pOtherList      -> default value is NULL, but if a pointer to a list of
+///                                CSourcePhrase instances is supplied (this list can be
+///                                of any length), then the renumbering happens in that
+///                                list. When NULL, the app's m_pSourcePhrases list is used.
 /// \remarks
-/// Called from: the Doc's TokenizeText().
+/// Called from: the Doc's TokenizeText(), and ReconstituteAfterFilteringChange() and
+/// other places - about two dozen in all so far.
 /// Fixes the m_nSequNumber member of the source phrases in the current document
 /// starting with nFirstSequNum in pList, so that all the remaining source phrases' sequence
 /// numbers continue in numerical sequence (ascending order) with no gaps. 
@@ -11799,17 +16230,17 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 /// \param		event	-> a wxCommandEvent associated with the wxID_NEW identifier
 /// \remarks
 /// Called from: the doc/view framework when File | New menu item is selected. In the wx
-/// version this override sets the bUserSelectedFileNew flag to TRUE and then simply calls
-/// the App's OnFileNew() method.
+/// version this override just calls the App's OnFileNew() method.
+/// BEW 24Aug10, removed the bool bUserSelectedFileNew member from the application, now
+/// the view's OnCreate() call just checks for m_pKB == NULL and m_pGlossingKB == NULL as
+/// an indicator that the view was clobbered, and it then recreates the in-memory KBs
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 {
 	// called when File | New menu item selected specifically by user
-	// Note: The App's OnInit() skips this and calls pApp->OnFileNew
-	// directly, so we can initialize our flag here.
+	// Note: The App's OnInit() skips this and calls pApp->OnFileNew directly
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	pApp->bUserSelectedFileNew = TRUE; // causes the view->OnCreate() to reinit the KBs
 	pApp->OnFileNew(event);
 }
 
@@ -11931,20 +16362,140 @@ void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 ///				SfmSet is determined to be a marker which should halt the scanning of successive 
 ///				pSrcPhase instances during doc rebuild for filtering out a marker and its content 
 ///				which are required to be filtered, FALSE otherwise.
+/// \param		sfmSet	   -> indicates which SFM set is to be considered active for the 
+///						      LookupSFM() call
+/// \param		pSrcPhrase -> the CSourcePhrase instance whose m_markers member contains the
+///						      stuff we are wanting to check out for a halt condition
+/// \remarks
+/// Called from: the Doc's ReconstituteAfterFilteringChange(). 
+/// Implements the protocol for determining when to stop scanning in a variety of
+/// situations, if a prior call to a different function did not halt scanning at the
+/// previous CSourcePhrase instance because of a matching endmarker being there... 
+///    - pSrcPhrase->m_markers might contain filtered material (this must stop scanning because
+///      we can't embed filtered material),
+///    - or pSrcPhrase may contain a marker which Adapt It should ignore (eg. most inline markers)
+///       those don't halt scanning
+///    - or an unknown marker - these always halt scanning, 
+///    - or an embedded content marker within an \x (cross reference section) or \f (footnote) 
+///         or \fe (endnote) section - these don't halt scanning,
+///    - or an inLine == FALSE marker - these halt scanning.
+///    Note: when examining m_markers, it is the last SF marker we are interested in -
+///    that's the one that gives TextType property to the unfiltered content which follows
+///    BEW 11Oct10, changes needed for support of docVersion 5
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase)
+{
+	// check for m_filteredInfo content first - if there is any, then we must exclude the
+	// passed in CSourcePhrase instance from being in the to-be-filtered span, returning TRUE
+	if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
+	{
+		// something is filtered here, so we must halt
+		return TRUE;
+	}
+	// we'll allow a Note to be scanned over and lost in the filtering process, but not if
+	// we've come to a free translation anchor, or where collected back translations are
+	// stored, the latter two must halt scanning
+	if (!pSrcPhrase->GetFreeTrans().IsEmpty() || !pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+	{
+		return TRUE;
+	}
+
+	// now check out whatever might be in m_markers member
+	wxString markers = pSrcPhrase->m_markers;
+	int nFound = markers.Find(gSFescapechar);
+	if (nFound == wxNOT_FOUND)
+	{
+		// no SF markers in m_markers, so there is no reason to halt for this pSrcPhrase
+		return FALSE;
+	}
+	wxString wholeMkr = GetLastMarker(markers);
+	wxASSERT(!wholeMkr.IsEmpty());
+	// m_markers does not contain any endmarkers, so wholeMkr is a beginmarker. Remove
+	// its backslash so we can look it up
+	wxString bareMkr = wholeMkr.Mid(1);
+
+	// do lookup of the marker
+	SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set temporarily, 
+											// as sfmSet may be different
+	gpApp->gCurrentSfmSet = sfmSet; // install the set to be used - as passed in
+	USFMAnalysis* analysis = LookupSFM(bareMkr); // internally uses gUserSfmSet
+	if (analysis == NULL)
+	{
+        // this must be an unknown marker - we deem these all inLine == FALSE, so this
+        // indicates we are located at an ending sourcephrase
+		gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+		return TRUE;
+	}
+	else
+	{
+        // This is a known marker in the sfmSet marker set, so check it out (We don't check
+        // for inline endmarkers like \f*, \fe* or \x* because if one of these occurs, and
+        // it must halt scanning at the CSourcePhase which stores them - and that
+        // CSourcePhrase instance is then WITHIN the span, but such a marker will occur on
+        // the previous CSourcePhrase to the one passed in here. So IsEndingSrcPhrase() is
+        // only used when a previous span-ending function call which just looks at
+        // endmarkers has returned FALSE.)
+		gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+		//markers.ReleaseBuffer(); // whm moved to main block above
+		if (analysis->inLine == FALSE)
+		{
+			// it's not an inLine marker, so it must end the filtering scan
+			gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+			return TRUE; 
+		}
+		else
+		{
+            // Inline markers \f, \fe or \x also are stored in m_markers, and if present
+            // must cause a halt, so test for these too; but we keep parsing over any
+            // embedded content markers in footnotes or endnotes, and in cross references,
+            // such as: any of \xo, \xk, etc or \fr, \fk, \fv, fm, etc). The OR test's RHS
+            // part is for testing for embedded content markers within an endnote - these
+            // don't halt scanning either.
+            wxString bareMkr = wholeMkr.Mid(1); // remove initial backslash
+			wxString shortMkr = bareMkr.Left(1); // take only the first character
+			if (((shortMkr == _T("f") || shortMkr == _T("x")) && shortMkr != bareMkr) ||
+				((shortMkr == _T("f")) && (bareMkr != _T("fe"))))
+			{
+				// its an embedded content marker of a kind which does not halt scanning
+				;
+			}
+			else
+			{
+				// it must halt scanning
+				gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+				return TRUE;
+			}
+		}
+	}
+	// tell the caller it's not the ending instance yet
+	gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+	return FALSE;
+}
+
+/* legacy code
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if there is a SF marker in the passed in markers string which for the 
+///				SfmSet is determined to be a marker which should halt the scanning of successive 
+///				pSrcPhase instances during doc rebuild for filtering out a marker and its content 
+///				which are required to be filtered, FALSE otherwise.
 /// \param		sfmSet	-> indicates which SFM set is to be considered active for the 
 ///							LookupSFM() call
 /// \param		markers	-> the pSrcPhrase->m_markers string from the sourcephrase being 
 ///							currently considered
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(). 
-/// Implements the protocol for determining when to stop scanning in a variety of situations 
-///    - markers might contain filtered material (this must stop scanning because we can't 
-///       embed filtered material),
-///    - or it may contain a marker which Adapt It should ignore (eg. one with TextType == none), 
+/// Implements the protocol for determining when to stop scanning in a variety of
+/// situations, if a prior call to a different function did not halt scanning at the
+/// previous CSourcePhrase instance... 
+///    - the param, markers, might contain filtered material (this must stop scanning because
+///      we can't embed filtered material),
+///    - or it may contain a marker which Adapt It should ignore (eg. most inline markers, but
+///      not those for footnote, endnote or crossReference), 
 ///    - or an unknown marker - these always halt scanning, 
 ///    - or an embedded content marker within an \x (cross reference section) or \f (footnote) 
-///         or \fe (endnote) section - these don't halt scanning, 
+///         or \fe (endnote) section - these don't halt scanning,
 ///    - or an inLine == FALSE marker - these halt scanning.
+///    BEW 22Sep10, no changes needed for support of docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 {
@@ -12116,6 +16667,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 		}
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		offset of the marker which is to be filtered (ie. offset of its backslash) if markers 
@@ -12141,8 +16693,9 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 ///									commenced
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange().
-/// Determines if a source phrase's m_markers member contains a marker to be filtered, and if so, returns
-/// the offset into m_markers where the marker resides.
+/// Determines if a source phrase's m_markers member contains a marker to be filtered, and
+/// if so, returns the offset into m_markers where the marker resides.
+/// BEW 21Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, 
 				wxString filterList, wxString& wholeMkr, wxString& wholeShortMkr, 
@@ -12151,7 +16704,7 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 {
 	int offset = startAt;
 	if (markers.IsEmpty())
-		return -1;
+		return wxNOT_FOUND;
 	bHasEndmarker = FALSE; // default
 	bUnknownMarker = FALSE; // default
 	int len = markers.Length();
@@ -12167,15 +16720,10 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 								// (ie. strstr() or wcsstr()), null if unfound
 	pFound += offset; // get the scan start location (offset will be reused below, 
                       // so don't rely on it staying this present value)
-	wxString fltrMkr(filterMkr); // filterMkr is a literal string defined at start
-								 // of the doc's .cpp file
-	int lenFilterMkr = fltrMkr.Length();
-	int lenFilterMkrEnd = lenFilterMkr + 1;
 	wxChar backslash[2] = {gSFescapechar,_T('\0')};
 	int itemLen;
 
-    // scan the buffer, looking for a filterable marker not bracketed by \~FILTER ...
-    // \~FILTER* (because any between those is already filtered out)
+    // scan the buffer, looking for a filterable marker
 	while ((pFound = wxStrstr(pFound, backslash)) != NULL)
 	{	
 		// we have come to a backslash
@@ -12183,90 +16731,62 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 		itemLen = ParseMarker(ptr);
 		wxString mkr(ptr,itemLen); // this is the whole marker, 
 								   // including its backslash
-        // if we have found a bracketing \~FILTER beginning marker, we have located an
-        // already filtered section of material - this is of no interested, so we have to
-        // jump to the matching \~FILTER* string (there will always be one) and continue
-        // our loop from whatever follows that
-		if (mkr == fltrMkr)
+		
+        // it's potentially a marker which might be one for filtering out
+		wxString mkrPlusSpace = mkr + _T(' '); // prevent spurious matches,
+											   // eg. \h finding \hr
+		int nFound = filterList.Find(mkrPlusSpace);
+		if (nFound == wxNOT_FOUND)
 		{
-			// we have found bracketed filtered material, so skip it
-			pFound++; // skip the intial backslash
-			pFound = wxStrstr(pFound, filterMkrEnd);
-			if (pFound == NULL)
-			{
-				return -1;
-			}
-			pFound += lenFilterMkrEnd; // point past the \~FILTER* marker
-			continue; // iterate
+			// it's not in the list of markers designated as to be filtered, 
+			// so keep iterating
+			pFound++;
+			continue;
 		}
 		else
 		{
-            // it's either the endmarker for previous unfiltered material (which is to
-            // remain unfiltered), or it is potentially a marker which might be one for
-            // filtering out
-			int nFound = mkr.Find(_T('*'));
-			if (nFound > 0)
+			// this marker is to be filtered, so set up the parameters to 
+			// be returned etc
+			offset = pFound - pBuff;
+			wxASSERT(offset >= 0);
+			wholeMkr = mkr;
+			wholeShortMkr = wholeMkr.Left(2);
+
+			// get its SFM characteristics, whether it has an endmarker, 
+			// and whether it is unknown
+			SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set 
+								// temporarily, as sfmSet may be different
+			gpApp->gCurrentSfmSet = sfmSet; // install the set to be used 
+											// - as passed in
+			wxString bareMkr = wholeMkr.Mid(1); // lop off the backslash
+			USFMAnalysis* analysis = LookupSFM(bareMkr); // uses gCurrentSfmSet
+			if (analysis == NULL)
 			{
-				// it is an endmarker, so we are not interested in it
-				pFound++;
-				continue;
+				// this must be an unknown marker designated for filtering by 
+				// the user in the GUI
+				bUnknownMarker = TRUE;
+				bHasEndmarker = FALSE; // unknown markers NEVER have endmarkers
+				endMkr.Empty();
+				gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+				return offset; // return its offset
 			}
 			else
 			{
-				// it could be a marker which is to be filtered, so check it out
-				wxString mkrPlusSpace = mkr + _T(' '); // prevent spurious matches,
-													   // eg. \h finding \hr
-				nFound = filterList.Find(mkrPlusSpace);
-				if (nFound == -1)
+				// this is a known marker in the sfmSet marker set
+				endMkr = analysis->endMarker;
+				bHasEndmarker = !endMkr.IsEmpty();
+				if (bHasEndmarker)
 				{
-					// it's not in the list of markers designated as to be filtered, 
-					// so keep iterating
-					pFound++;
-					continue;
+					endMkr = gSFescapechar + endMkr; // add the initial backslash
 				}
+				gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
+				if (analysis->filter)
+					return offset; // it's filterable, so return its offset
 				else
-				{
-					// this marker is to be filtered, so set up the parameters to 
-					// be returned etc
-					offset = pFound - pBuff;
-					wxASSERT(offset >= 0);
-					wholeMkr = mkr;
-					wholeShortMkr = wholeMkr.Left(2);
-
-					// get its SFM characteristics, whether it has an endmarker, 
-					// and whether it is unknown
-					SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set 
-										// temporarily, as sfmSet may be different
-					gpApp->gCurrentSfmSet = sfmSet; // install the set to be used 
-													// - as passed in
-					wxString bareMkr = wholeMkr.Mid(1); // lop off the backslash
-					USFMAnalysis* analysis = LookupSFM(bareMkr); // uses gCurrentSfmSet
-					if (analysis == NULL)
-					{
-						// this must be an unknown marker designated for filtering by 
-						// the user in the GUI
-						bUnknownMarker = TRUE;
-						bHasEndmarker = FALSE; // unknown markers NEVER have endmarkers
-						endMkr.Empty();
-						gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
-						return offset; // return its offset
-					}
-					else
-					{
-						// this is a known marker in the sfmSet marker set
-						endMkr = analysis->endMarker;
-						bHasEndmarker = !endMkr.IsEmpty();
-						endMkr = gSFescapechar + endMkr; // add the initial backslash
-						gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
-						if (analysis->filter)
-							return offset; // it's filterable, so return its offset
-						else
-                            // it's either not filterable, or we've forgotten to update the
-                            // filter member of the USFMAnalysis structs prior to calling
-                            // this function
-							return -1;
-					}
-				}
+                    // it's either not filterable, or we've forgotten to update the
+                    // filter member of the USFMAnalysis structs prior to calling
+                    // this function
+					return wxNOT_FOUND;
 			}
 		}
 	}
@@ -12274,7 +16794,7 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 	wholeShortMkr.Empty();
 	wholeMkr.Empty();
 	endMkr.Empty();
-	return -1;
+	return wxNOT_FOUND;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -12547,6 +17067,7 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 /// values correctly in the caller upon return, the returned CString should be checked to
 /// determine if it is empty or not.) The caller also can use the nEnd value to compute an
 /// updated offset value for iterating the function call to find the next filtered marker.
+/// BEw 20Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset, 
 											 int& nStart, int& nEnd)
@@ -12594,7 +17115,7 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 		int nStartFrom = nStart + len + len3; // offset to character after the marker 
 											  // in mkrStr (a space)
 		nFound = FindFromPos(markers,filterMkrEnd,nStartFrom);
-		if (nFound == -1)
+		if (nFound == wxNOT_FOUND)
 		{
 			// no matching \~FILTER* marker; this is an error condition, so bail out
 			nStart = nEnd = offset;
@@ -12604,10 +17125,19 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 		else
 		{
             // we found the matching filter marker which brackets the end, so get offset to
-            // first character beyond it and its following space & we are done
+            // first character beyond it (?? and its following space?? see below) & we are
+            // done...
+            // 
+			// BEW 20Sep10: in docVersion 5, not only do we store filtered stuff in
+			// m_filteredInfo, but we but filter markers up against each other, so we can get
+			// a sequence "\~FILTER*\~FILTER " and so we can't assume a space between these,
+			// and indeed, we no longer even try to put one there; so only count a space
+			// after \~FILTER* if there is indeed one there
 			wxString fEnd(filterMkrEnd);
-			len3 = fEnd.Length() + 1;
+			len3 = fEnd.Length();
 			nEnd = nFound + len3;
+			if (markers[nEnd] == _T(' '))
+				nEnd++; // count the following space too
 		}
 	}
 	return mkrStr;
@@ -12834,7 +17364,9 @@ void CAdapt_ItDoc::CopyFlags(CSourcePhrase* dest, CSourcePhrase* src)
 	dest->m_bFootnote = src->m_bFootnote;
 	dest->m_bChapter = src->m_bChapter;
 	dest->m_bVerse = src->m_bVerse;
-	dest->m_bParagraph = src->m_bParagraph;
+	// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
+	//dest->m_bParagraph = src->m_bParagraph;
+	dest->m_bUnused = src->m_bUnused;
 	dest->m_bSpecialText = src->m_bSpecialText;
 	dest->m_bBoundary = src->m_bBoundary;
 	dest->m_bHasInternalMarkers = src->m_bHasInternalMarkers;
@@ -12848,552 +17380,506 @@ void CAdapt_ItDoc::CopyFlags(CSourcePhrase* dest, CSourcePhrase* src)
 	dest->m_bHasGlossingKBEntry = src->m_bHasGlossingKBEntry;
 }
 
+// Returns the target text adaptation string resulting from a reparse of the m_targetStr
+// member after punctuation settings were changed (the target language punctuation
+// settings may have be changed or not, we don't care which is the case); the first
+// parameter is the the original m_targetStr on the currently being accessed CSourcePhrase
+// instance, and we reparse with target punctuation settings - so that we get the
+// unpunctuated string we want in the m_key member of the instance() in pTempList which we use
+// internally. We pass in the caller's CSourcePhrase instance's m_nSequNumber value in
+// param 2, only in order that the reparse doesn't try deal with a value of -1; but the
+// param 2 value actually makes no difference to what is computed for returning as the
+// adaptation without any punctuation
+wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation, 
+														  int startingSequNum)
+{
+	wxString str = targetStrWithPunctuation;
+	bool bHasFixedSpaceMkr = FALSE;
+	bHasFixedSpaceMkr = IsFixedSpaceSymbolWithin(str);
+	wxString adaption; adaption.Empty();
+	SPList* pTempList = new SPList;
+	CSourcePhrase* pSPhr = NULL;
+	// TRUE in next call is bool bUseTargetTextPuncts, this call is an overload of the
+	// legacy TokenizeTargetTextString() function
+	int elementCount = gpApp->GetView()->TokenizeTargetTextString(pTempList, str, startingSequNum, TRUE);
+	elementCount = elementCount; // avoid compiler warning
+	wxASSERT(elementCount > 0); // there should be at least one CSourcePhrase instance in pTempList
+	SPList::Node* pos = pTempList->GetFirst();
+	// what we do depends on whether a fixed-space conjoining is present or not
+	if (bHasFixedSpaceMkr)
+	{
+		// we assume ~ only conjoins a pair of words, not a series of three or more; and
+		// pTempList will then contain only one CSourcePhrase instance which is a
+		// pseudo-merger of the two conjoined parts, so m_nSrcWords == 2
+		SPList::Node* pos2 = pTempList->GetFirst();
+		CSourcePhrase* pSP = pos2->GetData();
+		wxASSERT(pSP->m_nSrcWords == 2 && pTempList->GetCount() == 1);
+		SPList::Node* pos3 = pSP->m_pSavedWords->GetFirst();
+		CSourcePhrase* pWordSrcPhrase = pos3->GetData();
+		adaption = pWordSrcPhrase->m_key;
+		adaption += _T("~"); // fixed space marker
+		pos3 = pSP->m_pSavedWords->GetLast();
+		pWordSrcPhrase = pos3->GetData();
+		adaption += pWordSrcPhrase->m_key;  // append the second word
+	}
+	else
+	{
+		// most of the time, control will go through this block and there will usually be
+		// just a single CSourcePhrase instance in pTempList (exceptions will be when
+		// dealing with a merger, or the reparse of a single instance results in 2 or more
+		// due to the effect of the punctuation change)
+		SPList::Node* pos2 = pTempList->GetFirst();
+		while (pos2 != NULL)
+		{
+			CSourcePhrase* pSP = pos2->GetData();
+			if (adaption.IsEmpty())
+			{
+				adaption = pSP->m_key;
+			}
+			else
+			{
+				adaption += _T(" ") + pSP->m_key;
+			}
+		}
+	}
+	// cleanup
+	pos = pTempList->GetFirst();
+	while (pos != NULL)
+	{
+		pSPhr = pos->GetData();
+		DeleteSingleSrcPhrase(pSPhr,FALSE); // there is no partner pile
+		pos = pos->GetNext();
+	}
+	pTempList->Clear();
+	delete pTempList;
+	return adaption;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		FALSE if the rebuild fails internally, TRUE if the rebuild was successful
+/// \return		FALSE if the rebuild potentially isn't done fully right internally (that
+///             usually means that rebuilding one CSourcePhrase instance resulted in two
+///             or more new ones being created - so we have to replace the old one with
+///             the rebuilds; whereas a successful rebuild means one CSourcePhrase is
+///             just changed internally and no new ones needed to be created), TRUE if 
+///             the rebuild was successful
 /// \param		pView		-> a pointer to the View
-/// \param		pList		<- the list of source phrases of the current document (m_pSourcePhrases)
-/// \param		pos			-> the node location which stores the passed in pSrcPhrase pointer
-/// \param		pSrcPhrase	<- a pointer to a passed in source phrase
-/// \param		fixesStr	<- a reference to the caller's storage string for accumulating
-///								a list of references to the locations where the rebuild 
-///								failed for specific pSrcPhrase instances, if any
+/// \param		pList		<- the list of source phrases of the current document 
+///                            (i.e. m_pSourcePhrases)
+/// \param		pos			-> the node location which stores the passed in pSrcPhrase
+/// \param		pSrcPhrase	<- the pointer to the CSourcePhrase instance on the pos Node
+///                            passed in as the previous parameter
+/// \param		fixesStr	<- reference to the caller's storage string for accumulating
+///							   a list of references to the locations where the rebuild 
+///							   potentially isn't quite fully right, for specific 
+///							   pSrcPhrase instances, if any
 /// \remarks
 /// Called from: the Doc's RetokenizeText(). 
-/// Rebuilds the document after a punctuation change has been made.
-/// If the function fails internally, that particular pSrcPhrase instance has to have its
-/// adaptation (or gloss) abandoned and the user must later inspect the doc visually and
-/// edit at such locations to restore the translation (or gloss) correctly.
-/// A "fail" of the rebuild means that the rebuild did not, for the rebuild done on a
-/// single CSourcePhrase instance, result in a single CSourcePhrase instance - but rather
-/// two or more (it is not possible for the rebuild of a single instance to result in
-/// none).
+/// Rebuilds the document after a punctuation change has been made. If the function "fails"
+/// internally (ie. potentially isn't a simple rebuild, as discussed above for the return
+/// value), that particular pSrcPhrase instance has to be noted with a reference to chapter
+/// and verse in fixesStr so the user can later inspect the doc visually and edit at such
+/// locations to restore the translation (or gloss) correctly; but while the legacy
+/// function would throw away the adaptation in such a circumstance happened, this present
+/// (11Oct10)refactoring will try to retain the adaptation - even if it means a new
+/// CSourcePhrase is left with m_adaption and m_targetStr empty, we rely on the user's
+/// manual check to then fix things if it's different than what it should be, after the
+/// rebuild has finished. \So a "fail" of the rebuild means that the rebuild did not, for
+/// the rebuild done on a single CSourcePhrase instance, result in a single CSourcePhrase
+/// instance - but rather two or more (it is not possible for the rebuild of a single
+/// instance to result in none).
+/// 
+/// ???? the next paragraph may be inaccurate -- I'm gunna reparse fully, so probably
+/// we'll insert the new one or more before the old one, on every call, and delete the old
+/// one, rather than messing with copying info etc -- remove the next paragraph if this is
+/// indeed what I end up doing (BEW 13Jan11)
+/// ???
 /// Our approach is as follows: if the rebuild of each generates a single instance, we
 /// re-setup the members of that passed in instance with the correct new values, (and throw
 /// away the rebuilt one - fixing that one up would be too time-consuming); but if the
-/// rebuild fails, we go to the bother of copying member values across to the first
-/// instance in the new list of resulting sourcephrases, insert the list into the main
-/// document's list, and throw away the original passed in one.
-/// We internally keep track of how many new CSourcePhrase instances are created and how
-/// many of these proceed the view's m_nActiveSequNum value so we can progressively update
-/// the latter and so reconstitute the phrase box at the correct location when done.
+/// rebuild fails, we go to the bother of putting the possibly altered translation into the
+/// m_adaption and m_targetStr members of the instance with the longest m_key member, and
+/// other members we copy across to the first of the new instances; then insert the new
+/// list into the main document's list, and throw away the original passed in one. We
+/// internally keep track of how many new CSourcePhrase instances are created and how many
+/// of these precede the view's m_nActiveSequNum value so we can progressively update the
+/// latter and so reconstitute the phrase box at the correct location when done.
+/// 
+/// BEW ammended definition and coded the function
+/// whm added to wxWidgets build 4Apr05
+/// BEW 11Oct10 (actually 13Jan11)added code to base reparse on returned string from the
+/// function FromSingleMakeSstr() (rather than on m_srcPhrase, because the latter would
+/// ignore the stored inline markers etc); and also added code to use an overload of
+/// TokenizeTextString() to parse the old m_targetStr adaptation, (whenever an adaptation
+/// is present of course, this function has to be able to operate on unadapted
+/// CSourcePhrase instances too), so as to extract a possibly adjusted m_adaption value to
+/// use in the rebuild, and not to abandon the legacy adaptations if possible, - the final
+/// result should be a much better rebuild, keeping much more (or all) of the information
+/// without loss, and alerting the user to where we think a visual inspection should be
+/// done in order to verify the results are acceptable - and edit if not.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, 
 					SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
 					wxString& fixesStr)
 {
-	// whm added 4Apr05
-	// BEW ammended definition and coded the function
-	SPList* pResultList = new SPList; // where we'll store pointers to parsed 
-									  // new CSourcePhrase instances
-	bool bSucceeded = TRUE;
+	int nOriginalCount = pSrcPhrase->m_nSrcWords;
+	bool bNotInKB = FALSE; // default
+	bool bRetranslation = FALSE; // default
+	if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
+	if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
 
-	int nActiveSequNum = gpApp->m_nActiveSequNum; // store original value so 
-												  // we can update it as necessary
-	int nThisSequNum = pSrcPhrase->m_nSequNumber; // store the passed in 
-                                    // sourcephrase's sequence number (we update the active
-                                    // location only for sourcephrases located before the
-                                    // one which is the nActiveSequNum one)
+	SPList* pResultList = new SPList; // where we'll store pointers to parsed 
+            // new CSourcePhrase instances; but only use what is in it provided there is
+            // only one stored there - if more than one, we delete them and retain
+            // unchanged the original pSrcPhrase passed in
+	bool bSucceeded = TRUE;
 
     // remove the CRefString entries for this instance from the KBs, or decrement its count
     // if several seen before but do restoring of KB entries within the called functions
     // (because they know whether the rebuild succeeded or not and they have the required
-    // strings at hand) - but do it only if not a placeholder, not a retranslation not
-    // specified as "not in the KB", and there is a non-empty adaptation.
+    // strings at hand) - but do the removal from the KB only if not a placeholder, not a
+    // retranslation not specified as "not in the KB", and there is a non-empty adaptation
 	if (!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation && 
 		!pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_adaption.IsEmpty())
 	{
 		pView->RemoveKBEntryForRebuild(pSrcPhrase);
 	}
-	// determine whether we are dealing with just one, 
-	// or an owning one and the sublist containing those it owns
-	if (pSrcPhrase->m_nSrcWords > 1)
+    // determine whether we are dealing with just one, or an owning one and the sublist
+	// containing those it owns (note, a conjoined pair with joining by fixed space USFM
+	// marker, ~ , is to be treated as a single CSourcePhrase even though formally it's a
+	// pseudo-merger, so we must call IsFixedSpaceSymbolWithin() in the test and if it
+	// returns TRUE, we don't enter the TRUE block below, but rather process such an
+	// instance in the else block where ReconstituteOneAfterPunctuationChange() is called)
+	if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 	{
-        // this is a merged sourcephrase; so we expect the tokenizing of its m_srcPhrase
-        // string to result in several new CSourcePhrase instances, so we can't call
-        // ReconstituteOneAfterPunctuationChange() here, instead plagiarize its code and
-        // modify to handle the passed in merged CSourcePhrase instance here. Our primary
-        // goal here is to determine if the count of the new srcPhrase instances from the
-        // retokenization of m_srcPhrase is the same value as the value in the passed in
-        // pSrcPhrase instance's member m_nSrcWords. If that is so, then this is a likely
-        // candidate for a successful rebuild -- the only other criterion is that the total
-        // count of the reparsed original (owned) sourcephrase instances does not exceed
-        // the maximum (10) allowed for a merged sourcephrase. If both criteria are
-        // satisfied, we can programmatically rebuild this merged pSrcPhrase; if either is
-        // not satisfied, we have to abandon the merged instance and restore the list of
-        // (retokenized) owned instances to the main m_pSourcePhrases list, and inform the
-        // user of where he'll later need to manually remerge and readapt/regloss.
-		int nOriginalCount = pSrcPhrase->m_nSrcWords;
-		bool bNotInKB = FALSE; // default
-		bool bRetranslation = FALSE; // default
-		if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
-		if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
-		// placeholders omitted above - because they can't be merged so this block 
-		// doesn't need to deal with them
+//#ifdef __WXDEBUG__
+//		wxLogDebug(_T("  ReconsistuteAfterPunctuationChange: 17,734 For Merger:  pSrcPhrase sn = %d  m_srcPhrase = %s"),
+//					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+//#endif
 
-		wxString srcPhrase; // copy of m_srcPhrase member
-		wxString targetStr; // copy of m_targetStr member
-		wxString adaption; // copy of m_adaption member
-		wxString gloss; // copy of m_gloss member
+		// BEW 10Mar11, the protocol we use for mergers is the following:
+		// (a) we must change the punctuation & src & tgt language members not just of the
+		// merged instance, but also for each of the instances in it's m_pSavedWords
+		// sublist of originals. (Why? Because the user may sometime unmerge it, and we
+		// don't want to be restoring instances to be viewed, which reflect the old
+		// punctuation settings.)
+		// (b)Care must be exercised, merging creates another level of CSourcePhrase
+		// instances, so our algorithm must avoid calling Merge() (see SourcePhrase.cpp)
+		// on the instances in the saved sublist, such as m_pSavedWords. But we also want
+		// to keep the converted target text, where it exists, so....
+		// (c)We use FromMergerMakeSstr() to get a source text string, srcPhrase, with all
+		// the markers, unfilterings, punctuations etc in their proper place;
+		// (d) We use TokenizeTextString(), passing in pResultList to get returned newly
+		// created CSourcePhrase instances returned, having passed in srcPhrase wxString;
+		// (e) provided, and only provided, the number of elements in pResultList equals
+		// the element count of pSrcPhrase->m_pSavedWords, we iterate in parallel over
+		// both the latter and the CSourcePhrase instances in pResultList, and copy over
+		// from the latter the changed text and punctuation strings, to the former; we
+		// also obtain from the pResultList's instances, each m_targetStr contents, and
+		// using the new punctuation settings (ie. making a RemovePunctuation() call with
+        // the appropriate punctuation string passed in)calculate a new m_adaption value
+        // for each instance, and we then transfer the m_adaption values back to the same
+        // members on the equivalent CSourcePhrase instances within the
+        // pSrcPhrase->m_pSavedWords list (the m_targetStr values won't have changed)
+		// (f) pSrcPhrase->m_pSavedWords's contents are now up-to-date for the changed
+		// punctuation settings. The owning merged CSourcePhrase instance's m_srcPhrase
+		// member will not have changed (punctuation settings changes don't add or remove
+		// or alter the location of punctuation and word building characters in the source
+		// text, it just redefines where the boundaries are between "the words" and the
+		// punctuation characters at the start and end of them. So, to get the new value
+		// for the m_adaption member of the merger (ie. of pSrcPhrase), all we need do is
+		// pass pSrcPhrase->m_srcPhrase through RemovePunctuation() using the final
+		// parameter from_target_text so as to do it with the target language's new
+		// punctuation settings (which may, or may not, have changed). 
+        // Once (f) is completed, the whole original merged pSrcPhrase has been
+        // successfully updated to the new punctuation settings.
+		SPList* pOwnedList = pSrcPhrase->m_pSavedWords; // for convenience's sake
+
+        // placeholders can't be merged, and so won't be in the merger, so this block can
+        // ignore them
+
+		wxString srcPhrase; // for a copy of m_srcPhrase member
+		wxString targetStr; // for a copy of m_targetStr member
+		wxString adaption; // for a copy of m_adaption member
+		wxString gloss; // for a copy of m_gloss member
 		adaption.Empty(); 
 		gloss.Empty();
 
         // setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
         // regardless of the current mode (whether adapting or not) since rebuilding
         // affects everything
-		int numLegacyElements = pSrcPhrase->m_nSrcWords;
 		gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
-		targetStr = pSrcPhrase->m_targetStr; // likewise, has punctuation, if any
-		srcPhrase = pSrcPhrase->m_srcPhrase; // this member has all the source punctuation, 
-											 // if any on this word or phrase
+        // Set srcPhrase string: this member has all the source punctuation, if any on this
+        // word or phrase, as well as markers etc, as FromMergerMakeSstr() is docv5 aware
+		//srcPhrase = pSrcPhrase->m_srcPhrase;
+		srcPhrase = FromMergerMakeSstr(pSrcPhrase);
+		// Set targetStr only to the punctuated m_targetStr member, because we only want
+		// to deal with words, tgt punctuation and possibly fixed space marker (~) when we
+		// come to reparsing the target text with target punctutation chars to see if
+		// things have been changed in the target text
+		targetStr = pSrcPhrase->m_targetStr;
+		// calling RemovePunctuation() on this, using the target language punctuation
+		// settings string, will produce an appropriate m_adaption member for the merged
+		// instance
+		adaption = targetStr;
+		if (!adaption.IsEmpty())
+		{
+			pView->RemovePunctuation(this, &adaption, from_target_text);
+			pSrcPhrase->m_adaption = adaption;
+		}
+        // Note: in case you are wondering... changing the punctuation settings, not matter
+        // what kind of change is made to them, will have absolutely no effect on the
+        // merger's m_srcPhrase value. The latter can't obtain new characters, nor lose
+        // existing characters, by a punctuation settings change. All that can happen is
+        // that the status of some characters already present will underlyingly change from
+        // being word-building, to being punctuation, or vise versa. Nor can the relative
+        // order of characters in m_srcPhrase be changed by a change to the punctuation
+        // settings. It's only m_key and/or m_adaption which have the potential to have
+        // different values after a punctuation change.
 
-		// reparse the srcPhrase string
-		// important, ParseWord() doesn't work right if the first character is a space
+		// reparse the srcPhrase string - this will use the newly changed punctuation
+		// settings, and hopefully, produce a new set of CSourcePhrase instances, with
+		// same count as would be obtained from a GetCount() call on m_pSavedWords above;
+		// this isn't guaranteed however, and if the count differs, we won't use the
+		// results of this tokenization
 		srcPhrase.Trim(TRUE); // trim right end
 		srcPhrase.Trim(FALSE); // trim left end
 		int numElements;
-		numElements = pView->TokenizeTextString(pResultList, srcPhrase, 
-												pSrcPhrase->m_nSequNumber);
+		numElements = pView->TokenizeTextString(pResultList, srcPhrase, pSrcPhrase->m_nSequNumber);
 		wxASSERT(numElements > 1);
-		
-		// test to see if we have a candidate for rebuilding successfully
-		if ((int)pResultList->GetCount() == numLegacyElements)
-		{
-            // the numbers of old and new CSourcePhrase instances match, so check out the
-            // owned instances next - after retokenizing them; we can't base the rebuild on
-            // the above retokenization because it would leave the owned sourcephrase
-            // instances unrebuilt, and if the user then later unmerged, he would restore
-            // instances with the wrong punctuation settings. So we must rebuild each of
-            // the owned ones and this process could conceivably generate a different total
-            // for the number produced (it would be unexpected and I can't conceive how it
-            // could happen but I'm going to play safe and assume it could) -- so we'll
-            // base our final merger on a remerge of the rebuild owned ones, but we can do
-            // that only if there are less than MAX_WORDS (ie. 10) - otherwise, we count
-            // this build attempt as a "failure" and insert the rebuilt owned ones back
-            // into the main list and throw away the original merged sourcephrase instance
-            // passed in.
-			SPList* pOwnedList = new SPList; // accumulate here the results of reparsing 
-											 // all owned CSourcePhrases
-			SPList::Node* posOwned = pSrcPhrase->m_pSavedWords->GetFirst();
-			wxASSERT( posOwned != NULL);
-			SPList* pParsedList = new SPList; // for returning the results of parsing 
-											  // each owned instance
-			while (posOwned != NULL)
-			{
-				SPList::Node* savePos = posOwned;
-				CSourcePhrase* pOwnedSrcPhrase = (CSourcePhrase*)posOwned->GetData();
-				posOwned = posOwned->GetNext();
-				pParsedList->Clear(); 
-				bool bParseCountUnchanged = ReconstituteOneAfterPunctuationChange(
-												pView,pSrcPhrase->m_pSavedWords,
-												savePos,pOwnedSrcPhrase,fixesStr,
-												pParsedList,TRUE);
-                // which sourcephrase instance(s) we transfer to pOwnedList depends on the
-                // value of bParseCountUnchanged. If the latter is TRUE, then
-                // ReconstituteOneAfterPunctuationChange will have updated the passed in
-                // sourcephrase pOwnedSrcPhrase and so we'll abandon the contents of
-                // pParsedList since the function would not have updated that list's one,
-                // but if the return value was FALSE, the ones in pParsedList will have to
-                // be copied to pOwnedList because they were the ones which the function
-                // updated
-				if (bParseCountUnchanged)
-				{
-					// retain the original
-					pOwnedList->Append(pOwnedSrcPhrase);
 
-					// delete the unwanted newly parsed sourcephrases in pParsedList
-					DeleteListContentsOnly(pParsedList);
+		// BEW 10Mar11, if the counts match, then we can copy data from one instance in
+		// pResultsList to the corresponding instance in pSrcPhrase->m_pSavedWords, and if
+		// that is the case, we get a robust conversion. Different element counts result
+		// in indeterminacies in how to transfer the data appropriately. Rather than
+		// guessing, we return FALSE to let fixesStr get an entry added, and the caller
+		// will ensure it is shown to the user so he can visually inspect the document and
+		// edit it as required at the appropriate places.
+
+		// test to see if we have a candidate for updating successfully
+		if ((int)pResultList->GetCount() == nOriginalCount)
+		{
+            // The number of new CSourcePhrase instances has not changed, because it
+            // matches the count of the instances in pSrcPhrase->m_pSavedWords. So we can
+			// update the merger.
+			SPList::Node* posOwned = pOwnedList->GetFirst(); // i.e. from pSrcPhrase->m_pSavedWords list
+			SPList::Node* posNew = pResultList->GetFirst(); // i.e. from the tokenization above
+			bool bIsFirst = FALSE;
+			bool bIsLast = FALSE;
+			int count = 0;
+			pSrcPhrase->m_pMedialPuncts->Clear(); // we refill it below, in the loop
+			while (posOwned != NULL && posNew != NULL)
+			{
+				CSourcePhrase* pOwnedSrcPhrase = posOwned->GetData();
+				posOwned = posOwned->GetNext();
+				CSourcePhrase* pNewSrcPhrase = posNew->GetData();
+				posNew = posNew->GetNext();
+
+				count++;
+				if (count == 1)
+					bIsFirst = TRUE;
+				if (count == nOriginalCount)
+					bIsLast = TRUE;
+
+				// Transfer m_key, m_srcPhrase, from pResultsList's instances, the latter
+				// is built from the reconstituted source text, and so has no adaptation
+				// information. But for m_adaption and m_targetStr for the owned
+				// CSourcePhrase instances' list, we have to take the values in the
+				// instances within pSrcPhrase->m_pSavedWords - their m_targetStr values
+				// (for the values with punctuation), but for the m_adaption values, we'll
+				// have to pass the former through RemovePunctuation() using the
+				// use_target_punctuation enum value. The new values for m_precPunct,
+				// m_follPunct and m_follOuter punct are more tricky - we can transfer
+				// what is in each instance within pResultsList's instances, but only to
+				// each of the instances in pSrcPhrase->m_pSavedWords; and as we do that
+				// we have to use the bIsFirst and bIsLast flags to transfer only the
+				// m_precPunct value from the first, and m_follPunct and m_follOuterPunct
+				// from the last in pResultsList directly to the parent pSrcPhrase's
+				// m_precPunct and m_follPunct and m_follOuterPunct members - but for all
+				// others, they are "medial" to the merger, and so have to be added, in
+				// order encountered, to pSrcPhrase->m_pMedialPuncts wxArrayString.
+				// (m_pMedialMarkers values don't change when doing adjustments for a
+				// change in the punctuation settings, so we can leave what is in
+				// pSrcPhrase unchanged)
+				pOwnedSrcPhrase->m_srcPhrase = pNewSrcPhrase->m_srcPhrase; // this line should be redundant
+				pOwnedSrcPhrase->m_key = pNewSrcPhrase->m_key;
+				wxString anAdaption;
+				wxString aTargetStr = pOwnedSrcPhrase->m_targetStr; // m_targetStr shouldn't have changed
+				anAdaption = aTargetStr;
+				if (!anAdaption.IsEmpty())
+				{
+					pView->RemovePunctuation(this, &anAdaption, from_target_text);
+					pOwnedSrcPhrase->m_adaption = anAdaption;
 				}
 				else
 				{
-                    // number of instances changed from one, so we want what is in
-                    // pParsedList to replace the original - so we will not call
-                    // DeleteListContentsOnly() here, and we'll not bother to delete the
-                    // original in the m_pSavedWords list on the original merged
-                    // sourcephrase instance because we will abandon that list's contents
-                    // and replace the contents by the list pOwnedList (provided the number
-                    // of saved instances in it is 10 or less) - but if more than 10 then
-                    // we'll abandon the whole merger and instead put the contents of
-                    // pOwnedList back into m_pSourcePhrases and get a reference to the
-                    // fail location added to fixesStr. (NOTE. In this algorithm, a change
-                    // in the number of the parsed CSourcePhrase instances when rebuilding
-                    // one of the owned ones in the m_pSavedWords list is potentially being
-                    // treated as a non- failure of the rebuild, provided we end up with
-                    // less than 10 when the loop has finished. We will try to 'get away'
-                    // with this on the grounds that the rebuilding of the merged phrase
-                    // can be still be done reliably - its only the number of owned
-                    // instances which has changed, and one or more of those will have had
-                    // any adaptation & gloss abandoned - but such ones are rather unlikely
-                    // to have either an adaptation or gloss anyway, in which case nothing
-                    // much is lost; and provided the user does not subsequently unmerge
-                    // this rebuilt merger, those owned originals will never be seen again
-                    // because they will remain hidden in its m_pSavedWords list.)
-					SPList::Node* ppos = pParsedList->GetFirst();
-					while (ppos != NULL)
+					pOwnedSrcPhrase->m_adaption.Empty();
+				}
+				pOwnedSrcPhrase->m_precPunct = pNewSrcPhrase->m_precPunct;
+				pOwnedSrcPhrase->m_follPunct = pNewSrcPhrase->m_follPunct;
+				pOwnedSrcPhrase->SetFollowingOuterPunct(pNewSrcPhrase->GetFollowingOuterPunct());
+				if (bIsFirst)
+				{
+					// first instance in pResultsList; anything in the pResultsList's
+					// m_precPunct from the initial instance has to be copied directly
+					pSrcPhrase->m_precPunct = pOwnedSrcPhrase->m_precPunct; // as set above
+
+                    // but anything in m_follPunct and/or m_follOuterPunct has to be copied
+                    // to pSrcPhrase->m_pMedialPuncts array instead
+					wxString follPunctStr = pNewSrcPhrase->m_follPunct;
+					if (!follPunctStr.IsEmpty())
 					{
-						CSourcePhrase* pSP = (CSourcePhrase*)ppos->GetData();
-						ppos = ppos->GetNext();
-						pOwnedList->Append(pSP);
+						pSrcPhrase->m_pMedialPuncts->Add(follPunctStr);
+					}
+					wxString follOuterPunctStr = pNewSrcPhrase->GetFollowingOuterPunct();
+					if (!follOuterPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(follOuterPunctStr);
+					}
+					bIsFirst = FALSE; // after entered once, prevent re-entry to this block
+				}
+				else if (bIsLast)
+				{
+					// last instance in pResultsList; anything in m_follPunct and/or
+					// m_follOuterPunct has to be copied direct to same members of pSrcPhrase
+					pSrcPhrase->m_follPunct = pOwnedSrcPhrase->m_follPunct; // as set above
+					pSrcPhrase->SetFollowingOuterPunct(pOwnedSrcPhrase->GetFollowingOuterPunct()); // as set above
+
+					// but anything in m_precPunct in the instance from pResultsList, has to 
+					// be copied to pSrcPhrase->m_pMedialPuncts array
+					wxString precPunctStr = pNewSrcPhrase->m_precPunct;
+					if (!precPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(precPunctStr);
 					}
 				}
-			} // end of loop for retokenizing the source text of each of the 
-			  // owned sourcephrases of pSrcPhrase
-
-            // pParsedList is no longer needed and any time its contents were retained the
-            // sourcephrase pointers were transferred to pOwnedList and so are managed by
-            // pOwnedList, and the blocks in the loop above will have already deleted any
-            // sourcephrase instances not to be retained, so finish cleaning up
-				pParsedList->Clear();
-				delete pParsedList;
-
-            // Find out if we have 10 or less; if 10 or less then we can successfully
-            // rebuild the merger, if not, we are forced to abandon the merge and will have
-            // to put the owned (new) instances back into m_pSourcePhrases and tell the
-            // user where this happened
-			int nNewCount = pOwnedList->GetCount();
-			if (nNewCount > MAX_WORDS)
-			{
-                // No deal on the rebuild possibility with the rebuild owned instances, so
-                // abandon the merge. First, add a reference to the bad location to
-                // fixesStr (but only if it is (U)SFM structured data - since unstructured
-                // data lacks chapter and verse markers)
-				pView->UpdateSequNumbers(0); // make sure they are in sequence, 
-											 // so next call won't fail
-				if (!gbIsUnstructuredData)
+				else if (!bIsLast && !bIsFirst)
 				{
-					fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
-					fixesStr += _T("   ");
-				}
-
-				// do the active sequence number updating
-				if (nThisSequNum < nActiveSequNum)
-					nActiveSequNum += nNewCount - 1; // 1 instance is being replaced by 
-													 // nNewCount instances
-
-                // insert the newly built list of CSourcePhrase instances into
-                // m_pSourcePhrases preceding the pos position
-				SPList::Node* newPOS = pOwnedList->GetFirst();
-				CSourcePhrase* pSrcPhr = NULL;
-				while (newPOS != NULL)
-				{
-					pSrcPhr = (CSourcePhrase*)newPOS->GetData();
-					newPOS = newPOS->GetNext();
-					pList->Insert(pos,pSrcPhr);
-				}
-
-				// delete the original merged instance and tidy up
-				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // don't bother to delete 
-														 // its partner pile
-				pList->DeleteNode(pos);
-
-				// tell caller there was a failure on this rebuild attempt
-				bSucceeded = FALSE;
-			}
-			else // there were MAX_WORDS ie. 10 or less new CSourcePhrases 
-				 // parsed from the m_pSavedWords list
-			{
-                // we are gunna get away with a rebuild, so get on with it -- we need to
-                // use the Merge() function in the CSourcePhrase class, and pass it the new
-                // CSourcePhrase instances in pOwnedList - the iterative calls to Merge
-                // build the m_pSavedWords list (where the merging is done by all but the
-                // first of pOwnedList being merged to the first in that list so that
-                // m_pSavedWords is the list in that first instance in the pOwnedList list
-				SPList::Node* pos2 = pOwnedList->GetFirst();
-				wxASSERT(pos2);
-				// we merge the second and all succeeding to the first one
-				CSourcePhrase* pMergedSrcPhr = (CSourcePhrase*)pos2->GetData();
-				pos2 = pos2->GetNext();
-				while (pos2 != NULL)
-				{
-					CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
-					pos2 = pos2->GetNext();
-					if (pSP->m_bNotInKB)
-						pSP->m_bNotInKB = FALSE;
-					pMergedSrcPhr->Merge(pView,pSP);
-				}
-
-                // do the active sequence number updating; since we will get away with a
-                // merge here, we must subtract nOriginalCount from the nNewCount value to
-                // find out how many extras, if any, are involved
-				if (nThisSequNum < nActiveSequNum)
-					nActiveSequNum += nNewCount - nOriginalCount;
-
-                // we now have this situation: the original merged sourcephrase
-                // (pSrcPhrase) is due to be abandoned (ie. deleted) but we have rebuilt
-                // the sourcephrases in its m_pSavedWords list, and earlier stored these
-                // rebuilt ones in pOwnedList; the rebuilt ones are actually the same
-                // objects as in the pSrcPhrase->m_pSavedWords list, except that if any one
-                // of the rebuilt ones produced two or more in the rebuilding, then these
-                // ones would not be identical to any in the pSrcPhrase->m_pSavedWords list
-                // (see what ReconstituteOneAfterPunctuationChange() does when it fails, to
-                // see why). To get rid of pSrcPhrase we have to therefore first delete any
-                // owned sourcephrase instances in the pSrcPhrase->m_pSavedWords list which
-                // are NOT also in the pOwnedList which (due to the merge) are now all in
-                // the pMergedSrcPhr->m_pSavedWords list - and recall that the first in the
-                // latter list is built by the copy constructor because pMergedSrcPhrase is
-                // actually the first instance that was in pOwnedList - to which all the
-                // others merged in the block above. We can't therefore just delete all the
-                // instances in the pSrcPhrase->m_pSavedWords list because we'd be deleting
-                // some which we must retain (ie. those which are pointed at by pointers in
-                // both lists).
-				pOwnedList->Clear(); // these are all managed elsewhere, either as 
-                                     // pMergedSrcPhr or in the latter's m_pSavedWords list
-				SPList::Node* posOld = pSrcPhrase->m_pSavedWords->GetFirst();
-				wxASSERT(posOld);
-				while (posOld != NULL)
-				{
-					CSourcePhrase* pSrcPhraseOld = (CSourcePhrase*)posOld->GetData();
-					posOld = posOld->GetNext();
-					SPList::Node* posNew = NULL;
-					if (pSrcPhraseOld == pMergedSrcPhr)
+					// neither first nor last instance in pResultsList; any punctuation in
+					// such instances' m_precPuncts, m_follPuncts, and/or m_follOuterPuncts
+					// has to be copied to pSrcPhrase->m_pMedialPuncts array
+					wxString precPunctStr = pNewSrcPhrase->m_precPunct;
+					if (!precPunctStr.IsEmpty())
 					{
-						// retain this one, so do nothing
-						continue;
+						pSrcPhrase->m_pMedialPuncts->Add(precPunctStr);
 					}
-					else // it's not the pMergedSrcPhr, so test for a match in the 
-						 // latter's m_pSavedWords list
+					wxString follPunctStr = pNewSrcPhrase->m_follPunct;
+					if (!follPunctStr.IsEmpty())
 					{
-						posNew = pMergedSrcPhr->m_pSavedWords->Find(pSrcPhraseOld);
-						if (posNew == NULL)
-						{
-							// no matching CSourcePhrase instance was found, 
-							// so this old one can be deleted
-							DeleteSingleSrcPhrase(pSrcPhraseOld, FALSE); // don't 
-											// bother to delete its partner pile
-						}
-						else
-						{
-							// there was a match, so we need to retain this one
-							continue;
-						}
+						pSrcPhrase->m_pMedialPuncts->Add(follPunctStr);
+					}
+					wxString follOuterPunctStr = pNewSrcPhrase->GetFollowingOuterPunct();
+					if (!follOuterPunctStr.IsEmpty())
+					{
+						pSrcPhrase->m_pMedialPuncts->Add(follOuterPunctStr);
 					}
 				}
-                // remove the entries in the old m_pSavedWords list, but leave pointers
-                // alone - anything retained is now managed by the
-                // pMergedSrcPhr->m_pSavedWords list
-				pSrcPhrase->m_pSavedWords->Clear();
-
-				// copy across the passed-in pSrcPhrase's flag values to the new merged
-				// instance 
-				CopyFlags(pMergedSrcPhr,pSrcPhrase);
-
-                // copy the other stuff (m_chapterVerse & m_markers are accumulated by the
-                // Merge() call and the medial lists, if needed, set up; so we have fewer
-                // things to copy here)
-				pMergedSrcPhr->m_curTextType = pSrcPhrase->m_curTextType;
-				pMergedSrcPhr->m_inform = pSrcPhrase->m_inform;
-				pMergedSrcPhr->m_nSequNumber = pSrcPhrase->m_nSequNumber;// maybe 
-														// incorrect, but we don't care
-
-				bool bNotInKB = pSrcPhrase->m_bNotInKB; // preserve for store test below
-                // The m_bHas... booleans need to be made FALSE since this instance is not
-                // yet in the KB (we store it there below, if the original was stored
-                // there)
-				pMergedSrcPhr->m_bHasKBEntry = FALSE;
-				pMergedSrcPhr->m_bHasGlossingKBEntry = FALSE;
-				
-                // the rebuilt sourcephrase instances may not have filled-in m_targetStr
-                // and m_adaption members, so we have to copy pSrcPhrase's (merged) members
-                // to pMergedSrcPhr in order to retain the user's adaptation - and
-                // similarly for the m_gloss member (the m_key member should already be
-                // correct, since it was built by the Merge() calls within the loop, along
-                // with the m_srcPhrase member)
-				targetStr.Trim(TRUE); // trim right end
-				targetStr.Trim(FALSE); // trim left end
-				gloss.Trim(TRUE); // trim right end
-				gloss.Trim(FALSE); // trim left end
-
-				pMergedSrcPhr->m_targetStr = targetStr;
-				pMergedSrcPhr->m_gloss = gloss;
-				adaption = targetStr;
-				pView->RemovePunctuation(this,&adaption,from_target_text);
-				pMergedSrcPhr->m_adaption = adaption;
-
-				// now insert our rebuilt merged sourcephrase preceding the old one
-				pList->Insert(pos,pMergedSrcPhr);
-
-				// and delete the old one, and then remove its list entry
-				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't bother to delete 
-														  // its partner pile
-				pList->DeleteNode(pos);
-
-				// store its gloss and adaptation entries in the appropriate KBs, 
-				// provided it is appropriate
-				if (!bNotInKB)
-					pView->StoreKBEntryForRebuild(pMergedSrcPhr,
-							pMergedSrcPhr->m_adaption,pMergedSrcPhr->m_gloss);
-			}
-
-            // remove pOwnedList and remove its pointers, but don't delete the objects
-            // since they belong to m_pSavedWords in the rebuilt merged sourcephrase; or
-            // they have been inserted into the document's m_pSourcePhrases list - either
-            // way, they must be retained
-			pOwnedList->Clear();
-			delete pOwnedList;
-		}
-		else // count of new instances after reparse differs from count of 
-			 // legacy instances
+			} // end of loop for test: while (posOwned != NULL && posNew != NULL)
+		} // end of TRUE block for test:  if ((int)pResultList->GetCount() == nOriginalCount)
+		else // the reparsed source text has generated a different number of CSourcePhrase instances 
 		{
-            // we got more (or maybe less) CSourcePhrases in the reparse, so we'll have to
-            // abandon this merger; we'll handle this case by plagiarizing the code from
-            // earlier in this function, and just omit some tests. We will have to call
-            // ReconstituteOneAfterPunctuationChange() on all the owned ones in
-            // m_pSavedWords, and then insert these rebuilt instances into the
-            // m_pSourcePhrases list, delete the passed in pSrcPhrase, then abandon the old
-            // adaptation, and make sure the user is informed about where this failure to
-            // rebuild took place. (Comments removed in the code in the following block,
-            // since it is copied from above.)
-			SPList* pOwnedList = new SPList;
-			SPList::Node* posOwned = pSrcPhrase->m_pSavedWords->GetFirst();
-			wxASSERT( posOwned != NULL);
-			SPList* pParsedList = new SPList; // for returning the results of parsing 
-											  // each owned instance
-			while (posOwned != NULL)
-			{
-				SPList::Node* savePos = posOwned;
-				CSourcePhrase* pOwnedSrcPhrase = (CSourcePhrase*)posOwned->GetData();
-				posOwned = posOwned->GetNext();
-				pParsedList->Clear(); 
-				bool bParseCountUnchanged = ReconstituteOneAfterPunctuationChange(
-												pView,pSrcPhrase->m_pSavedWords,
-												savePos,pOwnedSrcPhrase,fixesStr,
-												pParsedList,TRUE);
-				if (bParseCountUnchanged)
-				{
-					pOwnedList->Append(pOwnedSrcPhrase);
-					DeleteListContentsOnly(pParsedList);
-				}
-				else
-				{
-                    // wxList's Append method can't append another list to this list, so
-                    // we'll just add the items in pParsedList to pOwnedList one-by-one.
-					SPList::Node* ppos = pParsedList->GetFirst();
-					while (ppos != NULL)
-					{
-						CSourcePhrase* pSP = (CSourcePhrase*)ppos->GetData();
-						ppos = ppos->GetNext();
-						pOwnedList->Append(pSP);
-					}
-				}
-			}
-			pParsedList->Clear();
-			delete pParsedList;
+			// we got too many or two few CSourcePhrase instances in the reparse of the
+			// source text (including markers etc) from the merger, so we'll have to
+			// abandon this merger; instead, just retain the pSrcPhrase passed in,
+			// unchanged, - clear out pResultList, leave an entry in fixesStr and return
+			// FALSE
 			pView->UpdateSequNumbers(0); // make sure they are in sequence, 
 										 // so next call won't fail
-			int nTheCount = pOwnedList->GetCount();
-			if (nThisSequNum < nActiveSequNum)
-				nActiveSequNum += nTheCount - 1; // 1 instance is being 
-												 // replaced by nTheCount instances
 			if (!gbIsUnstructuredData)
 			{
+				// sequence numbers should be up-to-date
 				fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
+				wxString srcStr = _T(' ');
+				srcStr += pSrcPhrase->m_srcPhrase;
+				fixesStr += srcStr;
 				fixesStr += _T("   ");
 			}
-			SPList::Node* newPOS = pOwnedList->GetFirst();
-			CSourcePhrase* pSrcPhr = NULL;
-			while (newPOS != NULL)
+			// the pResultList list was not used in this block, 
+			// so we can unilaterally clear it here
+			SPList::Node* aPos = pResultList->GetFirst();
+			CSourcePhrase* pASrcPhrase = NULL;
+			while (aPos != NULL)
 			{
-				pSrcPhr = (CSourcePhrase*)newPOS->GetData();
-				newPOS = newPOS->GetNext();
-				pList->Insert(pos,pSrcPhr);
+				pASrcPhrase = (CSourcePhrase*)aPos->GetData();
+				aPos = aPos->GetNext();
+				DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+					// "don't delete its partner pile" as we'll let RecalcLayout()
+					// delete them all quickly en masse later
 			}
-			SmartDeleteSingleSrcPhrase(pSrcPhrase,pOwnedList);
-			pList->DeleteNode(pos);
-			pOwnedList->Clear();
-			delete pOwnedList;
-			bSucceeded = FALSE;
-		}
+			pResultList->Clear();
+			delete pResultList;
+			return FALSE;
+		} // end of else block for test: if ((int)pResultList->GetCount() == nOriginalCount)
 	} // end of block for when dealing with a merged sourcephrase
 	else // the test of pSrcPhrase->m_nSrcWords yielded 1 
 		 // (ie. an unmerged sourcephrase)
 	{
         // we are dealing with a plain vanila single-word non-owned sourcephrase in either
         // adaptation or glossing mode
+        // FALSE is bIsOwned, i.e. not owned, when not owned it is visible in the layout,
+        // if TRUE, it is one which is stored in the m_pSavedWords list of an unowned
+        // CSourcePhrase and so is not visible in the layout
 		bool bWasOK = ReconstituteOneAfterPunctuationChange(
 						pView,pList,pos,pSrcPhrase,fixesStr,pResultList,FALSE);
+
+//#ifdef __WXDEBUG__
+//		wxLogDebug(_T("  17950 After ...One..., RETURNED bWasOK = %d  ,  pSrcPhrase sn = %d  m_srcPhrase = %s"),
+//					bWasOK, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+//#endif
 		if (!bWasOK)
 		{
-            // we got more than one in the reparse, so work out how many extras there are
-            // and update nActiveSequNum accordingly
-			int count = pResultList->GetCount();
-			wxASSERT (count > 1);
-			if (nThisSequNum < nActiveSequNum)
-				nActiveSequNum += count - 1; // 1 instance is being replaced 
-											 // by count instances
-
-            // add a reference to where things went wrong for the Rebuild Log.txt file and
-            // the message box
-			pView->UpdateSequNumbers(0);
+			// we got more than one in the reparse, so we are going to retain the passed
+			// in pSrcPhrase unchanged
 			if (!gbIsUnstructuredData)
 			{
-                // sequence numbers may not be uptodate, so do so first over whole list so
-                // that the attempt to find the chapter:verse reference string will not
-                // fail
+                // sequence numbers should be up-to-date
 				fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
+				wxString srcStr = _T(' ');
+				srcStr += pSrcPhrase->m_srcPhrase;
+				fixesStr += srcStr;
 				fixesStr += _T("   ");
 			}
 
-            // we are now ready to replace the original pSrcPhrase in m_pSourcePhrases with
-            // what was parsed within the above function - since we unexpectedly got more
-            // sourcephrase instances than one in the parse (we don't add to the KB for
-            // such as these, because we treat them as yet to be adapted/glossed)
-			SPList::Node* pos2 = pResultList->GetFirst();
-			while (pos2 != NULL)
+			// the pResultList list was not used in this block, 
+			// so we can unilaterally clear it here
+			SPList::Node* aPos = pResultList->GetFirst();
+			CSourcePhrase* pASrcPhrase = NULL;
+			while (aPos != NULL)
 			{
-				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
-				pos2 = pos2->GetNext();
-				SPList::Node* pos3;
-				pos3 = pList->Insert(pos,pSP); // insert before the original POSITION
+				pASrcPhrase = (CSourcePhrase*)aPos->GetData();
+				aPos = aPos->GetNext();
+				DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+					// "don't delete its partner pile" as we'll let RecalcLayout()
+					// delete them all quickly en masse later
 			}
-			DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // delete old one, 
-									// don't bother to delete partner pile
-			pList->DeleteNode(pos);
-
-            // the sourcephrases stored in pResultList are now managed by m_pSourcePhrases
-            // list, and so we must not delete them - hence just remove the pointers from
-            // pResultList and return here rather than exiting the block
 			pResultList->Clear();
 			delete pResultList;
-			bSucceeded = FALSE; // ensure caller knows we got a bad rebuild
-			gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member so 
-													  // all keeps in sync
-			return bSucceeded;
+			
+			return FALSE;
 		}
-	}
+	} // end of else block for test: if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 
 	// delete the local list and its managed memory chunks - don't leak memory
-	SPList::Node* apos = pResultList->GetFirst();
+	SPList::Node* aPos = pResultList->GetFirst();
 	CSourcePhrase* pASrcPhrase = NULL;
-	while (apos != NULL)
+	while (aPos != NULL)
 	{
-		pASrcPhrase = (CSourcePhrase*)apos->GetData();
-		apos = apos->GetNext();
-
-        // If pASrcPhrase belongs to a retranslation,
-        // ReconstituteOneAfterPunctuationChange() will have already inserted any sublist
-        // of newly built sourcephrases resulting from a 'fail' to reconstitute a passed in
-        // single instance as as the same one rebuilt resulting in two or more - the
-        // insertion having taken place in pList (ie. m_pSourcePhrases); whereas if the
-        // single was rebuilt without failure, then the rebuilt one is to be thrown away
-        // entirely. Hence, in the former case, if we unilaterally here delete the rebuilt
-        // ones, those resulting from a failure and so are already in pList would then be
-        // unilaterally deleted, and the result is hanging pointers and a corrupted
-        // m_pSourcePhrases list. So for failures, we have to do a conditional delete -
-        // that is, only delete an instance if it is NOT in pList.
-        // (ConditionallyDeleteSrcPhrase() has a sufficient test that would allow us to use
-        // the one call to replace all the next four lines, but pList is typically long,
-        // and it is therefore quicker to confine the call of this function to only those
-        // sourcephrase instances which could be affected - that is, retranslation ones
-		if (pASrcPhrase->m_bRetranslation)
-			ConditionallyDeleteSrcPhrase(pASrcPhrase,pList);
-		else
-			DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
-                        // "don't delete its partner pile" as we'll let RecalcLayout()
-                        // delete them all quickly en masse later
+		pASrcPhrase = (CSourcePhrase*)aPos->GetData();
+		aPos = aPos->GetNext();
+		DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+						// "don't delete its partner pile" as we'll let RecalcLayout()
+						// delete them all quickly en masse later
 	}
 	pResultList->Clear();
 	delete pResultList;
-	gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member 
+
+	// the 8Mar11 changes should mean that the m_nActiveSequNum will not be changed by
+	// this function nor any it calls
+	//gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member 
 											  // so all keeps in sync
+	// sequence numbers should not need updating, but we'll do so for safety's sake
+	pView->UpdateSequNumbers(0);
+
 	return bSucceeded;
 }
 
@@ -13412,102 +17898,58 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 						bool bKBBackupPath,bool bGlossingKBPath, 
 						bool bGlossingKBBackupPath)
 {
-    // The following ones are KB and GlossingKB ones, and so need to preserve the
-    // alternative name or path in another wxString
-
-	// KB filename (m_curKBName)
+	// ensure the current KB filename ends with .xml extension
 	if (bKBFilename)
 	{
 		wxString thisFilename = gpApp->m_curKBName;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
+		thisFilename = MakeReverse(thisFilename);
+		int nFound = thisFilename.Find(_T('.'));
+		wxString extn = thisFilename.Left(nFound);
+		extn = MakeReverse(extn);
+		if (extn != _T("xml"))
 		{
+			thisFilename = thisFilename.Mid(nFound); // chop off bad extn
 			thisFilename = MakeReverse(thisFilename);
-			int nFound = thisFilename.Find(_T('.'));
-			wxString extn = thisFilename.Left(nFound);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
-			{
-				gpApp->m_altKBName = gpApp->m_curKBName; // the *.KB name
-				thisFilename = thisFilename.Mid(nFound); // remove the KB extension
-				thisFilename = MakeReverse(thisFilename);
-				thisFilename += _T("xml");
-			}
-			else
-			{
-				wxString altStr = thisFilename; // it's still reversed
-				nFound = altStr.Find(_T('.'));
-				altStr = altStr.Mid(nFound);
-				altStr = MakeReverse(altStr);
-				gpApp->m_altKBName = altStr + _T("KB"); // the *.KB name
-				thisFilename = MakeReverse(thisFilename); // the *.xml name (currently active)
-			}
+			thisFilename += _T("xml"); // add xml as the extension
+			gpApp->m_curKBName = thisFilename; // update to correct filename
 		}
-		gpApp->m_curKBName = thisFilename;
 	}
 	
 	// KB Path (m_curKBPath)
 	if (bKBPath)
 	{
 		wxString thisPath = gpApp->m_curKBPath;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
+		thisPath = MakeReverse(thisPath);
+		int nFound = thisPath.Find(_T('.'));
+		wxString extn = thisPath.Left(nFound);
+		extn = MakeReverse(extn);
+		if (extn != _T("xml"))
 		{
+			thisPath = thisPath.Mid(nFound); // chop off bad extn
 			thisPath = MakeReverse(thisPath);
-			int nFound = thisPath.Find(_T('.'));
-			wxString extn = thisPath.Left(nFound);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
-			{
-				gpApp->m_altKBPath = gpApp->m_curKBPath; // the *.KB pathname
-				thisPath = thisPath.Mid(nFound); // remove the KB extension
-				thisPath = MakeReverse(thisPath);
-				thisPath += _T("xml");
-			}
-			else
-			{
-				wxString altPath = thisPath; // it's still reversed
-				nFound = altPath.Find(_T('.'));
-				altPath = altPath.Mid(nFound);
-				altPath = MakeReverse(altPath);
-				gpApp->m_altKBPath = altPath + _T("KB"); // the *.KB pathname
-				thisPath = MakeReverse(thisPath); // the *.xml pathname
-			}
+			thisPath += _T("xml"); // add xml as the extension
+			gpApp->m_curKBPath = thisPath;
 		}
-		gpApp->m_curKBPath = thisPath;
 	}
 	
 	// KB Backup Path (m_curKBBackupPath)
+	// BEW 3Mar11, changed for .BAK rather than .BAK.xml, at Bob Eaton's request
 	if (bKBBackupPath)
 	{
-        // also do any needed adjustment to m_curKBBackupPath. Note -- this is different
-        // than the two above, because we don't want KB files which could have been binary
-        // (extension .KB) or XML to just have a .BAK extension for the backup one - since
-        // then we'd not know from the extension whether the contents were binary or xml.
-        // So for the backups, we'll have .BAK for a binary backup, and .BAK.xml for an XML
-        // backup (ie. just add the .xml extension to the backup name as produced by the
-        // legacy code)
+        // this has an extension, which is always to be .BAK
 		wxString thisBackupPath = gpApp->m_curKBBackupPath;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
+		thisBackupPath = MakeReverse(thisBackupPath); // reversed
+		int nFound = thisBackupPath.Find(_T("KAB."));
+		if (nFound != wxNOT_FOUND)
 		{
+			// found outermost (reversed) .BAK -- nothing to do except reverse again
 			thisBackupPath = MakeReverse(thisBackupPath);
-			int nFound = thisBackupPath.Find(_T('.'));
-			wxString extn = thisBackupPath.Left(nFound);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
-			{
-				// it found BAK
-				gpApp->m_altKBBackupPath = gpApp->m_curKBBackupPath;// the *.BAK pathname
-				thisBackupPath = MakeReverse(thisBackupPath);
-				thisBackupPath += _T(".xml"); // add ".xml" to the final .BAK already there
-			}
-			else
-			{
-				wxString altBackupPath = thisBackupPath; // it's still reversed
-				nFound = altBackupPath.Find(_T('.'));
-				altBackupPath = altBackupPath.Mid(nFound + 1); // remove ".xml"
-				altBackupPath = MakeReverse(altBackupPath);
-				gpApp->m_altKBBackupPath = altBackupPath; // the *.BAK pathname
-				thisBackupPath = MakeReverse(thisBackupPath); // it's already correct as .BAK.xml
-			}
+		}
+		else
+		{
+			// no extension! Therefore just take the name and add .BAK
+			thisBackupPath = MakeReverse(thisBackupPath);
+			thisBackupPath += _T(".BAK");
 		}
 		gpApp->m_curKBBackupPath = thisBackupPath;
 	}
@@ -13516,65 +17958,36 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 	if (bGlossingKBPath)
 	{
 		wxString thisGlossingPath = gpApp->m_curGlossingKBPath;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
+		thisGlossingPath = MakeReverse(thisGlossingPath);
+		int nFound = thisGlossingPath.Find(_T('.'));
+		wxString extn = thisGlossingPath.Left(nFound);
+		extn = MakeReverse(extn);
+		if (extn != _T("xml"))
 		{
+			thisGlossingPath = thisGlossingPath.Mid(nFound); // chop off bad extn
 			thisGlossingPath = MakeReverse(thisGlossingPath);
-			int nFound = thisGlossingPath.Find(_T('.'));
-			wxString extn = thisGlossingPath.Left(nFound);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
-			{
-				gpApp->m_altGlossingKBPath = gpApp->m_curGlossingKBPath; // the *.KB pathname
-				thisGlossingPath = thisGlossingPath.Mid(nFound); // remove the KB extension
-				thisGlossingPath = MakeReverse(thisGlossingPath);
-				thisGlossingPath += _T("xml"); // the *.xml pathname
-			}
-			else
-			{
-				wxString altGlossingPath = thisGlossingPath; // it's still reversed
-				nFound = altGlossingPath.Find(_T('.'));
-				altGlossingPath = altGlossingPath.Mid(nFound);
-				altGlossingPath = MakeReverse(altGlossingPath);
-				gpApp->m_altGlossingKBPath = altGlossingPath + _T("KB"); // the *.KB pathname
-				thisGlossingPath = MakeReverse(thisGlossingPath); // the *.xml pathname
-			}
+			thisGlossingPath += _T("xml"); // add xml as the extension
+			gpApp->m_curGlossingKBPath = thisGlossingPath;
 		}
-		gpApp->m_curGlossingKBPath = thisGlossingPath;
 	}
-	
+
 	// Glossing KB Backup Path
 	if (bGlossingKBBackupPath)
 	{
-        // also do any needed adjustment to m_curGlossingKBBackupPath. Note -- this is
-        // different than above, because we don't want KB files which could have been
-        // binary (extension .KB) or XML to just have a .BAK extension for the backup one -
-        // since then we'd not know from the extension whether the contents were binary or
-        // xml. So for the backups, we'll have .BAK for a binary backup, and .BAK.xml for
-        // an XML backup (ie. just add the .xml extension to the backup name as produced by
-        // the legacy code)
+        // this has an extension, which is always to be .BAK
 		wxString thisGlossingBackupPath = gpApp->m_curGlossingKBBackupPath;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
+		thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath); // reversed
+		int nFound = thisGlossingBackupPath.Find(_T("KAB."));
+		if (nFound != wxNOT_FOUND)
 		{
+			// found outermost (reversed) .BAK -- nothing to do but reverse again
 			thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
-			int nFound = thisGlossingBackupPath.Find(_T('.'));
-			wxString extn = thisGlossingBackupPath.Left(nFound);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
-			{
-				// it found BAK
-				gpApp->m_altGlossingKBBackupPath = gpApp->m_curGlossingKBBackupPath;// the *.BAK pathname
-				thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
-				thisGlossingBackupPath += _T(".xml"); // add ".xml" to the final .BAK already there
-			}
-			else
-			{
-				wxString altGlossingBackupPath = thisGlossingBackupPath; // it's still reversed
-				nFound = altGlossingBackupPath.Find(_T('.'));
-				altGlossingBackupPath = altGlossingBackupPath.Mid(nFound + 1); // remove ".xml"
-				altGlossingBackupPath = MakeReverse(altGlossingBackupPath);
-				gpApp->m_altGlossingKBBackupPath = altGlossingBackupPath; // the *.BAK pathname
-				thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath); // it's already correct as .BAK.xml
-			}
+		}
+		else
+		{
+			// no extension! Therefore just take the name and add .BAK
+			thisGlossingBackupPath = MakeReverse(thisGlossingBackupPath);
+			thisGlossingBackupPath += _T(".BAK");
 		}
 		gpApp->m_curGlossingKBBackupPath = thisGlossingBackupPath;
 	}
@@ -13603,13 +18016,11 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 
     // we'll now put on it what the extension should be, according to the doc type we have
     // elected to save
-	wxString extn;
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
-		extn = _T(".xml");
+	wxString extn = _T(".xml");
 	title = noExtnName + extn;
 
 	// whm Note: the m_strTitle is internal to CDocument
-	// update the MFC native storage for the doc title
+	// update the target platform's native storage for the doc title
 	this->SetFilename(title, TRUE); // see above where default unnamedN is set - 
 									// TRUE means "notify views"
 		
@@ -13644,64 +18055,11 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param		curOutputFilename	-> the current m_curOutputFilename value
-/// \param		bSaveAsXML			-> the current m_bSaveAsXML value
-/// \remarks
-/// Called from: the Doc's BackupDocument() and DoFileSave().
-/// Insures that the App's m_altOutputBackupFilename is in a form that ends with ".BAK",
-/// and that the App's m_curOutputBackupFilename is in a form that ends with ".BAK.xml".
-/// The wx version does not handle the legacy .adt binary file types/extensions.
-///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename, bool bSaveAsXML)
-{
-    // input should be the current m_curOutputFilename value, and the current m_bSaveAsXML
-    // value; the function assumes that the caller's value for m_curOutputFilename is
-    // correct and complies with the m_bSaveAsXML value.
-
-    // we calculate the primary and the alternate backup names here, because it is possible
-    // that the backup file needs to be binary (for a m_bSaveAsXML = FALSE value) binary
-    // when the doc file that was read in was xml; or the backup needs to be xml (for
-    // compliance with m_bSaveAsXML = TRUE value) when the doc file that was read in was
-    // binary. However, most of the time the m_bSaveAsXML flag and the filename extensions
-    // already in place will comply, but we won't assume so, instead we use this function
-    // to ensure compliance and we call it just prior to any circumstance which needs
-    // correct backup primary and alternate filenames - such as in BackupDocument()
-	wxString baseFilename = curOutputFilename;
-	wxString thisBackupFilename;
-	baseFilename = MakeReverse(baseFilename);
-	int nFound = baseFilename.Find(_T('.'));
-	wxString extn;
-	if (nFound > -1)
-	{
-		nFound += 1;
-		extn = baseFilename.Left(nFound); // include period in the extension
-		thisBackupFilename = baseFilename.Mid(extn.Length());
-	}
-	else
-	{
-		// no extension
-		thisBackupFilename = baseFilename;
-	}	
-	thisBackupFilename = MakeReverse(thisBackupFilename);
-	if (bSaveAsXML)
-	{
-		// saving will be done in XML format, so backup filenames must comply with that
-
-		// add the required extensions
-		thisBackupFilename += _T(".BAK");
-		gpApp->m_altOutputBackupFilename = thisBackupFilename;// the *.BAK filename is the alternative
-		gpApp->m_curOutputBackupFilename = thisBackupFilename + _T(".xml"); // the complying backup 
-																	 // filename is *.BAK.xml
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
 /// \param		curOutputFilename	-> the current m_curOutputFilename value, or value
 ///                                    of some other filename string (eg. a renamed one)
 /// \remarks
 /// Called from: the Doc's BackupDocument() and DoFileSave().
-/// Insures that the m_curOutputBackupFilename ends with ".BAK.xml". The wx version does
+/// Insures that the m_curOutputBackupFilename ends with ".BAK". The wx version does
 /// not handle the legacy .adt binary file types/extensions. 
 /// BEW 30Apr10, removed second param (the m_bSaveAsXML flag)
 ///////////////////////////////////////////////////////////////////////////////
@@ -13734,18 +18092,17 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 
 	// saving will be done in XML format, so backup filenames must comply with that...
 
-	// add the required extensions; the complying backup filename is always of form:  
-	// *.BAK.xml 
+	// add the required extensions; the complying backup filename is always of form:  *.BAK 
 	thisBackupFilename += _T(".BAK");
-	gpApp->m_curOutputBackupFilename = thisBackupFilename + _T(".xml");
+	//gpApp->m_curOutputBackupFilename = thisBackupFilename + _T(".xml"); BEW removed 3Mar11
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param		event	-> unused wxCommandEvent
 /// \remarks
 /// Called from: the Tools menu "Split Document..." command.
+/// Invokes the CSplitDialog dialog.
 /// Invokes the CSplitDialog dialog.
 /// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
 /// upon immediately after, say, a Find which gets the wanted location and shows it
@@ -13765,6 +18122,7 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the Tools menu "Join Document..." command.
 /// Invokes the CJoinDialog dialog.
+/// Invokes the CSplitDialog dialog.
 /// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
 /// upon immediately after, say, a Find which gets the wanted location and shows it
 /// selected, a later RemoveSelection() call will try remove m_selection data which by
@@ -13783,6 +18141,7 @@ void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the Tools menu "Move Document..." command.
 /// Invokes the CMoveDialog dialog.
+/// Invokes the CSplitDialog dialog.
 /// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
 /// upon immediately after, say, a Find which gets the wanted location and shows it
 /// selected, a later RemoveSelection() call will try remove m_selection data which by
@@ -13899,20 +18258,14 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
-	//if (gpApp->m_bReadOnlyAccess)
-	//{
-	//	event.Enable(FALSE);
-	//	return;
-	//}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-    // enable if there is a KB ready (even if only a stub), and the document loaded, and
-    // documents are to be saved as XML is turned on; and glossing mode is turned off
-	if (gpApp->m_pLayout->GetStripArray()->GetCount() > 0 &&
-		gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
+    // enable if there is a KB ready (even if only a stub), and the document loaded and 
+    // glossing mode is turned off
+	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady && !gbIsGlossing)
 	{
 		event.Enable(TRUE);
 	}
@@ -13970,357 +18323,17 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 /// source language name; target language name; Bible book information; current output
 /// filename for the document; the current project configuration file contents; the
 /// document in xml format.
+/// BEW 12Apr10, no changes needed for support of doc version 5
+/// whm 4Feb11 modified to call a separate function DoPackDocument()
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 {
     // OnFilePackDoc(), for a unicode build, converts to UTF-8 internally, and so uses
     // CBString for the final output (config file and xml doc file are UTF-8 already).
-	wxString packStr;
-	packStr.Empty();
-
-    // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
-    // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
-    // check that it is matching; and if not, warn user that continuing the unpack might
-    // not result in properly encoded text in the docment (but allow him to continue,
-    // because if source and target text are all ASCII, the either app can read the packed
-    // data from the other and give valid encodings in the doc when unpacked.)
-	//
-    // whm Note: The legacy logic doesn't work cross-platform! The sizeof(char) and
-    // sizeof(w_char) is not constant across platforms. On Windows sizeof(char) is 1 and
-    // sizeof(w_char) is 2; but on all Unix-based systems (i.e., Linux and Mac OS X) the
-    // sizeof(char) is 2 and sizeof(w_char) is 4. We can continue to use '1' to indicate
-    // the file was packed by an ANSI version, and '2' to indicate the file was packed by
-    // the Unicode app for back compatibility. However, the numbers cannot signify the size
-    // of char and w_char across platforms. They can only be used as pure signals for ANSI
-    // or Unicode contents of the packed file. Here in OnFilePackDoc we will save the
-    // string _T("1") if we're packing from an ANSI app, or the string _T("2") if we're
-    // packing from a Unicode app. See DoUnpackDocument() for how we can interpret "1" and
-    // "2" in a cross-platform manner.
-	//
-#ifdef _UNICODE
-	packStr = _T("2");
-#else
-	packStr = _T("1");
-#endif
-
-	packStr += _T("|*0*|"); // the zeroth unique delimiter
-
-	// get source and target language names, or whatever is used for these
-	wxString curSourceName;
-	wxString curTargetName;
-	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName, 
-											curSourceName, curTargetName);
-
-    // get the book information (mode flag, disable flag, and book index; as ASCII string
-    // with colon delimited fields)
-	wxString bookInfoStr;
-	bookInfoStr.Empty();
-	if (gpApp->m_bBookMode)
-	{
-		bookInfoStr = _T("1:");
-	}
-	else
-	{
-		bookInfoStr = _T("0:");
-	}
-	if (gpApp->m_bDisableBookMode)
-	{
-		bookInfoStr += _T("1:");
-	}
-	else
-	{
-		bookInfoStr += _T("0:");
-	}
-	if (gpApp->m_nBookIndex != -1)
-	{
-		bookInfoStr << gpApp->m_nBookIndex;
-	}
-	else
-	{
-		bookInfoStr += _T("-1");
-	}
-
-	wxLogNull logNo; // avoid spurious messages from the system
-
-	// update and save the project configuration file
-	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
-	// BEW added flag to the following test on 25Nov09
-	if (!gpApp->m_curProjectPath.IsEmpty() && !gpApp->m_bReadOnlyAccess)
-	{
-		if (gpApp->m_bUseCustomWorkFolderPath && !gpApp->m_customWorkFolderPath.IsEmpty())
-		{
-			// whm 10Mar10, must save using what paths are current, but when the custom
-			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
-			// custom location.
-			if (gpApp->m_bLockedCustomWorkFolderPath)
-				bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
-			else
-				bOK = gpApp->WriteConfigurationFile(szAdminProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
-		}
-		else
-		{
-			bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
-		}
-		// original code below
-		//bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
-	}
-	// we don't expect any failure here, so an English message hard coded will do
-	if (!bOK)
-	{
-		wxMessageBox(_T(
-		"Writing out the configuration file failed in OnFilePackDoc, command aborted\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return;
-	}
-
-	// get the size of the configuration file, in bytes
-	wxFile f;
-	wxString configFile = gpApp->m_curProjectPath + gpApp->PathSeparator + 
-									szProjectConfiguration + _T(".aic");
-	int nConfigFileSize = 0;
-	if (f.Open(configFile,wxFile::read))
-	{
-		nConfigFileSize = f.Length();
-		wxASSERT(nConfigFileSize);
-	}
-	else
-	{
-		wxMessageBox(_T(
-	"Getting the configuration file's size failed in OnFilePackDoc, command aborted\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return;
-	}
-	f.Close(); // needed because in wx we opened the file
-
-	// save the doc as XML (this handler can only be invoked when m_bSaveAsXML is TRUE)
-	bool bSavedOK = TRUE;
-	// BEW added test on 25Nov09, so documents can be packed when user has read only access
-	if (!gpApp->m_bReadOnlyAccess)
-	{
-		bSavedOK = DoFileSave(TRUE); // TRUE - show wait/progress dialog
-	}
-
-	// construct the absolute path to the document as it currently is on disk; if the
-	// local user has read-only access, the document on disk may not have been recently
-	// saved. (Read-only access must not force document saves on a remote user
-	// who has ownership of writing permission for data in the project; otherwise, doing
-	// so could cause data to be lost)
-	wxString docPath;
-	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-	{
-		docPath = gpApp->m_bibleBooksFolderPath;
-	}
-	else
-	{
-		docPath = gpApp->m_curAdaptionsPath;
-	}
-	docPath += gpApp->PathSeparator + gpApp->m_curOutputFilename; // it will have .xml extension
-
-	// get the size of the document's XML file, in bytes
-	int nDocFileSize = 0;
-	if (f.Open(docPath,wxFile::read))
-	{
-		nDocFileSize = f.Length();
-		wxASSERT(nDocFileSize);
-	}
-	else
-	{
-		wxMessageBox(_T(
-	"Getting the document file's size failed in OnFilePackDoc, command aborted\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return;
-	}
-	f.Close(); // needed for wx version which opened the file to determine its size
-
-	// construct the composed information required for the pack operation, as a wxString
-	packStr += curSourceName;
-	packStr += _T("|*1*|"); // the first unique delimiter
-	packStr += curTargetName;
-	packStr += _T("|*2*|"); // the second unique delimiter
-	packStr += bookInfoStr;
-	packStr += _T("|*3*|"); // the third unique delimiter
-	packStr += gpApp->m_curOutputFilename;
-	packStr += _T("|*4*|"); // the fourth unique delimiter
-
-    // set up the byte string for the data, taking account of whether we have unicode data
-    // or not
-#ifdef _UNICODE
-	CBString packByteStr = gpApp->Convert16to8(packStr);
-#else
-	CBString packByteStr(packStr);
-#endif
-
-	// from here on we work with bytes, and so use CBString rather than wxString for the data
-
-	if (!f.Open(configFile,wxFile::read))
-	{
-		// if error, just return after telling the user about it -- English will do, 
-		// it shouldn't happen
-		wxString s;
-		s = s.Format(_T(
-"Could not open a file stream for project config, in OnFilePackDoc(), for file %s"),
-		gpApp->m_curProjectPath.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	int nFileLength = nConfigFileSize; // our files won't require more than 
-									   // an int for the length
-
-    // create a buffer large enough to receive the whole lot, allow for final null byte (we
-    // don't do anything with the data except copy it and resave it, so a char buffer will
-    // do fine for unicode too), then fill it
-	char* pBuff = new char[nFileLength + 1];
-	memset(pBuff,0,nFileLength + 1);
-	int nReadBytes = f.Read(pBuff,nFileLength);
-	if (nReadBytes < nFileLength)
-	{
-		wxMessageBox(_T(
-		"Project file read was short, some data missed so abort the command\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	f.Close(); // assume no errors
-
-	// append the configuration file's data to packStr and add the next 
-	// unique delimiter string
-	packByteStr += pBuff;
-	packByteStr += "|*5*|"; // the fifth unique delimiter
-
-	// clear the buffer, then read in the document file in similar fashion & 
-	// delete the buffer when done
-	delete[] pBuff;
-	if (!f.Open(docPath,wxFile::read))
-	{
-		// if error, just return after telling the user about it -- English will do, 
-		// it shouldn't happen
-		wxString s;
-		s = s.Format(_T(
-"Could not open a file stream for the XML document as text, in OnFilePackDoc(), for file %s"),
-		docPath.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	nFileLength = nDocFileSize; // our files won't require more than an int for the length
-	pBuff = new char[nFileLength + 1];	
-	memset(pBuff,0,nFileLength + 1);
-	nReadBytes = f.Read(pBuff,nFileLength);
-	if (nReadBytes < nFileLength)
-	{
-		wxMessageBox(_T(
-		"Document file read was short, some data missed so abort the command\n"),
-		_T(""), wxICON_EXCLAMATION);
-		return; 
-	}
-	f.Close(); // assume no errors
-	packByteStr += pBuff;
-	delete[] pBuff;
-
-    // packByteStr now is complete; so we must ask the user to save it and then do so to
-    // his nominated destination
-
-	// whm Pack design notes for future consideration:
-	// 1. Initial design calls for the packing/compression of a single Adapt It document
-	//    at a time. With the freeware zip utils provided by Lucian Eischik (based on zlib
-	//    and info-zip) it would be relatively easy in the future to have the capability of
-	//    packing multiple files into the .aip zip archive.
-	// 2. Packing/zipping can be accomplished by doing it on external files (as done below)
-	//    or by doing it in internal buffers (in memory).
-	// 3. If in future we want to do the packing/zipping in internal buffers, we would do it
-	//    with the contents of packByteStr after this point in OnFilePackDoc, and before
-	//    the pBuf is written out via CFile ff below.
-	// 4. If done in a buffer, after compression we could add the following Warning statement 
-	//    in uncompressed form to the beginning of the compressed character buffer (before 
-	//    writing it to the .aip file): "|~WARNING: DO NOT ATTEMPT TO CHANGE THIS FILE WITH 
-	//    AN EDITOR OR WORD PROCESSOR! IT CAN ONLY BE UNCOMPRESSED WITH THE UNPACK COMMAND
-	//    FROM WITHIN ADAPT IT VERSION 3.X. COMPRESSED DATA FOLLOWS:~|" 
-	//    The warning would serve as a warning to users if they were to try to load the file
-	//    into a word processor, not to edit it or save it within the word processor,
-	//    otherwise the packed file would be corrupted. The warning (without line breaks
-	//    or quote marks) would be 192 bytes long. When the file would be read from disk
-	//    by DoUnpackDocument, this 192 byte warning would be stripped off prior to
-	//    uncompressing the remaining data using the zlib tools.
-	
-    // whm 22Sep06 update: The wx version now uses wxWidget's built-in wxZipOutputStream
-    // facilities for compressing and uncompressing packed documents, hence, it no longer
-    // needs the services of Lucian Eischik's zip and unzip library. The wxWidget's zip
-    // format is based on the same free-ware zlib library, so there should be no problem
-    // zipping and unzipping .aip files produced by the MFC version or the WX version.
-
-	wxString filter;
-	wxString DefaultExt;
-	wxString defaultDir;
-	defaultDir = gpApp->m_curProjectPath;
-	// make a suitable default output filename for the packed data
-	wxString exportFilename = gpApp->m_curOutputFilename;
-	int len = exportFilename.Length();
-	exportFilename.Remove(len-3,3); // remove the xml extension
-	exportFilename += _T("aip"); // make it a *.aip file type
-
-	// get a file Save As dialog for Source Text Output
-	DefaultExt = _T("aip");
-	filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
-
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Filename For Packed Document"),
-		defaultDir,
-		exportFilename,
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-		// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
-		// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
-	fileDlg.Centre();
-
-	// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
-	// do it) Probably the project folder would be best.
-	bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
-
-	if (fileDlg.ShowModal() != wxID_OK)
-	{
-		// user cancelled file dialog so return to what user was doing previously, because
-		// this means he doesn't want the Pack Document... command to go ahead
-		return; 
-	}
-
-	// get the length of the total byte string in packByteStr (exclude the null byte)
-	int fileLength = packByteStr.GetLength();
-
-	// get the user's desired path
-	wxString exportPath = fileDlg.GetPath();
-	
-    // wx version: we use the wxWidgets' built-in zip facilities to create the zip file,
-    // therefore we no longer need the zip.h, zip.cpp, unzip.h and unzip.cpp freeware files
-    // required for the MFC version.
-	// first, declare a simple output stream using the temp zip file name
-	// we set up an input file stream from the file having the raw data to pack
-	wxString tempZipFile;
-	wxString nameInZip;
-    int extPos = exportPath.Find(_T(".aip"));
-	tempZipFile = exportPath.Left(extPos);
-	extPos = exportFilename.Find(_T(".aip"));
-	nameInZip = exportFilename.Left(extPos);
-	nameInZip = nameInZip + _T(".aiz");
-	
-	wxFFileOutputStream zippedfile(exportPath);
-	// then, declare a zip stream placed on top of it (as zip generating filter)
-	wxZipOutputStream zipStream(zippedfile);
-    // wx version: Since our pack data is already in an internal buffer in memory, we can
-    // use wxMemoryInputStream to access packByteStr; run it through a wxZipOutputStream
-    // filter and output the resulting zipped file via wxFFOutputStream.
-	wxMemoryInputStream memStr(packByteStr,fileLength);
-	// create a new entry in the zip file using the .aiz file name
-	zipStream.PutNextEntry(nameInZip);
-	// finally write the zipped file, using the data associated with the zipEntry
-	zipStream.Write(memStr);
-	if (!zipStream.Close() || !zippedfile.Close() || 
-		zipStream.GetLastError() == wxSTREAM_WRITE_ERROR) // Close() finishes writing the 
-													// zip returning TRUE if successfully
-	{
-		wxString msg;
-		msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
-		wxMessageBox(msg,_T(""),wxICON_ERROR);
-	} 
+	// DoPackDocument() assembles the raw data into the packByteStr byte buffer (CBString)
+	wxString exportPathUsed;
+	exportPathUsed.Empty();
+	DoPackDocument(exportPathUsed,TRUE); // TRUE = invoke the wxFileDialog
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -14336,6 +18349,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 /// extracted from the packed file.
 /// The .aip files pack with the Unicode version of Adapt It cannot be unpacked with the regular
 /// version of Adapt It, nor vice versa.
+/// BEW 12Apr10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 {
@@ -14691,8 +18705,6 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	}
 	gpApp->m_bUnpacking = FALSE;
 
-	gpApp->m_bSaveAsXML = TRUE;
-
     // check for the same document already in the project folder - if it's there, then ask
     // the user whether or not to have the being-unpacked-one overwrite it
 	wxFile f;
@@ -14777,7 +18789,6 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			gpApp->m_curOutputFilename = saveCurOutputFilename;
 			gpApp->m_curAdaptionsPath = saveCurAdaptionsPath;
 			gpApp->m_curOutputPath = saveCurOutputPath;
-			// In the wx vesion m_bSaveAsXML is always true
 
 			// restore the earlier document to the main window, if we have a valid path to
 			// it
@@ -14853,9 +18864,6 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // and \r) because a config file written by CStdioFile's WriteString() won't be read
     // properly subsequently
 	wxFile ff;
-		
-	wxLogNull logNo; // avoid spurious messages from the system
-
 	if(!ff.Open(projectPath, wxFile::write))
 	{
 		wxString msg;
@@ -14926,23 +18934,10 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	// empty the buffer contents which are no longer needed
 	projConfigFileStr.Empty();
 
-    // the destination machine may not have Save As XML turned on when the unpack command
-    // was given, but bSaveXMLflag preserves its value for when we exit. The loading in of
-    // the overwritten project configuration file with the GetProjectConfiguration() call
-    // below will, because m_bSaveAsXML must be TRUE for any Pack Document... operation,
-    // cause the app to have the value TRUE restored, and the File menu's Save As XML
-    // command ticked. So if bSaveXMLflag preserves a FALSE value, we'll have to undo these
-    // two effects when we exit
-
     // we now need to parse in the configuration file, so the source user's settings are
-    // put into effect; and we reset the KB paths in conformity with the config file's
-    // m_bSaveAsXML value, which is about to be set TRUE in the next few lines, (but the KB
-    // loading mechanism would not fail even if the flag was FALSE because of the
-    // alternative paths which also get constructed in SetupKBPathsEtc().) The KBs have
-    // already been loaded, or stubs created, so the SetupKBPathsEtc call here just has the
-    // effect of getting paths set up for the xml form of KB i/o.
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	//wxASSERT(pDoc != NULL);
+    // put into effect; and we reset the KB paths. The KBs have already been loaded, or
+    // stubs created, so the SetupKBPathsEtc call here just has the effect of getting paths
+    // set up for the xml form of KB i/o.
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as 
 															// noted in comments above
 	gpApp->SetupKBPathsEtc();
@@ -15042,6 +19037,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdate
 /// \remarks
 /// Called from: the Advanced menu's "Receive Synchronized Scrolling Messages" selection.
 /// is open. Toggles the menu item's check mark on and off.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event))
 {
@@ -15051,19 +19047,25 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuReceiveSSMsgs = 
 				pMenuBar->FindItem(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES);
-	wxASSERT(pAdvancedMenuReceiveSSMsgs != NULL);
+	//wxASSERT(pAdvancedMenuReceiveSSMsgs != NULL);
 
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Receive)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuReceiveSSMsgs->Check(FALSE);
+		if (pAdvancedMenuReceiveSSMsgs != NULL)
+		{
+			pAdvancedMenuReceiveSSMsgs->Check(FALSE);
+		}
 		gbIgnoreScriptureReference_Receive = TRUE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuReceiveSSMsgs->Check(TRUE);
+		if (pAdvancedMenuReceiveSSMsgs != NULL)
+		{
+			pAdvancedMenuReceiveSSMsgs->Check(TRUE);
+		}
 		gbIgnoreScriptureReference_Receive = FALSE;
 	}
 }
@@ -15093,6 +19095,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIE
 /// \remarks
 /// Called from: the Advanced menu's "Send Synchronized Scrolling Messages" selection.
 /// is open. Toggles the menu item's check mark on and off.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event))
 {
@@ -15102,19 +19105,2265 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& W
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuSendSSMsgs = 
 				pMenuBar->FindItem(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES);
-	wxASSERT(pAdvancedMenuSendSSMsgs != NULL);
+	//wxASSERT(pAdvancedMenuSendSSMsgs != NULL);
 
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Send)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenuSendSSMsgs->Check(FALSE);
+		if (pAdvancedMenuSendSSMsgs != NULL)
+		{
+			pAdvancedMenuSendSSMsgs->Check(FALSE);
+		}
 		gbIgnoreScriptureReference_Send = TRUE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenuSendSSMsgs->Check(TRUE);
+		if (pAdvancedMenuSendSSMsgs != NULL)
+		{
+			pAdvancedMenuSendSSMsgs->Check(TRUE);
+		}
 		gbIgnoreScriptureReference_Send = FALSE;
 	}
 }
+
+// whm Modified 9Feb2004, to enable consistency checking of currently open document or,
+// alternatively, select multiple documents from the project to check for consistency. If a
+// document is open when call is made to this routine, the consistency check is completed
+// and the user can continue working from the same position in the open document.
+// BEW 12Apr10, no changes for support of doc version 5
+// BEW 7July10, no changes for support of kbVersion 2 (but there may be changes needed in
+// the DoConsistencyCheck() function which is called from several places here)
+void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
+{
+	// the 'accepted' list holds the document filenames to be used
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->m_acceptedFilesList.Clear();
+
+    // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
+    // now added here & below. For Book Mode, not all Bible book folders will be scanned,
+    // instead, the check is done on the current doc, or on all the docs in the single
+    // current book folder. To check other book folders, the user must first change to one,
+    // and then the same two options will be available there.
+	wxString dirPath;
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+		dirPath = pApp->m_bibleBooksFolderPath;
+	else
+		dirPath = pApp->m_curAdaptionsPath;
+	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+
+	// BEW added 05Jan07 to enable work folder on input to be restored when done
+	wxString strSaveCurrentDirectoryFullPath = dirPath;
+
+	// Determine if a document is currently open with data to check
+	if (!pApp->m_pSourcePhrases->GetCount() == 0)
+	{
+		// A document is open with data to check, therefore see if
+		// user wants to only check the open document or to select
+		// from a list of all documents in the current project to be
+		// checked.
+		// Save current path and doc name for use in re-opening below
+		wxString pathName = pApp->m_curOutputPath;
+		wxString docName = pApp->m_curOutputFilename;
+
+		// Save the phrase box's current position in the file
+		int currentPosition = pApp->m_nActiveSequNum;
+
+		// Put up the Choose Consistency Check Type dialog
+		CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
+		if (ccDlg.ShowModal() == wxID_OK) 
+		{
+			// handle user's choice of consistency check type
+			if (ccDlg.m_bCheckOpenDocOnly)
+			{
+				// user want's to check only the currently open doc...
+
+                // Save the Doc (and DoFileSave() also automatically saves, without backup,
+                // both the glossing and adapting KBs)
+				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
+				// protection against data loss in the event of a failure
+				bool fsOK = DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+				if (!fsOK)
+				{
+					// something's real wrong!
+					wxMessageBox(_(
+					"Could not save the current document. Consistency Check Command aborted."),
+					_T(""), wxICON_EXCLAMATION);
+                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+                    // current working directory has not changed, so no need here to reset
+                    // it before return.
+					return;
+				}
+
+                // BEW added 01Aug06, ensure the current document's contents are removed,
+                // otherwise we will get a doubling of the doc data when OnOpenDocument()
+                // is called because the latter will append to whatever is in
+                // m_pSourcePhrases, so the latter list must be cleared to avoid the data
+                // doubling bug
+				pApp->GetView()->ClobberDocument();
+
+				// Ensure that our current document is the only doc in the accepted files list
+				pApp->m_acceptedFilesList.Clear();
+				pApp->m_acceptedFilesList.Add(docName);
+
+				// do the consistency check on the doc
+				DoConsistencyCheck(pApp);
+				pApp->m_acceptedFilesList.Clear();
+			}
+			else
+			{
+				// User wants to check a selection of docs in current project.
+				// This is like the multi-document type consistency check, except
+				// that, in this case, there is a currenly open document.
+
+                // BEW changed 01Aug06 Save the current doc and then clear out its contents
+                // -- see block above for explanation of why this is necessary
+                // BEW changed 29Apr10 to give better data protection 
+				bool fsOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+				if (!fsOK)
+				{
+					// something's real wrong!
+					wxMessageBox(_(
+					"Could not save the current document. Consistency Check Command aborted."),
+					_T(""), wxICON_EXCLAMATION);
+                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+                    // current working directory has not changed, so no need here to reset
+                    // it before return.
+					return;
+				}
+				pApp->GetView()->ClobberDocument();
+
+                // Enumerate the doc files and do the consistency check 
+                // whm note: EnumerateDocFiles() has the side effect of changing the current
+                // work directory to the passed in dirPath.
+				bOK = pApp->EnumerateDocFiles(this, dirPath);
+				if (bOK)
+				{
+					if (pApp->m_acceptedFilesList.GetCount() == 0)
+					{
+						// nothing to work on, so abort the operation
+						// IDS_NO_DOCUMENTS_YET
+						wxMessageBox(_(
+"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
+						_T(""),wxICON_EXCLAMATION);
+                        // whm note 5Dec06: EnumerateDocFiles above changes the current
+                        // work directory, so to be safe I'll reset it here before the
+                        // consistency check returns to what it was on entry (the line
+                        // below was not added in MFC version).
+						bool bOK;
+						bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+						return;
+					}
+					DoConsistencyCheck(pApp);
+				}
+				pApp->m_acceptedFilesList.Clear();
+			}
+		}
+		else
+		{
+			// user cancelled
+            // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the current
+            // working directory has not changed, so no need here to reset it before
+            // return.
+			return;
+		}
+
+		// BEW added 05Jan07 to restore the former current working directory
+		// to what it was on entry
+		bool bOK;
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+
+		// Re-Open the CurrentDocName to continue editing at the point where
+		// the phrase box was at closure
+		bool bOpenOK;
+		bOpenOK = OnOpenDocument(pathName);
+		SetFilename(pathName,TRUE);
+		// Return the phrase box to the active sequence number; but if the box is not
+		// in existence because the user got to the end of the document and invoked the
+		// test from there, then reset to the initial position
+		if (currentPosition == -1)
+			currentPosition = 0;
+		CPile* pPile = pApp->GetView()->GetPile(currentPosition);
+		pApp->GetView()->Jump(pApp,pPile->GetSrcPhrase());
+
+	}// end of if document is open with data to check
+	else
+	{
+		// No document open. User selected Consistency Check intending to check
+		// a selection of documents in the current project
+        // whm note: EnumerateDocFiles() has the side effect of changing the current work
+        // directory to the passed in dirPath.
+        // 
+		// BEW 9July10, if Book Mode is on, there was no way to have a consistency check
+		// done over the whole set of documents in the 67 book mode folders, so I'm adding
+		// the capability here. To get it to happen, book mode must be on, and no document
+		// open, and then a yes/no message will come up asking the user if he wants the
+		// check to be done over the contents of all the book folders. If he responds yes,
+		// then we'll iterate though the list of bible book folders and do a consistency
+		// check on all the files in each; if he responds no, then the current book folder
+		// only is checked as was the case earlier.
+		bool bOK;
+		if (pApp->m_bBookMode && !pApp->m_bDisableBookMode && (pApp->m_pSourcePhrases->GetCount() == 0))
+		{
+			// ask the user if he wants the check done over all book folders
+			wxASSERT(pApp->AreBookFoldersCreated(pApp->m_curAdaptionsPath));
+			wxString message;
+			message = message.Format(
+_("Do you want the check to be done for all document files within all the book folders?"));
+			int response = ::wxMessageBox(message, _("Consistency Check of all folders?"), wxYES_NO | wxICON_QUESTION);
+			if (response == wxYES)
+			{
+				// user wants it done over all folders
+				
+				// DoConsistencyCheck() relies on the fact that EnumerateDocFiles() having
+				// been called in prior to DoConsistencyCheck() being called will have set
+				// the current working directory to be the book folder from which all the
+				// documents within that folder are to be checked; because internally
+				// DoConsistencyCheck()calls OnOpenDocument() and passes in, in the
+				// latter's single parameter, not an absolute path as is normally the case, 
+				// but just the filename of a file in the currently targetted book folder.
+				// [ OnOpenDocument() also computes the correct m_curOutputPath correctly
+				// using the bible book path and filename variables, but we don't use that
+				// because we prefer to call DoFileSave_Protected() which will also do it
+				// for us as well as doing the actual saving. ]
+				// DoConsistencyCheck() then, after checking each doc file in the
+				// targetted folder, calls DoFileSave_Protected() and the latter, if book
+				// folder mode is turned on, uses the bible book folders supporting string
+				// variables to calculate the correct path for saving the checked document.
+				// Because our loop across the bible book folders will alter the current
+				// values of the latter, we must therefore preserve them so that we can
+				// restore the current settings when the loop completes. Though we may not
+				// need to, we'll also save and afterwards restore m_curOutputPath,
+				// m_curOutputFilename and m_curOutputBackupFilename.
+				wxString save_currentOutputPath = pApp->m_curOutputPath;
+				wxString save_currentOutputFilename = pApp->m_curOutputFilename;
+				wxString save_currentOutputBackupFilename = pApp->m_curOutputBackupFilename;
+				int save_nBookIndex = pApp->m_nBookIndex;
+				BookNamePair* save_pCurrBookNamePair = pApp->m_pCurrBookNamePair;
+				wxString save_bibleBooksFolderPath = pApp->m_bibleBooksFolderPath;
+
+				wxString bookName;
+				wxString folderPath;
+				BookNamePair aBookNamePair;
+				BookNamePair* pBookNamePair = &aBookNamePair;
+				int nMaxBookFolders = (int)pApp->m_pBibleBooks->GetCount();
+				int bookIndex;
+
+				// we create the copy of the KB or glossingKB, as the case may be, only
+				// once so that we don't have to do it every time we process the contents
+				// of the next Bible book folder
+				CKB* pKB;
+				if (gbIsGlossing)
+					pKB = pApp->m_pGlossingKB;
+				else
+					pKB = pApp->m_pKB;
+				wxASSERT(pKB != NULL);
+				CKB* pKBCopy = new CKB();
+				pKBCopy->Copy(*pKB);
+
+				// loop over the Bible book folders
+				for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
+				{
+                    // NOTE: a limitation of this calling of DoConsistencyCheck() in a loop
+                    // is that the user's potential choice to 'auto-fix later instances the
+                    // same way' will only apply on a per-folder basis
+					pBookNamePair = ((BookNamePair*)(*pApp->m_pBibleBooks)[bookIndex]);
+					folderPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + pBookNamePair->dirName;
+					// setting the index, book name pair, and bibleBooksFolderPath on the
+					// app class ensures that the internal call in DoConsistencyCheck() to
+					// the DoSaveFile_Protected() will construct the right path to the
+					// folder and file for saving the checked document.
+					pApp->m_nBookIndex = bookIndex;
+					pApp->m_pCurrBookNamePair = pBookNamePair;
+					pApp->m_bibleBooksFolderPath = folderPath;
+					// clear the list of files to be processed (actually its a wxArrayString)
+					pApp->m_acceptedFilesList.Clear();
+					// get a list of all the document files, and set the working directory to
+					// the passed in path ( DoConsistencyCheck() internally relies on this
+					// being set here to the correct folder )
+					bOK = pApp->EnumerateDocFiles(this, folderPath, TRUE); // TRUE in this call
+												// is boolean bSuppressDialog; we don't want the
+												// user to have to choose which file(s) in a
+												// dialog which may be shown as many as 67
+												// times, in the bookFolders loop!
+					DoConsistencyCheck(pApp, pKB, pKBCopy); // the overloaded 3-param version
+				}
+				// erase the copied CKB which is no longer needed
+				wxASSERT(pKBCopy != NULL);
+				EraseKB(pKBCopy); // don't want memory leaks!
+
+				// restore path and bible book folders variables to be what they were
+				// before we looped across all the book folders
+				pApp->m_acceptedFilesList.Clear();
+				pApp->m_curOutputPath = save_currentOutputPath; // restore the original output path
+				pApp->m_curOutputFilename = save_currentOutputFilename; // ditto for the output filename
+				pApp->m_curOutputBackupFilename = save_currentOutputBackupFilename;
+				pApp->m_nBookIndex = save_nBookIndex;
+				pApp->m_pCurrBookNamePair = save_pCurrBookNamePair;
+				pApp->m_bibleBooksFolderPath = save_bibleBooksFolderPath;
+
+				// restore working directory
+				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				return;
+			} // end of TRUE block for test: if (response == wxYes)
+		}
+		// legacy code - do this only if book mode check over all folders is not wanted
+		bOK = pApp->EnumerateDocFiles(this, dirPath);
+		if (bOK)
+		{
+			if (pApp->m_acceptedFilesList.GetCount() == 0)
+			{
+				// nothing to work on, so abort the operation
+				wxMessageBox(_(
+"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
+				_T(""),wxICON_EXCLAMATION);
+                // whm note 5Dec06: EnumerateDocFiles above changes the current work
+                // directory, so to be safe I'll reset it here before the consistency check
+                // returns to what it was on entry (the line below was not added in MFC
+                // version).
+				bool bOK;
+				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				return;
+			}
+			DoConsistencyCheck(pApp);
+		}
+		pApp->m_acceptedFilesList.Clear();
+		
+		// BEW added 05Jan07 to restore the former current working directory
+		// to what it was on entry
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the application is in Free Translation mode, or
+/// Vertical Editing is in progress, or it is only showing the target language text, or the
+/// active KB is not in a ready state, this handler disables the "Consistency Check..."
+/// item in the Edit menu, otherwise it enables the "Consistency Check..." item on the Edit
+/// menu.
+/// BEW modified 13Nov09, disable the consistency check menu item when the flag
+/// m_bReadOnlyAccess is TRUE (it must not be possible to initiate a consistency
+/// check when visiting a remote user's project folder -- it involves KB modifications
+/// and that would potentially lose data added to the remote user's remote KB by him)
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbShowTargetOnly)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	//if (pDoc == NULL)
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
+	bool bKBReady = FALSE;
+	if (gbIsGlossing)
+		bKBReady = pApp->m_bGlossingKBReady;
+	else
+		bKBReady = pApp->m_bKBReady;
+	// Allow Consistency Check... while document is open
+	if (bKBReady)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+// This function assumes that the current directory will have already been set correctly
+// before being called. This is the legacy version, it handles a single file from a single
+// folder, or a list of files from a single folder. (A prior call of EnumerateDocFiles()
+// with the boolean parameter default FALSE has to have been made prior to calling this
+// function. The boolean is for suppressing an internal dialog, & being FALSE permits the
+// user to select a subset of doc files to be processed -- using the dialog which
+// EnumerateDocFiles() puts up. The latter call also sets the working directory, a fact
+// which DoConsistencyCheck() relies on, as it calls OnOpenDocument() with only a filename
+// as parameter, instead of an absolute path to that file.
+// Modified, July 2003, for support of Auto Capitalization
+// BEW 12Apr10, no changes needed for support of doc version 5
+// BEW 17May10, moved to here from CAdapt_ItView
+// BEW 8July10, updated for support of kbVersion 2, and fixed some bugs (eg. progress dialog)
+// BEW 13Nov10, no changes needed to support Bob Eaton's request for glosssing KB to use all
+// maps, but it calls StoreText() and the latter needed changes
+void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
+{
+	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
+									  // initially when OnOpenDocument() is called
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	CKB* pKB;
+	wxArrayString* pList = &pApp->m_acceptedFilesList;
+	if (gbIsGlossing)
+		pKB = pApp->m_pGlossingKB;
+	else
+		pKB = pApp->m_pKB;
+	wxASSERT(pKB != NULL);
+	int nCount = pList->GetCount();
+	if (nCount <= 0)
+	{
+		// something is real wrong, but this should never happen 
+		// so an English message will suffice
+		wxString error;
+		error = error.Format(_T(
+		"Error, the file count was found to be %d, so the command was aborted."),nCount);
+		wxMessageBox(error,_T(""), wxICON_WARNING);
+		gbConsistencyCheckCurrent = FALSE;
+		return;
+	}
+	wxASSERT(nCount > 0);
+	int nTotal = 0;
+	int nCumulativeTotal = 0;
+
+	// create a list to hold pointers to auto-fix records, if user checks the auto fix checkbox
+	// in the dlg
+	AFList afList;
+
+	// create a copy of the KB, we check the copy for inconsistencies, but do updating within
+	// the current KB pointed to by the app's m_pKB pointer, or m_pGlossingKB when glossing
+	CKB* pKBCopy = new CKB(); // can't use a copy constructor, couldn't get it to work years ago
+							  // BEW 12May10 note: default constructor here does not set the
+							  // private m_bGlossingKB member, the next line does that based
+							  // on the setting for that member in pKB
+	pKBCopy->Copy(*pKB);  // this is a work-around for lack of copy constructor - see KB.h
+
+	// iterate over the document files
+	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
+								 // of the extern global of the same name
+	int i;
+	for (i=0; i < nCount; i++)
+	{
+		wxString newName = pList->Item(i);
+		wxASSERT(!newName.IsEmpty());
+
+        // for debugging- check pile count before & after (failure to close doc before
+        // calling this function resulted in the following OnOpenDocument() call appending
+        // a copy of the document's contents to itself -- the fix is to ensure
+        // OnFileClose() is done in the caller before DoConsistencyCheck() is called
+		// int piles = pApp->m_pSourcePhrases->GetCount();
+
+		bool bOK;
+		bOK = OnOpenDocument(newName); // passing in just a filename, so we are relying
+									   // on the working directory having previously
+									   // being set in the caller at the call of
+									   // EnumerateDocFiles()
+		SetFilename(newName,TRUE);
+		nTotal = pApp->m_pSourcePhrases->GetCount();
+		if (nTotal == 0)
+		{
+			wxString str;
+			str = str.Format(_T("Bad file:  %s"),newName.c_str());
+			wxMessageBox(str,_T(""),wxICON_WARNING);
+		}
+		nCumulativeTotal += nTotal;
+
+		// put up a progress indicator
+		wxString progMsg = _("%s  - %d of %d Total words and phrases");
+		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
+		wxProgressDialog progDlg(_("Consistency Checking"),
+                        msgDisplayed,
+                        nTotal,    // range
+                        pApp->GetMainFrame(),   // parent
+                        //wxPD_CAN_ABORT |
+                        //wxPD_CAN_SKIP |
+                        wxPD_APP_MODAL |
+                        wxPD_AUTO_HIDE  //-- try this as well
+                        //| wxPD_ELAPSED_TIME |
+                        //wxPD_ESTIMATED_TIME |
+                        //wxPD_REMAINING_TIME
+                       // | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                       // but wxPD_SMOOTH is not supported (see wxGauge) on all platforms, so
+                       // perhaps this is why Bill didn't get good behaviour on gtk or mac
+                        );
+		SPList* pPhrases = pApp->m_pSourcePhrases;
+		SPList::Node* pos1; 
+		pos1 = pPhrases->GetFirst();
+		wxASSERT(pos1 != NULL);
+		int counter = 0;
+		while (pos1 != NULL)
+		{
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pos1 = pos1->GetNext();
+			counter++;
+
+			// check the KBCopy has the required association of key with translation
+			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+			int nWords;
+			//if (gbIsGlossing)
+			//	nWords = 1;
+			//else
+				nWords = pSrcPhrase->m_nSrcWords;
+			CTargetUnit* pTU = NULL;
+			bool bOK = TRUE;
+			bool bFoundTgtUnit = TRUE;
+			bool bFoundRefString = TRUE;
+
+			// any inconsistency with a <Not In KB> entry can be fixed automatically,
+			// and this block must be ignored when glossing is ON
+			if (!gbIsGlossing && !pSrcPhrase->m_bRetranslation && 
+				pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
+			{
+				// the inconsistency we are fixing here is that the CSourcePhrase instance
+				// has its m_bNotInKB flag set TRUE, but the KB lacks a "<Not In KB>"
+				// entry (and if that is the case, then for kbVersion 2, possibly other
+				// CRefString instances are for that KB entry are not 'deleted' (ie.
+				// m_bDeleted flag is not yet set TRUE for them) -- so check and fix if
+				// necessary 
+				wxString str = _T("<Not In KB>");
+				// do the lookup
+				bOK = pKB->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				if (!bOK)
+				{
+					// fix it silently...
+					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
+					pKB->StoreText(pSrcPhrase,str);
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+				}
+				else
+				{
+                    // BEW 7July10, in kbVersion 2 another way there entry could be
+                    // consistent is that it does contain "<Not In KB>" but somehow other
+                    // CRefStrings on the pTU instance are not deleted - so we must fix
+                    // that. Instead of checking for any non-deleted ones, just delete them
+                    // all and re-store "<Not In KB>" -- this will be done then on entries
+                    // where this fix is not required, but since <Not In KB> is used seldom
+                    // or never, this won't matter
+					if (pTU != NULL)
+					{
+						pTU->DeleteAllToPrepareForNotInKB();
+					}
+					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
+					pKB->StoreText(pSrcPhrase,str);
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+				}
+			}
+
+			bool bTheTest = FALSE;
+			// define the test's value
+			if (gbIsGlossing)
+			{
+				if (pSrcPhrase->m_bHasGlossingKBEntry)
+				{
+					bTheTest = TRUE;
+				}
+			}
+			else // adapting
+			{
+				if (!pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bNotInKB &&
+					pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_adaption != _T("<Not In KB>"))
+				{
+					bTheTest = TRUE;
+				}
+			}
+			if (bTheTest)
+			{
+				// do the lookup
+				bOK = pKBCopy->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				if (!bOK)
+				{
+					// there was no target unit for this key in the map, so this is an
+					// inconsistency
+					bFoundTgtUnit = FALSE;
+					bFoundRefString = FALSE;
+				}
+				else
+				{
+					// the target unit is in the map, so check if there is a corresponding
+					// refString for the m_adaption, or m_gloss, member of the source phrase
+					wxASSERT(pTU);
+					bool bMatched = FALSE;
+					TranslationsList* pList = pTU->m_pTranslations; 
+					wxASSERT(pList != NULL);
+                    // For kbVersion 2 don't make this assertion. If the phrase box is at a
+                    // place where there is a m_refCount of 1 which has just been deleted
+                    // because of 'landing' the box there, and it had just the one
+                    // CRefString, then the count of non-deleted ones can legitimately be
+                    // temporarily zero. Leave this here as a reminder to the developer.
+					//wxASSERT(pTU->CountNonDeletedRefStringInstances() > 0);
+					wxString srcPhraseStr;
+					if (gbIsGlossing)
+					{
+						srcPhraseStr = pSrcPhrase->m_gloss;
+					}
+					else
+					{
+						srcPhraseStr = pSrcPhrase->m_adaption;
+					}
+					if (!((gbAutoCaps && gbSourceIsUpperCase && gbMatchedKB_UCentry) || !gbAutoCaps))
+					{
+                        // do a change to lc only if it is needed - that is, attempt it
+                        // when it is not the case that gbMatchedKB_UCentry is TRUE
+                        // (because then we want an unmodified string to be used),
+                        // otherwise attempt it when auto-caps is ON
+						srcPhraseStr = pKBCopy->AutoCapsMakeStorageString(srcPhraseStr,FALSE);
+					}
+					TranslationsList::Node* pos = pList->GetFirst();
+					wxASSERT(pos != NULL);
+					while (pos != NULL)
+					{
+						CRefString* pRefString = (CRefString*)pos->GetData();
+						pos = pos->GetNext();
+						wxASSERT(pRefString != NULL);
+						// BEW 7July10, added second test, as kbVersion 2 treats a CRefString
+						// instance as present only if it is not marked as deleted
+						if ((pRefString->m_translation == srcPhraseStr) && !pRefString->GetDeletedFlag())
+						{
+							// a matching gloss was found
+							bMatched = TRUE;
+							break;
+						}
+					}
+					if (!bMatched)
+					{
+						// no match was made, so this is an inconsistency
+						bFoundRefString = FALSE;
+					}
+				}
+			}
+
+			// open the dialog if we have an inconsistency
+			if (!bFoundTgtUnit || !bFoundRefString)
+			{
+				// make the CSourcePhrase instance is able to have a KB entry added
+				if (gbIsGlossing)
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				else
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+
+				// hide the progress window
+				progDlg.Hide(); 
+                // work out if this is an auto-fix item, if so, don't show the dialog, but
+                // use the stored AutoFixRecord to fix the inconsistency without user
+                // intervention (note: any items for which the "Ignore it, I will fix it 
+                // later" button was pressed cannot occur as auto-fix records) The next 100
+                // lines could be improved - it was "added to" in a rather ad hoc fashion,
+                // so its a bit spagetti-like... something to do sometime when there is
+                // plenty of time!
+				AutoFixRecord* pAFRecord = NULL;
+				if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
+				{
+					// we matched an auto-fix element, so do the fix automatically...
+					// update the original kb (not pKBCopy)
+					wxString tempStr = pAFRecord->finalAdaptation; // could have punctuation in it
+
+					// if the adaptation is null, then assume user wants it that way and so store
+					// an empty string
+					if (tempStr.IsEmpty())
+					{
+						pKB->StoreText(pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
+					}
+					else
+					{
+						if (!gbIsGlossing)
+						{
+							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
+                                // we don't want punctuation in adaptation KB if
+                                // autocapitalization is ON, we could have an upper case
+                                // source, but the user may have typed lower case for
+                                // fixing the gloss or adaptation, but this is okay - the
+                                // store will work right, so don't need anything here
+                                // except the call to store it
+							pKB->StoreText(pSrcPhrase,tempStr);
+						}
+						// do the gbIsGlossing case when no punct is to be removed, in next block
+					}
+					if (!tempStr.IsEmpty())
+					{
+                        // here we must be careful; pAFRecord->finalAdaptation may have a
+                        // lower case string when the source text has upper case, and the
+                        // user is expecting the application to do the fix for him; this
+                        // would be easy if we could be sure that the first letter of the
+                        // string was at index == 0, but the possible presence of preceding
+                        // punctuation makes the assumption dangerous - so we must find
+                        // where the actual text starts and do any changes there if needed.
+                        // tempStr has punctuation stripped out, pAFRecord->finalAdaptation
+                        // doesn't, so start by determining if there actually is a problem
+                        // to be fixed.
+						if (gbAutoCaps)
+						{
+							bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
+							if (bNoError && gbSourceIsUpperCase)
+							{
+								bNoError = SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
+								if (bNoError && !gbNonSourceIsUpperCase &&
+									(gcharNonSrcUC != _T('\0')))
+								{
+                                    // source is upper case but nonsource is lower and is a
+                                    // character with an upper case equivalent - we have a
+                                    // problem; we need to fix the AutoFixRecord's
+                                    // finalAdaptation string, and the sourcephrase too. At
+                                    // this point we can fix the m_adaption member as
+                                    // follows:
+									pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC);
+								}
+							}
+						}
+                        // In the next if/else block, the non-glossing-mode call of
+                        // MakeTargetStringIncludingPunctuation() accomplishes the setting
+                        // of the pSrcPhrase's m_targetStr member, handling any needed
+                        // lower case to upper case conversion (even when typed initial
+                        // punctuation is present), and the punctuation override protocol
+                        // if the passed in string in the 2nd parameter has initial and/or
+                        // final punctuation.
+						if (!gbIsGlossing)
+						{
+                            // for auto capitalization support,
+                            // MakeTargetStringIncludingPunctuation( ) is now able to do
+                            // any needed change to upper case initial letter even when
+                            // there is initial punctuation on pAFRecord->finalAdaptation
+							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
+															pAFRecord->finalAdaptation);
+						}
+						else
+						{
+							// store, for the glossing ON case, the gloss text, 
+							// with any punctuation
+							pKB->StoreText(pSrcPhrase, pAFRecord->finalAdaptation);
+							if (gbAutoCaps)
+							{
+                                 // upper case may be wanted, we have to do it on the first
+                                // character past any initial punctuation; glossing mode
+                                // doesn't do punctuation stripping and copying, but the
+                                // user may have punctuation included in the inconsistency
+                                // fixing string, so we have to check etc.
+								wxString str = pAFRecord->finalAdaptation;
+								// make a copy and remove punctuation from it
+								wxString str_nopunct = str;
+								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
+								// use the punctuation-less string to get the initial charact and
+								// its upper case equivalent if it exists
+								bool bNoError = SetCaseParameters(str_nopunct,FALSE);
+															 // FALSE means "using target punct list"
+								// span punctuation-having str using target lang's punctuation...
+								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
+															// use our own SpanIncluding in helpers
+								int punctLen = strInitialPunct.Length();
+
+								// work out if there is a case change needed, and set the
+								// relevant case globals
+								bNoError = SetCaseParameters(tempStr,FALSE);  
+															// FALSE means "it's target text"
+								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
+									&& (gcharNonSrcUC != _T('\0')))
+								{
+									if (strInitialPunct.IsEmpty())
+									{
+                                        // there is no initial punctuation, so the change
+                                        // to upper case can be done at the string's start
+										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
+									}
+									else
+									{
+										// set it at the first character past the initial
+										// punctuation
+										str.SetChar(punctLen,gcharNonSrcUC);
+										pSrcPhrase->m_gloss = str;
+									}
+								}
+							}
+							else
+							{
+								// no auto capitalization, so just use finalAdaptation 
+								// string 'as is'
+								pSrcPhrase->m_gloss = pAFRecord->finalAdaptation;
+							}
+						}
+					}
+					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
+							// of the box should show the current adaptation, or gloss, string
+					// show the progress window again but don't update it here
+					progDlg.Show(TRUE); 
+				}
+				else
+				{
+					// no match, so this is has to be handled with user intervention via
+					// the dialog
+					CConsistencyCheckDlg dlg(pApp->GetMainFrame());
+					dlg.m_bFoundTgtUnit = bFoundTgtUnit;
+					dlg.m_bDoAutoFix = FALSE;
+					dlg.m_pApp = pApp;
+					dlg.m_pKBCopy = pKBCopy;
+					dlg.m_pTgtUnit = pTU; // could be null
+					dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+					dlg.m_pSrcPhrase = pSrcPhrase;
+
+                    // update the view to show the location where this source pile is, and
+                    // put the phrase box there ready to accept user input indirectly from
+                    // the dialog
+					int nActiveSequNum = pSrcPhrase->m_nSequNumber;
+					wxASSERT(nActiveSequNum >= 0);
+					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
+					// and is needed because CLayout::RecalcLayout() relies on the
+					// m_nActiveSequNum value being correct
+#ifdef _NEW_LAYOUT
+					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
+#else
+					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
+#endif
+					pApp->m_pActivePile = GetPile(nActiveSequNum);
+					
+					pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
+					CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
+															 // the phraseBox is to be
+					if (gbIsGlossing)
+						pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+					else
+						// make it look normal, don't use m_targetStr here
+						pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+
+					GetLayout()->m_docEditOperationType = consistency_check_op;
+														// sets 0,-1 'select all'
+					pApp->GetView()->Invalidate(); // get the layout drawn
+					GetLayout()->PlaceBox();
+
+					// get the chapter and verse
+					wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
+					dlg.m_chVerse = chVerse;
+
+                    // provide hooks for the phrase box location so that the dialog can
+                    // work out where to display itself so it does not obscure the active
+                    // location
+					dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+					dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+
+					if (gbIsGlossing)
+					{
+						// really its three lines, but the code works provided the 
+						// height is right
+						if (gbGlossingUsesNavFont)
+							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
+					}
+
+					// put up the dialog
+					if (dlg.ShowModal() == wxID_OK)
+					{
+						//bool bNoError;
+						wxString finalStr;
+						// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+						// subsequent use
+						AutoFixRecord* pRec;
+						if (dlg.m_bDoAutoFix)
+						{
+							if (gbIgnoreIt)
+								// disallow record creation for a press of the "Ignore it,
+								// I will fix it later" button
+								goto x;
+							pRec = new AutoFixRecord;
+							pRec->key = pSrcPhrase->m_key; // case should be as wanted
+							if (gbIsGlossing)
+							{
+								pRec->oldAdaptation = pSrcPhrase->m_gloss; // case as wanted
+								pRec->nWords = 1;
+							}
+							else
+							{
+								pRec->oldAdaptation = pSrcPhrase->m_adaption; // case as wanted
+								pRec->nWords = pSrcPhrase->m_nSrcWords;
+							}
+
+                            // BEW changed 16May; we don't want to convert the
+                            // m_finalAdaptation member to upper case in ANY circumstances,
+                            // so we will comment out the relevant lines here and
+                            // unilaterally use the user's final string
+							finalStr = dlg.m_finalAdaptation; // can have punctuation
+									// in it, or can be null; can also be lower case and user
+									// expects the app to switch it to upper case if source is upper
+							pRec->finalAdaptation = finalStr;
+							afList.Append(pRec);
+						} // end of block for setting up a new AutoFixRecord
+
+						// update the original kb (not pKBCopy)
+x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
+                        // if the adaptation is null, then assume user wants it that way
+                        // and so store an empty string; but if user wants the
+                        // inconsistency ignored, then skip
+						wxString tempStr = dlg.m_finalAdaptation;
+						pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
+						if (gbIgnoreIt)
+						{
+							// if the user hit the "Ignore it, I will fix it later" button,
+							// then just put the existing adaptation or gloss back into the KB,
+							// after clearing the flag
+							if (gbIsGlossing)
+							{
+								tempStr = pSrcPhrase->m_gloss;
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+							}
+							else // adapting
+							{
+								tempStr = pSrcPhrase->m_adaption; // no punctuation on this one
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,pSrcPhrase->m_targetStr); 
+																// m_targetStr may have punct
+							}
+							gbIgnoreIt = FALSE;
+							goto y;
+						}
+						else
+						{
+							// don't ignore, so handle the dialog's contents
+							if (tempStr.IsEmpty())
+							{
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+														// TRUE = allow empty string storage
+							}
+							else
+							{
+								if (!gbIsGlossing)
+								{
+									pKB->StoreText(pSrcPhrase,tempStr);
+								}
+								// do the gbIsGlossing case in next block
+							}
+                            // the next stuff is taken from code earlier than the DoModal()
+                            // call, so comments will not be repeated here - see above if
+                            // the details are wanted
+							if (gbAutoCaps)
+							{
+								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
+								if (bNoError && gbSourceIsUpperCase)
+								{
+									bNoError = SetCaseParameters(tempStr,FALSE); 
+															// FALSE means "it's target text"
+									if (bNoError && !gbNonSourceIsUpperCase && 
+										(gcharNonSrcUC != _T('\0')))
+									{
+										pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC); 
+															// get m_adaption member done
+									}
+								}
+							}
+							if (!gbIsGlossing)
+							{
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,finalStr); // handles 
+													// auto caps, punctuation, etc
+							}
+							else // we are in glossing mode
+							{
+								pKB->StoreText(pSrcPhrase,finalStr); // glossing store
+														// can have punctuation in it
+								if (gbAutoCaps)
+								{
+									// if Auto Caps is on, gloss text can be auto 
+									// capitalized too... check it out
+									wxString str_nopunct = finalStr;
+									pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
+									bool bNoError = SetCaseParameters(str_nopunct,FALSE);
+															// FALSE means "using target punct list"
+									wxString strInitialPunct = SpanIncluding(
+														finalStr,pApp->m_punctuation[1]);
+									int punctLen = strInitialPunct.Length();
+									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE 
+															// means "using target punct list"
+									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
+										&& (gcharNonSrcUC != _T('\0')))
+									{
+										if (strInitialPunct.IsEmpty())
+										{
+											pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
+										}
+										else
+										{
+											finalStr.SetChar(punctLen,gcharNonSrcUC);
+											pSrcPhrase->m_gloss = finalStr;
+										}
+									}
+								}
+								else
+								{
+									pSrcPhrase->m_gloss = finalStr;
+								}
+							} // end of block for glossing mode
+						} // end of else block for test: if (gbIgnoreIt)
+
+						// show the progress window again
+y:						;
+						progDlg.Show(TRUE); // ensure it is visible
+					} // end of TRUE block for test of ShowModal() == wxID_OK
+					else
+					{
+						// user cancelled
+						bUserCancelled = TRUE;
+						progDlg.Show(TRUE);
+						// to get the progress dialog hidden, simulate having reached the
+						// end of the range -- need the appropriate Update() call
+						int bUpdated = FALSE;
+						msgDisplayed = progMsg.Format(progMsg,newName.c_str(),nTotal,nTotal);
+						bUpdated = progDlg.Update(nTotal,msgDisplayed);
+						break;
+					}
+				} // end of else block for test of presence of an 
+				  // AutoFixRecord for this inconsistency
+			}
+			// update the progress bar every nth iteration (don't use a constant for n,
+			// instead use the count of CSourcePhrase instances to set a value that will
+			// result in at least a few advances of the progress bar - e.g. 5)
+			int n = nTotal / 5;
+			if (n > 1000) n = 1000; // safety first, very large files can show smaller 
+									// increments more often
+			bool bUpdated = FALSE;
+			if (counter % n == 0 && counter < nTotal) 
+			{
+				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
+				bUpdated = progDlg.Update(counter,msgDisplayed);
+			}
+			else if (counter == nTotal)
+			{
+                // need this block in order to get the progress dialog to
+                // auto-hide when the limit is reached, because if the Update() call is not
+                // given when the counter reaches the limit, the progress control hangs the
+                // application and prevents processing from proceeding any further than the
+                // last call of progDlg.Update() within the loop, once the loop has
+				// terminated (note, I also specified non-smooth, so Bill or Graeme should
+				// test it on Linux and Mac, as that may account for the failures he got)
+				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),nTotal,nTotal);
+				bUpdated = progDlg.Update(nTotal,msgDisplayed);
+			}
+		}// end of while (pos1 != NULL)
+
+		// save document and KB
+		pApp->m_pTargetBox->Hide(); // this prevents DoFileSave() trying to
+                // store to kb with a source phrase with m_bHasKBEntry flag
+                // TRUE, which would cause an assert to trip
+		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
+											     // since it won't get recreated
+		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
+		// give better data protection
+		//bool bSavedOK = pDoc->DoFileSave(TRUE);
+		
+        // BEW 9July10, added test and changed param to FALSE if doing bible book folders
+        // loop, as we don't want time wasted for a progress dialog for what are probably a
+        // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
+        // each doc file that we check in the currently accessed folder
+		bool bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+		if (!bSavedOK)
+		{
+			wxMessageBox(_("Warning: failure on document save operation."),
+			_T(""), wxICON_EXCLAMATION);
+		}
+		pApp->GetView()->ClobberDocument();
+
+		// delete the buffer containing the filed-in source text
+		if (pApp->m_pBuffer != NULL)
+		{
+			delete pApp->m_pBuffer;
+			pApp->m_pBuffer = NULL;
+		}
+		// remove the progress indicator window
+		progDlg.Destroy();
+		if (bUserCancelled)
+			break; // don't do any more saves of the KB if user cancelled
+	} // end iteration of document files for (int i=0; i < nCount; i++)
+
+	// erase the copied CKB which is no longer needed
+	wxASSERT(pKBCopy != NULL);
+	EraseKB(pKBCopy); // don't want memory leaks!
+
+	// inform user of success and some statistics; but refrain from doing so if the user
+	// has requested that all the contents of the bible book folders be checked (otherwise
+	// dismissing the stats dialog dozens of times would be total frustration!)
+	if (!bUserCancelled)
+	{
+		// put up final statistics, provided user did not cancel from one
+		// of the dialogs
+		wxString stats;
+		// IDS_CONSCHECK_OK
+		stats = stats.Format(_(
+"The consistency check was successful. There were %d source words and phrases  in %d  files."),
+		nCumulativeTotal,nCount);
+		wxMessageBox(stats,_T(""),wxICON_INFORMATION);
+	}
+
+	// make sure the global flag is cleared
+	gbConsistencyCheckCurrent = FALSE;
+
+	// delete the contents of the pointer list, the list is local 
+	// so will go out of scope
+	if (!afList.IsEmpty())
+	{
+		AFList::Node* pos = afList.GetFirst();
+		wxASSERT(pos != 0);
+		while (pos != 0)
+		{
+			AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
+			pos = pos->GetNext();
+			delete pRec;
+		}
+	}
+	afList.Clear();
+	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
+}
+
+// This function assumes that the current directory will have already been set correctly
+// before being called. This is the an overloaded version, it handles all of the Bible
+// book folders, looping over each and checking every document in each from a single folder.
+// It does nothing if a book folder has no files in it, and just goes to the next book
+// folder. The second parameter, and third parameters, pKB and pKBCopy are pointers to the
+// same KB (either both the adapting KB, or both the glossing KB) for the current project's
+// active KB (depending, of course, on whether glossing mode is on or off), and pKBCopy is
+// used for finding inconsistencies, while KB updates are saved to pKB - these in the
+// signature because when processing the set of Bible book folders, it makes no sense to
+// open, copy, modify and close the KB and copied KB for every book folder processed - so
+// we do the open and copy before the loop commences (in the caller), the updating within
+// the loop, and the closure and saving when the loop terminates.
+// 
+// (A prior call of EnumerateDocFiles() with the boolean parameter default TRUE has to have
+// been made prior to calling this function. The boolean is for suppressing an internal
+// dialog, & being TRUE this dialog is prevented from being shown - we don't want it shown
+// and the user have to choose files, as that might have to be done once for every book
+// folder that has a document(s) in it, resulting in hundreds of openings of the dialog.
+// The latter call also sets the working directory, a fact which DoConsistencyCheck()
+// relies on, as it calls OnOpenDocument() with only a filename as parameter, instead of an
+// absolute path to that file.
+// 
+// This overload does a few things differently: (a) no progress indicator is shown
+// (processing shortish files makes it 'flash' if it is visible only a short time per
+// folder processed); (b) no statistics dialog is shown, because the user would have to
+// manually dismiss it after every folder that has at least one file in it.
+// 
+// Modified, July 2003, for support of Auto Capitalization
+// BEW 12Apr10, no changes needed for support of doc version 5
+// BEW 17May10, moved to here from CAdapt_ItView
+// BEW 8July10, updated for support of kbVersion 2, and for processing all contents of all
+// the bible book folders in a loop set up in the caller (which is
+// OnEditConsistencyCheck())
+// BEW 11Oct10, changed to support ~ conjoining (without this fix, such joined words end
+// up in map 2, instead of being in map 1) 
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy)
+{
+	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
+									  // initially when OnOpenDocument() is called
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	wxArrayString* pList = &pApp->m_acceptedFilesList;
+	int nCount = pList->GetCount();
+	if (nCount <= 0)
+	{
+        // BEW 8Julyl0, book mode is on and we are iterating through Bible book folders,
+        // many of which may have no files in them yet. So we must allow for GetCount() to
+        // return 0 and if so we return silently, and the loop will go on to the next
+        // folder
+		gbConsistencyCheckCurrent = FALSE;
+		return;
+	}
+	wxASSERT(nCount > 0);
+	int nTotal = 0;
+	int nCumulativeTotal = 0;
+
+	// create a list to hold pointers to auto-fix records, if user checks the auto fix checkbox
+	// in the dlg
+	AFList afList;
+
+	// iterate over the document files
+	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
+								 // of the extern global of the same name
+	int i;
+	for (i=0; i < nCount; i++)
+	{
+		wxString newName = pList->Item(i);
+		wxASSERT(!newName.IsEmpty());
+
+        // for debugging- check pile count before & after (failure to close doc before
+        // calling this function resulted in the following OnOpenDocument() call appending
+        // a copy of the document's contents to itself -- the fix is to ensure
+        // OnFileClose() is done in the caller before DoConsistencyCheck() is called
+		// int piles = pApp->m_pSourcePhrases->GetCount();
+
+		bool bOK;
+		bOK = OnOpenDocument(newName); // passing in just a filename, so we are relying
+									   // on the working directory having previously
+									   // being set in the caller at the call of
+									   // EnumerateDocFiles()
+		SetFilename(newName,TRUE);
+		nTotal = pApp->m_pSourcePhrases->GetCount();
+		if (nTotal == 0)
+		{
+			wxString str;
+			str = str.Format(_T("Bad file:  %s"),newName.c_str());
+			wxMessageBox(str,_T(""),wxICON_WARNING);
+		}
+		nCumulativeTotal += nTotal;
+
+		// prepare for the loop
+		SPList* pPhrases = pApp->m_pSourcePhrases;
+		SPList::Node* pos1; 
+		pos1 = pPhrases->GetFirst();
+		wxASSERT(pos1 != NULL);
+		int counter = 0;
+		// loop over all doc files in the current Bible book folder
+		while (pos1 != NULL)
+		{
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pos1 = pos1->GetNext();
+			counter++;
+
+			// check the KBCopy has the required association of key with translation
+			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+			int nWords;
+			//if (gbIsGlossing)
+			//	nWords = 1;
+			//else
+				nWords = pSrcPhrase->m_nSrcWords;
+			CTargetUnit* pTU = NULL;
+			bool bOK = TRUE;
+			bool bFoundTgtUnit = TRUE;
+			bool bFoundRefString = TRUE;
+
+			// any inconsistency with a <Not In KB> entry can be fixed automatically,
+			// and this block must be ignored when glossing is ON
+			if (!gbIsGlossing && !pSrcPhrase->m_bRetranslation && 
+				pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
+			{
+				// the inconsistency we are fixing here is that the CSourcePhrase instance
+				// has its m_bNotInKB flag set TRUE, but the KB lacks a "<Not In KB>"
+				// entry (and if that is the case, then for kbVersion 2, possibly other
+				// CRefString instances are for that KB entry are not 'deleted' (ie.
+				// m_bDeleted flag is not yet set TRUE for them) -- so check and fix if
+				// necessary 
+				wxString str = _T("<Not In KB>");
+				// do the lookup
+				bOK = pKB->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				if (!bOK)
+				{
+					// fix it silently...
+					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
+					pKB->StoreText(pSrcPhrase,str);
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+				}
+				else
+				{
+                    // BEW 7July10, in kbVersion 2 another way there entry could be
+                    // consistent is that it does contain "<Not In KB>" but somehow other
+                    // CRefStrings on the pTU instance are not deleted - so we must fix
+                    // that. Instead of checking for any non-deleted ones, just delete them
+                    // all and re-store "<Not In KB>" -- this will be done then on entries
+                    // where this fix is not required, but since <Not In KB> is used seldom
+                    // or never, this won't matter
+					if (pTU != NULL)
+					{
+						pTU->DeleteAllToPrepareForNotInKB();
+					}
+					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
+					pKB->StoreText(pSrcPhrase,str);
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+				}
+			}
+
+			bool bTheTest = FALSE;
+			// define the test's value
+			if (gbIsGlossing)
+			{
+				if (pSrcPhrase->m_bHasGlossingKBEntry)
+				{
+					bTheTest = TRUE;
+				}
+			}
+			else // adapting
+			{
+				if (!pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bNotInKB &&
+					pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_adaption != _T("<Not In KB>"))
+				{
+					bTheTest = TRUE;
+				}
+			}
+			if (bTheTest)
+			{
+				// do the lookup
+				bOK = pKBCopy->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				if (!bOK)
+				{
+					// there was no target unit for this key in the map, so this is an
+					// inconsistency
+					bFoundTgtUnit = FALSE;
+					bFoundRefString = FALSE;
+				}
+				else
+				{
+					// the target unit is in the map, so check if there is a corresponding
+					// refString for the m_adaption, or m_gloss, member of the source phrase
+					wxASSERT(pTU);
+					bool bMatched = FALSE;
+					TranslationsList* pList = pTU->m_pTranslations; 
+					wxASSERT(pList != NULL);
+                    // For kbVersion 2 don't make this assertion. If the phrase box is at a
+                    // place where there is a m_refCount of 1 which has just been deleted
+                    // because of 'landing' the box there, and it had just the one
+                    // CRefString, then the count of non-deleted ones can legitimately be
+                    // temporarily zero. Leave this here as a reminder to the developer.
+					//wxASSERT(pTU->CountNonDeletedRefStringInstances() > 0);
+					wxString srcPhraseStr;
+					if (gbIsGlossing)
+					{
+						srcPhraseStr = pSrcPhrase->m_gloss;
+					}
+					else
+					{
+						srcPhraseStr = pSrcPhrase->m_adaption;
+					}
+					if (!((gbAutoCaps && gbSourceIsUpperCase && gbMatchedKB_UCentry) || !gbAutoCaps))
+					{
+                        // do a change to lc only if it is needed - that is, attempt it
+                        // when it is not the case that gbMatchedKB_UCentry is TRUE
+                        // (because then we want an unmodified string to be used),
+                        // otherwise attempt it when auto-caps is ON
+						srcPhraseStr = pKBCopy->AutoCapsMakeStorageString(srcPhraseStr,FALSE);
+					}
+					TranslationsList::Node* pos = pList->GetFirst();
+					wxASSERT(pos != NULL);
+					while (pos != NULL)
+					{
+						CRefString* pRefString = (CRefString*)pos->GetData();
+						pos = pos->GetNext();
+						wxASSERT(pRefString != NULL);
+						// BEW 7July10, added second test, as kbVersion 2 treats a CRefString
+						// instance as present only if it is not marked as deleted
+						if ((pRefString->m_translation == srcPhraseStr) && !pRefString->GetDeletedFlag())
+						{
+							// a matching gloss was found
+							bMatched = TRUE;
+							break;
+						}
+					}
+					if (!bMatched)
+					{
+						// no match was made, so this is an inconsistency
+						bFoundRefString = FALSE;
+					}
+				}
+			}
+
+			// open the dialog if we have an inconsistency
+			if (!bFoundTgtUnit || !bFoundRefString)
+			{
+				// make the CSourcePhrase instance is able to have a KB entry added
+				if (gbIsGlossing)
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				else
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+
+                // work out if this is an auto-fix item, if so, don't show the dialog, but
+                // use the stored AutoFixRecord to fix the inconsistency without user
+                // intervention (note: any items for which the "Ignore it, I will fix it 
+                // later" button was pressed cannot occur as auto-fix records) The next 100
+                // lines could be improved - it was "added to" in a rather ad hoc fashion,
+                // so its a bit spagetti-like... something to do sometime when there is
+                // plenty of time!
+				AutoFixRecord* pAFRecord = NULL;
+				if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
+				{
+					// we matched an auto-fix element, so do the fix automatically...
+					// update the original kb (not pKBCopy)
+					wxString tempStr = pAFRecord->finalAdaptation; // could have punctuation in it
+
+					// if the adaptation is null, then assume user wants it that way and so store
+					// an empty string
+					if (tempStr.IsEmpty())
+					{
+						pKB->StoreText(pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
+					}
+					else
+					{
+						if (!gbIsGlossing)
+						{
+							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
+                                // we don't want punctuation in adaptation KB if
+                                // autocapitalization is ON, we could have an upper case
+                                // source, but the user may have typed lower case for
+                                // fixing the gloss or adaptation, but this is okay - the
+                                // store will work right, so don't need anything here
+                                // except the call to store it
+							pKB->StoreText(pSrcPhrase,tempStr);
+						}
+						// do the gbIsGlossing case when no punct is to be removed, in next block
+					}
+					if (!tempStr.IsEmpty())
+					{
+                        // here we must be careful; pAFRecord->finalAdaptation may have a
+                        // lower case string when the source text has upper case, and the
+                        // user is expecting the application to do the fix for him; this
+                        // would be easy if we could be sure that the first letter of the
+                        // string was at index == 0, but the possible presence of preceding
+                        // punctuation makes the assumption dangerous - so we must find
+                        // where the actual text starts and do any changes there if needed.
+                        // tempStr has punctuation stripped out, pAFRecord->finalAdaptation
+                        // doesn't, so start by determining if there actually is a problem
+                        // to be fixed.
+						if (gbAutoCaps)
+						{
+							bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
+							if (bNoError && gbSourceIsUpperCase)
+							{
+								bNoError = SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
+								if (bNoError && !gbNonSourceIsUpperCase &&
+									(gcharNonSrcUC != _T('\0')))
+								{
+                                    // source is upper case but nonsource is lower and is a
+                                    // character with an upper case equivalent - we have a
+                                    // problem; we need to fix the AutoFixRecord's
+                                    // finalAdaptation string, and the sourcephrase too. At
+                                    // this point we can fix the m_adaption member as
+                                    // follows:
+									pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC);
+								}
+							}
+						}
+                        // In the next if/else block, the non-glossing-mode call of
+                        // MakeTargetStringIncludingPunctuation() accomplishes the setting
+                        // of the pSrcPhrase's m_targetStr member, handling any needed
+                        // lower case to upper case conversion (even when typed initial
+                        // punctuation is present), and the punctuation override protocol
+                        // if the passed in string in the 2nd parameter has initial and/or
+                        // final punctuation.
+						if (!gbIsGlossing)
+						{
+                            // for auto capitalization support,
+                            // MakeTargetStringIncludingPunctuation( ) is now able to do
+                            // any needed change to upper case initial letter even when
+                            // there is initial punctuation on pAFRecord->finalAdaptation
+							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
+															pAFRecord->finalAdaptation);
+						}
+						else
+						{
+							// store, for the glossing ON case, the gloss text, 
+							// with any punctuation
+							pKB->StoreText(pSrcPhrase, pAFRecord->finalAdaptation);
+							if (gbAutoCaps)
+							{
+                                 // upper case may be wanted, we have to do it on the first
+                                // character past any initial punctuation; glossing mode
+                                // doesn't do punctuation stripping and copying, but the
+                                // user may have punctuation included in the inconsistency
+                                // fixing string, so we have to check etc.
+								wxString str = pAFRecord->finalAdaptation;
+								// make a copy and remove punctuation from it
+								wxString str_nopunct = str;
+								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
+								// use the punctuation-less string to get the initial charact and
+								// its upper case equivalent if it exists
+								bool bNoError = SetCaseParameters(str_nopunct,FALSE);
+															 // FALSE means "using target punct list"
+								// span punctuation-having str using target lang's punctuation...
+								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
+															// use our own SpanIncluding in helpers
+								int punctLen = strInitialPunct.Length();
+
+								// work out if there is a case change needed, and set the
+								// relevant case globals
+								bNoError = SetCaseParameters(tempStr,FALSE);  
+															// FALSE means "it's target text"
+								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
+									&& (gcharNonSrcUC != _T('\0')))
+								{
+									if (strInitialPunct.IsEmpty())
+									{
+                                        // there is no initial punctuation, so the change
+                                        // to upper case can be done at the string's start
+										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
+									}
+									else
+									{
+										// set it at the first character past the initial
+										// punctuation
+										str.SetChar(punctLen,gcharNonSrcUC);
+										pSrcPhrase->m_gloss = str;
+									}
+								}
+							}
+							else
+							{
+								// no auto capitalization, so just use finalAdaptation 
+								// string 'as is'
+								pSrcPhrase->m_gloss = pAFRecord->finalAdaptation;
+							}
+						}
+					}
+					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
+							// of the box should show the current adaptation, or gloss, string
+				}
+				else
+				{
+					// no match, so this is has to be handled with user intervention via
+					// the dialog
+					CConsistencyCheckDlg dlg(pApp->GetMainFrame());
+					dlg.m_bFoundTgtUnit = bFoundTgtUnit;
+					dlg.m_bDoAutoFix = FALSE;
+					dlg.m_pApp = pApp;
+					dlg.m_pKBCopy = pKBCopy;
+					dlg.m_pTgtUnit = pTU; // could be null
+					dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+					dlg.m_pSrcPhrase = pSrcPhrase;
+
+                    // update the view to show the location where this source pile is, and
+                    // put the phrase box there ready to accept user input indirectly from
+                    // the dialog
+					int nActiveSequNum = pSrcPhrase->m_nSequNumber;
+					wxASSERT(nActiveSequNum >= 0);
+					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
+					// and is needed because CLayout::RecalcLayout() relies on the
+					// m_nActiveSequNum value being correct
+#ifdef _NEW_LAYOUT
+					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
+#else
+					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
+#endif
+					pApp->m_pActivePile = GetPile(nActiveSequNum);
+					
+					pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
+					CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
+															 // the phraseBox is to be
+					if (gbIsGlossing)
+						pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+					else
+						// make it look normal, don't use m_targetStr here
+						pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+
+					GetLayout()->m_docEditOperationType = consistency_check_op;
+														// sets 0,-1 'select all'
+					pApp->GetView()->Invalidate(); // get the layout drawn
+					GetLayout()->PlaceBox();
+
+					// get the chapter and verse
+					wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
+					dlg.m_chVerse = chVerse;
+
+                    // provide hooks for the phrase box location so that the dialog can
+                    // work out where to display itself so it does not obscure the active
+                    // location
+					dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+					dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+
+					if (gbIsGlossing)
+					{
+						// really its three lines, but the code works provided the 
+						// height is right
+						if (gbGlossingUsesNavFont)
+							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
+					}
+
+					// put up the dialog
+					if (dlg.ShowModal() == wxID_OK)
+					{
+						//bool bNoError;
+						wxString finalStr;
+						// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+						// subsequent use
+						AutoFixRecord* pRec;
+						if (dlg.m_bDoAutoFix)
+						{
+							if (gbIgnoreIt)
+								// disallow record creation for a press of the "Ignore it,
+								// I will fix it later" button
+								goto x;
+							pRec = new AutoFixRecord;
+							pRec->key = pSrcPhrase->m_key; // case should be as wanted
+							if (gbIsGlossing)
+							{
+								pRec->oldAdaptation = pSrcPhrase->m_gloss; // case as wanted
+								// BEW 13Nov10, changes to support Bob Eaton's request for 
+								// glosssing KB to use all maps
+								//pRec->nWords = 1;
+								pRec->nWords = pSrcPhrase->m_nSrcWords;
+							}
+							else
+							{
+								pRec->oldAdaptation = pSrcPhrase->m_adaption; // case as wanted
+								pRec->nWords = pSrcPhrase->m_nSrcWords;
+							}
+
+                            // BEW changed 16May; we don't want to convert the
+                            // m_finalAdaptation member to upper case in ANY circumstances,
+                            // so we will comment out the relevant lines here and
+                            // unilaterally use the user's final string
+							finalStr = dlg.m_finalAdaptation; // can have punctuation
+									// in it, or can be null; can also be lower case and user
+									// expects the app to switch it to upper case if source is upper
+							pRec->finalAdaptation = finalStr;
+							afList.Append(pRec);
+						} // end of block for setting up a new AutoFixRecord
+
+						// update the original kb (not pKBCopy)
+x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
+                        // if the adaptation is null, then assume user wants it that way
+                        // and so store an empty string; but if user wants the
+                        // inconsistency ignored, then skip
+						wxString tempStr = dlg.m_finalAdaptation;
+						pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
+						if (gbIgnoreIt)
+						{
+							// if the user hit the "Ignore it, I will fix it later" button,
+							// then just put the existing adaptation or gloss back into the KB,
+							// after clearing the flag
+							if (gbIsGlossing)
+							{
+								tempStr = pSrcPhrase->m_gloss;
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+							}
+							else // adapting
+							{
+								tempStr = pSrcPhrase->m_adaption; // no punctuation on this one
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,pSrcPhrase->m_targetStr); 
+																// m_targetStr may have punct
+							}
+							gbIgnoreIt = FALSE;
+							goto y;
+						}
+						else
+						{
+							// don't ignore, so handle the dialog's contents
+							if (tempStr.IsEmpty())
+							{
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+														// TRUE = allow empty string storage
+							}
+							else
+							{
+								if (!gbIsGlossing)
+								{
+									pKB->StoreText(pSrcPhrase,tempStr);
+								}
+								// do the gbIsGlossing case in next block
+							}
+                            // the next stuff is taken from code earlier than the DoModal()
+                            // call, so comments will not be repeated here - see above if
+                            // the details are wanted
+							if (gbAutoCaps)
+							{
+								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
+								if (bNoError && gbSourceIsUpperCase)
+								{
+									bNoError = SetCaseParameters(tempStr,FALSE); 
+															// FALSE means "it's target text"
+									if (bNoError && !gbNonSourceIsUpperCase && 
+										(gcharNonSrcUC != _T('\0')))
+									{
+										pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC); 
+															// get m_adaption member done
+									}
+								}
+							}
+							if (!gbIsGlossing)
+							{
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,finalStr); // handles 
+													// auto caps, punctuation, etc
+							}
+							else // we are in glossing mode
+							{
+								pKB->StoreText(pSrcPhrase,finalStr); // glossing store
+														// can have punctuation in it
+								if (gbAutoCaps)
+								{
+									// if Auto Caps is on, gloss text can be auto 
+									// capitalized too... check it out
+									wxString str_nopunct = finalStr;
+									pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
+									bool bNoError = SetCaseParameters(str_nopunct,FALSE);
+															// FALSE means "using target punct list"
+									wxString strInitialPunct = SpanIncluding(
+														finalStr,pApp->m_punctuation[1]);
+									int punctLen = strInitialPunct.Length();
+									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE 
+															// means "using target punct list"
+									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
+										&& (gcharNonSrcUC != _T('\0')))
+									{
+										if (strInitialPunct.IsEmpty())
+										{
+											pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
+										}
+										else
+										{
+											finalStr.SetChar(punctLen,gcharNonSrcUC);
+											pSrcPhrase->m_gloss = finalStr;
+										}
+									}
+								}
+								else
+								{
+									pSrcPhrase->m_gloss = finalStr;
+								}
+							} // end of block for glossing mode
+						} // end of else block for test: if (gbIgnoreIt)
+
+y:						;
+					} // end of TRUE block for test of ShowModal() == wxID_OK
+					else
+					{
+						// user cancelled
+						bUserCancelled = TRUE;
+						break;
+					}
+				} // end of else block for test of presence of an 
+				  // AutoFixRecord for this inconsistency
+			}
+		}// end of while (pos1 != NULL)
+
+		// save document and KB
+		pApp->m_pTargetBox->Hide(); // this prevents DoFileSave() trying to
+                // store to kb with a source phrase with m_bHasKBEntry flag
+                // TRUE, which would cause an assert to trip
+		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
+											     // since it won't get recreated
+		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
+		// give better data protection
+		//bool bSavedOK = pDoc->DoFileSave(TRUE);
+		
+        // BEW 9July10, added test and changed param to FALSE if doing bible book folders
+        // loop, as we don't want time wasted for a progress dialog for what are probably a
+        // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
+        // each doc file that we check in the currently accessed folder
+		bool bSavedOK = DoFileSave_Protected(FALSE); // FALSE - dodn't show wait/progress dialog
+		if (!bSavedOK)
+		{
+			wxMessageBox(_("Warning: failure on document save operation."),
+			_T(""), wxICON_EXCLAMATION);
+		}
+		pApp->GetView()->ClobberDocument();
+
+		// delete the buffer containing the filed-in source text
+		if (pApp->m_pBuffer != NULL)
+		{
+			delete pApp->m_pBuffer;
+			pApp->m_pBuffer = NULL;
+		}
+		if (bUserCancelled)
+			break; // don't do any more saves of the KB if user cancelled
+	} // end iteration of document files for (int i=0; i < nCount; i++)
+
+	// make sure the global flag is cleared
+	gbConsistencyCheckCurrent = FALSE;
+
+	// delete the contents of the pointer list, the list is local 
+	// so will go out of scope
+	if (!afList.IsEmpty())
+	{
+		AFList::Node* pos = afList.GetFirst();
+		wxASSERT(pos != 0);
+		while (pos != 0)
+		{
+			AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
+			pos = pos->GetNext();
+			delete pRec;
+		}
+	}
+	afList.Clear();
+	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
+}
+
+// the rpRec value will be undefined if FALSE is returned, if TRUE is returned, rpRec will
+// be the matched auto-fix item in the list. For version 2.0 and later which supports
+// glossing, rpRec could contain glossing or adapting information, depending on the setting
+// for the gbIsGlossing flag. Also, in support of auto capitalization; since these strings
+// are coming from the sourcephrase instances in the documents, they will have upper or
+// lower case as appropriate; but we will need to allow the user to just type lower case
+// strings when correcting in the context of AutoCaps being turned ON, so be careful!
+// BEW 12Apr10, no change needed for support of doc version 5
+// BEW 17May10, moved to here from CAdapt_ItView
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+bool CAdapt_ItDoc::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
+									 AutoFixRecord*& rpRec)
+{
+	wxASSERT(pList != NULL);
+	wxASSERT(pSrcPhrase != NULL);
+	if (pList->IsEmpty())
+		return FALSE;
+	AFList::Node* pos = pList->GetFirst(); 
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
+		pos = pos->GetNext();
+		bool bTest = FALSE;
+		if (gbIsGlossing)
+		{
+			if (pRec->key == pSrcPhrase->m_key && 
+				pRec->oldAdaptation == pSrcPhrase->m_gloss)
+				bTest = TRUE;
+		}
+		else
+		{
+			if (pRec->key == pSrcPhrase->m_key && 
+				pRec->oldAdaptation == pSrcPhrase->m_adaption)
+				bTest = TRUE;
+		}
+		if (bTest)
+		{
+            // we can autofix with this one, so pass its values (including any upper case)
+            // to the caller (ie. to DoConsistencyCheck( )) for processing - remember, it
+            // may have an old gloss or adaptation which is upper case, and the user may
+            // have typed a lower case string for the finalAdaptation member, so this will
+            // need to be tested for
+			rpRec = pRec;
+			return TRUE;
+		}
+	}
+	// if we get to here, no match was made
+	rpRec = NULL;
+	return FALSE;
+}
+
+// BEW 24Mar10, updated for support of doc version 5 (some changes needed)
+void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
+{
+    // Scans all the doc's source phrase m_markers and m_filteredInfo members and
+    // inventories all the markers used in the current document, storing all unique markers
+    // in m_exportBareMarkers, the full markers and their descriptions in the CStringArray
+    // called m_exportMarkerAndDescriptions, and their corresponding include/exclude states
+    // (boolean flags) in the CUIntArray called m_exportFilterFlagsBeforeEdit. A given
+    // marker may occur more than once in a given document, but is only stored once in
+    // these inventory arrays.
+	// All the boolean flags in the m_exportFilterFlagsBeforeEdit array
+	// are initially set to FALSE indicating that no markers are to be
+	// filtered out of the export by default. If the user accesses and/or
+	// changes the export options via the "Export/Filter Options" dialog
+	// and thereby filters one or markers from export, then their
+	// corresponding flags in the CUIntArray called m_exportFilterFlags
+	// will be set to TRUE.
+
+	// Any sfms that are currently filtered are listed with [FILTERED] prefixed
+	// to the description. Unknown markers are listed with [UNKNOWN MARKER] as
+	// their description. We list all markers that are used in the document, and
+	// if the user excludes things illogically, then the output will reflect
+	// that.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxArrayString MarkerList;	// gets filled with all the currently
+							    // used markers including filtered ones
+	wxArrayString* pMarkerList = &MarkerList;
+	SPList::Node* posn;
+	USFMAnalysis* pSfm;
+	wxString key;
+	wxString lbStr;
+
+	MapSfmToUSFMAnalysisStruct* pSfmMap;
+	pSfmMap = pApp->GetCurSfmMap(pApp->gCurrentSfmSet);
+
+	// Gather markers from all source phrase m_marker strings
+	// BEW 24Mar10 changes for support of doc version 5: markers are now stored in
+	// m_markers and in m_filteredInfo (markers and content wrapped, in the latter, with
+	// \~FILTER and \~FILTER* bracketing markers). Also, in the legacy versions, free
+	// translations, collected back translations, and notes, were stored likewise in
+	// m_markers and wrapped with filter bracket markers, but now for doc version 5 these
+	// three information types have dedicated wxString member storage in CSourcePhrase. So
+	// for correct behaviour with the functionalities dependent on
+	// GetMarkerInventoryFromCurrentDoc() we have to here treat those three information
+	// types as logically "filtered" and supply \free & \free* wrapping markers to the
+	// free translation string we recover, and \note & \note* to the note string we
+	// recover, and \bt for any collected back translation string, when any of these is
+	// present in m_freeTrans, m_note, and m_collectedBackTrans, respectively. We do that
+	// below after the call to GetMarkersAndTextFromString(), as the latter can handle the
+	// m_markers added to m_filteredInfo in the parameter list. 
+	posn = pList->GetFirst();
+	wxASSERT(posn != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)posn->GetData();
+	wxASSERT(pSrcPhrase);
+	wxString str;
+	str.Empty();
+	wxString filtermkr = wxString(filterMkr);
+	wxString filtermkrend = wxString(filterMkrEnd);
+	while (posn != 0)
+	{
+		pSrcPhrase = (CSourcePhrase*)posn->GetData();
+		posn = posn->GetNext();
+		wxASSERT(pSrcPhrase);
+		// retrieve sfms used from pSrcPhrase->m_markers & m_filteredInfo, etc
+		if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetFilteredInfo().IsEmpty())
+		{
+            // GetMarkersAndTextFromString() retrieves each marker and its associated
+            // string and places them in the CStringList. Any Filtered markers are stored
+            // as a list item bracketed by \~FILTER ... \~FILTER* markers.
+			// To avoid a large CStringList developing we'll process the markers in each
+			// m_markers string individually, so empty the list. Information in
+			// m_freeTrans, m_note, or m_collectedBackTrans is handled after the
+			// GetMarkersAndTextFromString() call
+			pMarkerList->Clear();
+			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\free ") + pSrcPhrase->GetFreeTrans() + _T("\\free* ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\note ") + pSrcPhrase->GetNote() + _T("\\note* ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\bt ") + pSrcPhrase->GetCollectedBackTrans() + _T(" ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			wxString resultStr;
+			resultStr.Empty();
+			wxString displayStr;
+			wxString bareMarker;
+			wxString temp;
+			int ct;
+			for (ct = 0; ct < (int)pMarkerList->GetCount(); ct++)
+			{
+				resultStr = pMarkerList->Item(ct);
+				bool markerIsFiltered;
+				if (resultStr.Find(filterMkr) != -1)
+				{
+					resultStr = RemoveAnyFilterBracketsFromString(resultStr);
+					markerIsFiltered = TRUE;
+				}
+				else
+				{
+					markerIsFiltered = FALSE;
+				}
+				resultStr.Trim(FALSE); // trim left end
+				resultStr.Trim(TRUE); // trim right end
+				wxASSERT(resultStr.Find(gSFescapechar) == 0);
+				int strLen = resultStr.Length();
+				int posm = 1; // skip initial backslash
+				bareMarker.Empty();
+				displayStr.Empty();
+				while (posm < strLen && resultStr[posm] != _T(' ') && 
+						resultStr[posm] != gSFescapechar)
+				{
+					bareMarker += resultStr[posm];
+					posm++;
+				}
+				bareMarker.Trim(FALSE); // trim left end
+				bareMarker.Trim(TRUE); // trim right end
+
+				// do not include end markers in this inventory
+				int aPos = bareMarker.Find(_T('*'));
+				if (aPos == (int)bareMarker.Length() -1)
+					bareMarker.Remove(aPos,1);
+				wxASSERT(bareMarker.Length() > 0);
+				// lookup the marker in the active USFMAnalysis struct map
+                // whm ammended 11Jul05 Here we want to use the LookupSFM() routine which
+                // treats all \bt... initial back-translation markers as known markers all
+                // under the \bt marker with its description "Back-translation"
+                // whm revised again 14Nov05. For output filtering purposes, we need to
+                // treat all \bt... initial forms the same as simple \bt, in order to give
+                // the user the placement options (boxed paragraphs or footnote format for
+                // sfm RTF output; new table row or footnote format for interlinear RTF
+                // output). Handling all backtranslation the same for the sake of these
+                // placement options I think is preferable to not having the placement
+                // options and being able to filter from output the possible different
+                // kinds of backtranslation \bt... markers. Therefore here we will make all
+                // \bt... be just simple \bt and hence only have \bt in the export options
+                // list box. I've also renamed the \bt marker's description in AI_USFM.xml
+                // file to read: "Back Translation (and all \bt... initial forms)".
+				if (bareMarker.Find(_T("bt")) == 0)
+				{
+					bareMarker = _T("bt"); // make any \bt... initial forms be just 
+										   // \bt in the listbox
+				}
+				pSfm = LookupSFM(bareMarker); // use LookupSFM which properly 
+													// handles \bt... forms as \bt
+				bool bFound = pSfm != NULL;
+				lbStr = _T(' '); // prefix one initial space - looks better 
+								 // in a CCheckListBox
+				lbStr += gSFescapechar; // add backslash
+				// Since LookupSFM will find any back-translation marker of the form
+				// bt... we'll use the actual bareMarker to build the list box string
+				lbStr += bareMarker;
+                // We don't worry about adjusting for text extent here - that is done below
+                // in FormatMarkerAndDescriptionsStringArray(). Here we will just add a
+                // single space as delimiter between the whole marker and its description
+				lbStr += _T(' ');
+				if (!bFound)
+				{
+					// unknown marker so make the description [UNKNOWN MARKER]
+					// IDS_UNKNOWN_MARKER
+					temp = _("[UNKNOWN MARKER]"); // prefix description 
+												  // with "[UNKNOWN MARKER]"
+					lbStr = lbStr + temp;
+				}
+				else
+				{
+					if (markerIsFiltered)
+					{
+						// IDS_FILTERED
+						temp = _("[FILTERED]"); // prefix description 
+												// with "[FILTERED] ..."
+						lbStr += temp;
+						lbStr += _T(' ');
+						lbStr += pSfm->description;
+					}
+					else
+					{
+						lbStr += pSfm->description;
+					}
+				}
+				// Have we already stored this marker?
+				bool mkrAlreadyExists = FALSE;
+				for (int ct = 0; ct < (int)m_exportMarkerAndDescriptions.GetCount(); ct++)
+				{
+					if (lbStr == m_exportMarkerAndDescriptions[ct])
+					{
+						mkrAlreadyExists = TRUE;
+						break;
+					}
+				}
+				if (!mkrAlreadyExists)
+				{
+					// BEW addition 16Aug09, to exclude \note, \bt and/or \free markers
+					// when exporting either free translations or glosses as text
+					if (pApp->m_bExportingFreeTranslation || pApp->m_bExportingGlossesAsText)
+					{
+						if (bareMarker == _T("note") || 
+							bareMarker == _T("free") ||
+							bareMarker == _T("bt"))
+						{
+							continue; // ignore any of these marker types
+						}
+						else
+						{
+							// anything else gets added to the inventory
+							m_exportBareMarkers.Add(bareMarker);
+							m_exportMarkerAndDescriptions.Add(lbStr);
+							m_exportFilterFlags.Add(FALSE);
+							m_exportFilterFlagsBeforeEdit.Add(FALSE); 
+						}
+					}
+					else
+					{
+						m_exportBareMarkers.Add(bareMarker);
+						m_exportMarkerAndDescriptions.Add(lbStr);
+						m_exportFilterFlags.Add(FALSE); // export defaults to nothing 
+														// filtered out
+						m_exportFilterFlagsBeforeEdit.Add(FALSE); // export defaults to 
+																  // nothing filtered out
+					}
+				}
+			}
+		}
+	}
+	wxClientDC dC(pApp->GetMainFrame()->canvas);
+	pApp->FormatMarkerAndDescriptionsStringArray(&dC,
+							&m_exportMarkerAndDescriptions, 2, NULL);
+	// last parameter in call above is 2 spaces min 
+	// between whole marker and its description
+}
+
+/////////////////////////////////////////////////
+///
+/// Functions for support of Auto-Capitalization
+///
+////////////////////////////////////////////////
+
+inline wxChar CAdapt_ItDoc::GetFirstChar(wxString& strText)
+{
+	return strText.GetChar(0);
+}
+
+// takes the input character chTest, and attempts to Find() it in the CString theCharSet,
+// returning TRUE if it finds it, and setting index to the character index for its position
+// in the string buffer; if not found, then index will be set to -1.
+bool CAdapt_ItDoc::IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index)
+{
+	index = theCharSet.Find(chTest);
+	if (index > -1)
+	{
+		// it is in the list
+		return TRUE;
+	}
+	else
+	{
+		// it is not in the list
+		return FALSE;
+	}
+}
+
+// returns the TCHAR at the passed in offset
+wxChar CAdapt_ItDoc::GetOtherCaseChar(wxString& charSet, int nOffset)
+{
+	wxASSERT(nOffset < (int)charSet.Length());
+	return charSet.GetChar(nOffset);
+}
+
+//return TRUE if all was well, FALSE if there was an error; strText is the language word or
+//phrase the first character of which this function tests to determine its case, and from
+//that to set up storage for the lower or upper case equivalent character, and the relevant
+//flags. strText can be source text, target text, or gloss text; for the latter two
+//possibilities bIsSrcText needs to be explicitly set to FALSE, otherwise it is TRUE by
+//default. This is a diagnostic function used for Auto-Capitalization support.
+bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (strText.IsEmpty())
+	{
+		return FALSE;
+	}
+	int nOffset = -1;
+	wxChar chFirst = GetFirstChar(strText);
+
+	bool bIsLower;
+	bool bIsUpper;
+	if (bIsSrcText)
+	{
+		// exit prematurely if the user has not defined any source case equivalents
+		if (gbNoSourceCaseEquivalents)
+		{
+			gbSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+			return FALSE;
+		}
+
+		// determine if it is a lower case source character 
+		// which has an upper case equivalent
+		bIsLower = IsInCaseCharSet(chFirst,pApp->m_srcLowerCaseChars,nOffset);
+		if (bIsLower)
+		{
+			// it's a lower case belonging to the source set,
+			// so we don't have to capitalize it
+			gbSourceIsUpperCase = FALSE;
+			gcharSrcLC = chFirst;
+			wxASSERT(nOffset >= 0);
+			gcharSrcUC = GetOtherCaseChar(pApp->m_srcUpperCaseChars,nOffset);
+		}
+		else
+		{
+            // chFirst is not a lower case source character which has an upper case
+            // equivalent, so it might be an upper case source character (having a lower
+            // case equivalent), or it is of indeterminate case - in which case we treat
+            // it as lower case
+			bIsUpper = IsInCaseCharSet(chFirst,pApp->m_srcUpperCaseChars,nOffset);
+			if (bIsUpper)
+			{
+				// it is an upper case source char for which there is a lower case 
+				// equivalent
+				gbSourceIsUpperCase = TRUE;
+				gcharSrcUC = chFirst;
+				wxASSERT(nOffset >= 0);
+				gcharSrcLC = GetOtherCaseChar(pApp->m_srcLowerCaseChars,nOffset);
+			}
+			else
+			{
+				// it has indeterminate case, so treat as lower case with zero as its 
+				// upper case equiv
+				gbSourceIsUpperCase = FALSE;
+				gcharSrcLC = chFirst;
+				wxASSERT(nOffset == -1);
+				gcharSrcUC = _T('\0');
+			}
+		}
+	}
+	else
+	{
+        // it is either gloss or adaptation data: use gbIsGlossing to determine which...
+        // determine if it is a lower case character which has an upper case equivalent
+		if (gbIsGlossing)
+		{
+			// it's gloss data
+			// exit prematurely if the user has not specified any gloss case equivalents
+			if (gbNoGlossCaseEquivalents)
+			{
+				gbNonSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+				gcharNonSrcUC = _T('\0'); // use the value as a test indicating failure here
+				return FALSE;
+			}
+			bIsLower = IsInCaseCharSet(chFirst,pApp->m_glossLowerCaseChars,nOffset);
+		}
+		else
+		{
+			// it's adaptation data
+			// exit prematurely if the user has not specified any target case equivalents
+			if (gbNoTargetCaseEquivalents)
+			{
+				gbNonSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+				gcharNonSrcUC = _T('\0'); // use the value as a test indicating failure
+				return FALSE;
+			}
+			bIsLower = IsInCaseCharSet(chFirst,pApp->m_tgtLowerCaseChars,nOffset);
+		}
+		if (bIsLower)
+		{
+			// it's a lower case belonging to the gloss or adaptation set,
+			// so we don't have to capitalize it
+			gbNonSourceIsUpperCase = FALSE;
+			gcharNonSrcLC = chFirst;
+			wxASSERT(nOffset >= 0);
+			if (gbIsGlossing)
+			{
+				gcharNonSrcUC = GetOtherCaseChar(pApp->m_glossUpperCaseChars,nOffset);
+			}
+			else
+			{
+				gcharNonSrcUC = GetOtherCaseChar(pApp->m_tgtUpperCaseChars,nOffset);
+			}
+		}
+		else // it's not lower case...
+		{
+            // chFirst is not a lower case adaptation or gloss character which has an upper
+            // case equivalent, so it might be an upper case adaptation or gloss character
+            // (having a lower case equivalent), or it is of indeterminate case - in which
+            // case we treat it as lower case
+			if (gbIsGlossing)
+			{
+				bIsUpper = IsInCaseCharSet(chFirst,pApp->m_glossUpperCaseChars,nOffset);
+			}
+			else
+			{
+				bIsUpper = IsInCaseCharSet(chFirst,pApp->m_tgtUpperCaseChars,nOffset);
+			}
+			if (bIsUpper)
+			{
+				// it is an upper case gloss or adaptation char for which there is a lower
+				// case equivalent
+				gbNonSourceIsUpperCase = TRUE;
+				gcharNonSrcUC = chFirst;
+				wxASSERT(nOffset >= 0);
+				if (gbIsGlossing)
+				{
+					gcharNonSrcLC = GetOtherCaseChar(pApp->m_glossLowerCaseChars,nOffset);
+				}
+				else
+				{
+					gcharNonSrcLC = GetOtherCaseChar(pApp->m_tgtLowerCaseChars,nOffset);
+				}
+			}
+			else
+			{
+				// it has indeterminate case, so treat as lower case with zero as 
+				// its upper case equiv
+				gbNonSourceIsUpperCase = FALSE;
+				gcharNonSrcLC = chFirst;
+				wxASSERT(nOffset == -1);
+				gcharNonSrcUC = _T('\0');
+			}
+		}
+	}
+	return TRUE;
+}
+
+
+

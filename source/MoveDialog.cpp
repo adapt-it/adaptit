@@ -388,7 +388,7 @@ void CMoveDialog::UpdateFileList()
 	wxArrayString files;
 	// enumerate the document files in the Adaptations folder or the current book folder; and
 	// note that internally GetPossibleAdaptionDocuments excludes any files with names of the
-	// form *.BAK.xml (these are backup XML document files, and for each there will be present
+	// form *.BAK (these are backup XML document files, and for each there will be present
 	// an *.xml file which has identical content -- it is the latter we enumerate) and also note
 	// the result could be an empty m_acceptedFilesList, but have the caller of EnumerateDocFiles
 	// check it for no entries in the list

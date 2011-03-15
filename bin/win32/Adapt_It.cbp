@@ -327,8 +327,6 @@
 		<Unit filename="..\..\source\JoinDialog.h" />
 		<Unit filename="..\..\source\KB.cpp" />
 		<Unit filename="..\..\source\KB.h" />
-		<Unit filename="..\..\source\KBEditSearch.cpp" />
-		<Unit filename="..\..\source\KBEditSearch.h" />
 		<Unit filename="..\..\source\KBEditor.cpp" />
 		<Unit filename="..\..\source\KBEditor.h" />
 		<Unit filename="..\..\source\KBPage.cpp" />

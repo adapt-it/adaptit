@@ -14,13 +14,8 @@
 /// (to be fixed later). For any fixes the user can also check a box to "Auto-fix later
 /// instances the same way." 
 /// \derivation		The CConsistencyCheckDlg class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ConsistencyCheckDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, no changes needed for support of doc version 5 in this file
+/// BEW 9July10, updated for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -198,6 +193,11 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		m_adaptationStr = m_pSrcPhrase->m_adaption;
 
 	// fill the listBox, if there is a targetUnit available
+	// BEW 7July10, for kbVersion 2, we only add to the listBox those CRefString
+	// instances' m_translation contents when the CRefString instance is a non-deleted
+	// one, and beware, it can legally happen that they are all deleted ones, in which
+	// case we can't make a selection - so we must protect the SetSelection() call below
+	int counter = 0;
 	if (m_bFoundTgtUnit)
 	{
 		wxASSERT(m_pTgtUnit != NULL);
@@ -208,28 +208,40 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		{
 			pRefString = (CRefString*)pos->GetData();
 			pos = pos->GetNext();
-			wxString str = pRefString->m_translation;
-			if (str.IsEmpty())
+			// BEW 9July10, added test here
+			if (!pRefString->GetDeletedFlag())
 			{
-				str = s; // user needs to be able to see a "<no adaptation>" entry
+				wxString str = pRefString->m_translation;
+				if (str.IsEmpty())
+				{
+					str = s; // user needs to be able to see a "<no adaptation>" entry
+				}
+				m_pListBox->Append(str);
+				counter++;
+				// m_pListBox is not sorted but it is safest to call FindListBoxItem before calling SetClientData
+				int nNewSel = gpApp->FindListBoxItem(m_pListBox, str, caseSensitive, exactString);
+				wxASSERT(nNewSel != -1); // we just added it so it must be there!
+				m_pListBox->SetClientData(nNewSel,pRefString);
 			}
-			m_pListBox->Append(str);
-			// m_pListBox is not sorted but it is safest to call FindListBoxItem before calling SetClientData
-			int nNewSel = gpApp->FindListBoxItem(m_pListBox, str, caseSensitive, exactString);
-			wxASSERT(nNewSel != -1); // we just added it so it must be there!
-			m_pListBox->SetClientData(nNewSel,pRefString);
 		}
-
-		// select the first string in the listbox by default
-		m_pListBox->SetSelection(0,TRUE);
-
+		// select the first string in the listbox by default, provided there is something
+		// there
+		if (counter > 0)
+		{
+			m_pListBox->SetSelection(0,TRUE);
+		}
+		else
+		{
+			// the listBox will be empty, so disable the top of the 3 radio buttons
+			wxASSERT(m_pRadioSelectFromList != NULL);
+			m_pRadioSelectFromList->Enable(FALSE);
+		}
 	}
 	else
 	{
 		// the listBox will be empty, so disable the top of the 3 radio buttons
 		wxASSERT(m_pRadioSelectFromList != NULL);
 		m_pRadioSelectFromList->Enable(FALSE);
-
 	}
 
 	// work out where to place the dialog window
@@ -322,25 +334,20 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 // other class methods
 void CConsistencyCheckDlg::OnRadioListSelect(wxCommandEvent& WXUNUSED(event)) 
 {
-	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION that is, "<no adaptation>" 
+	wxString s = _("<no adaptation>");
 	
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 	{
-		wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
-			_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(
+_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
+		_T(""), wxICON_EXCLAMATION);
 	}
 	
 	int nSel;
 	nSel = m_pListBox->GetSelection();
-	//if (nSel == -1) //LB_ERR
-	//{
-	//	wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
-	//		_T(""), wxICON_EXCLAMATION);
-	//}
 	wxString str = _T("");
-	if (nSel != -1) //LB_ERR
-		str = m_pListBox->GetStringSelection(); //m_listBox.GetText(nSel,str);
+	if (nSel != wxNOT_FOUND)
+		str = m_pListBox->GetStringSelection();
 	if (str == s)
 		str = _T(""); // restore null string
 	m_finalAdaptation = str;
@@ -395,17 +402,11 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 		return;
 
-	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION that is, "<no adaptation>" 
+	wxString s = _("<no adaptation>");
 	int nSel;
 	nSel = m_pListBox->GetSelection();
-	//if (nSel == -1) //LB_ERR
-	//{
-	//	wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
-	//		_T(""), wxICON_EXCLAMATION);
-	//}
 	wxString str = _T("");
-	if (nSel != -1) // LB_ERR
+	if (nSel != wxNOT_FOUND)
 		str = m_pListBox->GetStringSelection();
 	if (str == s)
 		str = _T(""); // restore null string
@@ -425,12 +426,13 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 
 void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 {
-	// whm 13Jun09 added this OnUpdateEditTypeNew() handler, which is tripped whenever the user types
-	// something in the IDC_EDIT_TYPE_NEW wxTextCtrl. It mainly insures that the "Type a new one:"
-	// radio button is selected as soon as the user starts to type in the edit box. 
+    // whm 13Jun09 added this OnUpdateEditTypeNew() handler, which is tripped whenever the
+    // user types something in the IDC_EDIT_TYPE_NEW wxTextCtrl. It mainly insures that the
+    // "Type a new one:" radio button is selected as soon as the user starts to type in the
+    // edit box.
     // 
-	// Make the relevant radio button be turned on, but only if something has been typed into the edit
-	// box. If the user deleted everything from the edit box, 
+    // Make the relevant radio button be turned on, but only if something has been typed
+    // into the edit box. If the user deleted everything from the edit box,
 	if (m_bRadioButtonAction || m_pEditCtrlNew->GetValue().Length() > 0)
 	{
 		// The edit control has something in it so insure the "Type a new one:" radio button is

@@ -10,13 +10,7 @@
 /// The CJoinDialog class provides a dialog interface for the user to be able
 /// to combine Adapt It documents into larger documents.
 /// \derivation		The CJoinDialog class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in JoinDialog.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, all changes for supporting doc version 5 are done for this file
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -437,7 +431,7 @@ void CJoinDialog::InitialiseLists()
 	wxArrayString files;
 	// enumerate the document files in the Adaptations folder or the current book folder; and
 	// note that internally GetPossibleAdaptionDocuments excludes any files with names of the
-	// form *.BAK.xml (these are backup XML document files, and for each there will be present
+	// form *.BAK (these are backup XML document files, and for each there will be present
 	// an *.xml file which has identical content -- it is the latter we enumerate) and also note
 	// the result could be an empty m_acceptedFilesList, but have the caller of EnumerateDocFiles
 	// check it for no entries in the list

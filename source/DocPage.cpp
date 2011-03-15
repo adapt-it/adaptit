@@ -20,8 +20,6 @@
 // 
 /////////////////////////////////////////////////////////////////////////////
 
-// dummy comment to force a recompile
-
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "DocPage.h"
@@ -55,8 +53,7 @@
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
@@ -105,14 +102,8 @@ extern CStartWorkingWizard* pStartWorkingWizard;
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
 
-//extern CLanguagesPage* pLanguagesPage;
-//extern CFontPageWiz* pFontPageWiz;
-//extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
-//extern CCaseEquivPageWiz* pCaseEquivPageWiz;
-//extern CUSFMPageWiz* pUsfmPageWiz;
-
 /// This global is defined in Adapt_It.cpp.
-extern CFilterPageWiz* pFilterPageWiz;
+extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
@@ -175,9 +166,7 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 							 // use an empty path to suppress writing a project file from SaveModified()
 							 // if the user then exits, which would otherwise clobber settings in the last
 							 // written out project config file unnecessarily and unwantedly)
-
 	m_bForceUTF8 = FALSE;
-	m_bSaveUsingXML = gpApp->m_bSaveAsXML;
 
 	m_pListBox = (wxListBox*)FindWindowById(IDC_LIST_NEWDOC_AND_EXISTINGDOC);
 	
@@ -243,7 +232,7 @@ wxWizardPage* CDocPage::GetPrev() const
 	// wizard (the filterPage).
 	if (gbWizardNewProject)
 	{
-		return pFilterPageWiz;
+		return pUsfmFilterPageWiz;
 	}
 	else
 	{
@@ -420,9 +409,6 @@ void CDocPage::OnSetActive()
 	{
 			pBtn->Hide();
 	}
-
-	// make the checkbox echo what the config file value was
-	m_bSaveUsingXML = gpApp->m_bSaveAsXML;
 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -1008,7 +994,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			// initialize m_nActiveSequNum to the nLastActiveSequNum value
 			pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
 			// set the active pile
-			CPile* pPile = pView->GetPile(pApp->nLastActiveSequNum);
+			CPile* pPile;
+			pPile = pView->GetPile(pApp->nLastActiveSequNum);
 			wxASSERT(pPile != NULL);
 
             // this could turn out to be a retranslation pile (if user removed a
@@ -1020,11 +1007,15 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
-			// m_nActiveSequNum might have been changed by the preceding call, so reset 
-			// the active pile
-			pPile = pView->GetPile(pApp->m_nActiveSequNum);
-			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-			pView->Jump(pApp,pSrcPhrase); // jump there
+            // BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
+            // above call, and so the ones below should be redundant (and if
+            // ChooseTranslation was called in the earlier Jump() it would then get called
+            // again, which is confusing - so we need to not have this second call)
+            // Legacy comment: m_nActiveSequNum might have been changed by the preceding
+            // call, so reset the active pile
+			//pPile = pView->GetPile(pApp->m_nActiveSequNum);
+			//CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+			//pView->Jump(pApp,pSrcPhrase); // jump there
 		}
 		gbDoingInitialSetup = FALSE;
 
@@ -1032,16 +1023,22 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 		wxASSERT(pMenuBar != NULL);
 		wxMenuItem * pAdvBookMode = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-		wxASSERT(pAdvBookMode != NULL);
+		//wxASSERT(pAdvBookMode != NULL);
 		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		{
 			// mark it checked
-			pAdvBookMode->Check(TRUE);
+			if (pAdvBookMode != NULL)
+			{
+				pAdvBookMode->Check(TRUE);
+			}
 		}
 		else
 		{
 			// mark it unchecked
-			pAdvBookMode->Check(FALSE);
+			if (pAdvBookMode != NULL)
+			{
+				pAdvBookMode->Check(FALSE);
+			}
 		}
 
 		// BEW added 02Nov05

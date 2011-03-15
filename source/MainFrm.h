@@ -30,6 +30,8 @@
 class CAdapt_ItCanvas;
 class wxHelpControllerBase;
 class wxHtmlHelpController;
+class CFreeTrans;
+class CNotes;
 
 // global functions (FormatScriptureReference() is overloaded)
 class CSourcePhrase;
@@ -119,7 +121,7 @@ class CMainFrame : public wxDocParentFrame
 	wxMenuBar* m_pMenuBar;
 
 	wxStatusBar* m_pStatusBar;	// handle/pointer to the statusBar
-	wxToolBar* m_pToolBar;		// handle/pointer to the toolBar
+	AIToolBar* m_pToolBar;		// handle/pointer to the toolBar
 	wxPanel* m_pControlBar;		// handle/pointer to the controlBar
 	wxPanel* m_pComposeBar;		// handle/pointer to the composeBar
 	wxPanel* m_pRemovalsBar;	// whm added for 12Sep08 refactored source text editing
@@ -179,14 +181,15 @@ class CMainFrame : public wxDocParentFrame
 	//void OnHelp(wxHelpEvent& WXUNUSED(event));
 	void OnAdvancedHtmlHelp(wxCommandEvent& event);
 	void OnOnlineHelp(wxCommandEvent& WXUNUSED(event));
-	void OnUserForum(wxCommandEvent& WXUNUSED(event));
+	//void OnUserForum(wxCommandEvent& WXUNUSED(event));
+	void OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event));
+	void OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event));
 	void OnUseToolTips(wxCommandEvent& WXUNUSED(event));
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
-	
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar
 	void OnUpdateCheckKBSave(wxUpdateUIEvent& event);
@@ -205,9 +208,8 @@ class CMainFrame : public wxDocParentFrame
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
 
-	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
     void RecreateToolBar();
+	AIToolBar* GetToolBar();
 	void DoCreateStatusBar();
 	void OnMRUFile(wxCommandEvent& event);
 

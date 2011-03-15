@@ -16,18 +16,7 @@
 /// CAdapt_ItApp class is derived from wxApp, and inherits its support for the
 /// document/view framework. The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in Adapt_It.cpp (in order of importance): (search for "TODO")
-// 1. Determine what to do about wxWidgets page setup dialog margins only 
-//    taking millimetres, and how to reconcile this with the Units of Measure...
-// 2. 
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
-// dummy comment to force a recompile
-
-//#pragma warning( disable : 4189 )
 
 #if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this. 
 // Testing it is equivalent to testing (__GNUC__ && __cplusplus). 
@@ -53,6 +42,7 @@
 #include "Adapt_It_Resources.h"
 #include <wx/snglinst.h> // for wxSingleInstanceChecker in OnInit
 #include <wx/config.h> // for wxConfig in OnInit
+#include <wx/fileconf.h> // for wxFileConfig in Oninit
 #include <wx/datetime.h> // for wxDateTime in OnInit
 #include <wx/filesys.h> // for wxFileName
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
@@ -75,6 +65,9 @@
 #include <wx/stdpaths.h> // for GetResourcesDir and GetLocalizedResourcesDir
 #include <wx/tooltip.h>
 #include <wx/process.h> // for wxProcess::Exists()
+#include <wx/toolbar.h> // (to allow wxWidgets to select an appropriate toolbar class)
+#include <wx/tbarbase.h> // (the base class)
+
 
 // the next are for wxHtmlHelpController (wxWidgets chooses the appropriate help controller
 // class) 
@@ -89,6 +82,7 @@
 #include <wx/filepicker.h> // for wxDirPickerCtrl
 #include <wx/log.h> // for wxLogStream
 #include <wx/timer.h> // for wxTimer
+#include <wx/tokenzr.h>
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -115,11 +109,15 @@
 //    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
 // 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
 //    debug builds.
+// 4. VLD in 2010 is better, much much faster, etc. http://vld.codeplex.com for the
+// download, and documentation is at http://vld.codeplex.com/documentation
 // 
 // If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
 // uncomment the following include, recompile, run and exit the program for a more
 // detailed report of the memory leaks:
+#ifdef __WXMSW__
 //#include "vld.h"
+#endif
 
 // Other includes
 #include "AIPrintout.h"
@@ -134,8 +132,7 @@
 #include "FontPage.h"
 #include "PhraseBox.h"
 #include "LanguagesPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
 #include "OpenExistingProjectDlg.h"
@@ -161,6 +158,15 @@
 #include "ChooseLanguageDlg.h"
 #include "Layout.h"
 #include "AdminMoveOrCopy.h"
+#include "FreeTrans.h"
+#include "Notes.h"
+#include "Retranslation.h"
+#include "Placeholder.h"
+//#include "Uuid_AI.h" // for testing, then comment out
+#include "NavProtectNewDoc.h"
+#include "AdminEditMenuProfile.h"
+#include "Usfm2Oxes.h"
+#include "CorGuess.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -228,6 +234,18 @@ WX_DEFINE_LIST(CCellList);
 /// complete the definition of a new safe pointer list class called KPlusCList.
 WX_DEFINE_LIST(KPlusCList);
 
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called ProfileItemList.
+WX_DEFINE_LIST(ProfileItemList);
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called SubMenuItemList.
+WX_DEFINE_LIST(SubMenuItemList);
+
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called MainMenuItemList.
+WX_DEFINE_LIST(MainMenuItemList);
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and
 /// 0xBF in UTF-8 encoding.
@@ -321,35 +339,18 @@ wxPoint gptLastClick;
 
 // BEW added 24Jun05; globals for free translation support
 
+///GDLC removed 2010-02-12 because it is no longer used anywhere
 /// BEW added 27Jun05 for free trans support, make sure it is always FALSE when
 /// OnLButtonDown() is entered. Default FALSE, TRUE if pile pointer is NULL on
 /// GetPrevPile() call.
-bool gbBundleStartIteratingBack;
+//bool gbBundleStartIteratingBack;
 
-/// The offset to the current free translation string in pSrcPhrase->m_markers.
-int gnOffsetInMarkersStr; 
+/// GDLC 2010-02-13 gnOffsetInMarkersStr and gnLengthInMarkersStr moved to CFreeTrans
 
-/// The free translation length, including final space if any, in pSrcPhrase->m_markers.
-int gnLengthInMarkersStr; 
-
-/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
-/// and disposed of in OnExit().
-wxArrayPtrVoid*	gpCurFreeTransSectionPileArray;
-
-/// An array of pointers used as a scratch array, for composing the free translations which
-/// are written to screen. Element pointers point to FreeTrElement structs - each of which
-/// contains the information relevant to writing a subpart of the free translation in a
-/// single rectangle under a single strip.
-wxArrayPtrVoid*	gpFreeTransArray; // new creates on heap in InitInstance, 
-			// and disposes in ExitInstance
-
-/// Pointer to first pile in a free translation section. gpLastPile points to the last pile
-/// in the same free translation section.
-CPile* gpFirstPile;
-
-/// Pointer to last pile in the free translation section. gpFirstPile points to the first
-/// pile in the same free translation section.
-CPile* gpLastPile;
+//GDLC 2010-02-12,16
+// The arrays gpCurFreeTransSectionPileArray and gpFreeTransArray were changed to
+// member variables of CFreeTrans; as was the pointer gpFirstPile; the pointer
+// gpLastPile was deleted because it is no longer used anywhere.
 
 /// The contents of App's m_punctuation[1] string with spaces removed.
 wxString gSpacelessTgtPunctuation;
@@ -449,7 +450,7 @@ extern bool gbExcludeCurrentProject;
 extern bool gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbRemovePunctuationFromGlosses;
+//extern bool gbRemovePunctuationFromGlosses; << BEW removed 13Nov10, it's nowhere set TRUE
 
 /// This global is defined in Adapt_ItView.cpp.
 extern int gnSelectionLine;
@@ -471,14 +472,17 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
-/// When FALSE back slash characters found anywhere in a text are interpreted as
-/// introducing standard format markers (the default). When TRUE back slash characters may
-/// be interpreted as word-building characters. When the gbSfmOnlyAfterNewlines flag is
-/// TRUE, any standard format marker escape characters which do not follow a newline are
-/// not assumed to belong to a sfm, and so we treat them in such cases as ordinary
-/// word-building characters (on the assumption we are dealing with a hacked legacy
-/// encoding in which the escape character is an alphabetic glyph in the font).
-bool gbSfmOnlyAfterNewlines = FALSE;
+// When FALSE back slash characters found anywhere in a text are interpreted as
+// introducing standard format markers (the default). When TRUE back slash characters may
+// be interpreted as word-building characters. When the gbSfmOnlyAfterNewlines flag is
+// TRUE, any standard format marker escape characters which do not follow a newline are
+// not assumed to belong to a sfm, and so we treat them in such cases as ordinary
+// word-building characters (on the assumption we are dealing with a hacked legacy
+// encoding in which the escape character is an alphabetic glyph in the font)
+
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+//bool gbSfmOnlyAfterNewlines = FALSE;
 
 /// Defined as the backslash character.
 /// NOTE: Older versions of Adapt It allowed the user to designate the character to be
@@ -546,22 +550,14 @@ CPunctCorrespPageWiz* pPunctCorrespPageWiz = (CPunctCorrespPageWiz*)NULL;
 /// Pointer to the Wizard's case equivalences page instance
 CCaseEquivPageWiz* pCaseEquivPageWiz = (CCaseEquivPageWiz*)NULL;
 
-/// Pointer to the Wizard's usfm page instance
-CUSFMPageWiz* pUsfmPageWiz = (CUSFMPageWiz*)NULL;
-
-/// Pointer to the Wizard's filter page instance
-CFilterPageWiz*	pFilterPageWiz = (CFilterPageWiz*)NULL;
+/// Pointer to the Wizard's usfmFilterPage instance
+CUsfmFilterPageWiz*	pUsfmFilterPageWiz = (CUsfmFilterPageWiz*)NULL;
 
 /// Pointer to the doc page instance
 CDocPage* pDocPage = (CDocPage*)NULL;
 
-/// Pointer to the usfm page instance
-CUSFMPagePrefs*	pUSFMPageInPrefs = (CUSFMPagePrefs*)NULL; // To be able to access 
-			// the USFM page from other Preferences page(s)
-
-/// Pointer to the filter page instance
-CFilterPagePrefs* pFilterPageInPrefs = (CFilterPagePrefs*)NULL;	// To be able to 
-			// access the Filtering page from other Preferences page(s)
+/// Pointer to the Preferences usfmFilterPage instance
+CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs = (CUsfmFilterPagePrefs*)NULL;
 
 /// Contains the sequence number for the last auto save operation; -1 if auto save is
 /// turned off.
@@ -1184,6 +1180,996 @@ _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::3:2
 const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1.3 the
 			// gnDefaultSFMs value is 283, but it will change as UBS adds markers to USFM
 
+// whm added 10Sep10 
+/// An array of wxStrings which, when parsed by ParseUserProfileStrings(), is used as 
+/// default list of User Workflow Profile dialog item definitions. There definitions are
+/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
+/// file.
+const wxString defaultProfileItems[] = 
+{
+	// Note: In the strings below, the itemText field should not use the accelerator substrings, i.e.,
+	// \tCtrl-A. Nor do we use any xml "entities", i.e., the &amp; for '&' to mark the letter used for
+	// ALT+key shortcuts, or &lt; or &gt; for '<' and '>' within the itemText strings. Since the 
+	// descriptionProfileN strings are administrator editable, it is possible that an administrator
+	// might edit into the string one of the entity characters '<', '>', '&', ''', or '"'. While these
+	// strings are internal within the program we retain their character representations in order to
+	// facilitate accurate comparisons of the descriptionProfileN strings. When the descriptionProfileN
+	// string data is about to be written to xml, however, we replace the entitity chars with their xml
+	// entity representations.
+	// 
+	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
+	// stored in the m_pUserProfiles struct on the heap with those that are used in the 
+	// defaultProfileItems string array below. It uses wxLogDebug() calls to alert the
+	// programmer of any significant differences/inconsistencies. 
+	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.0.0\":adminModified=\"No\"")
+		_T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
+		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
+		_T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
+		_T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\":"),
+	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_PACK_DOC\":itemType=\"subMenu\":itemText=\"Pack Document...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_UNPACK_DOC\":itemType=\"subMenu\":itemText=\"Unpack Document...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_CHANGEFOLDER\":itemType=\"subMenu\":itemText=\"Change Folder...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_BACKUP_KB\":itemType=\"subMenu\":itemText=\"Backup Knowledge Base\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_VIEW_TOOLBAR\":itemType=\"subMenu\":itemText=\"Toolbar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"Status Bar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Source\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"Wrap At Standard Format Markers\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_UNITS\":itemType=\"subMenu\":itemText=\"Units of Measurement...\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_CHANGE_INTERFACE_LANGUAGE\":itemType=\"subMenu\":itemText=\"Change Interface Language...\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"wxID_REPLACE\":itemType=\"subMenu\":itemText=\"Find and Replace...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_CC\":itemType=\"subMenu\":itemText=\"Load Consistent Changes...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_UNLOAD_CC_TABLES\":itemType=\"subMenu\":itemText=\"Unload Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_USE_CC\":itemType=\"subMenu\":itemText=\"Use Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ACCEPT_CHANGES\":itemType=\"subMenu\":itemText=\"Accept Changes Without Stopping\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"SIL Converters...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_USE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"Use SIL Converter\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_KB_EDITOR\":itemType=\"subMenu\":itemText=\"Knowledge Base Editor...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_AUTO_CAPITALIZATION\":itemType=\"subMenu\":itemText=\"Use Automatic Capitalization\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_SPLIT_DOC\":itemType=\"subMenu\":itemText=\"Split Document...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_JOIN_DOCS\":itemType=\"subMenu\":itemText=\"Join Documents...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_TOOLS_MOVE_DOC\":itemType=\"subMenu\":itemText=\"Move Document...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export Source Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT\":itemType=\"subMenu\":itemText=\"Export Translation Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_TO_RTF\":itemType=\"subMenu\":itemText=\"Export Interlinear Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EXPORT_GLOSSES\":itemType=\"subMenu\":itemText=\"Export Glosses As Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EXPORT_FREE_TRANS\":itemType=\"subMenu\":itemText=\"Export Free Translation...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_IMPORT_TO_KB\":itemType=\"subMenu\":itemText=\"Import to Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_ENABLEGLOSSING\":itemType=\"subMenu\":itemText=\"See Glosses\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":itemType=\"subMenu\":itemText=\"Glossing Uses Navigation Text's Font\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":itemType=\"subMenu\":itemText=\"Transform Adaptations Into Glosses...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_DELAY\":itemType=\"subMenu\":itemText=\"Delay...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_BOOKMODE\":itemType=\"subMenu\":itemText=\"Storing Documents in Book Folders\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":itemType=\"subMenu\":itemText=\"Free Translation Mode\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Target Text As Default Free Translation\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":itemType=\"subMenu\":itemText=\"Use Gloss Text As Default Free Translation\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Free Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Collect Back Translations...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Back Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":itemType=\"subMenu\":itemText=\"Use Transliteration Mode\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Send Synchronized Scrolling Messages\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":itemType=\"subMenu\":itemText=\"Receive Synchronized Scrolling Messages\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_ALIGNMENT\":itemType=\"subMenu\":itemText=\"Layout Window Right To Left\":itemDescr=\"Layout menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Fonts\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Backups and Misc\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Auto-Saving\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Punctuation\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Case\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Units\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"USFM and Filtering\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_CHECK_SINGLE_STEP\":itemType=\"modeBar\":itemText=\"Automatic\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_CHECK_FORCE_ASK\":itemType=\"modeBar\":itemText=\"Force Choice For This Item\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_EDIT_DELAY\":itemType=\"modeBar\":itemText=\"Delay\":itemDescr=\"Text box in mode bar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"IDC_CHECK_ISGLOSSING\":itemType=\"modeBar\":itemText=\"Glossing\":itemDescr=\"Checkbox in Modebar\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_BUTTON_DELETE_ALL_NOTES\":itemType=\"toolBar\":itemText=\"Delete All Notes\":itemDescr=\"Delete all the notes currently in the document\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_CUT\":itemType=\"toolBar\":itemText=\"Cut\":itemDescr=\"Cut the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_COPY\":itemType=\"toolBar\":itemText=\"Copy\":itemDescr=\"Copy the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_EDIT_PASTE\":itemType=\"toolBar\":itemText=\"Paste\":itemDescr=\"Insert Clipboard contents\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"wxID_PRINT\":itemType=\"toolBar\":itemText=\"Print\":itemDescr=\"Print the active document\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"wxID_HELP\":itemType=\"toolBar\":itemText=\"Display Help Topics\":itemDescr=\"Display Adapt It program help topics\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"wizardListItem\":itemText=\"<New Project>\":itemDescr=\"First List Item in Choose A Project page of Wizard\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("/UserProfilesSupport:")
+};
+
+/*
+// whm removed since the app now gets its default menu structure from a temporary
+// instance of the wxDesigner's AIMenuBarFunc().
+// 
+// Note: An array of top level menu names is available from the App's GetToopLevelMenuName()
+// function.
+
+// whm added 10Sep10 
+/// An array of wxStrings which, when parsed by ParseMenuStructureStrings(), is used as 
+/// default list of User Workflow Profile dialog item definitions. There definitions are
+/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
+/// file. Note: This menu structure is complete - it also includes the "Administrator" 
+/// menu items which are not included in the AI_UserProfiles.xml file.
+const wxString defaultMenuStructure[] = 
+{
+	// Note: In the strings below, the attribute fields should be identical to what the normal default
+	// strings are that are used within the AIMenuBarFunc() produced by wxDesigner. Hence, the subMenuID
+	// field should contain the exact menu item identifiers; the subMenuLabel should contain the exact
+	// menu label strings - including any accelerators (i.e., "\tCtrl-A") and ampersands preceding the 
+	// short cut ALT+key letters; the subMenuHelp should be the same as what is in wxDesigner; and the
+	// subMenuKind should accurately indicate whether the menu item is wxITEM_NORMAL, wxITEM_CHECK
+	// or wxITEM_SEPARATOR. Cut and paste of strings from the AIMenuBarFunc() in Adapt_It_wdr.cpp helps
+	// insure exact copy - but Note: quote marks here need to be escaped with a backslash!
+	// 
+	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
+	// stored in the m_pAI_MenuStructure struct on the heap with those that are used in the 
+	// defaultMenuStructure string array below. It uses wxLogDebug() calls to alert the
+	// programmer of any significant differences/inconsistencies. 
+	_T("MENU_STRUCTURE:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_FILE_MENU\":mainMenuLabel=\"&File\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_OPEN\":subMenuLabel=\"&Open...\\tCtrl-O\":subMenuHelp=\"Open an existing document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_SAVE\":subMenuLabel=\"&Save\\tCtrl-S\":subMenuHelp=\"Save the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_SAVE_AS\":subMenuLabel=\"Save &As...\\tCtrl-A\":subMenuHelp=\"Save the document with different xml format, or different filename\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_CLOSE\":subMenuLabel=\"&Close\":subMenuHelp=\"Close the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_PACK_DOC\":subMenuLabel=\"Pack Document...\":subMenuHelp=\"Pack document for transfer to another computer\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_UNPACK_DOC\":subMenuLabel=\"Unpack Document...\":subMenuHelp=\"Unpack a document that was packed on another computer\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PRINT\":subMenuLabel=\"&Print...\\tCtrl-P\":subMenuHelp=\"Print the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PREVIEW\":subMenuLabel=\"Print Pre&view\":subMenuHelp=\"Show what printed pages will look like (without printing)\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PAGE_SETUP\":subMenuLabel=\"P&age Setup...\":subMenuHelp=\"Change the printing options\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_STARTUP_WIZARD\":subMenuLabel=\"Start &Working...\\tCtrl-W\":subMenuHelp=\"Show the sequence of dialog windows used for accessing a project and working on documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_CLOSEKB\":subMenuLabel=\"Close Pro&ject\\tCtrl-J\":subMenuHelp=\"Save the knowledge base and document, then close this project\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_CHANGEFOLDER\":subMenuLabel=\"Change Folder...\":subMenuHelp=\"Change to a different book folder for document storage (book mode must be ON)\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_SAVEKB\":subMenuLabel=\"Save &Knowledge Base\":subMenuHelp=\"Update the knowledge base file for this project\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_BACKUP_KB\":subMenuLabel=\"&Backup Knowledge Base\":subMenuHelp=\"Make a new knowledge base backup immediately\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_RESTORE_KB\":subMenuLabel=\"&Restore Knowledge Base...\":subMenuHelp=\"Use all the saved documents to rebuild the knowledge base file\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_EXIT\":subMenuLabel=\"E&xit\":subMenuHelp=\"Quit the application; prompts to save documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_EDIT_MENU\":mainMenuLabel=\"&Edit\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_UNDO\":subMenuLabel=\"&Undo\\tCtrl-Z\":subMenuHelp=\"Undo the last action\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_CUT\":subMenuLabel=\"Cu&t\\tCtrl-X\":subMenuHelp=\"Cut the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_COPY\":subMenuLabel=\"&Copy\\tCtrl-C\":subMenuHelp=\"Copy the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_PASTE\":subMenuLabel=\"&Paste\\tCtrl-V\":subMenuHelp=\"Insert Clipboard contents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_GO_TO\":subMenuLabel=\"&Go To...\\tCtrl-G\":subMenuHelp=\"Go to a specific chapter and verse\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_SOURCE_TEXT\":subMenuLabel=\"Edit &Source Text...\\tCtrl-Q\":subMenuHelp=\"Edit the selected source text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_CONSISTENCY_CHECK\":subMenuLabel=\"Consist&ency Check...\":subMenuHelp=\"Check all translations with those in the knowledge base for consistency\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_FORWARD\":subMenuLabel=\"Move Note Forward\\tCtrl-3\":subMenuHelp=\"Move the note forward in the document to the next word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":subMenuLabel=\"Move Note Backward\\tCtrl-2\":subMenuHelp=\"Move the note backward in the document to the previous word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_PREFERENCES\":subMenuLabel=\"Pre&ferences...\":subMenuHelp=\"Adapt It settings\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_VIEW_MENU\":mainMenuLabel=\"&View\":"),
+	_T("SUB_MENU:subMenuID=\"ID_VIEW_TOOLBAR\":subMenuLabel=\"&Toolbar\":subMenuHelp=\"Show or hide the toolbar\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_VIEW_STATUS_BAR\":subMenuLabel=\"&Status Bar\":subMenuHelp=\"Show or hide the status bar\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_VIEW_COMPOSE_BAR\":subMenuLabel=\"&Compose Bar\":subMenuHelp=\"Show or hide the bar for composing text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_COPY_SOURCE\":subMenuLabel=\"Copy Sourc&e\":subMenuHelp=\"Copy source text to phrase box as default translation\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_MARKER_WRAPS_STRIP\":subMenuLabel=\"&Wrap At Standard Format Markers\":subMenuHelp=\"Start a new strip whenever a standard format marker is encountered\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_UNITS\":subMenuLabel=\"&Units of Measurement...\":subMenuHelp=\"Units to be used when printing\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_CHANGE_INTERFACE_LANGUAGE\":subMenuLabel=\"Change Interface Language...\":subMenuHelp=\"Change the language of the program interface. You may need to restart Adapt It for the change to take effect\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_TOOLS_MENU\":mainMenuLabel=\"&Tools\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_FIND\":subMenuLabel=\"&Find...\\tCtrl-F\":subMenuHelp=\"Find text in source or target or both, or special search\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_REPLACE\":subMenuLabel=\"Find and &Replace...\\tCtrl-H\":subMenuHelp=\"Replace in target text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_DEFINE_CC\":subMenuLabel=\"&Load Consistent Changes...\":subMenuHelp=\"Define and load one or more consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_UNLOAD_CC_TABLES\":subMenuLabel=\"&Unload Consistent Changes\":subMenuHelp=\"Unload any loaded consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_USE_CC\":subMenuLabel=\"Use &Consistent Changes\":subMenuHelp=\"Use the consistent changes when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ACCEPT_CHANGES\":subMenuLabel=\"&Accept Changes Without Stopping\":subMenuHelp=\"Accept the changed source text as the translation and continue on\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_DEFINE_SILCONVERTER\":subMenuLabel=\"&SIL Converters...\":subMenuHelp=\"Load an SIL Converter\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_USE_SILCONVERTER\":subMenuLabel=\"Use S&IL Converter\":subMenuHelp=\"Use a loaded SIL Converter\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_KB_EDITOR\":subMenuLabel=\"&Knowledge Base Editor...\\tCtrl-K\":subMenuHelp=\"Display dialog for editing the knowledge base\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_AUTO_CAPITALIZATION\":subMenuLabel=\"Use Automatic Capitalization\":subMenuHelp=\"Use automatic capitalization when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_RETRANS_REPORT\":subMenuLabel=\"Re&translation Report...\":subMenuHelp=\"Output a file listing all retranslations\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_SPLIT_DOC\":subMenuLabel=\"Split Document...\":subMenuHelp=\"Split the document into two or more documents\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_JOIN_DOCS\":subMenuLabel=\"Join Documents...\":subMenuHelp=\"Join two or more documents into a single document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_TOOLS_MOVE_DOC\":subMenuLabel=\"Move Document...\":subMenuHelp=\"Move documents between the Adaptations folder and a book folder location\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_EXPORT_IMPORT_MENU\":mainMenuLabel=\"E&xport-Import\":"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_SOURCE\":subMenuLabel=\"Export &Source Text...\":subMenuHelp=\"Export the source language text as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT\":subMenuLabel=\"&Export Translation Text...\":subMenuHelp=\"Export the target language translation as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_TO_RTF\":subMenuLabel=\"Export Interlinear &Text...\":subMenuHelp=\"Export the Source and Target languages in interlinear form as an *.rtf file type\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_GLOSSES\":subMenuLabel=\"Export &Glosses As Text...\":subMenuHelp=\"Export the glossing lines' contents as text\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_OXES\":subMenuLabel=\"Export &Open XML for Editing Scripture (OXES)...\":subMenuHelp=\"Export the translation text according to the OXES version 1 standard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_KB\":subMenuLabel=\"Export Knowledge &Base...\":subMenuHelp=\"Export knowledge base in standard format or LIFT format\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_IMPORT_TO_KB\":subMenuLabel=\"&Import to Knowledge Base...\":subMenuHelp=\"Extend knowledge base by importing dictionary records\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_ADVANCED_MENU\":mainMenuLabel=\"&Advanced\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_ENABLEGLOSSING\":subMenuLabel=\"See Glosses\":subMenuHelp=\"Make glossing line visible on screen\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":subMenuLabel=\"Glossing Uses Navigation Text's Font\":subMenuHelp=\"Use the navigation text font for glossing text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":subMenuLabel=\"Transform Adaptations Into Glosses...\":subMenuHelp=\"Transform adaptations from another project into the current project's glosses\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_DELAY\":subMenuLabel=\"Delay...\":subMenuHelp=\"Slow automatic insertions down to a speed suitable for reading along\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_BOOKMODE\":subMenuLabel=\"Storing Documents in Book Folders\":subMenuHelp=\"Turn on, or off, storage of documents to book folders\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":subMenuLabel=\"Free Translation Mode\":subMenuHelp=\"Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Target Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing target text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Gloss Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing gloss text\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":subMenuLabel=\"Remove Filtered Free Translations\":subMenuHelp=\"Removes all the filtered free translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":subMenuLabel=\"Collect Back Translations...\":subMenuHelp=\"Collect adaptations, or glosses, and store them with a back translation marker as filtered material\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":subMenuLabel=\"Remove Filtered Back Translations\":subMenuHelp=\"Deletes all the filtered back translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":subMenuLabel=\"Use Transliteration Mode\":subMenuHelp=\"Select this item to use SIL Converters in transliteration mode\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Send Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause applications such as Paratext and TW to automatically scroll to the same location\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Receive Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_LAYOUT_MENU\":mainMenuLabel=\"&Layout\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ALIGNMENT\":subMenuLabel=\"Layout Window Right To Left\\tCtrl-1\":subMenuHelp=\"Layout text in window from right to left\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_HELP_MENU\":mainMenuLabel=\"&Help\":"),
+	_T("SUB_MENU:subMenuID=\"wxID_HELP\":subMenuLabel=\"&Help Topics\\tShift-Ctrl-/\":subMenuHelp=\"List Help topics\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_ONLINE_HELP\":subMenuLabel=\"Online Help (Requires Internet Access)\":subMenuHelp=\"Get Adapt It Help from the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_REPORT_A_PROBLEM\":subMenuLabel=\"Report a problem...\":subMenuHelp=\"Send a bug or problem report to the Adapt It developers\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_GIVE_FEEDBACK\":subMenuLabel=\"Give feedback...\":subMenuHelp=\"Give the developers feedback on your use of Adapt It\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_HELP_USE_TOOLTIPS\":subMenuLabel=\"Use Tooltips\":subMenuHelp=\"Select this item to turn on or turn off tooltip help messages\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"wxID_ABOUT\":subMenuLabel=\"&About Adapt It...\":subMenuHelp=\"Display program information, version number and copyright\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("MAIN_MENU:mainMenuID=\"ID_ADMINISTRATOR_MENU\":mainMenuLabel=\"Ad&ministrator\":"),
+	_T("SUB_MENU:subMenuID=\"ID_CUSTOM_WORK_FOLDER_LOCATION\":subMenuLabel=\"&Custom Work Folder Location...\":subMenuHelp=\"Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_LOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Lock Custom Location\":subMenuHelp=\"Make the custom work folder location permanent until explicitly changed\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_UNLOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Unlock Custom Location\":subMenuHelp=\"Make the custom work folder location persist only until the end of the session\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_LOCAL_WORK_FOLDER_MENU\":subMenuLabel=\"&Restore Default Work Folder Location\":subMenuHelp=\"Point at the local machine's default work folder\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_SET_PASSWORD_MENU\":subMenuLabel=\"Set &Password...\":subMenuHelp=\"Set a password, it will be stored in the clear in the basic configuration file\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_MOVE_OR_COPY_FOLDERS_OR_FILES\":subMenuLabel=\"&Move Or Copy Folders Or Files...\\tShift-Ctrl-M\":subMenuHelp=\"Dialog for moving folders or files, or copying them, into a destination folder\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_SOURCE_DATA_FOLDER\":subMenuLabel=\"Open &Source Data Folder...\":subMenuHelp=\"Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_DATA_FOLDER\":subMenuLabel=\"Open &Export Data Folder...\":subMenuHelp=\"Opens the project's Export Data folder (creating it first if necessary). Protects the user from folder navigation of exports.\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
+	_T("/SUB_MENU:"),
+	_T("SUB_MENU:subMenuID=\"ID_EDIT_USER_MENU_SETTINGS_PROFILE\":subMenuLabel=\"User &Workflow Profiles...\":subMenuHelp=\"Choose which menu items the user can access\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("/SUB_MENU:"),
+	_T("/MAIN_MENU:"),
+	_T("/MENU_STRUCTURE:")
+};
+*/
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to a BookNamePair struct whose members have been assigned
 /// \param      pPair      <- the struce whose members are assigned values
@@ -1209,6 +2195,10 @@ BookNamePair* gpBookNamePair;
 /// A global scratch pointer. Instances of USFMAnalysis are stored in the m_pUsfmStylesMap,
 /// m_pPngStylesMap, and m_pUsfmAndPngStylesMap (of type MapSfmToUSFMAnalysisStruct).
 USFMAnalysis* gpUsfmAnalysis; 
+
+/// A global scratch pointer. Instances of UserProfileItem are stored in the ProfileItemList
+/// and are used in setting up user workflow profiles
+//UserProfileItem* gpUserProfileItem; 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -1539,6 +2529,14 @@ void SetupDefaultStylesMap()
 	for (int i = 0; i < gnDefaultSFMs; i++)
 	{
 		gpUsfmAnalysis = new USFMAnalysis;
+		// whm Note: The object pointed at by gpUsfmAnalysis will not ordinarily
+		// need to be deleted by calling delete on the gpUsfmAnalysis "scratch" 
+		// pointer, because each such object created here will be handed off to 
+		// another data structure which will eventually be responsible for 
+		// object deletion of the objects it owns in OnExit(). It need only be
+		// deleted directly if it cannot be handed off to an appropriate data
+		// structure (see below).
+		// 
 		// set the gpUsfmAnalysis struct attributes from the parsed defaultSFM 
 		// strings values
 		ParseAndFillStruct(gpUsfmAnalysis,defaultSFM[i]);
@@ -1597,6 +2595,1504 @@ void SetupDefaultStylesMap()
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being populated
+/// \remarks
+/// Called from: the App's OnInit(), ReportMenuAndUserProfilesInconsistencies(), and 
+/// CAdminEditMenuProfile::InitDialog. It is called in OnInit() to set up a 
+/// factoryUserProfiles struct on the heap for use in AdminEditMenuProfile class. 
+/// It is also called if the app cannot find the AI_UserProfiles.xml file and it must 
+/// use SetupDefaultUserProfiles() to establish its internal representation of any user 
+/// selected User Workflow Profile. 
+/// When AI_UserProfiles.xml is available (the usual case) the m_pUserProfiles is 
+/// populated by the AtPROFILEEndTag() function in XML.cpp, rather than by this 
+/// SetupDefaultUserProfiles() function. After setting up the pUserProfiles struct
+/// this function also calls GetAndAssignIdValuesToUserProfilesStruct().
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
+{
+	wxString field = _T("");
+	int nDefaultUserProfileItems;
+	UserProfileItem* pUserProfileItem = NULL;
+	nDefaultUserProfileItems = sizeof(defaultProfileItems)/sizeof(wxString);
+	int i;
+	for (i = 0; i < nDefaultUserProfileItems; i++)
+	{
+		// scan and parse each defaultProfileItems line
+		field.Empty();
+		int ct, totct;
+		wxString lineStr;
+		lineStr = defaultProfileItems[i];
+		totct = defaultProfileItems[i].Length();
+		for (ct = 0; ct < totct; ct++)
+		{
+			// defaultProfileItems[i] represents a whole string line of concatenated tags, attributes and values
+			
+			if (lineStr.GetChar(ct) != _T(':'))
+			{
+				field += lineStr.GetChar(ct);
+			}
+			else
+			{
+				// we're at the end of a field and field contains the string token
+				// up to, but not including the : delimiter.
+				// If the field doesn't have an '=' in it, it should be an all-caps
+				// tag name; if it has an '=' in it, the field should contain an 
+				// attribute name followed by the '=' with the attribute's value 
+				// within quote marks, i.e., attributeName="value".
+				// Parse the field into its parts
+				if (field.Find(_T("=")) == wxNOT_FOUND)
+				{
+					// No '=' in the field so field itself should be a tag name
+					// Test for most common ones first - profile and menu.
+					if (field == wxString::FromAscii(profile))
+					{
+						;
+					}
+					else if (field == wxString::FromAscii(end_profile))
+					{
+						;
+					}
+					else if (field == wxString::FromAscii(menu))
+					{
+						pUserProfileItem = new UserProfileItem;
+						pUserProfileItem->itemID = _T("");
+						pUserProfileItem->itemIDint = -1;
+						pUserProfileItem->itemType = _T("");
+						pUserProfileItem->itemText = _T("");
+						pUserProfileItem->itemDescr = _T("");
+						pUserProfileItem->adminCanChange = _T("");
+						pUserProfileItem->usedProfileNames.Clear();
+					}
+					else if (field == wxString::FromAscii(end_menu))
+					{
+						pUserProfiles->profileItemList.Append(pUserProfileItem);
+					}
+					else if (field == wxString::FromAscii(userprofilessupport))
+					{
+						pUserProfiles = new UserProfiles;
+						pUserProfiles->profileVersion = _T("");
+						pUserProfiles->applicationCompatibility = _T("");
+						pUserProfiles->adminModified = _T("");
+						pUserProfiles->definedProfileNames.Clear();
+						pUserProfiles->descriptionProfileTexts.Clear();
+						pUserProfiles->profileItemList.Clear();
+					}
+					else if (field == wxString::FromAscii(end_userprofilessupport))
+					{
+						;
+					}
+				}
+				else
+				{
+					// field has an '=' char in it so it should be an attribute/value
+					// representation
+					wxString attrStr;
+					wxString valueStr;
+					attrStr = field.Mid(0,field.Find(_T("=")));
+					attrStr.Trim(FALSE);
+					attrStr.Trim(TRUE);
+					valueStr = field.Mid(field.Find(_T("=")));
+					valueStr.Replace(_T("="),_T(""));
+					valueStr.Replace(_T("\""),_T(""));
+					valueStr.Trim(FALSE);
+					valueStr.Trim(TRUE);
+					if (attrStr == wxString::FromAscii(profileVersion))
+					{
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->profileVersion = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(applicationCompatibility))
+					{
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->applicationCompatibility = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(adminModified))
+					{
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->adminModified = valueStr;
+					}
+					else if (attrStr.Find(wxString::FromAscii(definedProfile)) == 0)
+					{
+						wxASSERT(pUserProfiles != NULL);
+						pUserProfiles->definedProfileNames.Add(valueStr);
+					}
+					else if (attrStr.Find(wxString::FromAscii(descriptionProfile)) == 0)
+					{
+						wxASSERT(pUserProfiles != NULL);
+						// Note: we keep entity characters in their non xml form here, i.e.,
+						// '<', '>', '&', ''', and '"' remain as it.
+						pUserProfiles->descriptionProfileTexts.Add(valueStr);
+					}
+					else if (attrStr == wxString::FromAscii(itemID))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemID = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemType))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemType = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemText))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemText = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemDescr))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->itemDescr = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemAdminCanChange))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->adminCanChange = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(itemUserProfile))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->usedProfileNames.Add(valueStr);
+					}
+					else if (attrStr == wxString::FromAscii(itemVisibility))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->usedVisibilityValues.Add(valueStr);
+					}
+					else if (attrStr == wxString::FromAscii(factory))
+					{
+						wxASSERT(pUserProfileItem != NULL);
+						pUserProfileItem->usedFactoryValues.Add(valueStr);
+					}
+				}
+
+				field.Empty(); // ready for next field
+			}
+		}
+		// We're at the end of a parsed line
+	}
+	GetAndAssignIdValuesToUserProfilesStruct(pUserProfiles);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the compareUserProfiles and baseUserProfiles differ in the significant
+///             profile items that they share in common, FALSE if those items are the same
+/// \param      <- compareUserProfiles  a pointer to the UserProfiles struct whose profile items
+///                 are being checked/compared
+/// \param      <- baseUserProfiles  a pointer to the UserProfiles struct whose profile items
+///                 are the basis against which the compareUserProfiles items are being compared
+/// \remarks
+/// Called from: the App's UpdateAdminModifiedLineToYesOrNo(). 
+/// Determines if the current user profile m_pUserProfiles (compareUserProfiles) differs from 
+/// the factory profile m_pFactoryUserProfiles (baseUserProfiles). It only check for differences in 
+/// profile items that the two profiles (compareUserProfiles and baseUserProfiles) have in common. 
+/// It ignores any profile items that are present but are not shared in common. This allows 
+/// upgrades to be done where different profile items might be present/absent in the course 
+/// of an upgrade to a newer, or downgrade to an older version of the application and the
+/// AI_UserProfiles.xml file.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles, UserProfiles* baseUserProfiles)
+{
+	// whm 22Oct10 rewrote to allow for different numbers of items in baseUserProfiles
+	// and compareUserProfiles. See MapChangesInUserProfiles().
+	bool bTheyDiffer = FALSE;
+	// Strategy:
+	// There is an m_pFactoryUserProfiles (baseUserProfiles) struct created in OnInit() 
+	// that we can use for comparison with the current compareUserProfiles. This comparison 
+	// ignores the adminModified attributes and others which are not editable by the 
+	// administrator. If CommonItemsInProfilesDiffer() returns FALSE it means that the
+	// compareUserProfiles struct essentially contains only baseUserProfiles (i.e., factory)
+	// data.
+	
+	wxASSERT(compareUserProfiles != NULL);
+	wxASSERT(baseUserProfiles != NULL);
+
+	if (compareUserProfiles != NULL && baseUserProfiles != NULL)
+	{
+		// we use a temporary map tempMap to associate the necessary attribute
+		// items with their associated values.
+		MapProfileChangesToStringValues tempMap;
+		MapProfileChangesToStringValues::iterator iter;
+		
+		// Enter all compareUserProfiles items into our tempMap
+		// First enter all of compareUserProfiles->descriptionProfileTexts into the map
+		int descCt;
+		int descTot = (int)compareUserProfiles->descriptionProfileTexts.GetCount();
+		for (descCt = 0; descCt < descTot; descCt++)
+		{
+			// enter all of compareUserProfiles->descriptionProfileTexts into the map
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << descCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				tempMap.insert(*iter);
+			}
+			else
+			{
+				// key not in the map
+				tempMap[key] = compareUserProfiles->descriptionProfileTexts[descCt];
+			}
+		}
+		// Next, enter all of compareUserProfiles->profileItemList items into the tempMap
+		ProfileItemList::Node* tpos;
+		int count;
+		int t_tot = (int)compareUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < t_tot; count++)
+		{
+			tpos = compareUserProfiles->profileItemList.Item(count);
+			UserProfileItem* ptItem;
+			ptItem = tpos->GetData();
+			wxASSERT(ptItem != NULL);
+			int ct;
+			int ct_t;
+			ct_t = (int)ptItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_t; ct++)
+			{
+				wxString key = ptItem->itemText + _T(":") + ptItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					tempMap.insert(*iter);
+				}
+				else
+				{
+					// key not in the map
+					tempMap[key] = ptItem->usedVisibilityValues[ct];
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( iter = tempMap.begin(); iter != tempMap.end(); ++iter )
+		//{
+		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
+		//}
+		
+		// Now go through all items of the baseUserProfiles struct, and do a lookup to see if
+		// each item is in the map. If so, check the map's associated value. If the map's 
+		// associated value is different, then we immediately return TRUE. 
+		int appCt;
+		int appTot = (int)baseUserProfiles->descriptionProfileTexts.GetCount();
+		int nAppItemsNotAmongTempItems = 0;
+		int nTempItemsNotAmongAppItems = (int)compareUserProfiles->descriptionProfileTexts.GetCount() + (4*(int)compareUserProfiles->profileItemList.GetCount());
+		for (appCt = 0; appCt < appTot; appCt++)
+		{
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << appCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				wxString keyTemp = iter->first;
+				wxString valueTemp = iter->second;
+				wxString appDescrText = baseUserProfiles->descriptionProfileTexts.Item(appCt);
+				// check if the valueTemp differs from the appDescrText
+				if (valueTemp != appDescrText)
+				{
+					bTheyDiffer = TRUE;
+					return bTheyDiffer;
+				}
+				nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+			}
+			else
+			{
+				// key not in the map
+				nAppItemsNotAmongTempItems++;
+			}
+		}
+		ProfileItemList::Node* apos;
+		MapProfileChangesToStringValues::iterator a_iter;
+		int a_tot = (int)baseUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < a_tot; count++)
+		{
+			apos = baseUserProfiles->profileItemList.Item(count);
+			UserProfileItem* paItem;
+			paItem = apos->GetData();
+			wxASSERT(paItem != NULL);
+			int ct;
+			int ct_a;
+			ct_a = (int)paItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_a; ct++)
+			{
+				wxString key = paItem->itemText + _T(":") + paItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					wxString keyTemp = iter->first;
+					wxString valueTemp = iter->second;
+					wxString appVisibility = paItem->usedVisibilityValues.Item(ct);
+					// check if the valueTemp differs from the appDescrText
+					if (valueTemp != appVisibility)
+					{
+						bTheyDiffer = TRUE;
+						return bTheyDiffer;
+					}
+					nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+				}
+				else
+				{
+					// key not in the map
+					nAppItemsNotAmongTempItems++;
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( a_iter = m_mapProfileChangesToStringValues.begin(); a_iter != m_mapProfileChangesToStringValues.end(); ++a_iter )
+		//{
+		//	wxLogDebug(_T("a_iter->first = %s, a_iter->second = %s"),a_iter->first.c_str(),a_iter->second.c_str());
+		//}
+	}
+	return bTheyDiffer;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pUserProfiles  a pointer to the UserProfiles struct whose profile items
+///                 are being modified
+/// \remarks
+/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog(). 
+/// Scans through pUserProfiles and assigns the itemIDint values by looking them up in the
+/// m_mapMenuLabelStrToIdInt and assigning the mapped int values to the itemIDint member of 
+/// the UserProfileItem part of pUserProfiles.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles)
+{
+	// Use the map m_mapMenuLabelStrToIdInt
+	wxASSERT(pUserProfiles != NULL);
+
+	// scan through pUserProfiles and assign the int id values by looking them up in the
+	// m_mapMenuLabelStrToIdInt and assigning the mapped int values to the itemIDint
+	// member of the UserProfileItem part of pUserProfiles
+	if (pUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = (int)pUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			if (pItem->itemType == _T("subMenu"))
+			{
+
+				// pItem->itemText is the string we want to look up, but remove decorations
+				wxString itemTextPlain = RemoveMenuLabelDecorations(pItem->itemText);
+				// Note: UserProfiles data does not list menuSeparators so itemTextPlain
+				// will never be menuSeparator
+				// now look up the mapped int value
+				MapMenuLabelStrToIdInt::iterator iter;
+				iter = m_mapMenuLabelStrToIdInt.find(itemTextPlain);
+				int itemId = -1;
+				if (iter != m_mapMenuLabelStrToIdInt.end())
+				{
+					// we found an associated value for the plain menu label
+					itemId = (int)iter->second;
+				}
+				else
+				{
+					// no mapping was found - this shouldn't happen
+					wxASSERT(FALSE);
+					;
+				}
+				pItem->itemIDint = itemId;
+			}
+		}
+	}
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing (but three wxString parameter values passed back by reference)
+/// \param      -> AIuserProfilesWorkFolderPath path and name of AI_UserProfiles.xml in the work folder
+/// \param      -> profileVersionStr the string value of the profileVersion attribute in the xml file
+/// \param      -> applicationCompatibilityStr the string value of the applicationCompatibility attribute
+///                 in the xml file
+/// \param      -> adminModifiedStr the string value of the adminModified attribute in the xml file, i.e.,
+///                 which is "Yes" or "No"
+/// \remarks
+/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog(). 
+/// Opens and reads the AI_UserProfiles.xml file at the AIuserProfilesWorkFolderPath path, 
+/// and retrieves the string values associated with these three attribute values: profileVersion, 
+/// applicationCompatibility, and adminModified. It returns them in the parameters passed by 
+/// reference.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath, 
+		wxString& profileVersionStr,wxString& applicationCompatibilityStr,wxString& adminModifiedStr)
+{
+	wxTextFile f;
+	bool bUserProfilesFileExists = wxFileExists(AIuserProfilesWorkFolderPath);
+	if (bUserProfilesFileExists)
+	{
+		// Read the existing xml file into memory using wxTextFile, so we can retrieve the
+		// xml comments at the beginning of the file and compare the data in memory and
+		// make changes there before saving the file back to disk
+		bool bOpenedOK;
+		bOpenedOK = f.Open(m_userProfileFileWorkFolderPath);
+		if (bOpenedOK)
+		{
+			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through textFile.
+			bool bFoundprofileVersion = FALSE;
+			wxString lineStr;
+			for (lineStr = f.GetFirstLine(); !f.Eof() && !bFoundprofileVersion; lineStr = f.GetNextLine())
+			{
+				int chPos;
+				// does this line have our itemTextStr?
+				chPos = lineStr.Find(wxString::FromAscii(profileVersion));
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundprofileVersion = TRUE;
+					wxString str = lineStr;
+					int beginQPos, endQPos;
+					beginQPos = str.Find(_T("\""));
+					wxASSERT(beginQPos != wxNOT_FOUND);
+					str = str.Mid(beginQPos+1);
+					endQPos = str.Find(_T("\""));
+					wxASSERT(endQPos != wxNOT_FOUND);
+					str = str.Mid(0,endQPos);
+					profileVersionStr = str;
+					break;
+				}
+			}
+			bool bFoundapplicationCompatibility = FALSE;
+			for (lineStr = f.GetFirstLine(); !f.Eof() && !bFoundapplicationCompatibility; lineStr = f.GetNextLine())
+			{
+				int chPos;
+				// does this line have our itemTextStr?
+				chPos = lineStr.Find(wxString::FromAscii(applicationCompatibility));
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundapplicationCompatibility = TRUE;
+					wxString str = lineStr;
+					int beginQPos, endQPos;
+					beginQPos = str.Find(_T("\""));
+					wxASSERT(beginQPos != wxNOT_FOUND);
+					str = str.Mid(beginQPos+1);
+					endQPos = str.Find(_T("\""));
+					wxASSERT(endQPos != wxNOT_FOUND);
+					str = str.Mid(0,endQPos);
+					applicationCompatibilityStr = str;
+					break;
+				}
+			}
+			bool bFoundadminModified = FALSE;
+			for (lineStr = f.GetFirstLine(); !f.Eof() && !bFoundadminModified; lineStr = f.GetNextLine())
+			{
+				int chPos;
+				// does this line have our itemTextStr?
+				chPos = lineStr.Find(wxString::FromAscii(adminModified));
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundadminModified = TRUE;
+					wxString str = lineStr;
+					int beginQPos, endQPos;
+					beginQPos = str.Find(_T("\""));
+					wxASSERT(beginQPos != wxNOT_FOUND);
+					str = str.Mid(beginQPos+1);
+					endQPos = str.Find(_T("\""));
+					wxASSERT(endQPos != wxNOT_FOUND);
+					str = str.Mid(0,endQPos);
+					adminModifiedStr = str;
+					break;
+				}
+			}
+		}
+		f.Close();
+	}
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if backup copy was successful, FALSE if the copy process failed
+/// \param      -> AIuserProfilesWorkFolderPath path and name of AI_UserProfiles.xml in the work folder
+/// \param      <- backupPathNameUsed the string value returned of the backup file name generated for the
+///                 backup, i.e., of the form AI_UserProfiles_Old_nn.xml where nn is 01, 02, 03, etc.
+/// \remarks
+/// Called from the App's OnInit(). 
+/// Makes a backup copy of the user's AI_UserProfiles.xml file naming it to AI_UserProfiles_Oldnn.xml
+/// where nn is a numerical 01, 02, 03, etc., to avoid overwriting a previous backup. The backup copy
+/// is made in the user's work folder (m_userProfileFileWorkFolderPath). This function does not remove
+/// the original AI_UserProfiles.xml file at m_userProfileFileWorkFolderPath.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::BackupExistingUserProfilesFileInWorkFolder(wxString AIuserProfilesWorkFolderPath, wxString& backupPathNameUsed)
+{
+	bool bBackupOK = TRUE;
+	bool bExists;
+	bExists = ::wxFileExists(AIuserProfilesWorkFolderPath);
+	wxASSERT(bExists == TRUE);
+	if (bExists)
+	{
+		wxString backupName;
+		backupName = GetUniqueIncrementedFileName(AIuserProfilesWorkFolderPath,2,_T("_Old_"));
+		// We should now have a backup name that does not yet exist as a file in the work folder.
+		// Now copy the existing AI_UserProfiles.xml to the backupName (backupName is full path + filename).
+		bool bCopiedOK;
+		bCopiedOK = ::wxCopyFile(AIuserProfilesWorkFolderPath,backupName); // overwrite is default but shouldn't be one there with name backupName
+		if (!bCopiedOK)
+		{
+			bBackupOK = FALSE;
+		}
+		backupPathNameUsed = backupName; // to return to caller via reference
+	}
+	return bBackupOK;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
+/// \param      <- m_mapMenuLabelStrToIdInt a mapping of menu id strings to their menu id int values
+/// \remarks
+/// Called from: the App's OnInit().
+/// It represents Adapt It's default menu structure as derived from a temporary version of AI's 
+/// menu bar (without being configured for any user profiles). Assumes pMenuStructure is NULL 
+/// on entry to this function. While setting up the default menu structure, this function also 
+/// populates the m_mapMenuLabelStrToIdInt map which is used in the 
+/// GetAndAssignIdValuesToUserProfilesStruct().
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt)
+{
+	wxASSERT(pMenuStructure == NULL);
+	AI_MainMenuItem* pMainMenuItem = NULL;
+	AI_SubMenuItem* pSubMenuItem = NULL;
+
+	pMenuStructure = new AI_MenuStructure;
+	wxASSERT(pMenuStructure != NULL);
+	// create a temporary AI menu bar on the heap from the wxDesigner's AIMenuBarFunc() function.
+	// This represents the default menu bar, as it does not get changed to accommodate the
+	// current user profile by ConfigureInterfaceForUserProfile()
+	wxMenuBar* pMenuBar;
+	pMenuBar = AIMenuBarFunc();
+	wxASSERT(pMenuBar != NULL);
+
+	MapMenuLabelStrToIdInt::iterator iter;
+	m_mapMenuLabelStrToIdInt.clear();
+
+	if (pMenuBar == NULL)
+	{
+		wxASSERT(FALSE);
+		wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the SetupDefaultMenuStructure() function"));
+		return;
+	}
+	int ct;
+	int mbct = pMenuBar->GetMenuCount(); // get the number of top level menu items
+	for (ct = 0; ct < mbct; ct++)
+	{
+		wxMenu* pmbMainMenuItem = pMenuBar->GetMenu(ct); // AI menu bar
+		wxASSERT(pmbMainMenuItem != NULL);
+		if (pmbMainMenuItem != NULL)
+		{
+			pMainMenuItem = new AI_MainMenuItem;
+			wxASSERT(pMainMenuItem != NULL);
+			// initialize the new pMainMenuItem's members
+			pMainMenuItem->mainMenuIDint = -1;
+			//pMainMenuItem->mainMenuID = _T("");
+			pMainMenuItem->mainMenuLabel = _T("");
+			pMainMenuItem->aiSubMenuItems.Clear();
+			
+			// get values for pMainMenuItem's members from the temp AI menu bar pMenuBar
+			wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
+			pMainMenuItem->mainMenuLabel = mbMainMenuText;
+			// For some reason a wxMenu item (top level or sub menu item) does not have a 
+			// GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
+			// determine the int ID of a main menu item in a round-about way.
+			
+			pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
+			//pMainMenuItem->mainMenuID = //can we get along without this string representation mainMenuID?
+			// Consider: When the compiled all of the menu item IDs are determined and those const int values
+			// are used at run time. They don't change during execution or even from session to session of a
+			// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+			// especially since the mainMenuIDint value never changes.
+			
+			// insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+			// Note: we remove menu decorations since we want to be able to look up the plain label in
+			// the map
+			wxString mainMenuItemLabelPlain = RemoveMenuLabelDecorations(mbMainMenuText);
+			iter = m_mapMenuLabelStrToIdInt.find(mainMenuItemLabelPlain);
+			if (iter != m_mapMenuLabelStrToIdInt.end())
+			{
+				// key exists in the map
+				m_mapMenuLabelStrToIdInt.insert(*iter); // associates (any new) pMainMenuItem->mainMenuIDint value with the keyCopy
+			}
+			else
+			{
+				// key not in the map
+				// The [] index operator can be used either of two ways in assignment statement
+				m_mapMenuLabelStrToIdInt[mainMenuItemLabelPlain] = pMainMenuItem->mainMenuIDint; // clearest
+				// or, the following is equivalent, but not so clear
+				//pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
+				// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+				// The only difference is that if the given key is not present in the hash map,
+				// an element with the default value_type() is inserted in the table."
+			}
+
+			int i;
+			int imbct;
+			imbct = pmbMainMenuItem->GetMenuItemCount(); // AI menu bar
+			for (i = 0; i < imbct; i++)
+			{
+				wxMenuItemList pmbSubMenuItems = pmbMainMenuItem->GetMenuItems(); // AI menu bar
+				wxMenuItemList::Node* mbListNode; // AI menu bar
+				mbListNode = pmbSubMenuItems.Item(i); // AI menu bar
+				wxMenuItem* pmbSubMenuItem = mbListNode->GetData(); // AI menu bar
+				wxASSERT(pmbSubMenuItem != NULL);
+				pSubMenuItem = new AI_SubMenuItem;
+				// initialize pSubMenuItem's members
+				wxASSERT(pSubMenuItem != NULL);
+				//pSubMenuItem->subMenuID = _T("");
+				pSubMenuItem->subMenuIDint = -1;
+				pSubMenuItem->subMenuLabel = _T("");
+				pSubMenuItem->subMenuHelp = _T("");
+				pSubMenuItem->subMenuKind = _T("");
+				
+				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's 
+				// pmbSubMenuItem objects
+				//pSubMenuItem->subMenuID = //can we get along without this string representation mainMenuID?
+				// Consider: When the compiled all of the menu item IDs are determined and those const int values
+				// are used at run time. They don't change during execution or even from session to session of a
+				// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+				// especially since the mainMenuIDint value never changes.
+				pSubMenuItem->subMenuIDint = pmbSubMenuItem->GetId(); // GetId() returns -2 for menu separator
+				pSubMenuItem->subMenuLabel = pmbSubMenuItem->GetItemLabel();
+				pSubMenuItem->subMenuHelp = pmbSubMenuItem->GetHelp();
+				pSubMenuItem->subMenuKind = GetMenuItemKindAsString(pmbSubMenuItem->GetKind());
+				// insert the sub menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+				// Note: we remove menu decorations since we want to be able to look up the plain label in
+				// the map
+				wxString subMenuItemLabelPlain = RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
+				if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
+					subMenuItemLabelPlain = _T("menuSeparator");
+				iter = m_mapMenuLabelStrToIdInt.find(subMenuItemLabelPlain);
+				if (iter != m_mapMenuLabelStrToIdInt.end())
+				{
+					// key exists in the map
+					m_mapMenuLabelStrToIdInt.insert(*iter); // associates (any new) pNewTU value with the keyCopy
+				}
+				else
+				{
+					// key not in the map
+					// The [] index operator can be used either of two ways in assignment statement
+					m_mapMenuLabelStrToIdInt[subMenuItemLabelPlain] = pSubMenuItem->subMenuIDint; // clearest
+					// or, the following is equivalent, but not so clear
+					//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+					// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+					// The only difference is that if the given key is not present in the hash map,
+					// an element with the default value_type() is inserted in the table."
+				}
+				// add pSubMenuItem to the pMainMenuItem's aiSubMenuItems list
+				pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
+			}
+			pMenuStructure->aiMainMenuItems.Append(pMainMenuItem);
+		}
+	}
+
+	// Note: calling delete on pMenuBar is sufficient; because of its hierarchy of ownership
+	// all of its child objects get destroyed automatically.
+	delete pMenuBar;
+	pMenuBar = (wxMenuBar*)NULL;
+}
+
+/* 
+// The following version of SetupDefaultMenuStructure() was based on collecting the
+// necessary data from the defaultMenuStructure[] array of strings in the App. This
+// version was replaced by another version (see above) that collects the same data
+// but does so from a temporary AI menu bar, thus eliminating the need to store the
+// redundant defaultMenuStructure[] array.
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
+/// \remarks
+/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
+/// called if the app cannot find the AI_UserProfiles.xml file and it must use 
+/// SetupDefaultMenuStructure() to establish its internal representation of the default
+/// menu structure. When AI_UserProfiles.xml is available (the usual case) the 
+/// m_pAI_MenuStructure is populated by the AtPROFILEEndTag() function in XML.cpp, 
+/// rather than by this SetupDefaultMenuStructure() function.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
+{
+	wxString field = _T("");
+	int nDefaultMenuStructureItems;
+	AI_MainMenuItem* pMainMenuItem = NULL;
+	AI_SubMenuItem* pSubMenuItem = NULL;
+	nDefaultMenuStructureItems = sizeof(defaultMenuStructure)/sizeof(wxString);
+	int i;
+	for (i = 0; i < nDefaultMenuStructureItems; i++)
+	{
+		// scan and parse each defaultProfileItems line
+		field.Empty();
+		int ct;
+		for (ct = 0; ct < (int)defaultMenuStructure[i].Length(); ct++)
+		{
+			// defaultMenuStructure[i] represents a whole string line of concatenated tags, attributes and values
+			wxString lineStr;
+			lineStr = defaultMenuStructure[i];
+			if (lineStr.GetChar(ct) != _T(':'))
+			{
+				field += lineStr.GetChar(ct);
+			}
+			else
+			{
+				// we're at the end of a field and field contains the string token
+				// up to, but not including the : delimiter.
+				// If the field doesn't have an '=' in it, it should be an all-caps
+				// tag name; if it has an '=' in it, the field should contain an 
+				// attribute name followed by the '=' with the attribute's value 
+				// within quote marks, i.e., attributeName="value".
+				// Parse the field into its parts
+				if (field.Find(_T("=")) == wxNOT_FOUND)
+				{
+					// No '=' in the field so field itself should be a tag name
+					if (field == wxString::FromAscii(sub_menu))
+					{
+						pSubMenuItem = new AI_SubMenuItem;
+						pSubMenuItem->subMenuID = _T("");
+						pSubMenuItem->subMenuLabel = _T("");
+						pSubMenuItem->subMenuHelp = _T("");
+						pSubMenuItem->subMenuKind = _T("");
+					}
+					else if (field == wxString::FromAscii(end_sub_menu))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						wxASSERT(pMainMenuItem != NULL);
+						pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
+						pSubMenuItem = (AI_SubMenuItem*)NULL; // ready for the next use
+					}
+					else if (field == wxString::FromAscii(main_menu))
+					{
+						pMainMenuItem = new AI_MainMenuItem;
+						pMainMenuItem->mainMenuID = _T("");
+						pMainMenuItem->mainMenuLabel = _T("");
+						pMainMenuItem->aiSubMenuItems.Clear();
+					}
+					else if (field == wxString::FromAscii(end_main_menu))
+					{
+						wxASSERT(pMenuStructure != NULL);
+						wxASSERT(pMainMenuItem != NULL);
+						pMenuStructure->aiMainMenuItems.Append(pMainMenuItem);
+						pMainMenuItem = (AI_MainMenuItem*)NULL; // ready for the next use
+					}
+					else if (field == wxString::FromAscii(menuStructure))
+					{
+						pMenuStructure = new AI_MenuStructure;
+						pMenuStructure->aiMainMenuItems.Clear();
+					}
+					else if (field == wxString::FromAscii(end_menuStructure))
+					{
+						;
+					}
+				}
+				else
+				{
+					// field has an '=' char in it so it should be an attribute/value
+					// representation
+					wxString attrStr;
+					wxString valueStr;
+					attrStr = field.Mid(0,field.Find(_T("=")));
+					attrStr.Trim(FALSE);
+					attrStr.Trim(TRUE);
+					valueStr = field.Mid(field.Find(_T("=")));
+					valueStr.Replace(_T("="),_T(""));
+					valueStr.Replace(_T("\""),_T(""));
+					valueStr.Trim(FALSE);
+					valueStr.Trim(TRUE);
+					if (attrStr == wxString::FromAscii(subMenuID))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuID = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(subMenuLabel))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuLabel = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(subMenuHelp))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuHelp = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(subMenuKind))
+					{
+						wxASSERT(pSubMenuItem != NULL);
+						pSubMenuItem->subMenuKind = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(mainMenuLabel))
+					{
+						wxASSERT(pMainMenuItem != NULL);
+						pMainMenuItem->mainMenuLabel = valueStr;
+					}
+					else if (attrStr == wxString::FromAscii(mainMenuID))
+					{
+						wxASSERT(pMainMenuItem != NULL);
+						pMainMenuItem->mainMenuID = valueStr;
+					}
+				}
+
+				field.Empty(); // ready for next field
+			}
+		}
+		// We're at the end of a parsed line
+	}
+}
+*/
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being destroyed
+/// \remarks
+/// Called from: the App's OnInit(), OnExit(), CAdminEditMenuProfile's InitDialog(), and
+/// its class destructor and ReportMenuAndUserProfilesInconsistencies(). 
+/// It deallocates the memory of the profileItemList items, and finally of the pUserProfiles 
+/// itself.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
+{
+	if (pUserProfiles != NULL)
+	{
+		ProfileItemList::Node* pos;
+		int count;
+		int item_count = (int)pUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			pos = pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pItem;
+			pItem = pos->GetData();
+			//wxLogDebug(_T("Deleting UserProfileItem %s"),pItem->itemText.c_str());
+			delete pItem;
+			pItem = (UserProfileItem*)NULL;
+		}
+		pUserProfiles->profileItemList.Clear();
+		//wxLogDebug(_T("Deleting m_pUserProfiles - end"));
+		delete pUserProfiles;
+		pUserProfiles = (UserProfiles*)NULL;
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is 
+///                 being destroyed
+/// \remarks
+/// Called from: the App's OnExit(). 
+/// It deallocates the memory of the individual main menu items and sub menu items, 
+/// and finally of the pMenuStructure itself.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
+{
+	if (pMenuStructure != NULL)
+	{
+		MainMenuItemList::Node* mmpos;
+		int ct_mm;
+		int total_mm = (int)pMenuStructure->aiMainMenuItems.GetCount();
+		for(ct_mm = 0; ct_mm < total_mm; ct_mm++)
+		{
+			mmpos = pMenuStructure->aiMainMenuItems.Item(ct_mm);
+			AI_MainMenuItem* pmmItem;
+			pmmItem = mmpos->GetData();
+			wxASSERT(pmmItem != NULL);
+			
+			SubMenuItemList::Node* smpos;
+			int ct_sm;
+			int total_sm = (int)pmmItem->aiSubMenuItems.GetCount();
+			for (ct_sm = 0; ct_sm < total_sm; ct_sm++)
+			{
+				smpos = pmmItem->aiSubMenuItems.Item(ct_sm);
+				AI_SubMenuItem* psmItem;
+				psmItem = smpos->GetData();
+				wxASSERT(psmItem != NULL);
+				//wxLogDebug(_T("Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
+				delete psmItem;
+				psmItem = (AI_SubMenuItem*)NULL;
+			}
+			pmmItem->aiSubMenuItems.Clear();
+			//wxLogDebug(_T("Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
+			delete pmmItem;
+			pmmItem = (AI_MainMenuItem*)NULL;
+		}
+		pMenuStructure->aiMainMenuItems.Clear();
+		//wxLogDebug(_T("Deleting m_pAI_MenuStructure - end"));
+		delete pMenuStructure;
+		pMenuStructure = (AI_MenuStructure*)NULL;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE on success, FALSE if a problem occurred
+/// \param      -> fullFilePath  path and file name of the AI_UserProfiles.xml file being 
+///                 accessed (may be the one in work folder or setup install folder)
+/// \remarks
+/// Called from the App's OnEditUserMenuSettingsProfiles() after User Workflow
+/// Profiles editing, and from the App's OnInit() to upgrade (or downgrade) a 
+/// modified AI_UserProfiles.xml file to a newer (or older) version after a 
+/// version update.
+/// SaveUserProfilesMergingDataToXMLFile() saves edits of user profiles to the
+/// wxTextFile representing AI_UserProfiles.xml file on disk.
+/// The AI_UserProfiles.xml file is fairly small (only about 45kb) so we
+/// open it as a wxTextFile (into memory), make necessary changes according
+/// to the current m_pUserProfiles and write it back out in a single write 
+/// operation. If AI_UserProfiles.xml doesn't exist we create a new wxTextFile
+/// and call BuildUserProfileXMLFile() passing our new wxTextFile to that
+/// function to create one anew. We can do double duty with this function: 
+/// (1) Save edits made by an administrator to the User Workflow Profiles dialog 
+/// back to the AI_UserProfiles.xml file located in the work folder, or
+/// (2) Merge the edits of a modified existing AI_UserProfiles.xml file into 
+/// a newer version of AI_UserProfiles.xml that was installed as an AI version 
+/// update since the last running of the application.
+/// The path established in OnInit() to the AI_UserProfiles.xml file is stored 
+/// in the m_userProfileFileWorkFolderPath member variable.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
+{
+	// Note: fullFilePath can be the user's work folder, or the install setup folder
+	wxTextFile textFile;
+	
+	// Does AI_UserProfiles.xml exist in the work folder
+	bool bUserProfilesFileExists = wxFileExists(fullFilePath);
+	wxString userProfileFileSetupInstallPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
+
+	bool bThisIsAnUpgradeOfProfileFile;
+	if (fullFilePath == userProfileFileSetupInstallPath)
+		bThisIsAnUpgradeOfProfileFile = TRUE;
+	else
+		bThisIsAnUpgradeOfProfileFile = FALSE;
+
+	if (!bUserProfilesFileExists)
+	{
+		// No AI_UserProfiles.xml file exists at the fullFilePath location
+		// This shouldn't happen in the case we are being called to merge a newer AI_UserProfiles.xml
+		// file with a modified AI_UserProfiles.xml in the user's work folder, but for safety sake:
+		if (bThisIsAnUpgradeOfProfileFile)
+		{
+			// The fullFilePath pointed to a AI_UserProfiles.xml file in the install setup
+			// folder, but no AI_UserProfiles.xml exist there. There is nothing to merge
+			// and we don't want to create one there since that is the job of the AI installation
+			// process, so just return FALSE from SaveUserProfilesMergingDataToXMLFile(). Any
+			// error/warning messages are the responsibility of the caller.
+			return FALSE;
+		}
+		wxString msg = _("The AI_UserProfiles.xml file was not located at the following path:\n   %s\nA new AI_UserProfiles.xml file will be created there.");
+		msg = msg.Format(msg,fullFilePath.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		// Construct a new AI_UserProfiles.xml file from our internal data
+		textFile.Create(fullFilePath); // Create() must only be called when the file doesn't exist - verified above
+		// Note textFile is empty at this point
+		bool bOK;
+		bOK = textFile.Open(fullFilePath);
+		BuildUserProfileXMLFile(&textFile);
+		// Write the modified wxText file back out to disk
+		textFile.Write(); // no need to do anything special for Unicode
+	}
+	else
+	{
+		// Read the existing xml file into memory using wxTextFile, so we don't have
+		// to recreate the whole xml file. All we need to do is to compare the data in 
+		// memory with the xml file which is in memory as a wxTextFile, and make changes 
+		// there before saving the file back to disk.
+		// Note: fullFilePath may point to the AI_UserProfiles.xml in the setup folder (when
+		// merging changes into an upgraded AI_UserProfiles.xml), or it may point to the
+		// AI_UserProfiles.xml in the user's work folder (when doing a normal save/merge of
+		// changes made in the User Workflow Profiles dialog).
+		bool bOpenedOK;
+		bOpenedOK = textFile.Open(fullFilePath);
+		if (!bOpenedOK)
+		{
+			wxString msg = _("Unable to open the AI_UserProfiles.xml file at the following path:\n   %s\nChanges to user workflow profiles will not be saved.\nInsure that the AI_UserProfiles.xml file is not open in another program, then try again.");
+			msg = msg.Format(msg,fullFilePath.c_str());
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			return FALSE;
+		}
+		else
+		{
+			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through the
+			// methods of wxTextFile.
+			// Note: The AI_UserProfiles.xml file was read from the user's work folder and parsed into 
+			// the m_pUserProfiles struct prior to the calling of SaveUserProfileMergingDataToXMLFile().
+			// (whether in InitDialog in the AdminEditMenuProfile class or in the App's OnInit). Therefore,
+			// the AI_UserProfiles.xml file (just read above into memory as a wxTextFile) is either 
+			// identical in structure to the xml file on disk (when saving edits) or similar if not
+			// identical in structure (for version upgrade). If identical, the process below should 
+			// account for all changes. If we are merging changes into a newer AI_UserProfiles.xml file
+			// from the setup folder, there may be more candidate profile items in the setup folder's
+			// version than in the current work folder's version. Those will simply retain their 
+			// existing defaul values. If the setup folder's version has fewer candidate profile items (not
+			// likely) and a change was made for one of those now-missing items, the change will simply be
+			// ignored. During editing in AdminEditMenuProfile dialog, only small parts of the xml data 
+			// would be modified as a result of the editing process. An administrator could have edited 
+			// the following from within the dialog:
+			// 1. The UserProfiles' wxArrayString of descriptionProfileTexts (4 items, one for each profile) 
+			//    may have been edited (total of 4 strings of varying length).
+			// 2. The UserProfileItem's wxArrayString of usedVisibilityValues (4 items, one for each profile
+			//    x 67 profile items) may have been edited (total of 268 1-character strings of the form 
+			//    "1" or "0".
+			// Note: When an administrator only changes the profile selected, but not any individual profile
+			// item visibility checkboxes, he does not make any changes to AI_UserProfiles.xml (his change of
+			// profile is simply recorded in the project config file.
+			// 
+			// Our approach will be to go through our map of profile changes (m_mapProfileChangesToStringValues)
+			// and change the individual lines in our wxTextFile that need to be changed to reflect the 
+			// administrator's edits. When finished we simply write the wxTextFile back to disk replacing 
+			// the existing AI_UserProfiles.xml file. If we read AI_UserProfiles.xml from the setup folder,
+			// we don't write it back there, but we write it to the current work folder, replacing the
+			// older version that was there - which will now have the new version number in its
+			// applicationCompatibility attribute matching the one copied from the setup folder.
+			// In order to write a wxTextFile to a different location than where we got it in the Open()
+			// call, there doesn't appear to be a way to change the writing path, so we will create a new
+			// wxTextFile instance, copy all lines from the one we've changed to it and write this new file
+			// and simply close the original instance without writing it back to the setup folder.
+			// 
+			// The map key values can be:
+			//    1. A contatenation of the string values of itemText + ":" + userProfile for a given
+			//       UserProfileItem, for example: "Save As...:Novice"
+			//    2. A key may also be the string "descriptionProfileN" where N is 1, 2, 3, or 4 for 
+			//       those top level items, for example "description3"
+			// The key maps to a variable length string for the descriptionProfileN key, and to a
+			// "1" or a "2" string for UserProfileItems visibility items.
+			wxString keyFromMap;
+			wxString valueFromMap;
+			MapProfileChangesToStringValues::iterator iter;
+			for( iter = m_mapProfileChangesToStringValues.begin(); iter != m_mapProfileChangesToStringValues.end(); ++iter )
+			{
+				keyFromMap = iter->first;
+				valueFromMap = iter->second;
+				wxLogDebug(_T("iter->first = %s, iter->second = %s"),keyFromMap.c_str(),valueFromMap.c_str());
+				wxString itemTextStr,userProfileStr,descriptionProfileN;
+				int colonPos = keyFromMap.Find(_T(':'));
+				if (colonPos != wxNOT_FOUND)
+				{
+					// the keyFromMap is of the form itemText:Novice
+					itemTextStr = keyFromMap.Mid(0,colonPos);
+					userProfileStr = keyFromMap.Mid(colonPos + 1);
+					// in the wxTextFile we search for the line that has itemText="itemTextStr" and
+					// from that line we step through each succeeding line until we come to a line
+					// that has <PROFILE userProfile="userProfileStr"
+					// from that line we get the next line, i.e., itemVisibility="x" and replace 
+					// the "x" part with the "valueFromMap" (see ReplaceVisibilityStrInwxTextFile).
+					int linePos;
+					linePos = ReplaceVisibilityStrInwxTextFile(&textFile,itemTextStr,userProfileStr,valueFromMap);
+					if (linePos == wxNOT_FOUND)
+					{
+						// unable to save the field in the wxTextFile
+						wxASSERT(FALSE); // notify programmer
+						return FALSE;
+					}
+				}
+				else
+				{
+					// the keyFromMap is of the form descriptionProfileN where N is 1, 2, 3, or 4.
+					descriptionProfileN = keyFromMap;
+					// In the wxTextFile we search for the line that has descriptionProfileN="str"
+					// and we replace the "str" with "valueFromMap". 
+					// Note: Entity chars are replaced by their xml mandated form (xml_lt, xml_gt,
+					// xml_amp, xml_apos, and xml_quote) in ReplaceDescriptionStrInwxTextFile() below.
+					int linePos;
+					linePos = ReplaceDescriptionStrInwxTextFile(&textFile,descriptionProfileN,valueFromMap);
+					if (linePos == wxNOT_FOUND)
+					{
+						// unable to save the field in the wxTextFile
+						wxASSERT(FALSE); // notify programmer
+						return FALSE;
+					}
+				}
+			}
+			// Lastly, we update the wxTextFile line that contains the attribute: adminModified="" is
+			// changed to either adminModified="Yes" or adminModified="No", depending on whether the
+			// above edits changed the data to differ from the factory defaults.
+			UpdateAdminModifiedLineToYesOrNo(&textFile);
+		}
+		// Write the modified wxText file back out to disk.
+		// Note: If bThisIsAnUpgradeOfProfileFile is TRUE, we don't write the file back to its
+		// original setup up folder location, but instead create a new wxTextFile, copy the contents
+		// of the one we've modified and write the upgraded one to the user's work folder.
+		if (bThisIsAnUpgradeOfProfileFile)
+		{
+			// This is an upgrade operation, so create a new wxTextFile
+			wxTextFile newTextFile;
+			// wxTextFile::Create() fails when there already exists the file of the same name
+			// so we first remove the existing one in the work folder
+			wxASSERT(!m_userProfileFileWorkFolderPath.IsEmpty());
+			bool bRemovedFile = FALSE;
+			wxString msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+			wxString titleMsg;
+			if (wxFileExists(m_userProfileFileWorkFolderPath))
+			{
+				bRemovedFile = wxRemoveFile(m_userProfileFileWorkFolderPath);
+				// tell user if we couldn't remove the work folder's AI_UserProfiles.xml
+				if (!bRemovedFile)
+				{
+					// error message
+					titleMsg = _("Unable to remove existing AI_UserProfiles.xml file");
+					// msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					return FALSE;
+				}
+			}
+			bool bCreatedOK, bOpenedOK;
+			bCreatedOK = newTextFile.Create(m_userProfileFileWorkFolderPath);
+			bOpenedOK = newTextFile.Open();
+			if (newTextFile.IsOpened())
+			{
+				// now copy the lines from textFile to newTextFile
+				int ct;
+				int nLines = textFile.GetLineCount();
+				for (ct = 0; ct < nLines; ct++)
+				{
+					wxString lineStr = textFile.GetLine(ct);
+					newTextFile.AddLine(lineStr);
+				}
+				// save the newTextFile
+				bool bWriteOK;
+				bWriteOK = newTextFile.Write();
+				wxASSERT(bWriteOK != FALSE);
+				if (!bWriteOK)
+				{
+					// error message
+					titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
+					//msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					return FALSE;
+				}
+				newTextFile.Close();
+			}
+			else
+			{
+				// error message
+				titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
+				//msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
+				wxMessageBox(msg,titleMsg,wxICON_WARNING);
+				return FALSE;
+			}
+
+		}
+		else
+		{
+			// This is a normal save of edits that have been done in the User Workflow Profile
+			// dialog, so write it back to its same location
+			textFile.Write(); // no need to do anything special for Unicode
+			textFile.Close();
+		}
+	}
+	return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      -> tempUserProfiles  pointer to the UserProfiles* being compared 
+/// \param      -> appUserProfiles  pointer to the UserProfiles* the tempUserProfiles
+///                 if being compared with to determine changes 
+/// \remarks
+/// Called from the App's OnInit(), and from CAdminEditMenuProfile::OnOK().
+/// Populates the App's m_mapProfileChangesToStringValues with user profile changes the user 
+/// has made to descriptionProfileTexts and/or to UserProfileItems' usedVisibilityValues. 
+/// The map is used to make changes in the wxTextFile representation of AI_UserProfiles.xml 
+/// before writing it back to disk in SaveUserProfilesMergingDataToXMLFile().
+/// Note: the caller is responsible to call m_mapProfileChangesToStringValues.clear(), 
+/// to start a fresh map of changes.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, UserProfiles* appUserProfiles)
+{
+	// whm 21Oct10 rewritten so that tempUserProfiles and appUserProfiles can have different counts for their
+	// ->descriptionProfileTexts.GetCount() and different counts for their ->profileItemList.GetCount() 
+	// calls. This will avoid problems for when MapChangesInUserProfiles() is called in OnInit() in the
+	// process of upgrading or downgrading versions which involve AI_UserProfiles.xml files having
+	// different numbers of these items.
+	// Strategy: Fill a temporary map with all items from tempUserProfiles. Then go through all items
+	// in the appUserProfiles struct and lookup each item from appUserProfiles to see if it is already
+	// in the map of tempUserProfiles items. If it is compare the data of those "common" items only.
+	// For those which have changes, enter only the changes in the m_mapProfileChangesToStringValues map.
+	// In the process, keep track of how many items were not in common and report that number back through
+	// a return value or reference parameter.
+	wxASSERT(tempUserProfiles != NULL);
+	wxASSERT(appUserProfiles != NULL);
+
+	if (tempUserProfiles != NULL && appUserProfiles != NULL)
+	{
+		MapProfileChangesToStringValues tempMap;
+		MapProfileChangesToStringValues::iterator iter;
+		//m_mapProfileChangesToStringValues.clear();
+		// Note: The clear() method must be invoked in the caller if a fresh map of changes is desired.
+		
+		// Enter all tempUserProfiles items into our tempMap
+		// First enter all of tempUserProfiles->descriptionProfileTexts into the map
+		int descCt;
+		int descTot = (int)tempUserProfiles->descriptionProfileTexts.GetCount();
+		for (descCt = 0; descCt < descTot; descCt++)
+		{
+			// enter all of tempUserProfiles->descriptionProfileTexts into the map
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << descCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				tempMap.insert(*iter);
+			}
+			else
+			{
+				// key not in the map
+				tempMap[key] = tempUserProfiles->descriptionProfileTexts[descCt];
+			}
+		}
+		// Next, enter all of tempUserProfiles->profileItemList items into the tempMap
+		ProfileItemList::Node* tpos;
+		int count;
+		int t_tot = (int)tempUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < t_tot; count++)
+		{
+			tpos = tempUserProfiles->profileItemList.Item(count);
+			UserProfileItem* ptItem;
+			ptItem = tpos->GetData();
+			wxASSERT(ptItem != NULL);
+			int ct;
+			int ct_t;
+			ct_t = (int)ptItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_t; ct++)
+			{
+				wxString key = ptItem->itemText + _T(":") + ptItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					tempMap.insert(*iter);
+				}
+				else
+				{
+					// key not in the map
+					tempMap[key] = ptItem->usedVisibilityValues[ct];
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( iter = tempMap.begin(); iter != tempMap.end(); ++iter )
+		//{
+		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
+		//}
+		
+		// Now go through all items of the appUserProfiles struct, and do a lookup to see if
+		// each item is in the map. If so, check the map's associated value. If the map's 
+		// associated value is different, then add that item to the App's 
+		// m_mapProfileChangesToStringValues map. If any of the appUserProfiles items are
+		// not found in the map, we can ignore them, but just get a count of how many such
+		// ignored items we encountered.
+
+		int appCt;
+		int appTot = (int)appUserProfiles->descriptionProfileTexts.GetCount();
+		int nAppItemsNotAmongTempItems = 0;
+		int nTempItemsNotAmongAppItems = (int)tempUserProfiles->descriptionProfileTexts.GetCount() + (4*(int)tempUserProfiles->profileItemList.GetCount());
+		for (appCt = 0; appCt < appTot; appCt++)
+		{
+			wxString key = wxString::FromAscii(descriptionProfile);
+			key << appCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
+			
+			iter = tempMap.find(key);
+			if (iter != tempMap.end())
+			{
+				// key exists in the map
+				wxString keyTemp = iter->first;
+				wxString valueTemp = iter->second;
+				wxString appDescrText = appUserProfiles->descriptionProfileTexts.Item(appCt);
+				// check if the valueTemp differs from the appDescrText
+				if (valueTemp != appDescrText)
+				{
+					// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes 
+					MapProfileChangesToStringValues::iterator a_iter;
+					a_iter = m_mapProfileChangesToStringValues.find(keyTemp);
+					if (a_iter != m_mapProfileChangesToStringValues.end())
+					{
+						// key exists in the map
+						m_mapProfileChangesToStringValues.insert(*a_iter);
+					}
+					else
+					{
+						// key not in the map
+						m_mapProfileChangesToStringValues[keyTemp] = valueTemp;
+					}
+				}
+				nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+			}
+			else
+			{
+				// key not in the map
+				nAppItemsNotAmongTempItems++;
+			}
+		}
+		ProfileItemList::Node* apos;
+		MapProfileChangesToStringValues::iterator a_iter;
+		int a_tot = (int)appUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < a_tot; count++)
+		{
+			apos = appUserProfiles->profileItemList.Item(count);
+			UserProfileItem* paItem;
+			paItem = apos->GetData();
+			wxASSERT(paItem != NULL);
+			int ct;
+			int ct_a;
+			ct_a = (int)paItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < ct_a; ct++)
+			{
+				wxString key = paItem->itemText + _T(":") + paItem->usedProfileNames[ct]; // key is itemText + ':' + name of the profile, i.e., "Save As...:Novice"
+				iter = tempMap.find(key);
+				if (iter != tempMap.end())
+				{
+					// key exists in the map
+					wxString keyTemp = iter->first;
+					wxString valueTemp = iter->second;
+					wxString appVisibility = paItem->usedVisibilityValues.Item(ct);
+					// check if the valueTemp differs from the appDescrText
+					if (valueTemp != appVisibility)
+					{
+						// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes 
+						a_iter = m_mapProfileChangesToStringValues.find(keyTemp);
+						if (a_iter != m_mapProfileChangesToStringValues.end())
+						{
+							// key exists in the map
+							m_mapProfileChangesToStringValues.insert(*a_iter);
+						}
+						else
+						{
+							// key not in the map
+							m_mapProfileChangesToStringValues[keyTemp] = valueTemp;
+						}
+					}
+					nTempItemsNotAmongAppItems--; // decrement from total tempUserProfile items - remainder at end is the significant total
+				}
+				else
+				{
+					// key not in the map
+					nAppItemsNotAmongTempItems++;
+				}
+			}
+		}
+		// dump the map contents for testing
+		//for( a_iter = m_mapProfileChangesToStringValues.begin(); a_iter != m_mapProfileChangesToStringValues.end(); ++a_iter )
+		//{
+		//	wxLogDebug(_T("a_iter->first = %s, a_iter->second = %s"),a_iter->first.c_str(),a_iter->second.c_str());
+		//}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a VersionComparison enum with possible values of sameAppVersion, 
+///             runningAppVersionIsNewer, runningAppVersionIsOlder, or profileVersionDiffers
+/// \param      -> oldProfileVersion  string representing the existing profileVersion attribute
+///                 value
+/// \param      -> oldApplicationCompatibility  string representing the existing 
+///                 applicationCompatibility value
+/// \remarks
+/// Called from the App's OnInit().
+/// Starting with AI version 6.0.0, the application checks the profileVersion and applicationCompatibility 
+/// version numbers of any existing AI_UserProfiles.xml file in the Adapt It (Unicode) Work folder against
+/// the corresponding numbers of the running application. The version number of the existing AI_UserProfiles.xml
+/// are represented in the oldProfileVersion and oldApplicationCompatibility incoming parameters. The
+/// running application's corresponding numbers are set as #define constants at the beginning of Adapt_It.h.
+/// When an Adapt It user upgrades to a newer version of the application, the installer places the latest version
+/// of AI_UserProfiles.xml in the setup folder, but the installer does not copy it at install time to the 
+/// Adapt It (Unicode) Work folder. Each time the Adapt It application runs, however, this function compares 
+/// the version numbers of the running application with those of the existing AI_UserProfiles.xml file in the Adapt It 
+/// (Unicode) Work folder. The running application determines whether the newer version should be copied to 
+/// overwrite the older existing version, or be merged with the older existing version. This function returns
+/// an enum VersionComparison which informs the caller whether comparison of version numbers is: sameAppVersion,
+/// runningAppVersionIsNewer, runningAppVersionIsOlder (all comparing the 6.x.x version numbers), or
+/// profileVersionDiffers in the case that the profileVersion 1.x version differs (regardless of the 6.x.x
+/// versions are).
+/////////////////////////////////////////////////////////////////////////////////////////
+enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(wxString oldProfileVersion, wxString oldApplicationCompatibility)
+{
+	// parse the oldApplicationCompatibility string into int parts
+	int nWorkFolderProfileMajV, nWorkFolderProfileMinV;
+	int nRunningAppProfileMajV, nRunningAppProfileMinV;
+	// get the part of the profileVersion number of the running application
+	nRunningAppProfileMajV = PROFILE_VERSION_MAJOR_PART;
+	nRunningAppProfileMinV = PROFILE_VERSION_MINOR_PART;
+	// parse out the parts of the profileVersioin number of the AI_UserProfiles.xml of
+	// the work folder from the incoming oldProfileVersion parameter
+	wxString tempStr,intStr;
+	tempStr = oldProfileVersion;
+	tempStr.Trim(FALSE);
+	tempStr.Trim(TRUE);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderProfileMajV = wxAtoi(intStr);
+	tempStr = tempStr.Mid(tempStr.Find(_T('.'))+1);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderProfileMinV = wxAtoi(intStr);
+	// Is the running app's profileVersion the same as the work folder's profileVersion?
+	// If so, no problem - continue checking the applicationCompatibility version numbers.
+	// If the app's profileVersion differs from the work folder's profileVersion we return
+	// profileVersionDiffers to the caller.
+	if (nRunningAppProfileMajV == nWorkFolderProfileMajV && nRunningAppProfileMinV == nWorkFolderProfileMinV)
+	{
+		// nothing special need be done, continue checking the applicationCompatibility version
+		;
+	}
+	else if (nRunningAppProfileMajV != nWorkFolderProfileMajV || nRunningAppProfileMinV != nWorkFolderProfileMinV)
+	{
+		return profileVersionDiffers;
+	}
+
+	int nWorkFolderAppCompatMajV, nWorkFolderAppCompatMinV, nWorkFolderAppCompatBuiV;
+	int nRunningAppCompatMajV, nRunningAppCompatMinV, nRunningAppCompatBuiV;
+	// get the parts of the version number of the running application
+	nRunningAppCompatMajV = VERSION_MAJOR_PART;
+	nRunningAppCompatMinV = VERSION_MINOR_PART;
+	nRunningAppCompatBuiV = VERSION_BUILD_PART;
+	// parse out the parts of the version number of the AI_UserProfiles.xml of the work folder
+	// from the incoming oldApplicationCompatibility parameter
+	tempStr = oldApplicationCompatibility;
+	tempStr.Trim(FALSE);
+	tempStr.Trim(TRUE);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderAppCompatMajV = wxAtoi(intStr);
+	tempStr = tempStr.Mid(tempStr.Find(_T('.'))+1);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderAppCompatMinV = wxAtoi(intStr);
+	tempStr = tempStr.Mid(tempStr.Find(_T('.'))+1);
+	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
+	nWorkFolderAppCompatBuiV = wxAtoi(intStr);
+
+	// Is the running app's version the same as the work folder's version? 
+	// If so, no merge is necessary (caller will simply copy and overwrite the 
+	// existing older AI_UserProfiles.xml in the work folder). Return FALSE.
+	if (nRunningAppCompatMajV == nWorkFolderAppCompatMajV && nRunningAppCompatMinV == nWorkFolderAppCompatMinV && nRunningAppCompatBuiV == nWorkFolderAppCompatBuiV)
+	{
+		return sameAppVersion;
+	}
+	// If we get here the running version is either older or newer than the work folder version.
+	// 
+	// Is the running app's version older than the work folder's version?
+	// This might happen if the user installed and reverted to running an older
+	// version in the 6.x.x series for some reason (after having installed a 
+	// newer version). In this case we can't really guarantee that the older
+	// application will be able to successfully deal with a newer 
+	// AI_UserProfiles.xml file. So, we return FALSE to get the caller to 
+	// rename the work folder's copy of AI_UserProfiles.xml to 
+	// AI_UserProfiles_old.xml and copy the newer AI_UserProfiles.xml from
+	// the setup folder to the work folder.
+	if (nRunningAppCompatMajV < nWorkFolderAppCompatMajV)
+	{
+		return runningAppVersionIsOlder;
+	}
+	else if (nRunningAppCompatMinV < nWorkFolderAppCompatMinV)
+	{
+		return runningAppVersionIsOlder;
+	}
+	else if (nRunningAppCompatBuiV < nWorkFolderAppCompatBuiV)
+	{
+		return runningAppVersionIsOlder;
+	}
+	// If we get here the running version must be newer
+	// 
+	// Is the running app's version newer than the work folder's version?
+	// If so, we should merge the setup folder's newer AI_UserProfiles.xml with 
+	// the work folder's older AI_UserProfiles.xml file. Return TRUE.
+	wxASSERT(nRunningAppCompatMajV > nWorkFolderAppCompatMajV || nRunningAppCompatMinV > nWorkFolderAppCompatMinV || nRunningAppCompatBuiV > nWorkFolderAppCompatBuiV); 
+	// the defaul bMerge value is TRUE;
+	return runningAppVersionIsNewer;
+}
 
 /// \return     a wxString representing the running applications version number in 6.x.x format
 /// \remarks
@@ -1614,6 +4110,23 @@ wxString CAdapt_ItApp::GetAppVersionOfRunningAppAsString()
 	str << VERSION_MINOR_PART;
 	str += _T('.');
 	str << VERSION_BUILD_PART;
+	return str;
+}
+
+/// \return     a wxString representing the running applications profile version in 1.x format
+/// \remarks
+/// Called from the App's OnInit() and from ReportMenuAndUserProfilesInconsistencies().
+/// Forms a wxString from the app's profile version constants that are #defined at
+/// the beginning of Adapt_It.h. The constants are: PROFILE_VERSION_MAJOR_PART
+/// and PROFILE_VERSION_MINOR_PART.
+/////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetProfileVersionOfRunningAppAsString()
+{
+	wxString str;
+	str.Empty();
+	str << PROFILE_VERSION_MAJOR_PART;
+	str += _T('.');
+	str << PROFILE_VERSION_MINOR_PART;
 	return str;
 }
 
@@ -2114,25 +4627,34 @@ LangInfo langsKnownToWX[] =
     { NULL, wxLANGUAGE_UNKNOWN, NULL}												// 1
 };
 
-int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr)
+// whm 12Oct10 added this class. It didn't seem worth the bother to put it into
+// separate source files, since it is a very minimal override of wxToolBar for
+// the basic purpose of implementing a GetToolBarToolsList() getter. We need this
+// in ConfigureToolBarForUserProfile() to configure AI's toolbar for user profiles.
+// Begin AIToolBar class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+IMPLEMENT_DYNAMIC_CLASS(AIToolBar, wxToolBar)
+
+AIToolBar::AIToolBar()
 {
-	// do a standard case-insensitive string compare, this should give best results except
-	// that special characters will all be treated differently perhaps; calls _tcsicmp
-	// which is defined as _wcsicmp
-	int value = ::wxStricmp(struct1Ptr->strOriginal,struct2Ptr->strOriginal);
-	return value; 
 }
 
-int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr)
+AIToolBar::AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
+	const wxSize& size, long style,	const wxString& name)
+	: wxToolBar(parent, id, pos, size, style, name)
 {
-	// do a standard case-insensitive string compare this should give best results except
-	// that special characters will all be treated differently perhaps; ; calls _tcsicmp
-	// which is defined as _wcsicmp
-	int value = ::wxStricmp(struct1Ptr->updatedString,struct2Ptr->updatedString);
-	return value; 
 }
 
+AIToolBar::~AIToolBar()
+{
+}
 
+// This is our only derived method - a getter for
+// the actual list of tool bar items
+wxToolBarToolsList AIToolBar::GetToolBarToolsList()
+{
+	return m_tools;
+}
+// enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // beginning of AIModalDialog class implementation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // whm Note: The AIModalDialog class exists as a base dialog class for Adapt It modal
@@ -2206,6 +4728,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnUpdateFileRestoreKb)
 	EVT_MENU(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnFileChangeFolder)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
+	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
+	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
 	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)// renamed to 
 	    //OnMRUFile and moved to CMainFrame
 
@@ -2304,6 +4828,14 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
 	EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
 	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
+	EVT_MENU(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnOpenSourceDataFolder)
+	EVT_UPDATE_UI(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnUpdateOpenSourceDataFolder)
+	EVT_MENU(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnAssignTargetExportDataFolder)
+	EVT_UPDATE_UI(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder)
+	EVT_MENU(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnSetupParatextCollaboration)
+	EVT_UPDATE_UI(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnUpdateSetupParatextCollaboration)
+	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
+	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
@@ -2505,6 +5037,18 @@ wxString szSourceLanguageName = _T("SourceLanguageName"); // stored in the App's
 /// "ProjectSettings" part of the project configuration file. Adapt It stores this path in
 /// the App's m_targetName member variable.
 wxString szTargetLanguageName = _T("TargetLanguageName");
+
+// whm added following 10May10 for KB LIFT XML Export support
+/// The label that identifies the following string as the project's "SourceLanguageCode".
+/// This value is written in the "ProjectSettings" part of the project configuration file.
+/// Adapt It stores this path in the App's m_sourceLanguageCode member variable.
+wxString szSourceLanguageCode = _T("SourceLanguageCode"); // stored in the App's m_sourceName
+
+// whm added following 10May10 for KB LIFT XML Export support
+/// The label that identifies the following string as the project's "TargetLanguageCode".
+/// This value is written in the "ProjectSettings" part of the project configuration file. 
+/// Adapt It stores this path in the App's m_targetLanguageCode member variable.
+wxString szTargetLanguageCode = _T("TargetLanguageCode");
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
@@ -2771,6 +5315,14 @@ wxString szSuppressTargetHighlighting = _T("SuppressTargetHighlighting");
 wxString szAutoInsertionsHighlightColor = _T("AutoInsertionsHighlightColor");
 
 /// The label that identifies the following string encoded number as the application's
+/// "GuessHighlightColor". This value is written in the "Settings" part of the
+/// basic configuration file. Adapt It stores this path in the App's
+/// m_GuessHighlightColor member variable. Adapt It uses the WxColour2Int() and
+/// Int2wxColour() helper functions to convert between the integer and wx color enum
+/// symbols.
+wxString szGuessHighlightColor = _T("GuessHighlightColor");
+
+/// The label that identifies the following string encoded number as the application's
 /// "UseStartupWizardOnLaunch". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this path in the App's m_bUseStartupWizardOnLaunch
 /// member variable.
@@ -2850,6 +5402,13 @@ wxString szMarkerWrapsFlag = _T("MarkersWrapStripsFlag(Boolean)");
 /// configuration file. Adapt It stores this path in the App's m_bBackupDocument member
 /// variable.
 wxString szBackupDocument = _T("BackupDocumentFlag");
+
+// whm added 3Sep10 for user workflow profile support
+/// The label that identifies the following string encoded number as the application's
+/// "WorkflowProfile". This value is written in the "Settings" part of the basic
+/// and project configuration files. Adapt It stores this path in the App's 
+/// m_nWorkflowProfile member variable.
+wxString szWorkflowProfile = _T("WorkflowProfile");
 
 // window position and size
 
@@ -3111,10 +5670,8 @@ wxString szBookMode = _T("BookModeFlag");
 /// variable.
 wxString szBookIndex = _T("BookIndexValue");
 
-// for saving the m_bSaveAsXML value in project config file The label that identifies the
-// following string encoded value as the application's "SaveAsXML". This value is written
-// in the "Settings" part of the basic configuration file. Adapt It stores this value in
-// the App's m_bSaveAsXML global variable.
+// BEW 30Apr10, this flag is deprecated. We read it but do nothing with it, and no longer
+// write it in a project config file
 wxString szSaveAsXML = _T("SaveAsXML");
 
 // rde: added support for calling EncConverters to pre-process a target word whm: the
@@ -3143,6 +5700,22 @@ wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");
 /// the Administrator menu become visible at the end of the menu bar. (A checkbox in the
 /// View tab of Preferences is where an administrator can request the menu be shown or hid)
 wxString szAdministratorPassword = _T("AdministratorPassword");
+
+/// The label that identifies the following string encoded number as the application's 
+/// "UseAdaptationsGuesser". Adapt It stores this value in the App's m_bUseAdaptationsGuesser 
+/// member  variable.
+wxString szUseAdaptationsGuesser = _T("UseAdaptationsGuesser");
+
+/// The label that identifies the following string encoded number as the application's 
+/// "GuessingLevel". Adapt It stores this value in the App's m_nGuessingLevel 
+/// member  variable.
+wxString szGuessingLevel = _T("GuessingLevel");
+
+/// The label that identifies the following string encoded number as the application's 
+/// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's 
+/// m_bAllowGuesseronUnchangedCCOutput. 
+/// member  variable.
+wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput");
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
@@ -3557,13 +6130,14 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default path for the xml files on the Mac.
-	pathToXMLFolders += appName + _T(".app/Contents/Resources"); // the path separator is added by the caller
+	pathToXMLFolders += m_appInstallPathOnly;
+	pathToXMLFolders += _T("/../Resources"); // the path separator is added by the caller
 #endif
 
 #ifdef __WXGTK__
 	// On Linux appName is "adaptit"
 	// Set a suitable default path for the xml files on Ubuntu Linux.
-	pathToXMLFolders = _T("/usr/share/locale"); // the path separator is added by the caller
+	pathToXMLFolders = _T("/usr/share/adaptit"); // the path separator is added by the caller
 #endif //__WXGTK__
 
 #ifdef __WXMSW__
@@ -4095,7 +6669,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 				keyArray[ct] = keyArray[ct + 1];
 			}
 			keyArray[nKeys] = _T("[UNASSIGNED]");
-			int nCount = foundCodesArray.GetCount();
+			int nCount = (int)foundCodesArray.GetCount();
 			wxASSERT(nCount > 0);
 			foundCodesArray.Sort();
 			wxString highestCodeStr = foundCodesArray[nCount - 1];
@@ -4106,7 +6680,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		else if (bKeysPresent)
 		{
 			// should be at least one slot available
-			int nCount = foundCodesArray.GetCount();
+			int nCount = (int)foundCodesArray.GetCount();
 			wxASSERT(nCount > 0);
 			foundCodesArray.Sort();
 			wxString highestCodeStr = foundCodesArray[nCount - 1];
@@ -4295,6 +6869,3328 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks This function builds the complete content for a new default AI_UserProfiles.xml
+/// file including the comment at the beginning of the file. It assumes that the caller has
+/// created and opened an empty wxTextFile (the textFile parameter) before calling this
+/// function. The caller only calls this function in the unlikely case that no 
+/// AI_UserProfiles.xml file exists at the fullFilePath location used in calling
+/// SaveUserProfilesMergingDataToXMLFile().
+/// Called from: SaveUserProfilesMergingDataToXMLFile().
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
+{
+	wxString fileCommentBlock[] =
+	{
+		_T("<!--"),
+		_T("Filename:	AI_UserProfiles.xml"),
+		_T("Author: 	Bill Martin"),
+		_T("Date Created:	27 August 2010"),
+		_T("Last Updated:	22 October 2010, by Bill Martin"),
+		_T("Description:	This file contains the user profile definitions and"),
+		_T("		attributes for Adapt It's interface menus and settings."),
+		_T("		Adapt It reads and parses this AI_UserProfiles.xml file"),
+		_T("		when it starts up and when an administrator accesses the"),
+		_T("		user workflow profiles dialog. Changes made to"),
+		_T("		individual items in that dialog are automatically saved"),
+		_T("		back to this file."),
+		_T("***********************************************************************"),
+		_T("**** DO NOT EDIT THIS FILE - UNLESS YOU KNOW WHAT YOU ARE DOING! ******"),
+		_T("**** MAKE CHANGES TO THE USER WORKFLOW PROFILES BY SELECTING THE ******"),
+		_T("**** User Workflow Profiles... ITEM ON THE ADMINISTRATOR MENU. ********"),
+		_T("**** Manually changing the settings in this file may make Adapt It ****"),
+		_T("**** fail or operate incorrectly. If you have edited this file and ****"),
+		_T("**** and subsequently Adapt It fails or operates incorrectly, you *****"),
+		_T("**** should delete AI_UserProfiles.xml from your Adapt It Work ********"),
+		_T("**** folder and reinstall Adapt It. ***********************************"),
+		_T("***********************************************************************"),
+		_T("  -->"),
+	};
+	
+	wxString composeXmlStr;
+	if (textFile->IsOpened())
+	{
+		CBString xmlPrologue;
+		wxString tab1,tab2,tab3;
+		tab1 = _T("\t");
+		tab2 = _T("\t\t");
+		tab3 = _T("\t\t\t");
+		GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
+		composeXmlStr = wxString::FromAscii(xmlPrologue); // first string in xml file
+		composeXmlStr.Replace(_T("\r\n"),_T("")); // remove the ending \r\n added by GetEncodingStringForXmlFiles wxTextFile::AddLine adds its own eol
+		textFile->AddLine(composeXmlStr);
+		int nCommentItems;
+		nCommentItems = sizeof(fileCommentBlock)/sizeof(wxString);
+		int i;
+		for (i = 0; i < nCommentItems; i++)
+		{
+			textFile->AddLine(fileCommentBlock[i]);
+		}
+		// now we start building the actual xml part of the file (remainder of file)
+		// We use the data stored in m_pUserProfiles
+		composeXmlStr.Empty();
+		composeXmlStr += _T('<');
+		composeXmlStr += wxString::FromAscii(userprofilessupport);
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		composeXmlStr = tab1 + wxString::FromAscii(profileVersion);
+		wxString verStr = m_pUserProfiles->profileVersion;
+		composeXmlStr += _T("=\"") + verStr + _T("\"");
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		
+		composeXmlStr = tab1 + wxString::FromAscii(applicationCompatibility);
+		wxString appCStr = m_pUserProfiles->applicationCompatibility;
+		composeXmlStr += _T("=\"") + appCStr + _T("\"");
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		
+		composeXmlStr = tab1 + wxString::FromAscii(adminModified);
+		wxString adminModStr = m_pUserProfiles->adminModified;
+		// Indicate "Yes" for adminModified if not already set to "Yes"
+		if (adminModStr.Find(_T("Yes")) == wxNOT_FOUND)
+		{
+			int pos = adminModStr.Find(_T("No"));
+			wxASSERT(pos != wxNOT_FOUND);
+			if (pos != wxNOT_FOUND)
+			{
+				adminModStr.Remove(pos,2);
+				adminModStr.insert(pos,_T("Yes"));
+			}
+		}
+		composeXmlStr += _T("=\"") + adminModStr + _T("\"");
+		textFile->AddLine(composeXmlStr);
+		composeXmlStr.Empty();
+		
+		int ct;
+		int tot = m_pUserProfiles->definedProfileNames.GetCount();
+		wxString strVal;
+		for (ct = 0; ct < tot; ct++)
+		{
+			strVal.Empty();
+			strVal << ct+1;
+			composeXmlStr = tab1 + wxString::FromAscii(definedProfile) + strVal + _T("=\"") + m_pUserProfiles->definedProfileNames.Item(ct) + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			
+			// replace any entity chars with their xml entity representations
+			wxString str = m_pUserProfiles->descriptionProfileTexts.Item(ct);
+			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+			str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+			
+			composeXmlStr = tab1 + wxString::FromAscii(descriptionProfile) + strVal + _T("=\"") + str + _T("\"");
+			textFile->AddLine(composeXmlStr);
+		}
+		composeXmlStr.Empty();
+		composeXmlStr = tab1 + _T('>');
+		textFile->AddLine(composeXmlStr);
+		// the top level <UserProfilesSupport tag and attributes are done, now loop through the
+		// profileItemList and output the data for each item in the list
+		ProfileItemList::Node* node;
+		UserProfileItem* pItem;
+		tot = m_pUserProfiles->profileItemList.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			node = m_pUserProfiles->profileItemList.Item(ct);
+			pItem = node->GetData();
+			wxASSERT(pItem != NULL);
+			composeXmlStr.Empty();
+			composeXmlStr = _T('<') + wxString::FromAscii(menu) + _T(' ') + wxString::FromAscii(itemID) + _T("=\"") + pItem->itemID + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			composeXmlStr = tab1 + wxString::FromAscii(itemType) + _T("=\"") + pItem->itemType + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			
+			// replace any entity chars with their xml entity representations
+			wxString str = pItem->itemText;
+			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+			str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+			composeXmlStr = tab1 + wxString::FromAscii(itemText) + _T("=\"") + str + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			
+			// replace any entity chars with their xml entity representations
+			str = pItem->itemDescr;
+			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+			str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+			composeXmlStr = tab1 + wxString::FromAscii(itemDescr) + _T("=\"") + str + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			composeXmlStr = tab1 + wxString::FromAscii(itemAdminCanChange) + _T("=\"") + pItem->adminCanChange + _T("\"");
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			composeXmlStr = tab1 + _T('>');
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+			int ct2;
+			int tot2 = pItem->usedProfileNames.GetCount();
+			for (ct2 = 0; ct2 < tot2; ct2++)
+			{
+				composeXmlStr = tab2 + _T('<') + wxString::FromAscii(profile) + _T(' ') + wxString::FromAscii(itemUserProfile) + _T("=\"") + pItem->usedProfileNames.Item(ct2) + _T("\"");
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab3 + wxString::FromAscii(itemVisibility) + _T("=\"") + pItem->usedVisibilityValues.Item(ct2) +  _T("\"");
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab3 + wxString::FromAscii(factory) + _T("=\"") + pItem->usedFactoryValues.Item(ct2) +  _T("\"");
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab2 +  _T('>');
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+				composeXmlStr = tab2 + _T('<') + wxString::FromAscii(end_profile) + _T('>');
+				textFile->AddLine(composeXmlStr);
+				composeXmlStr.Empty();
+			}
+			composeXmlStr = _T('<') + wxString::FromAscii(end_menu) + _T('>');
+			textFile->AddLine(composeXmlStr);
+			composeXmlStr.Empty();
+		}
+		composeXmlStr.Empty();
+		composeXmlStr += _T('<');
+		composeXmlStr += wxString::FromAscii(end_userprofilessupport) + _T('>');
+		textFile->AddLine(composeXmlStr);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
+/// This function calls a series of functions that set the visibility of the interface's menus, 
+/// modeBar, toolBar, wizardListItem and other potential interface settings, all based on the 
+/// information stored in AI_UserProfiles.xml and the App's m_pAI_MenuStructure member.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
+{
+	// We use the menu and settings data in m_pUserProfiles to set visibility of interface
+	// elements.
+	// 
+	// First, configure visibility of itemType == subMenu elements
+	ConfigureMenuBarForUserProfile();
+	// Note: The MakeMenuInitializationsAndPlatformAdjustments() function is called in OnInit()
+	// after this ConfigureInterfaceForUserProfile() completes.
+
+	// Next, configure visibility of itemType == modeBar elements
+	ConfigureModeBarForUserProfile();
+
+	// Note: Changes in the visibility of itemType == preferencesTab elements
+	// are not done here but within the CEditPreferencesDlg dialog class. The 
+	// tabs are hidden or shown based on the visibility flags in m_pUserProfiles
+	// at the time when the Preferences dialog is instantiated.
+
+	// Next, configure visibility of itemType == toolBar element
+	ConfigureToolBarForUserProfile();
+
+	// Next, configure visibility of itemType == wizardListItem element
+	ConfigureWizardForUserProfile();
+	
+	// Finally, configure visibility of itemType == dialogControl elements
+	// AI_UserProfiles.xml currently does not include any dialogControl 
+	// elements.
+	// Other configuration capabilities could go here
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
+/// and sets the visibility of the interface's menus based on the information 
+/// stored in AI_UserProfiles.xml. It also reads the App's m_pAI_MenuStructure member and 
+/// uses it to insure Adapt It's menu structure is restored to a uniform state when 
+/// changing the user profile or reverting to the "None" default profile.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
+{
+	// whm 27Sep10 notes:
+	// I tried calling delete on pMenuBar and reconstructing it from scratch as a way to
+	// implement interface menu configuration. But deleting the menu bar (when it has
+	// already been "set" into the main frame via the SetMenuBar() function, leads to some 
+	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load 
+	// the file history from our m_pConfig. 
+	// Later, I attempted to try adding menu items one-by-one to individual top level
+	// menus and tidying up any menu separators that need to be added or removed for 
+	// the resulting menu bar. That approach also proved problematic as I could not
+	// guarantee robustness of the result. Finally I decided on removing all menu items
+	// from a given top level menu, and constructing the menu anew using the 
+	// m_pAI_Menustructure's itemVisibility info as the guide. That approach gives a
+	// robust result that also allows for the insertion of menu separators at the right
+	// places to fit the profile. Note: the m_pAI_MenuStructure struct is populated from
+	// a temporary default menu bar in the SetupDefaultMenuStructure() function, not 
+	// from any internal string data, nor from any data in AI_UserProfiles.xml.
+
+	// I don't know how to get the defined int value for an idenfifier from a string 
+	// representation such as "ID_SAVE_AS", so I'll just create a temporary default 
+	// menu bar from wxDesigners AIMenuBarFunc() so we can query it for menu id int 
+	// values we may need. We don't call SetMenuBar() on any frame so it won't be 
+	// visible. We delete it at the end of the menu bar handling part of this function.
+	wxMenuBar* pTempMenuBar;
+	pTempMenuBar = AIMenuBarFunc();
+	
+	// Go through the existing top level menus processing each one by removing existing
+	// items and adding those that need to be visible for the current profile.
+	wxString mainMenuLabel_DefaultStructure;
+	wxString mainMenuLabel_CurrentMenuBar;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem_DefaultStructure;
+	wxMenu* pMainMenuItem_CurrentMenuBar;
+	wxMenuBar* pMenuBar_Current = GetMainFrame()->GetMenuBar();
+	wxASSERT(pMenuBar_Current != NULL);
+	pMenuBar_Current->Freeze(); // to avoid flicker while changing the menu
+	int ct;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		bool bProcessingFileMenu = FALSE;
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem_DefaultStructure = mmNode->GetData();
+		mainMenuLabel_DefaultStructure = pMainMenuItem_DefaultStructure->mainMenuLabel;
+		if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(fileMenu)) // fileMenu resolves to _("&File")
+		{
+			bProcessingFileMenu = TRUE;
+		}
+		// skip processing of the Help and Administrator menus
+		if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(helpMenu) // helpMenu resolves to _("&Help")
+			|| mainMenuLabel_DefaultStructure == GetTopLevelMenuName(administratorMenu)) // administratorMenu resolves to _("Ad&ministrator")
+		{
+			continue;
+		}
+		mainMenuLabel_DefaultStructure = RemoveMenuLabelDecorations(mainMenuLabel_DefaultStructure); // remove any & chars for comparison
+		// get the current top level wxMenu* from the menu bar
+		int topLevelMenuBarIndex;
+		topLevelMenuBarIndex = pMenuBar_Current->FindMenu(mainMenuLabel_DefaultStructure);
+		if (topLevelMenuBarIndex != wxNOT_FOUND)
+		{
+			// We must establish a new index for the pMenuBar, which won't necessarily be the
+			// same as the ct index we use into the top level menus in the default m_pAIMenuStructure.
+			int mbCt;
+			int numFileHistoryItems = 0;
+			mbCt = pMenuBar_Current->FindMenu(mainMenuLabel_DefaultStructure);
+			pMainMenuItem_CurrentMenuBar = pMenuBar_Current->GetMenu(mbCt);
+			if (pMainMenuItem_CurrentMenuBar != NULL)
+			{
+				// Remove all current menu items from the pMainMenuItem_CurrentMenuBar.
+				// Note: we do not remove any File History Items from the File menu - these
+				// can stay.
+				wxMenuItemList menuItemListForThisMainMenu;
+				menuItemListForThisMainMenu = pMainMenuItem_CurrentMenuBar->GetMenuItems();
+				int numItemsToRemove;
+				numItemsToRemove = (int)menuItemListForThisMainMenu.GetCount(); // could be empty already
+				// Note: testing shows that a wxMenuItemList also enumerates menu separators as
+				// countable items in the list.
+				if (numItemsToRemove != 0)
+				{
+					// remove existing items from this top level menu (pMainMenuItem_CurrentMenuBar)
+					int miCt;
+					wxMenuItem* mItem;
+					wxMenuItem* removedItem;
+					wxMenuItemList::Node* pNode;
+					for (miCt = 0; miCt < numItemsToRemove; miCt++)
+					{
+						pNode = menuItemListForThisMainMenu.Item(miCt);
+						mItem = pNode->GetData();
+						wxASSERT(mItem != NULL);
+						// Don't remove File History items which are menu items that start with a digit (1
+						// through 9) followed by a space, followed by the full path name. We assume we can
+						// skip all menu items that start with a digit and a space.
+						wxString tempStr = mItem->GetLabel();
+						tempStr = tempStr.Mid(0,2);
+						if ((tempStr.GetChar(0) == _T('1') || tempStr.GetChar(0) == _T('2') ||
+							tempStr.GetChar(0) == _T('3') || tempStr.GetChar(0) == _T('4') || tempStr.GetChar(0) == _T('5') ||
+							tempStr.GetChar(0) == _T('6') || tempStr.GetChar(0) == _T('7') || tempStr.GetChar(0) == _T('8') ||
+							tempStr.GetChar(0) == _T('9')) && tempStr.GetChar(1) == _T(' ') )
+						{
+							numFileHistoryItems++;
+							//wxLogDebug(_T("Menu item skipped for deletion = %s"),mItem->GetLabel().c_str());
+							continue;
+						}
+						//wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
+						if (mItem->GetLabel() == _("See Glosses"))
+						{
+							// TODO: Check the following assumption: We should unilaterally disable Glossing here.
+							// Reasoning: An administrator cannot really force the "See Glossing" Advanced
+							// menu item to remain ticked in a persistent manner by turning it ticking it "ON", 
+							// then hiding the See Glossing menu item in the current profile, because the 
+							// "See Glossing" setting is not persistent - it reverts back to being "OFF" each 
+							// time the app starts up. Hence, we can insure Glossing is disabled here along with
+							// the removal of the "See Glosses" Advanced menu item in this profile.
+							gbEnableGlossing = FALSE;
+							gbIsGlossing = FALSE; // this must be FALSE if gbEnableGlossing is FALSE
+						}
+						removedItem = pMainMenuItem_CurrentMenuBar->Remove(mItem);
+						delete removedItem;
+						removedItem = (wxMenuItem*)NULL;
+					}
+				}
+			}
+
+			// Note: The File at this point is empty of normal menu items, but may have 
+			// from 1 to 9 file history items. We don't want to append menu items below
+			// the group of file history items, but rather we must insert the menu items at
+			// GetMenuItemCount() - numFileHistoryItems.
+			int insertAtIndex = 0;
+			// add menu items to this top level menu (pMainMenuItem_CurrentMenuBar)
+			wxArrayPtrVoid pArrayOfSubMenuItemsToAdd;
+			pArrayOfSubMenuItemsToAdd = GetMenuStructureItemsArrayForThisTopLevelMenu(pMainMenuItem_DefaultStructure);
+			int numPointers;
+			int ct_ptr;
+			AI_SubMenuItem* pSubMenuItem;
+			numPointers = (int)pArrayOfSubMenuItemsToAdd.GetCount();
+			for (ct_ptr = 0; ct_ptr < numPointers; ct_ptr++)
+			{
+				pSubMenuItem = (AI_SubMenuItem*)pArrayOfSubMenuItemsToAdd.Item(ct_ptr);
+				wxASSERT(pSubMenuItem != NULL);
+
+				if (MenuItemIsVisibleInThisProfile(m_nWorkflowProfile,pSubMenuItem->subMenuIDint))
+				{
+					// In the line below the numFileHistoryItems will be zero for top level menus except for
+					// the File menu. We normally insert at the GetMenuItemCount() index, i.e., after the last
+					// item in the menu, but insert before any file history items.
+					insertAtIndex = pMainMenuItem_CurrentMenuBar->GetMenuItemCount() - numFileHistoryItems;
+					wxASSERT(insertAtIndex >= 0);
+					int menuItemId;
+					menuItemId = GetSubMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
+					
+					wxItemKind itemKind;
+					itemKind = GetMenuItemKindFromString(pSubMenuItem->subMenuKind);
+					// do the menu item insertion
+					// Note: menuItemId will be wxID_SEPARATOR (-2) and itemKind will be 
+					// wxITEM_SEPARATOR (-1) for menuSeparators.
+					// Note: apparently the \t chars in the xml and internal strings become \\t literals
+					// and need to be changed to \t to work in the menus.
+					wxString labelStr = pSubMenuItem->subMenuLabel;
+					labelStr.Replace(_T("\\t"),_T("\t"));
+					wxMenuItem* item = new wxMenuItem(pMainMenuItem_CurrentMenuBar,menuItemId,labelStr,pSubMenuItem->subMenuHelp,itemKind);
+					pMainMenuItem_CurrentMenuBar->Insert(insertAtIndex,item);
+				}
+			} // end of for (ct_ptr = 0; ct_ptr < numPointers; ct_ptr++)
+			
+			// Check for extraneous left-over menu separators in this top level menu
+			// and delete if found.
+			// Start at the bottom of the menu and remove all menu separators there.
+			bool bLastItemWasSeparator = FALSE;
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			wxMenuItemList pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
+			pNode = pMenuItemList.GetLast();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+				{
+					break;
+				}
+				else
+				{
+					// This menu separator is either the last item on the menu
+					// or it is the first of two adjacent separators in the menu.
+					// In either case we delete the current menu separator.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh list
+				pNode = pMenuItemList.GetLast();
+			}
+			// remove any separators at the top of the top level menu
+			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
+			int nSubMenuItems = (int)pMenuItemList.GetCount();
+			pNode = pMenuItemList.GetFirst();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() == wxITEM_SEPARATOR)
+				{
+					// This menu separator is at the top of the menu
+					// so remove it.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				else
+				{
+					break;
+				}
+				pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh list
+				pNode = pMenuItemList.GetFirst();
+			}
+			
+			// change any remaining multiple sequences of menu separators to a single separator
+			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items
+			nSubMenuItems = (int)pMenuItemList.GetCount();
+			int smCt;
+			for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
+			{
+				pNode = pMenuItemList.Item(smCt);
+				pMenuItem = pNode->GetData();
+				wxString smKindStr;
+				wxItemKind smKind = pMenuItem->GetKind();
+				if (smKind == wxITEM_SEPARATOR)
+				{
+					if (smCt == nSubMenuItems - 1 || bLastItemWasSeparator)
+					{
+						// This menu separator is either the last item on the menu
+						// or it is the first of two adjacent separators in the menu.
+						// In either case we delete the current menu separator.
+						wxMenuItem* pRemMenuItem;
+						pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
+						wxASSERT(pRemMenuItem != NULL);
+						delete pRemMenuItem; // to avoid memory leaks
+						pRemMenuItem = (wxMenuItem*)NULL;
+					}
+					bLastItemWasSeparator = TRUE;
+				}
+				else
+				{
+					bLastItemWasSeparator = FALSE;
+				}
+			}
+		}
+		else
+		{
+			// The top level menu was not found in the menu bar. This can happen for
+			// the Administrator menu when it is not present, and in an ANSI build
+			// where the Layout menu is not present.
+			;
+		}
+	} // end of for (ct = 0; ct < nMainMenuItems; ct++)
+
+	pMenuBar_Current->Thaw(); // to avoid flicker while changing the menu
+	// remove the temporary invisible menu bar to avoid memory leaks
+	delete pTempMenuBar;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function destroys the existing mode bar then constructs a new mode bar and uses 
+/// it as the starting baseline, removing elements according to the currently selected 
+/// user profile. The mode bar may be either the standard 1-line mode bar or the 
+/// special 2-line mode bar used when the -xo command line parameter is used with
+/// an OLPC XO computer.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureModeBarForUserProfile()
+{
+	// Note: The ModeBar (also called "controlBar") is created on a wxPanel in the 
+	// CMainFrame constructor in MainFrm.cpp. Its pointer on the App is m_pControlBar.
+	// Unlike the menu bar, the m_pControlBar is not managed directly by its enclosing
+	// frame (CMainFrame). The m_pControlBar, once created is never optionally hidden 
+	// (using the View menu) as can be done for the Tool bar, Status bar and Compose 
+	// bar. Nevertheless, the height of m_pControlBar must be current in the 
+	// main frame's m_controlBarHeight member in order to correctly size the main frame.
+	// The m_controlBarHeight is kept current whether the application is using the normal
+	// control bar (ControlBarFunc) or the two-line control bar (ControlBar2LineFunc) 
+	// designed for better visibility on the OLPC XO machines. 
+	// We will get the control bar and recreate it for the current user profile's 
+	// "modeBar" item visibility specifications. As with the AI menu bar, it is easiest
+	// to simply remove the items from the existing mode bar, and add back those which
+	// should appear in the current profile.
+	// 
+	// We need to get the mode bar's sizer(s) in order to remove and add controls to 
+	// the correct part of the mode bar. We have assigned "Access variable names" for 
+	// the needed sizers in both mode bars. For the normal single-line mode bar the 
+	// access variable name is ID_CONTROLBAR_1_LINE_SIZER; for the two-line mode bar 
+	// the access variable names are ID_CONTROLBAR_2_LINE_SIZER_TOP and 
+	// ID_CONTROLBAR_2_LINE_SIZER_BOTTOM. These sizers are created as 
+	// wxBoxSizer( wxHORIZONTAL ) in wxDesigner.
+	// The ID_CONTROLBAR_1_LINE_SIZER sizer has its items in the following order:
+	// 1. Drafting [wxRadioButton]
+	// 2. Reviewing [wxRadioButton]
+	// 3. Automatic [wxCheckBox]
+	// 4. Save to Knowledge Base [wxCheckBox]
+	// 5. Force Choice For This Item [wxCheckBox]
+	// 6. <no adaptation> [wxButton]
+	// 7. Delay [wxStaticText] + wxTextCtrl
+	// 8. Spacer
+	// 9. Glossing [wxCheckBox]
+	// Note: There are also two wxStaticLine controls created one above the ID_CONTROLBAR_1_LINE_SIZER and
+	// one below it. We won't need to change those, just the contents of ID_CONTROLBAR_1_LINE_SIZER.
+	
+	CMainFrame* pMainFrame;
+	pMainFrame = GetMainFrame();
+	pMainFrame->Freeze(); // to avoid flicker
+	pMainFrame->m_pControlBar->Destroy(); // removes the existing mode bar which may not be showing all items in the current profile
+
+	// Create the new control bar using a wxPanel (see similar code in CMainFrame's constructor)
+	// whm note: putting the control bar on a panel could have been done in wxDesigner
+	// TODO: Make sure this works whether or not the toolbar and/or composebar are currently visible
+	wxPanel *controlBar = new wxPanel(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, 0);
+	wxASSERT(controlBar != NULL);
+	
+	// The ControlBarFunc() and ControlBar2LineFunc() functions are located 
+	// in Adapt_It_wdr.cpp. 
+	// To populate the controlBar panel we've used wxBoxSizers. The outer
+	// most sizer is a vertical box sizer which has a horizontal line in
+	// the upper part of the box (for the line between the toolbar and 
+	// controlbar), and the row of controls laid out in wxHORIZONTAL 
+	// alignment within an embedded horizontal box sizer, below the line
+	// within the vertical box sizer
+	
+	if (m_bExecutingOnXO) // prefix m_bExecutingOnXO with ! to test the two-line control bar configuration
+	{
+		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
+		// better fit in main frame
+		ControlBar2LineFunc( controlBar, TRUE, TRUE );
+		// make m_pControlBar point to the new control bar
+		pMainFrame->m_pControlBar = controlBar;
+		// In the case of the two line control bar, we have two
+		// named wxBoxSizers. 
+		// The upper sizer called ID_CONTROLBAR_2_LINE_SIZER_TOP
+		// has the following controls:
+		//    1. Spacer
+		//    2. Drafting [wxRadioButton]
+		//    3. Reviewing [wxRadioButton]
+		//    4. *Automatic [wxCheckBox]
+		//    5. Save to Knowledge Base [wxCheckBox]
+		//    6. *Delay [wxStaticText}
+		//    7. wxTextCtrl named IDC_EDIT_DELAY
+		// The lower sizer called ID_CONTROLBAR_2_LINE_SIZER_BOTTOM
+		// has the following controls:
+		//    1. Spacer
+		//    2. *Force Choice For This Item [wxCheckBox]
+		//    3. Spacer
+		//    4. <no adaptation> [wxButton]
+		//    5. Spacer
+		//    6. *Glossing [wxCheckBox]
+		// * These are the potentially "hidden" items depending on the selected 
+		// user profile.
+		// Note: On the XO screen, it is the horizontal space that gets overly crowded due to
+		// the system's increase in font size, rather than the vertical space, so I don't 
+		// think it would be worth the effort to try to consolidate the two bars into a one 
+		// line control bar in the case that an administrator sets up a profile in which many 
+		// items are not to be made visible.
+		//  
+		// Go through the children of the two line control bar and
+		// remove any that are not supposed to be visible in the current
+		// profile.
+		// First, the upper sizer ID_CONTROLBAR_2_LINE_SIZER_TOP
+		wxSizer* pModeBarSizer = ID_CONTROLBAR_2_LINE_SIZER_TOP;
+		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
+
+		// Second, the lower sizer ID_CONTROLBAR_2_LINE_SIZER_BOTTOM
+		pModeBarSizer = ID_CONTROLBAR_2_LINE_SIZER_BOTTOM;
+		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
+	}
+	else
+	{
+		ControlBarFunc( controlBar, TRUE, TRUE );
+		// make m_pControlBar point to the new control bar
+		pMainFrame->m_pControlBar = controlBar;
+		
+		// Now we go through the children of the default mode bar and remove any that are
+		// not supposed to be visible in the current profile
+		wxSizer* pModeBarSizer = ID_CONTROLBAR_1_LINE_SIZER;
+		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
+	}
+	// If the "[] Glossing" check box is not removed in this profile after the above code
+	// executes (i.e., NULL), check here to see if it should be visible or hidden according to the 
+	// current value of gbIsGlossing.
+	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)pMainFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
+	// pCheckboxIsGlossing will be null if it is not visible in the current profile
+	if (pCheckboxIsGlossing != NULL)
+	{
+		if (gbIsGlossing)
+		{
+			pCheckboxIsGlossing->Show(TRUE);
+		}
+		else
+		{
+			pCheckboxIsGlossing->Show(FALSE);
+		}
+	}
+
+	// lastly update the CMainFrame's m_controlBarHeight member with the newly populated
+	// mode bar
+	wxSize controlBarSize;
+	controlBarSize = pMainFrame->m_pControlBar->GetSize();
+	pMainFrame->m_controlBarHeight = controlBarSize.GetHeight();
+	pMainFrame->Thaw(); // to avoid flicker
+	pMainFrame->SendSizeEvent(); // we need to send a size event to the main frame
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureModeBarForUserProfile().
+/// This function is a helper function for ConfigureModeBarForUserProfile().
+/// It removes any mode bar items that are not visible in the currently selected user 
+/// profile. It also deals with the special cases of the Glossing checkbox and the Delay's 
+/// wxTextCtrl. If Glossing is ON it turns it OFF if the Glossing checkbox is removed from
+/// the modebar. If the Delay static text is removed, it removes the associated wxTextCtrl.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
+{
+	wxASSERT(pModeBarSizer != NULL);
+	wxSizerItemList modeBarItems = pModeBarSizer->GetChildren();
+	wxSizerItemList::Node* node;
+	int nSizerItems = (int)modeBarItems.GetCount();
+	int ct;
+	bool bDelayRemoved = FALSE;
+	for (ct = 0; ct < nSizerItems; ct++)
+	{
+		node = modeBarItems.Item(ct);
+		wxSizerItem* pSizerItem = node->GetData();
+		wxString itemLabel;
+		if (!pSizerItem->IsSpacer())
+		{
+			// don't call GetWindow()->GetLabel() on a spacer; it will crash
+			itemLabel = pSizerItem->GetWindow()->GetLabel();
+			itemLabel.Trim(FALSE);
+			itemLabel.Trim(TRUE);
+		}
+		else
+		{
+			itemLabel = _T("");
+		}
+		if (!ModeBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+		{
+			if (itemLabel == _("Glossing") && gbIsGlossing == TRUE)
+			{
+				// TODO: Check the following assumption: We should unilaterally turn off Glossing here.
+				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
+				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
+				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+				// time the app starts up. Hence, we can insure Glossing is turned off here.
+				gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
+			}
+			if (itemLabel == _("Delay"))
+			{
+				// the "Delay" is actually associated with the itemLabel of the wxStaticText control and
+				// not the following wxTextCtrl, so when the "Delay" wxStaticText control is removed we
+				// also flag for removal (see below) the following wxTextCtrl which has the identifier of
+				// IDC_EDIT_DELAY.
+				bDelayRemoved = TRUE;
+			}
+			pSizerItem->DeleteWindows();
+		}
+	}
+	if (bDelayRemoved)
+	{
+		// the Delay wxStaticText was removed, so remove the following wxTextCtrl as well
+		wxTextCtrl* pDelayTextCtrl;
+		pDelayTextCtrl = (wxTextCtrl*)GetMainFrame()->m_pControlBar->FindWindowById(IDC_EDIT_DELAY);
+		wxASSERT(pDelayTextCtrl != NULL);
+		if (pDelayTextCtrl != NULL)
+		{
+			pDelayTextCtrl->Destroy();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function destroys the existing tool bar then constructs a new tool bar and uses 
+/// it as the starting baseline, removing elements according to the currently selected 
+/// user profile. The tool bar may be either the standard tool bar (AIToolBarFunc) or the 
+/// alternate tool bar (AIToolBar32x32Func) which has fewer buttons but larger bitmaps for
+/// use when the -xo command line parameter is used with an OLPC XO computer.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureToolBarForUserProfile()
+{
+	CMainFrame* pMainFrame;
+	pMainFrame = GetMainFrame();
+	pMainFrame->Freeze(); // to avoid flicker
+	pMainFrame->m_pToolBar->Destroy(); // removes the existing tool bar which may not be showing all items in the current profile
+
+	// Create the new tool bar with our AIToolBar class override of wxToolBar (see similar 
+	// code in CMainFrame's constructor)
+    long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
+	AIToolBar* toolBar = new AIToolBar(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, style);
+	wxASSERT(toolBar != NULL);
+	pMainFrame->m_pToolBar = toolBar;
+	
+	// The AIToolBarFunc() and AIToolBar32x30Func() functions are located 
+	// in Adapt_It_wdr.cpp. 
+	if (gpApp->m_bExecutingOnXO) // add a ! to test the 32x32 toolbar when -xo is not set
+	{
+		toolBar->SetToolBitmapSize(wxSize(32,30));
+		AIToolBar32x30Func( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+		// Note: AIToolBar32x32Func() creates 33 defauls elements including toolbar separators
+		// The default elements that are not included (compared to AIToolBarFunc()) are:
+		// 1. Cut [not likely used much - also has Ctrl-X hotkey]
+		// 2. Copy [not likely used much - also has Ctrl-C hotkey]
+		// 3. Paste [not likely used much - also has Ctrl-V hotkey]
+		// 4. Spacer
+		// 5. Print [available on File menu]
+		// 6. Spacer
+		// 7. Display Help Topics [available on Help menu]
+
+		// scan through this default toolbar and remove items that are not supposed to
+		// be visible in the current profile.
+		// The wxToolBarBase class has a protected member called 
+		// wxToolBarToolsList m_tools which is "the list of all our tools" which 
+		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
+		RemoveToolBarItemsFromToolBar(toolBar);
+	}
+	else
+	{
+		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+		// Note: AIToolBar32x32Func() creates 40 default elements including toolbar separators
+
+		// scan through this default toolbar and remove items that are not supposed to
+		// be visible in the current profile.
+		// The wxToolBarBase class has a protected member called 
+		// wxToolBarToolsList m_tools which is "the list of all our tools" which 
+		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
+		RemoveToolBarItemsFromToolBar(toolBar);
+	}
+	// Note: The RemoveToolBarItemsFromToolBar() call above also removed any "leftover" 
+	// or duplicate tool bar separators. 
+	
+	pMainFrame->SetToolBar(toolBar);
+	// Notes on SetToolBar(): WX Docs say,
+	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
+	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage 
+	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect 
+	// the available space for application windows. Under Pocket PC, you should always use this 
+	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use 
+	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar 
+	// as usual."
+	pMainFrame->m_pToolBar = pMainFrame->GetToolBar();
+	wxASSERT(pMainFrame->m_pToolBar == toolBar);
+
+	wxSize toolBarSize;
+	toolBarSize = pMainFrame->m_pToolBar->GetSize();
+	pMainFrame->m_toolBarHeight = toolBarSize.GetHeight();	// we shouldn't need this since doc/view
+												// is supposed to manage the toolbar and
+												// our Main Frame should account for its
+												// presence when calculating the client size
+												// with pMainFrame->GetClientSize()
+	pMainFrame->Thaw();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// This function sets the value of m_bShowNewProjectItem to FALSE if the <New Project> user 
+/// profile item's itemVisibility attribute for the current profile is set to "0"; otherwise 
+/// sets the value of m_bShowNewProjectItem to TRUE. The CProjectPage class uses the App's
+/// m_bShowNewProjectItem flag to include <New Project> as the first item in the page's
+/// list of projects, or omit it from the list.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ConfigureWizardForUserProfile()
+{
+	// we assume that a mode bar item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	if (NewProjectItemIsVisibleInThisProfile(m_nWorkflowProfile))
+	{
+		m_bShowNewProjectItem = TRUE;
+	}
+	else
+	{
+		m_bShowNewProjectItem = FALSE;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if the "<New Project>" item is supposed to be visible in this nProfile, 
+///                 FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+///                     i.e., the tooltip
+/// \remarks
+/// Called from: the App's ConfigureWizardForUserProfile().
+/// Determines whether the "<New Project>" item is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the itemLabel in
+/// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
+/// for that item as indexed for the nProfile.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
+{
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection and all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType != _T("wizardListItem"))
+		{
+			continue;
+		}
+		wxString itemLabelStr;
+		itemLabelStr = pUserProfileItem->itemText;
+		itemLabelStr.Trim(FALSE);
+		itemLabelStr.Trim(TRUE);
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemLabelStr == _("<New Project>") && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      the AIToolBar (derived from wxToolBar) from which items are to be removed
+/// \remarks
+/// Called from: the App's ConfigureToolBarForUserProfile() and CMainFrame::RecreateToolBar().
+/// This function is a helper function for ConfigureToolBarForUserProfile().
+/// It removes any tool bar items that are not visible in the currently selected user 
+/// profile. It also removes any left-over or duplicate tool bar separators.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
+{
+	int ct,toolCount;
+	toolCount = (int)pToolBar->GetToolsCount();
+	wxToolBarToolsList toolBarToolsList = pToolBar->GetToolBarToolsList();
+	wxToolBarToolsList::Node* node;
+	wxToolBarToolBase* pTBItem;
+	// Since we are removing the tool bar items by position in the bar, we 
+	// need to remove the items from the right end (higher position) to the
+	// left end (lower) position, otherwise our position index ct will not
+	// be accurate after the first removal.
+	for (ct = toolCount-1; ct >= 0; ct--) // counting downwards from right end
+	{
+		node = toolBarToolsList.Item(ct);
+		pTBItem = (wxToolBarToolBase*)node->GetData();
+		wxString itemLabel;
+		if (!pTBItem->IsSeparator())
+		{
+			//wxString isSepStr = _T("");
+			//wxLogDebug(_T("Toolbar window item: Short Help: %s, Long Help: %s"),
+			//	pTBItem->GetShortHelp().c_str(),pTBItem->GetLongHelp().c_str());
+			itemLabel = pTBItem->GetShortHelp();
+			itemLabel.Trim(FALSE);
+			itemLabel.Trim(TRUE);
+		}
+		else
+		{
+			//wxString isSepStr = _T("");
+			//isSepStr = _T("Separator");
+			//wxLogDebug(_T("Toolbar window item: wxItemKind: %s"),isSepStr.c_str());
+			itemLabel = _T("");
+		}
+		// Note: the above wxLogDebug() shows that GetLabel() always is null str, GetShortHelp() is
+		// the name of the toolbar button (the tooltip), and GetLongHelp() is the status help for the
+		// button. We can use the string returned from GetShortHelp() to identify the toolbar button.
+		// separators are a null string in GetShortHelp and GetLongHelp - and they also have a
+		// getter called IsSeparator() which returns TRUE for separators, FALSE otherwise.
+		if (!ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
+		{
+			pToolBar->DeleteToolByPos(ct);
+		}
+	}
+	// Now take care of left-over or duplicate tool bar separators
+	toolCount = (int)pToolBar->GetToolsCount();
+	toolBarToolsList = pToolBar->GetToolBarToolsList();
+	// Since we are removing the tool bar items by position in the bar, we 
+	// need to remove the items from the right end (higher position) to the
+	// left end (lower) position, otherwise our position index ct will not
+	// be accurate after the first removal.
+	bool bLastItemWasSeparator = FALSE;
+	for (ct = toolCount-1; ct >= 0; ct--) // counting downwards from right end
+	{
+		node = toolBarToolsList.Item(ct);
+		pTBItem = (wxToolBarToolBase*)node->GetData();
+		if (!pTBItem->IsSeparator())
+		{
+			// item is a normal tool bar item (not a separator)
+			bLastItemWasSeparator = FALSE;
+		}
+		else
+		{
+			// item is a tool bar separator
+			// delete if the last item was a separator
+			if (bLastItemWasSeparator)
+			{
+				pToolBar->DeleteToolByPos(ct);
+			}
+			bLastItemWasSeparator = TRUE;
+		}
+	}
+	
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
+/// Adjusts some menu hot key assignments for the different platforms - different
+/// platforms reserve certain hot key combinations for their own system use. 
+/// This function also sets the initial checked/unchecked state of menu items which are 
+/// checkable.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
+{
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	// Get the File Menu, tell the doc manager that we want the File History on the
+	// File Menu, and Load the File History (MRU) to it
+	wxMenu* pFileMenu;
+	pFileMenu = GetTopLevelMenuFromAIMenuBar(fileMenu);
+	// Note: The FileHistoryLoad() call is done in OnInit() before the first
+	// call of MakeMenuInitializationsAndPlatformAdjustments.
+
+	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
+    // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
+    // are made to coordinate with these menu hot key adjustments.
+#if defined (__WXMAC__) || defined (__WXGTK__)
+    // whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep
+    // them from conflicting with the customary Mac access keys and accelerator keys. The
+    // accelerator keys are created during the creation of the CMainFrame above, so we can
+    // make adjustments here.
+
+	// File | Start Working...
+    // On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active
+    // Window, so we've defined the accelerator key on Mac for "Start Working..." as
+    // Command-Shift-O, and on Linux as Ctrl-Shift-O, to avoid the conflict.
+	if (pFileMenu != NULL)
+	{
+		pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
+													// & Linux have the default Ctrl-W
+	}
+#endif
+	
+#ifdef __WXMAC__
+	// File | Close Project
+    // On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used
+    // it on Windows/Linux for Close Project, but the comperable hot key to close the
+    // active window for Mac is Command-W.
+	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close 
+	// (wxID_CLOSE) menu item.
+	if (pFileMenu != NULL)
+	{
+		if (pFileMenu->FindItem(ID_FILE_CLOSEKB) != NULL)
+		{
+			pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
+				// and Linux have the default Ctrl-J
+		}
+	}
+    
+	// File | Exit
+	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
+	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
+	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
+    if (pFileMenu != NULL)
+	{
+		wxMenuItem* pFileExitItem;
+		pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
+		if(pFileExitItem != NULL)
+		{
+			pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+		}
+	}
+
+	wxMenu* pEditMenu = GetTopLevelMenuFromAIMenuBar(editMenu);
+	if(pEditMenu != NULL)
+	{
+		// Edit | Edit Source Text
+		// On Mac, the hot key command to quit the application is Command-Q and we have set a
+		// Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
+		// Ctrl-Shift-E for it here.
+		if (pEditMenu->FindItem(ID_EDIT_SOURCE_TEXT) != NULL)
+		{
+			pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
+		}
+		
+		// Edit | Move Note Backward
+		// On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
+		// accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
+		// use Ctrl-Shift-2 for it here.
+		if (pEditMenu->FindItem(ID_EDIT_MOVE_NOTE_BACKWARD) != NULL)
+		{
+			pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
+		}
+		
+		// Edit | Move Note Forward
+		// On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
+		// accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
+		// use Ctrl-Shift-3 for it here.
+		if (pEditMenu->FindItem(ID_EDIT_MOVE_NOTE_FORWARD) != NULL)
+		{
+			pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
+		}
+	}
+
+	wxMenu* pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
+	if(pToolsMenu != NULL)
+	{
+		// Tools | Find and Replace
+		// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
+		// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
+		// menu to use Ctrl-Shift-F for it here.
+		if (pToolsMenu->FindItem(wxID_REPLACE) != NULL)
+		{
+			pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
+		}
+	}
+
+	wxMenu* pLayoutMenu = GetTopLevelMenuFromAIMenuBar(layoutMenu);
+	if(pLayoutMenu != NULL)
+	{
+		// Layout | Layout Window Right To Left
+		// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
+		// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
+		// menu to use Ctrl-Shift-1 for it here.
+		if (pLayoutMenu->FindItem(ID_ALIGNMENT) != NULL)
+		{
+			pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+		}
+	}
+
+	// wxWidgets moves the wxID_HELP menu item from the Help menu to the Application menu, so we
+	// don't assume wxID_HELP is in the Help menu.
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
+	if (pHelpTopicsMenu != NULL)
+	{
+		pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
+	}
+
+#else
+	// wxDesigner's Menubars properties doesn't allow us to set function keys as shortcuts
+	// so we'll do it manually here for Windows and Linux.
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)pMenuBar->FindItem(wxID_HELP);
+	if (pHelpTopicsMenu != NULL)
+	{
+		pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
+	}
+
+#endif
+
+	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
+	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
+	// resource. With wxDesigner handling resources, it's easier to start with the item 
+	// in the menu and programmatically delete it, rather than create it from scratch.
+	// So, for ANSI version, we'll just remove them from the MenuBar.
+#ifndef _UNICODE
+	// ANSI only
+	// In the wx version we started with the Layout menu loaded with 
+	// other menu resources. Here we'll remove it for the ANSI version.
+	wxMenu* pLayoutMenu = GetTopLevelMenuFromAIMenuBar(layoutMenu);
+	if(pLayoutMenu != NULL)
+	{
+		// first delete the "Layout Window Right To Left\tCTRL+1" menu item
+		// Note: In the current profile, this item may not exist, so only
+		// call Remove if it exists!
+		if (pLayoutMenu->FindItem(ID_ALIGNMENT) != NULL)
+		{
+			wxMenuItem* pRemMenuItem;
+			pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
+			wxASSERT(pRemMenuItem != NULL);
+			delete pRemMenuItem; // to avoid memory leaks
+			pRemMenuItem = (wxMenuItem*)NULL;
+		}
+		// then delete the top level "Layout" menu
+		wxMenu* pRemMenu;
+		pRemMenu = pMenuBar->Remove(layoutMenu);
+		wxASSERT(pRemMenu != NULL);
+		delete pRemMenu; // to avoid memory leaks
+		pRemMenu = (wxMenu*)NULL;
+	}
+#else
+	// Unicode version
+	// Initialize the Layout menu to LTR
+	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
+	if(pLayoutMenuAlignment != NULL)
+	{
+		// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
+		// note: default display is LTR so menu item should read what clicking it should make
+		// the layout become after clicking. The menu text may be changed to appropriate value
+		// upon reading reading a project config file (the change is made in ???).
+#ifdef __WXMAC__
+		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+#else
+		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+#endif
+	}
+
+#endif 
+
+    // These toggle menu items should be initially set as follows (TRUE=checked;
+    // FALSE=unchecked):
+    // whm verified 2Sep06 that at least some are needed to be pre-set as follows in order
+    // for the calls to menu handlers to operate successfully in the View's
+    // OnInitialUpdate() function where the initial state of toggled toolbar buttons is
+    // set.
+    if (pMenuBar->FindItem(ID_VIEW_TOOLBAR) != NULL)
+		pMenuBar->Check(ID_VIEW_TOOLBAR, TRUE);
+    if (pMenuBar->FindItem(ID_VIEW_STATUS_BAR) != NULL)
+		pMenuBar->Check(ID_VIEW_STATUS_BAR, TRUE);
+    if (pMenuBar->FindItem(ID_VIEW_COMPOSE_BAR) != NULL)
+		pMenuBar->Check(ID_VIEW_COMPOSE_BAR, FALSE);
+    if (pMenuBar->FindItem(ID_COPY_SOURCE) != NULL)
+		pMenuBar->Check(ID_COPY_SOURCE, TRUE);
+    if (pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP) != NULL)
+		pMenuBar->Check(ID_MARKER_WRAPS_STRIP, TRUE);
+    if (pMenuBar->FindItem(ID_USE_CC) != NULL)
+		pMenuBar->Check(ID_USE_CC, FALSE);
+	if (pMenuBar->FindItem(ID_ACCEPT_CHANGES) != NULL)
+		pMenuBar->Check(ID_ACCEPT_CHANGES, FALSE);
+	if (pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING) != NULL)
+		pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
+	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
+		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+
+    // insure that the Use Tooltips menu item in the Help menu is checked or unchecked
+    // according to the current value of m_bUseToolTips
+	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
+		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit() after the external XML file AI_UserProfiles.xml has
+/// been successfully read. This function does not re-read the raw data from the 
+/// arrays nor the external file, but "reads" the data from the pTempUserProfiles and
+/// m_pUserProfiles created on the heap. The pTempUserProfiles is created by the 
+/// SetupDefaultUserProfiles() function from the internal unix-like default strings.
+/// It then reports any inconsistencies to the developer in the form of wxLogDebug() 
+/// outputs for each inconsistency found. It only displays the wxLogDebug messages 
+/// and a few wxASSERT_MSG() messages in debug mode, so this function doesn't issue 
+/// any messages to the user in the release version; it merely exists to help the 
+/// developer know of any inconsistencies and what they are.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
+{
+	// get temporary data structures from the internal unix-like strings
+	UserProfiles* pTempUserProfiles; // destroyed at end of this function
+	pTempUserProfiles = (UserProfiles*)NULL;
+	
+	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles; calls GetAndAssignIdValuesToUserProfilesStruct()
+	
+	// First make sure we have good pointers
+	if (pTempUserProfiles == NULL)
+	{
+		wxLogDebug(_T("The pointer to the internal UserProfiles is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
+		return;
+	}
+	if (m_pUserProfiles == NULL)
+	{
+		wxLogDebug(_T("The pointer to the App's m_pUserProfiles is NULL\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"));
+		return;
+	}
+
+	// compare the profile version
+	// Note: When an administrator customizes a given profile we expect that the following things
+	// will be different between our internal values and the external xml file:
+	//    1. The adminModified attribute will have the value of "Yes".
+	//    2. The usedVisibilityValues changed when an admin edits the profiles and clicks OK, regardless of
+	//       whether the edits were done to the currently selected profile.
+	//    3. The descriptionProfileTexts. These are editable by the admin.
+	// Note: The definedProfileNames would not normally be edited unless the admin manually
+	// attempts to change or localize the names of the profiles/tabs.
+	
+	bool bVersionsDiffer = FALSE;
+	// we need to insure that the app's version (6.x.x) and the app's profile version (1.x)
+	// agree with the data in the unix-like default strings (here it is in pTempUserProfiles).
+	wxString appVerOfRunningApp = GetAppVersionOfRunningAppAsString();
+	wxString profVerOfRunningApp = GetProfileVersionOfRunningAppAsString();
+	if (pTempUserProfiles->profileVersion != profVerOfRunningApp)
+	{
+		bVersionsDiffer = TRUE;
+		wxString msg;
+		msg = _T("The app's defaultProfileItems[] and the app's PROFILE_VERSION_MAJOR_PART.PROFILE_VERSION_MINOR_PART have different profile versions %s and %s PLEASE FIX ME!");
+		msg = msg.Format(msg,pTempUserProfiles->profileVersion.c_str(),profVerOfRunningApp.c_str());
+		wxLogDebug(msg);
+		wxASSERT_MSG(FALSE,msg);
+	}
+	
+	if (pTempUserProfiles->applicationCompatibility != appVerOfRunningApp)
+	{
+		bVersionsDiffer = TRUE;
+		wxString msg;
+		msg = _T("The app's defaultProfileItems[] and the app's VERSION_MAJOR_PART.VERSION_MINOR_PART.VERSION_BUILD_PART have different compatibility versions %s and %s PLEASE FIX ME!");
+		msg = msg.Format(msg,pTempUserProfiles->applicationCompatibility.c_str(),appVerOfRunningApp.c_str());
+		wxLogDebug(msg);
+		wxASSERT_MSG(FALSE,msg);
+	}
+	
+	if (pTempUserProfiles->profileVersion != m_pUserProfiles->profileVersion)
+	{
+		bVersionsDiffer = TRUE;
+		wxLogDebug(_T("The internal and external profileVersions have different versions %s and %s"),
+			pTempUserProfiles->profileVersion.c_str(),m_pUserProfiles->profileVersion.c_str());
+	}
+	if (pTempUserProfiles->applicationCompatibility != m_pUserProfiles->applicationCompatibility)
+	{
+		bVersionsDiffer = TRUE;
+		wxLogDebug(_T("The internal and external applicationCompatibility have different versions %s and %s"),
+			pTempUserProfiles->applicationCompatibility.c_str(),m_pUserProfiles->applicationCompatibility.c_str());
+	}
+	if (pTempUserProfiles->adminModified != m_pUserProfiles->adminModified)
+	{
+		bVersionsDiffer = TRUE;
+		wxLogDebug(_T("The internal and external adminModified have different values %s and %s"),
+			pTempUserProfiles->adminModified.c_str(),m_pUserProfiles->adminModified.c_str());
+	}
+	// compare the number of elements - they should always be the same
+	if (pTempUserProfiles->definedProfileNames.GetCount() != m_pUserProfiles->definedProfileNames.GetCount())
+	{
+		wxLogDebug(_T("The internal and external definedProfileNames arrays have different count %d and %d PLEASE FIX ME!"),
+			pTempUserProfiles->definedProfileNames.GetCount(),m_pUserProfiles->definedProfileNames.GetCount());
+	}
+	if (pTempUserProfiles->descriptionProfileTexts.GetCount() != m_pUserProfiles->descriptionProfileTexts.GetCount())
+	{
+		wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different count %d and %d PLEASE FIX ME!"),
+			pTempUserProfiles->descriptionProfileTexts.GetCount(),m_pUserProfiles->descriptionProfileTexts.GetCount());
+	}
+	if (pTempUserProfiles->profileItemList.GetCount() != m_pUserProfiles->profileItemList.GetCount())
+	{
+		wxLogDebug(_T("The internal and external profileItemLists have different count %d and %d PLEASE FIX ME!"),
+			pTempUserProfiles->profileItemList.GetCount(),m_pUserProfiles->profileItemList.GetCount());
+	}
+
+	// Check for changes in their text and usedVisibilityValues arrays, but only assuming they have the same
+	// counts.
+	if (pTempUserProfiles->definedProfileNames.GetCount() == m_pUserProfiles->definedProfileNames.GetCount())
+	{
+		int ct;
+		int tot;
+		tot = (int)pTempUserProfiles->definedProfileNames.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			wxString tempStr, appStr;
+			tempStr = pTempUserProfiles->definedProfileNames.Item(ct);
+			appStr = m_pUserProfiles->definedProfileNames.Item(ct);
+			if (pTempUserProfiles->definedProfileNames.Item(ct) != m_pUserProfiles->definedProfileNames.Item(ct))
+			{
+				wxLogDebug(_T("The internal and external definedProfileNames arrays have different names\n   %s and %s PLEASE FIX ME!"),
+					tempStr.c_str(),appStr.c_str());
+			}
+		}
+	}
+	if (pTempUserProfiles->descriptionProfileTexts.GetCount() == m_pUserProfiles->descriptionProfileTexts.GetCount())
+	{
+		int ct;
+		int tot;
+		tot = (int)pTempUserProfiles->descriptionProfileTexts.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			wxString tempStr, appStr, verStr, msg;
+			tempStr = pTempUserProfiles->descriptionProfileTexts.Item(ct);
+			appStr = m_pUserProfiles->descriptionProfileTexts.Item(ct);
+			if (tempStr != appStr)
+			{
+				if (bVersionsDiffer)
+				{
+					verStr = _T("Note: Versions Differ.");
+					msg = msg.Format(_T("The internal and external descriptionProfileTexts arrays have different descriptions\n   %s and %s %s"),tempStr.c_str(),appStr.c_str(),verStr.c_str());
+				}
+				else
+				{
+					verStr = _T("Note: Same Versions! PLEASE FIX ME!");
+					msg = msg.Format(_T("The internal and external descriptionProfileTexts arrays have different descriptions\n   %s and %s %s"),tempStr.c_str(),appStr.c_str(),verStr.c_str());
+				}
+
+				wxLogDebug(msg);
+			}
+		}
+	}
+	if (pTempUserProfiles->profileItemList.GetCount() == m_pUserProfiles->profileItemList.GetCount())
+	{
+		ProfileItemList::Node* posTemp;
+		ProfileItemList::Node* posApp;
+		int count;
+		int item_count = (int)pTempUserProfiles->profileItemList.GetCount();
+		for(count = 0; count < item_count; count++)
+		{
+			posTemp = pTempUserProfiles->profileItemList.Item(count);
+			posApp = m_pUserProfiles->profileItemList.Item(count);
+			UserProfileItem* pTempItem;
+			UserProfileItem* pAppItem;
+			pTempItem = posTemp->GetData();
+			pAppItem = posApp->GetData();
+			if (pTempItem->itemID != pAppItem->itemID)
+			{
+				// The itemID is the most crucial/unique identifier so insure they match and are in 
+				// the same order.
+				wxString tempStr = pTempItem->itemID;
+				wxString appStr = pAppItem->itemID;
+				wxLogDebug(_T("The itemID strings differ for %s: internal (%s) and external (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
+					pAppItem->itemText.c_str(),tempStr.c_str(),appStr.c_str());
+				wxASSERT_MSG(FALSE,_T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match. Are they spelled the same and in the same order? PLEASE FIX ME!"));
+				return; // no point in continuing the check
+			}
+
+			if (pTempItem->itemIDint != pAppItem->itemIDint)
+			{
+				// The itemIDint is also a crucial/unique identifier so insure they match and are in 
+				// the same order.
+				wxLogDebug(_T("The itemID strings differ for %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
+					pAppItem->itemText.c_str(),pTempItem->itemIDint,pAppItem->itemIDint);
+				wxASSERT_MSG(FALSE,_T("AI_UserProfile.xml and internal itemIDint values don't match. PLEASE FIX ME!"));
+				return; // no point in continuing the check
+			}
+
+			if (pTempItem->itemText  != pAppItem->itemText)
+			{
+				wxString tempStr = pTempItem->itemText;
+				wxString appStr = pAppItem->itemText;
+				wxString verStr;
+				if (bVersionsDiffer)
+				{
+					verStr = _T("Note: Versions Differ.");
+				}
+				else
+				{
+					verStr = _T("Note: Same Versions! PLEASE FIX ME!");
+				}
+				wxString msg;
+				msg = msg.Format(_T("The internal and external itemText strings differ for itemID: %s\n   (%s) and (%s) %s"),
+							pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str(),verStr.c_str());
+				wxLogDebug(msg);
+			}
+			if (pTempItem->itemDescr != pAppItem->itemDescr)
+			{
+				wxString tempStr = pTempItem->itemDescr;
+				wxString appStr = pAppItem->itemDescr;
+				wxLogDebug(_T("The internal and external itemDescr strings differ for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			if (pTempItem->itemType  != pAppItem->itemType)
+			{
+				// differences here would result in an item not showing in the list (for an itemType typo)
+				// or not being listed in the appropriate category (for a recognized but incorrect itemType).
+				wxString tempStr = pTempItem->itemType;
+				wxString appStr = pAppItem->itemType;
+				wxLogDebug(_T("The internal and external itemType value differs for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			if (pTempItem->adminCanChange != pAppItem->adminCanChange)
+			{
+				// differences here may result in an item unexpectedly showing/not showing in the list
+				wxString tempStr = pTempItem->adminCanChange;
+				wxString appStr = pAppItem->adminCanChange;
+				wxLogDebug(_T("The internal and external adminCanChange value differs for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+					pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+			}
+			int ct;
+			int totCt;
+			totCt = (int)pTempItem->usedVisibilityValues.GetCount();
+			for (ct = 0; ct < totCt; ct++)
+			{
+				if (pTempItem->usedProfileNames.Item(ct) != pAppItem->usedProfileNames.Item(ct))
+				{
+					wxString tempStr = pTempItem->usedProfileNames.Item(ct);
+					wxString appStr = pAppItem->usedProfileNames.Item(ct);
+					wxLogDebug(_T("The internal and external usedProfileNames differ for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+				}
+				// Note: The usedProfileNames should always correspond to the definedProfileNames in the
+				// top level UserProfilesSupport tag's definedProfileN attributes. Therefore we not only
+				// check for consistency between the internal and external ones (above), but also that they
+				// match the defined names (see next 2 tests).
+				if (pTempItem->usedProfileNames.Item(ct) != pTempUserProfiles->definedProfileNames.Item(ct))
+				{
+					wxString tempStrUsed = pTempItem->usedProfileNames.Item(ct);
+					wxString tempStrDefined = pTempUserProfiles->definedProfileNames.Item(ct);
+					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+						pTempItem->itemID.c_str(),tempStrUsed.c_str(),tempStrDefined.c_str());
+				}
+				if (pAppItem->usedProfileNames.Item(ct) != m_pUserProfiles->definedProfileNames.Item(ct))
+				{
+					wxString appStrUsed = pAppItem->usedProfileNames.Item(ct);
+					wxString appStrDefined = m_pUserProfiles->definedProfileNames.Item(ct);
+					wxLogDebug(_T("The internal usedProfileNames differs from the defined Names for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+						pTempItem->itemID.c_str(),appStrUsed.c_str(),appStrDefined.c_str());
+				}
+				if (pTempItem->usedVisibilityValues.Item(ct) != pAppItem->usedVisibilityValues.Item(ct))
+				{
+					// These usedVisibility values are the main items we expect to be different so only
+					// report inconsistencies when the versions are the same
+					if (!bVersionsDiffer)
+					{
+						wxString tempStr = pTempItem->usedVisibilityValues.Item(ct);
+						wxString appStr = pAppItem->usedVisibilityValues.Item(ct);
+						wxLogDebug(_T("The internal and external usedVisibilityValues differ for itemID: %s (%s) and (%s)"),
+							pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+					}
+				}
+				if (pTempItem->usedFactoryValues.Item(ct) != pAppItem->usedFactoryValues.Item(ct))
+				{
+					wxString tempStr = pTempItem->usedFactoryValues.Item(ct);
+					wxString appStr = pAppItem->usedFactoryValues.Item(ct);
+					wxLogDebug(_T("The internal and external usedFactoryValues differ for itemID: %s (%s) and (%s) PLEASE FIX ME!"),
+						pTempItem->itemID.c_str(),tempStr.c_str(),appStr.c_str());
+				}
+			}
+		}
+	}
+
+	DestroyUserProfiles(pTempUserProfiles);
+}
+
+
+/* This function is currently unused (and possibly untested/incomplete) but might be useful in the future
+bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString subMenuLabel, wxString itemKind)
+{
+	if (itemKind == _T("wxITEM_SEPARATOR"))
+	{
+		// do not confirm existence of menuSeparator items
+		return FALSE;
+	}
+	bool bItemExists = FALSE;
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	int mCt;
+	int nMenuItems = pMenuBar->GetMenuCount();
+	for (mCt = 0; mCt < nMenuItems; mCt++)
+	{
+		wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
+		wxString mmLabel = pMenuBar->GetMenuLabel(mCt);
+		if (mmLabel != mainMenuLabel)
+		{
+			// we're not in the right top level menu
+			continue;
+		}
+		wxASSERT(pMainMenu != NULL);
+		wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
+		int smCt;
+		int nSubMenuItems = (int)pMenuItemList.GetCount();
+		for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		{
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			pNode = pMenuItemList.Item(smCt);
+			pMenuItem = pNode->GetData();
+			wxString smKindStr;
+			wxItemKind smKind = pMenuItem->GetKind();
+			smKindStr = GetMenuItemKindAsString(smKind);
+
+			// Note: Using GetItemLabel() is supposed to preserve any & and Ctrl-key accelerator characters.
+			// Testing shows that it only partially does so - the \t character that separates the label from
+			// the Ctrl-key part is a literal whitespace tab. To achieve more reliable comparisons, it is best 
+			// that we compare menu labels after removing both the & and any \tCtrl-key or Ctrl-key characters
+			// from menu labels. 
+			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
+			wxString subMenuLabelPlain = subMenuLabel;
+			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain); // removes any & chars for comparison
+			int nTest;
+			nTest = subMenuLabelPlain.Find(_T("\\t"));
+			if (subMenuLabelPlain.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
+			{
+				// there is a tab char in the menu label, so remove from that point to remainder of string
+				subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("\\t")));
+			}
+			else
+			{
+				// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
+				if (subMenuLabelPlain.Find(_T("Ctrl-")) != wxNOT_FOUND)
+				{
+					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Ctrl-")));
+				}
+				else if (subMenuLabelPlain.Find(_T("Shift-")) != wxNOT_FOUND)
+				{
+					subMenuLabelPlain = subMenuLabelPlain.Left(subMenuLabelPlain.Find(_T("Shift-")));
+				}
+			}
+			if (smLabel == subMenuLabelPlain && smKindStr == itemKind)
+			{
+				bItemExists = TRUE;
+				return bItemExists;
+			}
+		}
+	}
+
+
+	return bItemExists;
+}
+*/
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if menuItemIDint is supposed to be visible in this nProfile, FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+/// \param      -> menuItemIDint the int representation of the menu item's ID
+/// \remarks
+/// Called from: the App's ConfigureMenuBarForUserProfile().
+/// Determines whether the menu item represented in menuItemIDint is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the menuItemIDint in
+/// the m_pUserProfiles data struct stored on the heap. Note: this function depends on valid
+/// values being assigned to the UserProfiles struct's itemIDInt attribute by a call to
+/// GetAndAssignIdValuesToUserProfilesStruct().
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint)
+{
+	// we assume that a menu item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection all all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (menuItemIDint == wxID_SEPARATOR) // the value of wxID_SEPARATOR is -2
+		{
+			// We return TRUE for menuSeparators since they are visible when present.
+			return TRUE;
+		}
+		if (pUserProfileItem->itemType != _T("subMenu")) // we are only checking for subMenu items
+		{
+			continue;
+		}
+		int itemIDint;
+		itemIDint = pUserProfileItem->itemIDint; //itemID;
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemIDint == menuItemIDint && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if itemLabel is supposed to be visible in this nProfile, FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+/// \param      -> itemLabel the string representation of the mode bar item's text
+/// \remarks
+/// Called from: the App's RemoveModeBarItemsFromModeBarSizer().
+/// Determines whether the mode bar item represented in itemLabel is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the itemLabel in
+/// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
+/// for that item as indexed for the nProfile.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
+{
+	// we assume that a mode bar item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection and all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType != _T("modeBar"))
+		{
+			continue;
+		}
+		if (itemLabel == _T("")) // the item is a spacer in the sizer (just before the Glossing wxCheckBox)
+		{
+			// We skip the processing of the spacer
+			continue;
+		}
+		wxString itemLabelStr;
+		itemLabelStr = pUserProfileItem->itemText;
+		itemLabelStr.Trim(FALSE);
+		itemLabelStr.Trim(TRUE);
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemLabelStr == itemLabel && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    TRUE if itemLabel is supposed to be visible in this nProfile, FALSE otherwise
+/// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
+/// \param      -> itemLabel the string representation of the tool bar item's (short) help text
+///                     i.e., the tooltip
+/// \remarks
+/// Called from: the App's RemoveToolBarItemsFromToolBar().
+/// Determines whether the tool bar item represented in itemLabel is supposed to be visible in
+/// the interface for the user profile passed in as nProfile. Looks up the itemLabel in
+/// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
+/// for that item as indexed for the nProfile.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
+{
+	// we assume that a tool bar item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	if (nProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection and all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = (int)m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType != _T("toolBar"))
+		{
+			continue;
+		}
+		if (itemLabel == _T("")) // the item is a separator in the toolbar group
+		{
+			// We skip the processing of the separator
+			continue;
+		}
+		wxString itemLabelStr;
+		itemLabelStr = pUserProfileItem->itemText;
+		itemLabelStr.Trim(FALSE);
+		itemLabelStr.Trim(TRUE);
+		int indexFromProfile = 0;
+		if (nProfile <= 0)
+			indexFromProfile = 0;
+		else if (nProfile > 0)
+			indexFromProfile = nProfile - 1;
+		if (itemLabelStr == itemLabel && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	return bItemIsVisible;
+}
+
+
+/* This function is currently unused (and incomplete/untested) but might be helpful in the future
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    nothing
+/// \param      -> pMainMenuItem   pointer to the main menu item's struct on the heap
+/// \param      -> pSubMenuItem    pointer to the sub menu item's struct on the heap
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Adds the sub menu item (whose data representation is in pSubMenuItem) to AI's current
+/// menu bar. Before calling this function a call to MenuItemIsVisibleInThisProfile() should
+/// return TRUE and a call to MenuItemExistsInAIMenuBar() should return FALSE. This function
+/// uses the AI_MenuStructure data on the heap to determine the position within the AI menu bar
+/// where the sub menu item should be inserted, along with any preceding menu separator.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
+{
+	// Note: All menu items that can be added to the AI menu bar, would have
+	// previously been removed and stored within the m_pRemovedMenuItemArray
+	// array of pointers to wxMenuItems. We should be able to find the wxMenuItem* 
+	// in that array that corresponds to pSubMenuItem, and Insert it into the 
+	// appropriate top level menu corresponding to pMainMenuItem. The relative 
+	// position where it gets inserted is determined by consulting the 
+	// AI_MenuStructure data on the heap. Afterwards we also tidy up the menu
+	// separators. 
+	
+	// Verify that pSubMenuItem exists within the m_pRemovedMenuItemArray
+	int nIDofSubMenutoAddBack = -1;
+	int miCt;
+	int miTot;
+	wxString subMenuLabelPlain = RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
+	wxMenuItem* pMenuItemToAddBack = NULL;
+	miTot = m_pRemovedMenuItemArray->GetCount();
+	wxASSERT(miTot > 0); // this must be so if we are now adding back wxMenuItems!
+	for (miCt = 0; miCt < miTot; miCt++)
+	{
+		pMenuItemToAddBack = (wxMenuItem*)m_pRemovedMenuItemArray->Item(miCt);
+		if (pMenuItemToAddBack->GetLabel() == subMenuLabelPlain)
+		{
+			nIDofSubMenutoAddBack = pMenuItemToAddBack->GetId();
+			break;
+		}
+	}
+	wxASSERT(nIDofSubMenutoAddBack != -1);
+	wxASSERT(pMenuItemToAddBack != NULL);
+
+	// Get the menu item out of the removals list
+	m_pRemovedMenuItemArray->Remove(pMenuItemToAddBack); // does not delete the object, but removes it from the array
+	// We now have the pointer to the wxMenuItem* to be added back to the AI menu
+	// in pMenuItemToAddBack, along with its int ID value in nIDofSubMenutoAddBack.
+
+	// Determine in which top level menu pMenuItemToAddBack belongs
+	wxMenu* pTopLevelAIMenuToGetItem = NULL; // 
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	int mCt;
+	int nMenuItems = pMenuBar->GetMenuCount();
+	wxString mmLabel;
+	wxASSERT(nMenuItems > 0);
+	for (mCt = 0; mCt < nMenuItems; mCt++)
+	{
+		pTopLevelAIMenuToGetItem = pMenuBar->GetMenu(mCt);
+		mmLabel = pMenuBar->GetMenuLabel(mCt);
+		if (mmLabel == pMainMenuItem->mainMenuLabel)
+		{
+			break;
+		}
+		else
+		{
+			// we're not in the right top level menu
+			continue;
+		}
+	}
+	wxASSERT(pTopLevelAIMenuToGetItem != NULL);
+	
+	// Get the list of menu items currently in AI's top level menu
+	wxMenuItemList pAIMenuItemList = pTopLevelAIMenuToGetItem->GetMenuItems();
+	
+	// Get the list of all menu items in AI_MenuStructure for this top level menu
+	wxArrayPtrVoid ItemsOfThisMainMenuStructure;
+	ItemsOfThisMainMenuStructure = GetMenuStructureItemsArrayForThisTopLevelMenu(pMainMenuItem);
+	
+	// testing below!!!
+	// Testing shows that pMenuItemList contains menuSeparators which have empty
+	// strings for labels and -1 for wxItemKind; and, for the File menu, also 
+	// contains separate menu entries for all the file history entries prefixed 
+	// by a number and a space (1 up to a max of 9).
+	{
+		int i,tot;
+		tot = (int)pAIMenuItemList.GetCount();
+		wxMenuItem* pmItem;
+		wxMenuItemList::Node* pNode;
+		wxLogDebug(_T("AI Current %s Menu items:"),mmLabel.c_str());
+		for (i = 0; i < tot; i++)
+		{
+			pNode = pAIMenuItemList.Item(i);
+			pmItem = pNode->GetData();
+			wxLogDebug(_T("   %s | %s | %d"),pmItem->GetLabel().c_str(),pmItem->GetHelp().c_str(),pmItem->GetKind());
+			;
+		}
+	}
+	// Testing shows that the removed items list does NOT contain
+	// menuSeparators, but only the wxMenuItem information.
+	// m_pRemovedMenuItemArray, of course, contains removed items
+	// from all top level menus, whereas the pMenuItemList above
+	// contains the wxMenuItems that belong only to the 
+	// pMainMenuItem parameter.
+	{
+		int i,tot;
+		tot = (int)m_pRemovedMenuItemArray->GetCount();
+		wxLogDebug(_T("Removed Menu items (all menus):"));
+		for (i = 0; i < tot; i++)
+		{
+			wxMenuItem* pmItem;
+			pmItem = (wxMenuItem*)m_pRemovedMenuItemArray->Item(i);
+			wxLogDebug(_T("   %s | %s | %d"),pmItem->GetLabel().c_str(),pmItem->GetHelp().c_str(),pmItem->GetKind());
+			;
+		}
+
+	}
+	// Testing shows that ItemsOfThisMainMenuStructure contains menuSeparators 
+	// which have empty strings for labels and wxITEM_SEPARATOR for their item
+	// kind. And, for the File menu there, is NO separate menu entries for the 
+	// file history entries.
+	{
+		int i,tot;
+		tot = (int)ItemsOfThisMainMenuStructure.GetCount();
+		wxLogDebug(_T("Top Level %s menu items:"),pMainMenuItem->mainMenuLabel.c_str());
+		for (i = 0; i < tot; i++)
+		{
+			AI_SubMenuItem*  smItem;
+			smItem = (AI_SubMenuItem*)ItemsOfThisMainMenuStructure.Item(i);
+			wxLogDebug(_T("   %s | %s | %s"),smItem->subMenuLabel.c_str(),smItem->subMenuHelp.c_str(),smItem->subMenuKind.c_str());
+			;
+		}
+
+	}
+	// testing above !!!
+
+	// Our task now is to compare the list called pAIMenuItemList with the void ptr array called 
+	// ItemsOfThisMainMenuStructure, and figure out where the (parameter) pSubMenuItem should go
+	// into the pTopLevelAIMenuToGetItem.
+	// TODO: Up to here !!!
+	// Plan: Try to fit the following code into the solution.	
+	bool bInsertionMade = FALSE;
+	int nSubMenuItems = (int)pAIMenuItemList.GetCount();
+	if (nSubMenuItems == 0)
+	{
+		// the menu exists but has no items so just append the item where it will
+		// be the only item in the list
+		pTopLevelAIMenuToGetItem->Insert(0,
+							pMenuItemToAddBack->GetId(),
+							pMenuItemToAddBack->GetItemLabel(),
+							pMenuItemToAddBack->GetHelp(),
+							pMenuItemToAddBack->GetKind() );
+		bInsertionMade = TRUE;
+	}
+	else
+	{
+		// The menu has existing items, so we have to decide where to
+		// insert them.
+		int smCt;
+		for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		{
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItemBeingScanned;
+			pNode = pAIMenuItemList.Item(smCt);
+			pMenuItemBeingScanned = pNode->GetData();
+			wxString smKindStr;
+			wxItemKind smKind = pMenuItemBeingScanned->GetKind();
+			smKindStr = GetMenuItemKindAsString(smKind);
+			wxString smLabel = pMenuItemBeingScanned->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
+			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
+			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain);
+
+			// Q. Since the current menubar may already be missing certain menu items in
+			// its current profile representation, how do we know where to insert pSubMenuItem?
+			// A. We insert the menu item into the current menubar in its relative order
+			// as determined by examining the m_pAI_MenuStructure struct on the heap.
+			// It is sufficient to insert this item just before the first item known
+			// to follow this item in the default menu. To do that we need to query the 
+			// m_pAI_MenuStructure and get a list of menu items that normally follow 
+			// pSubMenuItem within that top level menu. The list could have one or more 
+			// items depending on where pSubMenuItem normally appears in the menu. 
+			// In our current scan of AI's current menubar, we are comparing the current 
+			// menubar item with what we found in our queried list of items. When we 
+			// arrive at any one of those items in the list we insert the pSubMenuItem
+			// into the menu at that point. If we get to the end of our current scan
+			// through the menu and haven't found any item in the list, or if our list
+			// was empty, we simply insert the pSubMenuItem at the end of the menu.
+			// Note: We'll take care of inserting any menuSeparators later after having
+			// inserted the item in the menu. 
+
+			if (smKind != wxITEM_SEPARATOR)
+			{
+				bool bAppendInsteadOfInsert = FALSE;
+				if (AddMenuItemBeforeThisOne(pSubMenuItem, pMenuItemBeingScanned, bAppendInsteadOfInsert))
+				{
+					// we have found the correct sub menu item to be added before
+					if (bAppendInsteadOfInsert)
+					{
+						pTopLevelAIMenuToGetItem->Append(
+											pMenuItemToAddBack->GetId(),
+											pMenuItemToAddBack->GetItemLabel(),
+											pMenuItemToAddBack->GetHelp(),
+											pMenuItemToAddBack->GetKind() );
+					}
+					else
+					{
+						pTopLevelAIMenuToGetItem->Insert(smCt,
+											pMenuItemToAddBack->GetId(),
+											pMenuItemToAddBack->GetItemLabel(),
+											pMenuItemToAddBack->GetHelp(),
+											pMenuItemToAddBack->GetKind() );
+					}
+					bInsertionMade = TRUE;
+					break;
+				}
+				else
+				{
+					// should not get here
+					int junk1;
+					junk1 = 0;
+				}
+			}
+		} // end of for (smCt = 0; smCt < nSubMenuItems; smCt++)
+	}
+	int junk;
+	junk = 1;
+
+		// TODO: code to insert any needed menu separator
+		//if (bInsertionMade)
+		//{
+		//	// Check for extraneous left-over menu separators in this top level menu
+		//	// and delete if found.
+		//	// Start at the bottom of the menu and remove all menu separators there.
+		//	bool bLastItemWasSeparator = FALSE;
+		//	wxMenuItemList::Node* pNode;
+		//	wxMenuItem* pMenuItem;
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+		//	pNode = pMenuItemList.GetLast();
+		//	while (pNode != NULL)
+		//	{
+		//		pMenuItem = pNode->GetData();
+		//		if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+		//		{
+		//			break;
+		//		}
+		//		else
+		//		{
+		//			// This menu separator is either the last item on the menu
+		//			// or it is the first of two adjacent separators in the menu.
+		//			// In either case we delete the current menu separator.
+		//			wxMenuItem* pRemMenuItem;
+		//			pRemMenuItem = pMainMenu->Remove(pMenuItem);
+		//			wxASSERT(pRemMenuItem != NULL);
+		//			delete pRemMenuItem; // to avoid memory leaks
+		//			pRemMenuItem = (wxMenuItem*)NULL;
+		//		}
+		//		pNode = pMenuItemList.GetLast();
+		//	}
+		//	// remove any separators at the top of the top level menu
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+		//	nSubMenuItems = (int)pMenuItemList.GetCount();
+		//	pNode = pMenuItemList.GetFirst();
+		//	while (pNode != NULL)
+		//	{
+		//		pMenuItem = pNode->GetData();
+		//		if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+		//		{
+		//			break;
+		//		}
+		//		else
+		//		{
+		//			// This menu separator is at the top of the menu
+		//			// so remove it.
+		//			wxMenuItem* pRemMenuItem;
+		//			pRemMenuItem = pMainMenu->Remove(pMenuItem);
+		//			wxASSERT(pRemMenuItem != NULL);
+		//			delete pRemMenuItem; // to avoid memory leaks
+		//			pRemMenuItem = (wxMenuItem*)NULL;
+		//		}
+		//		pNode = pMenuItemList.GetFirst();
+		//	}
+		//	
+		//	// change any remaining multiple sequences of menu separators to a single separator
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
+		//	nSubMenuItems = (int)pMenuItemList.GetCount();
+		//	for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
+		//	{
+		//		pNode = pMenuItemList.Item(smCt);
+		//		pMenuItem = pNode->GetData();
+		//		wxString smKindStr;
+		//		wxItemKind smKind = pMenuItem->GetKind();
+		//		if (smKind == wxITEM_SEPARATOR)
+		//		{
+		//			if (smCt == nSubMenuItems - 1 || bLastItemWasSeparator)
+		//			{
+		//				// This menu separator is either the last item on the menu
+		//				// or it is the first of two adjacent separators in the menu.
+		//				// In either case we delete the current menu separator.
+		//				wxMenuItem* pRemMenuItem;
+		//				pRemMenuItem = pMainMenu->Remove(pMenuItem);
+		//				wxASSERT(pRemMenuItem != NULL);
+		//				delete pRemMenuItem; // to avoid memory leaks
+		//				pRemMenuItem = (wxMenuItem*)NULL;
+		//			}
+		//			bLastItemWasSeparator = TRUE;
+		//		}
+		//		else
+		//		{
+		//			bLastItemWasSeparator = FALSE;
+		//		}
+		//	}
+		//	
+		//}
+
+	//}
+}
+*/
+
+/* The following function is currently unused (and incomplete/untested) but might be helpful in the future
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return    nothing
+/// \param      -> pMainMenuItem   pointer to the main menu item's struct on the heap
+/// \param      -> pSubMenuItem    pointer to the sub menu item's struct on the heap
+/// \remarks
+/// Called from: the App's ConfigureInterfaceForUserProfile().
+/// Removes the sub menu item (whose data representation is in pSubMenuItem) from AI's current
+/// menu bar. Before calling this function a call to MenuItemIsVisibleInThisProfile() should
+/// return FALSE and a call to MenuItemExistsInAIMenuBar() should return TRUE. This function
+/// checks the resulting AI menu bar after the deletion of the sub menu item, and removes any 
+/// left over menu separators that would appear as a double separator or a separator left at 
+/// the bottom of the top level menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
+{
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	int mCt;
+	int nMenuItems = pMenuBar->GetMenuCount();
+	for (mCt = 0; mCt < nMenuItems; mCt++)
+	{
+		wxMenu* pMainMenu = pMenuBar->GetMenu(mCt);
+		wxString mmLabel = pMenuBar->GetMenuLabel(mCt);
+		if (mmLabel != pMainMenuItem->mainMenuLabel)
+		{
+			// we're not in the right top level menu
+			continue;
+		}
+		wxASSERT(pMainMenu != NULL);
+		wxMenuItemList pMenuItemList = pMainMenu->GetMenuItems();
+		int smCt;
+		int nSubMenuItems = (int)pMenuItemList.GetCount();
+		bool bDeletionMade = FALSE;
+		for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		{
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			pNode = pMenuItemList.Item(smCt);
+			pMenuItem = pNode->GetData();
+			wxString smKindStr;
+			wxItemKind smKind = pMenuItem->GetKind();
+			smKindStr = GetMenuItemKindAsString(smKind);
+			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
+			wxString subMenuLabelPlain = pSubMenuItem->subMenuLabel;
+			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain);
+
+			if (smLabel == subMenuLabelPlain && smKindStr == pSubMenuItem->subMenuKind)
+			{
+				// we have found the correct sub menu item to be removed
+				wxMenuItem* pRemMenuItem;
+				pRemMenuItem = pMainMenu->Remove(pMenuItem);
+				wxASSERT(pRemMenuItem != NULL);
+				m_pRemovedMenuItemArray->Add((void*)pRemMenuItem); // deleted in OnExit()
+				//delete pRemMenuItem; // to avoid memory leaks
+				//pRemMenuItem = (wxMenuItem*)NULL;
+				bDeletionMade = TRUE;
+			}
+		} // end of for (smCt = 0; smCt < nSubMenuItems; smCt++)
+		if (bDeletionMade)
+		{
+			// Check for extraneous left-over menu separators in this top level menu
+			// and delete if found.
+			// Start at the bottom of the menu and remove all menu separators there.
+			bool bLastItemWasSeparator = FALSE;
+			wxMenuItemList::Node* pNode;
+			wxMenuItem* pMenuItem;
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+			pNode = pMenuItemList.GetLast();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+				{
+					break;
+				}
+				else
+				{
+					// This menu separator is either the last item on the menu
+					// or it is the first of two adjacent separators in the menu.
+					// In either case we delete the current menu separator.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenu->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				pNode = pMenuItemList.GetLast();
+			}
+			// remove any separators at the top of the top level menu
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+			nSubMenuItems = (int)pMenuItemList.GetCount();
+			pNode = pMenuItemList.GetFirst();
+			while (pNode != NULL)
+			{
+				pMenuItem = pNode->GetData();
+				if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
+				{
+					break;
+				}
+				else
+				{
+					// This menu separator is at the top of the menu
+					// so remove it.
+					wxMenuItem* pRemMenuItem;
+					pRemMenuItem = pMainMenu->Remove(pMenuItem);
+					wxASSERT(pRemMenuItem != NULL);
+					delete pRemMenuItem; // to avoid memory leaks
+					pRemMenuItem = (wxMenuItem*)NULL;
+				}
+				pNode = pMenuItemList.GetFirst();
+			}
+			
+			// change any remaining multiple sequences of menu separators to a single separator
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
+			nSubMenuItems = (int)pMenuItemList.GetCount();
+			for (smCt = nSubMenuItems - 1; smCt >= 0; smCt--) // process bottom to top of menu
+			{
+				pNode = pMenuItemList.Item(smCt);
+				pMenuItem = pNode->GetData();
+				wxString smKindStr;
+				wxItemKind smKind = pMenuItem->GetKind();
+				if (smKind == wxITEM_SEPARATOR)
+				{
+					if (smCt == nSubMenuItems - 1 || bLastItemWasSeparator)
+					{
+						// This menu separator is either the last item on the menu
+						// or it is the first of two adjacent separators in the menu.
+						// In either case we delete the current menu separator.
+						wxMenuItem* pRemMenuItem;
+						pRemMenuItem = pMainMenu->Remove(pMenuItem);
+						wxASSERT(pRemMenuItem != NULL);
+						delete pRemMenuItem; // to avoid memory leaks
+						pRemMenuItem = (wxMenuItem*)NULL;
+					}
+					bLastItemWasSeparator = TRUE;
+				}
+				else
+				{
+					bLastItemWasSeparator = FALSE;
+				}
+			}
+			
+		}
+	}
+}
+*/
+
+/* The following function is currently unused (and untested/incomplete) but might be useful in the future
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if pMenuItemComingNext normally follows immediately after pMenuItemToAdd
+/// \param      -> pMenuItemToAdd      the menu item to be inserted in the menu
+/// \param      -> pMenuItemComingNext the menu item before which pMenuItemToAdd should go
+/// \remarks
+/// Called from: the App's AddSubMenuItemToAIMenuBar(). 
+/// This function is used as a test in the AddSubMenuItemToAIMenuBar() function. It is
+/// called from code that is scanning down a given menu of menu items from top to bottom. 
+/// It determines if the menu item represented by pMenuItemToAdd should be inserted in the 
+/// menu just before the menu item represented by pMenuItemComingNext, or appended to the
+/// end of the menu. When this function is called, the AI Menubar and its menus may have 
+/// had many of its normal menu items previously removed (depending on the currently 
+/// active user profile). Hence, this function consults the default menu structure 
+/// represented in m_pAI_MenuStructure to see where the pMenuItemToAdd would normally 
+/// appear within the full default menus. The caller will actually add the 
+/// pMenuItemToAdd to the menu. This function merely determines if it should be 
+/// inserted before pMenuItemComingNext or appended to the end of the menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
+											wxMenuItem* pMenuItemComingNext,
+											bool& bAppendInsteadOfInsert)
+{
+	bool bComesPrior = FALSE;
+
+	// First, get the top level menu in the menu structure where pMenuItemToAdd is located.
+	wxString topLevelMenuOfItemToAdd = GetTopLevelMenuLabelForThisSubMenuID(pMenuItemToAdd->subMenuID);
+	wxASSERT (!topLevelMenuOfItemToAdd.IsEmpty());
+
+	// Next, look in m_pAI_MenuStructure to get a wxArrayString of the menu item labels
+	// that follow pMenuItemToAdd in AI's full default menu structure
+	wxArrayString followingMenuItemsArray;
+	followingMenuItemsArray = GetMenuItemsThatFollowThisSubMenuID(pMenuItemToAdd->subMenuID,pMenuItemToAdd->subMenuLabel);
+	// Note: the followingMenuItemsArray now contains all sub menu item labels and menu 
+	// separators that normally follow the pMenuItemToAdd menu item. Since it comes from 
+	// an examination of the m_pAI_MenuStructure, it does not include any file history 
+	// items (that may show up as items on the File menu).
+
+	// Now, determine if pMenuItemComingNext is contained within the followingMenuItemsArray.
+	// If it is, or if the followingMenuItemsArray is empty, we return TRUE for bComesPrior, 
+	// otherwise FALSE for bComesPrior.
+	if (followingMenuItemsArray.IsEmpty())
+	{
+		bComesPrior = TRUE; // default above was FALSE
+		// when the array of menu items is empty it means that there were no other items
+		// found following the item being checked, so set the bAppendInsteadOfInsert flag
+		// to TRUE so it can be handled appropriately back in the caller
+		bAppendInsteadOfInsert = TRUE;
+		return bComesPrior;
+	}
+	else
+	{
+		// compare items in the array
+		int ct;
+		int tot;
+		tot = (int)followingMenuItemsArray.GetCount();
+		wxString itemLabelInArray;
+		wxString itemLabelOfwxMenuItem;
+		for (ct = 0; ct < tot; ct++)
+		{
+			itemLabelInArray = followingMenuItemsArray.Item(ct);
+			// We have to compare menu labels since pMenuItemComingNext is a wxMenuItem
+			// and, while we can query it with GetId() to get its int value, I don't know 
+			// of any way to get the string equivalent of that int's identifier!
+			// We also need to compare the strings without menu decorations.
+			// wxMenuItem::GetItemLabelText() gets without any accelerator chars or
+			// other decorations. Use this because GetItemLabel() doesn't handle \t correctly.
+			itemLabelInArray = this->RemoveMenuLabelDecorations(itemLabelInArray);
+			itemLabelOfwxMenuItem = pMenuItemComingNext->GetItemLabelText(); // 
+			if (itemLabelInArray == itemLabelOfwxMenuItem)
+			{
+				bComesPrior = TRUE;
+				break;
+			}
+		}
+	}
+	return bComesPrior;
+}
+*/
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the menu label in plain text with any & chars
+///             and any accelerator/hot key notation such as \tCtrl-S or \tShift-Ctrl-x
+///             removed from the incoming menuLabel string
+/// \param      -> menuLabel  the string value of the menu label containing any "decorations" 
+/// \remarks
+/// Called from: the App's GetAndAssignIdValuesToUserProfilesStruct(), SetupDefaultMenuStructure(),
+/// ConfigureMenuBarForUserProfile() and GetSubMenuItemIdFromAIMenuBar()
+/// and from PopulateListBox() and ProfileItemIsSubMenuOfThisMainMenu() in the
+/// CAdminEditMenuProfile class. 
+/// This function is used for comparing menu label strings. It removes any '&' chars as 
+/// well as any accelerator/hot key strings embedded within the menu label such as 
+/// \tCtrl-x or \tShift-Ctrl-x. Note: This function detects the presence of both _T("\\t") 
+/// and _T("\t") in the menuLabel string, and removes all text following those occurrences. 
+/// The need for detecting both comes from the fact that strings imported from the 
+/// external AI_UserProfiles.xml file have embedded tabs of the form _T("\\t"). The _T("\\t")
+/// form of the string is difficult to detect because they appear as "\t" within the IDE
+/// debugger! Menu labels embedded with \\t do not right-align when the menu it shown, but
+/// display the \t and its following Ctrl-x string suffixed on the text of the menu label 
+/// making for a rather ugly menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
+{
+	wxString tempStr = menuLabel;
+	tempStr.Replace(_T("&"),_T(""));
+	int nTest;
+	nTest = tempStr.Find(_T("\\t"));
+	if (tempStr.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
+	{
+		// there is a tab char in the menu label, so remove from that point to remainder of string
+		tempStr = tempStr.Left(tempStr.Find(_T("\\t")));
+	}
+	else if (tempStr.Find(_T("\t")) != wxNOT_FOUND) // in case it has "\t" in stead of "\\t")
+	{
+		// there is a tab char in the menu label, so remove from that point to remainder of string
+		tempStr = tempStr.Left(tempStr.Find(_T("\t")));
+	}
+	else
+	{
+		// there is no tab char in the label. Check for "Ctrl-" or "Shift-"
+		if (tempStr.Find(_T("Ctrl-")) != wxNOT_FOUND)
+		{
+			tempStr = tempStr.Left(tempStr.Find(_T("Ctrl-")));
+		}
+		else if (tempStr.Find(_T("Shift-")) != wxNOT_FOUND)
+		{
+			tempStr = tempStr.Left(tempStr.Find(_T("Shift-")));
+		}
+	}
+	return tempStr;		
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the string equivalent of the itemKind enum value
+/// \param      -> itemKind  the wxItemKind enum value of the menu item 
+/// \remarks
+/// Called from: the App's SetupDefaultMenuStructure().
+/// Returns the wxString equivalent of a menu's wxItemKind value.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetMenuItemKindAsString(wxItemKind itemKind)
+{
+	switch (itemKind)
+	{
+	case wxITEM_NORMAL:
+		return _T("wxITEM_NORMAL");
+	case wxITEM_CHECK:
+		return _T("wxITEM_CHECK");
+	case wxITEM_SEPARATOR:
+		return _T("wxITEM_SEPARATOR");
+	case wxITEM_RADIO:
+		return _T("wxITEM_RADIO");
+	default: return _T("wxITEM_NORMAL");
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     the wxItemKind enum value equivalent to the input itemKindStr
+/// \param      -> itemKindStr  a wxString in the form of "wxITEM_NORMAL", "wxITEM_SEPARATOR",
+///                             "wxITEM_CHECK" or "wxITEM_RADIO". 
+/// \remarks
+/// Called from: the App's ConfigureMenuBarForUserProfile().
+/// A convenience function that returns the wxItemKind enum equivalent of the input 
+/// wxString representation.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxItemKind CAdapt_ItApp::GetMenuItemKindFromString(wxString itemKindStr)
+{
+	if (itemKindStr == _T("wxITEM_NORMAL"))
+	{
+		return wxITEM_NORMAL;
+	}
+	else if (itemKindStr == _T("wxITEM_SEPARATOR"))
+	{
+		return wxITEM_SEPARATOR;
+	}
+	else if (itemKindStr == _T("wxITEM_CHECK"))
+	{
+		return wxITEM_CHECK;
+	}
+	else if (itemKindStr == _T("wxITEM_RADIO"))
+	{
+		return wxITEM_RADIO;
+	}
+	else
+	{
+		wxASSERT(FALSE);
+		return wxITEM_NORMAL;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the top level menu label corresponding to the
+///             top level menu ID (i.e., ID_FILE_MENU). The label returned will 
+///             still contain any & character for ALT-key access to the menu.
+/// \param      -> IDint    the int value representing the top level menu ID 
+/// \remarks
+/// Called from: the App's GetTopLevelMenuName(). 
+/// This function determines the string value that represents the top level menu ID according
+/// to the m_pAI_MenuStructure that was populated from the SetupDefaultMenuStructure() function.
+/// Note: The default string representations of the top level menus are all localizable as
+/// they exist in the AIMenuBarFunc() produced by wxDesigner. 
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint)
+{
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return nullStr;
+	}
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		if (pMainMenuItem->mainMenuIDint == IDint)
+		{
+			return menuLabel;
+		}
+	}
+	return nullStr;
+}
+
+/* This function is currently unused (and possibly incomplete/untested) but might be useful in the future
+// Gets the label of the top level AI menu where the submenu having IDStr is located
+// according to the current information stored in the m_pAI_MenuStructure object.
+wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
+{
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return nullStr;
+	}
+	wxString menuLabel;
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	int ct;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		menuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = (int)pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				return menuLabel;
+			}
+		}
+	}
+	return nullStr;
+}
+*/
+
+/* This function is currently unused (and possibly incomplete/untested) but might be useful in the future
+// Gets a wxArrayString of the menu item IDs that occur after the menu item 
+// represented by IDStr within the same top level menu, according to the current 
+// information stored in the m_pAI_MenuStructure object.
+wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr)
+{
+	wxArrayString itemArray;
+	itemArray.Clear();
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return itemArray; // array will have zero items
+	}
+	wxString mainMenuLabel;
+	wxString sameMenuLabel = _T("");
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	bool bStartCopying = FALSE;
+	int ct;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		mainMenuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = (int)pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (bStartCopying && mainMenuLabel == sameMenuLabel)
+			{
+				itemArray.Add(pSubMenuItem->subMenuID);
+			}
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				bStartCopying = TRUE; //
+				sameMenuLabel = mainMenuLabel;
+			}
+		}
+	}
+	return itemArray;
+}
+*/
+
+/* This function is currently unused (and possibly uncomplete/untested) but might be useful in the future
+// This is an override of the previous function that gets an array of menu
+// labels instead of menu ID strings.
+// Gets a wxArrayString of the menu item IDs that occur after the menu item 
+// represented by IDStr within the same top level menu, according to the current 
+// information stored in the m_pAI_MenuStructure object.
+wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label)
+{
+	// the wxString Label paramter is not needed other than to make the signature of this
+	// override function be different from the other function that returns an array of ID
+	// strings.
+	wxArrayString itemArray;
+	itemArray.Clear();
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return itemArray; // array will have zero items
+	}
+	wxString mainMenuLabel;
+	wxString sameMenuLabel = _T("");
+	MainMenuItemList::Node* mmNode;
+	AI_MainMenuItem* pMainMenuItem;
+	bool bStartCopying = FALSE;
+	int ct;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	for (ct = 0; ct < nMainMenuItems; ct++)
+	{
+		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
+		pMainMenuItem = mmNode->GetData();
+		mainMenuLabel = pMainMenuItem->mainMenuLabel;
+		SubMenuItemList::Node* smNode;
+		AI_SubMenuItem* pSubMenuItem;
+		int ct_sm;
+		int nSubMenuItems = (int)pMainMenuItem->aiSubMenuItems.GetCount();
+		for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+		{
+			smNode = pMainMenuItem->aiSubMenuItems.Item(ct_sm);
+			pSubMenuItem = smNode->GetData();
+			if (bStartCopying && mainMenuLabel == sameMenuLabel)
+			{
+				if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
+					itemArray.Add(_T("menuSeparator"));
+				else
+					itemArray.Add(pSubMenuItem->subMenuLabel); // Add label rather than ID string
+			}
+			if (pSubMenuItem->subMenuID == IDStr)
+			{
+				bStartCopying = TRUE; //
+				sameMenuLabel = mainMenuLabel;
+			}
+		}
+	}
+	return itemArray;
+}
+*/
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an array of pointers of wxMenuItem objects on the heap
+/// \param      -> pMainMenuItem    the AI_MainMenuItem struct on the heap whose sub items are 
+///                                 being collected
+/// \remarks
+/// Called from: the App's ConfigureMenuBarForUserProfile(). 
+/// This function scans the main menu struct of the default AI menu structure represented 
+/// in the pMainMenuItem incoming parameter, and collects the pointers of the structs of type
+/// AI_SubMenuItem* representing the sub menu items contained in that main menu.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxArrayPtrVoid CAdapt_ItApp::GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem)
+{
+	wxArrayPtrVoid itemArray;
+	itemArray.Clear();
+	wxString nullStr = _T("");
+	// do a reality check
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	if (m_pAI_MenuStructure == NULL)
+	{
+		return itemArray; // array will have zero items
+	}
+	wxString mainMenuLabel = pMainMenuItem->mainMenuLabel;
+	wxString sameMenuLabel = _T("");
+	int ct = 0;
+	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
+	AI_MainMenuItem* pmmItem = NULL;
+	MainMenuItemList::Node* mmNode = m_pAI_MenuStructure->aiMainMenuItems.GetFirst();
+	while (mmNode != NULL && ct < nMainMenuItems)
+	{
+		pmmItem = mmNode->GetData();
+		mmNode = mmNode->GetNext();
+		if (pmmItem->mainMenuLabel == mainMenuLabel)
+			break;
+		ct++;
+	}
+	wxASSERT(pmmItem != NULL);
+	SubMenuItemList::Node* smNode;
+	AI_SubMenuItem* pSubMenuItem;
+	int ct_sm;
+	int nSubMenuItems = (int)pmmItem->aiSubMenuItems.GetCount();
+	for (ct_sm = 0; ct_sm < nSubMenuItems; ct_sm++)
+	{
+		smNode = pmmItem->aiSubMenuItems.Item(ct_sm);
+		pSubMenuItem = smNode->GetData();
+		itemArray.Add(pSubMenuItem);
+	}
+	return itemArray;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the menu label of the incoming topLevelMenu enum
+/// \param      -> topLevelMenu    the enum of the top level menu whose label we are 
+///                                 determining
+/// \remarks
+/// Called from: the App's ConfigureMenuBarForUserProfile() and GetTopLevelMenuFromAIMenuBar(). 
+/// This function determines which string value label is associated (by default) with the
+/// enums describing the top level menus in Adapt It.
+/// Note: The default string representations of the top level menus are all localizable, but
+/// a user could change the labels of AI's top level menus via the AI_UserProfiles.xml file's 
+/// mainMenuLabel attribute of its MENU_STRUCTURE > MAIN_MENU entires without having to do
+/// an entire localization.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetTopLevelMenuName(TopLevelMenu topLevelMenu)
+{
+	wxASSERT(m_pAI_MenuStructure != NULL);
+	wxASSERT(m_pAI_MenuStructure->aiMainMenuItems.GetCount() > 0);
+	switch(topLevelMenu)
+	{
+	case fileMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_FILE_MENU);
+	case editMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_EDIT_MENU);
+	case viewMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_VIEW_MENU);
+	case toolsMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_TOOLS_MENU);
+	case exportImportMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_EXPORT_IMPORT_MENU);
+	case advancedMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_ADVANCED_MENU);
+	case layoutMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_LAYOUT_MENU);
+	case helpMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_HELP_MENU);
+	case administratorMenu:
+		return GetTopLevelMenuLabelForThisTopLevelMenuID(ID_ADMINISTRATOR_MENU);
+	default:
+		wxString msg = msg.Format(_T("Programming Error: The GetTopLevelMenuName() function received an illegal TopLevelFunction enum value of %d"),topLevelMenu);
+		wxASSERT_MSG(FALSE,msg); // programming error
+		return _T("");
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the current value of the top level menu's identifier,
+///                     i.e., an int for ID_FILE_MENU, etc.
+/// \param      -> topLevelMenuLabel the wxString value of the top level menu whose int
+///                                  we are determining
+/// \remarks
+/// Called from: the App's SetupDefaultMenuStructure(). 
+/// This function determines int value of the top level menu's identifier which is associated
+/// with the input string in topLevelMenuLabel. 
+//////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
+{
+	wxString topLevelMenuLabelPlain;
+	topLevelMenuLabelPlain = topLevelMenuLabel;
+	if (topLevelMenuLabelPlain == _("&File"))
+		return ID_FILE_MENU;
+	else if (topLevelMenuLabelPlain == _("&Edit"))
+		return ID_EDIT_MENU; 
+	else if (topLevelMenuLabelPlain == _("&View"))
+		return ID_VIEW_MENU;
+	else if (topLevelMenuLabelPlain == _("&Tools"))
+		return ID_TOOLS_MENU;
+	else if (topLevelMenuLabelPlain == _("E&xport-Import"))
+		return ID_EXPORT_IMPORT_MENU;
+	else if (topLevelMenuLabelPlain == _("&Advanced"))
+		return ID_ADVANCED_MENU;
+	else if (topLevelMenuLabelPlain == _("&Layout"))
+		return ID_LAYOUT_MENU;
+	else if (topLevelMenuLabelPlain == _("&Help"))
+		return ID_HELP_MENU;
+	else if (topLevelMenuLabelPlain == _("Ad&ministrator"))
+		return ID_ADMINISTRATOR_MENU;
+	else
+	{
+		wxASSERT_MSG(FALSE,_T("Programmer Error in GetTopLevelMenuID() function - Unknown top level menu ID symbol."));
+		return -1;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a pointer to a wxMenu* object representing the top level menu of the AI
+///             menu bar which is associated with the incoming topLevelMenu enum parameter
+/// \param      -> topLevelMenu    the enum of the top level menu whose wxMenu object we are 
+///                                 locating
+/// \remarks
+/// Called from: the App's MakeMenuInitializationsAndPlatformAdjustments(). 
+/// This function locates and returns the pointer to the wxMenu object that represents the
+/// wxMenu* of the AI menu bar associated with the incoming topLevelMenu enum parameter.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
+{
+	CMainFrame* pMainFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+	wxString tempName;
+	int index;
+	tempName = GetTopLevelMenuName(topLevelMenu);
+	index = pMenuBar->FindMenu(tempName); // ignores & chars in name
+	if (index == wxNOT_FOUND)
+	{
+		return (wxMenu*)NULL;
+	}
+	return pMenuBar->GetMenu(index);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the menu item id of the AI menu bar being examined
+/// \param      -> mainMenuItemLabel  the string label of the top level menu of the menu bar 
+/// \param      -> menuItemLabel  the string label of the sub menu item of the menu bar 
+/// \param      -> tempMenuBar  the AI Menu Bar we are examining (generally a temp one)
+/// \remarks
+/// Called from: the App's ConfigureMenuBarForUserProfile(). 
+/// This function determines and returns the int value of the identifier which was used
+/// in creating the menu item in the tempMenuBar; the menu item being specified by its
+/// location as being in the mainMenuItemLabel top level menu, and menuItemLabel sub
+/// menu label. This function is a work around as it seems there is no way to determine
+/// what the internal int value is of a program identifier such as ID_FILE_MENU when
+/// one only knows the string value "ID_FILE_MENU". Moreover, the available functions
+/// wxMenuBar::FindMenuItem() and wxMenu::FindItem() only take menu item labels.
+/// Note: a menu separator has the value of wxID_SEPARATOR which is -2.
+/// We cannot store the int values of identifiers in AI_UserProfiles.xml since those
+/// int values will change for each build in which wxDesigner's inventory of identifiers
+/// changes (it assigns them afresh for each build).
+//////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar)
+{
+	// The only available options to get an int id are via calling wxMenu::FindItem(const wxString& itemString) const 
+	// or wxMenuBar::FindMenuItem(const wxString& menuString, const wxString& itemString) const
+	// on the appropriate top level menu of the tempMenuBar
+	wxString menuItemLabelPlain = menuItemLabel;
+	menuItemLabelPlain = RemoveMenuLabelDecorations(menuItemLabelPlain);
+	int menuItemId;
+	if (menuItemLabelPlain.IsEmpty())
+		return wxID_SEPARATOR; // wxID_SEPARATOR has value of -2.
+	else
+	{
+		menuItemId = tempMenuBar->FindMenuItem(mainMenuItemLabel,menuItemLabelPlain);
+		return menuItemId;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing line position where replacement was done in the f wxTextFile
+/// \param      -> f  the wxText file whose line we are modifying
+/// \param      -> itemTextStr the highest level profile item we are looking for
+/// \param      -> profileStr  the profile section under itemTextStr
+/// \param      -> valueStr  the string value of the itemVisibility for the given profileStr
+/// \remarks
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// This function scans through the file f until it locates the line containing itemTextStr,
+/// continues until the profileStr associated with itemTextStr is found, then replaces the
+/// itemVisibility value associated with the above with the valueStr parameter.
+//////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemTextStr, wxString profileStr, wxString valueStr)
+{
+	wxString lineStr;
+	int linePos = -1;
+	if (f->IsOpened())
+	{
+		// Note: we are scanning an in-memory representation of the xml file, so
+		// our comparison string itemTextStr needs to have xml entity representations
+		// to effect the comparison
+		wxString str = itemTextStr;
+		str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+		str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+		str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+		str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+		str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+		bool bFoundItemTextLine = FALSE;
+		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundItemTextLine; lineStr = f->GetNextLine())
+		{
+			int chPos;
+			// does this line have our itemTextStr?
+			chPos = lineStr.Find(_T("itemText=\"")+str+_T("\""));
+			if (chPos != wxNOT_FOUND)
+			{
+				bFoundItemTextLine = TRUE;
+			}
+		}
+		if (bFoundItemTextLine)
+		{
+			// note: lineStr is now the next line beyond the "itemText..." line
+			// so use a do ... while () loop
+			bool bFoundProfileLine = FALSE;
+			bool bMadeReplacement = FALSE;
+			int chPos;
+			do 
+			{
+				chPos = lineStr.Find(profileStr);
+				if (chPos != wxNOT_FOUND)
+				{
+					bFoundProfileLine = TRUE;
+				}
+				lineStr = f->GetNextLine();
+			} while (!bFoundProfileLine && !f->Eof());
+			if (bFoundProfileLine)
+			{
+				// the lineStr = f->GetNextLine() call above means we should now be pointing at the
+				// itemVisibility line that we want to modify
+				if (lineStr.Find(_T("itemVisibility")) != wxNOT_FOUND)
+				{
+					int rPos = -1;
+					if (lineStr.Find(_T("\"0\"")) != wxNOT_FOUND)
+					{
+						rPos = (int)lineStr.Replace(_T("\"0\""),_T("\"1\""));
+					}
+					else if (lineStr.Find(_T("\"1\"")) != wxNOT_FOUND)
+					{
+						rPos = (int)lineStr.Replace(_T("\"1\""),_T("\"0\""));
+					}
+					else
+					{
+						wxASSERT(FALSE); // programmer error!
+						return linePos;
+					}
+					if (rPos != wxNOT_FOUND)
+						bMadeReplacement = TRUE;
+				}
+				else
+				{
+					wxASSERT(FALSE); // programmer error!
+					return linePos;
+				}
+			}
+			else
+			{
+				wxASSERT(FALSE); // programmer error!
+				return linePos;
+			}
+			if (bMadeReplacement)
+			{
+				linePos = f->GetCurrentLine();
+			}
+		}
+		else
+		{
+			wxASSERT(FALSE);
+			return linePos;
+		}
+		wxString testStr1,testStr2; // for debugging below
+		if (linePos != wxNOT_FOUND)
+		{
+			// now remove the "current" textFile line and replace it with lineStr
+			testStr1 = f->GetLine(linePos); // for debugging
+			f->RemoveLine(linePos);
+			f->InsertLine(lineStr,linePos);
+			testStr2 = f->GetLine(linePos); // for debugging
+		}
+	}
+	return linePos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      -> f  the wxText file whose line we are modifying
+/// \remarks
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// This function is called last after updating the wxTextFile with all other changes made 
+/// to the user workflow profiles. Here we update the adminModified="" line in the wxTextFile 
+/// to adminModified="Yes" if the data in the file differs from the factory data (determined
+/// by calling CommonItemsInProfilesDiffer), otherwise we we insure that the line reads 
+/// adminModified="No". Note: Working from the factory data as a baseline allows for the 
+/// possibility that a AI_UserProfiles.xml file that was previously modified resulting in the 
+/// line becoming adminModified="Yes", could now be modified again resulting in the line becoming 
+/// adminModified="No" in the event that the later modifications returned the data in the file
+/// back to be identidal to the factory data.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::UpdateAdminModifiedLineToYesOrNo(wxTextFile* f)
+{
+	bool bProfilesDiffer = FALSE;
+	bProfilesDiffer = CommonItemsInProfilesDiffer(m_pUserProfiles,m_pFactoryUserProfiles);
+
+	wxString lineStr;
+	int linePos = -1;
+	if (f->IsOpened())
+	{
+		bool bFoundAdminModifiedLine = FALSE;
+		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundAdminModifiedLine; lineStr = f->GetNextLine())
+		{
+			int chPos;
+			// does this line have our adminModified= line? If so, change it to adminModified="Yes"
+			// or adminModified="No" depending on the value of bProfilesDiffer.
+			chPos = lineStr.Find(_T("adminModified="));
+			if (chPos != wxNOT_FOUND)
+			{
+				bFoundAdminModifiedLine = TRUE;
+				linePos = f->GetCurrentLine();
+				wxString str = lineStr;
+				if (bProfilesDiffer)
+				{
+					// The profiles are different so modifications were made.
+					// If adminModified="No" is in the line replace it with adminModified="Yes"
+					if (str.Find(_T("adminModified=\"No\"")) != wxNOT_FOUND)
+					{
+						str.Replace(_T("adminModified=\"No\""),_T("adminModified=\"Yes\""));
+					}
+				}
+				else
+				{
+					// The profiles are essentially the same as factory there are now no modifications.
+					// If adminModified="Yes" is in the line replace it with adminModified="No"
+					if (str.Find(_T("adminModified=\"Yes\"")) != wxNOT_FOUND)
+					{
+						str.Replace(_T("adminModified=\"Yes\""),_T("adminModified=\"No\""));
+					}
+				}
+				wxString testStr1,testStr2; // for debugging below
+				if (linePos != wxNOT_FOUND)
+				{
+					// now remove the "current" textFile line and replace it with lineStr
+					testStr1 = f->GetLine(linePos); // for debugging
+					f->RemoveLine(linePos);
+					f->InsertLine(str,linePos);
+					testStr2 = f->GetLine(linePos); // for debugging
+				}
+				break;
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing line position where replacement was done in the f wxTextFile
+/// \param      -> f   the wxTextFile whose descriptionProfileN data we are replacing
+/// \param      -> descrProfileN  the descriptionProfileN we are looking for in the file
+/// \param      -> valueStr  the value of the new replacement descriptionProfileN text
+/// \remarks
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// This function scans through the file f until it locates the line containing descrProfileN,
+/// then it replaces the existing text with the text in valueSrt.
+//////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString descrProfileN, wxString valueStr)
+{
+	wxString lineStr;
+	int linePos = -1;
+	if (f->IsOpened())
+	{
+		bool bFoundDescrLine = FALSE;
+		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundDescrLine; lineStr = f->GetNextLine())
+		{
+			int chPos;
+			// does this line have our itemTextStr?
+			chPos = lineStr.Find(descrProfileN);
+			if (chPos != wxNOT_FOUND)
+			{
+				bFoundDescrLine = TRUE;
+			}
+		}
+		if (bFoundDescrLine)
+		{
+			// note: lineStr is now the next line beyond the "itemText..." line
+			// so back up one line
+			lineStr = f->GetPrevLine();
+			wxString testStr1,testStr2; // for debugging below
+			if (lineStr.Find(descrProfileN) != wxNOT_FOUND)
+			{
+				// Note: the default descriptive text describing each profile does not
+				// use any "entities". However, since the description field is editable
+				// by the user, a user may have introduced some characters or "entities"
+				// i.e., '<', '>' '&', ''', and '"'. These need to be replaced by the
+				// xml form: &lt;, &gt; &amp; &apos; and &quot; respectively, otherwise
+				// it will produce malformed xml. The XML.cpp file has a ReplaceEntities()
+				// function but it takes a CBString. Rather than converting to and from
+				// CBString to use that function, we'll simply do the conversion directly
+				// here.
+				wxString str = valueStr;
+				// replace entities
+				str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+				str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+				str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+				str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+				str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+
+				lineStr = lineStr.Mid(0,descrProfileN.Length()+1); // removes "="..." to right end of descr line
+				lineStr += _T("=\"");
+				lineStr += str;
+				lineStr +=  _T("\"");
+				linePos = f->GetCurrentLine();
+				testStr1 = f->GetLine(linePos); // for debugging
+				f->RemoveLine(linePos);
+				f->InsertLine(lineStr,linePos);
+				testStr2 = f->GetLine(linePos); // for debugging
+			}
+			else
+			{
+				wxASSERT(FALSE); // programmer error!
+				return linePos;
+			}
+		}
+	}
+	return linePos;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's OnInit(). 
+/// On Windows machines, transitions any registry information previously stored in the 
+/// Adapt_It_WX registry key to a Adapt_It_WX.ini file-on-disk format configuration file
+/// and, once done, removes the old Adapt_It_WX registry key from the Windows registry, 
+/// so that this transition to using the file-on-disk format needs to happen only once.
+/// As of version 6.0.0, the information saved previously in the Windows registry under
+/// the HKEY_CURRENT_USER\Software\Adapt_It_WX key is now stored instead in a disk file
+/// called Adapt_It_WX.ini - so that the Windows port now saves this information in the 
+/// same way that the Linux and Mac ports save it. It also makes Adapt It 6.0.0 more
+/// compatible as a PortableApps application.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::TransitionWindowsRegistryEntriesTowxFileConfig()
+{
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyAIWX(_T("HKEY_CURRENT_USER\\Software\\Adapt_It_WX"));
+	if (keyAIWX.Exists())
+	{
+		// From version 6.0.0 Adapt It uses a wxFileConfig object instead of a wxConfig object 
+		// on the App called m_pConfig.
+		// When TransitionWindowsRegistryEntriesTowxFileConfig() is called we don't know 
+		// whether AI's config info was transitioned previously from the host Windows' 
+		// registry or not, so we'll do this with a local object that we delete at the 
+		// end of this function.
+		// The registry groups prior to 6.0.0 will have this heirarchical structure:
+		// Adapt_It_WX
+		//    Recent_File_List           [contains 11 REG_SZ entries and 8 REG_DWORD entries] 
+		//       wxHtmlWindow            [contains 3 REG_SZ entries and 8 REG_DWORD entries]
+		//    Recent_File_List_Unicode   [contains 11 REG_SZ entries and 8 REG_DWORD entries]
+		//       wxHtmlWindow            [contains 3 REG_SZ entries and 8 REG_DWORD entries]
+		//    Settings                   [containes 13 REG_SZ entries and 3 REG_DWORD entries]
+		// 
+		wxConfig* mpConfig;
+		mpConfig = new wxConfig(_T("Adapt_It_WX")); // a local instance of wxConfig
+		wxASSERT(mpConfig != NULL);
+
+		wxFileConfig* mpFileConfig;
+		// Note: in the wxFileConfig call below:
+		// m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T("Adapt_It_WX.ini") on Windows
+		// m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T(".Adapt_It_WX") on Linux and Mac
+		mpFileConfig = new wxFileConfig(wxEmptyString,wxEmptyString,m_wxFileConfigPathAndName,wxEmptyString);
+		wxASSERT(mpFileConfig != NULL);
+
+		int nG;
+		// Note: GetNumberOfEntries does not include the (Default) entry shown as first line in Regedit
+		nG = mpConfig->GetNumberOfGroups(FALSE); // FALSE don't count groups recursively (i.e., don't include the wxHtmlWindow groups)
+		bool bGroupOK;
+		wxString groupName;
+		long groupIndex; // we don't use this returned groupIndex
+		bGroupOK = mpConfig->GetFirstGroup(groupName,groupIndex);
+		int ctG = 0;
+		while (bGroupOK && ctG < nG && !groupName.IsEmpty())
+		{
+			wxString path = _T('/') + groupName;
+			// set the path to the current Group
+			mpConfig->SetPath(path); // we know it exists so it won't be created
+			// write the Group name to the mpFileConfig object
+			mpFileConfig->SetPath(path); // if groupName doesn't exist it is created
+			// read all entries for this group and write them to the wxFileConfig object
+			wxString valueStr = _T("");
+			int valueInt = 0;
+			bool valueBool = FALSE;
+			wxString entryName;
+			bool bEntryOK;
+			long entryIndex;
+			int nE = mpConfig->GetNumberOfEntries(FALSE); // FALSE don't count entries recursively
+			bEntryOK = mpConfig->GetFirstEntry(entryName,entryIndex);
+			int ctE = 0;
+			while (bEntryOK && ctE < nE && !entryName.IsEmpty())
+			{
+				bool bReadOK = FALSE;
+				if (mpConfig->GetEntryType(entryName) == mpConfig->Type_String)
+					bReadOK = mpConfig->Read(entryName,&valueStr);
+				else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Integer)
+					bReadOK = mpConfig->Read(entryName,&valueInt);
+				else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Boolean)
+					bReadOK = mpConfig->Read(entryName,&valueBool);
+				if (bReadOK)
+				{
+					bool bWriteOK = FALSE;
+					if (mpConfig->GetEntryType(entryName) == mpConfig->Type_String)
+						bWriteOK = mpFileConfig->Write(entryName,valueStr);
+					else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Integer)
+						bWriteOK = mpFileConfig->Write(entryName,valueInt);
+					else if (mpConfig->GetEntryType(entryName) == mpConfig->Type_Boolean)
+						bWriteOK = mpFileConfig->Write(entryName,valueBool);
+					if (!bWriteOK)
+					{
+						wxASSERT(FALSE);
+					}
+				}
+				else
+				{
+					wxASSERT(FALSE);
+				}
+				ctE++;
+				bEntryOK = mpConfig->GetNextEntry(entryName,entryIndex);
+			}
+			// all the entries of the current Group have been copied, but
+			// there are also some sub-Groups called "wxHtmlWindow" containing
+			// more entries, so we now handle those before getting the next top
+			// level group
+			int nSubG;
+			nSubG = mpConfig->GetNumberOfGroups(FALSE); // don't count recursively
+			bool bSubGroupOK;
+			wxString subGroupName;
+			long subGroupIndex; // we don't use this returned groupIndex
+			bSubGroupOK = mpConfig->GetFirstGroup(subGroupName,subGroupIndex);
+			int ctSubG = 0;
+			while (bSubGroupOK && ctSubG < nSubG && !subGroupName.IsEmpty())
+			{
+				wxString subPath = _T('/') + groupName + _T('/') + subGroupName;
+				// set the path to the current Group
+				mpConfig->SetPath(subPath); // we know it exists so it won't be created
+				// write the Group name to the mpFileConfig object
+				mpFileConfig->SetPath(subPath); // if groupName doesn't exist it is created
+				// read all entries for this group and write them to the wxFileConfig object
+				wxString subValueStr = _T("");
+				int subValueInt = 0;
+				bool subValueBool = FALSE;
+				wxString subEntryName;
+				bool bSubEntryOK;
+				long subEntryIndex;
+				int nSubE = mpConfig->GetNumberOfEntries(FALSE); // FALSE don't count entries recursively
+				bSubEntryOK = mpConfig->GetFirstEntry(subEntryName,subEntryIndex);
+				int ctSubE = 0;
+				while (bSubEntryOK && ctSubE < nSubE && !subEntryName.IsEmpty())
+				{
+					bool bSubReadOK = FALSE;
+					if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_String)
+						bSubReadOK = mpConfig->Read(subEntryName,&subValueStr);
+					else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Integer)
+						bSubReadOK = mpConfig->Read(subEntryName,&subValueInt);
+					else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Boolean)
+						bSubReadOK = mpConfig->Read(subEntryName,&subValueBool);
+					if (bSubReadOK)
+					{
+						bool bSubWriteOK = FALSE;
+						if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_String)
+							bSubWriteOK = mpFileConfig->Write(subEntryName,subValueStr);
+						else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Integer)
+							bSubWriteOK = mpFileConfig->Write(subEntryName,subValueInt);
+						else if (mpConfig->GetEntryType(subEntryName) == mpConfig->Type_Boolean)
+							bSubWriteOK = mpFileConfig->Write(subEntryName,subValueBool);
+						if (!bSubWriteOK)
+						{
+							wxASSERT(FALSE);
+						}
+					}
+					ctSubE++;
+					bSubEntryOK = mpConfig->GetNextEntry(subEntryName,subEntryIndex);
+				}
+				ctSubG++;
+				bSubGroupOK = mpConfig->GetNextGroup(subGroupName,subGroupIndex);
+			}
+			ctG++;
+			// set the paths back up to the top level
+			mpConfig->SetPath(_T('/'));
+			mpFileConfig->SetPath(_T('/'));
+			bGroupOK = mpConfig->GetFirstGroup(groupName,groupIndex); // have to initialize group list again with GetFirstGroup
+			// get the next first level group after the previous one (which is ctG steps down from top level)
+			for (int i=0; i < ctG; i++)
+			{
+				bGroupOK = mpConfig->GetNextGroup(groupName,groupIndex);
+			}
+		}
+		// Delete the Adapt_It_WX key along with all of its subgroups and subentries
+		bool bDeletedOK = TRUE;
+		bDeletedOK = keyAIWX.DeleteSelf(); // deletes the key with all its sub entries recursively
+		wxASSERT(bDeletedOK == TRUE);
+		mpConfig->Flush();
+		mpFileConfig->Flush();
+		// Finally, delete the temporary objects we've used above. 
+		// Note: mpFileConfig will be created again for the duration of the running app 
+		// in OnInit() just after this function ends.
+		delete mpConfig;
+		delete mpFileConfig;
+	}
+#endif
+}
+
+// The XML.cpp's InsertEntities() function takes a CBString which is inconvenient
+// here so we'll just insert entities manually.
+// replace any entity chars with their xml entity representations
+wxString CAdapt_ItApp::InsertEntities(wxString str)
+{
+	str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
+	str.Replace(_T("<"),wxString::FromAscii(xml_lt));
+	str.Replace(_T(">"),wxString::FromAscii(xml_gt));
+	str.Replace(_T("'"),wxString::FromAscii(xml_apos));
+	str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+	return str;
+}
+
+void CAdapt_ItApp::LogUserAction(wxString msg)
+{
+	wxASSERT(m_userLogFile != NULL);
+	wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+	wxString timeStr;
+	timeStr = theTime.Format();
+	m_userLogFile->Write(timeStr+_T(':')+msg+m_eolStr);
+	m_userLogFile->Flush();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if Paratext.exe is installed on the host computer, FALSE otherwise
+/// \remarks
+/// Called from: the App's OnInit().
+/// Looks in the Windows registry to see if Paratext is installed. Returns TRUE if host
+/// machine has a Windows registry and this function finds the following conditions to 
+/// be met:
+/// 1. The following key exists in the registry: 
+///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+/// 2. The string value associated with the above key represents a valid path where
+///    Paratext is installed, usually something like "C:\Program Files\Paratext7\".
+/// 3. The folder designated in 2 above contains the Paratext.exe executable file.
+/// If the above conditions are not all met, the function returns FALSE. This function 
+/// only reads/queries the Windows registry; it does not make changes to it.
+//////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ParatextIsInstalled()
+{
+	bool bPTInstalled = FALSE;
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	
+	wxLogNull logNo; // eliminate any spurious messages from the system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	{
+		wxString dirStrValue;
+		dirStrValue.Empty();
+		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		{
+			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			if (::wxDirExists(dirStrValue))
+			{
+				if (::wxFileExists(dirStrValue + _T("Paratext.exe")))
+				{
+					bPTInstalled = TRUE;
+				}
+			}
+		}
+	}
+#endif
+
+	return bPTInstalled;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the path to the Paratext projects directory
+/// \remarks
+/// Called from: the App's OnInit().
+/// Looks in the Windows registry to get the path to the Paratext Projects directory.
+/// The following registry key is queried for the return value: 
+///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Settings_Directory
+/// If the key is not found, or is found but the value string does not exist on
+/// the system, the function returns an empty string. This function only reads/queries 
+/// the Windows registry; it does not make changes to it.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetParatextProjectsDirPath()
+{
+	wxString path;
+	path.Empty();
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	
+	wxLogNull logNo; // eliminate any spurious messages from the system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
+	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	{
+		wxString dirStrValue;
+		dirStrValue.Empty();
+		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		{
+			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			if (::wxDirExists(dirStrValue))
+			{
+				path = dirStrValue;
+			}
+		}
+	}
+#endif
+
+	return path;
+}
+
+bool CAdapt_ItApp::ParatextIsRunning()
+{
+	bool bIsRunning = FALSE;
+
+
+	return bIsRunning;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -4686,7 +10582,13 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 		}
 		else
 		{
-            // The user aborted from the CChooseLanguageDlg dialog, so we set the
+			// TODO: Check how Canceling the dialog handles the situation where the 
+			// systemLanguage of the host machine is something like "English India" 
+			// which is not a recognized language in wxWidgets language database.
+			// In particular, we don't want curr_UI_Language to be assigned a language
+			// which has no localization.
+			// 
+			// The user aborted from the CChooseLanguageDlg dialog, so we set the
             // CurrLocalizationInfo struct's members back to their values before calling
             // CChooseLanguageDlg.
 			currLocalizationInfo.curr_UI_Language = currLocInfo.curr_UI_Language;
@@ -4698,6 +10600,12 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 	}
 	else
 	{
+		// TODO: Check how Canceling the dialog handles the situation where the 
+		// systemLanguage of the host machine is something like "English India" 
+		// which is not a recognized language in wxWidgets language database.
+		// In particular, we don't want curr_UI_Language to be assigned a language
+		// which has no localization.
+		// 
         // Localization files could not be found, and user did not hold down the ALT key to
         // force the CChooseLanguageDlg dialog to appear. Therefore we quietly assign
         // default English language values to the currLocalizationInfo struct (which will
@@ -4787,18 +10695,26 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 		pCancelButton->SetLabel(btnOKStr);
 
 		// reverse the button tooltips
+		// BEW 27July10, changed the code to get the tooltip strings before doing the
+		// switch of the tooltips
 		wxString ttOKStr;
 		wxString ttCancelStr;
 		wxToolTip* pOkToolTip = pOKButton->GetToolTip();
+		wxToolTip* pCancelToolTip = pCancelButton->GetToolTip();
 		if (pOkToolTip != NULL)
 		{
 			ttOKStr = pOkToolTip->GetTip();
-			pCancelButton->SetToolTip(ttOKStr);
 		}
-		wxToolTip* pCancelToolTip = pCancelButton->GetToolTip();
 		if (pCancelToolTip != NULL)
 		{
 			ttCancelStr = pCancelToolTip->GetTip();
+		}
+		if (!ttOKStr.IsEmpty())
+		{
+			pCancelButton->SetToolTip(ttOKStr);
+		}
+		if (!ttCancelStr.IsEmpty())
+		{
 			pOKButton->SetToolTip(ttCancelStr);
 		}
 		pCancelButton->SetDefault();
@@ -5031,20 +10947,64 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxString appVer = GetAppVersionOfRunningAppAsString();
 		msg = msg.Format(_T("The Display size of this computer is too small (%dw x %dh) to run this version of Adapt It (%s).\nAdapt It cannot display its windows and dialogs properly.\nProgram aborting..."),nDisplayWidthInPixels,nDisplayHeightInPixels,appVer.c_str());
 		wxMessageBox(msg,_T("Screen size too small"),wxICON_ERROR);
+		LogUserAction(_T("Screen size too small"));
 		abort();
 		return FALSE;
 	}
-    // 
-    // BEW 11Oct10, we need this fast-access string for improving punctuation support when
+	// markers like \ft* \fk* \fq* etc are no longer supported, similarly for cross ref markers
+	m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
+	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
+	// BEW 11Oct10, we need this fast-access string for improving punctuation support when
 	// inline markers are in the immediate context (since endmarkers for inline markers
 	// should be handled within ParseWord(), we'll have two strings
 	m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* ");
 	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig ");
-	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh ");
+	// the next set each have an endmarkers, we'll not bother to have a separate string
+	// for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11)
+	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs ");
 	m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
 	// whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
 	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
 	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
+	
+	// the following characters must never be in a SFM or USFM marker (we'll have the XML
+	// metacharacters, and curly quotes for now - we can add more later if we need to)
+	m_forbiddenInMarkers = _T("<>'\"&"); // possibles for later:  _T("[],.{}()%$#@!^+=|/?:;")
+	// and append the single and double curly quotes
+	wxChar aChar;
+#ifdef _UNICODE
+	aChar = L'\x201C'; // unicode Left Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = L'\x2018'; // unicode Left Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = L'\x201D'; // unicode Right Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = L'\x2019'; // unicode Right Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+#else // ANSI version
+	aChar = (unsigned char)147; // Left Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = (unsigned char)145; // Left Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = (unsigned char)148; // Right Double Quotation Mark
+	m_forbiddenInMarkers += aChar;
+	aChar = (unsigned char)146; // Right Single Quotation Mark
+	m_forbiddenInMarkers += aChar;
+#endif
+
+	//wxString s = _T("*f\\ *x\\");
+	//const wxChar* pBuf = s.GetData();
+	//int itemLen = ParseMarker(pBuf); // <- testing the one in helpers.cpp, it returns 2, not 3, 
+									 // for *f\ (the reversed \f* marker), so it needs fixing
+
+	m_pUsfm2Oxes = NULL; // BEW added 2Sep10
+	m_bOxesExportInProgress = FALSE;
+
+	m_pAI_MenuStructure = (AI_MenuStructure*)NULL; // whm added 8Sep10
+	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
+	m_pFactoryUserProfiles = (UserProfiles*)NULL; // whm added 15Oct10
+
+	m_pEmailReportData = (EmailReportData*)NULL; // whm added 10Nov10
 
 	m_bForceFullConsistencyCheck = FALSE; // set true if user has respellings in the KB and
 			// after the KB save to disk and the message comes up asking if he wants a full
@@ -5070,6 +11030,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pROP = new ReadOnlyProtection(this);
 	m_pROP->Initialize();
 	
+	//
+	m_pRemovedMenuItemArray = new wxArrayPtrVoid;
+
+
 	// test wxProcess functions
 	//unsigned long tempPID = ::wxGetProcessId(); 
 	//bool bPIDExists;
@@ -5092,7 +11056,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//		m_pROP->GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
 	//}
 	// end test of GetReadOnlyProtectionFileInProjectFolder() function
+	// 
+	// testing of GetUniqueIncrementedFileName
+	//int junkCt;
+	//for (junkCt = 0; junkCt < 300; junkCt++)
+	//{
+	//	wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Junk\\TestFile.txt");
+	//	wxString newFile = GetUniqueIncrementedFileName(testPath,2,_T("_Old_"));
+	//	::wxCopyFile(testPath,newFile);
+	//}
+	// end test of GetUniqueIncrementedFileName
 	
+	m_nWorkflowProfile = 0; // default value is for "None" unless changed by the
+							// value stored in the basic and/or config files.
 
  	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
 								  // translating, via a frm switch for a launch from the
@@ -5167,7 +11143,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bAutoInsert = FALSE;
 	m_bTablesLoaded = FALSE; // whm added 23May04 not initialized in MFC
 	
-	gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
 #ifdef _RTL_FLAGS
 	// default reading order should be LTR unless user changes it, or config file changes it
 	m_bSrcRTL = FALSE;
@@ -5197,6 +11175,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bUseCustomWorkFolderPath = FALSE;
 	m_bLockedCustomWorkFolderPath = FALSE;
 
+	m_userProfileFileWorkFolderPath = _T(""); // whm added 7Sep10
+	m_emailReportFolderPathOnly = _T(""); // whm added 8Nov10
+	m_usageLogFilePathAndName = _T(""); // whm added 8Nov10
+	m_userLogFile = (wxFile*)NULL; // whm added 12Nov10
+	m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
+
 	// The following use the _T() macro as they shouldn't be translated/localized
 	m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"),m_strNR.c_str());
 	// whm Note: In the MFC version the "Adaptations" folder is localizable, so we
@@ -5206,6 +11190,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_adaptionsFolder = _("Adaptations");
 	m_lastSourceFileFolder = m_workFolderPath; // don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
+	m_sourceDataFolderPath = _T(""); 
 	m_curAdaptionsPath = _T("");
 	m_curKBName = _T("");
 	m_curKBPath = _T("");
@@ -5367,6 +11352,29 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
 	m_bUsingDefaultUsfmStyles = FALSE;
+
+	// whm added 19Oct10 for user workflow profiles support
+	m_bShowNewProjectItem = TRUE; // show <New Project> in projectPage by default
+	m_bUseAdaptationsGuesser = TRUE; // the default is TRUE; use the Guesser for adaptations unless 
+									// changed by config file settings
+	m_bIsGuess = FALSE;				// the default is FALSE, changed by the guesser when returning a guess
+	m_nGuessingLevel = 50;			// The guesser level (can range from 0 to 100, default is 50); 
+									// default is 50 unless changed by config file settings
+	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
+	m_nCorrespondencesLoadedInGlossingGuesser = 0;
+	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
+									// guesser output; default is FALSE unless changed by config file 
+									// settings
+	m_pAdaptationsGuesser = (Guesser*)NULL;
+	m_pGlossesGuesser = (Guesser*)NULL;
+	
+	// whm added 9Feb11 in support of Paratext collaboration
+	m_bParatextIsInstalled = FALSE;
+	m_bParatextIsRunning = FALSE;
+	m_ParatextProjectsDirPath.Empty();
+
+	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
+
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
 											   // into phrases for adapting
 	m_pUsfmStylesMap = new MapSfmToUSFMAnalysisStruct;
@@ -5375,14 +11383,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pMappedObjectPointers = new wxArrayPtrVoid;// array of all pointers to USFMAnalysis
 											// structs on the heap - for ease of 
 											// deletion in the app destructor
-	gCurrentSfmSet = UsfmOnly;	// may be set to PngOnly if, in reading the
-								// project config file, if there is no UseUSFMarkerSet
-								// setting defined there (i.e., the project was created
-								// prior to Version 3.x)
+	gCurrentSfmSet = UsfmOnly;	// A code block at the end of GetProjectSettingsConfiguration()
+			// will check if there was a project config file line for storing the project's
+			// last in-operation SFM set (either UsfmOnly, PngOnly, or UsfmAndPng), if the
+			// line is not present then at code block forces the set to be PngOnly -- because
+			// that means that the project was created prior to Version 3.x. If that line is
+			// present however, the code block is not entered, and the project setting is just
+			// taken from whatever the config file stores there - the value is then put in the
+			// app member variable, gProjectSfmSetForConfig.
+
 	gProjectSfmSetForConfig = UsfmOnly;	// Retains any value set in the project config file
                                 // unless user explicitly changes it in Edit Preferences
-                                // USFM/Filtering tab or the Start Working... wizard
-                                // USFM/Filtering page when creating a new project.
+                                // USFM and Filtering tab or the Start Working... wizard
+                                // USFM and Filtering page when creating a new project.
 
 	m_bSingleQuoteAsPunct = FALSE; // BEW added March 17, 2005
 	m_bDoubleQuoteAsPunct = TRUE; // BEW added April 28, 2005
@@ -5399,7 +11412,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_freeTransDefaultBackgroundColor = wxColour(189,255,189); // light pastel green
 	m_freeTransCurrentSectionBackgroundColor = wxColour(255,200,200); // light pastel pink
 	
-	m_bSaveAsXML = TRUE; // BEW added 04Aug05; default for version 3
 	m_bNotesExist = FALSE; // 12Sep05 BEW
 	m_bUnpacking = FALSE; // BEW added 10Jan06
 
@@ -5473,8 +11485,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_curOutputFilename = _T("");
 	m_curOutputPath = _T("");
 	m_curOutputBackupFilename = _T("");
-	m_altOutputBackupFilename = _T("");
-	//m_saveLastFolderPath = _T("");
 	m_currentUnknownMarkersStr = _T(""); // whm added 31May05
 	m_pSourcePhrases = (SPList*)NULL; // MFC had = 0
 
@@ -5509,6 +11519,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bWantSourcePhrasesOnly = FALSE; // Added by JF.
 
 	// *** Initializations above were originally in the Doc in the MFC version ***
+
+	// TokenizeText() makes use of these
+	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
 
 	// *** Initializations below were originally in the View in the MFC version ***
 	
@@ -5562,7 +11575,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbEnableGlossing = FALSE;
 	gbIsGlossing = FALSE;
 	gbGlossingUsesNavFont = FALSE;
-	gbRemovePunctuationFromGlosses = FALSE;
+	//gbRemovePunctuationFromGlosses = FALSE; << BEW removed 13Nov10, it's nowhere set TRUE
 	gnSelectionLine = -1;
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
@@ -5773,12 +11786,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// *** Variable initializations below moved here from the App's constructor ***
 	
-    // bUserSelectedFileNew below is used in wxWidgets version to reinit KB structures in
-    // view->OnCreate(). This is to allow for the fact that with only 1 doc allowed in WX,
-    // it first deletes the current doc and view and recreates new ones before calling
-    // OnNewDocument(). The MFC version does not do this, but reuses its old doc and view
-    // pointers under the CSingleDocTemplate() that MFC Adapt It uses.
-	bUserSelectedFileNew = FALSE;	
+    // BEW 24Aug10, changed comment. Reinit of KB structures is done in view->OnCreate().
+    // This is because with only 1 doc allowed in WX, it first deletes the current doc and
+    // view and recreates new ones before calling OnNewDocument(). The MFC version did not
+    // do this, but reused its old doc and view pointers under the CSingleDocTemplate()
+    // that MFC Adapt It uses. OnInit() calls OnNewDocument() to get the doc/view
+    // structures set up; and hence because of the destruction of the view that is
+    // entailed, view->OnCreate() will be called when control is here within OnInit(). This
+    // would result in a crash, when OnCreate() tried to load KBs prematurely. We prevent
+    // this by using the app member boolean, m_bControlIsWithinOnInit which is TRUE only
+    // while control is here within OnInit(), testing for a TRUE value in OnCreate() and if
+    // we find that it is so, we exit from OnCreate() prematurely. (Formerly we used a
+    // different boolean, but I have eliminated it from the app today.)
 
 	m_pDocManager = (wxDocManager*)NULL;// was originally in App constructor's preamble
 	m_pMainFrame = (CMainFrame*)NULL;// was originally in App constructor's preamble
@@ -5902,6 +11921,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_setupFolder = FindAppPath(argv[0], wxGetCwd(), _T(""));
 	m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
+	wxLogDebug(_T("The m_appInstallPathOnly = %s"),m_appInstallPathOnly.c_str());
 	// On Windows the m_appInstallPathOnly will be something like (if installed to
 	// default location):
 	// "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode\"
@@ -5917,6 +11937,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ??? 
 	//             TODO: check this location
 	m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
+	wxLogDebug(_T("The m_xmlInstallPath = %s"),m_xmlInstallPath.c_str());
 
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
@@ -5927,6 +11948,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this 
 				// is where Poedit puts its localization files.
 	m_localizationInstallPath = GetDefaultPathForLocalizationSubDirectories();
+	wxLogDebug(_T("The m_localizationInstallPath = %s"),m_localizationInstallPath.c_str());
 
 	// The m_helpInstallPath stores the path where the help files are installed on 
 	// the given platform.
@@ -5937,8 +11959,36 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ??? 
 	//             TODO: check this location
 	m_helpInstallPath = GetDefaultPathForHelpFiles();
+	wxLogDebug(_T("The m_helpInstallPath = %s"),m_helpInstallPath.c_str());
 	// Note: The m_htbHelpFileName is also determined in  
 	// GetDefaultPathForHelpFiles() call above
+
+	// m_appUserConfigDir stores the path (only the path, not path and name) where the
+	// wxFileConfig's (.)Adapt_It_WX(.ini) file is located beginning with version 6.0.0.
+	// m_appUserConfigDir is set by calling wxStandardPaths::GetUserConfigDir().
+	// On wxMSW: "C:\Users\Bill Martin\AppData\Roaming"
+	// On wxGTK: "/home/wmartin"
+	// On wxMac: "/Users/wmartin"
+	m_appUserConfigDir =stdPaths.GetUserConfigDir();
+	wxLogDebug(_T("The m_appUserConfigDir = %s"),m_appUserConfigDir.c_str());
+
+	// m_appUserConfigDir stores the path and name of the wxFileConfig file's
+	// on-disk configuration file. It is of the form: Adapt_It_WX.ini on Windows
+	// and a .Adapt_It_WX hidden file on Linux and the Mac.
+	// On Windows the Adapt_It_WX.ini file is first used with version 6.0.0 which
+	// automatically transitions some settings previously stored in the Windows
+	// registry into the external Adapt_It_WX.ini file.
+	// m_appUserConfigDir is set by calling wxStandardPaths::GetUserConfigDir().
+	// On wxMSW: "C:\Users\Bill Martin\AppData\Roaming\Adapt_It_WX.ini"
+	// On wxGTK: "/home/wmartin/.Adapt_It_WX"
+	// On wxMac: "/Users/wmartin/.Adapt_It_WX"
+#ifdef __WXMSW__
+	m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T("Adapt_It_WX.ini");
+#else
+	m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T(".Adapt_It_WX");
+#endif
+	wxLogDebug(_T("The m_wxFileConfigPathAndName = %s"),m_wxFileConfigPathAndName.c_str());
+
 
 	// !!!!!!!!!!! SET UP SOME STANDARD PATHS ABOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -5963,7 +12013,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm moved/changed 13Apr09 Command-line processing implemented in wx version and
     // moved earlier in OnInit() to this location after most variable initializations and
-    // just before the application wxConfig processing. The command line processing must be
+    // just before the application wxFileConfig processing. The command line processing must be
     // done before CMainFrame is created since the parameter -xo determines which toolbar
     // and commandbar is used in the main frame.
 	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
@@ -6000,7 +12050,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 		{ wxCMD_LINE_NONE }
 	};
-
 
 	// Note: In the MFC version, InitInstance() sets up CCommandLineInfo cmdInfo.
 	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
@@ -6044,7 +12093,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	*/
 
-	int paramCount = m_pParser->GetParamCount(); // this is needed only for commands with params
+	int paramCount = m_pParser->GetParamCount();// this is relevant only to commands with params, like export
 
 	if (itsokay == 0)
 	{
@@ -6113,25 +12162,90 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 	}
 
+	// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
+	// for default adaptation export of adaptation text from a given doc file from
+	// a given project folder
+	/*
+	static const wxCmdLineEntryDesc cmdLineDesc2[] = 
+	{
+		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"), _T("export"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\nproject name (must be in doublequotes)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\ndocument name (in doublequotes if spaces present)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\noutput folder path (in doublequotes if spaces present)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_NONE }
+	};
+	m_pParser2 = new wxCmdLineParser(cmdLineDesc2, argc, argv);
+
+	// for testing, set up the following command line - comment out later for Release version
+	//m_pParser2->SetCmdLine(_T("export \42 XX to YY adaptations\42 \42 Ruth.xml\42 \42C:\\Card1\42"));
+
+	int allswell = m_pParser2->Parse(); // allow continued processing if parse failed
+
+	// Note: returning here creates memory leaks, but it is not too serious since the
+	// program is terminating anyway.
+
+	int paramCount2 = m_pParser2->GetParamCount();
+	if (allswell == 0 && paramCount2 == 4)
+	{
+		// got a valid parse for the export command + params
+		m_autoexport_command = m_pParser2->GetParam(0);
+		if (m_autoexport_command == _T("export"))
+		{
+			m_autoexport_projectname = m_pParser2->GetParam(1);
+			m_autoexport_projectname.Trim(FALSE); // remove whitespace from left
+			m_autoexport_projectname.Trim(); // remove whitespace from right
+			m_autoexport_docname = m_pParser2->GetParam(2);
+			m_autoexport_docname.Trim(FALSE); // remove whitespace from left
+			m_autoexport_docname.Trim(); // remove whitespace from right
+			m_autoexport_outputpath = m_pParser2->GetParam(3);
+			m_autoexport_outputpath.Trim(FALSE); // remove whitespace from left
+			m_autoexport_outputpath.Trim(); // remove whitespace from right
+			m_bAutoExport = TRUE;
+		}
+		else
+		{
+			wxMessageBox(_("Command line, export command misspelled; parse failed"));
+			m_bAutoExport = FALSE;
+		}
+	}
+	else if (allswell > 0)
+	{
+		wxMessageBox(_("Command line, export command, parse error"));
+		m_bAutoExport = FALSE;
+	}
+	*/
+
+	// whm 2Nov10 design notes for use of wxConfig and wxFileConfig in version 6.0.0:
+	// The application should make as little use as possible of the Windows registry.
+	// As of version 6.0.0, the information saved previously in the Windows registry 
+	// will be stored instead in an Adapt_It_WX.ini file, similar to what has been
+	// the case for the Linux and Mac ports previous to version 6.0.0. For users who 
+	// previously used a version prior to 6.0.0, we automatically and quitely 
+	// transition any registry information previously stored in the Adapt_It_WX 
+	// registry key to the Adapt_It_WX.ini on-disk file format and, once done, remove 
+	// the old registry key, so that the transition to using the file-on-disk format 
+	// needs to happen only once.
+	TransitionWindowsRegistryEntriesTowxFileConfig();
+	
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
-	// wxConfig (below) stores the key "Adapt_It_WX" in HKEY_USERS "Software" 
-	// branch of the registry (under Windows), or in a hidden text config file under 
-	// Unix/Linux (named .Adapt_It_WX).
-    // wxConfig provides an interface which hides the differences between the Windows
-    // registry and the standard Unix text format configuration files. With this wxConfig
-    // class we could store various kinds of string and int information, but we will mainly
-    // use it for the file history (MRU) list and the ui_language setting. Later we may
-    // also use m_pConfig to set other things like the default path.
-	m_pConfig = new wxConfig(_T("Adapt_It_WX")); // must delete m_pConfig in OnExit()
+	// Previous to version 6.0.0 we used a wxConfig class object below to stored 
+	// some settings in the Registry under a Adapt_It_WX key on Windows, and in an 
+	// external hidden file called .Adapt_It_WX on Linux and the Mac. Starting with 
+	// version 6.0.0, however, all platforms now use wxFileConfig and store certain
+	// settings in an external file. The TransitionWindowsRegistryEntriesTowxFileConfig()
+	// call above transitions the host OS to use the external file rather than the
+	// Windows registry (if settings were stored under the Adapt_It_WX key), on
+	// first run of the version 6.0.0 of the program.
+	m_pConfig = new wxFileConfig(wxEmptyString,wxEmptyString,m_wxFileConfigPathAndName,wxEmptyString); // must delete m_pConfig in OnExit()
 	wxASSERT(m_pConfig != NULL);
 	// Note: We'll use "Adapt_It_WX" to distinguish the wxWidgets version from MFC version 
-	// 
-    // We also need another wxConfig object that we can use to query whether the SIL
-    // Converters has been installed (on Windows) machines.
-	m_pConfigSIL = new wxConfig(_T("SIL"),wxEmptyString,wxEmptyString,wxEmptyString,
-								wxCONFIG_USE_LOCAL_FILE);
-	wxASSERT(m_pConfigSIL != NULL);
 
 	// Retrieve the m_bUseToolTips setting from m_pConfig if it exists.
 	{
@@ -6227,8 +12341,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 														//  Ubuntu: m_systemLanguage = 58
 														//     Mac: m_systemLanguage = 58
 	m_languageInfo = wxLocale::GetLanguageInfo(m_systemLanguage);
+	// if GetStytemLanguage() can't determine the system language it returns wxLANGUAGE_UNKNOWN
+	// for m_systemLanguage, and GetLanguageInfo(m_systemLanguage) will return NULL for
+	// m_languageInfo.
 	if (m_languageInfo != NULL)
 	{
+		wxLogDebug(_T("m_systemLanguage = %d"),m_systemLanguage); // 58
 		wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
 		wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
 		wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
@@ -6237,6 +12355,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
 #endif
 		wxLogDebug(_T("m_languageInfo->LayoutDirection = %d"),m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
+	}
+	else
+	{
+		wxLogDebug(_T("m_systemLanguage = %d (wxLANGUAGE_UNKNOWN)"),m_systemLanguage); // 58
+		wxLogDebug(_T("m_languageInfo = NULL"));
 	}
 	
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
@@ -6271,9 +12394,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// file.
 		// Once the user makes the choice the interface is set to use that language.
 		// After the first run of Adapt It, the user's choice of UI language is saved in the 
-		// registry on Windows or a hidden settings file on Linux/Mac, and the user won't be 
-		// asked again at program startup - but the user can later change the interface language
-		// choice from within the app via View | "Choose Interface Language...".
+		// wxConfig's Adapt_It_WX.ini (Windows) or .Adapt_It_WX (Linux and Mac), and the user 
+		// won't be asked again at program startup - but the user can later change the interface 
+		// language choice from within the app via View | "Choose Interface Language...".
+		// Note: currLocalizationInfo.curr_UI_Language is initialized to wxLANGUAGE_UNKNOWN by
+		// OnInit(), but may be changed by ProcessUILanguageInfoFromConfig() call made above
+		// if it has been previously determined.
 
 		if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
 		{
@@ -6333,23 +12459,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//LoadStdProfileSettings(9);  // Load standard INI file options (including MRU) - MFC version
 	// Set things up for file history (MRU) list
 	// File History is loaded below after Main Menu is created
-	wxString strOldPath = m_pConfig->GetPath();// store old wxConfig path in case we need it
-    // whm Note: Recently used files (MRU) that get recorded in the registry/hidden
-    // settings file are not really compatible between Unicode and Ansi versions. It may
-    // well be the case that the user switches between the Unicode and Ansi versions. In
-    // that case we don't want there to be a mix of files in the MRU, some using Unicode
-    // and some Ansi. Therefore I'm setting a different registry/hidden settings file key
-    // for Unicode. In either case the path that is set for m_pConfig will be one or the
-    // other as default so that wxFileHistory will use it appropriately.
+	wxString strOldPath = m_pConfig->GetPath();// store old wxFileConfig path in case we need it
+    // whm Note: Recently used files (MRU) that get recorded in the settings file are not 
+    // really compatible between Unicode and Ansi versions. It may well be the case that 
+    // the user switches between the Unicode and Ansi versions. In that case we don't want 
+    // there to be a mix of files in the MRU, some using Unicode and some Ansi. Therefore 
+    // I'm setting a different settings file group for Unicode. In either case the path 
+    // that is set for m_pConfig will be one or the other as default so that wxFileHistory 
+    // will use it appropriately.
 #ifdef _UNICODE
-	m_pConfig->SetPath(_T("/Recent_File_List_Unicode"));// set wxConfig path in registry/hidden settings file
+	m_pConfig->SetPath(_T("/Recent_File_List_Unicode"));// set wxFileConfig path in external settings file
 #else
-	m_pConfig->SetPath(_T("/Recent_File_List"));// set wxConfig path in registry/hidden settings file
+	m_pConfig->SetPath(_T("/Recent_File_List"));// set wxFileConfig path in external settings file
 #endif
     // wx note: In SetPath above we should use the _T() macro rather than _() so the config
     // string stays the same regardless of interface language chosen. Also, since the
     // "Recent_File_List" key is probably the most commonly used, we'll always leave the
-    // "Path" for wxConfig::SetPath(Path) set as _T("/Recent_File_List"). Whenever we
+    // "Path" for wxFileConfig::SetPath(Path) set as _T("/Recent_File_List"). Whenever we
     // change a setting other than an item under Recent_File_List, we'll save the oldPath
     // and restore it after doing the other setting.
 
@@ -6394,6 +12520,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxFileSystem::AddHandler(new wxArchiveFSHandler); // docs say to use this one
 
 
+	// whm note: The new CMainFrame call below creates AI's top level Main Frame window. 
+	// It also calls m_pMenuBar = AIMenuBarFunc() to create the menuBar and calls 
+	// SetMenuBar(m_pMenuBar) to associate the menuBar with the Main Frame. All the
+	// other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
+	// also created within the CMainFrame's constructor.
+
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*) NULL, -1, m_FrameAndDocProgramTitle,
                                 wxPoint(0, 0), wxSize(735, 500),
                                 wxDEFAULT_FRAME_STYLE 
@@ -6427,86 +12559,1223 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // icons) This xpm format should work for all platforms. It embeds the icon resource
     // inside the executable file, so no need to have to hunt for it from an external
     // resource file.
-	/* XPM */ 
-	static const char * xpm_data16x16[] = {
-	"16 16 10 1",
+	//	/* XPM */ 
+	//	static const char * xpm_data16x16[] = {
+	//	"16 16 10 1",
+	//	" 	c None",
+	//	"!	c #FFFF00",
+	//	"#	c black",
+	//	"$	c #FF0000",
+	//	"%	c #808000",
+	//	"&	c #808080",
+	//	"'	c #00FFFF",
+	//	"(	c #00FF00",
+	//	")	c #000080",
+	//	"*	c #C0C0C0",
+	//	"!!!!!!!!!!!!!!!!",
+	//	"!##!!!!!!!!!!!!!",
+	//	"#$!#!!!!!!!!!!!!",
+	//	"#$!#!!!!!!!!!!!!",
+	//	"####!!%%%%%!!!!!",
+	//	"#$!#!%#####&!!!!",
+	//	"#$!#!%#'('#%!!!!",
+	//	"#$!#!%#'''#%!!!!",
+	//	"!!!!!%#(((#%!!!!",
+	//	"!!&!!%#####%!!!!",
+	//	"!!&)!%*****%!###",
+	//	")))))%**))%%!!#!",
+	//	"!!&)!%*****%!!#!",
+	//	"!!&!!%%%%%%%!!#!",
+	//	"!!!!!%%!!!%%!!#!",
+	//	"!!!!!!!!!!!!!###"};
+
+	// whm 10Aug10 replaced old 16x16 AI frame icon with new icons (blue theme) below:
+	// To evaluate four different frame icon choices:
+	//    Define only one of the four choices below to select it for use as 16x16 frame icon.
+	//    Comment out the other three choices.
+	//#define IconBlueShadesOn16x16WhiteRectangularBackground
+	#define IconBlueShadesOn16x16WhiteDiskBackground
+	//#define IconBlueShadesOn16x16AllTransparentBackground
+	//#define IconWhiteBlueOn16x16BlueDiskBackground
+
+	// To evaluate four different taskbar icon choices:
+	//    Define only one of the four choices to select it for use as 32x32 taskbar icon.
+	//    Comment out the other three choices.
+	//#define IconBlueShadesOn32x32WhiteRectangularBackground
+	#define IconBlueShadesOn32x32WhiteDiskBackground
+	//#define IconBlueShadesOn32x32AllTransparentBackground
+	//#define IconWhiteBlueOn32x32BlueDiskBackground
+
+#if defined(IconBlueShadesOn16x16WhiteRectangularBackground)
+	/* XPM */
+	// The following xpm icon contains the 16x16 blue shades ai logo on a white rectangular background.
+	static const char * AI_16_xpm[] = {
+	"16 16 176 2",
+	"  	c #0E76BC",
+	". 	c #FEFEFF",
+	"+ 	c #18A5DF",
+	"@ 	c #1BA6E0",
+	"# 	c #52BBE7",
+	"$ 	c #76CAEC",
+	"% 	c #006DB8",
+	"& 	c #006EB8",
+	"* 	c #FEFFFF",
+	"= 	c #0D76BC",
+	"- 	c #50BAE7",
+	"; 	c #4B98CD",
+	"> 	c #006CB8",
+	", 	c #0A74BB",
+	"' 	c #0C75BC",
+	") 	c #55BDE8",
+	"! 	c #006BB7",
+	"~ 	c #5AA1D1",
+	"{ 	c #74C9EC",
+	"] 	c #B1D2E9",
+	"^ 	c #15A4DF",
+	"/ 	c #23A9E1",
+	"( 	c #22A9E1",
+	"_ 	c #F5F9FC",
+	": 	c #016EB8",
+	"< 	c #19A5E0",
+	"[ 	c #79CBED",
+	"} 	c #006CB7",
+	"| 	c #0470B9",
+	"1 	c #1CA6E0",
+	"2 	c #006DB7",
+	"3 	c #197CBF",
+	"4 	c #19A5DF",
+	"5 	c #69C5EB",
+	"6 	c #14A3DF",
+	"7 	c #0973BB",
+	"8 	c #29ACE2",
+	"9 	c #F7FBFD",
+	"0 	c #F6FAFD",
+	"a 	c #23AAE1",
+	"b 	c #CBEBF8",
+	"c 	c #FAFDFE",
+	"d 	c #8DBDDF",
+	"e 	c #ACCFE8",
+	"f 	c #197DBF",
+	"g 	c #58A0D1",
+	"h 	c #0671BA",
+	"i 	c #C4DEEF",
+	"j 	c #57A0D1",
+	"k 	c #0EA1DE",
+	"l 	c #0065B4",
+	"m 	c #62C2EA",
+	"n 	c #DAF0FA",
+	"o 	c #6FC7EB",
+	"p 	c #0C74BB",
+	"q 	c #71AFD8",
+	"r 	c #A1DAF2",
+	"s 	c #0069B6",
+	"t 	c #75B0D8",
+	"u 	c #77B1D9",
+	"v 	c #0571B9",
+	"w 	c #016FB8",
+	"x 	c #D3E6F3",
+	"y 	c #0069B5",
+	"z 	c #FDFEFF",
+	"A 	c #F5FAFD",
+	"B 	c #0F76BC",
+	"C 	c #1FA8E1",
+	"D 	c #2C87C5",
+	"E 	c #1E7FC0",
+	"F 	c #267FC0",
+	"G 	c #0F77BC",
+	"H 	c #519BCE",
+	"I 	c #539ECF",
+	"J 	c #F9FCFD",
+	"K 	c #ECF8FC",
+	"L 	c #D7F0FA",
+	"M 	c #E7F1F8",
+	"N 	c #60C1E9",
+	"O 	c #77CBED",
+	"P 	c #C1DBED",
+	"Q 	c #4C99CD",
+	"R 	c #9CC6E3",
+	"S 	c #90C0E0",
+	"T 	c #BED9EC",
+	"U 	c #78B2DA",
+	"V 	c #006EB7",
+	"W 	c #51BBE7",
+	"X 	c #026FB8",
+	"Y 	c #16A5DF",
+	"Z 	c #2181C1",
+	"` 	c #83B9DD",
+	" .	c #1CA7E0",
+	"..	c #83B8DD",
+	"+.	c #18A5E0",
+	"@.	c #006BB6",
+	"#.	c #1479BE",
+	"$.	c #DFEDF6",
+	"%.	c #A9CEE7",
+	"&.	c #0571BA",
+	"*.	c #559ED0",
+	"=.	c #A7CDE6",
+	"-.	c #D5EFFA",
+	";.	c #0B74BB",
+	">.	c #C8EAF8",
+	",.	c #DCF1FB",
+	"'.	c #8DBEDF",
+	").	c #48B7E6",
+	"!.	c #E8F2F8",
+	"~.	c #4595CB",
+	"{.	c #1379BD",
+	"].	c #FBFCFE",
+	"^.	c #0BA0DD",
+	"/.	c #DEF2FB",
+	"(.	c #348BC6",
+	"_.	c #88D1EF",
+	":.	c #77B2D9",
+	"<.	c #0370B9",
+	"[.	c #8BD2EF",
+	"}.	c #D4E6F2",
+	"|.	c #0B75BC",
+	"1.	c #D9EAF5",
+	"2.	c #D8E8F4",
+	"3.	c #ECF5FA",
+	"4.	c #77CAED",
+	"5.	c #DAEAF4",
+	"6.	c #9EC8E4",
+	"7.	c #F9FCFE",
+	"8.	c #7FB6DC",
+	"9.	c #DCF2FA",
+	"0.	c #75CAEC",
+	"a.	c #B5D5EB",
+	"b.	c #E9F2F9",
+	"c.	c #4796CC",
+	"d.	c #5DA3D2",
+	"e.	c #DDEBF5",
+	"f.	c #006AB6",
+	"g.	c #2280C1",
+	"h.	c #AACFE7",
+	"i.	c #B0D2E9",
+	"j.	c #1479BD",
+	"k.	c #157ABE",
+	"l.	c #539DCF",
+	"m.	c #0872BA",
+	"n.	c #B2D3EA",
+	"o.	c #49B8E6",
+	"p.	c #3089C6",
+	"q.	c #D5E7F3",
+	"r.	c #ABCFE8",
+	"s.	c #549ECF",
+	"t.	c #5EA1D1",
+	"u.	c #85B8DD",
+	"v.	c #79CBEC",
+	"w.	c #7BB4DA",
+	"x.	c #C5DEEF",
+	"y.	c #036FB9",
+	"z.	c #C9EAF8",
+	"A.	c #A6CCE6",
+	"B.	c #C4E8F7",
+	"C.	c #3C90C9",
+	"D.	c #DFF3FA",
+	"E.	c #16A4DF",
+	"F.	c #4B97CC",
+	"G.	c #DFF2FB",
+	"H.	c #B7D6EB",
+	"I.	c #EAF3F9",
+	"J.	c #78CBED",
+	"K.	c #3E91C9",
+	"L.	c #64A5D3",
+	"M.	c #E4F4FB",
+	"N.	c #33B0E3",
+	"O.	c #A1C9E5",
+	"P.	c #D6EFF9",
+	"Q.	c #207CBF",
+	"R.	c #25AAE1",
+	"S.	c #FFFFFF",
+	"S.S.S.S.S.S.S.S.S.S.S.S.S.S.S.S.",
+	"S.S.S.S.S.S.S.S.S.$ a < z S.S.S.",
+	"S.S.S.S.S.S.S.S.S.{ ( +.. S.S.S.",
+	"S.S.S.S.S.S.S.S.S.K n -.S.S.S.S.",
+	"S.S.S.S.S.; % (.F.{ o.M.S.S.S.S.",
+	"S.S.S.].f., 1.S.S.$ R.6 * S.S.S.",
+	"S.S.S.6.=   p.S.S.$ R.@ . S.S.S.",
+	"S.S.S.9 ! @.i S.S.$ R.@ . S.S.S.",
+	"S.S.S.S.S.S.r.~.t.[ R.@ . S.S.S.",
+	"S.S.S.S.Q & K.S.S.$ R.@ . S.S.S.",
+	"S.S.S.C.B X S.S.S.$ R.@ . S.S.S.",
+	"S.S.S.>   h 0 S.S.$ R.@ . S.S.S.",
+	"S.S.S.%     f q.d [ R.@ . S.S.S.",
+	"S.S.S.M m.& % g.J o 4 k . S.S.S.",
+	"S.S.S.S.S.S.S.S.S.S.S.S.S.S.S.S.",
+	"S.S.S.S.S.S.S.S.S.S.S.S.S.S.S.S."};
+
+#elif defined(IconBlueShadesOn16x16WhiteDiskBackground)
+	/* XPM */
+	// The following xpm contains the 16x16 ai blue shades icon on a white disk.
+	static const char * AI_16_xpm[] = {
+	"16 16 58 1",
 	" 	c None",
-	"!	c #FFFF00",
-	"#	c black",
-	"$	c #FF0000",
-	"%	c #808000",
-	"&	c #808080",
-	"'	c #00FFFF",
-	"(	c #00FF00",
-	")	c #000080",
-	"*	c #C0C0C0",
-	"!!!!!!!!!!!!!!!!",
-	"!##!!!!!!!!!!!!!",
-	"#$!#!!!!!!!!!!!!",
-	"#$!#!!!!!!!!!!!!",
-	"####!!%%%%%!!!!!",
-	"#$!#!%#####&!!!!",
-	"#$!#!%#'('#%!!!!",
-	"#$!#!%#'''#%!!!!",
-	"!!!!!%#(((#%!!!!",
-	"!!&!!%#####%!!!!",
-	"!!&)!%*****%!###",
-	")))))%**))%%!!#!",
-	"!!&)!%*****%!!#!",
-	"!!&!!%%%%%%%!!#!",
-	"!!!!!%%!!!%%!!#!",
-	"!!!!!!!!!!!!!###"};
-	wxIcon icon16x16( xpm_data16x16 );
+	".	c #FFFFFF",
+	"+	c #76CAEC",
+	"@	c #23AAE1",
+	"#	c #19A5E0",
+	"$	c #FDFEFF",
+	"%	c #74C9EC",
+	"&	c #22A9E1",
+	"*	c #18A5E0",
+	"=	c #FEFEFF",
+	"-	c #ECF8FC",
+	";	c #DAF0FA",
+	">	c #D5EFFA",
+	",	c #4B98CD",
+	"'	c #006DB8",
+	")	c #348BC6",
+	"!	c #4B97CC",
+	"~	c #49B8E6",
+	"{	c #E4F4FB",
+	"]	c #FBFCFE",
+	"^	c #006AB6",
+	"/	c #0A74BB",
+	"(	c #D9EAF5",
+	"_	c #25AAE1",
+	":	c #14A3DF",
+	"<	c #FEFFFF",
+	"[	c #9EC8E4",
+	"}	c #0D76BC",
+	"|	c #0E76BC",
+	"1	c #3089C6",
+	"2	c #1BA6E0",
+	"3	c #F7FBFD",
+	"4	c #006BB7",
+	"5	c #006BB6",
+	"6	c #C4DEEF",
+	"7	c #ABCFE8",
+	"8	c #4595CB",
+	"9	c #5EA1D1",
+	"0	c #79CBED",
+	"a	c #4C99CD",
+	"b	c #006EB8",
+	"c	c #3E91C9",
+	"d	c #3C90C9",
+	"e	c #0F76BC",
+	"f	c #026FB8",
+	"g	c #006CB8",
+	"h	c #0671BA",
+	"i	c #F6FAFD",
+	"j	c #197DBF",
+	"k	c #D5E7F3",
+	"l	c #8DBDDF",
+	"m	c #E7F1F8",
+	"n	c #0872BA",
+	"o	c #2280C1",
+	"p	c #F9FCFD",
+	"q	c #6FC7EB",
+	"r	c #19A5DF",
+	"s	c #0EA1DE",
+	"   ..........   ",
+	" ........+@#$.. ",
+	" ........%&*=.. ",
+	".........-;>....",
+	".....,')!%~{....",
+	"...]^/(..+_:<...",
+	"...[}|1..+_2=...",
+	"...3456..+_2=...",
+	"......7890_2=...",
+	"....abc..+_2=...",
+	"...def...+_2=...",
+	"...g|hi..+_2=...",
+	"...'||jkl0_2=...",
+	" ..mnb'opqrs=.. ",
+	" .............. ",
+	"   ..........   "};
+
+#elif defined (IconBlueShadesOn16x16AllTransparentBackground)	
+	/* XPM */
+	// The following xpm contains the 16x16 ai blue-shades icon on a transparent background.
+	static const char * AI_16_xpm[] = {
+	"16 16 39 1",
+	" 	c None",
+	".	c #75C9EB",
+	"+	c #22A9E0",
+	"@	c #18A4DF",
+	"#	c #73C8EB",
+	"$	c #21A8E0",
+	"%	c #17A4DF",
+	"&	c #4A97CC",
+	"*	c #006CB7",
+	"=	c #338AC5",
+	"-	c #4A96CB",
+	";	c #48B7E5",
+	">	c #3B8FC8",
+	",	c #0069B5",
+	"'	c #0973BA",
+	")	c #24A9E0",
+	"!	c #13A2DE",
+	"~	c #0C75BB",
+	"{	c #0D75BB",
+	"]	c #2F88C5",
+	"^	c #1AA5DF",
+	"/	c #006AB6",
+	"(	c #006AB5",
+	"_	c #4494CA",
+	":	c #5DA0D0",
+	"<	c #78CAEC",
+	"[	c #4B98CC",
+	"}	c #006DB7",
+	"|	c #3D90C8",
+	"1	c #0E75BB",
+	"2	c #016EB7",
+	"3	c #006BB7",
+	"4	c #0570B9",
+	"5	c #187CBE",
+	"6	c #0771B9",
+	"7	c #217FC0",
+	"8	c #6EC6EA",
+	"9	c #18A4DE",
+	"0	c #0DA0DD",
+	"                ",
+	"         .+@    ",
+	"         #$%    ",
+	"                ",
+	"     &*=-#;>    ",
+	"    ,'>  .)!    ",
+	"   >~{]  .)^    ",
+	"    /(>  .)^    ",
+	"      >_:<)^    ",
+	"    [}|  .)^    ",
+	"   >12   .)^    ",
+	"   3{4   .)^    ",
+	"   *{{5> <)^    ",
+	"   >6}*7 890    ",
+	"                ",
+	"                "};
+
+#else // IconWhiteBlueOn16x16BlueDiskBackground
+	/* XPM */
+	// The following xpm contains the 16x16 white-blue ai on a blue disk.
+	static const char * AI_16_xpm[] = {
+	"16 16 59 1",
+	" 	c None",
+	".	c #0E76BC",
+	"+	c #0D75BB",
+	"@	c #1D98D4",
+	"#	c #1C96D3",
+	"$	c #1990CE",
+	"%	c #0D74BA",
+	"&	c #26ADE3",
+	"*	c #25AAE1",
+	"=	c #209FD9",
+	"-	c #0C75BC",
+	";	c #0B74BB",
+	">	c #1F9DD7",
+	",	c #1B94D2",
+	"'	c #0973BB",
+	")	c #7DB5DB",
+	"!	c #DBEAF5",
+	"~	c #E7F1F9",
+	"{	c #0570B9",
+	"]	c #198FCE",
+	"^	c #6BABD6",
+	"/	c #FFFFFF",
+	"(	c #D6E7F4",
+	"_	c #006DB7",
+	":	c #006EB8",
+	"<	c #0E74BA",
+	"[	c #26ACE3",
+	"}	c #188CCC",
+	"|	c #026FB9",
+	"1	c #016FB8",
+	"2	c #016EB8",
+	"3	c #0772BA",
+	"4	c #5AA2D1",
+	"5	c #0A74BB",
+	"6	c #338BC6",
+	"7	c #0B73BA",
+	"8	c #97C4E2",
+	"9	c #D6E8F4",
+	"0	c #4A98CD",
+	"a	c #0B73B9",
+	"b	c #D1E5F2",
+	"c	c #0873BB",
+	"d	c #96C3E2",
+	"e	c #9BC6E3",
+	"f	c #0D76BC",
+	"g	c #C1DCEE",
+	"h	c #FDFEFF",
+	"i	c #0069B5",
+	"j	c #0E75BA",
+	"k	c #209ED8",
+	"l	c #1F7FC1",
+	"m	c #026EB8",
+	"n	c #0F76BC",
+	"o	c #0973BA",
+	"p	c #84B9DD",
+	"q	c #A3CBE5",
+	"r	c #1E9BD7",
+	"s	c #1E99D5",
+	"t	c #1A92D0",
+	"   ..........   ",
+	" ........+@#$.. ",
+	" ........%&*=.. ",
+	".......-;+=>,...",
+	".....')!~{].....",
+	"....^/(_:<&[}...",
+	"...:///|.%&*>...",
+	"...1///2.%&*>...",
+	"....342567&*>...",
+	"....:8/90a&*>...",
+	"...1//bc.%&*>...",
+	"...d//e..%&*>...",
+	"..fg//hi2j&*k...",
+	" ..l/////m&*=.. ",
+	" ..nopq01+rst.. ",
+	"   ..........   "};
+#endif
+
+	//wxImage image( 16, 16, (unsigned char*)data, TRUE );
+	wxIcon icon16x16( AI_16_xpm ); // wxIcon icon16x16( xpm_data16x16 );
 
     // Also give the main frame a 32x32 pixel icon (Alt+Tab uses a 32x32 pixel icon) This
     // xpm format should work for all platforms. It embeds the icon resource inside the
     // executable file, so no need to have to hunt for it from an external resource file.
-    /* XPM */
-        static const char *xpm_data32x32[] = {
-        /* columns rows colors chars-per-pixel */
-        "32 32 8 1",
-        "a c #808080",
-        "b c #FFFF00",
-        "c c #00FFFF",
-        "d c #800000",
-        "e c #008080",
-        "f c #FF0000",
-        "g c #C0C0C0",
-        "h c #808000",
-        /* pixels */
-        "bbbfhbbbbfbbbbbbbbbbbbbbbbhbbbbb",
-        "bbhffhbbbfhbbbbbbbbbffhbbffhfdbb",
-        "bbfffhbfffhffffhfffhfffbbffdffhb",
-        "bbfdfdhfhfhhfhfhfhfdffhbbffhfdbb",
-        "bhffffhfhfhffhfhfhfdffhbbffhfdbb",
-        "bffhffhfffhffffhfffhhffbbffhffhb",
-        "bbhbbhbbhhbbhhhhfdhbbhhbbbhbbhhb",
-        "bbbbbbbbbbbbbbbbhhbbbbbbbbbbbbbb",
-        "bbbbbbbbbbbbbbbbbbbbbbbbbahbbbbb",
-        "bbbbbbbbbbbbbbbbbbbbbbbaachbbbbb",
-        "bbbbaaaaabbbbbbbbbhfbbaccahbbbbb",
-        "haaaaaaeabbbbffffffffbaccahbbbbb",
-        "haaagggaabbbffhbbbhfbbacaahbbbbb",
-        "baaggaaaabbfhbbbabbbbbaaaabbbbbb",
-        "baaaaaaaabffbbhaeabbbhaaabbbbbbb",
-        "baaagaaaahfhbbaeaeabbbhbbbbbbbbb",
-        "baaaaeaaaafhbhaeeeabbbbbbbbbbbbb",
-        "baaaaaaaaaabbbaaeeabbbbbbbbbbbbb",
-        "bhaaaaggggaabbheeabgaeeeeeeeabbb",
-        "bbaaaggggggaaabbbbbgeeeeeeeeeabb",
-        "bbhagggggaaagabbbbbaeaaaaaaaeabb",
-        "bbbaaggaagaaahbbbbbaeeeeeeeeeabb",
-        "bbbbaagggaaabfbbbbbaeeeeeeeeeabb",
-        "bbbbbaaaaabfffbbbbbaeeeeeeeeegbb",
-        "bbbbbbaahbbhffffbbbgeeeeeeeeegbb",
-        "bbbbbbbbbbbbfbhffffaaeaaaaaaaabb",
-        "bbbbbbbbbbbbbbbbbbbaaaaaaaaaaabb",
-        "bbbbbbbbbbbbbbbbbbbahaaaahaaaabb",
-        "bbbbbbbbbbbbbbbbbbhaaaaaaahaaaab",
-        "bbbbbbbbbbbbbbbbbhhaaaaaaaaaaaab",
-        "bbbbbbbbbbbbbbbbbhhbbbbbbbbbhhbb",
-        "gggggggggggggggggggggggggggggggg"
-        };
+#if defined (IconBlueShadesOn32x32WhiteRectangularBackground)
+	/* XPM */
+	static const char * xpm_data32x32[] = {
+	// The following xpm icon contains the 32x32 blue shades ai logo on a white rectangular background.
+	"32 32 176 2",
+	"  	c #FFFFFF",
+	". 	c #DFF2FB",
+	"+ 	c #C8EAF8",
+	"@ 	c #CBEBF8",
+	"# 	c #C9EAF8",
+	"$ 	c #D6EFF9",
+	"% 	c #76CAEC",
+	"& 	c #16A5DF",
+	"* 	c #23AAE1",
+	"= 	c #19A5E0",
+	"- 	c #51BBE7",
+	"; 	c #FDFEFF",
+	"> 	c #75CAEC",
+	", 	c #16A4DF",
+	"' 	c #23A9E1",
+	") 	c #50BAE7",
+	"! 	c #FEFEFF",
+	"~ 	c #74C9EC",
+	"{ 	c #15A4DF",
+	"] 	c #22A9E1",
+	"^ 	c #18A5E0",
+	"/ 	c #79CBEC",
+	"( 	c #1CA7E0",
+	"_ 	c #29ACE2",
+	": 	c #1FA8E1",
+	"< 	c #55BDE8",
+	"[ 	c #FEFFFF",
+	"} 	c #ECF8FC",
+	"| 	c #DCF1FB",
+	"1 	c #DAF0FA",
+	"2 	c #D7F0FA",
+	"3 	c #D5EFFA",
+	"4 	c #DFF3FA",
+	"5 	c #DFEDF6",
+	"6 	c #B1D2E9",
+	"7 	c #8DBEDF",
+	"8 	c #7BB4DA",
+	"9 	c #77B1D9",
+	"0 	c #A6CCE6",
+	"a 	c #DCF2FA",
+	"b 	c #DEF2FB",
+	"c 	c #ACCFE8",
+	"d 	c #4B98CD",
+	"e 	c #1479BE",
+	"f 	c #006DB8",
+	"g 	c #1E7FC0",
+	"h 	c #348BC6",
+	"i 	c #207CBF",
+	"j 	c #4B97CC",
+	"k 	c #1CA6E0",
+	"l 	c #49B8E6",
+	"m 	c #8BD2EF",
+	"n 	c #E4F4FB",
+	"o 	c #EAF3F9",
+	"p 	c #539DCF",
+	"q 	c #006CB7",
+	"r 	c #1379BD",
+	"s 	c #B0D2E9",
+	"t 	c #F5FAFD",
+	"u 	c #F7FBFD",
+	"v 	c #E8F2F8",
+	"w 	c #14A3DF",
+	"x 	c #33B0E3",
+	"y 	c #C4E8F7",
+	"z 	c #FBFCFE",
+	"A 	c #539ECF",
+	"B 	c #006AB6",
+	"C 	c #0C75BC",
+	"D 	c #0A74BB",
+	"E 	c #157ABE",
+	"F 	c #D9EAF5",
+	"G 	c #18A5DF",
+	"H 	c #25AAE1",
+	"I 	c #C1DBED",
+	"J 	c #0470B9",
+	"K 	c #0C74BB",
+	"L 	c #0E76BC",
+	"M 	c #006EB8",
+	"N 	c #58A0D1",
+	"O 	c #1BA6E0",
+	"P 	c #9EC8E4",
+	"Q 	c #006EB7",
+	"R 	c #0D76BC",
+	"S 	c #0571B9",
+	"T 	c #3089C6",
+	"U 	c #FAFDFE",
+	"V 	c #52BBE7",
+	"W 	c #B7D6EB",
+	"X 	c #0B75BC",
+	"Y 	c #006BB7",
+	"Z 	c #559ED0",
+	"` 	c #5AA1D1",
+	" .	c #006DB7",
+	"..	c #006BB6",
+	"+.	c #1479BD",
+	"@.	c #C4DEEF",
+	"#.	c #A7CDE6",
+	"$.	c #75B0D8",
+	"%.	c #83B8DD",
+	"&.	c #D8E8F4",
+	"*.	c #F9FCFE",
+	"=.	c #F6FAFD",
+	"-.	c #77CAED",
+	";.	c #E9F2F9",
+	">.	c #ABCFE8",
+	",.	c #77B2D9",
+	"'.	c #4595CB",
+	").	c #267FC0",
+	"!.	c #5EA1D1",
+	"~.	c #79CBED",
+	"{.	c #B5D5EB",
+	"].	c #549ECF",
+	"^.	c #197CBF",
+	"/.	c #0069B5",
+	"(.	c #0571BA",
+	"_.	c #85B8DD",
+	":.	c #BED9EC",
+	"<.	c #77CBED",
+	"[.	c #DAEAF4",
+	"}.	c #4C99CD",
+	"|.	c #036FB9",
+	"1.	c #3E91C9",
+	"2.	c #D3E6F3",
+	"3.	c #D4E6F2",
+	"4.	c #2181C1",
+	"5.	c #006CB8",
+	"6.	c #DDEBF5",
+	"7.	c #F5F9FC",
+	"8.	c #3C90C9",
+	"9.	c #0F76BC",
+	"0.	c #026FB8",
+	"a.	c #B2D3EA",
+	"b.	c #016EB8",
+	"c.	c #016FB8",
+	"d.	c #519BCE",
+	"e.	c #7FB6DC",
+	"f.	c #0671BA",
+	"g.	c #2C87C5",
+	"h.	c #78B2DA",
+	"i.	c #A1C9E5",
+	"j.	c #AACFE7",
+	"k.	c #0973BB",
+	"l.	c #197DBF",
+	"m.	c #9CC6E3",
+	"n.	c #D5E7F3",
+	"o.	c #8DBDDF",
+	"p.	c #4796CC",
+	"q.	c #0069B6",
+	"r.	c #0B74BB",
+	"s.	c #0F77BC",
+	"t.	c #0370B9",
+	"u.	c #0065B4",
+	"v.	c #64A5D3",
+	"w.	c #78CBED",
+	"x.	c #E7F1F8",
+	"y.	c #0872BA",
+	"z.	c #2280C1",
+	"A.	c #90C0E0",
+	"B.	c #F9FCFD",
+	"C.	c #6FC7EB",
+	"D.	c #0BA0DD",
+	"E.	c #19A5DF",
+	"F.	c #0EA1DE",
+	"G.	c #48B7E6",
+	"H.	c #C5DEEF",
+	"I.	c #83B9DD",
+	"J.	c #5DA3D2",
+	"K.	c #57A0D1",
+	"L.	c #71AFD8",
+	"M.	c #A9CEE7",
+	"N.	c #ECF5FA",
+	"O.	c #A1DAF2",
+	"P.	c #60C1E9",
+	"Q.	c #69C5EB",
+	"R.	c #62C2EA",
+	"S.	c #88D1EF",
+	"                                                                ",
+	"                                                                ",
+	"                                      . + @ @ # $               ",
+	"                                      % & * * = - ;             ",
+	"                                      > , ' ' = ) !             ",
+	"                                      ~ { ] ] ^ ) !             ",
+	"                                      / ( _ _ : < [             ",
+	"                                      } | 1 2 3 4               ",
+	"                        5 6 7 8 9 0   a b                       ",
+	"                    c d e f g h i j   ~ k l m n                 ",
+	"                o p f q r s t [ u v   % { k w x y               ",
+	"              z A B C D E F           % G H H w < [             ",
+	"              I J K L L M N !         % G H H O ) !             ",
+	"              P Q R L L S T U         % G H H O V !             ",
+	"              W M X L L Y Z           % G H H O V !             ",
+	"              u ` Y  ...+.@.          % G H H O V !             ",
+	"                U #.$.%.&.      *.=.  -.G H H O V !             ",
+	"                        ;.>.,.'.).!.  ~.G H H O V !             ",
+	"                    {.].^./.(.d _.:.  <.G H H O V !             ",
+	"                [.}.|.M f 1.2.        % G H H O V !             ",
+	"              3.4.5.C D ^.6.          % G H H O V !             ",
+	"            7.8. .9.L 0.d             % G H H O V !             ",
+	"            a.b.R L L c.d.            % G H H O V !             ",
+	"            e.5.L L L f.g.=.          % G H H O V !             ",
+	"            h.5.L L L R J i.          % G H H O V !             ",
+	"            j.f R L L L k.l.m.n.6 o.  ~.G H H O V !             ",
+	"            7.p.q.r.L L s.k.t.D u.v.  w.G H H O V !             ",
+	"              x.` y.q M M f b.z.A.B.  C.D.E.E.F.G.!             ",
+	"                  H.I.J.K.L.M.N.      O.P.Q.Q.R.S.[             ",
+	"                                                                ",
+	"                                                                ",
+	"                                                                "};
+	
+#elif defined (IconBlueShadesOn32x32WhiteDiskBackground)
+	/* XPM */
+	// The following xpm icon contains the 32x32 blue shades ai logo on a white disk.
+	static const char * xpm_data32x32[] = {
+	"32 32 177 2",
+	"  	c None",
+	". 	c #FFFFFF",
+	"+ 	c #DFF2FB",
+	"@ 	c #C8EAF8",
+	"# 	c #CBEBF8",
+	"$ 	c #C9EAF8",
+	"% 	c #D6EFF9",
+	"& 	c #76CAEC",
+	"* 	c #16A5DF",
+	"= 	c #23AAE1",
+	"- 	c #19A5E0",
+	"; 	c #51BBE7",
+	"> 	c #FDFEFF",
+	", 	c #75CAEC",
+	"' 	c #16A4DF",
+	") 	c #23A9E1",
+	"! 	c #50BAE7",
+	"~ 	c #FEFEFF",
+	"{ 	c #74C9EC",
+	"] 	c #15A4DF",
+	"^ 	c #22A9E1",
+	"/ 	c #18A5E0",
+	"( 	c #79CBEC",
+	"_ 	c #1CA7E0",
+	": 	c #29ACE2",
+	"< 	c #1FA8E1",
+	"[ 	c #55BDE8",
+	"} 	c #FEFFFF",
+	"| 	c #ECF8FC",
+	"1 	c #DCF1FB",
+	"2 	c #DAF0FA",
+	"3 	c #D7F0FA",
+	"4 	c #D5EFFA",
+	"5 	c #DFF3FA",
+	"6 	c #DFEDF6",
+	"7 	c #B1D2E9",
+	"8 	c #8DBEDF",
+	"9 	c #7BB4DA",
+	"0 	c #77B1D9",
+	"a 	c #A6CCE6",
+	"b 	c #DCF2FA",
+	"c 	c #DEF2FB",
+	"d 	c #ACCFE8",
+	"e 	c #4B98CD",
+	"f 	c #1479BE",
+	"g 	c #006DB8",
+	"h 	c #1E7FC0",
+	"i 	c #348BC6",
+	"j 	c #207CBF",
+	"k 	c #4B97CC",
+	"l 	c #1CA6E0",
+	"m 	c #49B8E6",
+	"n 	c #8BD2EF",
+	"o 	c #E4F4FB",
+	"p 	c #EAF3F9",
+	"q 	c #539DCF",
+	"r 	c #006CB7",
+	"s 	c #1379BD",
+	"t 	c #B0D2E9",
+	"u 	c #F5FAFD",
+	"v 	c #F7FBFD",
+	"w 	c #E8F2F8",
+	"x 	c #14A3DF",
+	"y 	c #33B0E3",
+	"z 	c #C4E8F7",
+	"A 	c #FBFCFE",
+	"B 	c #539ECF",
+	"C 	c #006AB6",
+	"D 	c #0C75BC",
+	"E 	c #0A74BB",
+	"F 	c #157ABE",
+	"G 	c #D9EAF5",
+	"H 	c #18A5DF",
+	"I 	c #25AAE1",
+	"J 	c #C1DBED",
+	"K 	c #0470B9",
+	"L 	c #0C74BB",
+	"M 	c #0E76BC",
+	"N 	c #006EB8",
+	"O 	c #58A0D1",
+	"P 	c #1BA6E0",
+	"Q 	c #9EC8E4",
+	"R 	c #006EB7",
+	"S 	c #0D76BC",
+	"T 	c #0571B9",
+	"U 	c #3089C6",
+	"V 	c #FAFDFE",
+	"W 	c #52BBE7",
+	"X 	c #B7D6EB",
+	"Y 	c #0B75BC",
+	"Z 	c #006BB7",
+	"` 	c #559ED0",
+	" .	c #5AA1D1",
+	"..	c #006DB7",
+	"+.	c #006BB6",
+	"@.	c #1479BD",
+	"#.	c #C4DEEF",
+	"$.	c #A7CDE6",
+	"%.	c #75B0D8",
+	"&.	c #83B8DD",
+	"*.	c #D8E8F4",
+	"=.	c #F9FCFE",
+	"-.	c #F6FAFD",
+	";.	c #77CAED",
+	">.	c #E9F2F9",
+	",.	c #ABCFE8",
+	"'.	c #77B2D9",
+	").	c #4595CB",
+	"!.	c #267FC0",
+	"~.	c #5EA1D1",
+	"{.	c #79CBED",
+	"].	c #B5D5EB",
+	"^.	c #549ECF",
+	"/.	c #197CBF",
+	"(.	c #0069B5",
+	"_.	c #0571BA",
+	":.	c #85B8DD",
+	"<.	c #BED9EC",
+	"[.	c #77CBED",
+	"}.	c #DAEAF4",
+	"|.	c #4C99CD",
+	"1.	c #036FB9",
+	"2.	c #3E91C9",
+	"3.	c #D3E6F3",
+	"4.	c #D4E6F2",
+	"5.	c #2181C1",
+	"6.	c #006CB8",
+	"7.	c #DDEBF5",
+	"8.	c #F5F9FC",
+	"9.	c #3C90C9",
+	"0.	c #0F76BC",
+	"a.	c #026FB8",
+	"b.	c #B2D3EA",
+	"c.	c #016EB8",
+	"d.	c #016FB8",
+	"e.	c #519BCE",
+	"f.	c #7FB6DC",
+	"g.	c #0671BA",
+	"h.	c #2C87C5",
+	"i.	c #78B2DA",
+	"j.	c #A1C9E5",
+	"k.	c #AACFE7",
+	"l.	c #0973BB",
+	"m.	c #197DBF",
+	"n.	c #9CC6E3",
+	"o.	c #D5E7F3",
+	"p.	c #8DBDDF",
+	"q.	c #4796CC",
+	"r.	c #0069B6",
+	"s.	c #0B74BB",
+	"t.	c #0F77BC",
+	"u.	c #0370B9",
+	"v.	c #0065B4",
+	"w.	c #64A5D3",
+	"x.	c #78CBED",
+	"y.	c #E7F1F8",
+	"z.	c #0872BA",
+	"A.	c #2280C1",
+	"B.	c #90C0E0",
+	"C.	c #F9FCFD",
+	"D.	c #6FC7EB",
+	"E.	c #0BA0DD",
+	"F.	c #19A5DF",
+	"G.	c #0EA1DE",
+	"H.	c #48B7E6",
+	"I.	c #C5DEEF",
+	"J.	c #83B9DD",
+	"K.	c #5DA3D2",
+	"L.	c #57A0D1",
+	"M.	c #71AFD8",
+	"N.	c #A9CEE7",
+	"O.	c #ECF5FA",
+	"P.	c #A1DAF2",
+	"Q.	c #60C1E9",
+	"R.	c #69C5EB",
+	"S.	c #62C2EA",
+	"T.	c #88D1EF",
+	"              . . . . . . . . . . . . . . . . . .               ",
+	"          . . . . . . . . . . . . . . . . . . . . . .           ",
+	"      . . . . . . . . . . . . . . . . + @ # # $ % . . . .       ",
+	"    . . . . . . . . . . . . . . . . . & * = = - ; > . . . .     ",
+	"    . . . . . . . . . . . . . . . . . , ' ) ) - ! ~ . . . .     ",
+	"  . . . . . . . . . . . . . . . . . . { ] ^ ^ / ! ~ . . . . .   ",
+	"  . . . . . . . . . . . . . . . . . . ( _ : : < [ } . . . . .   ",
+	". . . . . . . . . . . . . . . . . . . | 1 2 3 4 5 . . . . . . . ",
+	". . . . . . . . . . . . 6 7 8 9 0 a . b c . . . . . . . . . . . ",
+	". . . . . . . . . . d e f g h i j k . { l m n o . . . . . . . . ",
+	". . . . . . . . p q g r s t u } v w . & ] l x y z . . . . . . . ",
+	". . . . . . . A B C D E F G . . . . . & H I I x [ } . . . . . . ",
+	". . . . . . . J K L M M N O ~ . . . . & H I I P ! ~ . . . . . . ",
+	". . . . . . . Q R S M M T U V . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . . X N Y M M Z ` . . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . . v  .Z ..+.@.#.. . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . . . V $.%.&.*.. . . =.-.. ;.H I I P W ~ . . . . . . ",
+	". . . . . . . . . . . . >.,.'.).!.~.. {.H I I P W ~ . . . . . . ",
+	". . . . . . . . . . ].^./.(._.e :.<.. [.H I I P W ~ . . . . . . ",
+	". . . . . . . . }.|.1.N g 2.3.. . . . & H I I P W ~ . . . . . . ",
+	". . . . . . . 4.5.6.D E /.7.. . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . 8.9...0.M a.e . . . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . b.c.S M M d.e.. . . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . f.6.M M M g.h.-.. . . . . & H I I P W ~ . . . . . . ",
+	". . . . . . i.6.M M M S K j.. . . . . & H I I P W ~ . . . . . . ",
+	"  . . . . . k.g S M M M l.m.n.o.7 p.. {.H I I P W ~ . . . . .   ",
+	"  . . . . . 8.q.r.s.M M t.l.u.E v.w.. x.H I I P W ~ . . . . .   ",
+	"    . . . . . y. .z.r N N g c.A.B.C.. D.E.F.F.G.H.~ . . . .     ",
+	"    . . . . . . . I.J.K.L.M.N.O.. . . P.Q.R.R.S.T.} . . . .     ",
+	"      . . . . . . . . . . . . . . . . . . . . . . . . . .       ",
+	"          . . . . . . . . . . . . . . . . . . . . . .           ",
+	"              . . . . . . . . . . . . . . . . . .               "};
+
+#elif defined (IconBlueShadesOn32x32AllTransparentBackground)
+	// The following xpm icon contains the 32x32 blue shades ai logo on a transparent background
+	/* XPM */
+	static const char * xpm_data32x32[] = {
+	"32 32 82 1",
+	" 	c None",
+	".	c #1CA6E0",
+	"+	c #52BBE7",
+	"@	c #76CAEC",
+	"#	c #16A5DF",
+	"$	c #23AAE1",
+	"%	c #19A5E0",
+	"&	c #51BBE7",
+	"*	c #75CAEC",
+	"=	c #16A4DF",
+	"-	c #23A9E1",
+	";	c #50BAE7",
+	">	c #74C9EC",
+	",	c #15A4DF",
+	"'	c #22A9E1",
+	")	c #18A5E0",
+	"!	c #79CBEC",
+	"~	c #1CA7E0",
+	"{	c #29ACE2",
+	"]	c #1FA8E1",
+	"^	c #55BDE8",
+	"/	c #519BCE",
+	"(	c #2181C1",
+	"_	c #1479BE",
+	":	c #006DB8",
+	"<	c #1E7FC0",
+	"[	c #348BC6",
+	"}	c #49B8E6",
+	"|	c #006CB7",
+	"1	c #1379BD",
+	"2	c #14A3DF",
+	"3	c #33B0E3",
+	"4	c #006AB6",
+	"5	c #0C75BC",
+	"6	c #0A74BB",
+	"7	c #157ABE",
+	"8	c #18A5DF",
+	"9	c #25AAE1",
+	"0	c #0470B9",
+	"a	c #0C74BB",
+	"b	c #0E76BC",
+	"c	c #006EB8",
+	"d	c #1BA6E0",
+	"e	c #006EB7",
+	"f	c #0D76BC",
+	"g	c #0571B9",
+	"h	c #3089C6",
+	"i	c #0B75BC",
+	"j	c #006BB7",
+	"k	c #006DB7",
+	"l	c #006BB6",
+	"m	c #1479BD",
+	"n	c #77CAED",
+	"o	c #267FC0",
+	"p	c #79CBED",
+	"q	c #197CBF",
+	"r	c #0069B5",
+	"s	c #0571BA",
+	"t	c #77CBED",
+	"u	c #036FB9",
+	"v	c #006CB8",
+	"w	c #0F76BC",
+	"x	c #026FB8",
+	"y	c #016EB8",
+	"z	c #016FB8",
+	"A	c #0671BA",
+	"B	c #2C87C5",
+	"C	c #0973BB",
+	"D	c #197DBF",
+	"E	c #0069B6",
+	"F	c #0B74BB",
+	"G	c #0F77BC",
+	"H	c #0370B9",
+	"I	c #0065B4",
+	"J	c #78CBED",
+	"K	c #0872BA",
+	"L	c #2280C1",
+	"M	c #6FC7EB",
+	"N	c #0BA0DD",
+	"O	c #19A5DF",
+	"P	c #0EA1DE",
+	"Q	c #48B7E6",
+	"                                ",
+	"                                ",
+	"                   .++++.       ",
+	"                   @#$$%&       ",
+	"                   *=--%;       ",
+	"                   >,'');       ",
+	"                   !~{{]^       ",
+	"                   .++++.       ",
+	"            /((((/              ",
+	"          /(_:<[(( ..}}+        ",
+	"        /(:|1(   ( @,.23+       ",
+	"        (4567(     @8992^       ",
+	"       /0abbc(     @899d;       ",
+	"       (efbbgh     @899d+       ",
+	"       /cibbj(     @899d+       ",
+	"        /jklm(     @899d+       ",
+	"         /(((      n899d+       ",
+	"            ((((o( p899d+       ",
+	"          /(qrs(// t899d+       ",
+	"        /(uc:((    @899d+       ",
+	"       /(v56q(     @899d+       ",
+	"       (kwbx(      @899d+       ",
+	"      /yfbbz(      @899d+       ",
+	"      (vbbbAB      @899d+       ",
+	"      (vbbbf0(     @899d+       ",
+	"      /:fbbbCD(((( p899d+       ",
+	"       (EFbbGCH6I( J899d+       ",
+	"       /(K|cc:yL(  MNOOPQ       ",
+	"         /(((((/   ......       ",
+	"                                ",
+	"                                ",
+"                                "};
+
+#else // IconWhiteBlueOn32x32BlueDiskBackground
+	// The following xpm icon contains the 32x32 white-blue ai logo on a blue disk
+	/* XPM */
+	static const char * xpm_data32x32[] = {
+	"32 32 155 2",
+	"  	c None",
+	". 	c #0E76BC",
+	"+ 	c #0D74BB",
+	"@ 	c #0D73BA",
+	"# 	c #0D75BB",
+	"$ 	c #188CCC",
+	"% 	c #1D98D4",
+	"& 	c #1C96D3",
+	"* 	c #1990CE",
+	"= 	c #0D74BA",
+	"- 	c #1F9BD6",
+	"; 	c #27B0E5",
+	"> 	c #26ADE3",
+	", 	c #27AFE4",
+	"' 	c #21A1DB",
+	") 	c #1E99D5",
+	"! 	c #25AAE1",
+	"~ 	c #26ACE2",
+	"{ 	c #209FD9",
+	"] 	c #26ACE3",
+	"^ 	c #21A1DA",
+	"/ 	c #0C75BC",
+	"( 	c #0B74BB",
+	"_ 	c #0D75BC",
+	": 	c #1A90CF",
+	"< 	c #1F9DD7",
+	"[ 	c #209ED8",
+	"} 	c #1B94D2",
+	"| 	c #0571BA",
+	"1 	c #006EB8",
+	"2 	c #0370B9",
+	"3 	c #0C75BB",
+	"4 	c #1379BD",
+	"5 	c #0C71B8",
+	"6 	c #0C72B9",
+	"7 	c #0973BB",
+	"8 	c #3C90C9",
+	"9 	c #7DB5DB",
+	"0 	c #B7D6EB",
+	"a 	c #DBEAF5",
+	"b 	c #E7F1F8",
+	"c 	c #E7F1F9",
+	"d 	c #9AC5E3",
+	"e 	c #0570B9",
+	"f 	c #178BCB",
+	"g 	c #198FCE",
+	"h 	c #1381C4",
+	"i 	c #016FB8",
+	"j 	c #4595CB",
+	"k 	c #C0DBED",
+	"l 	c #FEFEFF",
+	"m 	c #FFFFFF",
+	"n 	c #E2EFF7",
+	"o 	c #9CC7E3",
+	"p 	c #82B8DC",
+	"q 	c #9AC6E3",
+	"r 	c #8BBDDF",
+	"s 	c #0770B9",
+	"t 	c #1E9BD6",
+	"u 	c #26ABE2",
+	"v 	c #1688C9",
+	"w 	c #026FB9",
+	"x 	c #6BABD6",
+	"y 	c #FBFDFE",
+	"z 	c #D6E7F4",
+	"A 	c #0F77BC",
+	"B 	c #006DB7",
+	"C 	c #006DB8",
+	"D 	c #0E74BA",
+	"E 	c #0671BA",
+	"F 	c #378DC7",
+	"G 	c #FAFCFD",
+	"H 	c #F4F8FC",
+	"I 	c #3F92C9",
+	"J 	c #0571B9",
+	"K 	c #0D76BC",
+	"L 	c #1F9ED8",
+	"M 	c #89BCDE",
+	"N 	c #AED1E9",
+	"O 	c #9FC9E5",
+	"P 	c #B9D7EC",
+	"Q 	c #0470B9",
+	"R 	c #6AAAD5",
+	"S 	c #7CB5DA",
+	"T 	c #016EB8",
+	"U 	c #0E77BC",
+	"V 	c #A3CBE6",
+	"W 	c #FEFFFF",
+	"X 	c #BBD8EC",
+	"Y 	c #177BBE",
+	"Z 	c #0A74BB",
+	"` 	c #0772BA",
+	" .	c #0872BA",
+	"..	c #3D91C9",
+	"+.	c #5AA2D1",
+	"@.	c #4294CA",
+	"#.	c #006BB7",
+	"$.	c #1C7EC0",
+	"%.	c #338BC6",
+	"&.	c #328AC6",
+	"*.	c #0B73BA",
+	"=.	c #0067B5",
+	"-.	c #1479BE",
+	";.	c #59A0D1",
+	">.	c #D2E5F2",
+	",.	c #F5FAFD",
+	"'.	c #036EB8",
+	").	c #1D99D5",
+	"!.	c #2B87C4",
+	"~.	c #97C4E2",
+	"{.	c #E8F2F9",
+	"].	c #D6E8F4",
+	"^.	c #7CB5DB",
+	"/.	c #4A98CD",
+	"(.	c #2684C3",
+	"_.	c #0B73B9",
+	":.	c #EFF6FB",
+	"<.	c #91C0E0",
+	"[.	c #0973BA",
+	"}.	c #78B2D9",
+	"|.	c #D1E5F2",
+	"1.	c #0873BB",
+	"2.	c #398FC8",
+	"3.	c #98C5E3",
+	"4.	c #96C3E2",
+	"5.	c #9BC6E3",
+	"6.	c #C1DCEE",
+	"7.	c #CDE2F1",
+	"8.	c #FDFEFF",
+	"9.	c #58A0D1",
+	"0.	c #0069B5",
+	"a.	c #0E75BA",
+	"b.	c #0E75BC",
+	"c.	c #8ABCDF",
+	"d.	c #71AED7",
+	"e.	c #4394CA",
+	"f.	c #73AFD8",
+	"g.	c #8EBEE0",
+	"h.	c #0871B9",
+	"i.	c #1F7FC1",
+	"j.	c #DDECF5",
+	"k.	c #88BBDE",
+	"l.	c #026EB8",
+	"m.	c #0F76BC",
+	"n.	c #2B86C4",
+	"o.	c #CEE3F1",
+	"p.	c #0672BA",
+	"q.	c #0C73BA",
+	"r.	c #84B9DD",
+	"s.	c #A2CAE5",
+	"t.	c #A3CBE5",
+	"u.	c #86BADE",
+	"v.	c #198ECD",
+	"w.	c #1E9BD7",
+	"x.	c #1A92D0",
+	"              . . . . . . . . . . . . . . . . . .               ",
+	"          . . . . . . . . . . . . . . + @ @ @ @ + . .           ",
+	"      . . . . . . . . . . . . . . . # $ % & & % * . . . .       ",
+	"    . . . . . . . . . . . . . . . . = - ; > > , ' . . . . .     ",
+	"    . . . . . . . . . . . . . . . . = ) > ! ! ~ { . . . . .     ",
+	"  . . . . . . . . . . . . . . . . . = - ; ] ] , ^ . . . . . .   ",
+	"  . . . . . . . . . . . . . / ( ( _ # : { < < [ } . . . . . .   ",
+	". . . . . . . . . . _ | 1 2 3 4 4 . . @ 5 6 = + # . . . . . . . ",
+	". . . . . . . . . 2 7 8 9 0 a b c d e f g h . @ . . . . . . . . ",
+	". . . . . . . . i j k l m n o p q r s t ; u ^ v + . . . . . . . ",
+	". . . . . . . w x y m m z A B C 1 7 D ) > ! ] > $ = . . . . . . ",
+	". . . . . . E F G m m m H I J . . K = ) > ! ! ] L + . . . . . . ",
+	". . . . . . 1 M m m m m m N w K . . = ) > ! ! ] < + . . . . . . ",
+	". . . . . . 1 O m m m m m P Q . . . = ) > ! ! ] < + . . . . . . ",
+	". . . . . . i R m m m m m S T . . . = ) > ! ! ] < + . . . . . . ",
+	". . . . . . 3 U V W m m X Y 7 Z `  .= ) > ! ! ] < + . . . . . . ",
+	". . . . . . . ( ` ..+.@.T #.Z $.%.&.*.) > ! ! ] < + . . . . . . ",
+	". . . . . . . . K C =.-.;.d >.,.W N '.).> ! ! ] < + . . . . . . ",
+	". . . . . . . _ 1 !.~.{.m m ].^./.(._.) > ! ! ] < + . . . . . . ",
+	". . . . . . _ 2 x :.m m m <.[.C 2 7 = ) > ! ! ] < + . . . . . . ",
+	". . . . . . i }.m m m m |.[.1.. . . = ) > ! ! ] < + . . . . . . ",
+	". . . . . | 2.y m m m m 3.C . . . . = ) > ! ! ] < + . . . . . . ",
+	". . . . . T 4.m m m m m 5.1 . . . . = ) > ! ! ] < + . . . . . . ",
+	". . . . K | 6.m m m m m 7. .3 . . K = ) > ! ! ] < + . . . . . . ",
+	". . . . K | 6.m m m m m 8.9.0.2 T Z a.) > ! ! ] [ b.. . . . . . ",
+	"  . . . . T c.m m m m m m :.d.e.f.g.h.).> ! ! ~ { . . . . . .   ",
+	"  . . . . [.i.j.m m m m m m m m m k.l.).> ! ! ~ { . . . . . .   ",
+	"    . . . m.J n.P m m m m m m o.;.p.q.- ; > > , ^ . . . . .     ",
+	"    . . . . m.E [.j r.s.t.u./.m.i K # v.w.) ) t x.. . . . .     ",
+	"      . . . . . _ Q 1 w w 1 2 3 . . . # = = = = + . . . .       ",
+	"          . . . . . . . . . . . . . . . . . . . . . .           ",
+	"              . . . . . . . . . . . . . . . . . .               "};
+	#endif
+
 	wxIcon icon32x32( xpm_data32x32 );
 
 
@@ -6522,6 +13791,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
+	// whm 28Sep10 moved the MakeMenuInitializationsAndPlatformAdjustments() function and the code for
+	// loading the file history (MRU) from this location in OnInit() to much later after
+	// the AI_UserProfiles.xml file has been loaded.
+	/*
+	MakeMenuInitializationsAndPlatformAdjustments();
+
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
 	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
@@ -6530,92 +13805,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
+	*/
 
-	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
-    // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
-    // are made to coordinate with these menu hot key adjustments.
-#if defined (__WXMAC__) || defined (__WXGTK__)
-    // whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep
-    // them from conflicting with the customary Mac access keys and accelerator keys. The
-    // accelerator keys are created during the creation of the CMainFrame above, so we can
-    // make adjustments here.
+	// whm added 9Feb11 for Paratext Collaboration support
+	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
+	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+	// If it exists, it queries the string value associated with the key which will be
+	// the directory where Paratext is installed, i.e., "C:\Program Files\Paratext 7\"
+	// It then checks for the existence of a "Paratext.exe" executable file within that
+	// directory. If all checks pass, we assume Paratext is installed on the host system.
+	if (ParatextIsInstalled())
+	{
+		m_bParatextIsInstalled = TRUE;
+	}
 
-	// File | Start Working...
-    // On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active
-    // Window, so we've defined the accelerator key on Mac for "Start Working..." as
-    // Command-Shift-O, and on Linux as Ctrl-Shift-O, to avoid the conflict.
-	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
-				// & Linux have the default Ctrl-W
-#endif
-	
-#ifdef __WXMAC__
-	// File | Close Project
-    // On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used
-    // it on Windows/Linux for Close Project, but the comperable hot key to close the
-    // active window for Mac is Command-W.
-	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close 
-	// (wxID_CLOSE) menu item.
-	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
-			// and Linux have the default Ctrl-J
-    
-	// File | Exit
-	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
-	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
-	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
-    wxMenuItem* pFileExitItem;
-	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
-	wxASSERT(pFileExitItem != NULL);
-	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
-	
-	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(editMenu);
-	wxASSERT(pEditMenu != NULL);
-	
-	// Edit | Edit Source Text
-    // On Mac, the hot key command to quit the application is Command-Q and we have set a
-    // Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
-    // Ctrl-Shift-E for it here.
-    pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
-	
-	// Edit | Move Note Backward
-    // On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
-    // accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
-    // use Ctrl-Shift-2 for it here.
-    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
-	
-	// Edit | Move Note Forward
-    // On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
-    // accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
-    // use Ctrl-Shift-3 for it here.
-    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
-	
-	wxMenu* pToolsMenu = m_pMainFrame->GetMenuBar()->GetMenu(toolsMenu);
-	wxASSERT(pToolsMenu != NULL);
-	
-	// Tools | Find and Replace
-	// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
-	// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
-	// menu to use Ctrl-Shift-F for it here.
-	pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
-
-	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(layoutMenu);
-	wxASSERT(pLayoutMenu != NULL);
-	
-	// Layout | Layout Window Right To Left
-	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
-	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
-	// menu to use Ctrl-Shift-1 for it here.
-	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
-
-	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
-	wxASSERT(pHelpTopicsMenu != NULL);
-	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
-
-#else
-	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP);
-	wxASSERT(pHelpTopicsMenu != NULL);
-	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
-
-#endif
+	// whm added 9Feb11 for Paratext Collaboration support
+	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
+	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
+	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on 
+	// a Windows host system.
+	// Note: a non empty path in m_ParatextProjectsDirPath ends with a Windows \ path separator.
+	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
 
     // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
@@ -6646,6 +13856,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// for richer memory leak dumps
     // whm - wxWidgets has its own memory leak facilities built into its library
 	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+
 
 	// some extra initializations, required for Adapt It
 	m_bKBReady = FALSE;
@@ -6705,6 +13916,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."),
 		m_customWorkFolderPath.c_str());
 		wxMessageBox(str, _("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+		LogUserAction(_T("Locating the custom work folder location failed"));
 		abort();
 		return FALSE;
 	}
@@ -6731,6 +13943,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // multiple monitor setup, and determine the boundaries for valid main frame positions
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
+    // 
 	int numMonitors;
 	numMonitors = wxDisplay::GetCount();
 	if (numMonitors > 1)
@@ -6874,9 +14087,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // called first to establish any non-zoomed window size, before re-establishing any
         // zoomed state.
 		
-		m_pMainFrame->SetSize(gpApp->m_ptViewTopLeft.x, gpApp->m_ptViewTopLeft.y,
-						gpApp->m_szView.x, gpApp->m_szView.y, wxSIZE_AUTO);
-		if (gpApp->m_bZoomed)
+		m_pMainFrame->SetSize(m_ptViewTopLeft.x, m_ptViewTopLeft.y, m_szView.x, m_szView.y, wxSIZE_AUTO);
+		if (m_bZoomed)
 		{
 			m_pMainFrame->Maximize(TRUE);
 		}
@@ -6974,6 +14186,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Creation of targetbox moved to the View's OnCreate() method
 
+	/*
+	// whm moved the following to the MakeMenuInitializationsAndPlatformAdjustments() 
+	// function.
     // These toggle menu items should be initially set as follows (TRUE=checked;
     // FALSE=unchecked):
     // whm verified 2Sep06 that at least some are needed to be pre-set as follows in order
@@ -6989,6 +14204,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_ACCEPT_CHANGES, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+	*/
 
 	// The following code for setting the composebar font and RTL was moved here 
 	// to the App from the CMainFraim constructor where it was in the MFC version
@@ -7014,13 +14230,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 
+// ************************* TEMPORARY FOR 6.0.0 ONLY ****************************************
+	// For OXES -- in 6.0.0 it isn't supported, so remove the menu item temporarily, and
+	// restore it for 6.1.0
+	wxMenu* pItsMenu = NULL;
+	wxMenuItem* pHideThisOxesMenuItem = pMenuBar->FindItem(ID_EXPORT_OXES, &pItsMenu);
+	pItsMenu->Remove(pHideThisOxesMenuItem);
+// ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
+
 	// Hide the Glossing check box
 	wxPanel* pBar;
 	pBar = m_pMainFrame->m_pControlBar;
 	wxASSERT(pBar != NULL);
 	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)pBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-	wxASSERT(pCheckboxIsGlossing != NULL);
-	pCheckboxIsGlossing->Show(FALSE);
+	if(pCheckboxIsGlossing != NULL)
+	{
+		pCheckboxIsGlossing->Show(FALSE);
+	}
 
     m_pMainFrame->Show(TRUE);
     SetTopWindow(m_pMainFrame);
@@ -7046,69 +14272,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // box will also at that point not be in existence, and otherwise a crash would happen
     // when in OnButtonMerge()
 	gbDoingInitialSetup = TRUE;
-
-	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
-	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
-	// resource. With wxDesigner handling resources, it's easier to start with the item 
-	// in the menu and programmatically delete it, rather than create it from scratch.
-	// So, for ANSI version, we'll just remove them from the MenuBar.
-#ifndef _UNICODE
-	// ANSI only
-	//AddForceUTF8Command(); // File... Export Target Text As UTF-8... menu command
-	// Rather than calling a AddForceUTF8Command() function we'll just use the
-	// pFileMenu pointer defined above and remove the menu item, deleting it to 
-	// avoid memory leaks.
-	// whm Bruce later made the following change to the MFC version:
-	// BEW removed 8Dec06 because we'll force UTF8 conversion for the standard command from now on
-	// leave this function in the app, commented out, it is a useful template for how to add
-	// a menu command dynamically
-	wxASSERT(pFileMenu != NULL);
-	wxMenuItem* pRemMenuItem;
-	//pRemMenuItem = pFileMenu->Remove(ID_FORCEUTF8);
-	//wxASSERT(pRemMenuItem != NULL);
-	//delete pRemMenuItem; // to avoid memory leaks
-	//pRemMenuItem = (wxMenuItem*)NULL;
-
-	// In the wx version we started with the Layout menu loaded with 
-	// other menu resources. Here we'll remove it for the ANSI version.
-	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(layoutMenu);
-	wxASSERT(pLayoutMenu != NULL);
-	// first delete the "Layout Window Right To Left\tCTRL+1" menu item
-	pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
-	wxASSERT(pRemMenuItem != NULL);
-	delete pRemMenuItem; // to avoid memory leaks
-	pRemMenuItem = (wxMenuItem*)NULL;
-	// then delete the top level "Layout" menu
-	//wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
-	wxMenu* pRemMenu;
-	pRemMenu = pMenuBar->Remove(layoutMenu);
-	wxASSERT(pRemMenu != NULL);
-	delete pRemMenu; // to avoid memory leaks
-	pRemMenu = (wxMenu*)NULL;
-#else
-	// Unicode version
-	// Initialize the Layout menu to LTR
-	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
-	wxASSERT(pLayoutMenuAlignment != NULL);
-	// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
-    // note: default display is LTR so menu item should read what clicking it should make
-    // the layout become after clicking. The menu text may be changed to appropriate value
-    // upon reading reading a project config file (the change is made in ???).
-#ifdef __WXMAC__
-	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
-#else
-	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
-#endif
-
-#endif 
-
-    // insure that the Use Tooltips menu item in the Help menu is checked or unchecked
-    // according to the current value of m_bUseToolTips (retrieved from registry/hidden
-    // settings via wxConfig object earlier in OnInit)
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
-	wxASSERT(pUseToolTips != NULL);
-	pUseToolTips->Check(m_bUseToolTips);
 
 	// change the unnamedN title to "Untitled - Adapt It"
 	wxString viewTitle = _("Untitled - Adapt It");
@@ -7144,16 +14307,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	if (!bBooksFileExists)
 	{
 
-		wxString filecopyPath;
-		filecopyPath = m_xmlInstallPath + PathSeparator + _("books.xml");
-		bBooksFileExists = ::wxFileExists(filecopyPath) && !::wxDirExists(filecopyPath);
+		wxString booksInstallFolderFileCopyPath;
+		booksInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _("books.xml");
+		bBooksFileExists = ::wxFileExists(booksInstallFolderFileCopyPath) && !::wxDirExists(booksInstallFolderFileCopyPath);
 		if (bBooksFileExists)
 		{
 			//wxLogDebug(_T("Copying existing books.xml from m_xmlInstallPath to user's work folder."));
 			// copy the file to the work folder
 			bool success;
 			// Use the simple wxCopyFile() method
-			success = wxCopyFile(filecopyPath, booksfilePath, TRUE); // TRUE = overwrite
+			success = wxCopyFile(booksInstallFolderFileCopyPath, booksfilePath, TRUE); // TRUE = overwrite
 			if (!success)
 			{
 				bBooksFileExists = FALSE;
@@ -7239,6 +14402,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the work folder, i.e., the "Adapt It Work" folder for it to be used in producing the
     // Unix-like default strings.
 	wxString AIstyleFileWorkFolderPath;
+	wxString AIuserProfilesWorkFolderPath;
+	wxString AIemailReportFolderPathOnly;
+	wxString AIusageLogFolderPath;
+	wxString AIpackedDocumentFolderPathOnly;
+	wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
+	if (strUserID.IsEmpty())
+	{
+		// we must supply a default if nothing was returned
+		strUserID = _T("unknownUser");
+	}
 	if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
 	{
 		#ifdef Output_Default_Style_Strings
@@ -7246,6 +14419,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#else
 		AIstyleFileWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
+		AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+		AIemailReportFolderPathOnly = m_customWorkFolderPath;
+		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+		AIpackedDocumentFolderPathOnly = m_customWorkFolderPath;
 	}
 	else
 	{
@@ -7254,22 +14431,43 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		#else
 		AIstyleFileWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
+		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
+		AIemailReportFolderPathOnly = m_workFolderPath;
+		AIusageLogFolderPath = m_workFolderPath + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+		AIpackedDocumentFolderPathOnly = m_workFolderPath;
 	}
+
+	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
+	m_emailReportFolderPathOnly = AIemailReportFolderPathOnly; // whm added 8Nov10
+	m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
+	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
+	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
-
+	
     // Note: The path to the m_setupFolder may differ from the default installation
     // location if user installed Adapt It to a non-default user defined folder, The call
     // to FindAppPath() above determines the path to the currently running executable,
     // which is safer than hard coding the path to a predetermined setup location.
-	wxString filecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
+	wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
+	bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
+	LogUserAction(_T("AppStartUp"));
 
-	bool bSetupStyleFileExists = wxFileExists(filecopyPath);
+	wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
+	// Does AI_UserProfiles.xml exist in the work folder
+	bool bWorkFolderUserProfilesFileExists = wxFileExists(m_userProfileFileWorkFolderPath);
+	bool bInstallFolderUserProfileFileExists = wxFileExists(userProfileInstallFolderFilecopyPath);
 
-	// If the file does not exist in the work folder, look for it in the setup folder 
-	// and, if there, then copy it to the work folder before opening it from the latter 
-	// location.
+	// Now, check that the AI_USFM.xml file exists in the work folder (make a copy there
+	// if necessary from the installation resources.
+	// Note: The check for the AI_UserProfiles.xml file is similar to the handling of the
+	// AI_USFM.xml file immediately below, but is handled farther below after the handling
+	// of the AI_USFM.xml file.
+
+	// If the AI_USFM.xml file does not exist in the work folder, look for it in the 
+	// setup folder and, if there, then copy it to the work folder before opening it 
+	// from the latter location.
 	if (!bWorkStyleFileExists)
 	{
 		// There is no AI_USFM.xml file in the work folder, so get one from
@@ -7279,7 +14477,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{
 			// copy the file to the work folder
 			bool copyOK;
-			copyOK = wxCopyFile(filecopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
+			copyOK = wxCopyFile(usfmStyleInstallFolderFileCopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
 			if (copyOK)
 			{
                 // Testing shows that the wxCopyFile call above actually preserves the mod
@@ -7287,7 +14485,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 // successful copy will automatically make the newly copied file in the
                 // work folder have same date it has in the installation/setup folder.
 				//wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-				//wxFileName fnInSetupFolderPath(filecopyPath);
+				//wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
 				//wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
 				//wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
 				//fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
@@ -7322,7 +14520,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // get implemented unless the user manually moves the file to the work folder
             // and we don't want to expect users to have to remember to do such a thing.
 			wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-			wxFileName fnInSetupFolderPath(filecopyPath);
+			wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
 			wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
 			wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
 			fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
@@ -7345,7 +14543,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			{
 				// copy the file to the work folder
 				bool copyOK;
-				copyOK = wxCopyFile(filecopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
+				copyOK = wxCopyFile(usfmStyleInstallFolderFileCopyPath, AIstyleFileWorkFolderPath, TRUE); // TRUE = overwrite
 				if (copyOK)
 				{
                     // Testing shows that the wxCopyFile call above actually preserves the
@@ -7354,7 +14552,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                     // file in the work folder have same date it has in the
                     // installation/setup folder.
 					//wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-					//wxFileName fnInSetupFolderPath(filecopyPath);
+					//wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
 					//wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
 					//wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
 					//fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
@@ -7412,12 +14610,456 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
 	}
 
-    // Initialise the help system. We do it here because our m_setupFolder was determined
-    // above and we now know the path to the setup folder where any help file is installed.
+
+	// Create the m_pAI_MenuStructure based on the default AI menu bar as found
+	// in the wxDesigner's AIMenuBarFunc() function. This also populates the
+	// m_mapMenuLabelStrToIdInt with all of AI's menu label -> menu id 
+	// associations.
+	SetupDefaultMenuStructure(m_pAI_MenuStructure, m_mapMenuLabelStrToIdInt);
+	// The following SetupDefaultUserProfiles() must come after the SetupDefaultMenuStructure()
+	// call above within OnInit().
+	SetupDefaultUserProfiles(m_pFactoryUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+
+	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
+	// copy there if necessary from the installation resources.
+	message = _("Loading AI_UserProfiles.xml ...");
+	wxASSERT(pStatusBar != NULL);
+	pStatusBar->SetStatusText(message,0); // use first field 0
+
+	// If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the 
+	// setup install folder and, if there, decide how to handle version differences due to
+	// possible upgrades/downgrades which may require merging of any changes made to
+	// AI_UserProfiles.xml by an administrator who has customized one or more profiles
+	// using the User Workflow Profiles dialog from the Administrator menu.
+	if (!bWorkFolderUserProfilesFileExists)
+	{
+		// There is no AI_UserProfiles.xml file in the work folder, so get one from
+		// the setup folder if one is there, and copy it to the work folder preserving
+		// the date it had in the setup folder.
+		if (bInstallFolderUserProfileFileExists)
+		{
+			// copy the file to the work folder
+			bool copyOK;
+			copyOK = wxCopyFile(userProfileInstallFolderFilecopyPath, m_userProfileFileWorkFolderPath, TRUE); // TRUE = overwrite
+			if (copyOK)
+			{
+				bWorkFolderUserProfilesFileExists = TRUE;
+				//wxLogDebug(_T("Copying existing AI_UserProfiles.xml from m_xmlInstallPath to user's work folder."));
+			}
+			else
+			{
+				bWorkFolderUserProfilesFileExists = FALSE;
+				wxLogDebug(_T("Could NOT copy existing AI_UserProfiles.xml from m_xmlInstallPath to user's work folder."));
+			}
+		}
+	}
+	else
+	{
+		// There is an AI_UserProfiles.xml file already in the work folder. 
+		// Does it need to be upgraded to a more recent (higher number) version?
+		// If the installation setup folder contains an AI_UserProfiles.xml file  
+		// (normally there should be one there), we need to compare their versions 
+		// and see if the one in the work folder needs to be upgraded. The one in 
+		// the installation folder might be a newer version if the user installed 
+		// an AI update since the last time the app was run. Note however, that 
+		// the user/administrator may have previously modified the work folder's 
+		// existing AI_UserProfiles.xml via edits done in the User Workflow 
+		// Profiles dialog. So, in the event the user has installed a newer AI 
+		// update, we don't want to obliterate his existing user profiles modifications 
+		// (stored in the AI_UserProfiles.xml in his work folder), but we want to 
+		// preserve his profile edits while upgrading the AI_UserProfiles.xml to
+		// the newer version. This requires that we merge his existing modifications 
+		// into the newly installed AI_UserProfiles.xml data as we copy the merged
+		// AI_UserProfiles.xml file to his work folder.
+		// In actuality the basic steps are:
+		// 1. The work folder's existing AI_UserProfiles.xml file's xml content is
+		// read using ReadPROFILES_XML(); this populates the m_pUserProfiles struct
+		// on the heap with the existing old (but modified) data.
+		// 2. The work folder's existing AI_UserProfiles.xml file is removed/deleted.
+		// 3. We call SaveUserProfilesMergingDataToXMLFile() which reads the install
+		// setup folder's (newer) version of AI_UserProfiles.xml into memory as a
+		// wxTextFile, and merges changes into the appropriate lines of its in-memory
+		// copy of the newer AI_UserProfiles.xml. Then it creates a new instance of
+		// a wxTextFile (pointing to the user's work folder), copies all of the 
+		// in-memory text lines from install setup folder's version to the newly
+		// created version. Finally it writes the newly created version out to the
+		// user's work folder.
+		// into memory (as a wxTextFile), the merging is done in memory, then the result is written
+		// out to disk afterwards to a newly created AI_UserProfiles.xml file.
+		bool bSetupFoldersVersionCanReplace = FALSE; // FALSE unless the next block changes it to TRUE
+		if (bInstallFolderUserProfileFileExists)
+		{
+			// The AI_UserProfiles.xml file exists, but it may have been edited/customized
+			// by an administrator. If so we should attempt to merge any edited/customized
+			// data into any more recent version of AI_UserProfiles.xml file that now 
+			// exists in the work folder. We need to do the following each time the app 
+			// runs:
+			// 1. Read the existing AI_UserProfiles.xml in the work folder and determine:
+			//    a. The profileVersion attribute's value, i.e., "1.0"
+			//    b. The applicationCompatibility attribute's value, i.e., "6.0.0"
+			//    c. The adminModified attribute's value, i.e., "No" or "Yes"
+			// 2. If the adminModified attribute is "No" we can quietly replace the existing
+			//    AI_UserProfiles.xml file with any newer version contained in the setup folder,
+			//    since we know that no edits/customizations would be lost in the update and
+			//    replacement of the existing AI_UserProfiles.xml file with the one in the
+			//    setup folder.
+			// 3. If the adminModified attribute is "Yes" it differs from its factory defaults
+			//    and we must consider the applicationCompatibility and profileVersion 
+			//    attibutes' values and determine the following: 
+			//    a. If the versions are deemed compatible, we quietly merge the 
+			//       edits/customizations made by the administrator into the incoming 
+			//       AI_UserProfiles.xml file and copy that merged AI_UserProfiles.xml 
+			//       file into the work folder location.
+			//    b. If they are not compatible, we rename the existing file to 
+			//       AI_UserProfiles_old.xml, and inform the user that a backup copy of
+			//       their edited/customized AI_UserProfiles.xml file was made in the work
+			//       folder by that name, and that they will likely need to edit/customize 
+			//       the user workflow profiles anew for the updated version of the 
+			//       application.
+
+			wxString profileVersionStr;
+			wxString applicationCompatibilityStr;
+			wxString adminModifiedStr;
+			GetVersionAndModInfoFromProfilesXMLFile(m_userProfileFileWorkFolderPath, 
+				profileVersionStr,applicationCompatibilityStr,adminModifiedStr);
+			wxASSERT(!profileVersionStr.IsEmpty());
+			wxASSERT(!applicationCompatibilityStr.IsEmpty());
+			wxASSERT(!adminModifiedStr.IsEmpty());
+			
+			if (adminModifiedStr == _T("No"))
+			{
+				// The work folder's version of AI_UserProfiles.xml has not been modified so
+				// it is safe to quietly copy the install folder's version over it resulting
+				// in an automatic upgrade of any newer version of AI_UserProfiles.xml.
+				bSetupFoldersVersionCanReplace = TRUE;
+			}
+			else if (adminModifiedStr == _T("Yes"))
+			{
+				// The work folder's version of AI_UserProfiles.xml has been modified by an
+				// administrator. How we proceed depends on what we find when we compare the
+				// versions encoded in the profileVersion attribute and the applicationCompatibility 
+				// attribute of the work folder's AI_UserProfiles.xml against the application's 
+				// running versions (encoded in #defines at the beginning of Adapt_It.h). 
+				// Note: The running App's versions encoded in #defines should be identical to 
+				// those encoded in the AI_UserProfiles.xml file in the setup install folder - if 
+				// we have prepared our installers correctly!
+				wxString runningAppVerStr;
+				runningAppVerStr = GetAppVersionOfRunningAppAsString();
+				wxString profileAppVerStr;
+				profileAppVerStr = GetProfileVersionOfRunningAppAsString();
+				enum VersionComparison versionComparison;
+				// CompareRunningVersionWithWorkFolderVersion() compares the App's running version numbers
+				// against those of the current work folder's AI_UserProfile.xml file. The profileVersionStr
+				// and applicationCompatibilityStr strings were determined above in the 
+				// GetVersionAndModInfoFromProfilesXMLFile() function call.
+				versionComparison = CompareRunningVersionWithWorkFolderVersion(profileVersionStr, applicationCompatibilityStr);
+				
+				// whm Note Regarding the handling of version "conflicts" between AI and 
+				// AI_UserProfiles.xml:
+				// We attempt to handle both the case situations below together by merging the 
+				// AI_UserProfiles.xml file in the work folder with the one that now exists in the 
+				// install setup folder (which compared with the running application has a newer or 
+				// older version. For example, the running application may be version 6.0.3 but the 
+				// version of the AI_UserProfiles.xml file in the work folder might be 6.0.0 (which 
+				// could happen in a normal upgrade scenario). Another possible example might happen 
+				// when the running application may be version 6.0.1 but the version of the 
+				// AI_UserProfiles.xml file in the work folder might be 6.0.3 (which might happen if 
+				// a user decided to downgrade from AI version 6.0.3 to 6.0.1 because of some bug or 
+				// other problem, or could happen in a circumstance when someone copies a work 
+				// folder from a computer running version 6.0.3 to a computer that is still using
+				// version 6.0.1). In either case, I've tried to make the upgrade and downgrade process
+				// capable of handling such scenarios without problems. The worst that might happen is
+				// that there could be some instances in which a profile item might return to its 
+				// default factory value or might not be available after an upgrade or downgrade. 
+				// It is not likely this would happen to much extent since I don't forsee us making 
+				// huge changes to the profiles design of the user profiles features in the future.
+				// 
+				switch (versionComparison)
+				{
+				case runningAppVersionIsNewer:
+				case runningAppVersionIsOlder:
+					{
+						// The work folder's AI_UserProfiles.xml was modified and there is a newer or
+						// older version in the install setup folder.
+						// In either case we do a backup of the user's modified AI_UserProfiles.xml file 
+						// before merging it with the newer or older version associated with the currently
+						// running AI application.
+						
+						// Backup the existing AI_UserProfiles.xml file to AI_UserProfiles_Old_01.xml
+						wxString backupPathNameUsed = _T("");
+						bool bOK;
+						bOK = BackupExistingUserProfilesFileInWorkFolder(m_userProfileFileWorkFolderPath,backupPathNameUsed);
+						if (!bOK)
+						{
+							// This message should be localized
+							wxString msg = _("Could not create backup of the modified AI_UserProfiles.xml file: \n   %s\nPlease ask your administrator to check your user workflow profiles.");
+							msg = msg.Format(msg,AIuserProfilesWorkFolderPath.c_str());
+							wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+						}
+						// Note: we do the above back up quietly - unless
+						// BackupExistingUserProfilesFileInWorkFolder() does not succeed for some reason.
+						// The commented out code below might be used if we want to notify the user of the
+						// upgrade or downgrade process with the recommendation that the administrator check
+						// the user profiles.
+						//else
+						//{
+						//	// This message should be localized
+						//	wxString msg = _("There was a newer version (%s) of AI_UserProfiles.xml in the work folder than Adapt It version %s expected. It was backed up as:\n   %s\n and a new AI_UserProfiles.xml was created/merged.\nPlease ask your administrator to check your user workflow profiles.");
+						//	// here we fill the first %s with the applicationCompatibilityStr which is in the
+						//	// form of the application's version number, i.e., 6.x.x
+						//	msg = msg.Format(msg,applicationCompatibilityStr.c_str(),runningAppVerStr.c_str(),backupPathNameUsed.c_str());
+						//	wxMessageBox(msg,_T(""),wxICON_WARNING);
+						//}
+						
+						// The "normal" calling of ReadPROFILES_XML() has not happened yet, so we need to
+						// do it temporarily here in order to populate the existing m_pUserProfiles struct
+						// in order to use it in the merging process.
+						wxASSERT(m_pUserProfiles == NULL);
+						bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath);
+						if (!bReadOK)
+						{
+							// a bad parse, or failure to read the file in off the disk correctly, means we
+							// will inform the user of the situation and use the default user profile which
+							// makes all menu items/settings visible.
+							wxMessageBox(_(
+				"Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
+							_T(""), wxICON_INFORMATION);
+
+							// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
+							// We'll populate the list boxes with default settings parsed from our
+							// default unix-like strings, so modifications the administrator did will
+							// be lost (see information message above).
+							SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+						}
+						else
+						{
+							// We don't call GetAndAssignIdValuesToUserProfilesStruct(m_pUserProfiles)
+							// nor ReportMenuAndUserProfilesInconsistencies() here - they are called
+							// later after merging issues are handled.
+							
+							// The SaveUserProfilesMergingDataToXMLFile() below requires that we first 
+							// have the m_mapProfileChangesToStringValues map populated with the user's
+							// modifications by a call to MapChangesInUserProfiles().
+							// MapChangesInUserProfiles() allows for different number of
+							// descriptionProfileTexts entries and a different number of UserProfileItems in
+							// the ->profileItemList(s). This may happen when the applicationCompatibility
+							// versions are different due to upgrades, downgrades, or copying of
+							// work folder contents to a different machine running a different version
+							// of Adapt It.
+							// MapChangesInUserProfiles() internally keeps track of the number of 
+							// differences it encounteres in listed profile items.
+							MapChangesInUserProfiles(m_pUserProfiles, m_pFactoryUserProfiles);
+
+							// Remove the existing work folder's AI_UserProfiles.xml file. It was backed
+							// up above and we have its data already in m_pUserProfiles because of the 
+							// ReadPROFILES_XML() call above.
+							bool bRemovedOK;
+							bRemovedOK = wxRemoveFile(m_userProfileFileWorkFolderPath);
+							if (bRemovedOK)
+							{
+								bool bMergedSavedOK;
+								// Note: below we use the userProfileInstallFolderFilecopyPath path which makes
+								// SaveUserProfilesMergingDataToXMLFile() merge the install version's
+								// AI_UserProfiles.xml into the work folder's version
+								bMergedSavedOK = SaveUserProfilesMergingDataToXMLFile(userProfileInstallFolderFilecopyPath);
+								if (!bMergedSavedOK)
+								{
+									// Note: Specific error messages are handled within
+									// SaveUserProfilesMergingDataToXMLFile() above.
+									SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+								}
+							}
+							else
+							{
+								wxMessageBox(_(
+					"Unable to update the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
+								_T(""), wxICON_INFORMATION);
+								SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+							}
+						}
+						// We're finished with our temporary copy of m_pUserProfiles.
+						DestroyUserProfiles(m_pUserProfiles); // it will get created again below in the normal call of ReadPROFILES_XML()
+						// Note: bSetupFoldersVersionCanReplace stays FALSE here, because we handle getting
+						// updated AI_UserProfiles.xml into the user's work folder above
+						break;
+					}
+				case profileVersionDiffers:
+					{
+						// The profileVersion differs. The profileVersion only changes when
+						// there has been a major change to the AI_UserProfiles.xml file that
+						// would make it incompatible with the earlier "1.0" version. The
+						// CompareRunningVersionWithWorkFolderVersion() function above indicates
+						// that this is the case. Whether a merge would be possible in this 
+						// situation will need to be determined when the new profileVersion is 
+						// created (if ever). So, for now we notify the programmer via a debug assert,
+						// make a backup copy of the edited/customized AI_UserProfiles.xml, and notify
+						// the user that they will likely need to "check and recreate your user work
+						// profiles if necessary" for the updated version of the application. The
+						// bSetupFoldersVersionCanReplace flag is set TRUE, which will cause the
+						// AI_UserProfiles.xml to be overwritten by the "incompatible version" that
+						// is in the setup install folder (i.e., since profileVersion differences
+						// mean some kind of incompatibility it is safest to use the AI_UserProfiles.xml
+						// that is designed for the application that is currently running.
+						wxASSERT_MSG(FALSE,_T("The PROFILE_VERSION_MAJOR_PART or PROFILE_VERSION_MINOR_PART version numbers of the running application differ\nfrom the profileVersion attribute of the modified AI_UserProfiles.xml file in the user's work folder."));
+						// Backup the existing AI_UserProfiles.xml file to AI_UserProfiles_Old_01.xml
+						wxString backupPathNameUsed = _T("");
+						bool bOK;
+						bOK = BackupExistingUserProfilesFileInWorkFolder(m_userProfileFileWorkFolderPath,backupPathNameUsed);
+						if (!bOK)
+						{
+							// This message should be localized
+							wxString msg = _("Could not create backup of the modified AI_UserProfiles.xml file: \n   %s\nPlease ask your administrator to recreate your user workflow profiles.");
+							msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
+							wxMessageBox(msg,_T(""),wxICON_WARNING);
+						}
+						else
+						{
+							// This message should be localized
+							wxString msg = _("There was an incompatible version (%s) of AI_UserProfiles.xml in the work folder.\nAdapt It version %s expected it to be %s. The existing AI_UserProfiles.xml file was backed up as:\n   %s\n and a new AI_UserProfiles.xml was created in the work folder.\nPlease ask your administrator to check and recreate your user workflow profiles if necessary.");
+							// here we fill the first %s with the profileAppVerStr which is in the
+							// form of the AI_UserProfiles.xml's profileVersion number, i.e., 1.x
+							msg = msg.Format(msg,profileVersionStr.c_str(),runningAppVerStr.c_str(),profileAppVerStr.c_str(),backupPathNameUsed.c_str());
+							wxMessageBox(msg,_T(""),wxICON_WARNING);
+						}
+						// Set bSetupFoldersVersionCanReplace = TRUE here because we want the version in the
+						// setup install folder to be used since it is known to be compatible with the running
+						// application.
+						bSetupFoldersVersionCanReplace = TRUE;
+						break;
+					}
+				case sameAppVersion: // fall through to sameAppVersion - the most common scenario
+				default:
+					{
+						// Versions are the same so we don't need to copy the setup folder's version
+						// to the work folder, i.e., the modified one in the work folder remains unchanged.
+						// This is the most common case when edits have been made to AI_UserProfiles.xml
+						// by an administrator. We set bSetupFoldersVersionCanReplace = FALSE so the
+						// existing AI_UserProfiles.xml file in the user's work folder does NOT get
+						// overwritten (in code below) by the unmodified one residing in the setup install 
+						// folder.
+						bSetupFoldersVersionCanReplace = FALSE;
+					}
+				}
+			}
+			
+			// Note: The checking for modification times of files is not appropriate for our
+			// AI_UserProfiles.xml file handling in regards to upgrades or downgrades.
+			// The AI_UserProfiles.xml file is likely to be edited by an administrator so
+			// its modification date cannot be compared to the modification date of the 
+			// AI_UserProfiles.xml file installed in a given AI version update. The 
+			// modification time of the AI_UserProfiles.xml file in the user's work folder 
+			// could well be newer than one recently installed in the setup folder that
+			// has a newer internal version.
+		}
+		// If bSetupFoldersVersionCanReplace is TRUE, we will first delete what is in the 
+		// work folder, then copy the file from the setup folder to replace it. If 
+		// bSetupFoldersVersionCanReplace is FALSE then do nothing.
+		if (bSetupFoldersVersionCanReplace)
+		{
+			if (!wxRemoveFile(m_userProfileFileWorkFolderPath))
+			{
+				wxMessageBox(_("Could not remove the AI_UserProfiles.xml file from the work folder."),
+					_T(""), wxICON_INFORMATION);
+			}
+			if (bInstallFolderUserProfileFileExists)
+			{
+				// copy the file to the work folder
+				bool copyOK;
+				copyOK = wxCopyFile(userProfileInstallFolderFilecopyPath, m_userProfileFileWorkFolderPath, TRUE); // TRUE = overwrite
+				if (copyOK)
+				{
+					bWorkFolderUserProfilesFileExists = TRUE;
+					//wxLogDebug(_T("Copying newer version of AI_UserProfiles.xml to user's work folder."));
+				}
+				else
+				{
+					bWorkFolderUserProfilesFileExists = FALSE;
+					wxLogDebug(_T("Could not copy installed version of AI_UserProfiles.xml to user's work folder."));
+				}
+			}
+		}
+	}
+
+	// Now, do the normal reading of AI_UserProfiles.xml which creates the m_pUserProfiles struct on
+	// the heap.
+	if (bWorkFolderUserProfilesFileExists)
+	{
+		wxLogDebug(_T("The m_userProfileFileWorkFolderPath = %s"),m_userProfileFileWorkFolderPath.c_str());
+		// parse the xml file, and set up the data structures
+		bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath);
+		if (!bReadOK)
+		{
+            // a bad parse, or failure to read the file in off the disk correctly, means we
+            // will inform the user of the situation and use the default user profile which
+            // makes all menu items/settings visible.
+			wxMessageBox(_(
+				"Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
+				_T(""), wxICON_INFORMATION);
+
+			// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
+			// We'll populate the list boxes with default settings parsed from our
+			// default unix-like strings.
+			SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+		}
+		else
+		{
+			// The AI_UserProfiles.xml file was read, check for inconsistencies between
+			// our internal unix-like default strings and what was in AI_UserProfiles.xml.
+			// Note: GetAndAssignIdValuesToUserProfilesStruct() needs to be called here
+			// because ReadPROFILES_XML() does not call it, and it needs to be called at
+			// some point before ReportMenuAndUserProfilesInconsistencies().
+			GetAndAssignIdValuesToUserProfilesStruct(m_pUserProfiles);
+			ReportMenuAndUserProfilesInconsistencies();
+		}
+	}
+	else
+	{
+        // no "AI_UserProfiles.xml" file in the work folder, so use default user profile (none);
+		wxLogDebug(_T("AI_UserProfiles.xml not found in work folder - using Adapt It's default internal user profile."));
+		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
+		// We'll populate the list boxes with default settings parsed from our
+		// default unix-like strings.
+		SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+	}
+
+	// At this point the config files have been read and the AI_UserProfiles.xml file has been
+	// read and the m_pUserProfiles and m_pFactoryUserProfiles data structures have been 
+	// created.
+	// 
+	// Adjust menus and settings for the selected user workflow profile by calling
+	// ConfigureInterfaceForUserProfile(). However, if the m_nWorkflowProfile is 0 "None" 
+	// we simply bypass calling ConfigureInterfaceForUserProfile() and the application
+	// uses its default interface of menus, etc.
+	if (m_nWorkflowProfile != 0)
+	{
+		ConfigureInterfaceForUserProfile();
+	}
+
+	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally 
+	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() 
+	// it makes better sense to do the menu modifications (mostly for the Mac) here at this 
+	// point in OnInit().
+ 	MakeMenuInitializationsAndPlatformAdjustments();
+
+	// whm Note: We should associate the file history with the File menu, and load 
+	// the File History AFTER calling ConfigureInterfaceForUserProfile() above.
+	// 
+	// Get the File Menu, tell the doc manager that we want the File History on the
+	// File Menu, and Load the File History (MRU) to it
+	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
+	wxASSERT(pFileMenu != NULL);
+	m_pDocManager->FileHistoryUseMenu(pFileMenu);
+	// This must come after Main Menu is created and FileHistoryUseMenu call
+	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
+												// list from *m_pConfig
+   
+	// Next, initialise the help system. We do it here because our m_setupFolder was 
+	// determined above and we now know the path to the setup folder where any help 
+	// file is installed.
     //  
     // Determine the path to the installation folder where Adapt_It.xxx is located
-    // Note: Our function FindAppPath() determined the most likely path where the Adapt It
-    // executable program is located and stored it in m_setupFolder.
+    // Note: Our function FindAppPath() determined the most likely path where the 
+    // Adapt It executable program is located and stored it in m_setupFolder.
 
 	wxString appName;
 	appName = GetAppName();
@@ -7483,13 +15125,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Retain the initial USFM filter marker string as "Factory default"
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
+#ifdef __WXDEBUG__
+	ShowFilterMarkers(1); // location 1
+#endif
 	gFactorySfmSet = UsfmOnly;
 
-	// set up data structures to be used for free translation support (ExitInstance 
-	// will delete them)
-	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
-	gpFreeTransArray = new wxArrayPtrVoid;
-
+	// using PushEventHandler() here appears to be too early (there is no 'previous' event
+	// handler yet), so try at end of OnInit()
+	
+	
 	// Display message in status bar that startup initialization is complete
 	message = _("Initialization complete. Call Start Working...");
 	pStatusBar->SetStatusText(message,0); // use first field 0
@@ -7500,18 +15144,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// **** test code fragments here ****
 	 
-	/*
-	int sizeofCStrip = sizeof(CStrip); // 48 bytes
+	/* last test: March 9, 2011
+	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes
 	int sizeofCCell = sizeof(CCell); // 28 bytes
-	int sizeofCSourcePhrase = sizeof(CSourcePhrase); // 96 bytes
+	int sizeofCSourcePhrase = sizeof(CSourcePhrase); // 136 bytes
 	int sizeofwxNode = sizeof(wxNode); // 24 bytes
 	int sizeofwxString = sizeof(wxString); // 4 bytes
 	int sizeofwxArrayInt = sizeof(wxArrayInt); // 12 bytes & its 16 int initial buffer is 4*16 = 64
 	int sizeofwxArrayPtrVoid = sizeof(wxArrayPtrVoid); // 12 bytes
-	int sizeofCLayout = sizeof(CLayout); // 252 bytes
+	int sizeofCLayout = sizeof(CLayout); // 272 bytes
+	int sizeofCKB = sizeof(CKB); // 72 bytes (tested 9Mar11)
+	int sizeofCRefString = sizeof(CRefString); // 28 bytes
+	int sizeofCTargetUnit = sizeof(CTargetUnit); // 16 bytes
+	int sizeofSPList = sizeof(SPList); // 28 bytes
+	int sizeofwxArrayString = sizeof(wxArrayString); // 16 bytes
 	*/
 
+	//int ii = 1; ii = ii;
 /*
 	// This test compared with the same code under MFC shows that
 	// simply moving the x (or MFC left coordinate) has different
@@ -7779,6 +15429,57 @@ while (resToken != "")
 	AfxMessageBox(fixesStr,MB_ICONINFORMATION);
 	ASSERT(FALSE);
 */
+/* for docVersion 5
+wxString mkr;
+wxString endMkr;
+wxString content;
+wxString filtered = _T("\\f + This is a footnote. \\f*");
+ParseMarkersAndContent(filtered, mkr, content, endMkr);
+int ii = 1;
+*/
+
+/*
+// test UUID generation
+	wxString anUuid; 
+	int i;
+	for (i = 1; i<20; i++)
+	{
+		anUuid.Empty();
+		Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
+		aUuid = pUuidGen->GetUUID(); // gets it as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" (32 hex digits plus 4 hyphens = total 36 chars)
+		delete pUuidGen;
+		wxLogDebug(_T("UUID =    %s"), anUuid);
+
+	}
+*/
+
+// test getting current date-time in format "year:month:day hours:minutes:seconds"
+//wxString dt = GetDateTimeNow();
+
+// test GetWho() in helpers.cpp
+//wxString str = GetWho();
+
+// test IsLoadableFile() in helpers.cpp
+//wxString aPath = _T("C:\\Card1\\biggie.xml");
+//wxString aPath = _T("C:\\Card1\\binaryfile");
+//wxString aPath = _T("C:\\Card1\\Heztext");
+//wxString aPath = _T("C:\\Card1\\Hezdocxml");
+//bool bIsLoadable = IsLoadableFile(aPath);
+//bIsLoadable = bIsLoadable;
+
+//wxString testStr =  _T("“ ‘First?! second, third’: ” fourth?");
+//wxString testStr = _T("“ ‘First?;~second’: ”"); // test fixedSpace symbol
+//GetView()->RemovePunctuation(GetDocument(),&testStr,1);
+
+
+m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been created,
+		// has at least one file in it, then the app auto-configures to not show the user
+		// the standard file input dialog when File / New... is clicked, or <New Document>
+		// clicked in the wizard, instead a monocline list of acceptable (ie. loadable)
+		// files (all from the Source Data folder) are shown in a ListBox, and no folder
+		// navigation is possible. Turning on this support can only be done by the
+		// administrator from two of the Administrator menu's commands; this folder is
+		// always a child of the currently open project folder
 
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
@@ -7788,7 +15489,7 @@ while (resToken != "")
 
 	// set these back to 0 and -1 when the phrase box location changes, after storage to
 	// the KB has been done
-	m_nPlacePunctDlgCallNumber = 0; // incrememted each time MakeLineFourString() is
+	m_nPlacePunctDlgCallNumber = 0; // incrememted each time MakeTargetStringIncludingPunctuation() is
 									// called from within StoreText()
 	m_nCurSequNum_ForPlacementDialog = -1; // -1 is default, it means "undefined"
 
@@ -7810,7 +15511,7 @@ while (resToken != "")
 							//removed already, so this index may not be correct presently
 		//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
 		//wxASSERT(pAdminMenu != NULL);
-		m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
+		m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
 		m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
 		m_bAdminMenuRemoved = TRUE;
 		pMenuBar->Refresh();
@@ -7830,10 +15531,17 @@ while (resToken != "")
 		wxASSERT(pControlBar);
 		wxRadioButton* pDraftingBtn = 
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
-		pDraftingBtn->Hide();
+		// whm 12Oct10 modified below to make safe for user workflow profiles
+		if (pDraftingBtn != NULL)
+		{
+			pDraftingBtn->Hide();
+		}
 		wxRadioButton* pReviewingBtn = 
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
-		pReviewingBtn->Hide();
+		if (pReviewingBtn != NULL)
+		{
+			pReviewingBtn->Hide();
+		}
 	}
 	else if (m_bAutoExport)
 	{
@@ -7850,12 +15558,70 @@ while (resToken != "")
 		wxString fullPath;
 		m_curProjectName = m_autoexport_projectname;
 		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
+		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
 		GetDocument()->OnOpenDocument(fullPath);
 	}
 	m_bControlIsWithinOnInit = FALSE;
-    return TRUE;
+
+ 
+	//GDLC 2010-02-12
+	// Create the free translation display handler
+	m_pFreeTrans = new CFreeTrans(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
+
+	m_pNotes = new CNotes(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pNotes);
+
+	m_pRetranslation = new CRetranslation(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pRetranslation);
+	
+	m_pPlaceholder = new CPlaceholder(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
+
+	wxASSERT(m_pRetranslation);
+	m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // must start off FALSE, otherwise
+			// it will suppress the mechanism for decrementing the m_refCount value, etc, if
+			// the box is made to land on a non-hole
+
+    // BEW added 19Apr for Save As... support. The document version will henceforth be
+    // parameterized. The doc class now has a private int member, m_docVersionCurrent which
+    // is used for constructing the XML for doc and KB which has the docVersion parameter
+    // value; and the Save As... dialog now lets the user choose to save in doc versions 5
+    // (the default, the combo box has index 0 for this value), or 4 (the combobox has
+    // index 1 for this value). 5 is the current value of VERSION_NUMBER which is #defined
+    // in AdaptitConstants.h, and DOCVERSION4 is there #defined as 4. To set or restore the
+    // current version number, call the public doc function:
+    // RestoreCurrentDocVersion(), which restores m_docVersionCurrent to VERSION_NUMBER. To
+    // set some other version number (currently, only version number 4 is supported), call
+    // the doc public function SetDocVersion(int index), which returns void. The index
+    // parameter is the value returned from the Save As... dialog's combobox for document
+    // type (0 is always mapped to the current value of VERSION_NUMBER, and 1 is always
+    // mapped to DOCVERSION4. (If later we have a docVersion 6, 5 would be assigned to a
+    // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
+    // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
+    // whatever is the current value of m_docVersionCurrent. So set the current value:
+	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
+
+	m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
+	m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
+
+	// add oxes support here, the creator will call an initializing function to have oxes
+	// export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
+	m_pUsfm2Oxes = new Usfm2Oxes(this);
+
+	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
+	m_pAdaptationsGuesser = new Guesser;
+	m_pGlossesGuesser = new Guesser;
+
+	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
+	//	m_pTargetBox->GetCancelAndSelectFlag());
+	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -7911,6 +15677,49 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
+	// BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
+	// this point, and so the call to PopEventHandler() can't be made here. But I also
+	// found out that not making the call does not leak memory, and presumably wxWidgets
+	// itself cleans up what is on its event stack, so we don't need to do it here
+	// ourselves. (Next 6 lines of comments now don't apply)
+	// Our "new" classes need to have their event tables popped off the stack of windows
+	// event handlers - so do them in reverse order in which they were pushed.
+	// (Alternatively, we could pass the param TRUE to the pop call, and then the pop will
+	// do the class instance deletion from the heap for us. Do that if we ever suspect the
+	// order below is not correct, and remove our explicit delete statements, and add the
+	// appropriate casts on the RHS and the appropriate class pointer on the left.)
+	// 
+	// The push order is so far:
+	// 1. CFreeTrans
+	// 2. CNotes
+	// 3. 
+	//wxEvtHandler* pHdlr = NULL;
+	
+	// delete the Guesser objects
+	if (m_pAdaptationsGuesser != NULL)
+		delete m_pAdaptationsGuesser;
+	if (m_pGlossesGuesser != NULL)
+		delete m_pGlossesGuesser;
+
+	// delete the object for support of oxes
+	delete m_pUsfm2Oxes;
+
+	// delete the CNotes object
+	delete m_pNotes;
+
+	// delete the CRetranslation object
+	delete m_pRetranslation;
+	
+	// delete the CPlaceholder object
+	delete m_pPlaceholder;
+	
+	//GDLC Added 2010-02-12
+	// Delete the CFreeTrans manager after popping its event table off the stack of
+	// windows event handlers
+	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
+								// (meaning that we'll do the deleting ourselves)
+	delete m_pFreeTrans;
+		
 	delete m_pROP; // delete the ReadOnlyProtection class's only instance
 	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
 	delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
@@ -7969,9 +15778,8 @@ int CAdapt_ItApp::OnExit(void)
 	//m_pTargetBox = (CPhraseBox*)NULL;
 
 	delete m_pConfig;
-	m_pConfig = (wxConfig*)NULL;
-	delete m_pConfigSIL;
-	m_pConfigSIL = (wxConfig*)NULL;
+	m_pConfig = (wxFileConfig*)NULL;
+
 	if (m_pChecker)
 	{
 		delete m_pChecker;
@@ -8014,12 +15822,6 @@ int CAdapt_ItApp::OnExit(void)
 	delete pPrintData;
 	pPrintData = (wxPrintData*)NULL;
 
-	// delete the stuff used for free translation support
-	gpCurFreeTransSectionPileArray->Clear();
-	delete gpCurFreeTransSectionPileArray;
-	gpFreeTransArray->Clear();
-	delete gpFreeTransArray;
-	
 	if (gpDocList != NULL)
 	{
 		// delete the object, it's contents should already have been removed
@@ -8103,7 +15905,49 @@ int CAdapt_ItApp::OnExit(void)
 	}
 	// destroy the UsfmAndPng map itself
 	delete m_pUsfmAndPngStylesMap;
+
+	// destroy the allocated memory in m_pUserProfiles. This is a single 
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pUserProfiles also contains a list of pointers in its 
+	// profileItemList member that point to UserProfileItem instances on the 
+	// heap.
+	DestroyUserProfiles(m_pUserProfiles);
+	// also destroy the allocated memory in m_pFactoryUserProfiles. This is a single 
+	// instance of the UserProfiles struct that was allocated on the heap. Note
+	// that m_pFactoryUserProfiles also contains a list of pointers in its 
+	// profileItemList member that point to UserProfileItem instances on the 
+	// heap.
+	DestroyUserProfiles(m_pFactoryUserProfiles);
+
+	if (m_pEmailReportData != NULL)
+		delete m_pEmailReportData;
 	
+	DestroyMenuStructure(m_pAI_MenuStructure);
+	
+	if (m_userLogFile != NULL)
+	{
+		LogUserAction(_T("AppShutDown"));
+		m_userLogFile->Close();
+		delete m_userLogFile;
+	}
+
+	int aTot;
+	aTot = m_pRemovedMenuItemArray->GetCount();
+	if (aTot == 0L)
+	{
+		delete m_pRemovedMenuItemArray;
+	}
+	else
+	{
+		int aIndex;
+		for (aIndex = 0; aIndex < aTot; aIndex++)
+		{
+			wxMenuItem* mItem = (wxMenuItem*)(*m_pRemovedMenuItemArray)[aIndex];
+			delete mItem;
+		}
+		delete m_pRemovedMenuItemArray;
+	}
+
 	// whm: before deleting our CConsistentChanger objects, we need to
 	// free up the memory used by the structures within CCCModule.
 	int ct;
@@ -8150,6 +15994,7 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pDocManager; // deleting this 
 		m_pDocManager = (wxDocManager*)NULL;
 	}
+
 	return 0;
 }
 
@@ -8565,6 +16410,7 @@ void CAdapt_ItApp::InitializeFonts()
 	m_specialTextColor = wxColour(255,0,0); // red "255" - whm added
 	m_reTranslnTextColor = wxColour(160,80,0); // mid brown "32896" - whm added
 	m_AutoInsertionsHighlightColor = wxColour(203,151,255); // solid light purple "16750539"
+	m_GuessHighlightColor = wxColour(255,180,128); //wxColour(255,128,0); // pastel orange background for Guess - whm added 1Nov10
 	m_freeTransTextColor = wxColour(100,0,100); // dark purple - fixed not user selectable
 
 	// color used for read-only text controls displaying static text info button face color
@@ -8665,7 +16511,7 @@ void CAdapt_ItApp::InitializePunctuation()
 		// the code following this block
 		m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] "); // defaults for narrow or 
 																// wide characters
-		m_punctWordBuilding[0] = _T(""); // leave this in the code, just done use them --
+		m_punctWordBuilding[0] = _T(""); // leave this in the code, just don't use them --
 										// since reading an old config file would require them
 		if (m_punctuation[1].IsEmpty())
 		{
@@ -8812,7 +16658,6 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 		}
 		else
 		{
-			// 1 is app level .aic
 			bReturn = GetConfigurationFile(szBasicConfiguration,m_workFolderPath,basicConfigFile);
 		}
 		if (!bReturn)
@@ -8896,7 +16741,6 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	}
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return    TRUE if the directory structure and KBs were created successfully 
 ///             and/or exist, FALSE if an error occurred. 
@@ -8944,7 +16788,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."),
 				m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
-				//wxExit();
+				LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
 				abort();
 				return FALSE;
 			}
@@ -8963,6 +16807,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\nAdapt It %s is not set up correctly and so must close down."),
 				m_strNR.c_str(),m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
+				LogUserAction(_T("Error creating the \"Adapt It %sWork\" folder in <home user>"));
 				wxASSERT(FALSE);
 				return FALSE;
 			}
@@ -8983,6 +16828,7 @@ bool CAdapt_ItApp::SetupDirectories()
 		m_curProjectName = workFolder;
 		wxASSERT(!m_curProjectName.IsEmpty());
 		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
+		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 
 		// check to see if this folder already exists
 		bool bLangWorkFolderExists = FALSE;
@@ -9039,7 +16885,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str());
 				wxMessageBox(text, _T(""), wxICON_ERROR);
-				//wxExit();
+				LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
 				abort();
 				return FALSE;
 			}
@@ -9100,7 +16946,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."),
 				m_curProjectName.c_str());
 				wxMessageBox(text, _T(""), wxICON_ERROR);
-				//wxExit();
+				LogUserAction(_T("A file named \"Adaptations\" exists interfering with creating the folder of same name"));
 				abort();
 				return FALSE;
 			}
@@ -9117,6 +16963,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				wxMessageBox(_(
 "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."),
 				_T(""), wxICON_ERROR);
+				LogUserAction(_T("Error creating the \"Adaptations\" folder in the project folder"));
 				wxASSERT(FALSE);
 				return FALSE;
 			}
@@ -9175,6 +17022,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				LoadGuesser(m_pKB); // whm added 29Oct10
 
 				// now do it for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -9184,6 +17032,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					LoadGuesser(m_pGlossingKB); // whm added 29Oct10
 				}
 				else
 				{
@@ -9192,7 +17041,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading the glossing knowledge base failed. The application will now close."),
 					_T(""), wxICON_ERROR);
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: loading the glossing knowledge base failed"));
 					abort();
 					return FALSE;
 				}
@@ -9204,7 +17053,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading a knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR);
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: loading a knowledge base failed"));
 				abort();
 				return FALSE;
 			}
@@ -9226,6 +17075,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
 
 				// now do the same for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -9236,6 +17086,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
 				}
 				else
 				{
@@ -9244,7 +17095,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
 					_T(""), wxICON_ERROR); // something went wrong
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
 					abort();
 					return FALSE;
 				}
@@ -9256,7 +17107,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: saving the knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR); // something went wrong
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: saving the knowledge base failed"));
 				abort();
 				return FALSE;
 			}
@@ -9281,7 +17132,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			str = str.Format(_T("Somehow no 'Adapt It %sWork' folder detected in SetupDirectories(). Aborting now."),
 			m_strNR.c_str());
 			wxMessageBox(str, _T(""), wxICON_ERROR);
-			//wxExit();
+			LogUserAction(_T("No 'Adapt It Work' folder detected in SetupDirectories()"));
 			abort();
 			return FALSE;
 		}
@@ -9300,6 +17151,7 @@ bool CAdapt_ItApp::SetupDirectories()
 		m_curProjectName = workFolder;
 		wxASSERT(!m_curProjectName.IsEmpty());
 		m_curProjectPath = m_customWorkFolderPath + PathSeparator + m_curProjectName;
+		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 
 		// check to see if this folder already exists
 		bool bLangWorkFolderExists = FALSE;
@@ -9332,6 +17184,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				_T("SetupDirectories(): Error trying to create the \"%s to %s adaptations\" folder. Abort now."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
+				LogUserAction(_T("SetupDirectories(): Error trying to create the \"... to ... adaptations\" folder"));
 				abort();
 				return FALSE;
 			}
@@ -9360,6 +17213,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			{
 				wxMessageBox(_("SetupDirectories(): error creating the \"Adaptations\" folder. Abort now."),
 				_T(""), wxICON_ERROR);
+				LogUserAction(_T("SetupDirectories(): error creating the \"Adaptations\" folder"));
 				abort();
 				return FALSE;
 			}
@@ -9417,6 +17271,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
 
 				// now do it for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -9426,6 +17281,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
 				}
 				else
 				{
@@ -9434,7 +17290,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading the glossing knowledge base failed. The application will now close."),
 					_T(""), wxICON_ERROR);
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: loading the glossing knowledge base failed"));
 					abort();
 					return FALSE;
 				}
@@ -9446,7 +17302,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: loading a knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR);
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: loading a knowledge base failed"));
 				abort();
 			}
 		}
@@ -9467,6 +17323,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
 
 				// now do the same for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
@@ -9477,6 +17334,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				if (bOK)
 				{
 					m_bGlossingKBReady = TRUE;
+					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
 				}
 				else
 				{
@@ -9485,7 +17343,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
 					_T(""), wxICON_ERROR); // something went wrong
 					wxASSERT(FALSE);
-					//wxExit();
+					LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
 					abort();
 					return FALSE;
 				}
@@ -9497,7 +17355,7 @@ bool CAdapt_ItApp::SetupDirectories()
 "Error: saving the knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR); // something went wrong
 				wxASSERT(FALSE);
-				//wxExit();
+				LogUserAction(_T("Error: saving the knowledge base failed"));
 				abort();
 				return FALSE;
 			}
@@ -9516,27 +17374,20 @@ bool CAdapt_ItApp::SetupDirectories()
 /// and the path and file names for the glossing KB and its backup.
 /// BEW 1Aug09, added a call of this function to view's OnCreate() function to remove a
 /// bug in which the File / New command was erasing the project's KB file.
+/// BEW changed 3Mar11 at Bob Eaton's request, .BAK.xml should be just .BAK
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupKBPathsEtc()
 {
 	wxString saveName;
-	if (m_bSaveAsXML) // always true in wx version
-	{
-		// XML input (with binary as the alternative)
-		m_curKBName = m_curProjectName + _T(".xml");
-		m_altKBName = m_curProjectName + _T(".KB");
-		m_curKBPath = m_curProjectPath + PathSeparator + m_curKBName;
-		m_altKBPath = m_curProjectPath + PathSeparator + m_altKBName;
-		m_curKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK") + _T(".xml");
-		m_altKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK");
+	// only XML input &  output
+	m_curKBName = m_curProjectName + _T(".xml");
+	m_curKBPath = m_curProjectPath + PathSeparator + m_curKBName;
+	m_curKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK");
 
-		// now the same stuff for the glossing KB
-		saveName = m_curGlossingKBName;
-		m_curGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".xml");
-		m_altGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".KB");
-		m_curGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK") + _T(".xml");
-		m_altGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK");
-	}
+	// now the same stuff for the glossing KB
+	saveName = m_curGlossingKBName;
+	m_curGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".xml");
+	m_curGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -9550,6 +17401,11 @@ void CAdapt_ItApp::SetupKBPathsEtc()
 /// If so, it calls the Doc's RetokenizeText() function to rebuild the document with the
 /// new punctuation scheme. It also insures that safe indices are set up and that the
 /// phrasebox is appropriately located after the doc rebuild is complete.
+/// Note: since called from the wizard, by the time it is called, a project should have
+/// been chosen and therefore the KB and Glossing KB should each have been instantiated,
+/// and so the app's members m_pKB and m_pGlossingKB should be valid pointers.
+/// BEW 11Oct10 (actually 11Jan11) added test for m_punctuation[1] (target punctuation
+/// characters) being changed -- if they were, then that too needs to trigger a reparse
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 										enum Reparse reparseDoc)
@@ -9565,64 +17421,81 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 		CAdapt_ItDoc* pDoc = GetDocument();
 		CAdapt_ItView* pView = gpApp->GetView();
 
-		// if the source punctuation was empty and remains so, then don't retokenize
+        // if the source punctuation was empty and remains so, then don't retokenize (we check
+        // just the source puncts because it is these that get stripped out in parsing)
 		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && m_punctuation[0].IsEmpty()))
 		{
-			if (punctPgCommon->m_punctuationBeforeEdit[0] != m_punctuation[0])
+			// the source or target punctuation list has changed, so do the retokenization
+			int nOldCount = m_pSourcePhrases->GetCount();
+			int difference = 0;
+
+            // BEW 4Feb11, legacy comment; it is now deprecated - see below
+            // make sure we don't lose the active sourcephrase's contents from the KB
+            // (if the sourcephrase's m_bHasKBEntry is TRUE, then no store will be done
+            // - which is what we'd want because that means it has already been done;
+            // but if FALSE, then the store gets done (which again is what we want,
+            // because the FALSE value means that the active location's KB entry has
+            // already been removed (or its count decremented) and so a re-store is
+            // appropriate now -- because the box location may end up elsewhere
+            // depending on the results of the rebuild process.)
+			// BEW 4Feb11 DO NOT CALL StoreBeforeProceeding() when the punctuation set
+			// or sets is/ are in the process of being changed. If it is called, it
+			// cannot be guaranteed that the target text of the entry being put in the
+			// KB will be correct. See the descriptive header before the definition of
+			// the StoreBeforeProceeding() function for more details why this is
+			// dangerous
+			//pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase()); <<-- it's better
+			//to do no store than to do a possibly bogus one, the user won't see a
+			//bogus KB entry storage, but he will notice a target text in the layout
+			//which may need it's punctuation or word spelling altered - so we'll go
+			//for the safer option. Since the punctuation settings are already
+			//altered, the store if done now, may not have right spelling for tgt text
+
+			wxString strSavePhraseBox = m_targetPhrase;
+            // now do the reparse - the functions which effect the reconstitution of
+            // the doc when punctuation was changed, or when filtering settings were
+            // changed, or both, will progressively update the view's m_nActiveSequNum
+            // value as necessary so that the stored phrase box contents and the final
+            // active location remain in synch.
+			int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
+														FALSE,	// bFilterChange FALSE = no filter changes here
+														FALSE);	// bSfmSetChange FALSE = no sfm set change here
+
+			// set up some safe indices, since the counts could be quite different 
+			// than before
+			difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
+
+            // for refactored layout code, the following suffices because
+			// m_nActiveSequNum remains unchanged within the document; we defer the
+			// RecalcLayout() call to later though
+			CSourcePhrase* pSrcPhrase = NULL;
+			m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
+			pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
+			wxASSERT(pSrcPhrase);
+
+			// remove the KB or GlossingKB entry for this location, depending on the mode
+			// and make the box contents resaveable
+			if (gbIsGlossing)
 			{
-				// the source punctuation list has changed, so do the retokenization
-				int nOldCount = m_pSourcePhrases->GetCount();
-				int difference = 0;
-
-                // make sure we don't lose the active sourcephrase's contents from the KB
-                // (if the sourcephrase's m_bHasKBEntry is TRUE, then no store will be done
-                // - which is what we'd want because that means it has already been done;
-                // but if FALSE, then the store gets done (which again is what we want,
-                // because the FALSE value means that the active location's KB entry has
-                // already been removed (or its count decremented) and so a re-store is
-                // appropriate now -- because the box location may end up elsewhere
-                // depending on the results of the rebuild process.)
-				pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase());// ignore returned BOOL
-
-				wxString strSavePhraseBox = m_targetPhrase;
-                // now do the reparse - the functions which effect the reconstitution of
-                // the doc when punctuation was changed, or when filtering settings were
-                // changed, or both, will progressively update the view's m_nActiveSequNum
-                // value as necessary so that the stored phrase box contents and the final
-                // active location remain in synch.
-				int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
-															FALSE,	// bFilterChange FALSE = no filter changes here
-															FALSE);	// bSfmSetChange FALSE = no sfm set change here
-
-				// set up some safe indices, since the counts could be quite different 
-				// than before
-				difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
-
-                // for refactored layout code, the following suffices because
-				// m_nActiveSequNum remains unchanged within the document; we defer the
-				// RecalcLayout() call to later though
-				CSourcePhrase* pSrcPhrase = NULL;
-				m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
-				pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
-				wxASSERT(pSrcPhrase);
-
-				// remove the KB or GlossingKB entry for this location, depending on the mode
-				// and make the box contents resaveable
-				CRefString* pRefString;
-				if (gbIsGlossing)
+				if (m_pGlossingKB != NULL)
 				{
-					pRefString = pView->GetRefString(pView->GetKB(),1,pSrcPhrase->m_key,pSrcPhrase->m_gloss);
-					pView->RemoveRefString(pRefString,pSrcPhrase,1); // pRefString is from glossing KB
+					m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+														useTargetPhraseForLookup);
 				}
-				else
-				{
-					pRefString = pView->GetRefString(pView->GetKB(),pSrcPhrase->m_nSrcWords,
-												pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-					pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
-				}
-				m_pLayout->m_bPunctuationChanged = TRUE;
-
 			}
+			else
+			{
+				if (m_pKB != NULL)
+				{
+					m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+														useTargetPhraseForLookup);
+				}
+			}
+			// BEW changed 4Mar11, it needs to be set TRUE, if at all, in the OnOK()
+			// call of CPunctCorrespPage class, as that function is always called on
+			// exit of Preferences, and if the punctuation hasn't been changed,
+			// DoPunctuationChanges() should not then be called (doing it here was too late)
+			//m_pLayout->m_bPunctuationChanged = TRUE; // do full rebuild of the layout
 		}
 	}
 	return TRUE;
@@ -9724,15 +17597,15 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
-/// \param      pfilterPageCommon   ->  pointer to the appropriate filter page being 
+/// \param      pUsfmFilterPageCommon ->  pointer to the usfmFilterPage being 
 ///                                     displayed
-/// \param      reparseDoc          ->  enum value that can be either NoReparse or 
+/// \param      reparseDoc           ->  enum value that can be either NoReparse or 
 ///                                     DoReparse
 /// \remarks
-/// Called from: the CFilterPageWiz::OnWizardPageChanging() when moving forward, and the 
-/// CFilterPagePrefs::OnOK().
-/// Updates the internal data structures for any changes made in the filter page (or in the
-/// usfm page). It first checks for filtering changes made to the markers currently being
+/// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the 
+/// CUsfmFilterPagePrefs::OnOK().
+/// Updates the internal data structures for any changes made in the usfm filter page. 
+/// It first checks for filtering changes made to the markers currently being
 /// used in the Doc. If filtering changes are made in the doc and/or the parameter
 /// reparseDoc == DoReparse, DoUSFMFilterChanges calls RetokenizeText() with the
 /// appropriate flags. Next, DoUSFMFilterChanges checks for filtering changes made to the
@@ -9740,8 +17613,8 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 /// the updated filtering markers list in the App's gProjectFilterMarkersForConfig for
 /// later writing to the project config file.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, 
-									   enum Reparse reparseDoc)
+bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+				enum Reparse reparseDoc)
 {
 	// whm added 26Apr05
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -9761,11 +17634,11 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 
     // since the CUIntArrays contain all the document's markers, and since the user cannot
     // add markers in the GUI which calls this function, the sizes must be identical
-	int countBeforeEdit = pfilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
-	int countAfterEdit = pfilterPageCommon->m_filterFlagsDoc.GetCount();
+	int countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
+	int countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	int numFlags = pfilterPageCommon->m_filterFlagsDoc.GetCount();
-    // The filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
+	int numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
+    // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
     // m_filterFlagsDoc CUIntArray contain data for both known and unknown markers. The
     // former contains the list box formatted whole marker and its description. The later
     // contains flags indicating the filter state of the associated/parallel markers.
@@ -9780,14 +17653,14 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 	//       DoUsfmFilterChanges.
 	for (int index = 0; index < numFlags;  index++)
 	{
-		if (pfilterPageCommon->m_filterFlagsDoc[index] != 
-			pfilterPageCommon->m_filterFlagsDocBeforeEdit[index])
+		if (pUsfmFilterPageCommon->m_filterFlagsDoc[index] != 
+			pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index])
 		{
 			bFilterChangeInDoc = TRUE;
 			// while we are at it, collect the markers that need changing into a string
 			// that can be input into the Doc's ResetUSFMFilterStructs().
 
-			tempStr = pfilterPageCommon->m_SfmMarkerAndDescriptionsDoc[index];
+			tempStr = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsDoc[index];
 			int strLen = tempStr.Length();
 			int spCt = 0;
 			int nwspCt = 0;
@@ -9813,14 +17686,14 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 			if (gpApp->m_FilterStatusMap.find(filterMkr) == gpApp->m_FilterStatusMap.end())
 			{
 				// marker does not already exist in m_FilterStatusMap so add it
-				if (pfilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 0	// previously unfiltered
-					&& pfilterPageCommon->m_filterFlagsDoc[index] == 1)			// now filtered
+				if (pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 0	// previously unfiltered
+					&& pUsfmFilterPageCommon->m_filterFlagsDoc[index] == 1)			// now filtered
 				{
 					gpApp->m_FilterStatusMap[filterMkr] = _T("1");
 					strMarkersToBeFiltered += filterMkr + _T(' ');
 				}
-				else if (pfilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 1	// previously filtered
-					&& pfilterPageCommon->m_filterFlagsDoc[index] == 0)				// now unfiltered
+				else if (pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index] == 1	// previously filtered
+					&& pUsfmFilterPageCommon->m_filterFlagsDoc[index] == 0)				// now unfiltered
 				{
 					gpApp->m_FilterStatusMap[filterMkr] = _T("0");
 					strMarkersToBeUnfiltered += filterMkr + _T(' ');
@@ -9930,25 +17803,30 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 	// Now check for changes in the Project's list of filter markers
 	wxString filterMkrStr;
 	filterMkrStr.Empty(); // start with an empty string
-	countBeforeEdit = pfilterPageCommon->m_filterFlagsProjBeforeEdit.GetCount();
-	countAfterEdit = pfilterPageCommon->m_filterFlagsProj.GetCount();
+	countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit.GetCount();
+	countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	numFlags = pfilterPageCommon->m_filterFlagsProj.GetCount();
+	numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsProj.GetCount();
 	for (int index = 0; index < numFlags;  index++)
 	{
 		// Collect the markers to store as new filter marker defaults for the Project
 		// in case user made a change.
-		int posn = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Find(_T("  "));
-		filterMkr = pfilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Mid(0,posn);
-		filterMkr.Trim(TRUE); // trim right end
+		// whm modified 23Sep10 to do more robust parsing of marker
+		//int posn = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Find(_T("  "));
+		//filterMkr = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsProj[index].Mid(0,posn);
+		filterMkr = pUsfmFilterPageCommon->m_SfmMarkerAndDescriptionsProj[index];
 		filterMkr.Trim(FALSE); // trim left end
-		if (pfilterPageCommon->m_filterFlagsProj[index] == TRUE)
+		int spPos = filterMkr.Find(_T(' '));
+		wxASSERT(spPos != -1);
+		filterMkr = filterMkr.Mid(0,spPos);
+		filterMkr.Trim(TRUE); // trim right end
+		if (pUsfmFilterPageCommon->m_filterFlagsProj[index] == TRUE)
 		{
-		filterMkrStr += filterMkr + _T(' ');
+			filterMkrStr += filterMkr + _T(' ');
 		}
 		// check for changes
-		if (pfilterPageCommon->m_filterFlagsProj[index] != 
-			pfilterPageCommon->m_filterFlagsProjBeforeEdit[index])
+		if (pUsfmFilterPageCommon->m_filterFlagsProj[index] != 
+			pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit[index])
 		{
 			bFilterChangeInProj = TRUE;
 		}
@@ -9970,22 +17848,21 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
-/// \param      pUsfmPageCommon   -> pointer to the appropriate usfm page
-/// \param      pFilterPageCommon -> pointer to the appropriate filter page
+/// \param      pUsfmFilterPageCommon   -> pointer to the usfmFilterPage
 /// \param      bSetChanged       <- TRUE by reference if the sfm set changed, 
 ///                                  FALSE otherwise
 /// \param      reparseDoc        -> enum value that can be either NoReparse 
 ///                                  or DoReparse
 /// \remarks
-/// Called from: the CUSFMPageWiz::OnWizardPageChanging() when moving forward, and the
-/// CUSFMPagePrefs::OnOK().
+/// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the
+/// CUsfmFilterPagePrefs::OnOK().
 /// It updates the internal data structures for any changes made to the sfm set in the 
-/// CUSFMPage. It calls RetokenizeText with reparseDoc == DoReparse if the user changed 
+/// usfmFilterPage. It calls RetokenizeText with reparseDoc == DoReparse if the user changed 
 /// the SfmSet in the document.
+/// whm 5Oct10 modified user workflow profiles compatibility.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, 
-							CFilterPageCommon* pFilterPageCommon, bool& bSetChanged, 
-							enum Reparse reparseDoc)
+bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+									bool& bSetChanged, enum Reparse reparseDoc)
 {
 	// whm added 23May05
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -9999,7 +17876,7 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon,
 
     // whm Note 29Jun05: DoUsfmSetChanges() is always called when the user clicks on OK in
     // Preferences, and/or clicks FINISH in the wizard. As long as the local copies of the
-    // following variables are properly initialized in the USFM page and Filter page's
+    // following variables are properly initialized in the Usfm Filter page's
     // constructors, we can unconditionally copy those local copies back to their
     // corresponding variables on the App and Doc when the user clicks on OK in the
     // Preferences, and/or clicks FINISH in the wizard. These variables are:
@@ -10017,59 +17894,73 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon,
 	// 8. gpApp->m_filterFlagsUnkMkrs (CUIntArray)
 	// 9. gpApp->m_currentUnknownMarkersStr (wxString)
     // When checking code integrity, the above should be used to initialize the
-    // corresponding temporary local variables used in the USFM and Filter pages.
+    // corresponding temporary local variables used in the Usfm Filter page.
     // Only the temporary local variables should be modified while the Preferences and/or
     // Wizard are active. Only when the user clicks OK in Preferences or FINISH in the
     // wizard, should the temporary local variables be used to update the above global
     // variables on the App.
 
     // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
-    // reflects the state of the current Doc) with the USFM page's tempSfmSetAfterEditDoc
-	gpApp->gCurrentSfmSet = pUsfmPageCommon->tempSfmSetAfterEditDoc;
-	// Update the App's gCurrentFilterMarkers with the Filter page's 
+    // reflects the state of the current Doc) with the USFM and Filtering page's 
+    // tempSfmSetAfterEditDoc
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
+	// Update the App's gCurrentFilterMarkers with the USFM and Filtering page's 
 	// tempFilterMarkersAfterEditDoc
-	gpApp->gCurrentFilterMarkers = pFilterPageCommon->tempFilterMarkersAfterEditDoc;
-	// Update the global for the project sfm set with the USFM page's 
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gCurrentFilterMarkers = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
+	// Update the global for the project sfm set with the USFM and Filtering page's 
 	// tempSfmSetAfterEditProj
-	gpApp->gProjectSfmSetForConfig = pUsfmPageCommon->tempSfmSetAfterEditProj;
-	// Update the global for the project's filter markers with the Filter page's 
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gProjectSfmSetForConfig = pUsfmFilterPageCommon->tempSfmSetAfterEditProj;
+	// Update the global for the project's filter markers with the USFM and Filtering page's 
 	// tempFilterMarkersAfterEditProj
-	gpApp->gProjectFilterMarkersForConfig = pFilterPageCommon->tempFilterMarkersAfterEditProj;
-	// Update the sfm set stored on the App with the USFM page's tempSfmSetAfterEditDoc
-	gpApp->m_sfmSetAfterEdit = pUsfmPageCommon->tempSfmSetAfterEditDoc; // whm added 
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->gProjectFilterMarkersForConfig = pUsfmFilterPageCommon->tempFilterMarkersAfterEditProj;
+	// Update the sfm set stored on the App with the USFM and Filtering page's 
+	// tempSfmSetAfterEditDoc
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->m_sfmSetAfterEdit = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc; // whm added 
 		// 10Jun05 for Bruce
-	// Update the list of filter markers on the App with the Filter page's 
+	// Update the list of filter markers on the App with the USFM and Filtering page's 
 	// tempFilterMarkersAfterEditDoc
-	gpApp->m_filterMarkersAfterEdit = pFilterPageCommon->tempFilterMarkersAfterEditDoc;
+	if (pUsfmFilterPageCommon != NULL)
+		gpApp->m_filterMarkersAfterEdit = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
 
 #ifdef _Trace_UnknownMarkers
-	TRACE0("In DoUsfmSetChanges BEFORE Doc's unknown markers copied from pFilterPageCommon\n");
+	TRACE0("In DoUsfmSetChanges BEFORE Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pDoc->m_unknownMarkers, &pDoc->m_filterFlagsUnkMkrs));
-	TRACE1("    Filter pg's unk mkrs = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pFilterPageCommon->m_unknownMarkers, &pFilterPageCommon->m_filterFlagsUnkMkrs));
+	TRACE1("    Filter pg's unk mkrs = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pUsfmFilterPageCommon->m_unknownMarkers, &pUsfmFilterPageCommon->m_filterFlagsUnkMkrs));
 #endif
 
-	// Update the unknown markers vars on the App with those in the Filter page
-	gpApp->m_unknownMarkers.Clear();
-	int ct;
-	for (ct = 0; ct < (int)pFilterPageCommon->m_unknownMarkers.GetCount(); ct++)
-		gpApp->m_unknownMarkers.Add(pFilterPageCommon->m_unknownMarkers.Item(ct));
-
-	gpApp->m_filterFlagsUnkMkrs.Clear();
-	for (ct = 0; ct < (int)pFilterPageCommon->m_filterFlagsUnkMkrs.GetCount(); ct++)
-		gpApp->m_filterFlagsUnkMkrs.Add(pFilterPageCommon->m_filterFlagsUnkMkrs.Item(ct));
-	gpApp->m_currentUnknownMarkersStr = pFilterPageCommon->m_currentUnknownMarkersStr;
-
-	if (pUsfmPageCommon->tempSfmSetBeforeEditDoc != pUsfmPageCommon->tempSfmSetAfterEditDoc)
+	if (pUsfmFilterPageCommon != NULL)
 	{
-		bSetChanged = TRUE; // return TRUE so that filtering call can be suppressed in caller
-							// (caller must default this flag to FALSE before DoUsfmSetChanges
-							// is called)
+		// Update the unknown markers vars on the App with those in the Usfm Filter page
+		gpApp->m_unknownMarkers.Clear();
+		int ct;
+		for (ct = 0; ct < (int)pUsfmFilterPageCommon->m_unknownMarkers.GetCount(); ct++)
+			gpApp->m_unknownMarkers.Add(pUsfmFilterPageCommon->m_unknownMarkers.Item(ct));
+
+		gpApp->m_filterFlagsUnkMkrs.Clear();
+		for (ct = 0; ct < (int)pUsfmFilterPageCommon->m_filterFlagsUnkMkrs.GetCount(); ct++)
+			gpApp->m_filterFlagsUnkMkrs.Add(pUsfmFilterPageCommon->m_filterFlagsUnkMkrs.Item(ct));
+		gpApp->m_currentUnknownMarkersStr = pUsfmFilterPageCommon->m_currentUnknownMarkersStr;
 	}
 
-	if (pUsfmPageCommon->bChangeFixedSpaceToRegularSpace != 
-		pUsfmPageCommon->bChangeFixedSpaceToRegularBeforeEdit)
+	if (pUsfmFilterPageCommon != NULL)
 	{
-		gpApp->m_bChangeFixedSpaceToRegularSpace = pUsfmPageCommon->bChangeFixedSpaceToRegularSpace;
+		if (pUsfmFilterPageCommon->tempSfmSetBeforeEditDoc != pUsfmFilterPageCommon->tempSfmSetAfterEditDoc)
+		{
+			bSetChanged = TRUE; // return TRUE so that filtering call can be suppressed in caller
+								// (caller must default this flag to FALSE before DoUsfmSetChanges
+								// is called)
+		}
+
+		if (pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace != 
+			pUsfmFilterPageCommon->bChangeFixedSpaceToRegularBeforeEdit)
+		{
+			gpApp->m_bChangeFixedSpaceToRegularSpace = pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace;
+		}
 	}
 
 	// whm added 12May06
@@ -10254,53 +18145,46 @@ bool CAdapt_ItApp::LoadGlossingKB()
 
 	// some temporaries for the code below
 	bool bReadOK = FALSE; // whm added initialization
-	bool bSaveFlag = m_bSaveAsXML; // preserve it, we may have to 
-								   // temporarily change the value
 	wxString path = m_curGlossingKBPath;
 
-	if (m_bSaveAsXML) // always true in wx version
+	// version 3.0 and upwards, the default is to do i/o in XML
+	if (wxFileExists(path))
 	{
-		// version 3.0 and upwards, the default is to do i/o in XML
-		if (wxFileExists(path))
-		{
-			// the expected *.xml glossing knowledge base file is in the project folder
-			// attempt the load
-			bReadOK = ReadKB_XML(path, m_pGlossingKB);
-		}
+		// the expected *.xml glossing knowledge base file is in the project folder
+		// attempt the load
+		bReadOK = ReadKB_XML(path, m_pGlossingKB);
+	}
 
-		// if there was a bad load...
-		if (!bReadOK)
-		{
-			// IDS_NO_GLOSSINGKB_WARNING
-			wxMessageBox(_(
+	// if there was a bad load...
+	if (!bReadOK)
+	{
+		// IDS_NO_GLOSSINGKB_WARNING
+		wxMessageBox(_(
 "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."),
-			_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION);
 
-			// make the substitute KB in memory
-			if (m_pGlossingKB == NULL)
-				m_pGlossingKB = new CKB(TRUE);
+		// make the substitute KB in memory
+		if (m_pGlossingKB == NULL)
+			m_pGlossingKB = new CKB(TRUE);
 
-			// store it on disk & close it
-			bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+		// store it on disk & close it
+		bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
 
-			// restore the saved flag values to what they were in the caller
-			gbIsGlossing = bSaveIsGlossingFlag;
-			m_bSaveAsXML = bSaveFlag;
+		// restore the saved flag values to what they were in the caller
+		gbIsGlossing = bSaveIsGlossingFlag;
 
-			if (!bOK)
-			{
-				return FALSE; // let the caller put up message and abort
-			}
-
-			// restore the gbIsGlossing flag value to what it was in the caller
-			gbIsGlossing = bSaveIsGlossingFlag;
-			return TRUE; // nothing much in it, so just return saying all is well
+		if (!bOK)
+		{
+			return FALSE; // let the caller put up message and abort
 		}
+
+		// restore the gbIsGlossing flag value to what it was in the caller
+		gbIsGlossing = bSaveIsGlossingFlag;
+		return TRUE; // nothing much in it, so just return saying all is well
 	}
 
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
-	m_bSaveAsXML = bSaveFlag;
 
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -10344,71 +18228,64 @@ bool CAdapt_ItApp::LoadKB()
 
 	// some temporaries for the code below
 	bool bReadOK = FALSE; // whm added initialization
-	//bool bOpened;
-	bool bSaveFlag = m_bSaveAsXML; // preserve it, we may have to 
-								   // temporarily change the value
 	wxString path = m_curKBPath;
 
-	if (m_bSaveAsXML) // always true in the wx version
+	// version 3.0 and upwards, the default is to do i/o in XML
+	if (wxFileExists(path))
 	{
-		// version 3.0 and upwards, the default is to do i/o in XML
-		if (wxFileExists(path))
-		{
-            // the expected *.xml knowledge base file is in the project folder 
-            // attempt the load
-			bReadOK = ReadKB_XML(path, m_pKB);
-		}
+        // the expected *.xml knowledge base file is in the project folder 
+        // attempt the load
+		bReadOK = ReadKB_XML(path, m_pKB);
+	}
 
-		// if there was a bad load...
-		if (!bReadOK)
-		{
-			// IDS_NO_ADAPTINGKB_WARNING
-			wxMessageBox(_(
+	// if there was a bad load...
+	if (!bReadOK)
+	{
+		// IDS_NO_ADAPTINGKB_WARNING
+		wxMessageBox(_(
 "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "),
-			_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION);
 
-			// make the substitute KB in memory
-			if (m_pKB == NULL)
-				m_pKB = new CKB(FALSE);
+		// make the substitute KB in memory
+		if (m_pKB == NULL)
+			m_pKB = new CKB(FALSE);
 
-            // we'll have to make sure we get the right source and target language names,
-            // so we must analyse the path name to extract them from there; the app's
-            // m_sourceName etc can't be relied on here, because the user might have
-            // backtracked in the startup wizard after having supplied different names.
-			wxFileName pathName;
-			wxString path, fname, ext;
-			pathName.SplitPath(m_curProjectPath, &path, &fname, &ext);
+        // we'll have to make sure we get the right source and target language names,
+        // so we must analyse the path name to extract them from there; the app's
+        // m_sourceName etc can't be relied on here, because the user might have
+        // backtracked in the startup wizard after having supplied different names.
+		wxFileName pathName;
+		wxString path, fname, ext;
+		pathName.SplitPath(m_curProjectPath, &path, &fname, &ext);
 
-			wxString name = fname; // this is the project folder name
-			int index;
-            // whm: For localization purposes the " to " and " adaptations" strings should
-            // not be translated, otherwise other localizations would not be able to handle
-            // the unpacking of files created on different localizations.
-			index = name.Find(_T(" to ")); // find "to" between spaces
-			m_sourceName = name.Left(index); // get the source name, can contain 
-											 // multiple words
-			index += 4;
-			name = name.Mid(index); // name has target name plus "adaptations"
-			index = name.Find(_T(" adaptations"));
-			m_targetName = name.Left(index);
+		wxString name = fname; // this is the project folder name
+		int index;
+        // whm: For localization purposes the " to " and " adaptations" strings should
+        // not be translated, otherwise other localizations would not be able to handle
+        // the unpacking of files created on different localizations.
+		index = name.Find(_T(" to ")); // find "to" between spaces
+		m_sourceName = name.Left(index); // get the source name, can contain 
+										 // multiple words
+		index += 4;
+		name = name.Mid(index); // name has target name plus "adaptations"
+		index = name.Find(_T(" adaptations"));
+		m_targetName = name.Left(index);
 
-			// store in the memory instance of the knowledge base
-			m_pKB->m_sourceLanguageName = m_sourceName;
-			m_pKB->m_targetLanguageName = m_targetName;
+		// store in the memory instance of the knowledge base
+		m_pKB->m_sourceLanguageName = m_sourceName;
+		m_pKB->m_targetLanguageName = m_targetName;
 
-			// store it on disk & close it
-			bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+		// store it on disk & close it
+		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
 
-			// restore the saved flag values to what they were in the caller
-			gbIsGlossing = bSaveIsGlossingFlag;
-			m_bSaveAsXML = bSaveFlag;
+		// restore the saved flag values to what they were in the caller
+		gbIsGlossing = bSaveIsGlossingFlag;
 
-			if (!bOK)
-			{
-				return FALSE; // let the caller put up message and abort
-			}
-			return TRUE; // nothing much in it, so just return saying all is well
+		if (!bOK)
+		{
+			return FALSE; // let the caller put up message and abort
 		}
+		return TRUE; // nothing much in it, so just return saying all is well
 	}
 
     // set the language names from the KB's stored names, in case the user has been
@@ -10419,12 +18296,10 @@ bool CAdapt_ItApp::LoadKB()
 
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
-	m_bSaveAsXML = bSaveFlag;
 
 	// BEW added 13Nov09, for setting or denying ownership for writing permission
 	// attempt to set it only if not already set
-	//if (!m_bReadOnlyAccess)
-		m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
+	m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
 
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -10434,6 +18309,137 @@ bool CAdapt_ItApp::LoadKB()
 #endif
 	
 	return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      -> m_pKB the knowledge base from which correspondences are taken for this Guesser
+///                 which can be either the m_pAdaptationsGuesser or the m_pGlossesGuesser
+/// \remarks
+/// Called from: the App's SetupDirectories(), SubstituteKBBackup(), OnFileRestoreKb(),
+/// the View's OnCreate(), and CProjectPage::OnWizardPageChanging() when moving forward. 
+/// Initializes the appropriate Guesser, then reads the appropriate KB to populate the
+/// correspondence list of the guesser object.
+/////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
+{
+	// whm added 29Oct10 for Guesser support
+	if (m_pKB->IsThisAGlossingKB())
+		m_pGlossesGuesser->Init(m_nGuessingLevel);
+	else
+		m_pAdaptationsGuesser->Init(m_nGuessingLevel); // clears the Guesser correspondence list
+	int numCorrespondencesLoaded = 0;
+	int numWords;
+	int counter = 0;
+	wxString key,baseKey,gloss,baseGloss;
+	wxString strNotInKB = _T("<Not In KB>");
+	MapKeyStringToTgtUnit::iterator iter;
+	CTargetUnit* pTU = 0;
+	CRefString* pRefStr;
+	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
+	{
+		if (m_pKB->IsThisAGlossingKB() && numWords > 1)
+			continue; // when glossing we want to consider only the first map, the others
+					  // are all empty
+		if (m_pKB->m_pMap[numWords-1]->size() == 0) 
+			continue;
+		else
+		{
+			iter = m_pKB->m_pMap[numWords-1]->begin();
+			do 
+			{
+				counter++;
+				key = iter->first; 
+				pTU = (CTargetUnit*)iter->second; 
+				wxASSERT(pTU != NULL);
+				baseKey = key;
+
+				// get the reference strings
+				TranslationsList::Node* posRef = 0; 
+
+				// if the data somehow got corrupted by a CTargetUnit being retained in the
+				// list but which has an empty list of reference strings, this illegal
+				// instance would cause a crash - so test for it and if such occurs, then
+				// remove it from the list and then just continue looping
+				if (pTU->m_pTranslations->IsEmpty())
+				{
+					m_pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
+														// invalid association
+					delete pTU; // its memory chunk is freed (don't leak memory)
+					continue;
+				}
+				else
+				{
+					posRef = pTU->m_pTranslations->GetFirst(); 
+				}
+				wxASSERT(posRef != 0);
+
+				// if control gets here, there will be at least one non-null posRef
+				pRefStr = (CRefString*)posRef->GetData();
+				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
+				wxASSERT(pRefStr != NULL);
+				gloss = pRefStr->m_translation;
+				baseGloss = gloss;
+				// Don't add correspondences for deleted or "<Not In KB>"
+				if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+				{
+					// Add correspondence to the Guesser
+					if (m_pKB->IsThisAGlossingKB())
+						m_pGlossesGuesser->AddCorrespondence(key,gloss);
+					else
+						m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+					numCorrespondencesLoaded++;
+				}
+				// According to Alan Buseman, he says, "I recommend for the guesser that you only 
+				// give it one equivalent for each word, preferably the most frequent. Giving the 
+				// guesser multiple equivalents for a word will tend to reduce the number of guesses 
+				// it can make." If this is the case we should limit the correspondences given to
+				// the Guesser to the first item in the m_pTranslations list - which presumably also
+				// is the one at the top of the list in the ChooseTranslation dialog and as such
+				// probably also the one the user feels is the most frequent or important translation
+				// for a given target unit. Therefore I will comment out the code below which 
+				// functions to add the additional CRefString instances within the same CTargetUnit
+				// instance.
+				/*
+
+				// now deal with any additional CRefString instances within the same
+				// CTargetUnit instance
+				while (posRef != 0)
+				{
+					pRefStr = (CRefString*)posRef->GetData();
+					wxASSERT(pRefStr != NULL); 
+					posRef = posRef->GetNext(); // prepare for possibility of yet another
+					gloss = pRefStr->m_translation;
+					baseGloss = gloss;
+
+					if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+					{
+						// Add correspondence to the Guesser
+						if (m_pKB->IsThisAGlossingKB())
+							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+						else
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+						numCorrespondencesLoaded++;
+					}
+				} // end of inner loop for looping over CRefString instances
+
+				*/
+				// point at the next CTargetUnit instance, or at end() (which is NULL) if
+				// completeness has been obtained in traversing the map 
+				iter++;
+			} while (iter != m_pKB->m_pMap[numWords-1]->end());
+		} // end of normal situation block ...
+	} // end of numWords outer loop
+	if (m_pKB->IsThisAGlossingKB())
+	{
+		m_nCorrespondencesLoadedInGlossingGuesser = numCorrespondencesLoaded;
+		wxLogDebug(_T("The Glossing guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInGlossingGuesser);
+	}
+	else
+	{
+		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
+		wxLogDebug(_T("The Adaptations guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -10492,12 +18498,32 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 	else
 	{
 		CAdapt_ItDoc* pDoc = GetDocument();
-		wxASSERT(pDoc != NULL);
-		wxDocTemplate* pTemplate = pDoc->GetDocumentTemplate();
-		wxASSERT(pTemplate != NULL);
+		// BEW changed 16Aug10, because the previous line can return NULL for pDoc in the
+		// following circumstance. Have bible book folder mode turned on, and a doc
+		// visible in the main window. Then close the document (this clobbers the document
+		// pointer). Then use the Advanced menu to turn off book folder mode. This causes
+		// the wizard to be entered at docPage, and the latter's OnSetActive() is called,
+		// which in turn calls GetPossibleAdaptionDocuments() for the path
+		// m_curAdaptionsPath, and then the above GetDocument() call returns NULL. So
+		// having a wxASSERT here for a non-Null pDoc pointer is no help. We cannot in
+		// this circumstance use pDoc to access the document template, so for the present
+		// I'll do a kludge - test for pDoc NULL and if so, set strExt to ".xml" manually.
+		// Hmmm... try as I might, I've not been able to recreate pDoc being NULL, even
+		// though I've done what I previously did and other variations on it too - so I
+		// can't check the kludge works, though I suspect it will.
 		wxString strExt;
-		strExt = pTemplate->GetFileFilter(); // GetFileFilter returns "*.xml" 
-											 // in wx version
+		if (pDoc == NULL)
+		{
+			strExt = _T(".xml");
+		}
+		else
+		{
+			//wxASSERT(pDoc != NULL);
+			wxDocTemplate* pTemplate = pDoc->GetDocumentTemplate();
+			wxASSERT(pTemplate != NULL);
+			strExt = pTemplate->GetFileFilter(); // GetFileFilter returns "*.xml" 
+												 // in wx version
+		}
 		// Must call wxDir::Open() before calling GetFirst() - see above
 		wxString str = _T("");
 		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
@@ -10512,7 +18538,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 			int nFound = str.Find(_T(".BAK"));
 			if ((strEnd == strExt || strEndLower == strExt) && nFound == -1) 
 				pList->Add(str); // add filename to the list, if it's extension is ours,
-								 // but exclude backup document files with ".BAK.xml"
+								 // but exclude backup document files with ".BAK"
 			bWorking = finder.GetNext(&str);
 		}
 	}
@@ -10763,8 +18789,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 
 	// ensure the extension is what it should be
 	gpApp->GetDocument()->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
-	
-	
+		
 	// open a CFile stream
 	path = m_curGlossingKBPath;
 	
@@ -10787,110 +18812,31 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
-	{
-		DoKBSaveAsXML(f,TRUE); // TRUE means that we want a glossing KB file in XML format
+	m_pGlossingKB->DoKBSaveAsXML(f);
 
-		// close the file
-		f.Close();
-		f.Flush();
-
-		// remove the .KB file, if there is one of same name, so that the *.xml file
-		// is the only form of the glossing kb left on disk
-		if (m_altGlossingKBPath != path)
-		{
-			if (wxFileExists(m_altGlossingKBPath))
-			{
-				// there is a *.KB glossing knowledge base file on the disk, so delete it
-				if (!::wxRemoveFile(m_altGlossingKBPath))
-				{
-					wxMessageBox(_T(
-					"Could not remove the *.KB glossing knowledge base alternate file"));
-					// do nothing else, let the app continue
-				}
-			}
-		}
-	}
+	// close the file
+	f.Close();
+	f.Flush();
 	//} // end of CWaitDlg block
 
-    // if backing up is desired, we rename the newly saved copy as a *.BAK file, or
-    // *.BAK.xml if m_bSaveAsXML is TRUE, then resave the glossing knowledge base to the
-    // old name again
+    // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
+    // the glossing knowledge base to the old name again
 	if (bAutoBackup)
 	{
-		if (::wxFileExists(m_curGlossingKBBackupPath) && 
-			!::wxDirExists(m_curGlossingKBBackupPath))
+		if (::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
 			if (!::wxRemoveFile(m_curGlossingKBBackupPath))
 			{
 				// notify user of error (maybe backup file is protected or in use???)
-				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),
-				wxICON_ERROR);
+				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),wxICON_WARNING);
 				return TRUE; // allow the app to continue
 			}
 		}
 
-        // attempt to rename the file to the name with .BAK extension (for the binary
-        // file), or we are saving as XML, rename to the name with .BAK.xml dual extensions
-        // -- the extension will have been made correct by code which is above
-		if (!::wxRenameFile(m_curGlossingKBPath,m_curGlossingKBBackupPath))
-		{
-			wxString message;
-			message = _("Error renaming backup glossing KB file with path:\n") 
-				+ m_curGlossingKBPath + _(
-				"\nBackup copy of glossing knowledge base was not created.");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-			return TRUE;// allow app to continue
-		}
-
-		
-		if (!f.Open(m_curGlossingKBPath, wxFile::write))
-		{
-			wxString message;
-			message = _("Error opening glossing KB file for writing with path:\n") 
-				+ m_curGlossingKBPath + _(
-"\nThe glossing knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-				return FALSE;
-		}
-
-		//{ // this block defines the existence of the wait dialog for backing up the glossing KB
-		//CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		//waitDlg.m_nWaitMsgNum = 11;	// 11 "Please wait while Adapt It backs up the Glossing KB..."
-		//waitDlg.Centre();
-		//waitDlg.Show(TRUE);
-		//waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-		
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
-		{
-			DoKBSaveAsXML(f,TRUE); // TRUE means we are doing it for a Glossing KB 
-								   // saved in XML format
-			// close the file
-			f.Close();
-			f.Flush();
-
-            // remove the .BAK file, if there is one of same name, so that the .BAK.xml
-            // file is the only form of the KB backup file left on disk
-			if (m_altGlossingKBBackupPath != m_curGlossingKBBackupPath)
-			{
-				if (wxFileExists(m_altGlossingKBBackupPath))
-				{
-					// there is an *.BAK backup knowledge base file on the disk, so delete
-					// it 
-					if (!::wxRemoveFile(m_altGlossingKBBackupPath))
-					{
-						wxMessageBox(_(
-"Could not remove the *.BAK backup glossing knowledge base alternate file"),
-						_T(""),wxICON_INFORMATION);
-						// do nothing else, let the app continue
-					}
-				}
-			}
-		}
-		//} // end of CWaitDlg scope
+		// BEW changed 30Apr10, make the backup by copying the saved file to the backup filename
+		bool bCopiedOK = ::wxCopyFile(m_curGlossingKBPath, m_curGlossingKBBackupPath);
+		bCopiedOK = bCopiedOK; // prevent compiler warning
 	}
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -10945,35 +18891,15 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	if (m_bSaveAsXML) // always true in the wx version
-	{
-		DoKBSaveAsXML(f);
+	m_pKB->DoKBSaveAsXML(f);
 
-		// close the file
-		f.Close();
-		f.Flush();
-
-        // remove the .KB file, if there is one of same name, so that the .xml file is the
-        // only form of the document left on disk
-		if (m_altKBPath != path)
-		{
-			if (wxFileExists(m_altKBPath))
-			{
-				// there is a *.KB knowledge base file on the disk, so delete it
-				if (!::wxRemoveFile(m_altKBPath))
-				{
-					wxMessageBox(_("Could not remove the *.KB knowledge base alternate file"),
-					_T(""),wxICON_INFORMATION);
-					// do nothing else, let the app continue
-				}
-			}
-		}
-	}
+	// close the file
+	f.Close();
+	f.Flush();
 	//} // end of CWaitDlg block
 	
-    // if backing up is desired, we rename the newly saved copy as a *.BAK file, or
-    // *.BAK.xml if m_bSaveAsXML is TRUE, then resave the knowledge base to the old name
-    // again
+    // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
+    // the knowledge base to the old name again
 	if (bAutoBackup)
 	{
 		// first, remove the old backup file, if it still is on disk
@@ -10983,68 +18909,14 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			if (!::wxRemoveFile(m_curKBBackupPath))
 			{
 				// notify user of error (maybe backup file is protected or in use???)
-				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_ERROR);
+				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_WARNING);
 				return TRUE; // allow app to continue
 			}
 		}
 
-        // attempt to rename the file to the name with .BAK extension (for the binary
-        // file), or we are saving as XML, rename to the name with .BAK.xml dual extensions
-        // -- the extension will have been made correct by code which is above
-		if (!::wxRenameFile(m_curKBPath,m_curKBBackupPath))
-		{
-			wxString message;
-			message = _("Error renaming backup KB file with path:\n") 
-				+ m_curKBPath + _("\nBackup copy of knowledge base was not created.");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-			return TRUE; // allow app to continue
-		}
-
-		
-		if (!f.Open(m_curKBPath, wxFile::write))
-		{
-			wxString message;
-			message = _("Error opening KB file for writing with path:\n") 
-				+ m_curKBPath + _(
-"\nThe knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-			return FALSE;
-		}
-
-		//{ // this block defines the existence of the wait dialog for backing up the KB
-		//CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		//waitDlg.m_nWaitMsgNum = 10;	// 10 "Please wait while Adapt It backs up the KB..."
-		//waitDlg.Centre();
-		//waitDlg.Show(TRUE);
-		//waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-		
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
-		{
-			DoKBSaveAsXML(f);
-
-			// close the file
-			f.Close();
-			f.Flush();
-
-            // remove the .BAK file, if there is one of same name, so that the .BAK.xml
-            // file is the only form of the KB backup file left on disk
-			if (m_altKBBackupPath != m_curKBBackupPath)
-			{
-				if (wxFileExists(m_altKBBackupPath))
-				{
-					if (!::wxRemoveFile(m_altKBBackupPath))
-					{
-							wxMessageBox(_(
-					"Could not remove the *.BAK backup knowledge base alternate file"),
-						_T(""), wxICON_INFORMATION);
-							// do nothing else, let the app continue
-					}
-				}
-			}
-		}
-		//} // end of CWaitDlg scope
+		// BEW changed 30Apr10, make the backup by copying the saved file to the backup filename
+		bool bCopiedOK = ::wxCopyFile(m_curKBPath, m_curKBBackupPath);
+		bCopiedOK = bCopiedOK; // prevent compiler warning
 	}
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -11072,17 +18944,11 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 		return TRUE; // not an error, just suppression of a remote save
 	if (bAutoBackup)
 	{
-        // Do any needed adjustment to m_curKBBackupPath. Note -- this is different than
-        // expected, because we don't want KB files which could have been binary (extension
-        // .KB) or XML to just have a .BAK extension for the backup one - since then we'd
-        // not know from the extension whether the contents were binary or xml. So for the
-        // backups, we'll have .BAK for a binary backup, and .BAK.xml for an XML backup
-        // (ie. just add the .xml extension to the backup name as produced by the legacy
-        // code); we handle m_curKBFilename, m_curKBPath too, because we keep all three in
-        // synch every time we change them
+        // Guarantee correct form for m_curKBBackupPath, we handle m_curKBFilename,
+        // m_curKBPath too, because we keep all three in sync
 		gpApp->GetDocument()->UpdateFilenamesAndPaths(TRUE,TRUE,TRUE,FALSE,FALSE);
 
-		// is there a backup file (ie. with .BAK extension)
+		// is there a backup file? remove it if so 
 		if(::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
@@ -11119,17 +18985,12 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 		return TRUE; // not an error, just suppression of a remote save
 	if (bAutoBackup)
 	{
-        // Do any needed adjustment to m_curGlossingKBBackupPath. Note -- this is different
-        // than expected, because we don't want KB files which could have been binary
-        // (extension .KB) or XML to just have a .BAK extension for the backup one - since
-        // then we'd not know from the extension whether the contents were binary or xml.
-        // So for the backups, we'll have .BAK for a binary backup, and .BAK.xml for an XML
-        // backup (ie. just add the .xml extension to the backup name as produced by the
-        // legacy code); we handle m_curKBFilename, m_curKBPath too, because we keep all
-        // three in synch every time we change them
+        // Guarantee correct form for m_curGlossingKBBackupPath, we handle
+        // m_curGlossingKBFilename, m_curGlossingKBPath too, because we keep all three in
+        // sync
 		gpApp->GetDocument()->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
 
-		// is there a backup file (ie. with .BAK extension)
+		// is there a backup file? remove it if so
 		if(::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
@@ -11207,13 +19068,13 @@ bool CAdapt_ItApp::GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView,
 /// GetUnknownMarkersFromDoc(), the View's GetMarkerInventoryFromCurrentDoc(),
 /// MarkerTakesAnEndMarker(), and (from ExportFunctions.cpp) DoExportInterlinearRTF(),
 /// BuildRTFTagsMap(), BuildColorTableFromUSFMColorAttributes(), GetMaxMarkerLength(), the
-/// CFilterPageCommon::LoadDocSFMListBox(), CFilterPageCommon::LoadProjSFMListBox(),
-/// CUSFMPageCommon::DoInit(), CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(),
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsProj().
+/// CUsfmFilterPageCommon::LoadDocSFMListBox(), CUsfmFilterPageCommon::LoadProjSFMListBox(),
+/// CUsfmFilterPageCommon::DoInit(), CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj().
 /// Gets a pointer to the current MapSfmToUSFMAnalysisStruct map specified by sfmSet.
 ////////////////////////////////////////////////////////////////////////////////////////
 MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
@@ -11435,10 +19296,79 @@ CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the free translations manager
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CFreeTrans 
+/// is required to call a function/method of the CFreeTrans.
+/// Gets a pointer to the current CFreeTrans.
+/// NOTE: Needs to be called with reference to the app object e.g. pApp->GetFreeTrans()
+////////////////////////////////////////////////////////////////////////////////////////
+CFreeTrans*	CAdapt_ItApp::GetFreeTrans()
+{
+	// The member function m_pFreeTrans was set when the app's OnInit() created the
+	// CFreeTrans object.
+	wxASSERT(m_pFreeTrans);
+	return m_pFreeTrans;
+}
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the Layout
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the Layout 
+/// is required to call a function/method of the Layout.
+/// Gets a pointer to the current Layout.
+/// NOTE: Needs to be called with reference to the app object e.g. pApp->GetLayout()
+////////////////////////////////////////////////////////////////////////////////////////
+CLayout*	CAdapt_ItApp::GetLayout()
+{
+	// The member function m_pLayout was set during app startup
+	wxASSERT(m_pLayout);
+	return m_pLayout;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the CNotes object instance
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CNotes 
+/// object is required to call a function/method of CNotes.
+/// Gets a pointer to the current CNotes object.
+////////////////////////////////////////////////////////////////////////////////////////
+CNotes*	CAdapt_ItApp::GetNotes()
+{
+	wxASSERT(m_pNotes);
+	return m_pNotes;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the CRetranslation object instance
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CRetranslation 
+/// object is required to call a function/method of CRetranslation.
+/// Gets a pointer to the current CRetranslation object.
+////////////////////////////////////////////////////////////////////////////////////////
+CRetranslation*	CAdapt_ItApp::GetRetranslation()
+{
+	wxASSERT(m_pRetranslation);
+	return m_pRetranslation;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the CPlaceholder object instance
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CPlaceholder 
+/// object is required to call a function/method of CPlaceholder.
+/// Gets a pointer to the current CPlaceholder object.
+////////////////////////////////////////////////////////////////////////////////////////
+CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
+{
+	wxASSERT(m_pPlaceholder);
+	return m_pPlaceholder;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
 /// \remarks
 /// Called from: many places throughout the application where a pointer to the view is 
-/// requited to call a function/method of the View.
+/// required to call a function/method of the View.
 /// Gets a pointer to the current view.
 ////////////////////////////////////////////////////////////////////////////////////////
 CAdapt_ItView* CAdapt_ItApp::GetView()
@@ -11648,6 +19578,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 			message = _("Adapt It cannot create its work folder: ") + workFolderPath;
 			message += _("\nAdapt It cannot continue and will now abort.");
 			wxMessageBox(message, _("Critical Error"), wxICON_ERROR | wxOK);
+			LogUserAction(_T("Adapt It cannot create its work folder in EnsureWorkFolderPresent()"));
 			abort(); // wxExit() not used, as it calls OnExit() before aborting the program 
 					 // which would attempt to delete some objects not yet created.
 		}
@@ -11811,7 +19742,7 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: the App's DoGlossingKBBackup(), DoKBBackup()
 /// Called only if a serious problem was detected in the active KB. After cleaning things
-/// up, it substitutes the backup copy of the active KB after detleting the currently
+/// up, it substitutes the backup copy of the active KB after deteleting the currently
 /// (corrupted) KB.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
@@ -11830,8 +19761,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		m_pKB = (CKB*)NULL;
 	}
 
-	// set up the m_curKBPath and m_altKBPath and backup ones, according
-	// to the current value of the m_bSaveAsXML flag
+	// set up the m_curKBPath and backup ones
 	if (bDoOnGlossingKB)
 	{
 		pDoc->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
@@ -11841,6 +19771,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		pDoc->UpdateFilenamesAndPaths(TRUE,TRUE,TRUE,FALSE,FALSE);
 	}
 
+	/*
     // determine which path to use; since the KB or GlossingKB could be on disk in binary
     // or XML format from version 3 onwards
 	wxString strUseThisPath;
@@ -11866,7 +19797,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			strUseThisPath = m_altKBPath;
 		}
 	}
-
+	*/
 	// get rid of the knowledge base file
 	wxString message;
 	if (bDoOnGlossingKB)
@@ -11876,6 +19807,9 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			message = message.Format(_(
 			"Warning: Did not remove bad knowledge base file %s."),
 			m_curGlossingKBPath.c_str());
+			wxMessageBox(message, _T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			wxExit();
 		}
 	}
 	else
@@ -11885,20 +19819,19 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			message = message.Format(_(
 			"Warning: Did not remove bad knowledge base file %s."),
 			m_curKBPath.c_str());
+			wxMessageBox(message, _T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			wxExit();
 		}
 	}
-	wxMessageBox(message, _T(""), wxICON_ERROR);
-	wxASSERT(FALSE);
-	wxExit();
 
 	// check to see if there is a backup KB available, & if so, rename if
 	if (bDoOnGlossingKB)
 	{
-		if(::wxFileExists(m_curGlossingKBBackupPath) && 
-			!::wxDirExists(m_curGlossingKBBackupPath))
+		if(::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
-			// attempt to rename the glossing backup file to the same name with .KB
-			// extension 
+            // attempt to rename the glossing backup file to the same name, .BAK becomes .xml
+            // extension
 			if (!::wxRenameFile(m_curGlossingKBBackupPath,m_curGlossingKBPath))
 			{
 				wxString message;
@@ -11914,7 +19847,6 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
 			// the backup glossing KB does not exist, so all we can do is substitute an empty
             // one and save it to disk.
-			wxASSERT(m_pGlossingKB == NULL);
 			m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(m_pGlossingKB != NULL);
 
@@ -11935,12 +19867,12 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			return;
 		}
 	}
-	else
+	else // adaptations KB
 	{
 		if(::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
 		{
-			// attempt to rename the backup file to the same name with .KB extension
-			if (!::wxRenameFile(m_curKBBackupPath,m_curKBPath))
+			// attempt to rename the backup file to the same name, .BAK becomes .xml extension
+			if (!::wxRenameFile(m_curKBBackupPath, m_curKBPath))
 			{
 				wxString message;
 				message = message.Format(_(
@@ -11955,7 +19887,6 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
             // the backup KB does not exist, so all we can do is substitute an empty one
             // and save it to disk.
-			wxASSERT(m_pKB == NULL);
 			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 
@@ -11987,17 +19918,19 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	{
 		if(::wxFileExists(m_curGlossingKBPath) && !::wxDirExists(m_curGlossingKBPath))
 		{
-            // the .KB file exists, so we need to create a CKB instance in memory, open the
-            // .KB file on disk, and fill the memory instance's members
+            // the .xml file exists, so we need to create a CKB instance in memory, open the
+            // .xml file on disk, and fill the memory instance's members
 			wxASSERT(m_pGlossingKB == NULL);
 			m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(m_pGlossingKB != NULL);
 			bool bOK = LoadGlossingKB();
 			if (bOK)
+			{
 				m_bGlossingKBReady = TRUE;
+				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+			}
 			else
 			{
-				// IDS_LOAD_GLOSSINGKB_FAILURE
 				wxMessageBox(_(
 	"Error: loading the glossing knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR);
@@ -12020,14 +19953,17 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	{
 		if(::wxFileExists(m_curKBPath) && !::wxDirExists(m_curKBPath))
 		{
-            // the .KB file exists, so we need to create a CKB instance in memory, open the
-            // .KB file on disk, and fill the memory instance's members
+            // the .xml file exists, so we need to create a CKB instance in memory, open the
+            // .xml file on disk, and fill the memory instance's members
 			wxASSERT(m_pKB == NULL);
 			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 			bool bOK = LoadKB();
 			if (bOK)
+			{
 				m_bKBReady = TRUE;
+				LoadGuesser(m_pKB); // whm added 29Oct10
+			}
 			else
 			{
 				// IDS_LOAD_KB_FAILURE
@@ -12266,6 +20202,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 /// To turn on the consistent changes functionality again, the user must again select the
 /// "Load Consistent Changes..." menu item, load the .cct changes files, and then select
 /// the "Use Consistent Changes" toggle item in the Tools menu.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event)) 
 {
@@ -12297,11 +20234,15 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsUseCC = pMenuBar->FindItem(ID_USE_CC);
-	wxASSERT(pToolsUseCC != NULL);
-	pToolsUseCC->Check(FALSE);
+	if(pToolsUseCC != NULL)
+	{
+		pToolsUseCC->Check(FALSE);
+	}
 	wxMenuItem * pToolsAcceptChanges = pMenuBar->FindItem(ID_ACCEPT_CHANGES);
-	wxASSERT(pToolsAcceptChanges != NULL);
-	pToolsAcceptChanges->Check(FALSE);
+	if(pToolsAcceptChanges != NULL)
+	{
+		pToolsAcceptChanges->Check(FALSE);
+	}
 
 	// ensure the "Accept changes without stopping" flag is FALSE
 	m_bAcceptDefaults = FALSE;
@@ -12318,7 +20259,8 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 // phrase box into the appropriate KB before the save is done)
 {
 	bool bOkay;
-	bOkay = GetDocument()->DoFileSave(FALSE); // FALSE - don't show wait/progress dialog
+	//bOkay = GetDocument()->DoFileSave(FALSE);
+	bOkay = GetDocument()->DoFileSave_Protected(FALSE); // FALSE - don't show wait/progress dialog
 
 	// update the time it was last saved
 	wxDateTime time = wxDateTime::Now();
@@ -12400,7 +20342,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// IDS_RESTORE_KB_MSG
 	int value = wxMessageBox(_(
 "Use this command if the knowledge base has become corrupted.\n(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\nIt will throw away your current knowledge base, and then using your saved document files it will build a new one.\n\nDo you wish to go ahead?"),
-	_T(""), wxYES_NO);
+	_T("Restore Knowledge Base..."), wxYES_NO);
 	if (!(value == wxYES))
 		return;
 
@@ -12421,26 +20363,47 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	else
 		pKB = m_pKB;
 
-	// recover as many m_bAlwaysAsk flag = TRUE instances as possible from the corrupted
-	// KB 
+	// Only offer option when profile settings = 0 (None) KLB 3/11/2011
 	bool bRescueFlags = FALSE;
-	value = wxMessageBox(_(
-"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
-	_T(""), wxYES_NO);
-	if (value == wxYES)
-		bRescueFlags = TRUE;
+	if (m_nWorkflowProfile == 0)
+	{
+		// recover as many m_bAlwaysAsk flag = TRUE instances as possible
+		// from the corrupted KB 
+		value = wxMessageBox(_(
+		"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
+		_T("Restore Knowledge Base..."), wxYES_NO);
+		if (value == wxYES)
+			bRescueFlags = TRUE;
+	}
 	KPlusCList keys;
 	if (bRescueFlags)
 	{
-		GetForceAskList(pKB,&keys);
+		pKB->GetForceAskList(&keys);
+	}
+
+	// BEW 22July10, CWhichFilesDlg is called from EnumerateDocFiles(), and if the user
+	// cancels from that dialog, we don't want the KB or GlossingKB lost (it might still
+	// be good), so save the relevant KB file first, and restore it below if the user has
+	// cancelled from the enum call for the Adaptations dialog's contents
+	wxString tempKBfilePath;
+	if (gbIsGlossing)
+	{
+		tempKBfilePath = m_curProjectPath + PathSeparator + _T("Save_GlossingKB");
+		bOK = ::wxCopyFile(m_curGlossingKBPath, tempKBfilePath);
+	}
+	else
+	{
+		tempKBfilePath = m_curProjectPath + PathSeparator + _T("Save_AdaptingKB");
+		bOK = ::wxCopyFile(m_curKBPath, tempKBfilePath);
 	}
 
 	// clear out the KB, actually erase it & create a new empty one & store it ready 
 	// for filling
-	ClearKB(pDoc); // checks gbIsGlossing and clears whichever KB needs clearing
+	ClearKB(pKB,pDoc); // checks clears whichever KB is passed in as first param, &
+					   // recreates an empty one
 
-	// the pointer will be a new one because of ClearKB( ) call, so update pKB to point to
-	// it 
+    // the pointer will be a new one because of ClearKB( ) call, 
+    // so update pKB to point to it
 	if (gbIsGlossing)
 		pKB = m_pGlossingKB;
 	else
@@ -12476,7 +20439,16 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     // suppress the dialog so that all doc files in the book folders get processed
     // whm note: EnumerateDocFiles() has the side effect of changing the current work
     // directory to the passed in m_curAdaptionsPath.
-	bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath);
+	//
+	// Dialog should be suppressed for profile == 1 : klb 3/2011
+	if (m_nWorkflowProfile == 1)
+	{
+		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath, TRUE);
+	}
+	else
+	{
+		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath);
+	}
 	nCount = pList->GetCount(); // the count of doc files (could be zero if all docs are in
 								// Bible book folders only)
 	nDocCount += nCount;
@@ -12487,14 +20459,66 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// document files is impossible, so then return to caller with a FALSE value
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 		{
-			// IDS_NO_DOCUMENTS_YET
 			wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-			_T(""), wxICON_EXCLAMATION);
+			_T("Restore Knowledge Base..."), wxICON_EXCLAMATION);
+
+			// let the view respond again to updates
+			pView->canvas->Thaw();
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			if (::wxFileExists(tempKBfilePath))
+			{
+				bOK = ::wxRemoveFile(tempKBfilePath);
+				tempKBfilePath.Empty();
+			}
 			return;
 		}
 		// there is at least one document, so do the restore
-		DoKBRestore(pKB, nCount, nTotal, nCumulativeTotal);
+		pKB->DoKBRestore(nCount, nTotal, nCumulativeTotal);
+	}
+	else
+	{
+		// probably the user cancelled from the CWhichFilesDlg dialog, in which case we
+		// want to set up the old KB, as it might still be good; assume the restore will
+		// not have any errors
+		if (gbIsGlossing)
+		{
+			bOK = ::wxCopyFile(tempKBfilePath, m_curGlossingKBPath);
+			bOK = LoadGlossingKB();
+			if (bOK)
+			{
+				m_bGlossingKBReady = TRUE;
+				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+			}
+		}
+		else
+		{
+			bOK = ::wxCopyFile(tempKBfilePath, m_curKBPath);
+			bOK = LoadKB();
+			if (bOK)
+			{
+				m_bKBReady = TRUE;
+				LoadGuesser(m_pKB); // whm added 29Oct10
+			}
+		}
+		// remove the temporary copy of the KB file or Glossing KB file
+		bOK = ::wxRemoveFile(tempKBfilePath);
+		tempKBfilePath.Empty();
+
+		// let the view respond again to updates
+		pView->canvas->Thaw();
+
+		// clean up the list
+		m_acceptedFilesList.Clear();
+
+		// restore the former book mode parameters (even if book mode was not on on entry)
+		m_pCurrBookNamePair = pSave_BookNamePair;
+		m_nBookIndex = nSave_BookIndex;
+		m_bibleBooksFolderPath = save_bibleBooksFolderPath;
+
+		// restore the former current working directory to what it was on entry
+		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+		return;
 	}
 
 	if (gbHasBookFolders)
@@ -12517,6 +20541,15 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 "processing book folders, so the book folder document files do not contribute to the rebuild.");
 			s3 = s3.Format(_T("%s%s"),s1.c_str(),s2.c_str());
 			wxMessageBox(s3,_T(""), wxICON_EXCLAMATION);
+			// let the view respond again to updates
+			pView->canvas->Thaw();
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			m_acceptedFilesList.Clear();
+			if (::wxFileExists(tempKBfilePath))
+			{
+				bOK = ::wxRemoveFile(tempKBfilePath);
+				tempKBfilePath.Empty();
+			}
 			return;
 		}
 		else
@@ -12608,7 +20641,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 						// There are files to be processed. TRUE parameter suppresses the statistics
 						// dialog 
-						DoKBRestore(pKB, nCount, nTotal, nCumulativeTotal);
+						pKB->DoKBRestore(nCount, nTotal, nCumulativeTotal);
                         
 						//bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
 						// BEW altered 19Mar2010, because the reopening of finder by the
@@ -12651,7 +20684,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	if (bRescueFlags)
 	{
 		// do the rescue, for either glossing KB or the adaptation KB
-		RestoreForceAskSettings(pKB,&keys); // also cleans up after itself, 
+		pKB->RestoreForceAskSettings(&keys); // also cleans up after itself, 
 											  // deleting the list contents
 	}
 
@@ -12663,6 +20696,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		else
 			DoKBBackup();
 	}
+	if (::wxFileExists(tempKBfilePath))
+	{
+		bOK = ::wxRemoveFile(tempKBfilePath);
+		tempKBfilePath.Empty();
+	}
 
 	// inform user of success and some statistics
 	wxString stats;
@@ -12670,7 +20708,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	stats = stats.Format(_(
 "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."),
 	nCumulativeTotal,nDocCount);
-	wxMessageBox(stats);
+	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION);
 
 	// let the view respond again to updates
 	pView->canvas->Thaw();
@@ -12750,7 +20788,7 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 
     // enumerate the document files in the Adaptations folder or the current book folder;
     // and note that internally GetPossibleAdaptionDocuments excludes any files with names
-    // of the form *.BAK.xml (these are backup XML document files, and for each there will
+    // of the form *.BAK (these are backup XML document files, and for each there will
     // be present an *.xml file which has identical content -- it is the latter we
     // enumerate) and also note the result could be an empty m_acceptedFilesList, but have
     // the caller of EnumerateDocFiles check it for no entries in the list
@@ -12781,353 +20819,353 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      pKB     -> pointer to the affected KB (can be glossing or the regular KB)
-/// \param      pKeys   <- pointer to the list of keys that is produced
+/// \return     TRUE if all was okay, FALSE if the path to the folder could not be 
+///             made the current directory
+/// \param      docNamesList -> a wxArrayString to store the documents' filenames 
+/// \param      folderPath   -> a wxString representing the full path to the folder which 
+///                             is to have its document files enumerated
 /// \remarks
-/// Called from: the App's OnFileRestoreKb().
-/// Gets a list of the keys which have a unique translation and for which the CTargetUnit
-/// instance's m_bAlwaysAsk attribute is set to TRUE. This function is only called when a
-/// corrupted KB was detected, so we cannot expect to be able to recover all such keys, but
-/// as many as we can, which will reduce the amount of manual setting of the flags in the
-/// KB editor after a KB restore is done.
+/// Called from: the App's AccessOtherAdaptionProjects().
+/// This is a similar function to EnumerateDocFiles, but with a few differences as follows:
+/// 1.  EnumerateDocFiles() stores in CAdapt_ItApp::m_acceptedFilesList, and so is not a 
+///     useful function if we wish to enumerate the documents in more than one folder (which
+///     is the case when transforming adaptations to glosses); so we pass in the storage
+///     array as the first parameter
+/// 2.  EnumerateDocFiles_ParametizedStore() enumerates all doc files in the folder, there
+///     is no provision for a dialog for the user to select which ones are to kept for use
+/// 3.  EnumerateDocFiles_ParametizedStore((), on exit, restores the caller's work directory
+///     to what it was prior to being called
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::GetForceAskList(CKB* pKB, KPlusCList* pKeys) // MFC has CPtrList
-// get a list of the keys which have a unique translation and for which the CTargetUnit
-// instance's m_bAlwaysAsk attribute is set TRUE. (Since we are using this with a probably
-// corrupted KB, we cannot expect to be able to recover all such keys, and we will have to
-// check carefully for corrupt pointers, etc. We will recover as many as we can, which will
-// reduce the amount of the user's manual setting of the flag in the KB editor, after the
-// KB restore is done.)
-// For glossing being ON, this function should work correctly without any changes needed,
-// provided the caller gives the pointer to the glossing KB as the first parameter.
+bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList,
+													  wxString folderPath)
 {
-	wxASSERT(pKeys->IsEmpty());
-	for (int i=0; i < MAX_WORDS; i++)
+	// first, save the caller's current working directory
+	wxString saveWorkDir = ::wxGetCwd();
+
+	// reset the current working directory to the path passed in
+	wxASSERT(!folderPath.IsEmpty());
+	bool bOK = ::wxSetWorkingDirectory(folderPath);
+	if (!bOK)
 	{
-		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[i];
-		if (!pMap->empty())
+		// something's real wrong!
+		wxMessageBox(_T(
+		"Failed to set the current directory to the passed in folder, in EnumerateDocFiles_ParametizedStore(). Command aborted."),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+
+    // enumerate the document files in the folder ( excludes any files with names
+    // of the form *.BAK )
+	GetPossibleAdaptionDocuments(&docNamesList, folderPath);
+
+	// restore the working directory
+	bOK = ::wxSetWorkingDirectory(saveWorkDir);
+	if (!bOK)
+	{
+		// something's real wrong!
+		wxMessageBox(_T(
+		"Failed to re-set the work directory in EnumerateDocFiles_ParametizedStore(). Command aborted."),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+	return TRUE; // return TRUE even if the list is empty
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if one or more loadable files was added to the passed in array, FALSE
+///             if there was an error or if there were no loadable files in the folder
+/// \param      array         ->    ref to a sorted string array to store the names of the files 
+///                                 judged to be loadable for creating valid adaptation docs
+/// \param      folderPath    ->    the absolute path to the folder whose files are to be
+///                                 enumerated and tested for loadability
+/// \remarks
+/// Uses the function, bool IsLoadableFile() (see helpers.cpp), to test each file for
+/// loadability. Those that are are added to the array (it's a sorted array) - and only
+/// these should be shown to the user for document creation purposes. We have to do this
+/// enumeration immediately prior to creation of a new document, because it may happen
+/// that someone (e.g. an administrator) might have changed the contents of the Source Data
+/// folder's monocline list of loadable files since the last call of this function -
+/// either to add more loadable files, or even some not loadable.
+/// BEW 15Aug10, removed call of EnumerateDocFiles_ParametizedStore() because the latter
+/// internally calls EnumerateDocFiles() and that only enumerates *.xml files which are not
+/// *.BAK files, which is of no help when we want to enumerate what typically are plain
+/// text files. The enumeration is unsorted in the returned array; we do any required
+/// sorting at the point in the application where we call a different function,
+/// RemoveNameDuplicatesFromArray(), defined in helpers.cpp, which has a bool bSorted
+/// parameter for which we can supply a TRUE value to get the final array of strings
+/// sorted (and currently the latter function is called only in OnNewDocument()).
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
+													enum LoadabilityFilter filtered)
+{
+	wxArrayString arrFilenames; // the unfiltered enumeration stores filenames here, 
+								// but the passed in array parameter will only store those
+								// that get through the filter (i.e. IsLoadableFile())
+	array.Clear();
+
+	// first, save the caller's current working directory
+	wxString saveWorkDir = ::wxGetCwd();
+
+	// reset the current working directory to the path passed in
+	wxASSERT(!folderPath.IsEmpty());
+	bool bOK = ::wxSetWorkingDirectory(folderPath);
+	if (!bOK)
+	{
+		// something's real wrong!
+		wxMessageBox(_T(
+"Failed to set the current directory to the passed in folder, in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+		_T(""), wxICON_WARNING);
+		return FALSE;
+	}
+
+	// get them all, then loop to exclude the non-loadable ones
+	wxString filename = _T("");
+	wxDir finder;
+	// wxDirmust call .Open() before enumerating files!
+	bool bItsOK = (finder.Open(folderPath)); 									
+	if (!bItsOK)
+	{
+		// a significant error, so we'll make the icon be the error one, but let the app
+		// continue - but with no user protection from folder navigation
+		wxMessageBox(_T(
+			"Error: The wxDir::Open() call failed in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+		_T(""), wxICON_ERROR);
+		return FALSE;
+	}
+	else
+	{
+		// Must call wxDir::Open() before calling GetFirst() - see above
+		wxString str = _T("");
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
+		while (bWorking)
 		{
-			MapKeyStringToTgtUnit::iterator iter;
-			for (iter = pMap->begin(); iter != pMap->end(); iter++)
+			if (str.IsEmpty())
+				continue;
+			wxFileName fn(str);
+			wxString aFilename = fn.GetFullName();
+			arrFilenames.Add(str); // add filename to the list
+			bWorking = finder.GetNext(&str);
+		}
+	}
+	size_t index;
+	size_t limit = arrFilenames.GetCount();
+	if (limit == 0)
+	{
+		// restore the working directory (we don't expect failure, so a
+		// non-localizable message will do)
+		bOK = ::wxSetWorkingDirectory(saveWorkDir);
+		if (!bOK)
+		{
+			// something's real wrong!
+			wxMessageBox(_T(
+			"Failed to re-set the work directory in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+			_T(""), wxICON_WARNING);
+			return FALSE;
+		}
+        // we can't enumerate files that don't exist, so just return TRUE for an empty
+        // folder situation and let the caller test and tell the user about the problem if
+        // the telling is warranted;
+		return TRUE;
+	}
+
+	// now apply the IsLoadableFile() filter to the set of filenames we've collected, and
+	// accept only those that pass the test
+	filename = _T("");
+	if (filtered == filterOutUnloadableFiles)
+	{
+		for (index = 0; index < limit; index++)
+		{
+			filename = arrFilenames.Item(index);
+			wxString aPath = folderPath + PathSeparator + filename;
+			wxASSERT(::wxFileExists(aPath));
+			if (IsLoadableFile(aPath))
 			{
-				wxString key;
-				key.Empty();
-				CTargetUnit* pTU = (CTargetUnit*)NULL;
-				try
+				// store this loadable file's name in the passed in array, in its proper
+				// sorted location (ignore returned index as it's irrelevant since insertion
+				// is done, not appending)
+				array.Add(filename);
+			}
+		}
+	}
+	else
+	{
+		// filtering is not wanted, so just copy the lot across to the array list
+		for (index = 0; index < limit; index++)
+		{
+			filename = arrFilenames.Item(index);
+			array.Add(filename); // adding preserves their sorted order too
+		}
+	}
+
+	// restore the working directory (we don't expect failure, so a non-localizable
+	// message will do)
+	bOK = ::wxSetWorkingDirectory(saveWorkDir);
+	if (!bOK)
+	{
+		// something's real wrong! This is too big an error for the app to continue
+		wxMessageBox(_T(
+		"Failed to re-set the work directory in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
+		_T(""), wxICON_EXCLAMATION);
+		return FALSE;
+	}
+
+    // there may be no loadable files (i.e. not no files, but rather, no 'loadable' files
+    // -- meaning that IsLoadableFile() has excluded all contenders if filtering was
+    // wanted) but we'll not test here because the caller can do any such test if it is
+    // required, we just return TRUE
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the "Source Data" folder exists and it has at least one loadable
+///             source text file within it; FALSE if there are no loadable files in it, or
+///             no files at all, or if one of several possible error conditions happens
+/// \remarks
+/// This function tests for existence of a folder named "Source Data" as a child folder of
+/// the current project folder, and if it exists, and provided it also has at least one
+/// file within it which is loadable for adaptation document creation purposes, the
+/// function will return TRUE; if the Source Data folder does not exist, it returns FALSE,
+/// it also returns FALSE if it has no files in that folder, or if all the files in that
+/// folder, when tested with the IsLoadableFile() function, return FALSE. The function can
+/// rely on the fact that a valid path to a Source Data folder will have been set up when
+/// the project was entered, the path will be in the app member string,
+/// m_sourceDataFolderPath. Error conditions do not halt the app, but instead allow
+/// processing to continue in the legacy way, with no user navigation protection (that is,
+/// the wxFileDialog is used in the OPEN state, rather than the SAVE state).
+/// 
+/// The UseSourceDataFolderOnlyForInputFiles() function is used at any point in the
+/// application where the user has the possibility of creating a new adaptation document.
+/// (Currently, there is only one such place - the OnNewDocument() call, and the latter
+/// function is called in either or the two following cases: (1) a File / New... choice, or
+/// (2) in the DocPage pane of the wizard, for a user choice of <New Document>.) If the
+/// return value is TRUE, the standard folder and file navigation dialog is suppressed, and
+/// instead only a monocline list of loadable files is shown to the user in a dialog with a
+/// ListBox -- only a selected file from that list can be used to create a document - but
+/// not all files in that folder might be listed because any with a file title the same as
+/// an existing document's filename title will not be shown to the user (since presumably
+/// the source text file of the same name was used to create that document).
+/// BEW created 22July10
+//////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
+{
+	wxASSERT(!m_sourceDataFolderPath.IsEmpty());
+	bool bDirExists = ::wxDirExists(m_sourceDataFolderPath);
+	if (!bDirExists)
+	{
+		return FALSE;
+	}
+	else
+	{
+        // enumerate the files in the Source Data directory, don't do any filtering there,
+        // as we want to do it further below since we've special messages below for the
+		// user if we find unloadable files in the Source Data folder; for the current
+		// function it is not necessary to have the enumeration sorted
+		wxArrayString arrFilenames;
+		bool bOkay = EnumerateLoadableSourceTextFiles(arrFilenames,m_sourceDataFolderPath,
+														doNotFilterOutUnloadableFiles);
+		if (!bOkay)
+		{
+			// a warning will already have been given about the specific error, so pass
+			// the FALSE value back to the caller; an empty folder is not regarded as an
+			// error and so we check for that below 
+			return FALSE;
+		}
+		else
+		{
+			// if there are no files in the folder, return FALSE
+			if (arrFilenames.IsEmpty())
+			{
+				wxMessageBox(_(
+"There are no files in the 'Source Data' folder.\nTherefore the user is not protected from folder navigation."),
+				_("No source text files for document creation"),
+				wxICON_WARNING);
+				return FALSE;
+			}
+
+			// check that at least one of the enumerated files is loadable; if some are
+			// not loadable, warn the user which ones -- here's where we do the filtering
+			wxString unloadables; unloadables.Empty();
+			bool bSomeAreBad = FALSE;
+			wxString filename;
+			wxString aPath;
+			bool  bOneIsGood = FALSE;
+			size_t index;
+			size_t count = arrFilenames.GetCount();
+			for (index = 0; index < count; index++)
+			{
+				filename = arrFilenames.Item(index);
+				aPath = m_sourceDataFolderPath + PathSeparator + filename;
+				wxASSERT(::FileExists(aPath));
+				bool bIsGood = IsLoadableFile(aPath);
+				if (!bIsGood)
 				{
-					key = iter->first; 
-					pTU = iter->second;
-					if (key.Length() > 360)
-						break; // almost certainly a corrupt key string, so exit the map
-
-					// we have a valid pointer to a target unit, so see if the flag is set
-					// and if the translation is unique
-					if (pTU->m_pTranslations->GetCount() == 1)
-					{
-						if (pTU->m_bAlwaysAsk)
-						{
-							// we've found a setting which is to be preserved, so do so
-							KeyPlusCount* pKPlusC = new KeyPlusCount;
-							wxASSERT(pKPlusC != NULL);
-							pKPlusC->count = i+1; // which map we are in
-							pKPlusC->key = key;
-							pKeys->Append(pKPlusC); // add it to the list
-						}
-					}	
+					bSomeAreBad = TRUE;
+					if (unloadables.IsEmpty())
+						unloadables = filename;
+					else
+						// make it a comma-delimited list, because some filenames contain
+						// spaces and won't necessarily have an extension to indicate
+						// where one filename ends and the next begins
+						unloadables += _T(",  ") + filename;
 				}
-				catch (...)
+				else
 				{
-					break; // exit from this map, as we no longer can be sure of a valid pos
+					bOneIsGood = TRUE;
 				}
-			}
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      pKB     -> pointer to the affected KB (can be glossing or the regular KB)
-/// \param      pKeys   -> pointer to the list of keys that with m_bAlwaysAsk TRUE
-/// \remarks
-/// Called from: the App's OnFileRestoreKb().
-/// Uses the list of the keys which have a unique translation and for which the CTargetUnit
-/// instance's m_bAlwaysAsk attribute was set to TRUE (the list was previously generated by
-/// a call to the App's GetForceAskList() function), and insures that the appropriate
-/// target unit's m_bAlwaysAsk member is set to TRUE.
-////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys)
-// Modified for glossing KB use - no code change needed, just make sure the caller sends
-// the pointer to the glossing KB as the first parameter. Modified (July 2003) for support
-// of Auto-Capitalization.
-{
-	wxASSERT(pKeys);
-	wxASSERT(pKB);
-	if (pKeys->IsEmpty())
-		return;
-	KPlusCList::Node *node = pKeys->GetFirst();
-	while (node)
-	{
-		KeyPlusCount* pK = (KeyPlusCount*)node->GetData();
-		wxASSERT(pK != NULL);
-		int index = pK->count - 1; // index to map
-		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[index];
-		wxASSERT(pMap);
-		CTargetUnit* pTU = (CTargetUnit*)NULL;
-        // when the RestoreForceAskSettings function is called, the KB (glossing or
-        // adaptation) will have just been recreated from the documents. This recreation
-        // will be done with auto-capitalization either On or Off, with differing results,
-        // so the lookup done in the next line has to also be conformant with the current
-        // value of the gbAutoCaps flag.
-		bool bOK = GetView()->AutoCapsLookup(pMap,pTU,pK->key);
-		if (bOK)
-		{
-			wxASSERT(pTU);
-			pTU->m_bAlwaysAsk = TRUE; // restore the flag setting
-		}
-		else
-		{
-			// this error is unlikely to occur, so we can leave it in English
-			wxString str;
-			str = str.Format(_T(
-"Error (non fatal): did not find an entry for the key:  %s  in the map with index %d\n"),
-			pK->key.c_str(), pK->count - 1);
-			wxMessageBox(str, _T(""), wxICON_EXCLAMATION);
-		}
-		delete pK; // no longer needed, so ensure we don't leak memory
-		pK = (KeyPlusCount*)NULL;
-
-		node = node->GetNext();
-	}
-	pKeys->Clear(); // get rid of the now hanging pointers
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      pKB               -> pointer to the affected KB
-/// \param      nCount            <- the count of files in the folder being processed
-/// \param      nTotal            <- the total source phrase instances in the doc 
-///                                  being processed
-/// \param      nCumulativeTotal  <- the accumulation of the nTotal values over all 
-///                                  documents processed so far
-/// \remarks
-/// Called from: the App's OnFileRestoreKb(). 
-/// Iterates over the document files of a project, opens them and uses the data stored
-/// within them to regererate new Knowledge Base file(s) from those documents.
-/// This function assumes that the current directory will have already been set correctly
-/// before being called. Modified to support restoration of either the glossing KB, or the
-/// adaptation KB - which one gets the restoration depends on the gbIsGlossing flag's
-/// value. Allows for the possibility that Bible book folders may be in the Adaptations
-/// folder.
-////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulativeTotal)
-{
-	wxArrayString* pList = &m_acceptedFilesList;
-	CAdapt_ItDoc* pDoc = GetDocument();
-	CAdapt_ItView* pView = GetView();
-	wxASSERT(pDoc);
-	wxASSERT(pView);
-
-	// variables below added by whm 27Apr09 for reporting errors in docs used for KB
-	// restore 
-	bool bAnyDocChanged;
-	bAnyDocChanged = FALSE;
-	wxArrayString errors; // for use by KBRestoreErrorLog file
-	wxArrayString docIntros; // for use by KBRestoreErrorLog file
-	wxString errorStr;
-	wxString logName = _T("KBRestoreErrorLog.txt");
-	
-    // The error is not likely to have happend much, and the document text itself was not
-    // changed, so an English message in the log file should suffice.
-    errors.Clear();
-	wxDateTime theTime = wxDateTime::Now();
-	wxString dateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
-    wxString logFileTime;
-	logFileTime = logFileTime.Format(_T("This is the %s file - created %s."),logName.c_str(),dateTime.c_str());
-	errors.Add(logFileTime);
-	errors.Add(_T("\n\nDuring the KB Restore operation, punctuation errors were found and corrected in the KB,"));
-	errors.Add(_T("\nand changes were made to the punctuation stored in one or more documents used to restore the KB."));
-	errors.Add(_T("\nPlease Note the Following:")); 
-	errors.Add(_T("\n* You should no longer notice any punctuation in KB entries when viewed with the KB Editor.")); 
-	errors.Add(_T("\n* With punctuation purged from the KB Adapt It should handle punctuation in your documents as you expect.")); 
-	errors.Add(_T("\n* You may wish to open the document(s) below in Adapt It and check the punctuation for the items listed.")); 
-	errors.Add(_T("\n\n   In the following document(s) punctuation was removed from non-punctuation fields (see below):")); 
-	// iterate over the document files
-	int i;
-	for (i=0; i < nCount; i++)
-	{
-		wxString newName = pList->Item(i);
-		wxASSERT(!newName.IsEmpty());
-
-		bool bOK;
-		bOK = pDoc->OnOpenDocument(newName);
-        // The docview sample has a routine called SetFileName() that it uses to override
-        // the automatic associations of file name/path of a doc with a view. The
-        // wxDocument member that holds the file name/path is m_documentFile. I've put the
-        // SetFileName() routine in the Doc so we can do this like MFC has it.
-		pDoc->SetFilename(newName,TRUE); // here TRUE means "notify the views" whereas
-									// in the MFC version TRUE meant "add to MRU list"
-		
-		// Prepare an intro string for this document in case it has errors.
-		errors.Add(_T("\n   ----------------------------------------"));
-		// which had been wrongly stored there by a previous version of Adapt
-		wxString docStr;
-		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
-		errors.Add(docStr);
-
-		nTotal = m_pSourcePhrases->GetCount();
-		wxASSERT(nTotal > 0);
-		nCumulativeTotal += nTotal;
-
-		// put up a progress indicator
-#ifdef __WXMSW__
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
-		wxProgressDialog progDlg(_("Restoring the Knowledge Base"),
-								msgDisplayed,
-								nTotal,    // range
-								GetMainFrame(),   // parent
-								//wxPD_CAN_ABORT |
-								//wxPD_CAN_SKIP |
-								wxPD_APP_MODAL |
-								// wxPD_AUTO_HIDE | -- try this as well
-								wxPD_ELAPSED_TIME |
-								wxPD_ESTIMATED_TIME |
-								wxPD_REMAINING_TIME
-								| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-								);
-#else
-		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
-		// notification on wxGTK and wxMAC
-		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 0;	// 0 "Please wait while Adapt It Restores the Knowledge Base..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-#endif
-		SPList* pPhrases = m_pSourcePhrases;
-		SPList::Node* pos1 = pPhrases->GetFirst();
-		int counter = 0;
-		bool bThisDocChanged = FALSE;
-		while (pos1 != NULL)
-		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
-			pos1 = pos1->GetNext();
-			counter++;
-
-			// update the glossing or adapting KB for this source phrase
-			pView->RedoStorage(pKB,pSrcPhrase,errorStr);
-			if (!errorStr.IsEmpty())
+			} // end for loop, testing all files in the folder
+			if (bSomeAreBad && bOneIsGood)
 			{
-				// an error was detected (punctuation in non-punctuation field of doc)
-				bThisDocChanged = TRUE;
-				errors.Add(errorStr);
-				errorStr.Empty(); // for next iteration
+				// warn the user which ones are not loadable for doc creation purposes
+				wxString msg;
+				msg = msg.Format(_("Some of the 'Source Data' folder's files are not suitable for creating an adaptation document.\nThey are: %s"),
+				unloadables.c_str());
+				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
 			}
-
-#ifdef __WXMSW__
-			// update the progress bar every 20th iteration
-			if (counter % 1000 == 0) //if (20 * (counter / 20) == counter)
+			else if (bSomeAreBad && !bOneIsGood)
 			{
-				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
-				progDlg.Update(counter,msgDisplayed);
+				// warn the user that none are loadable for doc creation purposes,
+				// and that navigation protect therefore can't be turned on
+				wxString msg;
+				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the 'Source Data' folder's files are suitable for creating an adaptation document.\nThe unsuitable ones are: %s"),
+				unloadables.c_str());
+				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
+				return FALSE;
 			}
-#endif
-		}
-		// whm added 27Apr09 to save any changes made by RedoStorage above
-		if (bThisDocChanged)
-		{
-			bAnyDocChanged = TRUE;
-			// Save the current document before proceeding
-			wxCommandEvent evt;
-			pDoc->OnFileSave(evt);
-		}
-		else
-		{
-			errors.Add(_T("\n      * No changes were made in this file! *"));
-		}
-
-		GetView()->ClobberDocument();
-
-		// delete the buffer containing the filed-in source text
-		if (m_pBuffer != NULL)
-		{
-			delete m_pBuffer;
-			m_pBuffer = (wxString*)NULL;
-		}
-
-        // wx version note: Since the progress dialog is modeless we do not need to destroy
-        // or otherwise end its modeless state; it will be destroyed when DoKBRestore goes
-        // out of scope
-
-		// save the KB now that we have finished this document file (FALSE = no backup wanted)
-		bool bSavedOK;
-		if (gbIsGlossing)
-			bSavedOK = SaveGlossingKB(FALSE);
-		else
-			bSavedOK = SaveKB(FALSE);
-		if (!bSavedOK)
-		{
-			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
-							_T(""), wxICON_INFORMATION);
 		}
 	}
-	if (bAnyDocChanged)
-	{
-	
-		wxLogNull logNo; // avoid spurious messages from the system
-
-		// The wxArrayString errors contains all the text to be written to the log file
-		errors.Add(_T("\n\nEnd of log."));
-		// Write out errors to external log file.
-		bool bOK;
-		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
-        // Note: Since we want a text file output, we'll use wxTextOutputStream which
-        // writes text files as a stream on DOS, Windows, Macintosh and Unix in their
-        // native formats (concerning their line endings)
-		wxFileOutputStream output(logName);
-		wxTextOutputStream cout(output);
-
-		// Write out the contents of the errors array dumping it to the wxTextOutputStream
-		int ct;
-		for (ct = 0; ct < (int)errors.GetCount(); ct++)
-		{
-            // The wxArrayString errors contains the boiler text composed above plus the
-            // individual errorStr strings received from RedoStorage()
-			cout << errors.Item(ct);
-		}
-		wxString msg;
-		msg = msg.Format(_(
-"Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),
-		logName.c_str());
-		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
-	}
-	errors.Clear(); // clear the array
+	return TRUE;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
+/// \param      pKB    -> pointer to the CKB instance being cleared from memory
 /// \param      pDoc    -> pointer to the document
 /// \remarks
 /// Called from: the App's OnFileRestoreKb().
-/// Calls the Doc's EraseKB() on the appropriate KB, then creates a new, empty KB in its
-/// place. It also stores the language names in the memory instance of the knowledge base,
-/// and checks the KB is ready for use.
+/// Calls the Doc's EraseKB() on the appropriate KB -- deleting from memory the CKB
+/// instance and clearing its pointer to NULL, then creates a new, empty KB in its place.
+/// It also stores, for the adapting KB only though, the language names in the memory
+/// instance of the knowledge base. Finally it checks the Glossing KB or the adapting KB is
+/// ready for use, as the case may be.
+/// Note: This function is not moved to the CKB class, because it deletes from memory the
+/// instance it would be called from, prior to returning.
+/// BEW 13May10, added pKB parameter in order to remove internal use of gbIsGlossing
 ///////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::ClearKB(CAdapt_ItDoc *pDoc)
+void CAdapt_ItApp::ClearKB(CKB* pKB, CAdapt_ItDoc *pDoc)
 {
 	wxASSERT(pDoc != NULL);
 
-	if (gbIsGlossing) // doing glossing
+	// by adding new first param, pKB, we get access to the m_bGlossingKB flag on the
+	// instance being deleted, which removes one more reference of the global bool gbIsGlossing
+	if (pKB->IsThisAGlossingKB()) // doing glossing
 	{
 		// erase the current GlossingKB in memory & delete the memory if occupies
 		pDoc->EraseKB(m_pGlossingKB); // leaves m_bGlossingKBReady unchanged
 
 		//create a new KB
-		m_pGlossingKB = new CKB(TRUE);
+		m_pGlossingKB = new CKB(TRUE); // create a new GlossingKB
 		wxASSERT(m_pGlossingKB != NULL);
 
 		// check it is ready for use
@@ -13139,7 +21177,7 @@ void CAdapt_ItApp::ClearKB(CAdapt_ItDoc *pDoc)
 		pDoc->EraseKB(m_pKB); // leaves m_bKBReady unchanged
 
 		//create a new KB
-		m_pKB = new CKB(FALSE);
+		m_pKB = new CKB(FALSE); // create a new (adapting) KB
 		wxASSERT(m_pKB != NULL);
 
 		// store the language names in the memory instance of the knowledge base
@@ -13388,6 +21426,14 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szSourceLanguageCode << tab << m_sourceLanguageCode;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szTargetLanguageCode << tab << m_targetLanguageCode;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
 
@@ -13571,6 +21617,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 		number = _T("0");
 	data.Empty();
 	data << szBackupDocument << tab << number;
+	pf->AddLine(data);
+
+	// whm added 3Sep10 for user workflow profile support
+	data.Empty();
+	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
@@ -13814,6 +21865,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szAutoInsertionsHighlightColor << tab 
 			<< WxColour2Int(m_AutoInsertionsHighlightColor);
 	pf->AddLine(data);
+
+	data.Empty();
+	data << szGuessHighlightColor << tab 
+			<< WxColour2Int(m_GuessHighlightColor); // whm added 1Nov10
+	pf->AddLine(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -13986,6 +22042,9 @@ inline wxString convertFromLocalCharset(const wxString& str)
 ///                         in from the configuration files
 /// \param      pf   ->     pointer to the wxTextFile that is being read as the 
 ///                         config file
+/// \param      bFaceNameFound   ->     TRUE if the font's face name was found on the 
+///                                     local machine, otherwise FALSE if the face name
+///                                     was not found
 /// \remarks
 /// Called from: the App's GetConfigurationFile(). 
 /// Reads the font configuration part of a configuration file. GetFontConfiguration() gets
@@ -14416,6 +22475,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			m_targetName = strValue;
 		}
+		else if (name == szSourceLanguageCode)
+		{
+			m_sourceLanguageCode = strValue;
+		}
+		else if (name == szTargetLanguageCode)
+		{
+			m_targetLanguageCode = strValue;
+		}
 		else if (name == szAdaptitPath)
 		{
             // BEW changed 12Oct09, we come here when reading either the
@@ -14458,6 +22525,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szCurLanguagesPath)
 		{
 			m_curProjectPath = strValue;
+			m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
 		}
 		else if (name == szCurAdaptionsPath)
 		{
@@ -14869,6 +22937,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bBackupDocument = FALSE;
 		}
+		else if (name == szWorkflowProfile)
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 10)
+				num = 0; // if out of reasonable range default to a profile of "None".
+			m_nWorkflowProfile = num;
+		}
 		else if (name == szHidePunctuation)
 		{
             // BEW removed 8Aug09, there is no good reason to store a "punctuation hidden"
@@ -15224,6 +23299,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			num = wxAtoi(strValue); // allow anything 
 			m_AutoInsertionsHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
+		else if (name == szGuessHighlightColor)
+		{
+			num = wxAtoi(strValue); // allow anything 
+			m_GuessHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
+		}
 
 #ifdef _RTL_FLAGS
 		else if (name == szRTLSource)
@@ -15284,16 +23364,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 
 		else
 		{
-			; 
-			// whm commented out the following nagging message since it must be dismissed at lease 5 times
-			// when reading a 6.x.x version of the basic settings file.
-			//if (!data.IsEmpty())
-			//{
-			//	wxString error;
-			//	error = error.Format(_(
-			//	"Warning: Unrecognized Basic settings field; unmatched name is: %s\n"),name.c_str());
-			//	wxMessageBox(error, _T(""), wxICON_INFORMATION);
-			//}
+			if (!data.IsEmpty())
+			{
+				wxString error;
+				error = error.Format(_(
+				"Warning: Unrecognized Basic settings field; unmatched name is: %s\n"),name.c_str());
+				wxMessageBox(error, _T(""), wxICON_INFORMATION);
+			}
 		}
 	} while (!pf->Eof());
 	// BEW changed 06Mar06, on Bill's recommendation - ie. don't tell the user when an adjustment
@@ -15484,6 +23561,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				wxMessageBox(_T(
 					"The CustomWorkFolderLocation file is empty, but it should contain the path to the custom work folder. Aborting now. To recover: (1) Outside of Adapt It use a file browser to find where your custom work folder is located, then (2) in a text editor, type the path to that custom work folder into the CustomWorkFolderLocation, (3) save the file where it currently is (in the default work folder), and then (4) re-launch Adapt It."),
 				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+				LogUserAction(_T("Error of file named CustomWorkFolderLocation - file is empty"));
 				return FALSE;
 			}
 			else
@@ -15494,6 +23572,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				wxMessageBox(_T(
 "Another running process has the file named CustomWorkFolderLocation open, and so that file is locked and Adapt It is unable to use it until you halt that other process. Aborting now. Halt the other process, then re-launch Adapt It."),
 				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+				LogUserAction(_T("Error of file named CustomWorkFolderLocation - another process has the file open"));
 				return FALSE;
 			}
 		}
@@ -15527,6 +23606,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			wxMessageBox(_T(
 "DealWithThePossibilityOfACustomWorkFolderLocation(): Failed to open the CustomWorkFolderLocation file at default work folder location, and that file is neither locked nor empty. Aborting..."),
 			_T("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+			LogUserAction(_T("Error of file named CustomWorkFolderLocation - failed to open at default work folder location"));
 			return FALSE; // forces caller to call abort()
 		}
 		// get the first line (path is to be in first line, if there is any text in
@@ -15578,6 +23658,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."),
 						_("Recovery By Plugging In The Missing External Drive Failed"), wxICON_ERROR);
+						LogUserAction(_T("Recovery By Plugging In The Missing External Drive Failed"));
 						return FALSE; // let caller do the abort() call
 					}
 					break;
@@ -15608,6 +23689,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."),
 						_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+						LogUserAction(_T("Error of file named CustomWorkFolderLocation - file still oper or incorrect path"));
 						return FALSE; // forces caller to call abort()
 					}
 					// now check if the stored folder path string yields a valid directory
@@ -15617,6 +23699,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "The path to the custom work folder did not find a directory with the required name. Did you check the path specification using a file browser, to make sure your edit of the path in the CustomWorkFolderLocation file resulted in a correct path to the custom work folder? Aborting now. Use a text editor again to get the path typed correctly before you re-launch Adapt It."),
 						_("Recovery By Editing The Path Specificiation Failed"), wxICON_ERROR);
+						LogUserAction(_T("Recovery By Editing The Path Specificiation Failed"));
 						return FALSE; // let caller do the abort() call
 					}
 					break;
@@ -15692,6 +23775,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						wxMessageBox(_(
 "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."),
 						_("One chance to relocate the work folder failed"), wxICON_ERROR);
+						LogUserAction(_T("One chance to relocate the work folder failed"));
 						abort();
 						return FALSE; // let caller do the abort() call
 					}
@@ -15829,6 +23913,14 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szTargetLanguageName << tab << m_targetName;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szSourceLanguageCode << tab << m_sourceLanguageCode;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szTargetLanguageCode << tab << m_targetLanguageCode;
+	pf->AddLine(data);
+
 	// now for the view stuff
 	data.Empty();
 	data << szDefaultTablePath << tab << m_defaultTablePath;
@@ -15910,6 +24002,32 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szBackupDocument << tab << number;
 	pf->AddLine(data);
 
+	// whm added 3Sep10 for user workflow profile support
+	data.Empty();
+	data << szWorkflowProfile << tab << m_nWorkflowProfile;
+	pf->AddLine(data);
+
+	// whm added next three for Guesser support
+	data.Empty();
+	if (m_bUseAdaptationsGuesser)
+		number = _T("1");
+	else 
+		number = _T("0");
+	data << szUseAdaptationsGuesser << tab << number;
+	pf->AddLine(data);
+	
+	data.Empty();
+	if (m_bAllowGuesseronUnchangedCCOutput)
+		number = _T("1");
+	else 
+		number = _T("0");
+	data << szAllowCConUnchangedGuesserOutput << tab << number;
+	pf->AddLine(data);
+	
+	data.Empty();
+	data << szGuessingLevel << tab << m_nGuessingLevel;
+	pf->AddLine(data);
+
 	if (m_bRTL_Layout)
 		number = _T("1");
 	else
@@ -15923,10 +24041,12 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << gSFescapechar;
 	pf->AddLine(data);
 
-	if (gbSfmOnlyAfterNewlines)
-		number = _T("1");
-	else
-		number = _T("0");
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//if (gbSfmOnlyAfterNewlines)
+	//	number = _T("1");
+	//else
+		number = _T("0"); // now always is FALSE
 	data.Empty();
 	data << szSFMafterNewlines << tab << number;
 	pf->AddLine(data);
@@ -16046,11 +24166,13 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szBookIndex << tab <<  m_nBookIndex;
 	pf->AddLine(data);
 
+	/* this flag is deprecated (Reading a project config must read it for backwards compatibility but do nothing with it)
 	// wx version: m_bSaveAsXML must always be true
 	number = _T("1");
 	data.Empty();
 	data << szSaveAsXML << tab << number;
 	pf->AddLine(data);
+	*/
 
 	data.Empty();
 	data << szSilConverterName << tab << m_strSilEncConverterName;
@@ -16147,6 +24269,14 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTargetLanguageName)
 		{
 			m_targetName = strValue;
+		}
+		else if (name == szSourceLanguageCode)
+		{
+			m_sourceLanguageCode = strValue;
+		}
+		else if (name == szTargetLanguageCode)
+		{
+			m_targetLanguageCode = strValue;
 		}
 		else if (name == szDefaultTablePath)
 		{
@@ -16517,6 +24647,40 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bBackupDocument = FALSE;
 		}
+		else if (name == szWorkflowProfile) // whm added 3Sep10 for user workflow profile support
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 10)
+				num = 0; // if out of reasonable range default to a profile of "None".
+			m_nWorkflowProfile = num;
+		}
+		else if (name == szUseAdaptationsGuesser) // whm added 28Oct10 for Guesser support
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 1)
+				m_bUseAdaptationsGuesser = TRUE;
+			else
+				m_bUseAdaptationsGuesser = FALSE;
+		}
+		else if (name == szGuessingLevel) // whm added 28Oct10 for Guesser support
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 100) // m_nGuessingLevel must be between 0 and 100; 50 is default
+				num = 50;
+			m_nGuessingLevel = num;
+		}
+		else if (name == szAllowCConUnchangedGuesserOutput) // whm added 28Oct10 for Guesser support
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 1)
+				m_bAllowGuesseronUnchangedCCOutput = TRUE;
+			else
+				m_bAllowGuesseronUnchangedCCOutput = FALSE;
+		}
 		else if (name == szRTL_Layout)
 		{
 			num = wxAtoi(strValue);
@@ -16535,13 +24699,16 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szSFMafterNewlines)
 		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 0;
-			if (num == 1)
-				gbSfmOnlyAfterNewlines = TRUE;
-			else
-				gbSfmOnlyAfterNewlines = FALSE;
+			// BEW 8Jun10, removed support for checkbox "Recognise standard format
+			// markers only following newlines"
+			//num = wxAtoi(strValue);
+			//if (!(num == 0 || num == 1))
+			//	num = 0;
+			//if (num == 1)
+			//	gbSfmOnlyAfterNewlines = TRUE;
+			//else
+			//	gbSfmOnlyAfterNewlines = FALSE;
+			; // deprecated
 		}
 
 #ifdef _RTL_FLAGS
@@ -16715,9 +24882,11 @@ t:				m_pCurrBookNamePair = NULL;
 		}
 		else if (name == szSaveAsXML) // BEW added 04Aug05
 		{
-			num = wxAtoi(strValue);
+			// 30Apr10, this flag is deprecated, read it but no longer set it, and
+			// writing the project config file no longer writes it
+			//num = wxAtoi(strValue);
 			// wx version: we only allow a value of TRUE for wx version
-			m_bSaveAsXML = TRUE;
+			//m_bSaveAsXML = TRUE;
 		}
 		else if (name == szSilConverterName)	// rde added 03 Apr 06
 		{
@@ -16760,15 +24929,12 @@ t:				m_pCurrBookNamePair = NULL;
 		}
 		else
 		{
-			; 
-			// whm commented out the following nagging message since it must be dismissed at lease 6 times
-			// when reading a 6.x.x version of the project settings file.
-			//if (!data.IsEmpty())
-			//{
-			//	wxString error = _(
-			//	"Warning: Unrecognized project settings field; unmatched name is: ") + name;
-			//	wxMessageBox(error, _T(""), wxICON_INFORMATION);
-			//}
+			if (!data.IsEmpty())
+			{
+				wxString error = _(
+				"Warning: Unrecognized project settings field; unmatched name is: ") + name;
+				wxMessageBox(error, _T(""), wxICON_INFORMATION);
+			}
 		}
 	} while (!pf->Eof());
 
@@ -16781,8 +24947,8 @@ t:				m_pCurrBookNamePair = NULL;
         // inventory of standard format markers, therefore we assign both gCurrentSfmSet
         // and gProjectSfmSetForConfig to be PngOnly. This setting remains PngOnly until
         // the user explicitly changes to a different SfmSet using Edit Preferences USFM
-        // tab, or the USFM page in the Start Working... wizard upon creation of a new
-        // project.
+        // and Filtering tab, or the USFM and Filtering page in the Start Working... wizard 
+        // upon creation of a new project.
 		gCurrentSfmSet = PngOnly;
 		gProjectSfmSetForConfig = gCurrentSfmSet; // whm added 6May05
 		gCurrentFilterMarkers = PngFilterMarkersStr; // whm added 13May05
@@ -16828,11 +24994,6 @@ t:				m_pCurrBookNamePair = NULL;
 	gbNoGlossCaseEquivalents = FALSE; // default
 	if (m_glossLowerCaseChars.IsEmpty() && m_glossUpperCaseChars.IsEmpty())
 		gbNoGlossCaseEquivalents = TRUE; // restore this flag if user cleared source lists
-
-	// make the command on the File menu echo the same setting
-    // whm Note: in 12Sep08 refactoring bruce commented out the MFC version's code here but
-    // I'm leaving it to force the value to TRUE since the wx app only uses a TRUE value
-	m_bSaveAsXML = TRUE; // whm changed for wx version //m_bSaveAsXML == TRUE ? FALSE : TRUE; // toggle it
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -18599,7 +26760,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
         // reliable way to do otherwise, such as to have the process support document
         // settings originally in the receptor project, since typically there will be no
         // documents in the receptor project when the process is initiated. The last
-        // secttion of code in this block will therefore aim to get the application
+        // section of code in this block will therefore aim to get the application
         // consistent with whatever was the last document processed
 
 		bool bOK;
@@ -18656,12 +26817,15 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 /// - which then causes a dialog to open for the user to navigate to the source project to
 /// be used for the transformations. Note: the source project's doc files and kbs are NOT
 /// changed in any way in this transformation process. Then when the dialog is dismissed
-/// the transformations are done. The target target project's KB is cleared out, so the
-/// user should not try to do any work in it prior to setting the transformation process
-/// into effect.
+/// the transformations are done. 
+/// The target target project's KB and glossingKB are exported to temporary files before
+/// the transforms are done, and then after they are finished, they are imported
+/// automatically back to the KBs - so if there are adaptations or glosses initially in the
+/// being-transformed project, they won't be lost.
 /// Note 2: The both source and target projects will be, and must be, within the one work
 /// folder. It is not possible to perform this transformation across work folders on
 /// different machines, nor between two work folders on the same machine. (BEW 11Sep09)
+/// BEW 2July10, updated for support of kbVersion 2, and preserving KB contents too
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AccessOtherAdaptionProject()
 {
@@ -18722,11 +26886,29 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // value to what would be expected from the kb file's extension, so we have to set
         // up alternate names and check for what file type is actually present, and use
         // that
-		wxString strOtherKBName = strOtherProjectName + _T(".KB");
+		// BEW changed 28May10, because from version 4.0.0 onwards we no longer support
+		// binary document and KB files ( so removed two wxString variables here, leaving
+		// only the xml ones)
 		wxString strOtherKBNameXML = strOtherProjectName + _T(".xml");
-		wxString strOtherKBPath = strOtherProjectPath + PathSeparator + strOtherKBName;
 		wxString strOtherKBPathXML = strOtherProjectPath + PathSeparator + strOtherKBNameXML;
 
+		// BEW 6July10, I've made this functionality able to preserve any adapting (and
+		// even any glossing) work done in the target project as follows: before
+		// transforming the KB, both the target projects glossing KB and adapting KB are
+		// exported (in SFM form) to temporary files in the project folder, and after the
+		// transformations are completed, these are imported back to the glossing and
+		// adapting KBs. Also, if any document in the "other" project (i.e. the source of
+		// the documents to be transformed) has the same filename as a document in the
+		// target (i.e. transformed) project, then that other project's document is
+		// skipped -- doing this ensures that the doc transformations do not overwrite any
+		// transformed document in which the user has done some adapting work. Supporting
+		// these changes requires a new function, EnumerateDocFiles_ParametizedStore()
+		// which passes in by reference the wxArrayString to be used for temporarily
+		// storing the enumerated document files from the target project's current folder
+		// (either Adaptations, or a Bible book folder, as the case may require).
+		// A beneficial effect of these changes is that it is no longer necessary to warn
+		// the user about the KB contents being cleared, so that is comment out (below)
+		/* 
         // count the entries in the current project's KB, since we must warn the user that
         // it's contents are now about to be removed, so if the user is in a project in
         // which some work has been done, he better know that this operation (if he
@@ -18748,7 +26930,6 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		// the user will have to decide if he is willing to let the current kb's contents
 		// be cleared, likewise the current glossing KB
 		wxString message;
-		// IDS_ABOUT_TO_CLOBBER_KB
 		message = message.Format(_(
 "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\nLikewise for the glossing knowledge base, which contains %d entries.\nAre you willing for this to happen?"),
 		nCount,nGlossingCount);
@@ -18765,11 +26946,53 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			return FALSE; // user baled out by clicking NO button, so do nothing
 		}
+		*/
+		// enumerate the target project's doc files (Note: we must also do this again
+		// below if book folders are involved, once per book folder), and set up paths for
+		// the needed KB exports and do the exports
+		wxArrayString targetProjectDocsList;
+		wxString glossesKBExportFilename = _T("TEMP_AI_GlossesKB_Exported");
+		wxString adaptionsKBExportFilename = _T("TEMP_AI_AdaptionsKB_Exported");
+		wxString glossesKBExportPath = m_curProjectPath + PathSeparator + glossesKBExportFilename;
+		wxString adaptionsKBExportPath = m_curProjectPath + PathSeparator + adaptionsKBExportFilename;
 
-        // okay, clean out the glossing KB ready for the new content (we don't want to just
+		wxFile f;
+		// first, the glossing KB export
+		if( !f.Open( glossesKBExportPath, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // return, do nothing
+		}
+		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+		f.Close();
+		// second, the adapting KB export
+		if( !f.Open( adaptionsKBExportPath, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // return, do nothing
+		}
+		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+		f.Close();
+		// now get the list of documents in the target project's Adaptations folder
+        // (any from the "other" project which match these, we just won't have converted,
+        // so that data overwrite accidents won't happen)
+		if (!EnumerateDocFiles_ParametizedStore(targetProjectDocsList,m_curAdaptionsPath))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // return, do nothing
+		}
+
+		// okay, clean out the glossing KB ready for the new content (we don't want to just
         // add the new content, since the user might invoke the Transform Adaptations Into
         // Glosses command more than once, so that an addition schema would result in
         // duplicates and hence a glossing KB with incorrect reference counts)
+		int nGlossingCount = m_pGlossingKB->m_pMap[0]->size();
 		if (nGlossingCount > 0)
 		{
 			pDoc->EraseKB(m_pGlossingKB);
@@ -18777,24 +27000,14 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 									 // contents left undisturbed
 			wxASSERT(m_pGlossingKB != NULL);
 			m_bGlossingKBReady = TRUE;
-			wxASSERT(m_pGlossingKB->m_pTargetUnits->GetCount() == 0);
 		}
 
-        // if we get to here, the user is committed, the current project's kb is cleared,
-        // and so we go ahead with the transformations -- after we work out what kind of
-        // file the one we want is - binary (ie. .KB) or XML (ie. .xml)
-		bool bXMLforKB;
-		if (wxFileExists(strOtherKBPath))
-		{
-			// there is a binary KB file present - so use it
-			bXMLforKB = FALSE;
-		}
-		else if (wxFileExists(strOtherKBPathXML))
-		{
-			// there is an XML KB file present - so use that one
-			bXMLforKB = TRUE;
-		}
-		else
+        // if we get to here, the user is committed, the current project's kb will be
+        // cleared further down, because we delay in case the load of the 'other' project's
+        // KB failed, and we don't want to clobber our kb until we know we've not had a
+        // failure; and so we go ahead with the transformations - provided we can find the
+        // KB file
+		if (!wxFileExists(strOtherKBPathXML))
 		{
             // we could not detect any valid KB file, so abort the operation; don't expect
             // this to ever be the case, so it can be a hard coded English message for
@@ -18814,32 +27027,27 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // "Load" the other project's adaptations KB. Code for this will be plagiarized
         // from the app class's LoadKB() function, but using a local CKB pointer to access
         // the KB
-		CKB* pOtherKB = new CKB(FALSE);; // FALSE means "not a glossing KB"
-		if (bXMLforKB)
+		CKB* pOtherKB = new CKB(FALSE); // FALSE means "not a glossing KB"
+		bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
+		if (!bReadOK)
 		{
-			bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
-			if (!bReadOK)
-			{
-				// a bad read or parsing - if so, there will have been an XML error report
-				// already, so just abort the command
-				// IDS_NO_OTHER_KB
-				wxMessageBox(_(
+			// a bad read or parsing - if so, there will have been an XML error report
+			// already, so just abort the command
+			wxMessageBox(_(
 "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."),
-				_T(""), wxICON_INFORMATION);
-                // whm added 05Jan07 for safety sake restore the former current working
-                // directory to what it was on entry. The
-                // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
-                // working directory to m_curAdaptionsPath.
-				bool bOK;
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-				return FALSE; // abandon the command, the adaptations KB couldn't be opened
-			}
+			_T(""), wxICON_INFORMATION);
+            // whm added 05Jan07 for safety sake restore the former current working
+            // directory to what it was on entry. The
+            // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
+            // working directory to m_curAdaptionsPath.
+			bool bOK;
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			return FALSE; // abandon the command, the adaptations KB couldn't be opened
 		}
 
         // the other KB is now in memory, so we can scan its contents and transfer them to
         // the current project's glossing KB; remember, null src phrases must not be
-        // transferred, nor <Not In KB> entries, and all maps are squished into the one map
-        // in the glossing KB (code pinched from DoKBIntegrityCheck() and then modified)
+        // transferred, nor <Not In KB> entries
 		int nMaxIndex = pOtherKB->m_nMaxWords - 1; // index of highest map having content
 		MapKeyStringToTgtUnit* pMap = (MapKeyStringToTgtUnit*)NULL;
 		CTargetUnit* pTgtUnit = (CTargetUnit*)NULL;
@@ -18856,60 +27064,94 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			else // the map is not empty, so process its contents
 			{
 				iter = pMap->begin(); 
-				while (iter != pMap->end()) //while (pos != 0)
+				while (iter != pMap->end())
 				{
 					// get the next association (ie. a CTargetUnit instance associated
-					// with a key string
+					// with a key string)
 					key = iter->first;
 					pTgtUnit = iter->second; 
 					iter++;
 	
-                    // we now have a key, and its associated CTargetUnit instance. These
+					// BEW 2July10, additions to the tests have to be made for kbVersion
+					// 2, and the copy actions modified somewhat - see below. 
+					// We now have a key, and its associated CTargetUnit instance. These
                     // will need to go in the glossing KB except as follows: we throw away
                     // the CTargetUnit instance if it is for a null source phrase (key =
-                    // "..."), or if it contains "<Not In KB>"
+                    // "..."), or if it contains a non-deleted CRefString storing the
+					// string "<Not In KB>", or if all the stored CRefString instances are
+					// marked as deleted. Also, when copying the CRefString instances
+					// across, we don't copy any for which the m_bDeleted flag is TRUE
 					if (key == _T("..."))
-						continue;
-					TranslationsList::Node* tuPos = pTgtUnit->m_pTranslations->GetFirst();
-					pRefString = (CRefString*)tuPos->GetData();
-					storedStr = pRefString->m_translation;
-					if (storedStr == _T("<Not In KB>"))
-						continue;
+						continue; // skip any placeholder entries - we handle these when
+								  // we later convert the documents, because we do it there
+								  // selectively - we call StoreText() on those inserted
+								  // manually, but don't for those auto-inserted to pad
+								  // out a retranslation; we don't have enuf info to do it
+								  // here now
+					if (pTgtUnit->CountNonDeletedRefStringInstances() == 0)
+						continue; // skip any in which every CRefString is deleted
 
-					// if we get to here, then we have a target unit which has to go in the
-					// glossing KB's list, and its association with the key has to go into 
-					// the glossing KB's first map.
+                    // if we get to here, then we may have a target unit which has to be
+                    // associated with the key and go into the glossing KB's same numbered
+                    // map - but one which just has a non-deleted "<Not In KB>" adaptation
+                    // will need to be ignored - so check for that and if found then delete
+                    // the new CTargetUnit and iterate; otherwise, accept all the contents
+                    // that remain unremoved
 					CTargetUnit* pGlossingTgtUnit = new CTargetUnit; // create an empty one
 					wxASSERT(pGlossingTgtUnit != NULL);
 					pGlossingTgtUnit->Copy(*pTgtUnit); // copy it (a copy constructor does not
 													  // work, hence the two step workaround)
-					wxASSERT(pGlossingTgtUnit->m_pTranslations->GetCount() >= 1);
-					m_pGlossingKB->m_pTargetUnits->Append(pGlossingTgtUnit); // in the list
-					(*m_pGlossingKB->m_pMap[0])[key] = pGlossingTgtUnit; // in the map
-					m_pGlossingKB->m_nMaxWords = 1; // always 1 for the glossing KB
+					// find and throw away any CRefString instances which are marked as
+					// deleted, and SetNewValue means that any non-deleted CRefString
+					// instances that remain will have their m_modifiedDateTime member set
+					// to the current datetime
+					pGlossingTgtUnit->EraseDeletions(SetNewValue);
+					// if pGlossingTgtUnit contains a CRefString with "<Not In KB>" then
+					// that will now be the only CRefString in gGlossingTgtUnit
+
+					// check now for <Not In KB> entry  -- delete pGLossingTgtUnit if we
+					// find this string in its CRefString instance; otherwise, we keep all
+					// the CRefString instances that remain after the removals done by the
+					// EraseDeletions() call above
+					TranslationsList::Node* tuPos = pGlossingTgtUnit->m_pTranslations->GetFirst();
+					pRefString = (CRefString*)tuPos->GetData();
+					storedStr = pRefString->m_translation;
+					if (storedStr == _T("<Not In KB>"))
+					{
+						pGlossingTgtUnit->DeleteTargetUnitContents();
+						delete pGlossingTgtUnit; // don't leak memory
+						continue;
+					}
+
+					wxASSERT(pGlossingTgtUnit->CountNonDeletedRefStringInstances() >= 1);
+					(*m_pGlossingKB->m_pMap[index])[key] = pGlossingTgtUnit; // put it into the map
+
+					//m_pGlossingKB->m_nMaxWords = 1; // always is 1 for the glossing KB
+					m_pGlossingKB->m_nMaxWords = nMaxIndex; // BEW 13Nov10, glossing KB uses all maps now
+					
 				} // end block for scanning all associations stored in the current map
 			} // end block for processing a map with contents
 		} // end for loop for processing all maps
 
 		// clean up the kbs
-		if (nCount > 0)
-		{
+//		if (nCount > 0)
+//		{
 			// clean out the adaptations kb (actually delete it and make a new empty one)
 			// (delayed to here, in case the transformation process failed, in which case
 			// we'd prefer the current adaptations KB to be left untouched)
-			pDoc->EraseKB(m_pKB); //pDoc->EraseKB(m_pKB);
+			pDoc->EraseKB(m_pKB);
 			m_pKB = new CKB(FALSE);
 			m_bKBReady = TRUE;
 			wxASSERT(m_pKB);
-			wxASSERT(m_pKB->m_pTargetUnits->GetCount() == 0);
 			bool bStoredOK = StoreKB(m_bAutoBackupKB);
 			// unlikely to fail, so an English message hardcoded will do
 			if (!bStoredOK)
-				wxMessageBox(_T("The erased adaptations KB did not successfully store to disk"),
+				wxMessageBox(_T("The new empty adaptations KB did not successfully store to disk"),
 				_T(""), wxICON_INFORMATION);
-		}
+//		}
 
-		// delete the other project's KB from the heap
+			// delete the other project's copied KB from the heap (the original is still safe
+			// on disk)
 		pDoc->EraseKB(pOtherKB); 
 
 		// store the filled glossing KB on disk; leave it open since the user may want to
@@ -18928,6 +27170,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // project's Adaptations folder. Code for this kind of stuff is to be found in the
         // handler OnFileRestoreKB( ) and its auxiliary function, DoKBRestore( ), with a
         // few modifications needed for our present task
+		// BEW 6July10, as above except that now we only process doc files with filename
+		// not in the targetProjectDocsList array.
 
         // first, get a list of all the documents the user wants transformed (normally all
         // of them, but the dialog which comes up allows fewer than all to be worked on)
@@ -18958,7 +27202,9 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			return FALSE;
+			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
+			_T(""), wxICON_WARNING);
+			return FALSE; // do nothing
 		}
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 		{
@@ -18978,10 +27224,15 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
         // do the transformation of the other project's documents - changing adaptations
         // into glosses, and storing the transformed documents in the current project
+		// (Since there may be some documents in the Adaptations folder, as well as more
+		// documents in Bible book folders within the former, we must do the
+		// transformations on the Adaptations' folder's documents first, and then on any
+		// book folders which contain one or more documents.)
 		wxString bookFolderName;
-		bookFolderName.Empty();
+		bookFolderName.Empty(); // this ensures the next call works on Adaptations folder only
 		bool bTransformedOK;
-		bTransformedOK = DoTransformationsToGlosses(pDoc, strOtherAdaptationsPath, bookFolderName);
+		bTransformedOK = DoTransformationsToGlosses(targetProjectDocsList, pDoc,
+										strOtherAdaptationsPath, bookFolderName);
 
 		if (gbHasBookFolders)
 		{
@@ -19030,7 +27281,6 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
                     // - a difference we must account for here in the wx version.
                     // whm Note: The Exists() method of wxDIR used below returns TRUE if
                     // the passed name IS a directory. 
-                    // TODO: Test that this while loop succeeds in traversing all book folders
 					if (finder.Exists(strOtherAdaptationsPath + PathSeparator + str))
 					{
 						// BEW changed 25Aug05, so that other user-defined folders can be
@@ -19063,12 +27313,27 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 								continue;
 							}
 
+							// BEW 6July10, enumerate the target project's equivalent
+							// bible book folder for doc files
+							wxString bibleBookPath = m_curAdaptionsPath +
+											PathSeparator + str;
+							targetProjectDocsList.Clear(); // it's already cleared, but no harm
+														   // in doing it again
+							if (!EnumerateDocFiles_ParametizedStore(targetProjectDocsList,bibleBookPath))
+							{
+								// we don't expect failure, English message will do
+								wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."),
+								_T(""), wxICON_WARNING);
+								return FALSE; // return, do nothing
+							}
+
                             // there are files to be processed, so do the transformations
                             // (the function internally does the required saving of the
                             // transformed document as part of the current project) TRUE
                             // parameter suppresses the statistics dialog.
-							bTransformedOK = DoTransformationsToGlosses(
+							bTransformedOK = DoTransformationsToGlosses(targetProjectDocsList,
 														pDoc,otherFolderPath,str,TRUE);
+							// note, the function clears targetProjectDocsList before returning
 						}
 						else
 						{
@@ -19088,7 +27353,18 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		}
 
 		// clean out the app's string list for the list of doc files
-		m_acceptedFilesList.Clear(); //m_acceptedFilesList.RemoveAll();
+		m_acceptedFilesList.Clear();
+
+		// import the temporary files with the exported glossing and adapting KBs back to
+		// the  target project, so that KB data is not lost from either one
+		bool bSuccessful = TRUE;
+		m_pGlossingKB->DoKBImport(glossesKBExportPath, KBImportFileOfSFM_TXT);
+		bSuccessful = ::wxRemoveFile(glossesKBExportPath);
+		wxASSERT(bSuccessful);
+
+		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
+		bSuccessful = ::wxRemoveFile(adaptionsKBExportPath);
+		wxASSERT(bSuccessful);
 	}
 
 	// BEW added 05Jan07 to restore the former current working directory
@@ -19101,6 +27377,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
+/// \param      tgtDocsList          -> ref to array of target project's document filenames
+///                                     (used for preventing overwrites)
 /// \param      pDoc                 -> a pointer to the document
 /// \param      folderPath           <- the full path to whatever folder in the other
 ///                                     project is supplying the documents being currently
@@ -19117,9 +27395,23 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 /// Called from: the App's AccessOtherAdaptionProject().
 /// Transforms another project's documents - changing adaptations into glosses, and stores
 /// the transformed documents in the current project.
+/// BEW 2July10, updated for support of kbVersion 2 (no changes here, but changes within
+/// the TransformSourcePhraseAdaptationsToGlosses() function which it calls for each
+/// CSourcePhrase instance's transformation)
+/// BEW 6July10, updated to add tgtDocsList parameter, so that we can test for same
+/// document filenames and skip the transform process for any such matches (which protects
+/// against inadventent data loss because the user may have done some adapting work in the
+/// target project since the last transformation process)
+/// BEW 11Oct10, no changes for additions to doc version 5 (but the
+/// TransformSourcePhraseAdaptationsToGlosses() function has some changes - to support
+/// fixedspace symbol ~ particularly)
+/// BEW 13Nov10 no changes for supporting Bob Eaton's request that glossing KB use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& folderPath, 
-									wxString& bookFolderName, bool bSuppressStatistics)
+bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList, 
+											  CAdapt_ItDoc* pDoc,
+											  wxString& folderPath, 
+											  wxString& bookFolderName, 
+											  bool bSuppressStatistics)
 {
     // BEW updated it on 31Aug05 to comply with version 3 - specifically, to handle book
     // folders, and the possibility of some or all documents being XML rather than binary).
@@ -19142,36 +27434,21 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 	for (int i=0; i < nCount; i++)
 	{
 		wxString newDocName = List[i];
+
+		// BEW 6July10, test for same names, and skip any that comply
+		int anIndex = wxNOT_FOUND;
+		anIndex = tgtDocsList.Index(newDocName);
+		if (anIndex != wxNOT_FOUND)
+		{
+			// don't transform this document
+			continue;
+		}
 		wxASSERT(!newDocName.IsEmpty());
 		wxString ourProjectsDocFileName = newDocName;
 		wxString curOutputPath; // for full path to the transformed document to 
 								// be saved in current project
 		wxString newPathName; // for the full path to whatever document is 
 							  // currently to be loaded and transformed
-        // Work out whether we have an xml or adt document, set global gbProcessingXMLDoc
-        // accordingly and set up the needed paths (if document backups are or were turned
-        // on, there may be *.BAK.xml files present - but these will automatically be
-        // ignored because GetPossibleAdaptionDocuments() which EnumerateDocFiles() calls
-        // will not have included any such files in the m_acceptedFilesList)
-		wxString extn;
-		newDocName = MakeReverse(newDocName);
-		extn = newDocName.Left(3);
-		extn = MakeReverse(extn);
-		newDocName = MakeReverse(newDocName);
-		bool bProcessingXMLDoc;
-		if (extn == _T("xml"))
-		{
-			// it is an XML document file we are about to process
-			bProcessingXMLDoc = TRUE;
-		}
-		else
-		{
-			// its a binary document file
-			bProcessingXMLDoc = FALSE;
-		}
-
-        // we'll save the transformed document file in whatever format is indicated by the
-        // current setting of the app's m_bSaveAsXML flag value
 
         // create the path to the other project's document file using the passed in
         // folderPath and the bookFolderName; then create the needed output path to to
@@ -19197,9 +27474,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 			bookFolderPath = curOutputPath; // extract the path to the book folder
 			curOutputPath += PathSeparator + ourProjectsDocFileName; // the path to the file
 		}
-
-		// OpenDocumentInAnotherProject() handles opening xml or binary documents
-		// without the caller needing to specify which type has been passed in
 		
 		bool bOK = pDoc->OpenDocumentInAnotherProject(newPathName);
 		if (bOK)
@@ -19231,7 +27505,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 			nTotal = m_pSourcePhrases->GetCount();
 			wxASSERT(nTotal > 0);
 			nCumulativeTotal += nTotal;
-#ifdef __WXMSW__
 			wxString progMsg = _("%s  - %d of %d Total words and phrases");
 			wxString msgDisplayed = progMsg.Format(
 									progMsg,ourProjectsDocFileName.c_str(),1,nTotal);
@@ -19242,27 +27515,12 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
                             //wxPD_CAN_ABORT |
                             //wxPD_CAN_SKIP |
                             wxPD_APP_MODAL |
-                            // wxPD_AUTO_HIDE | -- try this as well
-                            wxPD_ELAPSED_TIME |
-                            wxPD_ESTIMATED_TIME |
-                            wxPD_REMAINING_TIME
-                            | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                            wxPD_AUTO_HIDE //| -- try this as well
+                            //wxPD_ELAPSED_TIME |
+                            //wxPD_ESTIMATED_TIME |
+                            //wxPD_REMAINING_TIME
+                            //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
                             );
-#else
-            // wxProgressDialog tends to hang on wxGTK so I'll just use the simpler
-            // CWaitDlg notification on wxGTK and wxMAC
-			// put up a Wait dialog - otherwise nothing visible will happen 
-			// until the operation is done
-			CWaitDlg waitDlg(gpApp->GetMainFrame());
-			// indicate we want the reading file wait message
-			waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only 
-										// "Please wait..." in title bar
-			waitDlg.Centre();
-			waitDlg.Show(TRUE);
-			waitDlg.Update();
-			// the wait dialog is automatically destroyed when it 
-			// goes out of scope below.
-#endif
 
 			SPList* pPhrases = m_pSourcePhrases;
 			SPList::Node* pos1;
@@ -19279,7 +27537,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 				// update the glossing or adapting KB for this source phrase
 				bool bRemoveIt = FALSE;
 				bRemoveIt = pView->TransformSourcePhraseAdaptationsToGlosses(
-									savePos,pos1,pSrcPhrase);
+									this,savePos,pos1,pSrcPhrase);
 
                 // if it needs to be removed, do so; (any adjustments to flags which are
                 // needed will already have been done in the
@@ -19292,7 +27550,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 					pPhrases->DeleteNode(savePos);
 					pDoc->UpdateSequNumbers(0); // update from the start to be safe
 				}
-#ifdef __WXMSW__
 				// update the progress bar every 20th iteration
 				if (counter % 1000 == 0)
 				{
@@ -19300,8 +27557,10 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 									counter,nTotal);
 					progDlg.Update(counter,msgDisplayed);
 				}
-#endif
 			}
+			
+			// remove the progress indicator window
+			progDlg.Destroy();
 
 			bool bSavedOK;
 			bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
@@ -19326,8 +27585,11 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 		}
 	}
 
-	// inform user of success and some statistics
-	if (!bSuppressStatistics)
+	// clear the tgt list of doc names
+	tgtDocsList.Clear();
+
+	// inform user of success and some statistics, but only if not processing book folders
+	if (!bSuppressStatistics && bookFolderName.IsEmpty())
 	{
         // we suppress this information when processing through the documents in the 67
         // Bible book folders - otherwise the user might have to manually dismiss an
@@ -19382,6 +27644,7 @@ void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 /// Toggles the Automatic Capitalization feature of Adapt It on or off depending on the
 /// initial value of the gbAutoCaps global flag. Warns the user if the project's settings
 /// are not set up to utilize this feature.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 {
@@ -19395,13 +27658,16 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuAutoCap = pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION);
-	wxASSERT(pToolsMenuAutoCap != NULL);
+	//wxASSERT(pToolsMenuAutoCap != NULL);
 
 	// toggle the setting & update the display accordingly
 	if (gbAutoCaps)
 	{
 		// toggle the checkmark to OFF & recalc the layout with strip-wrap off
-		pToolsMenuAutoCap->Check(FALSE);
+		if (pToolsMenuAutoCap != NULL)
+		{
+			pToolsMenuAutoCap->Check(FALSE);
+		}
 		gbAutoCaps = FALSE;
 	}
 	else
@@ -19495,7 +27761,10 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 			}
 		}
 		// toggle the checkmark to ON, and recalc the layout with strip-wrap on
-		pToolsMenuAutoCap->Check(TRUE);
+		if (pToolsMenuAutoCap != NULL)
+		{
+			pToolsMenuAutoCap->Check(TRUE);
+		}
 		gbAutoCaps = TRUE;
 		gbSuppressAutoCapsAsk = FALSE;
 	}
@@ -19590,6 +27859,7 @@ void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 /// divisions as specified in books.xml. This handler then invokes the Start Working Wizard
 /// which allows the user to select the division and specific folder to use for opening
 /// and/or creating new documents.
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event) 
 {
@@ -19599,7 +27869,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-	wxASSERT(pAdvancedMenu != NULL);
+	//wxASSERT(pAdvancedMenu != NULL);
 
 	// force closure of an open document, before the mode is changed - since the
 	// document has to go to its current folder, and after the mode change that will
@@ -19622,7 +27892,10 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	if (m_bBookMode)
 	{
 		// toggle the checkmark to OFF
-		pAdvancedMenu->Check(FALSE);
+		if (pAdvancedMenu != NULL)
+		{
+			pAdvancedMenu->Check(FALSE);
+		}
 		m_bBookMode = FALSE;
 		m_nLastBookIndex = m_nBookIndex; // store last used index, in case 
 										 // the user restarts book mode
@@ -19633,7 +27906,10 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	else
 	{
 		// toggle the checkmark to ON
-		pAdvancedMenu->Check(TRUE);
+		if (pAdvancedMenu != NULL)
+		{
+			pAdvancedMenu->Check(TRUE);
+		}
 
 		// restore the settings, set the name pair structure, and redefine 
 		// the book folder's path
@@ -19698,6 +27974,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 /// ticked if On and unticked if Off.
 /// BEW added 13Nov09, don't allow local user with read-only access to a remote project
 /// folder to make document or folder changes of this kind on the remote machine
+/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event) 
 {
@@ -19717,7 +27994,8 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-	wxASSERT(pAdvancedMenu != NULL);
+	if (pAdvancedMenu == NULL)//wxASSERT(pAdvancedMenu != NULL);
+		return;
 
 	if (m_bBookMode && !m_bDisableBookMode)
 	{
@@ -19837,6 +28115,9 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	PngInLineMarkersStr.Empty();
 	UsfmAndPngInLineMarkersStr.Empty();
 
+#ifdef __WXDEBUG__
+	ShowFilterMarkers(2); // location 2
+#endif
 	UsfmFilterMarkersStr.Empty();
 	PngFilterMarkersStr.Empty();
 	UsfmAndPngFilterMarkersStr.Empty();
@@ -19847,6 +28128,10 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	USFMAnalysis* pSfm;
 	wxString key;
 	MapSfmToUSFMAnalysisStruct::iterator iter;
+
+#ifdef __WXDEBUG__
+	ShowFilterMarkers(3); // location 3
+#endif
 
 	for (iter = m_pUsfmStylesMap->begin(); iter != m_pUsfmStylesMap->end(); ++iter)
 	{
@@ -19878,6 +28163,11 @@ void CAdapt_ItApp::SetupMarkerStrings()
 			UsfmFilterMarkersStr += _T(' ');
 		}
 	}
+
+#ifdef __WXDEBUG__
+	ShowFilterMarkers(4); // location 4
+#endif
+
 	for (iter = m_pPngStylesMap->begin(); iter != m_pPngStylesMap->end(); ++iter)
 	{
 		// Retrieve each USFMAnalysis struct from the map
@@ -19947,11 +28237,14 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	case UsfmAndPng: gCurrentFilterMarkers = UsfmAndPngFilterMarkersStr; break;
 	default: gCurrentFilterMarkers = UsfmFilterMarkersStr;
 	}
+#ifdef __WXDEBUG__
+	ShowFilterMarkers(5); // location 5
+#endif
 
 #ifdef _Trace_UnknownMarkers
 	wxString filteredUnkMkrsAddedTogCurrentFilterMarkers;
 	filteredUnkMkrsAddedTogCurrentFilterMarkers.Empty();
-	TRACE0("In SetupMarkerStrings BEFORE Doc's unknown markers copied from pFilterPageCommon\n");
+	TRACE0("In SetupMarkerStrings BEFORE Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
 #endif
 
@@ -20000,7 +28293,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
     }
 
 #ifdef _Trace_UnknownMarkers
-	TRACE0("In SetupMarkerStrings AFTER Doc's unknown markers copied from pFilterPageCommon\n");
+	TRACE0("In SetupMarkerStrings AFTER Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
 	TRACE1("   Unk mkrs added to glbl= %s\n", filteredUnkMkrsAddedTogCurrentFilterMarkers);
 #endif
@@ -20045,14 +28338,14 @@ void CAdapt_ItApp::RemoveMarkerFromString(wxString& markerStr, wxString wholeMar
 ///                                   descriptive text
 /// \remarks
 /// Called from: the View's GetMarkerInventoryFromCurrentDoc(), 
-/// from CFilterPageCommon::LoadDocSFMListBox(), CFilterPageCommon::LoadProjSFMListBox(),
-/// CFilterPageCommon::LoadFactorySFMListBox(), from CUSFMPageCommon::DoInit(),
-/// CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(),
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
-/// CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(),
-/// CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
-/// CUSFMPageCommon::DoBnClickedRadioUseBothSetsProj().
+/// from CUsfmFilterPageCommon::LoadDocSFMListBox(), CUsfmFilterPageCommon::LoadProjSFMListBox(),
+/// from CUsfmFilterPageCommon::DoInit(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj().
 /// This function scans the array to find the whole marker that has the greatest text extent 
 /// in the pDC. It then scans the array again and uses that text extent determined in the 
 /// first scan to calculate and insert the amount of white space needed between the whole 
@@ -20083,9 +28376,9 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
     // the beginning of the list box. Because of this we preserve any initial white space
     // found on the array strings and only adjust the medial space in our formatting
     // process. wx version note: The wx version does not have a "Show All" button in the
-    // filter page dialog, therefore I've modified the code within the filterpage to
-    // eliminate from the wxArrayString items that won't be shown in the listbox before the
-    // wxArrayString is input into this FormatMarkerAndDescriptionsStringArray function.
+    // usfm filter page dialog, therefore I've modified the code within the usfm filter page 
+    // to eliminate from the wxArrayString items that won't be shown in the listbox before 
+    // the wxArrayString is input into this FormatMarkerAndDescriptionsStringArray function.
     // Hence, here in this function we only calculate the extents of markers that do not
     // display within list boxes.
     // whm added 19Jan09 additional parameter pUserCanSetFilterFlags so we can determine
@@ -20380,152 +28673,6 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a CBString (byte string) containing the composed KB element (each
-///             element handles one CTargetUnit and its associated key string (the
-///             source text word or phrase, minus punctuation)
-/// \param      src       -> reference to the source text word or phrase
-/// \param      pTU       -> pointer to the associated CTargetUnit instance
-/// \param      nTabLevel -> how many tabs are to be put at the start of each line 
-///                          for indenting purposes (2)
-/// \remarks
-/// Called from: the App's DoKBSaveAsXML().
-/// Constructs a byte string containing a composed KB element in XML format in which one
-/// CTargetUnit and its associated key string is represented (the source text word or
-/// phrase, minus punctuation). This function is called once for each target unit in the
-/// KB's map.
-////////////////////////////////////////////////////////////////////////////////////////
-CBString CAdapt_ItApp::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
-{
-	// Constructs
-	// <TU f="boolean" k="source text key (a word or phrase)">
-	// 	<RS n="reference count" a="adaptation (or gloss) word or phrase"/>
-	// 	... possibly more RS elements (for other adaptations of the same source)
-	// </TU>
-	// The RS element handles the contents of the CRefString instances stored 
-	// on the pTU instance
-	CBString aStr;
-	CRefString* pRefStr;
-	int i;
-	wxString intStr;
-    // wx note: the wx version in Unicode build refuses assign a CBString to
-    // char numStr[24] so I'll declare numStr as a CBString also
-	CBString numStr; //char numStr[24];
-
-#ifndef _UNICODE  // ANSI (regular) version
-
-	// start the targetUnit element
-	aStr.Empty();
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "<TU f=\"";
-	intStr.Empty(); // needs to start empty, otherwise << will 
-					// append the string value of the int
-	intStr << (int)pTU->m_bAlwaysAsk;
-	numStr = intStr;
-	aStr += numStr;
-	aStr += "\" k=\"";
-	CBString s(src);
-	InsertEntities(s);
-	aStr += s;
-	aStr += "\">\r\n";
-
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	while (pos != NULL)
-	{
-		// there will always be at least one pRefStr in a pTU
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		CBString bstr(pRefStr->m_translation);
-		InsertEntities(bstr);
-		intStr.Empty(); // needs to start empty, otherwise << will 
-						// append the string value of the int
-		intStr << pRefStr->m_refCount;
-		numStr = intStr;
-
-		// construct the tabs
-		int j;
-		int last = nTabLevel + 1;
-		for (j = 0; j < last ; j++)
-		{
-			aStr += "\t"; // tab the start of the line
-		}
-		// construct the element
-		aStr += "<RS n=\"";
-		aStr += numStr;
-		aStr += "\" a=\"";
-		aStr += bstr;
-		aStr += "\"/>\r\n";
-	}
-
-	// construct the closing TU tab
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "</TU>\r\n";
-
-#else  // Unicode version
-
-	// start the targetUnit element
-	aStr.Empty();
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "<TU f=\"";
-	intStr.Empty(); // needs to start empty, otherwise << will 
-					// append the string value of the int
-	intStr << (int)pTU->m_bAlwaysAsk;
-	numStr = gpApp->Convert16to8(intStr);
-	aStr += numStr;
-	aStr += "\" k=\"";
-	CBString s = Convert16to8(src);
-	InsertEntities(s);
-	aStr += s;
-	aStr += "\">\r\n";
-
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	while (pos != NULL)
-	{
-		// there will always be at least one pRefStr in a pTU
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		CBString bstr = Convert16to8(pRefStr->m_translation);
-		InsertEntities(bstr);
-		intStr.Empty(); // needs to start empty, otherwise << will 
-						// append the string value of the int
-		intStr << pRefStr->m_refCount;
-		numStr = gpApp->Convert16to8(intStr);
-
-		// construct the tabs
-		int j;
-		int last = nTabLevel + 1;
-		for (j = 0; j < last ; j++)
-		{
-			aStr += "\t"; // tab the start of the line
-		}
-		// construct the element
-		aStr += "<RS n=\"";
-		aStr += numStr;
-		aStr += "\" a=\"";
-		aStr += bstr;
-		aStr += "\"/>\r\n";
-	}
-
-	// construct the closing TU tab
-	for (i = 0; i < nTabLevel; i++)
-	{
-		aStr += "\t"; // tab the start of the line
-	}
-	aStr += "</TU>\r\n";
-
-#endif // end of Unicode version
-	return aStr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxFontEncoding value that is the closest equivalent to the MFC Charset
 /// \param      Charset   -> the MFC Charset value
 /// \remarks
@@ -20722,7 +28869,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 	// and a few that don't match - based on the current encoding of Adapt It's source 
 	// font.
 
-	aStr = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n";
+	aStr = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n";
 #else
 
 	
@@ -21158,240 +29305,6 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 #endif
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      f               -> the wxFile instance used to save the KB file
-/// \param      bIsGlossingKB   -> TRUE if saving a glossing KB, otherwise FALSE 
-///                                (the default) for a regular KB
-/// \remarks
-/// Called from: the App's StoreGlossingKB() and StoreKB().
-/// Structures the KB data in XML form. Builds the XML file in a wxMemoryBuffer with sorted
-/// TU elements and finally writes the buffer to an external file.
-////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
-{
-    // In DoKBSaveAsXML, the bIsGlossingKB parameter has a default FALSE value (ie. normal
-    // KB), and must be explicitly included as TRUE for the glossing KB
-	CBString aStr;
-	
-    // whm modified 17Jan09 to build the entire XML file in a buffer in a wxMemoryBuffer.
-    // The wxMemoryBuffer is a dynamic buffer which increases its size as needed, which
-    // means we can set it up with a reasonable default size and not have to know its exact
-    // size ahead of time.
-	static const size_t blockLen = 2097152; // 1MB = 1048576 bytes //4096; 
-    // the buff block sise doesn't matter here for writing since we will write the whole
-    // buffer using whatever size it turns out to be in one Write operation.
-	wxMemoryBuffer buff(blockLen);
-
-	// The following strings can be pre-built before examining the maps.
-	CBString encodingStr;
-	//CBString aiKBBeginStr; //whm 31Aug09 removed at Bob Eaton's request
-	CBString msWordWarnCommentStr;
-	CBString kbElementBeginStr;
-	// .. [calculate the total bytes for MAP and TU Elements]
-	CBString kbElementEndStr;
-	//CBString aiKBEndStr; // whm removed 5Sept09
-	
-	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
-	int maxWords;
-	if (bIsGlossingKB)
-	{
-		maxWords = 1; // GlossingKB has only one map
-	}
-	else
-	{
-		maxWords = (int)MAX_WORDS;
-	}
-
-	// Setup some local pointers
-	CTargetUnit* pTU;
-	CKB* pKB;
-	if (bIsGlossingKB)
-		pKB = m_pGlossingKB;
-	else
-		pKB = m_pKB;
-	
-	int mapIndex;
-	
-	// Now, start building the fixed strings.
-    // construct the opening tag and add the list of targetUnits with their associated key
-    // strings (source text)
-    // prologue (Changed by BEW, 18june07, at request of Bob Eaton so as to support legacy
-    // KBs using his SILConverters software, UTF-8 becomes Windows-1252 for the Regular
-    // app)
-
-	GetEncodingStringForXmlFiles(encodingStr);
-	buff.AppendData(encodingStr,encodingStr.GetLength()); // AppendData internally uses 
-											// memcpy and GetAppendBuf and UngetAppendBuf
-	
-    /*  //whm 31Aug09 removed at Bob Eaton's request
-	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
-	aiKBBeginStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
-	buff.AppendData(aiKBBeginStr,aiKBBeginStr.GetLength());
-	*/
-	
-    // add the comment with the warning about not opening the XML file in MS WORD 'coz is
-    // corrupts it - presumably because there is no XSLT file defined for it as well. When
-    // the file is then (if saved in WORD) loaded back into Adapt It, the latter goes into
-    // an infinite loop when the file is being parsed in. (MakeMSWORDWarning is defined in
-    // XML.cpp)
-	msWordWarnCommentStr = MakeMSWORDWarning(TRUE); // the warning ends with \r\n so 
-				// we don't need to add them here; TRUE gives us a note included as well
-	buff.AppendData(msWordWarnCommentStr,msWordWarnCommentStr.GetLength());
-
-	wxString srcStr;
-	CBString tempStr;
-	//int i;
-	wxString intStr;
-    // wx note: the wx version in Unicode build refuses assign a CBString to char
-    // numStr[24] so I'll declare numStr as a CBString also
-	CBString numStr; //char numStr[24];
-
-	// the KB opening tag
-	intStr.Empty();
-    // wx note: The itoa() operator is Microsoft specific and not standard; unknown to g++
-    // on Linux/Mac. The wxSprintf() statement below in Unicode build won't accept CBString
-    // or char numStr[24] for first parameter, therefore, I'll simply do the int to string
-    // conversion in UTF-16 with wxString's overloaded insertion operatior << then convert
-    // to UTF-8 with Bruce's Convert16to8() method. [We could also do it here directly with
-    // wxWidgets' conversion macros rather than calling Convert16to8() - see the
-    // Convert16to8() function in the App.]
-	//wxSprintf(numStr, 24,_T("%d"),(int)VERSION_NUMBER); 
-	intStr << (int)VERSION_NUMBER; // versionable schema number (see AdaptitConstants.h)
-#ifdef _UNICODE
-	numStr = gpApp->Convert16to8(intStr);
-#else
-	numStr = intStr;
-#endif
-	
-	aStr = "<";
-	if (bIsGlossingKB)
-	{
-		aStr += xml_kb;
-		aStr += " docVersion=\"";
-		aStr += numStr;
-		aStr += "\" max=\"1";
-	}
-	else
-	{
-		aStr += xml_kb;
-		aStr += " docVersion=\"";
-		aStr += numStr;
-		aStr += "\" srcName=\"";
-#ifdef _UNICODE
-		tempStr = Convert16to8(pKB->m_sourceLanguageName);
-		InsertEntities(tempStr);
-		aStr += tempStr;
-		aStr += "\" tgtName=\"";
-		tempStr = Convert16to8(pKB->m_targetLanguageName);
-#else
-		tempStr = pKB->m_sourceLanguageName;
-		InsertEntities(tempStr);
-		aStr += tempStr;
-		aStr += "\" tgtName=\"";
-		tempStr = pKB->m_targetLanguageName;
-#endif
-		InsertEntities(tempStr);
-		aStr += tempStr;
-		aStr += "\" max=\"";
-		intStr.Empty(); // needs to start empty, otherwise << will 
-						// append the string value of the int
-		intStr << pKB->m_nMaxWords;
-#ifdef _UNICODE
-		numStr = gpApp->Convert16to8(intStr);
-#else
-		numStr = intStr;
-#endif
-		aStr += numStr;
-	}
-	aStr += "\">\r\n";
-	kbElementBeginStr = aStr;
-	buff.AppendData(kbElementBeginStr,kbElementBeginStr.GetLength());
-
-	for (mapIndex = 0; mapIndex < maxWords; mapIndex++)
-	{
-		if (!pKB->m_pMap[mapIndex]->empty())
-		{
-			aStr = "\t<MAP mn=\"";
-			intStr.Empty(); // needs to start empty, otherwise << will 
-							// append the string value of the int
-			intStr << mapIndex + 1;
-#ifdef _UNICODE
-			numStr = gpApp->Convert16to8(intStr);
-#else
-			numStr = intStr;
-#endif
-			aStr += numStr;
-			aStr += "\">\r\n";
-			buff.AppendData(aStr,aStr.GetLength());
-			MapKeyStringToTgtUnit::iterator iter;
-#ifdef SHOW_KB_I_O_BENCHMARKS
-				wxDateTime dt1 = wxDateTime::Now(),
-						   dt2 = wxDateTime::UNow();
-#endif
-			wxArrayString TUkeyArrayString;
-			TUkeyArrayString.Clear();
-			TUkeyArrayString.Alloc(pKB->m_pMap[mapIndex]->size()); // Preallocate 
-								// enough memory to store all keys in current map
-			for( iter = pKB->m_pMap[mapIndex]->begin(); iter != pKB->m_pMap[mapIndex]->end(); ++iter )
-			{
-				TUkeyArrayString.Add(iter->first);
-			}
-			TUkeyArrayString.Sort(); // sort the array in ascending 
-									 // alphabetical order
-			wxASSERT(TUkeyArrayString.GetCount() == pKB->m_pMap[mapIndex]->size());
-            // Get the key elements from TUkeyArrayString in sequence and fetch the
-            // associated pTU from the map and do the usual MakeKBElementXML() and
-            // DoWrite() calls.
-			int ct;
-			for (ct = 0; ct < (int)TUkeyArrayString.GetCount(); ct++)
-			{
-				iter = pKB->m_pMap[mapIndex]->find(TUkeyArrayString[ct]);
-				if (iter != pKB->m_pMap[mapIndex]->end())
-				{
-					srcStr = iter->first;
-					pTU = iter->second;
-					wxASSERT(pTU != NULL);
-					aStr = MakeKBElementXML(srcStr,pTU,2); // 2 = two left-margin tabs
-					buff.AppendData(aStr,aStr.GetLength());
-				}
-			}
-#ifdef SHOW_KB_I_O_BENCHMARKS
-			dt1 = dt2;
-			dt2 = wxDateTime::UNow();
-			wxLogDebug(_T("Sorted Map %d executed in %s ms"), mapIndex, 
-								(dt2 - dt1).Format(_T("%l")).c_str());
-#endif
-			// close off this map
-			aStr = "\t</MAP>\r\n";
-			buff.AppendData(aStr,aStr.GetLength());
-		}
-	}
-	// KB closing tag
-	aStr = "</";
-	if (bIsGlossingKB)
-	{
-		aStr += xml_kb;
-	}
-	else
-	{
-		aStr += xml_kb;
-	}
-	aStr += ">\r\n";
-	kbElementEndStr = aStr;
-	buff.AppendData(kbElementEndStr,kbElementEndStr.GetLength());
-	// BEW added 0Apr06 for .NET parsing support for xml
-	// whm 5Sept09 Bob Eaton says we should now eliminate both aiKBEndStr and aiKBBeginStr
-	//aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
-	//buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
-
-	wxLogNull logNo; // avoid spurious messages from the system
-
-    const char *pByteStr = wx_static_cast(const char *, buff);
-	f.Write(pByteStr,buff.GetDataLen());
-	// The buff wxMemoryBuffer is automatically destroyed when 
-	// it goes out of scope
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -21850,7 +29763,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// effectively joining two documents. Tests to make sure book IDs are valid and that they
 /// match, and does other housekeeping to make sure end markers and sequence numbers are
 /// handled properly.
-/// BEW 29Mar10, now accepts book ID strings, whether lower, upper or mixed case
+/// BEW 12Apr10, changed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID, 
 												 bool IsLastAppendUsingThisMethodRightNow)
@@ -21890,7 +29803,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 			lowerAppendingBookID.MakeLower(); // it's now lower case too
 			if (lowerPassedInID != lowerAppendingBookID)
 			{
-				// mismatched book IDs
+				// mismatched
 				return FALSE;
 			}
 			else
@@ -21912,37 +29825,6 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 		// here is no \id, (the document might not have USFM or SFM markup), 
 		// so don't make any book ID check
 		;
-	}
-
-    // BEW added 15Aug07: check for final endmarkers that were moved to the doc end, and if
-    // so, remove them and put them back in the m_markers member first (after book ID
-    // element is removed) in the joined part
-	
-	SPList::Node* lastPos = m_pSourcePhrases->GetLast();
-	CSourcePhrase* pTailSPhr = lastPos->GetData();
-	int backslash_offset = pTailSPhr->m_markers.Find(_T('\\'));
-	int asterisk_offset = pTailSPhr->m_markers.Find(_T('*'));
-	if (pTailSPhr->m_key.IsEmpty() && pTailSPhr->m_srcPhrase.IsEmpty() && backslash_offset != -1
-		&& asterisk_offset != -1)
-	{
-        // while the test was not perfect, it is almost 100% certain that only an appended
-        // CSourcePhrase having a moved endmarker(s) string in its m_markers member would
-        // satisfy the test, so assume we have found such a one
-		wxString markers = pTailSPhr->m_markers; // don't bother to check its contents
-		// WX Note: wxList does not have RemoveTail(). We can do it in a two stage process
-		// by using GetLast(), then DeleteNode() [ which is equivalent to MFC RemoveAt()].
-		SPList::Node *pLast = m_pSourcePhrases->GetLast();
-		m_pSourcePhrases->DeleteNode(pLast);
-		delete pTailSPhr;
-
-        // get the CSourcePhrase pointer first in the ol list and insert the markers string
-        // at the start of its m_markers member
-		SPList::Node* hpos = ol->GetFirst();
-		CSourcePhrase* pHeadSPhr = (CSourcePhrase*)hpos->GetData();
-		if (pHeadSPhr)
-		{
-			pHeadSPhr->m_markers = markers + pHeadSPhr->m_markers;
-		}
 	}
 	// Jonathan's code continues here...
 	//m_pSourcePhrases->Append(ol);
@@ -22115,35 +29997,21 @@ CSourcePhrase *CAdapt_ItApp::FindNextChapter(SPList *ol, CSourcePhrase *sp)
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 {
-	// BEW modified 02Nov05, to include the .xml option, and to make the
-	// testing be smarter - in particular, to allow the user to type names like
-	// 1Timothy.1-2 without the 1-2 being interpretted as a filename extension;
-	// the modifications ensure the returned filename always ends in either
-	// .xml or .adt, and hence DoFileSave() will behave robustly
-	// whm modified to only use the .xml extension for the wx version.
-	wxString defExtn;
-	if (gpApp->m_bSaveAsXML)
+	wxString defExtn = _T(".xml");
+	if (s.Find(_T(".")) == wxNOT_FOUND) 
 	{
-		defExtn = _T(".xml");
-	}
-	if (s.Find(_T(".")) == -1) 
-	{
-		// if there is no point, then we can unlaterally
-		// add the default extension
-a:		return s + defExtn;
+		// if there is no point, then we can unlaterally add the default extension
+		return s + defExtn;
 	} 
 	else 
 	{
-		// there is a point character, but it might not be .xml or .adt,
-		// and so we must check out if the point is a chapter and/or verse
-		// delimiter in the filename - our criterion will be that this
-		// is so whenever the filename does not end in .xml or .adt
+        // there is a point character, but it might not be .xml and so we must check out if
+        // the point is a chapter and/or verse delimiter in the filename - our criterion
+        // will be that this is so whenever the filename does not end in .xml
 		wxString xmlext = _T(".xml");
-		//wxString adtext = _T(".adt");
 		s = MakeReverse(s);
 		xmlext = MakeReverse(xmlext);
-		//adtext = MakeReverse(adtext);
-		if (s.Find(xmlext) == 0) // || s.Find(adtext) == 0)
+		if (s.Find(xmlext) == 0)
 		{
 			// we have a valid extension, so return without doing anything
 			s = MakeReverse(s);
@@ -22153,7 +30021,7 @@ a:		return s + defExtn;
 		{
 			// we need to add the current default extension
 			s = MakeReverse(s);
-			goto a;
+			return s + defExtn;
 		}
 	}
 }
@@ -22649,11 +30517,17 @@ wxString CAdapt_ItApp::FindAppPath(const wxString& argv0, const wxString& cwd,
 /// Called from: the Doc's SetDocumentWindowTitle(), and 
 /// CMoveDialog::OnBnClickedButtonRenameDoc().
 /// Removes any .xml extension occurring at the end of anyName and returns the result.
+/// BEw changed 23Aug10, because we'll want to use this to remove extensions like ".txt"
+/// too, not just ".xml", and we'll want it to handle extensions which may be more than 3
+/// characters or less than three, so following Bill's comment, I've recoded it to use
+/// wxFileName
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 {
-	// whm Note: this could be done more efficiently using wxFileName, but I'll
-	// follow the MFC coding here
+	// whm Note: this could be done more efficiently using wxFileName
+	wxFileName fn(anyName);
+	wxString name = fn.GetName();
+	/* legacy code
 	wxString name = anyName;
 	wxString extn;
 	name = MakeReverse(name);
@@ -22669,7 +30543,7 @@ wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 			// it could be an extension, so check further
 			extn = MakeReverse(extn);
 			extn.MakeLower();
-			if (extn == _T("xml")) // || extn == _T("adt"))
+			if (extn == _T("xml"))
 			{
 				// it's one of ours, so remove it and the .
 				name = name.Mid(nFound + 1);
@@ -22677,6 +30551,7 @@ wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 		}
 	}
 	name = MakeReverse(name);
+	*/
 	return name;
 }
 
@@ -22862,8 +30737,8 @@ void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox
 /// Called from: CExportOptionsDlg's OnBnClickedRadioExportSelectedMarkers(),
 /// OnLbnSelchangeListSfms(), OnCheckListBoxToggle(),
 /// OnBnClickedButtonFilterOutFromExport(), OnBnClickedButtonIncludeInExport(),
-/// OnBnClickedButtonUndo(), CFilterPageCommon's CheckListBoxToggleFactory(),
-/// DoBoxClickedIncludeOrFilterOutDoc() and DoBoxClickedIncludeOrFilterOutProj().
+/// OnBnClickedButtonUndo(), DoBoxClickedIncludeOrFilterOutDoc() and 
+/// DoBoxClickedIncludeOrFilterOutProj().
 /// This function does a brute force linear search through strArray looking for findStr. If
 /// found (array element == findStr exactly) it returns the found element's index in the
 /// array, otherwise it returns -1.
@@ -24061,6 +31936,214 @@ bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& return
 	return bIsValid;
 }
 
+void CAdapt_ItApp::OnUpdateOpenSourceDataFolder(wxUpdateUIEvent& event)
+{
+	if (m_curProjectPath.IsEmpty())
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
+		{
+			event.Enable(TRUE);
+		}
+		else
+		{
+			event.Enable(FALSE);
+		}
+	}
+}
+
+void CAdapt_ItApp::OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event))
+{
+	if (m_bShowAdministratorMenu)
+	{
+		if (m_sourceDataFolderPath.IsEmpty())
+		{
+			// don't expect this to be empty, an English message will do
+			wxBell();
+			wxMessageBox(_T("m_sourceDataFolderPath is still empty, button will be ignored"),
+				_T("Error"), wxICON_WARNING);
+			return;
+		}
+
+		// first, we must check if the "Source Data" folder actually exists yet - it can be
+		// created only by this handler's invocation, provided the user responds with a Yes
+		// click when shown the active project it will be created in. (No provision is
+		// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
+		// input dialog functionality. Someone or the administrator can do that in a file
+		// browser, by renaming, moving or deleting the Source Data folder.
+		bool bDirExists = TRUE;
+		if (!::wxDirExists(m_sourceDataFolderPath) && !::wxFileExists(m_sourceDataFolderPath))
+		{
+			// there is no such file or folder, so create the folder, provided the user wants
+			// it in the current project
+			wxString msg;
+			msg = msg.Format(_(
+"The current project is: %s\nDo you want the Source Data folder to be created for this project?"),
+			gpApp->m_curProjectName.c_str());
+			if( wxMessageBox(msg,_("Verify project for Source Data folder creation"), wxYES_NO) == wxYES )
+			{
+				// make the  Source Data  folder
+				bDirExists = ::wxMkdir(m_sourceDataFolderPath,0777);
+			}
+			else
+			{
+				// user saw it was the wrong project and declined to go ahead
+				return;
+			}
+		}
+		wxASSERT(bDirExists);
+
+		if (!m_bAdminMenuRemoved)
+		{
+			wxCommandEvent dummyEvent;
+			OnMoveOrCopyFoldersOrFiles(dummyEvent);
+		}
+	}
+	else
+	{
+		// the update handler should prevent this function being enabled if the
+		// Administrator menu is not visible, but just in case, beep
+		wxBell();
+	}
+}
+
+void CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event)
+{
+	if (m_curProjectPath.IsEmpty())
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
+		{
+			event.Enable(TRUE);
+		}
+		else
+		{
+			event.Enable(FALSE);
+		}
+	}
+}
+
+void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
+{
+	if (m_curProjectPath.IsEmpty())
+	{
+		event.Enable(FALSE);
+	}
+	else if (m_bParatextIsInstalled)
+	{
+		event.Enable(TRUE);
+	}
+}
+
+void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event))
+{
+	wxMessageBox(_T("The OnAssignTargetExportDataFolder function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	/*
+	if (m_bShowAdministratorMenu)
+	{
+		if (m_sourceDataFolderPath.IsEmpty())
+		{
+			// don't expect this to be empty, an English message will do
+			wxBell();
+			wxMessageBox(_T("m_sourceDataFolderPath is still empty, button will be ignored"),
+				_T("Error"), wxICON_WARNING);
+			return;
+		}
+
+		// first, we must check if the "Source Data" folder actually exists yet - it can be
+		// created only by this handler's invocation, provided the user responds with a Yes
+		// click when shown the active project it will be created in. (No provision is
+		// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
+		// input dialog functionality. Someone or the administrator can do that in a file
+		// browser, by renaming, moving or deleting the Source Data folder.
+		bool bDirExists = TRUE;
+		if (!::wxDirExists(m_sourceDataFolderPath) && !::wxFileExists(m_sourceDataFolderPath))
+		{
+			// there is no such file or folder, so create the folder, provided the user wants
+			// it in the current project
+			wxString msg;
+			msg = msg.Format(_(
+"The current project is: %s\nDo you want the Source Data folder to be created for this project?"),
+			gpApp->m_curProjectName.c_str());
+			if( wxMessageBox(msg,_("Verify project for Source Data folder creation"), wxYES_NO) == wxYES )
+			{
+				// make the  Source Data  folder
+				bDirExists = ::wxMkdir(m_sourceDataFolderPath,0777);
+			}
+			else
+			{
+				// user saw it was the wrong project and declined to go ahead
+				return;
+			}
+		}
+		wxASSERT(bDirExists);
+
+		if (!m_bAdminMenuRemoved)
+		{
+			wxCommandEvent dummyEvent;
+			OnMoveOrCopyFoldersOrFiles(dummyEvent);
+		}
+	}
+	else
+	{
+		// the update handler should prevent this function being enabled if the
+		// Administrator menu is not visible, but just in case, beep
+		wxBell();
+	}
+	*/
+}
+
+void CAdapt_ItApp::OnSetupParatextCollaboration(wxCommandEvent& WXUNUSED(event))
+{
+	wxMessageBox(_T("The OnSetupParatextCollaboration function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+}
+
+void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
+{
+	if (m_curProjectPath.IsEmpty())
+	{
+		event.Enable(FALSE);
+	}
+	else
+	{
+		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
+		{
+			event.Enable(TRUE);
+		}
+		else
+		{
+			event.Enable(FALSE);
+		}
+	}
+}
+
+void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))
+{
+	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
+	if (editMenuDlg.ShowModal() == wxID_OK)
+	{
+		if (editMenuDlg.bChangesMadeToProfileItems 
+			|| editMenuDlg.bChangeMadeToProfileSelection
+			|| editMenuDlg.bChangeMadeToDescriptionItems)
+		{
+			// Make changes to the interface here based on the user's workflow
+			// profile selection/changes which are now stored in m_nWorkflowProfile
+			// and m_pUserProfiles.
+			ConfigureInterfaceForUserProfile();
+			MakeMenuInitializationsAndPlatformAdjustments();
+			// Also, save the changes to the AI_UserProfiles.xml file
+			SaveUserProfilesMergingDataToXMLFile(m_userProfileFileWorkFolderPath);
+		}
+	}
+}
+
+
 void CAdapt_ItApp::OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -24654,6 +32737,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_T(
 		"Failed to set the current working directory to default work folder location. Aborting..."),
 		_T(""), wxICON_ERROR);
+		LogUserAction(_T("Failed to set the current working directory to default work folder location in OnLockCustomLocation()"));
 		abort();
 		return;
 	}
@@ -24666,6 +32750,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_T(
 		"Failed to open the CustomWorkFolderLocation file at default work folder location. Aborting..."),
 		_T(""), wxICON_ERROR);
+		LogUserAction(_T("Failed to open the CustomWorkFolderLocation file at default work folder location in OnLockCustomLocation()"));
 		abort();
 		return;
 	}
@@ -24676,6 +32761,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_T(
 			"Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."),
 		_T(""), wxICON_ERROR);
+		LogUserAction(_T("Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file"));
 		abort();
 		return;
 	}
@@ -25168,8 +33254,6 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 		break;
 	}
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -25998,6 +34082,7 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 						// exit app
 						wxMessageBox(
 _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic config file for cloning failed. Aborting..."));
+						LogUserAction(_T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic config file for cloning failed"));
 						abort();
 						return;
 					}
@@ -26040,6 +34125,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 				// there was a problem opening the file
 				wxString str = _T("MakeForeignBasicConfigFileSafe() failed, path to the folder was  %s. Aborting...");
 				wxMessageBox(str, _T("Could not open basic config file"), wxICON_ERROR);
+				LogUserAction(_T("MakeForeignBasicConfigFileSafe(): Could not open basic config file"));
 				abort();
 				return;
 			}
@@ -26075,12 +34161,14 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 				// could not update the config file so inform developer
 				wxMessageBox(
 _T("Unable to write adjusted basic config file for persistent custom location, so abort"));
+				LogUserAction(_T("MakeForeignBasicConfigFileSafe(): Unable to write adjusted basic config file for persistent custom location"));
 				abort();
 				return;
 			}
 		}
 	}
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -26520,12 +34608,14 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 
 void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pApp->m_bReadOnlyAccess)
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//if (pApp->m_bReadOnlyAccess)
+	if (m_bReadOnlyAccess)
 	{
 		return;
 	}
-	AdminMoveOrCopy dlg(pApp->GetMainFrame());
+	//AdminMoveOrCopy dlg(pApp->GetMainFrame());
+	AdminMoveOrCopy dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		;
@@ -26547,5 +34637,222 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 	event.Enable(TRUE); 
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the appropriate KB is not in a ready state this
+/// handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
+/// enables the "Export Knowledge Base..." item on the File menu.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnUpdateFileExportKb(wxUpdateUIEvent& event)
+{
+	if ((!gbIsGlossing && m_pKB != NULL) || (gbIsGlossing && m_pGlossingKB != NULL))
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
 
+void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
+{
+	//CAdapt_ItDoc* pDoc;
+	//CPhraseBox* pBox;
+	//CAdapt_ItView* pView;
+	//GetBasePointers(pDoc,pView,pBox); // this is 'safe' when no doc is open
+
+	// get a pointer to either the glossing KB or the adaptation one
+	CKB* pKB;
+	if (gbIsGlossing)
+		pKB = m_pGlossingKB;
+	else
+		pKB = m_pKB;
+	wxASSERT(pKB != NULL);
+
+    // get an output filename and put up file dialog make the working directory the
+    // "<Project Name>" one if no previous export path was defined, else make it the stored
+    // last export path for the kb
+	bool bOK = TRUE;
+	if (m_kbExportPath.IsEmpty())
+		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
+	else
+		bOK = ::wxSetWorkingDirectory(m_kbExportPath);
+
+	// the above may have failed, so if so use m_curProjectPath as the folder
+	// so we can proceed to the file dialog safely
+	if (!bOK)
+	{
+		m_kbExportPath = m_curProjectPath;
+		bOK = ::wxSetWorkingDirectory(m_kbExportPath); // this should work, since
+												// m_curProjectPath can hardly be wrong!
+		if (!bOK)
+		{
+			bOK = ::wxSetWorkingDirectory(m_kbExportPath = _T("C:"));
+			if (!bOK)
+			{
+				// we should never get a failure for the above, 
+				// so just an English message will do
+				wxMessageBox(_T(
+				"OnFileExportKb() failed, the export has been aborted"),
+				_T(""),wxICON_WARNING);
+				return;
+			}
+		}
+	}
+
+	// Set up default export file names
+    // whm Note: In the App's SetupDirectories() function the m_curProjectName is
+    // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"), 
+    // so the "to" and "adaptations" parts are non-localized, i.e., we can depend on them
+    // being constant in project names. All KB exports use a default name based on
+    // m_curProjectName without " adaptations" part
+	wxString dictFilename;
+	dictFilename = m_curProjectName;
+	dictFilename = MakeReverse(dictFilename);
+	int offset = dictFilename.Find(_T(" "));
+	dictFilename = dictFilename.Mid(offset); // remove "adaptations" or Tok Pisin equivalent
+	dictFilename = MakeReverse(dictFilename);
+	// The base dictFilename is now in the form of "x to y"
+
+	wxString glossStr;
+	wxString defaultKBLiftExportFileName;
+	wxString extToBeUsed;
+	wxString tempStr;
+
+	// use the .lift extension as default
+	extToBeUsed = _T(".lift"); // the extension is not localizable
+	if (gbIsGlossing)
+	{
+		glossStr = _("Glossing");
+		// no space added here to glossStr since we don't add 
+		// "dictionary records" to this one
+		dictFilename += glossStr; // ensure the glossing KB 
+								  // export has its own filename
+	}
+	else
+	{
+		dictFilename.Trim(TRUE); // trim any white space from right end
+	}
+	dictFilename = dictFilename + _T("%s");
+	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .lift 
+													// as the default export extension
+	wxString defaultDir;
+	if (m_kbExportPath.IsEmpty())
+	{
+		defaultDir = m_curProjectPath;
+	}
+	else
+	{
+		defaultDir = m_kbExportPath;
+	}
+
+	// get a file dialog
+	wxString filter;
+	filter = _("XML LIFT export (*.lift)|*.lift|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+	wxFileDialog fileDlg(
+		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+		_("Filename For KB Export"),
+		defaultDir,	// empty string causes it to use the current working directory (set above)
+		dictFilename,	// default filename
+		filter,
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+	fileDlg.Centre();
+
+	// make the dialog visible
+	if (fileDlg.ShowModal() != wxID_OK)
+		return; // user cancelled
+
+	// update m_kbExportPath
+	wxString exportPath = fileDlg.GetPath();
+	wxString name = fileDlg.GetFilename();
+	int nameLen = name.Length();
+	int pathLen = exportPath.Length();
+	wxASSERT(nameLen > 0 && pathLen > 0);
+	m_kbExportPath = exportPath.Left(pathLen - nameLen - 1);
+
+	// get the user's desired path and file name
+	wxString dicPath = fileDlg.GetPath(); 
+	int filterIndex;
+	filterIndex = fileDlg.GetFilterIndex();
+
+	if (filterIndex == KBExportSaveAsSFM_TXT)
+	{
+        // in SFM exports, add the " dictionary records" suffix to the base name of the
+        // export file, if the user has not already made that part of the name.
+		wxString path, fname, ext;
+		wxFileName::SplitPath(dicPath, &path, &fname, &ext);
+		if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+		{
+			dicPath = path + PathSeparator + fname + _T(" ") + 
+						_("dictionary records") + _T(".") + ext;
+		}
+	}
+	wxFile f;
+	if( !f.Open( dicPath, wxFile::write))
+	{
+		wxMessageBox(_("Unable to open knowledge base export file."),
+		_T(""), wxICON_WARNING);
+		return; // return since it is not a fatal error
+	}
+
+	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, 
+	{										   //i.e., first item in drop down list
+		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
+	}
+	else
+	{
+        // the user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields)
+        // (*.txt)" or "All Files (*.*)" which we assume would be same as "SFM plain text
+        // export..."
+		pKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+	}
+
+	// close the file
+	f.Close();
+}
+
+#ifdef __WXDEBUG__
+void CAdapt_ItApp::ShowFilterMarkers(int refNum)
+{
+	refNum = refNum; // avoid compiler warning
+	/* for displaying rapid-access markers in UsfmFilterMarkersStr
+	wxString s = UsfmFilterMarkersStr;
+	wxArrayString arr;
+	wxStringTokenizer tokens(s);
+	while (tokens.HasMoreTokens())
+	{
+		wxString mkr = tokens.GetNextToken();
+		mkr += _T(" ");
+		arr.Add(mkr);
+	}
+	int total = arr.GetCount();
+	int remainder = total;
+	int curCount = 0;
+	int lastLineHas = 0;
+	s.Empty();
+	// chop it into lines with 10 markers each
+	while (remainder > 0)
+	{
+		wxString mkr = arr.Item(curCount);
+		s += mkr;
+		curCount++;
+		lastLineHas++;
+		remainder--;
+		if (lastLineHas == 10)
+		{
+			s += _T("\n"); // start a new line
+			lastLineHas = 0;
+		}
+	}
+
+	wxString msg;
+	msg = msg.Format(_T("***FILTERED MARKERS:    location: %d\n%s\nEND FILTERED MARKERS***"),
+		refNum, s.c_str());
+	wxLogDebug(msg);
+	*/
+}
+#endif
 

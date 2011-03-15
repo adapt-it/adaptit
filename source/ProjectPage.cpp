@@ -52,8 +52,7 @@
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 #include "Adapt_It.h"
@@ -74,12 +73,6 @@ extern CProjectPage* pProjectPage;
 
 /// This global is defined in Adapt_It.cpp.
 extern CLanguagesPage* pLanguagesPage;
-
-//extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
-
-//extern CCaseEquivPageWiz* pCaseEquivPageWiz;
-//extern CUSFMPageWiz* pUsfmPageWiz;
-//extern CFilterPageWiz* pFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
@@ -281,10 +274,16 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	wxArrayString possibleAdaptions;
 	possibleAdaptions.Clear();
 	m_pListBox->Clear();
-	wxString str;
-	// IDS_NEW_PROJECT
-	str = str.Format(_("<New Project>"));
-	possibleAdaptions.Add(str);
+
+	// Add <New Project> to the listbox unless the current user profile says to hide 
+	// the <New Project> item from the interface
+	if (gpApp->m_bShowNewProjectItem)
+	{
+		wxString str;
+		// IDS_NEW_PROJECT
+		str = str.Format(_("<New Project>"));
+		possibleAdaptions.Add(str);
+	}
 	pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
 
 	// fill the list box with the folder name strings
@@ -492,6 +491,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator 
 										 + pApp->m_curProjectName;
 			}
+			pApp->m_sourceDataFolderPath = pApp->m_curProjectPath + pApp->PathSeparator + 
+											pApp->m_sourceDataFolderName; 
 
             // make sure the path to the Adaptations folder is correct (if omitted, it
             // would use the basic config file's "DocumentsFolderPath" line - which could
@@ -541,6 +542,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			if (bOK)
 			{
 				pApp->m_bKBReady = TRUE;
+				pApp->LoadGuesser(pApp->m_pKB); // whm added 20Oct10
 
 				// now do it for the glossing KB
 				wxASSERT(pApp->m_pGlossingKB == NULL);
@@ -561,6 +563,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				if (bOK)
 				{
 					pApp->m_bGlossingKBReady = TRUE;
+					pApp->LoadGuesser(pApp->m_pGlossingKB); // whm added 20Oct10
 				}
 				else
 				{

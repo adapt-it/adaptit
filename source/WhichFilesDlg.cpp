@@ -15,13 +15,7 @@
 /// in WhichFilesDlgFunc() which was developed and is maintained by wxDesigner.
 /// \derivation		The CWhichFilesDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in WhichFilesDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -56,6 +50,8 @@ BEGIN_EVENT_TABLE(CWhichFilesDlg, AIModalDialog)
 	EVT_BUTTON(wxID_OK, CWhichFilesDlg::OnOK)
 	EVT_BUTTON(IDC_BUTTON_REJECT, CWhichFilesDlg::OnButtonReject)
 	EVT_BUTTON(IDC_BUTTON_ACCEPT, CWhichFilesDlg::OnButtonAccept)
+	EVT_BUTTON(ID_BUTTON_REJECT_ALL_FILES, CWhichFilesDlg::OnButtonRejectAllFiles)
+	EVT_BUTTON(ID_BUTTON_ACCEPT_ALL_FILES, CWhichFilesDlg::OnButtonAcceptAllFiles)
 	EVT_LISTBOX(IDC_LIST_REJECTED, CWhichFilesDlg::OnSelchangeListRejected)
 	EVT_LISTBOX(IDC_LIST_ACCEPTED, CWhichFilesDlg::OnSelchangeListAccepted)
 END_EVENT_TABLE()
@@ -133,6 +129,71 @@ void CWhichFilesDlg::OnSelchangeListAccepted(wxCommandEvent& WXUNUSED(event))
 	file = m_pListBoxAccepted->GetString(nSel);
 	wxASSERT(!file.IsEmpty());
 }
+
+void CWhichFilesDlg::OnButtonRejectAllFiles(wxCommandEvent& WXUNUSED(event))
+{
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxAccepted))
+	{
+		::wxBell();
+		return;
+	}
+	unsigned int countLeft = m_pListBoxAccepted->GetCount();
+	unsigned int index;
+	wxString file;
+	if (countLeft > 0)
+	{
+		for (index = 0; index < countLeft; index++)
+		{
+			// copy all to the right first
+			m_pListBoxAccepted->SetSelection(index);
+			file = m_pListBoxAccepted->GetString(index);
+			wxASSERT(!file.IsEmpty());
+			m_pListBoxRejected->Append(file); // not interested in returned index
+		}
+		// clear the left list box
+		m_pListBoxAccepted->Clear();
+		// set no selection on the left box
+		m_pListBoxAccepted->SetSelection(wxNOT_FOUND);
+		// set first item as default selection on the right list box
+		if (m_pListBoxRejected->GetCount() > 0)
+		{
+			m_pListBoxRejected->SetSelection(0);
+		}
+	}
+}
+
+void CWhichFilesDlg::OnButtonAcceptAllFiles(wxCommandEvent& WXUNUSED(event))
+{
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxRejected))
+	{
+		::wxBell();
+		return;
+	}
+	unsigned int countRight = m_pListBoxRejected->GetCount();
+	unsigned int index;
+	wxString file;
+	if (countRight > 0)
+	{
+		for (index = 0; index < countRight; index++)
+		{
+			// copy all to the right first
+			m_pListBoxRejected->SetSelection(index);
+			file = m_pListBoxRejected->GetString(index);
+			wxASSERT(!file.IsEmpty());
+			m_pListBoxAccepted->Append(file); // not interested in returned index
+		}
+		// clear the right list box
+		m_pListBoxRejected->Clear();
+		// set no selection on the right box
+		m_pListBoxRejected->SetSelection(wxNOT_FOUND);
+		// set first item as default selection on the left list box
+		if (m_pListBoxAccepted->GetCount() > 0)
+		{
+			m_pListBoxAccepted->SetSelection(0);
+		}
+	}
+}
+
 
 void CWhichFilesDlg::OnButtonReject(wxCommandEvent& WXUNUSED(event)) 
 {

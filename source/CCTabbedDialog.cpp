@@ -12,13 +12,6 @@
 /// browse, select, create and/or edit consistent change (.cct) tables.
 /// \derivation		The CCCTabbedDialog class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in CCCTabbedDialog.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)

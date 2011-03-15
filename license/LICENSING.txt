@@ -1,6 +1,6 @@
     ADAPT IT LICENSING
 
-    Copyright 2001-2008, Bruce Waters, Bill Martin, SIL 
+    Copyright 2001-2010, Bruce Waters, Bill Martin, SIL 
     International. All rights reserved.
 
     This program is free software; you can redistribute it 

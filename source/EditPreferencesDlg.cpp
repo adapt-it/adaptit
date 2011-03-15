@@ -11,8 +11,8 @@
 /// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
 /// dialog are defined in EditPreferencesDlgFunc(), which was created and is 
 /// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
-/// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
-/// "USFM", and "Filtering".
+/// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", and
+/// "USFM and Filtering" depending on the current user workflow profile selected.
 /// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in EditPreferencesDlg.cpp (in order of importance): (search for "TODO")
@@ -63,8 +63,7 @@
 #include "ViewPage.h"
 #include "AutoSavingPage.h"
 #include "UnitsPage.h"
-#include "USFMPage.h"
-#include "FilterPage.h"
+#include "UsfmFilterPage.h"
 #include "helpers.h"
 #include "Pile.h"
 #include "Layout.h"
@@ -76,10 +75,7 @@
 extern bool	gbIsGlossing;
 
 /// This global is defined in Adapt_It.cpp.
-extern CFilterPagePrefs* pFilterPageInPrefs; // set the App's pointer to the filterPage
-
-/// This global is defined in Adapt_It.cpp.
-extern CUSFMPagePrefs* pUSFMPageInPrefs; // set the App's pointer to the filterPage
+extern CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs; // set the App's pointer to the filterPage
 
 /// This global is defined in Adapt_ItView.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -142,17 +138,12 @@ BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxPropertySheetDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_USE_UBS_SET_ONLY_PROJ, CEditPreferencesDlg::OnBnClickedRadioUseUbsSetOnlyProj)
 	EVT_RADIOBUTTON(IDC_RADIO_USE_SILPNG_SET_ONLY_PROJ, CEditPreferencesDlg::OnBnClickedRadioUseSilpngSetOnlyProj)
 	EVT_RADIOBUTTON(IDC_RADIO_USE_BOTH_SETS_PROJ, CEditPreferencesDlg::OnBnClickedRadioUseBothSetsProj)
-	EVT_RADIOBUTTON(IDC_RADIO_USE_UBS_SET_ONLY_FACTORY, CEditPreferencesDlg::OnBnClickedRadioUseUbsSetOnlyFactory)
-	EVT_RADIOBUTTON(IDC_RADIO_USE_SILPNG_SET_ONLY_FACTORY, CEditPreferencesDlg::OnBnClickedRadioUseSilpngSetOnlyFactory)
-	EVT_RADIOBUTTON(IDC_RADIO_USE_BOTH_SETS_FACTORY, CEditPreferencesDlg::OnBnClickedRadioUseBothSetsFactory)
 	EVT_CHECKBOX(IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES, CEditPreferencesDlg::OnBnClickedCheckChangeFixedSpacesToRegularSpaces)
 	// The following wrapper handlers are for the filterPage
 	EVT_LISTBOX(IDC_LIST_SFMS, CEditPreferencesDlg::OnLbnSelchangeListSfmsDoc)
 	EVT_CHECKLISTBOX(IDC_LIST_SFMS, CEditPreferencesDlg::OnCheckListBoxToggleDoc)
 	EVT_LISTBOX(IDC_LIST_SFMS_PROJ, CEditPreferencesDlg::OnLbnSelchangeListSfmsProj)
 	EVT_CHECKLISTBOX(IDC_LIST_SFMS_PROJ, CEditPreferencesDlg::OnCheckListBoxToggleProj)
-	EVT_LISTBOX(IDC_LIST_SFMS_FACTORY, CEditPreferencesDlg::OnLbnSelchangeListSfmsFactory)
-	EVT_CHECKLISTBOX(IDC_LIST_SFMS_FACTORY, CEditPreferencesDlg::OnCheckListBoxToggleFactory)
 END_EVENT_TABLE()
 
 CEditPreferencesDlg::CEditPreferencesDlg()
@@ -164,6 +155,15 @@ CEditPreferencesDlg::CEditPreferencesDlg(
 	const wxPoint& pos, const wxSize& size,
 	long style)
 {
+	fontPage = (CFontPagePrefs*)NULL;
+	punctMapPage = (CPunctCorrespPagePrefs*)NULL;
+	caseEquivPage = (CCaseEquivPagePrefs*)NULL;
+	kbPage = (CKBPage*)NULL;
+	viewPage = (CViewPage*)NULL;
+	autoSavePage = (CAutoSavingPage*)NULL;
+	unitsPage = (CUnitsPage*)NULL;
+	usfmFilterPage = (CUsfmFilterPagePrefs*)NULL;
+	
 	Create(parent, id, title, pos, size, style);
 }
 
@@ -172,7 +172,10 @@ bool CEditPreferencesDlg::Create( wxWindow* parent, wxWindowID id, const wxStrin
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
     wxPropertySheetDialog::Create( parent, id, caption, pos, size, style );
 
-    CreateButtons(wxOK|wxCANCEL|wxHELP);
+    CreateButtons(wxOK|wxCANCEL); //|wxHELP);
+	// whm note: the wxPropertySheetDialog has internal smarts to reverse the order of the
+	// OK and Cancel buttons on creation, so we don't need to call the App's 
+	// ReverseOkCancelButtonsForMac() function.
     CreateControls();
     LayoutDialog();
     Centre();
@@ -183,73 +186,96 @@ void CEditPreferencesDlg::CreateControls()
 {    
 	pNotebook = GetBookCtrl(); // gets pointer to the default wxNotebook that contains the tab pages
 
-	// create the pages for the notebook of the property sheet
-	fontPage = new CFontPagePrefs(pNotebook);
-	wxASSERT(fontPage != NULL);
-	punctMapPage = new CPunctCorrespPagePrefs(pNotebook);
-	wxASSERT(punctMapPage != NULL);
-	caseEquivPage = new CCaseEquivPagePrefs(pNotebook);
-	wxASSERT(caseEquivPage != NULL);
-	kbPage = new CKBPage(pNotebook);
-	wxASSERT(kbPage != NULL);
-	viewPage = new CViewPage(pNotebook);
-	wxASSERT(viewPage != NULL);
-	autoSavePage = new CAutoSavingPage(pNotebook);
-	wxASSERT(autoSavePage != NULL);
-	unitsPage = new CUnitsPage(pNotebook);
-	wxASSERT(unitsPage != NULL);
-	usfmPage = new CUSFMPagePrefs(pNotebook);
-	pUSFMPageInPrefs = usfmPage; // set the App's pointer to the usfmPage
-	wxASSERT(usfmPage != NULL);
-	filterPage = new CFilterPagePrefs(pNotebook);
-	pFilterPageInPrefs = filterPage; // set the App's pointer to the filterPage
-	wxASSERT(filterPage != NULL);
+	// Create the pages for the notebook of the property sheet and add 
+	// pages to the notebook. Get the largest minimum page size needed 
+	// for all pages of the prefs to display fully
+	wxSize neededSize;
 
-	// add pages to the notebook
-    pNotebook->AddPage( fontPage, _("Fonts"),TRUE ); // TRUE = page should be selected
-    pNotebook->AddPage( kbPage, _("Backups and Misc"),FALSE ); // was "Backups and KB" in legacy app
-    pNotebook->AddPage( viewPage, _("View"),FALSE );
-    pNotebook->AddPage( autoSavePage, _("Auto-Saving"),FALSE );
-    pNotebook->AddPage( punctMapPage, _("Punctuation"),FALSE );
-    pNotebook->AddPage( caseEquivPage, _("Case"),FALSE );
-    pNotebook->AddPage( unitsPage, _("Units"),FALSE );
-    pNotebook->AddPage( usfmPage, _("USFM"),FALSE );
-    pNotebook->AddPage( filterPage, _("Filtering"),FALSE );
+	if (TabIsVisibleInCurrentProfile(_("Fonts")))
+	{
+		fontPage = new CFontPagePrefs(pNotebook);
+		wxASSERT(fontPage != NULL);
+		pNotebook->AddPage( fontPage, _("Fonts"),TRUE ); // TRUE = page should be selected
+		wxSize fontPageSize = fontPage->GetSize();
+		if (fontPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(fontPageSize.GetX());
+		if (fontPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(fontPageSize.GetY());
+	}
 	
-	// Check if the Preferences property sheet is going to be too big. 
-	// Make the pPunctCorrespPageWiz and the pCaseEquivPageWiz
+	if (TabIsVisibleInCurrentProfile(_("Punctuation")))
+	{
+		punctMapPage = new CPunctCorrespPagePrefs(pNotebook);
+		wxASSERT(punctMapPage != NULL);
+		pNotebook->AddPage( punctMapPage, _("Punctuation"),FALSE );
+		wxSize punctMapPageSize = punctMapPage->GetSize();
+		if (punctMapPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(punctMapPageSize.GetX());
+		if (punctMapPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(punctMapPageSize.GetY());
+	}
+	
+	if (TabIsVisibleInCurrentProfile(_("Case")))
+	{
+		caseEquivPage = new CCaseEquivPagePrefs(pNotebook);
+		wxASSERT(caseEquivPage != NULL);
+		pNotebook->AddPage( caseEquivPage, _("Case"),FALSE );
+		wxSize caseEquivPageSize = caseEquivPage->GetSize();
+		if (caseEquivPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(caseEquivPageSize.GetX());
+		if (caseEquivPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(caseEquivPageSize.GetY());
+	}
+		
+	if (TabIsVisibleInCurrentProfile(_("Backups and Misc")))
+	{
+		kbPage = new CKBPage(pNotebook);
+		wxASSERT(kbPage != NULL);
+		pNotebook->AddPage( kbPage, _("Backups and Misc"),FALSE ); // was "Backups and KB" in legacy app
+		wxSize kbPageSize = kbPage->GetSize();
+		if (kbPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(kbPageSize.GetX());
+		if (kbPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(kbPageSize.GetY());
+	}
+		
+	if (TabIsVisibleInCurrentProfile(_("View")))
+	{
+		viewPage = new CViewPage(pNotebook);
+		wxASSERT(viewPage != NULL);
+		pNotebook->AddPage( viewPage, _("View"),FALSE );
+		wxSize viewPageSize = viewPage->GetSize();
+		if (viewPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(viewPageSize.GetX());
+		if (viewPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(viewPageSize.GetY());
+	}
+		
+	if (TabIsVisibleInCurrentProfile(_("Auto-Saving")))
+	{
+		autoSavePage = new CAutoSavingPage(pNotebook);
+		wxASSERT(autoSavePage != NULL);
+		pNotebook->AddPage( autoSavePage, _("Auto-Saving"),FALSE );
+		wxSize autoSavePageSize = autoSavePage->GetSize();
+		if (autoSavePageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(autoSavePageSize.GetX());
+		if (autoSavePageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(autoSavePageSize.GetY());
+	}
+		
+	if (TabIsVisibleInCurrentProfile(_("Units")))
+	{
+		unitsPage = new CUnitsPage(pNotebook);
+		wxASSERT(unitsPage != NULL);
+		pNotebook->AddPage( unitsPage, _("Units"),FALSE );
+		wxSize unitsPageSize = unitsPage->GetSize();
+		if (unitsPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(unitsPageSize.GetX());
+		if (unitsPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(unitsPageSize.GetY());
+	}
+		
+	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")))
+	{
+		usfmFilterPage = new CUsfmFilterPagePrefs(pNotebook);
+		pUsfmFilterPageInPrefs = usfmFilterPage; // set the App's pointer to the usfmPage
+		wxASSERT(usfmFilterPage != NULL);
+		pNotebook->AddPage( usfmFilterPage, _("USFM and Filtering"),FALSE );
+		wxSize usfmPageSize = usfmFilterPage->GetSize();
+		if (usfmPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(usfmPageSize.GetX());
+		if (usfmPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(usfmPageSize.GetY());
+	}
+
+	// TODO: Make the pPunctCorrespPageWiz and the pCaseEquivPageWiz
 	// scrollable if we are on a small screen
 	// Check the display size to see if we need to make size adjustments in
 	// the Wizard.
-	// Get the largest minimum page size needed for all pages of the prefs to display fully
-	wxSize neededSize;
-	wxSize fontPageSize = fontPage->GetSize();
-	if (fontPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(fontPageSize.GetX());
-	if (fontPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(fontPageSize.GetY());
-	wxSize kbPageSize = kbPage->GetSize();
-	if (kbPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(kbPageSize.GetX());
-	if (kbPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(kbPageSize.GetY());
-	wxSize viewPageSize = viewPage->GetSize();
-	if (viewPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(viewPageSize.GetX());
-	if (viewPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(viewPageSize.GetY());
-	wxSize autoSavePageSize = autoSavePage->GetSize();
-	if (autoSavePageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(autoSavePageSize.GetX());
-	if (autoSavePageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(autoSavePageSize.GetY());
-	wxSize punctMapPageSize = punctMapPage->GetSize();
-	if (punctMapPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(punctMapPageSize.GetX());
-	if (punctMapPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(punctMapPageSize.GetY());
-	wxSize caseEquivPageSize = caseEquivPage->GetSize();
-	if (caseEquivPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(caseEquivPageSize.GetX());
-	if (caseEquivPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(caseEquivPageSize.GetY());
-	wxSize unitsPageSize = unitsPage->GetSize();
-	if (unitsPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(unitsPageSize.GetX());
-	if (unitsPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(unitsPageSize.GetY());
-	wxSize usfmPageSize = usfmPage->GetSize();
-	if (usfmPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(usfmPageSize.GetX());
-	if (usfmPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(usfmPageSize.GetY());
-	wxSize filterPageSize = filterPage->GetSize();
-	if (filterPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(filterPageSize.GetX());
-	if (filterPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(filterPageSize.GetY());
 
 	// whm 31Aug10 added test below to validate results from wxDisplay after finding some problems with
 	// an invalid index on a Linux machine that had dual monitors.
@@ -280,6 +306,41 @@ void CEditPreferencesDlg::CreateControls()
 
 CEditPreferencesDlg::~CEditPreferencesDlg(void)
 {
+	// When a tab page was not visible it was not added to 
+	// the wxNotebook. It's memory therefore needs to be 
+	// deallocated here in the destructor.
+	if (!TabIsVisibleInCurrentProfile(_("Fonts")))
+	{
+		delete fontPage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("Punctuation")))
+	{
+		delete punctMapPage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("Case")))
+	{
+		delete caseEquivPage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("Backups and Misc")))
+	{
+		delete kbPage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("View")))
+	{
+		delete viewPage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("Auto-Saving")))
+	{
+		delete autoSavePage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("Units")))
+	{
+		delete unitsPage;
+	}
+	if (!TabIsVisibleInCurrentProfile(_("USFM and Filtering")))
+	{
+		delete usfmFilterPage;
+	}
 }
 
 void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
@@ -303,15 +364,43 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	// Initialize each page of the notebook; each page's InitDialog() is not called when
 	// the page is created in CEditPreferencesDlg's CreateControls() method, so we insure
 	// they get called here in CEditPreferencesDlg's own InitDialog() method.
-	fontPage->InitDialog(event);
-	punctMapPage->InitDialog(event);
-	caseEquivPage->InitDialog(event);
-	kbPage->InitDialog(event);
-	viewPage->InitDialog(event);
-	autoSavePage->InitDialog(event);
-	unitsPage->InitDialog(event);
-	usfmPage->InitDialog(event);
-	filterPage->InitDialog(event);
+	// whm 5Oct10 note: Under user profiles, even when certain tab pages are not added
+	// to the wxNotebook, they still exist and some (in particular the usfmPage and the
+	// filterPage) interact, so we still call the InitDialog() handlers for all pages
+	// so that any necessary initializations are done even though the page may not be
+	// visible.
+	if (TabIsVisibleInCurrentProfile(_("Fonts")))
+	{
+		fontPage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("Punctuation")))
+	{
+		punctMapPage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("Case")))
+	{
+		caseEquivPage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("Backups and Misc")))
+	{
+		kbPage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("View")))
+	{
+		viewPage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("Auto-Saving")))
+	{
+		autoSavePage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("Units")))
+	{
+		unitsPage->InitDialog(event);
+	}
+	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")))
+	{
+		usfmFilterPage->InitDialog(event);
+	}
 
 	wxASSERT(pNotebook != NULL);
 
@@ -320,26 +409,21 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	curSelPg = pNotebook->ChangeSelection(0); // disregard returned previous selection int
 	// See the AddPage() calls in the CreateControls() method above - fontPage should be
 	// the selected tab.
-	if (pNotebook->GetPageCount() >= 4)
+	// whm 5Oct10 modified to accommodate user profiles in which one or more tabs were not added
+	// to the wxNotebook control. We no longer necessarily have a fixed number of tab pages, so
+	// we scan through the existing pages to find the "Punctuation" page and remove it if glossing.
+	int pgCt;
+	int totCt = pNotebook->GetPageCount();
+	wxString pgText;
+	for (pgCt = 0; pgCt < totCt; pgCt++)
 	{
-		if (gbIsGlossing)
+		pgText = pNotebook->GetPageText(pgCt);
+		if (gbIsGlossing && pgText == _("Punctuation"))
 		{
 			// Remove Punctuation page from Edit Preferences notebook when Glossing box is checked
-			if (pNotebook->GetPageText(4) == _("Punctuation"))
-			{
-				wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION); 
-				pNotebook->RemovePage(4);
-			}
-		}
-		else
-		{
-			// Since the Edit Preferences dialog is recreated each time it is called the
-			// should always initially be present and the following if block never execute. 
-			// Insert Punctuation page into Edit Preferences notebook if it was previously removed
-			if (pNotebook->GetPageText(4) != _("Punctuation"))
-			{
-				pNotebook->InsertPage(4, punctMapPage, _("Punctuation"), FALSE);
-			}
+			wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION); 
+			pNotebook->RemovePage(pgCt);
+			break;
 		}
 	}
 }// end of InitDialog()
@@ -366,253 +450,272 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 	// Validate fontPage data
 	// Don't accept blank face names for any of the 3 fonts
 	wxASSERT(pNotebook != NULL);
-	if (fontPage->fontPgCommon.pSrcFontNameBox->GetValue().IsEmpty())
-	{
-		pNotebook->SetSelection(0); // Font tab is first in EditPreferencesDlg notebook
-		wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION);
-		fontPage->fontPgCommon.pSrcFontNameBox->SetFocus();
-		return;
-	}
-	if (fontPage->fontPgCommon.pTgtFontNameBox->GetValue().IsEmpty())
-	{
-		pNotebook->SetSelection(0);
-		wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION);
-		fontPage->fontPgCommon.pTgtFontNameBox->SetFocus();
-		return;
-	}
-	if (fontPage->fontPgCommon.pNavFontNameBox->GetValue().IsEmpty())
-	{
-		pNotebook->SetSelection(0);
-		wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION);
-		fontPage->fontPgCommon.pNavFontNameBox->SetFocus();
-		return;
-	}
-
-	// Don't accept font sizes outside the 6pt to 72pt range
-	int fSize;
 	wxString strTemp, subStr, msg;
-	strTemp = fontPage->fontPgCommon.pSrcFontSizeBox->GetValue();
-	fSize = wxAtoi(strTemp);
-	subStr = _("Sorry, the %s font size must be between %d and %d points. A default size of 12 points will be used instead.");
-	if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
+	if (fontPage != NULL)
 	{
-		msg = msg.Format(subStr,_("source"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-		pNotebook->SetSelection(0);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		fontPage->fontPgCommon.pSrcFontSizeBox->SetFocus();
-		fontPage->fontPgCommon.pSrcFontSizeBox->SetValue(_T("12"));
-		return;
-	}
-	strTemp = fontPage->fontPgCommon.pTgtFontSizeBox->GetValue();
-	fSize = wxAtoi(strTemp);
-	if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
-	{
-		msg = msg.Format(subStr,_("target"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-		pNotebook->SetSelection(0);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		fontPage->fontPgCommon.pTgtFontSizeBox->SetValue(_T("12"));
-		fontPage->fontPgCommon.pTgtFontSizeBox->SetFocus();
-		return;
-	}
-	strTemp = fontPage->fontPgCommon.pNavFontSizeBox->GetValue();
-	fSize = wxAtoi(strTemp);
-	if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
-	{
-		msg = msg.Format(subStr,_("navigation"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-		pNotebook->SetSelection(0);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		fontPage->fontPgCommon.pNavFontSizeBox->SetValue(_T("12"));
-		fontPage->fontPgCommon.pNavFontSizeBox->SetFocus();
-		fontPage->fontPgCommon.tempNavTextSize = 12;
-		return;
-	}
-	// Validate kbPage data
-	// MFC version DataExchange limits the m_strSrcName and m_strTgtName to 
-	// 64 chars each
-	subStr = _("Sorry, the %s language name should be limited to\nno more than 64 characters in length. Please type a shorter name.");
-	if (kbPage->m_pEditSrcName->GetValue().Length() > 64)
-	{
-		msg = msg.Format(subStr, _("source"));
-		pNotebook->SetSelection(1);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		kbPage->m_pEditSrcName->SetFocus();
-		return;
-	}
-	if (kbPage->m_pEditTgtName->GetValue().Length() > 64)
-	{
-		msg = msg.Format(subStr, _("target"));
-		pNotebook->SetSelection(1);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		kbPage->m_pEditTgtName->SetFocus();
-		return;
+		if (fontPage->fontPgCommon.pSrcFontNameBox->GetValue().IsEmpty())
+		{
+			pNotebook->SetSelection(0); // Font tab is first in EditPreferencesDlg notebook
+			wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			fontPage->fontPgCommon.pSrcFontNameBox->SetFocus();
+			return;
+		}
+		if (fontPage->fontPgCommon.pTgtFontNameBox->GetValue().IsEmpty())
+		{
+			pNotebook->SetSelection(0);
+			wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			fontPage->fontPgCommon.pTgtFontNameBox->SetFocus();
+			return;
+		}
+		if (fontPage->fontPgCommon.pNavFontNameBox->GetValue().IsEmpty())
+		{
+			pNotebook->SetSelection(0);
+			wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			fontPage->fontPgCommon.pNavFontNameBox->SetFocus();
+			return;
+		}
+
+		// Don't accept font sizes outside the 6pt to 72pt range
+		int fSize;
+		strTemp = fontPage->fontPgCommon.pSrcFontSizeBox->GetValue();
+		fSize = wxAtoi(strTemp);
+		subStr = _("Sorry, the %s font size must be between %d and %d points. A default size of 12 points will be used instead.");
+		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
+		{
+			msg = msg.Format(subStr,_("source"),MIN_FONT_SIZE,MAX_FONT_SIZE);
+			pNotebook->SetSelection(0);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			fontPage->fontPgCommon.pSrcFontSizeBox->SetFocus();
+			fontPage->fontPgCommon.pSrcFontSizeBox->SetValue(_T("12"));
+			return;
+		}
+		strTemp = fontPage->fontPgCommon.pTgtFontSizeBox->GetValue();
+		fSize = wxAtoi(strTemp);
+		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
+		{
+			msg = msg.Format(subStr,_("target"),MIN_FONT_SIZE,MAX_FONT_SIZE);
+			pNotebook->SetSelection(0);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			fontPage->fontPgCommon.pTgtFontSizeBox->SetValue(_T("12"));
+			fontPage->fontPgCommon.pTgtFontSizeBox->SetFocus();
+			return;
+		}
+		strTemp = fontPage->fontPgCommon.pNavFontSizeBox->GetValue();
+		fSize = wxAtoi(strTemp);
+		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
+		{
+			msg = msg.Format(subStr,_("navigation"),MIN_FONT_SIZE,MAX_FONT_SIZE);
+			pNotebook->SetSelection(0);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			fontPage->fontPgCommon.pNavFontSizeBox->SetValue(_T("12"));
+			fontPage->fontPgCommon.pNavFontSizeBox->SetFocus();
+			fontPage->fontPgCommon.tempNavTextSize = 12;
+			return;
+		}
 	}
 
-	// Validate viewPage data
+	if (kbPage != NULL)
+	{
+		// Validate kbPage data
+		// MFC version DataExchange limits the m_strSrcName and m_strTgtName to 
+		// 64 chars each
+		subStr = _("Sorry, the %s language name should be limited to\nno more than 64 characters in length. Please type a shorter name.");
+		if (kbPage->m_pEditSrcName->GetValue().Length() > 64)
+		{
+			msg = msg.Format(subStr, _("source"));
+			pNotebook->SetSelection(1);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			kbPage->m_pEditSrcName->SetFocus();
+			return;
+		}
+		if (kbPage->m_pEditTgtName->GetValue().Length() > 64)
+		{
+			msg = msg.Format(subStr, _("target"));
+			pNotebook->SetSelection(1);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			kbPage->m_pEditTgtName->SetFocus();
+			return;
+		}
+	}
+
 	int intTemp;
-	subStr = _("Sorry, the %s value must be between %d and %d.\nPlease type a value within that range.");
-	// refactored 26Apr09 - this item is no longer needed
-	//strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
-	//intTemp = wxAtoi(strTemp);
-	//if (intTemp < 60 || intTemp > 4000)
-	//{
-	//	msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
-	//	pNotebook->SetSelection(2);
-	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-	//	viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
-	//	return;
-	//}
-	// refactored 26Apr09 - this item is no longer needed
-	//strTemp = viewPage->m_pEditMinPrecContext->GetValue();
-	//intTemp = wxAtoi(strTemp);
-	//if (intTemp < 20 || intTemp > 80)
-	//{
-	//	msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
-	//	pNotebook->SetSelection(2);
-	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-	//	viewPage->m_pEditMinPrecContext->SetFocus();
-	//	return;
-	//}
-	// refactored 26Apr09 - this item is no longer needed
-	//strTemp = viewPage->m_pEditMinFollContext->GetValue();
-	//intTemp = wxAtoi(strTemp);
-	//if (intTemp < 20 || intTemp > 60)
-	//{
-	//	msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
-	//	pNotebook->SetSelection(2);
-	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-	//	viewPage->m_pEditMinFollContext->SetFocus();
-	//	return;
-	//}
-	strTemp = viewPage->m_pEditLeading->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 14 || intTemp > 80)
+	if (viewPage != NULL)
 	{
-		msg = msg.Format(subStr,_("vertical gap between text strips"),14,80);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditLeading->SetFocus();
-		return;
-	}
-	strTemp = viewPage->m_pEditGapWidth->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 6 || intTemp > 40)
-	{
-		msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditGapWidth->SetFocus();
-		return;
-	}
-	strTemp = viewPage->m_pEditMultiplier->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 5 || intTemp > 30)
-	{
-		msg = msg.Format(subStr,_("expansion multiplier"),5,30);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMultiplier->SetFocus();
-		return;
-	}
-
-	// Validate autoSavePage data
-	strTemp = autoSavePage->m_pEditMinutes->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 1 || intTemp > 30)
-	{
-		msg = msg.Format(subStr,_("number of minutes value"),1,30);
-		pNotebook->SetSelection(3);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		autoSavePage->m_pEditMinutes->SetFocus();
-		return;
-	}
-	strTemp = autoSavePage->m_pEditMoves->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 10 || intTemp > 1000)
-	{
-		msg = msg.Format(subStr,_("number of moves value"),10,1000);
-		pNotebook->SetSelection(3);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		autoSavePage->m_pEditMoves->SetFocus();
-		return;
-	}
-	strTemp = autoSavePage->m_pEditKBMinutes->GetValue();
-	intTemp = wxAtoi(strTemp); 
-	if (intTemp < 2 || intTemp > 60)
-	{
-		msg = msg.Format(subStr,_("number of minutes"),2,60);
-		pNotebook->SetSelection(3);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		autoSavePage->m_pEditKBMinutes->SetFocus();
-		return;
-	}
-
-	// Validate punctMapPage data
-	subStr = _("Sorry, this %s language punctuation edit box cannot have more than 4 punctuation characters.");
-	for (int i = 0; i < MAXPUNCTPAIRS; i++)
-	{
-		if (punctMapPage->punctPgCommon.m_editSrcPunct[i]->GetValue().Length() > 4)
+		// Validate viewPage data
+		subStr = _("Sorry, the %s value must be between %d and %d.\nPlease type a value within that range.");
+		// refactored 26Apr09 - this item is no longer needed
+		//strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
+		//intTemp = wxAtoi(strTemp);
+		//if (intTemp < 60 || intTemp > 4000)
+		//{
+		//	msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
+		//	pNotebook->SetSelection(2);
+		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		//	viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
+		//	return;
+		//}
+		// refactored 26Apr09 - this item is no longer needed
+		//strTemp = viewPage->m_pEditMinPrecContext->GetValue();
+		//intTemp = wxAtoi(strTemp);
+		//if (intTemp < 20 || intTemp > 80)
+		//{
+		//	msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
+		//	pNotebook->SetSelection(2);
+		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		//	viewPage->m_pEditMinPrecContext->SetFocus();
+		//	return;
+		//}
+		// refactored 26Apr09 - this item is no longer needed
+		//strTemp = viewPage->m_pEditMinFollContext->GetValue();
+		//intTemp = wxAtoi(strTemp);
+		//if (intTemp < 20 || intTemp > 60)
+		//{
+		//	msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
+		//	pNotebook->SetSelection(2);
+		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		//	viewPage->m_pEditMinFollContext->SetFocus();
+		//	return;
+		//}
+		strTemp = viewPage->m_pEditLeading->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 14 || intTemp > 80)
 		{
-			msg = msg.Format(subStr,_("source"));
-			pNotebook->SetSelection(4);
+			msg = msg.Format(subStr,_("vertical gap between text strips"),14,80);
+			pNotebook->SetSelection(2);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-			punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
+			viewPage->m_pEditLeading->SetFocus();
 			return;
 		}
-		if (punctMapPage->punctPgCommon.m_editTgtPunct[i]->GetValue().Length() > 4)
+		strTemp = viewPage->m_pEditGapWidth->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 6 || intTemp > 40)
 		{
-			msg = msg.Format(subStr,_("target"));
-			pNotebook->SetSelection(4);
+			msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
+			pNotebook->SetSelection(2);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-			punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
+			viewPage->m_pEditGapWidth->SetFocus();
 			return;
 		}
-	}
-	subStr = _("Sorry, this %s language punctuation edit box cannot have more than 9 punctuation characters.");
-	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
-	{
-		if (punctMapPage->punctPgCommon.m_editSrcPunct[i]->GetValue().Length() > 9)
+		strTemp = viewPage->m_pEditMultiplier->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 5 || intTemp > 30)
 		{
-			msg = msg.Format(subStr,_("source"));
-			pNotebook->SetSelection(4);
+			msg = msg.Format(subStr,_("expansion multiplier"),5,30);
+			pNotebook->SetSelection(2);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-			punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
-			return;
-		}
-		if (punctMapPage->punctPgCommon.m_editTgtPunct[i]->GetValue().Length() > 9)
-		{
-			msg = msg.Format(subStr,_("target"));
-			pNotebook->SetSelection(4);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-			punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
+			viewPage->m_pEditMultiplier->SetFocus();
 			return;
 		}
 	}
 
-	// Validate caseEquivPage data
-	subStr = _("Sorry, the list of %s language case correspondences should be limited to\nno more than 180 characters in length. Please type a shorter list.");
-	if (caseEquivPage->casePgCommon.m_pEditSrcEquivalences->GetValue().Length() > 180)
+	if (autoSavePage != NULL)
 	{
-		msg = msg.Format(subStr, _("source"));
-		pNotebook->SetSelection(5);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		caseEquivPage->casePgCommon.m_pEditSrcEquivalences->SetFocus();
-		return;
+		// Validate autoSavePage data
+		strTemp = autoSavePage->m_pEditMinutes->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 1 || intTemp > 30)
+		{
+			msg = msg.Format(subStr,_("number of minutes value"),1,30);
+			pNotebook->SetSelection(3);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			autoSavePage->m_pEditMinutes->SetFocus();
+			return;
+		}
+		strTemp = autoSavePage->m_pEditMoves->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 10 || intTemp > 1000)
+		{
+			msg = msg.Format(subStr,_("number of moves value"),10,1000);
+			pNotebook->SetSelection(3);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			autoSavePage->m_pEditMoves->SetFocus();
+			return;
+		}
+		strTemp = autoSavePage->m_pEditKBMinutes->GetValue();
+		intTemp = wxAtoi(strTemp); 
+		if (intTemp < 2 || intTemp > 60)
+		{
+			msg = msg.Format(subStr,_("number of minutes"),2,60);
+			pNotebook->SetSelection(3);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			autoSavePage->m_pEditKBMinutes->SetFocus();
+			return;
+		}
 	}
-	if (caseEquivPage->casePgCommon.m_pEditTgtEquivalences->GetValue().Length() > 180)
+
+	if (punctMapPage != NULL)
 	{
-		msg = msg.Format(subStr, _("target"));
-		pNotebook->SetSelection(5);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		caseEquivPage->casePgCommon.m_pEditTgtEquivalences->SetFocus();
-		return;
+		// Validate punctMapPage data
+		subStr = _("Sorry, this %s language punctuation edit box cannot have more than 4 punctuation characters.");
+		for (int i = 0; i < MAXPUNCTPAIRS; i++)
+		{
+			if (punctMapPage->punctPgCommon.m_editSrcPunct[i]->GetValue().Length() > 4)
+			{
+				msg = msg.Format(subStr,_("source"));
+				pNotebook->SetSelection(4);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
+				return;
+			}
+			if (punctMapPage->punctPgCommon.m_editTgtPunct[i]->GetValue().Length() > 4)
+			{
+				msg = msg.Format(subStr,_("target"));
+				pNotebook->SetSelection(4);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
+				return;
+			}
+		}
+		subStr = _("Sorry, this %s language punctuation edit box cannot have more than 9 punctuation characters.");
+		for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
+		{
+			if (punctMapPage->punctPgCommon.m_editSrcPunct[i]->GetValue().Length() > 9)
+			{
+				msg = msg.Format(subStr,_("source"));
+				pNotebook->SetSelection(4);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
+				return;
+			}
+			if (punctMapPage->punctPgCommon.m_editTgtPunct[i]->GetValue().Length() > 9)
+			{
+				msg = msg.Format(subStr,_("target"));
+				pNotebook->SetSelection(4);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
+				return;
+			}
+		}
 	}
-	if (caseEquivPage->casePgCommon.m_pEditGlossEquivalences->GetValue().Length() > 180)
+
+	if (caseEquivPage != NULL)
 	{
-		msg = msg.Format(subStr, _("gloss"));
-		pNotebook->SetSelection(5);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		caseEquivPage->casePgCommon.m_pEditGlossEquivalences->SetFocus();
-		return;
+		// Validate caseEquivPage data
+		subStr = _("Sorry, the list of %s language case correspondences should be limited to\nno more than 180 characters in length. Please type a shorter list.");
+		if (caseEquivPage->casePgCommon.m_pEditSrcEquivalences->GetValue().Length() > 180)
+		{
+			msg = msg.Format(subStr, _("source"));
+			pNotebook->SetSelection(5);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			caseEquivPage->casePgCommon.m_pEditSrcEquivalences->SetFocus();
+			return;
+		}
+		if (caseEquivPage->casePgCommon.m_pEditTgtEquivalences->GetValue().Length() > 180)
+		{
+			msg = msg.Format(subStr, _("target"));
+			pNotebook->SetSelection(5);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			caseEquivPage->casePgCommon.m_pEditTgtEquivalences->SetFocus();
+			return;
+		}
+		if (caseEquivPage->casePgCommon.m_pEditGlossEquivalences->GetValue().Length() > 180)
+		{
+			msg = msg.Format(subStr, _("gloss"));
+			pNotebook->SetSelection(5);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			caseEquivPage->casePgCommon.m_pEditGlossEquivalences->SetFocus();
+			return;
+		}
 	}
 
 	// Validate unitsPage data
@@ -625,15 +728,24 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 	// TODO: determine any validation necessary
 
 	// Call the OnOK() methods of each notebook page
-	fontPage->OnOK(event);
-	punctMapPage->OnOK(event);
-	caseEquivPage->OnOK(event);
-	kbPage->OnOK(event);
-	viewPage->OnOK(event);
-	autoSavePage->OnOK(event);
-	unitsPage->OnOK(event);
-	usfmPage->OnOK(event);
-	filterPage->OnOK(event);
+	// whm 5Oct10 note: we leave these OnOK() handler calls even though
+	// some tab pages may not be visible
+	if (fontPage != NULL)
+		fontPage->OnOK(event);
+	if (punctMapPage != NULL)
+		punctMapPage->OnOK(event);
+	if (caseEquivPage != NULL)
+		caseEquivPage->OnOK(event);
+	if (kbPage != NULL)
+		kbPage->OnOK(event);
+	if (viewPage != NULL)
+		viewPage->OnOK(event);
+	if (autoSavePage != NULL)
+		autoSavePage->OnOK(event);
+	if (unitsPage != NULL)
+		unitsPage->OnOK(event);
+	if (usfmFilterPage != NULL)
+		usfmFilterPage->OnOK(event);
 
 	if (m_bDismissDialog)
 		event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event);
@@ -805,84 +917,100 @@ void CEditPreferencesDlg::OnRadioUseCentimeters(wxCommandEvent& event)
 // The following are wrapper handlers for the usfmPage
 void CEditPreferencesDlg::OnBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedRadioUseUbsSetOnlyDoc(event);
+	usfmFilterPage->OnBnClickedRadioUseUbsSetOnlyDoc(event);
 }
 
 void CEditPreferencesDlg::OnBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedRadioUseSilpngSetOnlyDoc(event);
+	usfmFilterPage->OnBnClickedRadioUseSilpngSetOnlyDoc(event);
 }
 
 void CEditPreferencesDlg::OnBnClickedRadioUseBothSetsDoc(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedRadioUseBothSetsDoc(event);
+	usfmFilterPage->OnBnClickedRadioUseBothSetsDoc(event);
 }
 
 void CEditPreferencesDlg::OnBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedRadioUseUbsSetOnlyProj(event);
+	usfmFilterPage->OnBnClickedRadioUseUbsSetOnlyProj(event);
 }
 
 void CEditPreferencesDlg::OnBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedRadioUseSilpngSetOnlyProj(event);
+	usfmFilterPage->OnBnClickedRadioUseSilpngSetOnlyProj(event);
 }
 
 void CEditPreferencesDlg::OnBnClickedRadioUseBothSetsProj(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedRadioUseBothSetsProj(event);
-}
-
-void CEditPreferencesDlg::OnBnClickedRadioUseUbsSetOnlyFactory(wxCommandEvent& event)
-{
-	usfmPage->OnBnClickedRadioUseUbsSetOnlyFactory(event);
-}
-
-void CEditPreferencesDlg::OnBnClickedRadioUseSilpngSetOnlyFactory(wxCommandEvent& event)
-{
-	usfmPage->OnBnClickedRadioUseSilpngSetOnlyFactory(event);
-}
-
-void CEditPreferencesDlg::OnBnClickedRadioUseBothSetsFactory(wxCommandEvent& event)
-{
-	usfmPage->OnBnClickedRadioUseBothSetsFactory(event);
+	usfmFilterPage->OnBnClickedRadioUseBothSetsProj(event);
 }
 
 void CEditPreferencesDlg::OnBnClickedCheckChangeFixedSpacesToRegularSpaces(wxCommandEvent& event)
 {
-	usfmPage->OnBnClickedCheckChangeFixedSpacesToRegularSpaces(event);
+	usfmFilterPage->OnBnClickedCheckChangeFixedSpacesToRegularSpaces(event);
 }
 
 // The following are wrapper handlers for the filterPage
 void CEditPreferencesDlg::OnLbnSelchangeListSfmsDoc(wxCommandEvent& event)
 {
-	filterPage->OnLbnSelchangeListSfmsDoc(event);
+	usfmFilterPage->OnLbnSelchangeListSfmsDoc(event);
 }
 
 // This handler is invoked when an item in the Doc check list box is checked or unchecked
 void CEditPreferencesDlg::OnCheckListBoxToggleDoc(wxCommandEvent& event)
 {
-	filterPage->OnCheckListBoxToggleDoc(event);
+	usfmFilterPage->OnCheckListBoxToggleDoc(event);
 }
 
 // This handler is invoked when an item in the Proj check list box is checked or unchecked
 void CEditPreferencesDlg::OnCheckListBoxToggleProj(wxCommandEvent& event)
 {
-	filterPage->OnCheckListBoxToggleProj(event);
-}
-
-// This handler is invoked when user tries to check or uncheck an item in the Proj check list box
-void CEditPreferencesDlg::OnCheckListBoxToggleFactory(wxCommandEvent& event)
-{
-	filterPage->OnCheckListBoxToggleFactory(event);
+	usfmFilterPage->OnCheckListBoxToggleProj(event);
 }
 
 void CEditPreferencesDlg::OnLbnSelchangeListSfmsProj(wxCommandEvent& event)
 {
-	filterPage->OnLbnSelchangeListSfmsProj(event);
+	usfmFilterPage->OnLbnSelchangeListSfmsProj(event);
 }
 
-void CEditPreferencesDlg::OnLbnSelchangeListSfmsFactory(wxCommandEvent& event)
+bool CEditPreferencesDlg::TabIsVisibleInCurrentProfile(wxString tabLabel)
 {
-	filterPage->OnLbnSelchangeListSfmsFactory(event);
+	// Note: This function is similar to the App's MenuItemIsVisibleInThisProfile()
+	// and they could be combined into a single function ItemIsVisibleInThisProfile().
+	// We assume that a menu item is visible unless the m_pUserProfiles data
+	// indicates otherwise.
+	bool bItemIsVisible = TRUE;
+	if (gpApp->m_nWorkflowProfile == 0)
+	{
+		// The work flow profile 0 (zero) is the "None" selection all all interface
+		// items are visible by default
+		return bItemIsVisible; 
+	}
+	int ct;
+	int totct;
+	totct = gpApp->m_pUserProfiles->profileItemList.GetCount();
+	for (ct = 0; ct < totct; ct++)
+	{
+		UserProfileItem* pUserProfileItem;
+		ProfileItemList::Node* node;
+		node = gpApp->m_pUserProfiles->profileItemList.Item(ct);
+		pUserProfileItem = node->GetData();
+		wxASSERT(pUserProfileItem != NULL);
+		if (pUserProfileItem->itemType == _T("preferencesTab"))
+		{
+			int indexFromProfile = 0;
+			if (gpApp->m_nWorkflowProfile <= 0)
+				indexFromProfile = 0;
+			else if (gpApp->m_nWorkflowProfile > 0)
+				indexFromProfile = gpApp->m_nWorkflowProfile - 1;
+			wxString itemText;
+			itemText = pUserProfileItem->itemText;
+			// Note: the text on tabs don't have decorations
+			if (itemText == tabLabel && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+			{
+				return FALSE;
+			}
+		}
+	}
+	return bItemIsVisible;
 }

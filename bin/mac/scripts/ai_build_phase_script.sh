@@ -59,13 +59,13 @@ then
 	rm "$htbFile"
 fi
 
-# Use the tar command to get a "clean" set of dirs and files from hlp into
+# Use the gnutar command to get a "clean" set of dirs and files from hlp into
 # the hlp_temp directory, leaving out the .svn dirs and other stuff specified
 # in the excludeFiles file.
 cd "$hlpDir"
-tar -czf "$tarFile" * -X "$excludeFiles"
+gnutar -czf "$tarFile" * -X "$excludeFiles"
 cd "$tempDir"
-tar -xzvf "$tarFile"
+gnutar -xzvf "$tarFile"
 rm "$tarFile"
 
 # Now zip the present contents of hlpDir excluding the hidden .svn dirs
@@ -87,6 +87,8 @@ licenseDir="${resourcesDir}/license"
 imagesDir="${resourcesDir}/images/Adapt It Quick Start"
 imagesDirSrc="${docsDir}/images/Adapt It Quick Start"
 
+cp "$docsDir/iso639-3codes.txt" "$resourcesDir"
+cp "$docsDir/curl-ca-bundle.crt" "$resourcesDir"
 cp "$docsDir/Adapt It Reference.doc" "$resourcesDir"
 cp "$docsDir/Adapt It Tutorial.doc" "$resourcesDir"
 cp "$docsDir/Adapt It changes.txt" "$resourcesDir"

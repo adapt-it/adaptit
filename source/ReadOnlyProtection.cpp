@@ -49,7 +49,7 @@
 // Define type safe pointer lists
 //#include "wx/listimpl.cpp"
 
-#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
+//#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -191,7 +191,7 @@ wxString ReadOnlyProtection::GetLocalOSHostname()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-/// \return		the username part of "~AIROP-machinename-username-processID-oshostname.lock"
+/// \return		the username part of "~AIROP-machinename-username-processID.lock"
 ///	\param		strFilename		->	the read-only protect filename that was found
 /// \remarks	extract the username string from the filename; pass filename by value so
 ///				we can play with the string internally with impunity
@@ -306,7 +306,6 @@ wxString ReadOnlyProtection::ExtractOSHostname(wxString strFilename) // whm adde
 	}
 	return theHostOS;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		the composed filename as "~AIROP-machinename-username-processID-oshostname.lock"
@@ -535,14 +534,13 @@ projectFolderPath.c_str());
 /// In (3) there are potential data loss/corruption consequences if the user responds YES 
 /// and forces the removal of the lock file even though another computer has ownership of 
 /// the same project at the same time.
-/// TODO: Add code to the remainder of the project that would handle the situation where
-/// a the user mistakenly removes a lock file made by a remote instance of Adapt It that 
-/// actually has current ownership of the folder (from elsewhere on the network). The 
-/// implementation would need to set up a timer so that about every 5 seconds or so, the
-/// remote instance (and only the remote instance) would poll the state of the lock file
-/// it thinks it owns. If its ownership suddenly changes, then it needs to switch its
-/// own instance of Adapt It into read-only mode, and immediately turn its window pink. 
-/// The switch to read-only in this situation should only occur for the program instance 
+/// Handles the situation where a user mistakenly removes a lock file made by a remote 
+/// instance of Adapt It that actually has current ownership of the folder (from elsewhere 
+/// on the network). This implementation sets up a timer so that about every 2 seconds or 
+/// so, the remote instance (and only the remote instance) would poll the state of the 
+/// lock file it thinks it owns. If its ownership suddenly changes, then it switches its
+/// own instance of Adapt It into read-only mode, and immediately turns its window pink. 
+/// The switch to read-only in this situation only occurs for the program instance 
 /// which is non-local (i.e., when the path to its own lock file is a UNC type path). 
 /// The timing interval for polling the state of the lock file (in the project folder of
 /// the local instance) should be as frequent as possible, but not so frequent that it
@@ -890,7 +888,7 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 	else
 	{
 #ifdef _DEBUG_ROP
-		wxLogDebug(_T("In IsTheProjectFolderOwnedForWriting: There is a read-only protection file in project folder")); 
+		wxLogDebug(_T("In IsTheProjectFolderOwnedForWriting: There is no read-only protection file in project folder")); 
 #endif
 		// there is a read-only protection file in this project, and so there
 		// are two possibilities:
@@ -986,8 +984,7 @@ _("Someone has your project folder open already, so you have READ-ONLY access.")
 			else
 			{
 				m_pApp->m_timer.Stop();
-			}
-			return FALSE;  // return FALSE to app member m_bReadOnlyAccess
+			}			return FALSE;  // return FALSE to app member m_bReadOnlyAccess
 		}
 	}
 	else

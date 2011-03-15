@@ -342,6 +342,7 @@ public:
                         // saved in the CAdapt_ItApp:m_saveDocSize member, back to
                         // m_logicalDocSize here in CLayout, for use again in the view
                         // refreshes, after printing
+	void		MakeAllPilesNonCurrent(); // moved here 17May10
 
 	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
 	PileList*		GetPileList();
@@ -353,16 +354,15 @@ public:
 
 	//////// public utility functions ////////
 	 
-	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
-	// the layout
-	void		UpdateStripIndices(int nStartFrom = 0); // get the pile pointer for 
-														// a given sequNumber passed in
-	CPile*		GetPile(int index); // get the strip index from a passed in sequNumber 
-									// for a pile in m_pileList
-	int			GetStripIndex(int nSequNum); // get the strip pointer from a passed in 
-											 // sequNumber for a pile in m_pileList,
-	                                         // or by the index into its storage array
-	CStrip*		GetStrip(int nSequNum);
+	void		UpdateStripIndices(int nStartFrom = 0); // updateg the m_nStrip index
+									// values after insertion, or removal, of CStrip
+									// instance(s) from the layout
+	CPile*		GetPile(int index);  // get the pile ptr for a given sequNumber passed in
+	int			GetStripIndex(int nSequNum); // get the strip index from a passed
+											 // in sequNumber for a pile in m_pileList
+	CStrip*		GetStrip(int nSequNum); // get the strip pointer from a passed in 
+										// sequNumber for a pile in m_pileList,
+	                                    // or by the index into its storage array
 	CStrip*		GetStripByIndex(int index); // get the number of visible strips plus an 
 											// extra one if a non-integral number of
 											// strips fit the window
@@ -383,7 +383,9 @@ public:
 	bool		CreatePiles(SPList* pSrcPhrases); // RecalcLayout() calls this
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
-	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
+//GDLC Added third parameter to RecalcLayout with default value steadyAsSheGoes
+	bool		RecalcLayout(SPList* pList, enum layout_selector selector,
+					enum phraseBoxWidthAdjustMode = steadyAsSheGoes);
 	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
 									int nStripWidth); // doesn't change the pile composition,
 											// just lays them out, ensuring  proper spacing

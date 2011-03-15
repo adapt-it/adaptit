@@ -50,6 +50,8 @@ protected:
 	void OnSelchangeListAccepted(wxCommandEvent& WXUNUSED(event));
 	void OnButtonReject(wxCommandEvent& WXUNUSED(event));
 	void OnButtonAccept(wxCommandEvent& WXUNUSED(event));
+	void OnButtonRejectAllFiles(wxCommandEvent& WXUNUSED(event));
+	void OnButtonAcceptAllFiles(wxCommandEvent& WXUNUSED(event));
 
 	wxBitmapButton	m_rejectBtn;
 	wxBitmapButton	m_acceptBtn;

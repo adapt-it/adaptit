@@ -22,6 +22,45 @@
 
 //#include <wx/datetime.h>
 
+/// The following struct (one of two) supports the search functionality within the KB
+/// Editor dialog; instances of this struct are stored in their own wxSortedArray
+typedef struct
+{
+	wxString	updatedString;	  // either an 'adaptation' or a 'gloss' depending on which KB
+	wxUint32	nMatchRecordIndex; // index to the KBMatchRecord instance which resulted from
+                                  // a successful match in the KB; the KBMatchRecord has a
+                                  // constant index in the array which stores it
+} KBUpdateRecord;
+
+/// Define a sorted array of void* for storing instances of KBUpdateRecord
+WX_DEFINE_SORTED_ARRAY(KBUpdateRecord*, KBUpdateRecordArray);
+
+
+/// The following struct (one of two) supports the search functionality within the KB
+/// Editor dialog;  instances of this struct are stored in their own wxSortedArray
+typedef struct
+{
+	wxString		strOriginal;	 // adapatation (or gloss) which was matched, before
+									 // any spelling changes have been done
+	KBUpdateRecord*	pUpdateRecord;	 // pointer to the KBUpdateRecord which stores the
+									 // respelling of this entry; we use a pointer as
+									 // the pointed at struct will flop around in the
+									 // sorted array as the user edits matched items, so
+									 // while the index of it will flop about, the pointer 
+									 // in memory will remain constant
+	wxString		strMapKey;		 // key string (i.e. source text) for the 
+									 // CTargetUnit* which stores the matched adaptation
+									 // (or gloss)
+	CRefString*		pRefString;		 // pointer to the CRefString instance matched in the
+									 // CTargetUnit instance which stores the former
+} KBMatchRecord;
+
+/// Define a sorted array of void* for storing instances of KBMatchRecord
+WX_DEFINE_SORTED_ARRAY(KBMatchRecord*, KBMatchRecordArray);
+
+int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr);
+int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr);
+
 /// The KBEditSearch class provides a dialog interface for searching the knowledge base
 /// and updating spellings for adaptations or glosses. It is derived from AIModalDialog.
 class KBEditSearch : public AIModalDialog
@@ -52,7 +91,8 @@ public:
 
 	CKB* m_pKB; // whichever KB the parent CKBEditor instance is opened on (m_pKB of 
 				// Adapt_It.h, which becomes pKB of parent CKBEditor instance)
-	TUList*		m_pTUList; // pointer to the list of CTargetUnit pointers stored in m_pKB
+	// BEW removed 28May10, because TUList is redundant & now removed
+	//TUList*		m_pTUList; // pointer to the list of CTargetUnit pointers stored in m_pKB
 
 	// in the next 4 members, the wxArrayString members are for the labels in the
 	// listboxes, which will be seen by the user; the KBMatchRecordArray and

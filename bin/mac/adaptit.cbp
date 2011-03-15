@@ -7,8 +7,8 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="UnicodeDebug">
-				<Option output="build/UnicodeDebug/Adapt It" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../trunk" />
+				<Option output="build/UnicodeDebug/Adapt It.app" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="../../../ai_codefixes" />
 				<Option object_output="obj/UnicodeDebug/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -30,7 +30,6 @@
 					<Add after='echo \&quot;Running post-build phase script: ai_cbmac_postbuild_script.sh\&quot;' />
 					<Add after="${PROJECT_DIR}scripts/ai_cbmac_postbuild_script.sh $(TARGET_OUTPUT_DIR)" />
 					<Add after='echo \&quot;DONE running ai_cbmac_postbuild_script.sh\&quot;' />
-					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
 			<Target title="UnicodeRelease">
@@ -58,12 +57,14 @@
 					<Add after='echo \&quot;DONE running ai_cbmac_postbuild_script.sh\&quot;' />
 				</ExtraCommands>
 			</Target>
+			<Environment>
+				<Variable name="WXWIN" value="/Users/erik/wxMac-2.8.10" />
+			</Environment>
 		</Build>
 		<VirtualTargets>
 			<Add alias="All" targets="UnicodeDebug;UnicodeRelease;" />
 		</VirtualTargets>
 		<Compiler>
-			<Add option="-g" />
 			<Add option="-DwxUSE_UNICODE" />
 			<Add option="-DNO_GCC_PRAGMA" />
 			<Add option="-D__WXMAC__" />
@@ -73,8 +74,13 @@
 			<Add option="-D__WXMAC_XCODE__" />
 			<Add option="-DMACOS_CLASSIC" />
 			<Add option="-DWX_PRECOMP" />
+			<Add option="-D_NOTES" />
+			<Add option="-D_FREETR" />
+			<Add option="-D_DOCVER5" />
+			<Add option="-D_RETRANS" />
 			<Add directory="$(WXWIN)/include" />
 			<Add directory="$(WXWIN)/src/build/include" />
+			<Add directory="${BOOST_ROOT}" />
 		</Compiler>
 		<Linker>
 			<Add option="-liconv -lz -lwx_mac_static" />
@@ -569,6 +575,8 @@
 		<Unit filename="../../source/FindReplace.h" />
 		<Unit filename="../../source/FontPage.cpp" />
 		<Unit filename="../../source/FontPage.h" />
+		<Unit filename="../../source/FreeTrans.cpp" />
+		<Unit filename="../../source/FreeTrans.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
 		<Unit filename="../../source/GoToDlg.h" />
 		<Unit filename="../../source/JoinDialog.cpp" />
@@ -601,6 +609,8 @@
 		<Unit filename="../../source/NewDialogImplementationTemplate.txt" />
 		<Unit filename="../../source/NoteDlg.cpp" />
 		<Unit filename="../../source/NoteDlg.h" />
+		<Unit filename="../../source/Notes.cpp" />
+		<Unit filename="../../source/Notes.h" />
 		<Unit filename="../../source/OpenExistingProjectDlg.cpp" />
 		<Unit filename="../../source/OpenExistingProjectDlg.h" />
 		<Unit filename="../../source/OutputFilenameDlg.cpp" />
@@ -615,6 +625,8 @@
 		<Unit filename="../../source/PlaceInternalPunct.h" />
 		<Unit filename="../../source/PlaceRetranslationInternalMarkers.cpp" />
 		<Unit filename="../../source/PlaceRetranslationInternalMarkers.h" />
+		<Unit filename="../../source/Placeholder.cpp" />
+		<Unit filename="../../source/Placeholder.h" />
 		<Unit filename="../../source/PrintOptionsDlg.cpp" />
 		<Unit filename="../../source/PrintOptionsDlg.h" />
 		<Unit filename="../../source/ProjectPage.cpp" />
@@ -625,6 +637,8 @@
 		<Unit filename="../../source/ReadOnlyProtection.h" />
 		<Unit filename="../../source/RefString.cpp" />
 		<Unit filename="../../source/RefString.h" />
+		<Unit filename="../../source/Retranslation.cpp" />
+		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
 		<Unit filename="../../source/RetranslationDlg.h" />
 		<Unit filename="../../source/SetDelay.cpp" />
@@ -655,6 +669,8 @@
 		<Unit filename="../../source/UnitsPage.h" />
 		<Unit filename="../../source/UnpackWarningDlg.cpp" />
 		<Unit filename="../../source/UnpackWarningDlg.h" />
+		<Unit filename="../../source/Uuid_AI.cpp" />
+		<Unit filename="../../source/Uuid_AI.h" />
 		<Unit filename="../../source/ViewFilteredMaterialDlg.cpp" />
 		<Unit filename="../../source/ViewFilteredMaterialDlg.h" />
 		<Unit filename="../../source/ViewPage.cpp" />
@@ -684,7 +700,9 @@
 		<Extensions>
 			<code_completion />
 			<envvars />
-			<debugger />
+			<debugger>
+				<search_path add="build/UnicodeDebug" />
+			</debugger>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
