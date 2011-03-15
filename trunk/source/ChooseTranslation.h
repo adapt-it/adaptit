@@ -22,11 +22,19 @@
 
 #include "MyListBox.h"
 
+class MapKeyStringToTgtUnit;; 
 class CAdapt_ItView;
+
+enum SelectionWanted
+{
+    No,
+    Yes
+};
 
 /// The CChooseTranslation class provides a dialog in which the user can choose 
 /// either an existing translation, or enter a new translation for a given source phrase.
 /// \derivation		The CChooseTranslation class is derived from AIModalDialog.
+/// BEW 2July10, this class has been updated to support kbVersion 2
 class CChooseTranslation : public AIModalDialog
 {
 public:
@@ -65,6 +73,10 @@ public:
 	void OnKeyDown(wxKeyEvent& event);
 
 private:
+	CKB* m_pKB;
+	int  m_nWordsInPhrase;
+	MapKeyStringToTgtUnit* m_pMap;
+	void PopulateList(CTargetUnit* pTU, int selectionIndex, enum SelectionWanted doSel);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

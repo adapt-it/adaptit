@@ -49,6 +49,26 @@ public:
 	wxString	m_srcTwoPunctStr[MAXTWOPUNCTPAIRS]; // MFC vers had 8, now 10
 	wxString	m_tgtTwoPunctStr[MAXTWOPUNCTPAIRS]; // MFC vers had 8, now 10
 
+	// BEW added 4Mar11 - up to now we unilaterally call this class's OnOK() function
+	// on exit of Preferences, and we don't test for punctuation changes, and so that
+	// caused any entry into Prefs to result in a DoPunctuationChanges() on exit of
+	// Preferences - even when the user didn't even visit the Punct Corrspondences page!
+	// Rather naughty. So since we do the unlateral call of OnOK(), in it we have to do a
+	// robust test for any punctuation changes - and if there is at least one, then set
+	// m_pLayout->m_bPunctuationChanged to TRUE. Then after setting that flag true or
+	// false, test for TRUE and only then call DoPunctuationChanges(). This will catch
+	// both the situation when user (1) doesn't visit punct corresp page, (2) he visits it
+	// but doesn't cause anything to be different by the time he leaves it, (3) he visits
+	// and makes some change. To support this we need an extra set of fixed length arrays
+	// of wxString, which can store copies of the punct settings as set up on entry to
+	// preferences and then we will be able to easily test for any punct changes.
+	wxString	m_srcPunctStrBeforeEdit[MAXPUNCTPAIRS]; // set on entry to Prefs
+	wxString	m_tgtPunctStrBeforeEdit[MAXPUNCTPAIRS]; // set on entry to Prefs
+	wxString	m_srcTwoPunctStrBeforeEdit[MAXTWOPUNCTPAIRS]; // set on entry to Prefs
+	wxString	m_tgtTwoPunctStrBeforeEdit[MAXTWOPUNCTPAIRS]; // set on entry to Prefs
+	// populate these with a new function, void CopyInitialPunctSets(), and compare for
+	// changes later with a second new function, bool AreBeforeAndAfterPunctSetsDifferent()	
+
 	wxButton*	pToggleUnnnnBtn;
 	wxTextCtrl* pTextCtrlAsStaticText;
 
@@ -57,7 +77,7 @@ public:
 
 	// The following stuff is for version 2.3.0 and onwards; m_punctuation[0] and [1]
 	// are set entirely from the contents of the punctuation correspondences defined in
-	// this dialog when the user dismisses the dialog. If the user cancells, the earlier
+	// this dialog when the user dismisses the dialog. If the user cancels, the earlier
 	// contents are retained.
 	wxString m_srcPunctuation; // to accept what will be placed in m_punctuation[0]
 	wxString m_tgtPunctuation; // to accept what will be placed in m_punctuation[1]
@@ -78,6 +98,9 @@ public:
 	void GetPunctuationSets();
 	void GetDataFromEdits();
 	void StoreDataIntoEdits();
+	void CopyInitialPunctSets();
+	bool AreBeforeAndAfterPunctSetsDifferent();
+
 #ifdef _UNICODE
 	wxString MakeUNNNN(wxString& chStr);
 	wxString UnMakeUNNNN(wxString& nnnnStr);

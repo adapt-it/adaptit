@@ -53,4 +53,9 @@ AC_SUBST(WX_LIBS)
 
 AM_GNU_GETTEXT([external])
 
+
+# libcurl
+CURL_LIBS="`curl-config --libs`"
+AC_SUBST(CURL_LIBS)
+
 AC_OUTPUT(Makefile po/Makefile.in)

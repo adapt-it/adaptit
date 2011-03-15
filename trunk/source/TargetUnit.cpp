@@ -12,14 +12,6 @@
 /// source text word or phrase.
 /// \derivation		The CTargetUnit class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in TargetUnit.cpp (in order of importance): (search for "TODO")
-// 1. Test to insure the wxWidgets version copy constructor works OK. [tested OK]
-// 2. Design an assignment = operator function for the class.
-//
-// Unanswered questions: (search for "???")
-// 1. Testing the wxWidgets implementation
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -39,13 +31,15 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
+//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+//#include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
 #include "AdaptitConstants.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
+#include "helpers.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp" // this should always be included before WX_DEFINE_LIST
@@ -135,7 +129,7 @@ void CTargetUnit::Copy(const CTargetUnit &tu)
 	TranslationsList::Node *node = tu.m_pTranslations->GetFirst();
 	while (node)
 	{
-		CRefString* pRefStr = (CRefString*)node->GetData();
+		CRefString* pRefStr = (CRefString*)node->GetData(); // remember it has a CRefStringMetadata too
 		node = node->GetNext();
 		wxASSERT(pRefStr != NULL);
 		CRefString* pRefStrCopy = new CRefString(*pRefStr, this); // use copy constructor
@@ -151,100 +145,155 @@ CTargetUnit::~CTargetUnit()
 	m_pTranslations = (TranslationsList*)NULL;
 }
 
-/*
-// MFC's Serialize is replaced by LoadObject() and SaveObject() below
-void CTargetUnit::Serialize(CArchive& ar)
+// returns an index to a non-deleted CRefString instance whose m_translation member matches
+// the passed in translationStr; otherwise returns wxNOT_FOUND if there was no match
+// 
+// BEW created 25Jun10, for support of kbVersion2, since a CTargetUnit may store one or
+// more deleted CRefString instances, we cannot rely on an index value from a selection in
+// a list box in a dialog in order to access the CRefString which corresponds to the
+// selection. So we loop over them all, ignoring deleted ones, and checking for a match
+// within the others.
+int CTargetUnit::FindRefString(wxString& translationStr)
 {
-	CObject::Serialize(ar);	// serialize base class
-
-	m_translations.Serialize(ar);
-
-	if(ar.IsStoring())
+	CRefString* pRefString = NULL;
+	int anIndex = -1;
+	wxString emptyStr; emptyStr.Empty();
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
 	{
-		ar <<  (WORD)m_bAlwaysAsk;
+		anIndex++;
+		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pRefString != NULL);
+		pos = pos->GetNext();
+		if (!pRefString->GetDeletedFlag())
+		{
+			wxString str = pRefString->m_translation;
+			if ( (translationStr.IsEmpty() && str.IsEmpty()) || (translationStr == str))
+			{
+				// we have a match
+				return anIndex;
+			}
+		} // end of block for test: m_bDeleted == FALSE
 	}
-	else
-	{
-		WORD w;
-		ar >> w;
-		m_bAlwaysAsk = (bool)w;
-	}
-}
-*/
-
-/*
-wxOutputStream &CTargetUnit::SaveObject(wxOutputStream& stream)
-{
-	wxDataOutputStream ar( stream );
-
-	//m_translations.Serialize(ar);
-	// To achieve the Serialize IsStoring() function here:
-	// 1. Use m_pTranslations.GetCount() and archive it out as wxInt32.
-	// 2. Iterate through the m_pTranslations list GetCount() times and 
-	// call the CRefString::SaveObject for each element in the list
-	wxInt32 count = m_pTranslations->GetCount();
-	ar << count;
-
-	for (TranslationsList::Node* node = m_pTranslations->GetFirst(); node; node = node->GetNext())
-	{
-		CRefString* pData = (CRefString*)node->GetData();
-		pData->SaveObject(stream);
-	}
-
-	ar.Write16(m_bAlwaysAsk); //ar <<  wxUint16(m_bAlwaysAsk); // MFC uses WORD
-
-	// wxWidgets Notes: 
-	// 1. Stream errors should be dealt with in the caller of Adapt_ItDoc::SaveObject()
-	//    which would be either DoFileSave(), or DoTransformedDocFileSave().
-	// 2. Streams automatically close their file descriptors when they
-	//    go out of scope. 
-	return stream;
+	// if control gets to here, we have no match
+	return (int)wxNOT_FOUND;
 }
 
-wxInputStream &CTargetUnit::LoadObject(wxInputStream& stream)
+// Checks the CRefString instances, and any with m_bDeleted cleared to FALSE, it sets it
+// TRUE and sets the m_deletedDateTime value to the current datetime. If one of the
+// undeleted instances stores "<Not In KB>" already, it too is made deleted, because this
+// function is called before a StoreText(), and if the store then stores <Not In KB>, the
+// deleted CRefString storing that is undeleted - so we don't have to take into account
+// whether or not a <Not In KB> CRefString is within the list or now, we just make all
+// instances be deleted.
+// This function is called in the KB.cpp's DoNotInKB() called from the view's
+// OnCheckKBSave() which handles the Save to knowledge base checkbox clicks, and in the
+// doc's DoConsistencyCheck() to help fix "<Not In KB> inconsistencies when found
+void CTargetUnit::DeleteAllToPrepareForNotInKB()
 {
-	wxDataInputStream ar( stream );
+	TranslationsList* pList = m_pTranslations;
+	if (!pList->IsEmpty())
+	{
+		TranslationsList::Node* pos = pList->GetFirst();
+		while (pos != NULL)
+		{
+			CRefString* pRefString = (CRefString*)pos->GetData();
+			pos = pos->GetNext();
+			if (pRefString != NULL)
+			{
+				if (!pRefString->m_bDeleted)
+				{
+					pRefString->m_bDeleted = TRUE;
+					pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+				}
+			}
+		} // end of loop
+	}
+}
 
-	//m_translations.Serialize(ar);
-	// To achieve the Serialize !IsStoring() function here:
-	// 1. Read the wxInt32 count from the archive to know how many CRefString 
-	//    objects to expect.
-	// 2. Use the int value read in 1. above in a for loop iterating count times, 
-	//    creating new CRefString objects, and using the CRefString::LoadObject 
-	//    method to assign values to its members, and Appending them to the
-	//    CTargetString::TranslationsList.
-	
-	wxInt32 count;
-	ar >> count;
-	// insure we're starting with an empty list
+// pass in a modification choice as the modChoice param; allows values are LeaveUnchanged
+// (which is the default if no param is supplied), or SetNewValue -- the latter choice
+// will overwrite any earlier modification datetime value which may have been stored
+// earlier 
+// Currently this function is only used in the transformation process which converts
+// adaptations in one project to glosses in the new (empty) project -- see the Transform
+// Adaptations Into Glosses... command; and since adaptations are becoming glosses is is
+// reasonable to mark the time at which that transformation took place. The copy
+// constructor used for the transformations will copy all the CRefString and
+// CRefStringMetadata contents unchanged, and since EraseDeletions() is called after that
+// with modChoice SetNewValue, the modification datetime values are set to the datetime at
+// which each new CRefString instance in the glossing KB is created in the copy process.
+void CTargetUnit::EraseDeletions(enum ModifiedAction modChoice)
+{
+	CRefString* pRefString = NULL;
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	TranslationsList::Node* savepos = NULL;
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pRefString = pos->GetData();
+		wxASSERT(pRefString != NULL);
+		savepos = pos; // in case we need to delete this node
+		pos = pos->GetNext();
+		if (pRefString->GetDeletedFlag())
+		{
+			pRefString->DeleteRefString();
+			m_pTranslations->DeleteNode(savepos);
+		}
+		else
+		{
+			if (modChoice == SetNewValue)
+			{
+				pRefString->m_pRefStringMetadata->m_modifiedDateTime = GetDateTimeNow();
+			}
+		}
+	}
+}
+
+// counts the number of CRefString instances stored in this CTargetUnit instance,
+// but counting only those for which m_bDeleted is FALSE;
+int CTargetUnit::CountNonDeletedRefStringInstances()
+{
+	if (m_pTranslations->IsEmpty())
+	{
+		return 0;
+	}
+	int counter = 0;
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (!pRefStr->m_bDeleted)
+		{
+			counter++;
+		}
+	}
+	return counter;
+}
+
+// BEW 7Jun10, added, as the legacy code in destructor was inadequate for all contexts (it
+// didn't work for the xml LIFT parser for example)
+//void CTargetUnit::DeleteTargetUnit(CTargetUnit* pTU)
+void CTargetUnit::DeleteTargetUnitContents()
+{
+	TranslationsList::Node* tnode = NULL;
+	//if (pTU->m_pTranslations->GetCount() > 0)
 	if (m_pTranslations->GetCount() > 0)
-		m_pTranslations->Clear(); // previously had DeleteContents(TRUE); // check this !!!
-	// for each expected CRefString, create a new instance and call
-	for (int ct = 0; ct < count; ct++)
 	{
-		CRefString* pData = new CRefString;	// create a new instance of CRefString
-		wxASSERT(pData != NULL);
-		pData->LoadObject(stream);			// Load the instance's data
-
-		// The pData refstring's m_pTgtUnit member is an old pointer that, in the
-		// MFC version, was serialized out with MFC's mirrors and magic. However,
-		// in our wx version it no longer points to a valid CTargetUnit. Therefore 
-		// we need to make sure it points to its current owning CTargetUnit 
-		// (which should be 'this').
-		pData->m_pTgtUnit = this; // whm added for wxWidgets serialization. 
-
-		m_pTranslations->Append(pData);	// add the new CRefString instance 
-														// to the CTargetUnit's TranslationsList
+		//for (tnode = pTU->m_pTranslations->GetFirst(); tnode; tnode = tnode->GetNext())
+		for (tnode = m_pTranslations->GetFirst(); tnode; tnode = tnode->GetNext()) 		
+		{
+			CRefString* pRefStr = (CRefString*)tnode->GetData();
+			if (pRefStr != NULL)
+			{
+				pRefStr->DeleteRefString(); // deletes the CRefStringMetadata too
+				pRefStr = (CRefString*)NULL;
+			}
+		}
 	}
-
-	wxUint16 w; // MFC uses WORD
-	ar >> w;
-	if (w == 0)
-		m_bAlwaysAsk = FALSE;
-	else
-		m_bAlwaysAsk = TRUE;
-
-	return stream;
+	m_pTranslations->clear(); // leave ~CTargetUnit() to delete the list object from heap
 }
-*/
-

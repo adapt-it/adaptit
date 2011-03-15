@@ -3,7 +3,7 @@
 /// \file			LanguagesPage.cpp
 /// \author			Bill Martin
 /// \date_created	3 May 2004
-/// \date_revised	15 January 2008
+/// \date_revised	11 May 2010
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CLanguagesPage class. 
@@ -51,6 +51,7 @@
 #include "DocPage.h"
 #include "ProjectPage.h"
 #include "FontPage.h"
+#include "LanguageCodesDlg.h"
 
 // This global is defined in Adapt_It.cpp.
 //extern wxWizard* pStartWorkingWizard;
@@ -64,8 +65,10 @@ extern CAdapt_ItApp*	gpApp; // if we want to access it fast
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar;
 
-/// This global is defined in Adapt_It.cpp.
-extern bool	  gbSfmOnlyAfterNewlines;
+// BEW 8Jun10, removed support for checkbox "Recognise standard format
+// markers only following newlines"
+// This global is defined in Adapt_It.cpp.
+//extern bool	  gbSfmOnlyAfterNewlines;
 
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
@@ -82,9 +85,11 @@ IMPLEMENT_DYNAMIC_CLASS( CLanguagesPage, wxWizardPage )
 // event handler table
 BEGIN_EVENT_TABLE(CLanguagesPage, wxWizardPage)
 	EVT_INIT_DIALOG(CLanguagesPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
-    EVT_WIZARD_PAGE_CHANGING(-1, CLanguagesPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
+	EVT_TEXT(IDC_SOURCE_LANGUAGE,CLanguagesPage::OnEditSourceLanguageName)
+	EVT_TEXT(IDC_TARGET_LANGUAGE,CLanguagesPage::OnEditTargetLanguageName)
+	EVT_WIZARD_PAGE_CHANGING(-1, CLanguagesPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
+	EVT_BUTTON(ID_BUTTON_LOOKUP_CODES, CLanguagesPage::OnBtnLookupCodes) // whm added 10May10
     EVT_WIZARD_CANCEL(-1, CLanguagesPage::OnWizardCancel)
-	//EVT_BUTTON(ID_BUTTON_CHANGE_INTERFACE_LANGUAGE, CLanguagesPage::OnUILanguage)
 END_EVENT_TABLE()
 
 CLanguagesPage::CLanguagesPage()
@@ -95,15 +100,16 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 {
 	Create( parent );
 
-	// Since wizLangaugesPage appears in a notebook tab when the user
-	// has indicated in Start Here that he/she wants to create a new
-	// project, we will initially present empty names to user. Presenting
-	// names from a previously open project might be a convenience to some
-	// but would be potentially confusing to a novice user.
-	tempSourceName = gpApp->m_sourceName; //_T("");
-	tempTargetName = gpApp->m_targetName; //_T("");
+	// InitDialog uses the following temp variables to initialize the 
+	// languagesPage's GUI controls.
+	tempSourceName = gpApp->m_sourceName;
+	tempTargetName = gpApp->m_targetName;
+	tempSourceLangCode = gpApp->m_sourceLanguageCode; // whm added 10May10
+	tempTargetLangCode = gpApp->m_targetLanguageCode; // whm added 10May10
 	tempSfmEscCharStr = gSFescapechar;
-	tempSfmOnlyAfterNewlines = gbSfmOnlyAfterNewlines;
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//tempSfmOnlyAfterNewlines = gbSfmOnlyAfterNewlines;
 
 	// use wxGenericValidator for simple dialog data transfer
 	pSrcBox = (wxTextCtrl*)FindWindowById(IDC_SOURCE_LANGUAGE);
@@ -112,25 +118,25 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	pTgtBox = (wxTextCtrl*)FindWindowById(IDC_TARGET_LANGUAGE);
 	wxASSERT(pTgtBox != NULL);
 
+	pSrcLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE); // whm added 10May10
+	wxASSERT(pSrcLangCodeBox != NULL);
+
+	pTgtLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE); // whm added 10May10
+	wxASSERT(pTgtLangCodeBox != NULL);
+
+	pButtonLookupCodes = (wxButton*)FindWindowById(ID_BUTTON_LOOKUP_CODES); // whm added 10May10
+	wxASSERT(pButtonLookupCodes != NULL);
+
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticSFMsAlwasStNewLine = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NL);
-	wxASSERT(pTextCtrlAsStaticSFMsAlwasStNewLine != NULL);
-	//pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(backgrndColor);
-	pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(gpApp->sysColorBtnFace);
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//pTextCtrlAsStaticSFMsAlwasStNewLine = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NL);
+	//wxASSERT(pTextCtrlAsStaticSFMsAlwasStNewLine != NULL);
+	//pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(gpApp->sysColorBtnFace);
 
-	//pDefaultSystemLanguageBox = (wxTextCtrl*)FindWindowById(ID_TEXT_SYS_DEFAULT_LANGUAGE);
-	//wxASSERT(pDefaultSystemLanguageBox != NULL);
-	//pDefaultSystemLanguageBox->SetBackgroundColour(gpApp->sysColorBtnFace);
-
-	//pInterfaceLanguageBox = (wxTextCtrl*)FindWindowById(ID_TEXT_CURR_INTERFACE_LANGUAGE);
-	//wxASSERT(pInterfaceLanguageBox != NULL);
-	//pInterfaceLanguageBox->SetBackgroundColour(gpApp->sysColorBtnFace);
-
-	//pChangeInterfaceLangBtn = (wxButton*)FindWindowById(ID_BUTTON_CHANGE_INTERFACE_LANGUAGE);
-	//wxASSERT(pChangeInterfaceLangBtn != NULL);
-
-
-	pSfmOnlyAfterNLCheckBox = (wxCheckBox*)FindWindowById(IDC_CHECK_SFM_AFTER_NEWLINES);
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
+	//pSfmOnlyAfterNLCheckBox = (wxCheckBox*)FindWindowById(IDC_CHECK_SFM_AFTER_NEWLINES);
 }
 
 CLanguagesPage::~CLanguagesPage() // destructor
@@ -182,6 +188,32 @@ void CLanguagesPage::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //    event.Veto();
     //}
 }
+	
+void CLanguagesPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10May10
+{
+	// Call up CLanguageCodesDlg here so the user can enter language codes for
+	// the source and target languages which are needed for the LIFT XML lang attribute of 
+	// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
+	CLanguageCodesDlg lcDlg(this); // make the CLanguagesPage the parent in this case
+	lcDlg.Center();
+	// initialize the language code edit boxes with the values currently in
+	// the LanguagePage's edit boxes (which InitDialog initialized to the current 
+	// values on the App, or which the user manually edited before pressing the 
+	// Lookup Codes button).
+	lcDlg.m_sourceLangCode = pSrcLangCodeBox->GetValue();
+	lcDlg.m_targetLangCode = pTgtLangCodeBox->GetValue();
+	int returnValue = lcDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	// transfer language codes to the edit box controls and the App's members
+	pSrcLangCodeBox->SetValue(lcDlg.m_sourceLangCode);
+	pTgtLangCodeBox->SetValue(lcDlg.m_targetLangCode);
+	gpApp->m_sourceLanguageCode = lcDlg.m_sourceLangCode;
+	gpApp->m_targetLanguageCode = lcDlg.m_targetLangCode;
+}
 
 // MFC's OnSetActive() has no direct equivalent in wxWidgets. 
 // It would not be needed in any case since in our
@@ -194,12 +226,16 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	//InitDialog() is not virtual, no call needed to a base class
 
 	// Load the temp member data into text controls.
-	pSrcBox->SetValue(tempSourceName);
+	pSrcBox->ChangeValue(tempSourceName);
 	pSrcBox->SetFocus(); // start with focus on the Source edit box
-	pTgtBox->SetValue(tempTargetName);
+	pTgtBox->ChangeValue(tempTargetName);
+	pSrcLangCodeBox->ChangeValue(tempSourceLangCode); // whm added 10May10
+	pTgtLangCodeBox->ChangeValue(tempTargetLangCode); // whm added 10May10
+	// BEW 8Jun10, removed support for checkbox "Recognise standard format
+	// markers only following newlines"
 	// Note: tempSfmOnlyAfterNewLines is initialized in constructor above which happens only
 	// once when the languages page is created in the App
-	pSfmOnlyAfterNLCheckBox->SetValue(tempSfmOnlyAfterNewlines);
+	//pSfmOnlyAfterNLCheckBox->SetValue(tempSfmOnlyAfterNewlines);
 
 	//pDefaultSystemLanguageBox->SetValue(gpApp->m_languageInfo->Description);
 
@@ -218,6 +254,27 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pSrcBox, pTgtBox, 
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
+}
+
+void CLanguagesPage::OnEditSourceLanguageName(wxCommandEvent& WXUNUSED(event)) // whm added 14May10
+{
+	// user is editing the Source Language Name which invalidates any code value
+	// conatined within the Source Language Code edit box. Blank out the code string
+	// from the Source Language Code edit box.
+	tempSourceLangCode.Empty();
+	if (!pSrcLangCodeBox->GetValue().IsEmpty())
+		pSrcLangCodeBox->ChangeValue(_T(""));
+
+}
+
+void CLanguagesPage::OnEditTargetLanguageName(wxCommandEvent& WXUNUSED(event)) // whm added 14May10
+{
+	// user is editing the Target Language Name which invalidates any code value
+	// conatined within the Target Language Code edit box. Blank out the code string
+	// from the Target Language Code edit box.
+	tempTargetLangCode.Empty();
+	if (!pTgtLangCodeBox->GetValue().IsEmpty())
+	pTgtLangCodeBox->ChangeValue(_T(""));
 }
 	
 void CLanguagesPage::OnUILanguage(wxCommandEvent& WXUNUSED(event))
@@ -270,8 +327,13 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		// App's values
 		pApp->m_sourceName = pSrcBox->GetValue();
 		pApp->m_targetName = pTgtBox->GetValue();
+		// get any final edits of lang codes from edit boxes
+		pApp->m_sourceLanguageCode = pSrcLangCodeBox->GetValue();
+		pApp->m_targetLanguageCode = pTgtLangCodeBox->GetValue();
 		//gSFescapechar = pSfmBox->GetValue().GetChar(0);
-		gbSfmOnlyAfterNewlines = pSfmOnlyAfterNLCheckBox->GetValue();
+		// BEW 8Jun10, removed support for checkbox "Recognise standard format
+		// markers only following newlines"
+		//gbSfmOnlyAfterNewlines = pSfmOnlyAfterNLCheckBox->GetValue();
 		
 		// whm: The stuff below was in MFC's fontPage, but it should go here in the languagesPage.
 		// set up the directories using the new names, plus a KB, for the new project
@@ -301,12 +363,6 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		pProjectPage->m_pListBox->Append(gpApp->m_curProjectName);
 		// stuff above was in MFC's fontPage
 
-		//// from the wizard we need to call the docPage's InitDialog now that we have the
-		//// language names to form a project name; The docPage's InitDialog calls docPage's
-		//// OnSetActive which loads the listbox with the appropriate documents if they exist
-		//wxInitDialogEvent idevent;
-		//pDocPage->InitDialog(idevent);
-		
 		// Movement through wizard pages is sequential - the next page is the fontPage.
 		// The pFontPageWiz's InitDialog need to be called here just before going to it
 		wxInitDialogEvent idevent;
@@ -320,6 +376,12 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 
 		pApp->m_sourceName = tempSourceName;
 		pApp->m_targetName = tempTargetName;
+		// whm Note: The tempSourceLangCode and tempTargetLangCode temp variables
+		// are not modified within the languagesPage wizard page. Therefore, we
+		// can roll back the App's stored values to what they were before if the
+		// user backs up from the languagesPage to the projectPage.
+		pApp->m_sourceLanguageCode = tempSourceLangCode; // whm added 10May10
+		pApp->m_targetLanguageCode = tempTargetLangCode; // whm added 10May10
 	}
 }
 

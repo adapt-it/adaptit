@@ -16,13 +16,6 @@
 /// a given source phrase using this dialog.
 /// \derivation		The CKBEditor class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in KBEditor.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -50,6 +43,7 @@
 #include "KB.h"
 #include "TargetUnit.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 #include "Pile.h"
 #include "Cell.h"
 #include "Adapt_ItView.h"
@@ -65,31 +59,14 @@ extern bool	gbAutoCaps;
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbSourceIsUpperCase;
 
-/// This global is defined in Adapt_It.cpp.
 //extern bool	gbNonSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
 //extern bool	gbMatchedKB_UCentry;
-
-/// This global is defined in Adapt_It.cpp.
 //extern bool	gbNoSourceCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
 //extern bool	gbNoTargetCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
 //extern bool	gbNoGlossCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
 //extern wxChar gcharNonSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
 //extern wxChar gcharNonSrcUC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
+//extern wxChar gcharSrcLC;
 //extern wxChar gcharSrcUC;
 
 extern bool	gbCallerIsRemoveButton;
@@ -196,6 +173,9 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	wxASSERT(m_pKBEditorNotebook != NULL);
 	m_pStaticSelectATab = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SELECT_A_TAB);
 	wxASSERT(m_pStaticSelectATab != NULL);
+
+	m_pStaticWhichKB = (wxStaticText*)FindWindowById(ID_STATIC_WHICH_KB);
+	wxASSERT(m_pStaticWhichKB != NULL);
 }
 
 CKBEditor::~CKBEditor()
@@ -229,6 +209,7 @@ void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
 										// new tab page
 }
 
+// BEW 22Jun10, changes needed for support of kbVersion 2's m_bDeleted flag
 void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event)) 
 {
     // wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a
@@ -238,9 +219,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	{
 		return;
 	}
-
 	wxString s;
-	// IDS_NO_ADAPTATION
 	s = _("<no adaptation>");
 
 	int nSel;
@@ -250,14 +229,12 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_("Keys list box error when getting the current selection"),
 		_T(""), wxICON_EXCLAMATION);
 		wxASSERT(FALSE);
-		//AfxAbort();
 	}
 	wxString str;
 	str = m_pListBoxKeys->GetStringSelection();
 	int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
 	wxASSERT(nNewSel != -1);
-	pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel); //pCurTgtUnit = 
-									// (CTargetUnit*)m_pListBoxKeys->GetClientData(nSel);
+	pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 	wxASSERT(pCurTgtUnit != NULL);
 	m_curKey = str;
 
@@ -272,27 +249,40 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 
 	// now update the rest of the dialog window to show the translations for this
 	// target unit, etc.
+	// BEW 22Jun10, added support for kbVersion 2's m_bDeleted flag
 	m_pListBoxExistingTranslations->Clear();
 	if (pCurTgtUnit != NULL)
 	{
+		int countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
+		int countShowable = 0;
 		while (pos != NULL)
 		{
 			pCurRefString = (CRefString*)pos->GetData();
 			pos = pos->GetNext();
-			wxString str = pCurRefString->m_translation;
-			if (str.IsEmpty())
+			// ignore any CRefString instances which have m_bDeleted set to TRUE
+			if (!pCurRefString->GetDeletedFlag())
 			{
-				str = s;
+				countShowable++;
+				wxString str = pCurRefString->m_translation;
+				if (str.IsEmpty())
+				{
+					str = s;
+				}
+				// m_pListBoxExistingTranslations is not sorted
+				m_pListBoxExistingTranslations->Append(str, pCurRefString);
+				// next 4 lines are legacy code, commented out as wxWidgets provides 
+				// a much quicker 2-parameter overload of Append() as used above											 
+				//int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,
+				//									caseSensitive,exactString);
+				//wxASSERT(nNewSel != -1); // we just added it so it must be there!
+				//m_pListBoxExistingTranslations->SetClientData(nNewSel,pCurRefString);
 			}
-			m_pListBoxExistingTranslations->Append(str); // m_pListBoxExistingTranslations 
-														 // is not sorted
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,
-															caseSensitive,exactString);
-			wxASSERT(nNewSel != -1); // we just added it so it must be there!
-			m_pListBoxExistingTranslations->SetClientData(nNewSel,pCurRefString);
-		}
+		} // end while loop
+		wxASSERT(countShowable == countNonDeleted);
+		countShowable = countNonDeleted; // avoids a compiler warning
+
 
 		// select the first translation in the listbox by default
 		wxASSERT(m_pListBoxExistingTranslations->GetCount() > 0);
@@ -447,6 +437,7 @@ void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event))
 	UpdateButtons();
 }
 
+// BEW 25Jun10, changes needed for support of kbVersion 2
 void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event)) 
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
@@ -460,15 +451,14 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
-	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
+	wxString s = _("<no adaptation>"); 
 
 	// ensure that it is not a "<Not In KB>" entry
 	if (oldText == _T("<Not In KB>"))
 	{
 		// IDS_ILLEGAL_EDIT
 		wxMessageBox(_(
-"Editing this kind of entry is not permitted."),
+		"Editing this kind of entry is not permitted."),
 		_T(""), wxICON_INFORMATION);
 		return;
 	}
@@ -479,7 +469,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// IDS_CONSISTENCY_CHECK_NEEDED
 	int ok = wxMessageBox(_(
-"Changing the spelling in this editor will leave the instances in the document unchanged. (Do a  Consistency Check later to fix this problem.) Do you wish to go ahead with the spelling change?"),
+"Changing the spelling in this editor will leave the instances in the document unchanged.\n(Do a Consistency Check later to fix this problem.)\nDo you wish to go ahead with the spelling change?"),
 	_T(""),wxYES_NO);
 	if (ok != wxYES)
 		return;
@@ -496,7 +486,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// ensure we are not duplicating a translation already in the list box
 	wxString str = _T("");
-	int nStrings = m_pListBoxExistingTranslations->GetCount();
+	int nStrings = m_pListBoxExistingTranslations->GetCount(); // deletions are not
+						// shown and therefore are not counted (kbVersion 2)
 	for (int i=0; i < nStrings; i++)
 	{
 		str = m_pListBoxExistingTranslations->GetString(i);
@@ -504,7 +495,6 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			str = _T("");
 		if ((str.IsEmpty() && newText.IsEmpty()) || (str == newText))
 		{
-			// IDS_TRANSLATION_ALREADY_EXISTS
 			wxMessageBox(_(
 "The translation you are attempting to associate with the current source phrase already exists."),
 			_T(""),wxICON_INFORMATION);
@@ -512,21 +502,26 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
-	// go ahead and do the update
+	// go ahead and do the update (pCurRefString should already be set, but I don't want
+	// to rely on that - so add a few lines to make sure we have it set correctly)
+	int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
+														caseSensitive, exactString);
+	wxASSERT(nFound != wxNOT_FOUND);
+	pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nFound);
 	wxASSERT(pCurRefString != NULL);
-	pCurRefString->m_translation = newText;
+	pCurRefString->m_translation = newText; // could be an empty string
 	pCurRefString->m_refCount = 1;
+	// BEW 25Jun10, additions for kbVersion 2 specifically (two lines of code added)
+	pCurRefString->GetRefStringMetadata()->SetModifiedDateTime(GetDateTimeNow());
+	pCurRefString->GetRefStringMetadata()->SetWhoCreated(SetWho());
+	m_edTransStr = newText;
 	if (newText.IsEmpty())
-		newText = s;
-	m_pListBoxExistingTranslations->Insert(newText,nSel); //int nLocation = 
-					// m_pListBoxExistingTranslations->InsertString(nSel,newText);
-    // whm comment: MFC's FindStringExact and FindString do NOT do a case sensitive match
-    // by default so we'll use our own more flexible FindListBoxItem method below with
-    // caseSensitive and exactString parameters. m_pListBoxExistingTranslations is NOT
-    // sorted so the following should work
+		newText = s; // cause list box to show "<no adaptation>"
+	m_pListBoxExistingTranslations->Insert(newText,nSel);
+	// now remove the original entry before which just inserted
 	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
 														caseSensitive, exactString);
-	wxASSERT(nOldLoc != -1); // LB_ERR;
+	wxASSERT(nOldLoc != wxNOT_FOUND); // -1
 	m_pListBoxExistingTranslations->Delete(nOldLoc);
 	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
 														caseSensitive, exactString);
@@ -534,15 +529,14 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	m_pListBoxExistingTranslations->SetClientData(nLocation,pCurRefString);
 	m_refCount = 1;
 	m_refCountStr = _T("1");
-
-	m_edTransStr = newText;
-	m_pEditRefCount->SetValue(m_refCountStr);
-	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
+	m_pEditRefCount->ChangeValue(m_refCountStr);
+	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
 
 	UpdateButtons();
 	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save button enabled
 }
 
+// BEW 25Jun10, changes needed for support of kbVersion 2
 void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
@@ -560,7 +554,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	// ensure that it is not a "<Not In KB>" targetUnit that we are trying to add more to
 	if (oldText == _T("<Not In KB>"))
 	{
-		// can't add to such an entry, it <Not In KB> is present, no other entry is allowed
+		// can't add to such an entry, if <Not In KB> is present, no other entry is allowed
 		::wxBell();
 		return;
 	}
@@ -575,7 +569,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	{
 		// don't add to the list if the AddRefString call did not succeed
 		wxString s;
-		s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
+		s = _("<no adaptation>"); 
 		newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
 		// m_pListBoxExistingTranslations is not sorted, but it is safer to always get 
@@ -585,22 +579,35 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		if (nFound == -1) // LB_ERR
 		{
 			wxMessageBox(_(
-"Error warning: Did not find the translation text just inserted!"),_T("")
+			"Error warning: Did not find the translation text just inserted!"),_T("")
 			,wxICON_WARNING);
+			m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
+			CRefString* pRefStr = (CRefString*)
+							m_pListBoxExistingTranslations->GetClientData(0);
 			m_pListBoxExistingTranslations->SetSelection(0,TRUE);
-			m_pEditRefCount->SetValue(m_refCountStr);
-			m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
+			m_refCount = pRefStr->m_refCount;
+			m_refCountStr.Empty();
+			m_refCountStr << m_refCount;
+			m_pEditRefCount->ChangeValue(m_refCountStr);
+			m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
 			return;
 		}
 		m_pListBoxExistingTranslations->SetClientData(nFound,pCurRefString);
 		m_pListBoxExistingTranslations->SetSelection(nFound,TRUE); //m_pListBoxExistingTranslations->SetCurSel(nFound);
 		OnSelchangeListExistingTranslations(event);
 		m_pEditRefCount->SetValue(m_refCountStr);
+		if (m_edTransStr == s)
+		{
+			// in the edit box, show nothing rather than "<no adaptation>"
+			m_edTransStr.Empty();
+		}
 		m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
+		m_pEditOrAddTranslationBox->DiscardEdits();
 		UpdateButtons();
 	}
 }
 
+// BEW 22Jun10, changes needed for support of kbVersion 2
 void CKBEditor::OnButtonAdd(wxCommandEvent& event) 
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
@@ -608,39 +615,50 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-
+	bool bOK = TRUE;
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
+	wxString strNot = _T("<Not In KB>");
 
 	// ensure that it is not a "<Not In KB>" targetUnit that we are trying to 
-	// add more to
-	if (oldText == _T("<Not In KB>"))
+	// add more to; also ensure the user isn't manually trying to undelete a deleted
+	// <Not In KB> CRefString instance
+	wxString newText = _T("");
+	newText = m_pEditOrAddTranslationBox->GetValue();
+	if (oldText == strNot || newText == strNot)
 	{
 		::wxBell();
 		return;
 	}
-
-	wxString newText = _T("");
-	newText = m_pEditOrAddTranslationBox->GetValue();
+	// adding an empty string is legal, but make sure the user knows that's what is going
+	// to happen
 	if (newText.IsEmpty())
 	{
-		// IDS_NOT_NOTHING
 		int value = wxMessageBox(_(
-"You adding a translation which is nothing. That is okay, but is it what you want to do?")
-		,_T(""), wxYES_NO);
+		"You adding a translation which is nothing. That is okay, but is it what you want to do?"),
+		_T(""), wxYES_NO);
 		if (value == wxNO)
 			return;
 	}
+
+	// BEW 22Jun10, for kbVersion 2, we must allow the user to manually try to add a
+	// translation (or gloss, in glossing mode) string which has been deleted from the KB
+	// (deletions are now just hidden CRefString units which have m_bDeleted set TRUE). We
+	// now must allow such a manual addition to 'undelete' any matched deleted CRefString
+	// instance, (but we must not allow undeletion of a deleted "<Not In KB>" one by means
+	// of the user typing "<Not In KB> manually and trying to Add it -- but that has been
+	// checked for above and prevented).
 	m_edTransStr = m_pEditOrAddTranslationBox->GetValue();
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
 	wxASSERT(pCurTgtUnit != 0);
-	bool bOK = AddRefString(pCurTgtUnit,newText);
-
-	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
+	bOK = AddRefString(pCurTgtUnit,newText); // if 'undelete' happens, AddRefString() will
+				// have repositioned the undeleted CRefString to the end of the CTargetUnit
+				// instance's list, so that the Append() call on the list box done below 
+				// will match in position
+	wxString s = _("<no adaptation>"); 
 
 	// if it was added successfully, show it in the listbox & select it
 	if (bOK)
@@ -655,18 +673,25 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		if (nFound == -1) // LB_ERR
 		{
 			wxMessageBox(_(
-"Error warning: Did not find the translation text just inserted!"),_T(""),
+			"Error warning: Did not find the translation text just inserted!"),_T(""),
 			wxICON_WARNING);
 			m_pListBoxExistingTranslations->SetSelection(0,TRUE);
 			m_pEditRefCount->SetValue(m_refCountStr);
-			m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
+			m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
 			return;
 		}
+		// for the next call, pCurRefString will have been set within the above call to
+		// AddRefString() 
 		m_pListBoxExistingTranslations->SetClientData(nFound,pCurRefString);
 		m_pListBoxExistingTranslations->SetSelection(nFound,TRUE);
 		OnSelchangeListExistingTranslations(event);
 		m_pEditRefCount->SetValue(m_refCountStr);
-		m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
+		if (newText == s)
+		{
+			// in the edit box, show nothing rather than "<no adaptation>"
+			newText.Empty();
+		}
+		m_pEditOrAddTranslationBox->ChangeValue(newText);
 		m_pEditOrAddTranslationBox->DiscardEdits(); // resets the internal "modified" 
 													// flag to no longer "dirty"
 		UpdateButtons();
@@ -807,6 +832,9 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 				// to be shown. So we let the child dialog set this flag only when the
 				// update list has content
 				//m_bRemindUserToDoAConsistencyCheck = TRUE;
+
+// and add a handler for clicking on a combobox line to have it re-entered into
+// m_pEditSearches
 			}
 		}
 		else
@@ -853,7 +881,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // instances of that translation in this and previous document files which will then
     // not agree with the state of the knowledge base, and the user is then to be urged to
     // do a Verify operation on each of the existing document files to get the KB and those
-    // files in synch with each other.
+    // files in sync with each other.
 	
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
@@ -862,12 +890,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
+	s = _("<no adaptation>"); 
 	wxString message;
 	int	nPreviousReferences = 0;
 
-    // get the index of the selected translation string (this will be same index for the
-    // CRefString stored in pCurTgtUnit)
+    // get the index of the selected translation string (this may not be the same index for the
+	// CRefString stored in pCurTgtUnit because there may be stored deleted CRefString
+	// instances in the pCurTgtUnit which messes up the index correspondences)
 	int nTransSel = 0;
 	nTransSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -894,41 +923,46 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
 	// then go ahead and do the removals
+	// BEW 22Jun10, changed to support kbVersion 2's m_bDeleted flag etc
 	wxASSERT(pCurTgtUnit != NULL);
-	TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(nTransSel);
+	// use the client data stored in the list box entry to get the CRefString instance's
+	// pointer, so we can search for it (we can't use index value as it may reference a
+	// deleted instance rather than the one we want)
+	CRefString* pTheRefStr = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nTransSel);
+	wxASSERT(pTheRefStr != NULL);
+	// now search for the same CRefString instance in pCurTgtUnit
+	TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Find(pTheRefStr);
 	wxASSERT(pos != NULL); // it must be there!
 	CRefString* pRefString = (CRefString*)pos->GetData();
-	wxASSERT(pRefString != NULL);
+	wxASSERT(pRefString == pTheRefStr); // verify we got it
 
-    // do checks that we have the right reference string instance; we must allow for
-    // equality of two empty strings to be considered to evaluate to TRUE
+    // do legacy checks that we have the right reference string instance; we must allow for
+    // equality of two empty strings to be considered to evaluate to TRUE (these should not
+    // be necessary but no harm in retaining them)
 	if (str.IsEmpty() && pRefString->m_translation.IsEmpty())
-		goto a;
-	if (str != pRefString->m_translation)
 	{
-		// message can be in English, it's never likely to occur
-		wxMessageBox(_T(
-"Remove button error: Knowledge bases's adaptation text does not match that selected in the list box\n"),
-		_T(""), wxICON_EXCLAMATION);
+		// we have a match of empty strings, so continue
+		;
 	}
-
-	if (pRefString != (CRefString*)m_pListBoxExistingTranslations->GetClientData(nTransSel))
+	else
 	{
-		// message can be in English, it's never likely to occur
-		wxMessageBox(_T(
-"Remove button error: pRefString data pointer stored at list box selection does not match that at same location on the target unit\n"),
-		_T(""), wxICON_EXCLAMATION);
+		// we don't have matching empty strings, so check for matching non-empty ones 
+		if (str != pRefString->m_translation)
+		{
+			// message can be in English, it's never likely to occur, let processing continue
+			wxMessageBox(_T(
+			"Remove button error: Knowledge bases's adaptation text does not match that selected in the list box\n"),
+			_T(""), wxICON_EXCLAMATION);
+		}
 	}
-
 	// get the ref count, use it to warn user about how many previous references 
 	// this will mess up
-a:	nPreviousReferences = pRefString->m_refCount;
+	nPreviousReferences = pRefString->m_refCount;
 
 	// warn user about the consequences, allow him to get cold feet & back out
-	// IDS_VERIFY_NEEDED
 	message = message.Format(_(
-"Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with\nthe knowledge base. (You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
-	str2.c_str(),nPreviousReferences);
+"Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
+		str2.c_str(),nPreviousReferences);
 	int nResult = wxMessageBox(message, _T(""), wxYES_NO | wxICON_WARNING);
 	if (!(nResult == wxYES))
 	{
@@ -968,7 +1002,9 @@ a:	nPreviousReferences = pRefString->m_refCount;
 	}
 	else
 	{
-		// list is now empty
+		// list is now empty (for kbVersion 2 this block should never be entered, since we
+		// don't physically remove 'deleted' CRefString instances, but no harm in leaving
+		// it here (we need the count value further below anyway)
 		pCurRefString = NULL;
 		m_refCount = 0;
 		m_refCountStr = _T("0");
@@ -976,59 +1012,34 @@ a:	nPreviousReferences = pRefString->m_refCount;
 		m_pListBoxExistingTranslations->Clear();
 	}
 
-	// remove the corresponding CRefString instance from the knowledge base
+    // remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
+    // 'remove' in the context of kbVersion 2 just means to retain storage of the
+    // CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata
+    // class's m_deletedDateTime value to the current datetime (when the list is refreshed
+    // by the call to LoadDataForPage() below, the deleted instance won't then appear in
+    // the list), and give it a m_refCount value of 0
 	wxASSERT(pRefString != NULL);
-	delete pRefString;
-	pCurTgtUnit->m_pTranslations->DeleteNode(pos);
+	pRefString->SetDeletedFlag(TRUE);
+	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+	pRefString->m_refCount = 0;
 
-    // we'll also need the index of the source word/phrase selection. If it turns out that
-    // we delete all of a source word/phrase's translations, and need to also delete the
-    // source word from its list box we have its selection; if there are translation left
-    // after deleting the current one, nNewKeySel should remain at the same selection.
+	// get the count of non-deleted CRefString instances for this CTargetUnit instance
+	int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
+	
+    // We'll also need the index of the source word/phrase selected in the keys list box.
+    // If it turns out that we have just deleted all of a source word/phrase's
+    // translations, we therefore would need to also delete the source word/phrase from
+    // its list box (but the owning CTargetUnit instance must remain in the map); but if
+    // there are translations left which are marked as not deleted after removing the
+    // current one, nNewKeySel should remain at the same selection.
 	int nNewKeySel = m_pListBoxKeys->GetSelection();
-    // are we deleting the last item in the translations list box? If so, we have to delete
-    // the targetUnit as well (can't have one with no refStrings stored in it), and get rid
-    // of its key string in the m_listBoxKeys list box, etc.
-	if (count == 0)
-	{
-		wxASSERT(!m_curKey.IsEmpty());
-		// whm note: I've revised the following which is parallel to the 
-		// code in ChooseTranslation
-		wxString s1 = m_curKey;
-		bool bNoError = TRUE;
-		int nRemoved = 0;
-		if (gbAutoCaps)
-		{
-			bNoError = gpApp->GetView()->SetCaseParameters(s1);
-			if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-			{
-				// make it start with lower case letter
-				s1.SetChar(0,gcharSrcLC);
-			}
-			// try removing the lower case one first, this is the most likely one that
-			// was found by GetRefString( ) in the caller
-			nRemoved = pMap->erase(s1); // also remove it from the map
-		}
-		if (nRemoved == 0)
-		{
-			// have a second shot using the unmodified string curKey
-			nRemoved = pMap->erase(m_curKey);// also remove it from the map
-		}
-		wxASSERT(nRemoved == 1);
-		TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
-		wxASSERT(pos != NULL);
-		pKB->m_pTargetUnits->DeleteNode(pos);
-		delete pCurTgtUnit; // ensure no memory leak
-		pCurTgtUnit = (CTargetUnit*)NULL;
 
-        // now fix up the m_listBoxKeys entry, and update the rest of the dialog (we'll
-        // have to make the default selected key be the first, so everything will change)
-		// MFC Note: 
-        // FindStringExact does only a caseless find, so it could find the wrong entry if
-        // two entries differ only by case, so we must also do a CSrtring compare, which is
-        // case sensitive, to ensure we get the right entry. We also start with index = -1,
-        // so we search from the list start.
-		// 
+    // Are we removing the last item in the translations list box? If so, we have to remove
+	// it's owning CTargetUnit from the m_listBoxKeys list box as well
+	if (numNotDeleted == 0)
+	{
+		// the pCurTgtUnit stores only CRefString instances with m_bDeleted set TRUE, so
+		// this one should not be shown in the m_listBoxKeys list box... 
 		// wx note: FindString also only does a caseless find, and we don't have a second
 		// parameter in FindString to allow for a search from a certain position, so we'll
 		// use our own FindListBoxItem using a case sensitive search.
@@ -1037,9 +1048,6 @@ a:	nPreviousReferences = pRefString->m_refCount;
         // all of its translations have been removed
 		wxString spStr = m_pListBoxKeys->GetStringSelection();
 		nNewKeySel = gpApp->FindListBoxItem(m_pListBoxKeys, spStr, caseSensitive, exactString);
-		
-        // normally we expect that we would exit the above for loop with the 
-        // exact string
 		wxASSERT(nNewKeySel != -1);
 		// now delete the found item from the listbox
 		int keysCount;
@@ -1064,6 +1072,7 @@ a:	nPreviousReferences = pRefString->m_refCount;
 										// button enabled
 }
 
+// BEW 22Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
 void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event)) 
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
@@ -1078,10 +1087,11 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 
 	int nOldSel = nSel; // save old selection index
+	CRefString* pOldRefStr = NULL; // temporary store of CRefString ptr being moved
 
 	// change the order of the string in the list box
 	int count;
-	count = pCurTgtUnit->m_pTranslations->GetCount();
+	count = m_pListBoxExistingTranslations->GetCount();
 	wxASSERT(nSel < count);
 	if (nSel > 0)
 	{
@@ -1090,9 +1100,10 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		tempStr = m_pListBoxExistingTranslations->GetString(nOldSel);
 		int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,tempStr,
 											caseSensitive,exactString); // whm added
-		wxASSERT(nLocation != -1); // LB_ERR;
+		wxASSERT(nLocation != wxNOT_FOUND);
 		CRefString* pRefStr = (CRefString*)
 							m_pListBoxExistingTranslations->GetClientData(nLocation);
+		pOldRefStr = pRefStr; // BEW added 22Jun10, for use when searching below
 		m_pListBoxExistingTranslations->Delete(nLocation);
 		m_pListBoxExistingTranslations->Insert(tempStr,nSel);
 		// m_pListBoxExistingTranslations is not sorted
@@ -1113,6 +1124,50 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	CRefString* pRefString;
 	if (nSel < nOldSel)
 	{
+		// BEW 22Jun10, for support of kbVersion 2, nSel and nOldSel apply only to the GUI
+		// list, which does not show stored CRefString instances marked as deleted. The
+		// potential presence of deleted instances means that we must search for the
+		// instance to be moved earlier in the list, and moving it means we must move over
+		// each preceding deleted instance, if any, until we get to the location of the
+		// first preceding non-deleted element, and insert at that location 
+		int oldLocation = pCurTgtUnit->m_pTranslations->IndexOf(pOldRefStr); // BEW added 22Jun10
+		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(oldLocation);
+		wxASSERT(pos != NULL);
+		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pRefString == pOldRefStr);
+		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		CRefString* aRefStrPtr = NULL;
+		do {
+			// jump over any deleted earlier CRefString instances, break when a
+			// non-deleted one is found
+			pos = pos->GetPrevious();
+			aRefStrPtr = pos->GetData();
+			if (!aRefStrPtr->GetDeletedFlag())
+			{
+				break;
+			}
+		} while (aRefStrPtr->GetDeletedFlag());
+
+		// pos now points at the first previous non-deleted CRefString instance, which is
+		// the one before which we want to put pOldRefStr by way of insertion, but first
+		// delete the node containing the old location's instance
+		pCurTgtUnit->m_pTranslations->DeleteNode(posOld);
+		wxASSERT(pos != NULL);
+
+		// now do the insertion, bringing the pCurTgtUnit's list into line with what the
+		// listbox in the GUI shows to the user
+        // Note: wxList::Insert places the item before the given item and the inserted item
+        // then has the insertPos node position.
+		TranslationsList::Node* newPos = pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
+		if (newPos == NULL)
+		{
+			// a rough & ready error message, unlikely to ever be called
+			wxMessageBox(_T(
+			"Error: MoveUp button failed to reinsert the translation being moved\n"),
+			_T(""), wxICON_EXCLAMATION);
+			wxASSERT(FALSE);
+		}
+		/* legacy code
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(nOldSel);
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
@@ -1127,11 +1182,11 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T(
-"Error: MoveUp button failed to reinsert the translation being moved\n"),
+			"Error: MoveUp button failed to reinsert the translation being moved\n"),
 			_T(""), wxICON_EXCLAMATION);
 			wxASSERT(FALSE);
-			//AfxAbort();
 		}
+		*/
 	}
 
 	m_pEditRefCount->SetValue(m_refCountStr);
@@ -1141,7 +1196,8 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 										// button enabled
 }
 
-void CKBEditor::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event)) 
+// BEW 22Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
+void CKBEditor::OnButtonMoveDown(wxCommandEvent& event) 
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
@@ -1154,9 +1210,10 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 	int nOldSel = nSel; // save old selection index
+	CRefString* pOldRefStr = NULL; // temporary store of CRefString ptr being moved
 
 	// change the order of the string in the list box
-	int count = pCurTgtUnit->m_pTranslations->GetCount();
+	int count = m_pListBoxExistingTranslations->GetCount();
 	wxASSERT(nSel < count);
 	if (nSel < count-1)
 	{
@@ -1165,18 +1222,19 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		tempStr = m_pListBoxExistingTranslations->GetString(nOldSel);
 		int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,tempStr,
 												caseSensitive,exactString); // whm added
-		wxASSERT(nLocation != -1); // LB_ERR;
+		wxASSERT(nLocation != wxNOT_FOUND);
 		CRefString* pRefStr = (CRefString*)
 								m_pListBoxExistingTranslations->GetClientData(nLocation);
+		pOldRefStr = pRefStr; // BEW added 24Jun10, for use when searching below
 		m_pListBoxExistingTranslations->Delete(nLocation);
 		m_pListBoxExistingTranslations->Insert(tempStr,nSel);
 		// m_pListBoxExistingTranslations is not sorted
 		nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,tempStr,
 												caseSensitive,exactString); // whm added
-		wxASSERT(nLocation != -1); // LB_ERR;
+		wxASSERT(nLocation != wxNOT_FOUND);
 		m_pListBoxExistingTranslations->SetSelection(nSel);
-		m_pListBoxExistingTranslations->SetClientData(nLocation,pRefStr);
-		pRefStr = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nLocation);
+		m_pListBoxExistingTranslations->SetClientData(nSel,pRefStr);
+		pRefStr = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nSel);
 		m_refCount = pRefStr->m_refCount;
 		m_refCountStr.Empty();
 		m_refCountStr << m_refCount;
@@ -1188,40 +1246,74 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	CRefString* pRefString;
 	if (nSel > nOldSel)
 	{
-		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(nOldSel);
+		// BEW 24Jun10, for support of kbVersion 2, nSel and nOldSel apply only to the GUI
+		// list, which does not show stored CRefString instances marked as deleted. The
+		// potential presence of deleted instances means that we must search for the
+		// instance to be moved to later in the list, and moving it means we must move over
+		// each following deleted instance, if any, until we get to the location of the
+		// second following non-deleted element, and insert before that location - but if
+		// we reach the end of the list, we just append 
+		int oldLocation = pCurTgtUnit->m_pTranslations->IndexOf(pOldRefStr); // BEW added 24Jun10
+		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(oldLocation);
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
-		wxASSERT(pRefString != NULL);
-		pCurTgtUnit->m_pTranslations->DeleteNode(pos);
-		pos = pCurTgtUnit->m_pTranslations->Item(nOldSel);
-		wxASSERT(pos != NULL);
-        // wxList has no equivalent to InsertAfter(). The wxList Insert() method inserts
-        // the new node BEFORE the current position/node. To emulate what the MFC code
-        // does, I can advance one node before calling Insert() Get a node called
-        // posNextHigher which points to the next node beyond savePos in pList and use its
-        // position in the Insert() call (which only inserts BEFORE the indicated
-        // position). The result should be that the insertions will get placed in the list
-        // the same way that MFC's InsertAfter() places them. wx additional note: If the
-        // item is to be inserted after the last item in the list posNextHigher will return
-        // NULL, in that case, just append the new item to the list.
-		TranslationsList::Node* posNextHigher = pos->GetNext();
-		TranslationsList::Node* newPos = NULL;
-		if (posNextHigher == NULL)
+		wxASSERT(pRefString  == pOldRefStr);
+		TranslationsList::Node* posOld = pos; // save for later on, when we want to delete it
+		CRefString* aRefStrPtr = NULL;
+
+		// BEW 24Jun10, moving down becomes a two step process - first step is to loop
+		// over any deleted CRefString instances until the iterator points at the next
+		// non-deleted one (there will ALWAYS be such a one, as this block's entry
+        // condition guarantees it), and then second step is to advance the iterator one
+        // node further - this will take it either to the end of the list, or to a
+        // CRefString instance (and this one we don't care whether it is deleted or not))
+		do {
+			// jump over any deleted lower-down CRefString instances, break when a
+			// non-deleted one is found
+			pos = pos->GetNext();
+			aRefStrPtr = pos->GetData();
+			if (!aRefStrPtr->GetDeletedFlag())
+			{
+				break;
+			}
+		} while (aRefStrPtr->GetDeletedFlag());
+		// now advance over this non-deleted one -- this may make the iterator return NULL
+		// if we are at the end of the list
+		pos = pos->GetNext();
+		if (pos == NULL)
+		{
+			// we are at the list's end
 			pCurTgtUnit->m_pTranslations->Append(pRefString);
+		}
 		else
-			pCurTgtUnit->m_pTranslations->Insert(posNextHigher,pRefString);
-		newPos = pCurTgtUnit->m_pTranslations->Find(pRefString);
-		if (newPos == NULL)
+		{	
+			// we are at a CRefString instance, so we can insert before it
+			pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
+		}
+
+        // check the insertion or appending was done correctly - tell developer if not so,
+        // and don't delete the original if the error message shows, instead, maintain the
+        // earlier state of the CTargetUnit & because the GUI doesn't agree with it any
+        // more, the message should tell the user/developer it will automatically close
+        // the KB Editor without saving (by calling OnClose()), and then the KB Editor can
+        // be launched again without data loss from the KB and the user/developer can try
+        // again
+		pos = pCurTgtUnit->m_pTranslations->Find(pRefString);
+		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T(
-"Error: MoveDown button failed to reinsert the translation being moved"),
+				"Error: MoveDown button failed to reinsert the translation being moved.\nTo avoid data loss from the knowledge base the application will close the KB editor, without saving your changes, when you dismiss this message. \n(Afterwards, you can safely retry the Edit Knowledge Base... command if you wish.)"),
 			_T(""), wxICON_EXCLAMATION);
-			wxASSERT(FALSE);
-			//AfxAbort();
+			OnCancel(event);
+			return;
+		}
+		else
+		{
+			// all's well, we can delete the old location's node
+			pCurTgtUnit->m_pTranslations->DeleteNode(posOld);
 		}
 	}
-
 	m_pEditRefCount->SetValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 	UpdateButtons();
@@ -1253,6 +1345,7 @@ void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 										// button enabled
 }
 
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 															   // method of wxWindow
 {
@@ -1355,36 +1448,44 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 
 	if (gbIsGlossing)
 	{
+		// Make it show  "Glosses Knowledge Base" at top right, rather than "Adaptations
+		// Knowledge Base" (Localizable)
+		wxString glossesKBLabel = _("Glosses Knowledge Base");
+		m_pStaticWhichKB->SetLabel(glossesKBLabel);
+
+	// BEW 13Nov10, removed to support Bob Eaton's request for glosssing KB to use all maps
         // First, configure the wxNoteBook for Glossing: Remove all but the first tab page
         // and rename that first tab page to "All Gloss Words Or Phrases".
 		// 
 		// wx version note: All pages are added to the wxNotebook in wxDesigner
 		// so we'll simply remove all but first one.
-		int ct;
-		bool removedOK;
-		int totNumPages;
-		totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
+	//	int ct;
+	//	bool removedOK;
+	//	int totNumPages;
+	//	totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
 		// remove page 9 through page 1, leaving page 0 as the only page in the wxNoteBook
-		for (ct = totNumPages-1; ct > 0; ct--)
-		{
-			removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
-		}
-		m_pKBEditorNotebook->Layout();
-		int pgCt;
-		pgCt = m_pKBEditorNotebook->GetPageCount();
-		wxASSERT(pgCt == 1);
+	//	for (ct = totNumPages-1; ct > 0; ct--)
+	//	{
+	//		removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
+	//	}
+	//	m_pKBEditorNotebook->Layout();
+	//	int pgCt;
+	//	pgCt = m_pKBEditorNotebook->GetPageCount();
+	//	wxASSERT(pgCt == 1);
 
 		// fix the titles to be what we want (ANSI strings)
-		m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases")); //title[0].Format(IDS_GLOSSING_TAB);
+	//	m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases"));
         // Hide the static text "Number of Words: Select a Tab according to the number of
         // words in the Source Phrase" while glossing.
-		m_pStaticSelectATab->Hide(); 
+	//	m_pStaticSelectATab->Hide(); 
 
 		// Now, that the wxNoteBook is configured, set m_nCurPage.
 		// When Glossing is active there is always only one tab and its index number is 0.
-		m_nCurPage = 0;
+	//	m_nCurPage = 0;
 	}
-	else if (m_nWordsSelected != -1)
+	//else 
+		
+	if (m_nWordsSelected != -1)
 	{
 		// the m_nCurPage is one less than m_nWordsSelected.
 		m_nCurPage = m_nWordsSelected-1;
@@ -1403,22 +1504,30 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	m_pComboOldSearches->Clear();
 }
 
-
+// BEW 22Jun10, changes needed for support of kbVersion 2's m_bDeleted flag (we must allow
+// manual addition of a deleted translationStr to 'undelete' it)
 bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 // remember, translationStr could legally be empty
 {
 	// check for a matching CRefString, if there is no match,
 	// then add a new one, otherwise warn user of the match & return
+	// BEW 22Jun10, don't give the warning if what is being added matches a deleted
+	// CRefString instance's m_translation string, instead, just undelete that CRefString
+	// instance (no need to check for manual addition of "<Not In KB>" string, as the
+	// caller has that job and has already done the check)
 	wxASSERT(pTargetUnit != NULL); 
 	bool bMatched = FALSE;
-	CRefString* pRefString = new CRefString(pTargetUnit);
+	CRefString* pRefString = new CRefString(pTargetUnit); // creates its metadata too
 	pRefString->m_refCount = 1; // set the count, assuming this will be stored (it may not be)
 	pRefString->m_translation = translationStr; // set its translation string
 
 	TranslationsList::Node* pos = pTargetUnit->m_pTranslations->GetFirst();
+	TranslationsList::Node* savePos; // in case we need to undelete (see below)
 	while (pos != NULL)
 	{
 		CRefString* pRefStr = (CRefString*)pos->GetData();
+		savePos = pos; // preserve old location
+
 		pos = pos->GetNext();
 		wxASSERT(pRefStr != NULL);
 
@@ -1428,14 +1537,43 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 			(*pRefStr == *pRefString))
 		{
 			// we got a match, or both are empty, so warn user its a copy of an existing 
-			// translation and return
+			// translation and return; or we matched an already 'deleted' one, in which
+			// case we undelete the deleted one and throw away the new one we created, and
+			// we have to reposition the undeleted one at the end of the list because the
+			// caller will append the translationStr to the end of the list box in the dlg
 			bMatched = TRUE;
-			// IDS_TRANSLATION_ALREADY_EXISTS
-			wxMessageBox(_(
+			if (pRefStr->GetDeletedFlag())
+			{
+				// it matches a deleted CRefString instance, so undelete it, etc
+				pRefStr->SetDeletedFlag(FALSE);
+				wxString emptyStr = _T("");
+				pRefStr->GetRefStringMetadata()->SetDeletedDateTime(emptyStr);
+				pRefStr->GetRefStringMetadata()->SetModifiedDateTime(emptyStr);
+				pRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+				pRefStr->m_refCount = 1; // don't leave it zero - that's illegal for a
+										 // CRefString instance which is valid
+				// set pCurRefString to pRefStr, as the caller will use pCurRefString
+				// to set the client data for the list box string when we return
+				pCurRefString = pRefStr;
+				// throw away the new one, we won't need it
+				pRefString->DeleteRefString();
+
+                // now reposition the undeleted element to the end of the CTargetUnit's
+                // list because the caller will append the new string to the end of the
+                // list box's list, so their positions need to match
+				bool bOK = TRUE;
+				bOK = pTargetUnit->m_pTranslations->DeleteNode(savePos);
+				savePos = pTargetUnit->m_pTranslations->Append(pRefStr);
+				return TRUE;
+			}
+			else
+			{
+				wxMessageBox(_(
 "Sorry, the translation you are attempting to associate with the current source phrase already exists."),
-			_T(""),wxICON_INFORMATION);
-			delete pRefString; // don't need this one
-			return FALSE;
+				_T(""),wxICON_INFORMATION);
+				pRefString->DeleteRefString(); // don't need this one
+				return FALSE;
+			}
 		}
 	}
 	// if we get here with bMatched == FALSE, then there was no match, so we must add
@@ -1443,7 +1581,7 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 	if (!bMatched)
 	{
 		pTargetUnit->m_pTranslations->Append(pRefString);
-		pCurRefString = pRefString;
+		pCurRefString = pRefString; // caller will use this LHS member variable
 	}
 	return TRUE;
 }
@@ -1461,18 +1599,14 @@ void CKBEditor::OnOK(wxCommandEvent& event)
         // RemoveRefString below will internally calc nWords - 1 to get map page so we must
         // increment the zero based page index here, for it to come out right within
         // RemoveRefString.
-		nWords = m_pKBEditorNotebook->GetSelection() + 1; 
-		CAdapt_ItView* pView = gpApp->GetView();
-		CRefString* pRefString;
+		nWords = m_pKBEditorNotebook->GetSelection() + 1;
+		wxString emptyStr = _T("");
 		if (gbIsGlossing)
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_gloss);
+			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
 		else
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_adaption);
-		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->GetSrcPhrase(),nWords);
+			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -1496,17 +1630,13 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
         // increment the zero based page index here, for it to come out right within
         // RemoveRefString.
 		nWords = m_pKBEditorNotebook->GetSelection() + 1;
-		CAdapt_ItView* pView = gpApp->GetView();
-		CRefString* pRefString;
+		wxString emptyStr = _T("");
 		if (gbIsGlossing)
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_gloss);
+			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
 		else
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_adaption);
-		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->GetSrcPhrase(),nWords);
+			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
@@ -1522,6 +1652,11 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 
 // other class methods
 
+// BEW 22Jun10, changes needed for support of kbVersion 2's m_bDeleted flag
+// BEW 12Jan11, removed the wxASSERT which assumes the target text list will have at least
+// one showable entry - that won't be the case if the user deletes all the list's entries,
+// which would otherwise produce an unwanted trip of the assert because no error has been
+// produced by such a deletion, it's an allowed user operation
 void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 {
     // In the wx version wxDesigner has created identical sets of controls for each page
@@ -1602,8 +1737,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	wxASSERT(m_pBtnEraseAllLines != NULL);
 
 	// most of this was originally in MFC's InitDialog
-	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
+	wxString s = _("<no adaptation>");
 
 	wxString srcKeyStr;
 	
@@ -1687,25 +1821,28 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			if (pCurTgtUnit->m_pTranslations->IsEmpty())
 			{
 				pMap->erase(srcKeyStr); // the map now lacks this invalid association
-				TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
-				wxASSERT(pos != NULL);
-				pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
+
+				// BEW removed 28May10, because TUList is redundant & is now removed
+				//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
+				//wxASSERT(pos != NULL);
+				//pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
 													  // gone from list
 				delete pCurTgtUnit; // and its memory chunk is freed
 				continue;
 			}
 			int index;
-			index = m_pListBoxKeys->Append(srcKeyStr,pCurTgtUnit); // whm modified 
-														// 10Nov08 to use 2nd param
-            // whm update 10Nov08: We can use the Append function that takes the second
-            // parameter for the client data. This is more efficient. For KBs with
-            // hundrends of key string items, using FindListBoxItem takes too long and
-            // causes a considerable amount of time to populate the m_pListBoxKeys list
-            // box. Therefore I've commented out the original code below:
-			//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKeyStr, 
-			//                                         caseSensitive, exactString);
-			//wxASSERT(nNewSel != -1); // we just added it so it must be there!
-			//m_pListBoxKeys->SetClientData(nNewSel,pCurTgtUnit);
+			// BEW 22Jun10, for kbVersion 2 it is possible to have a CTargetUnit instance
+			// for which all of its stored CRefString instances are marked as deleted (for
+			// example, the user may have manually used the KBEditor to Remove each one);
+			// when this is the case, such a CTargetUnit instance should not have it's key
+			// listed in the list box - so test for this and handle it appropriately
+			int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
+			if (numNotDeleted > 0)
+			{
+				// there is at least one non-deleted element, so put this one in the list
+				// box
+				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
+			}
 		}
 	}
 	else
@@ -1814,41 +1951,66 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	m_pStaticCount->SetLabel(m_entryCountStr);
 
 	// fill the translations listbox for the pCurTgtUnit selected
+	// BEW 22Jun10, tweaked the code to support both glossing and adapting KBs when trying
+	// to set nMatchedRefString, and also put in support for kbVersion 2's m_bDeleted flag
+	// - any CRefString instances with that flag set TRUE have to be excluded from being
+	// shown to the user in the list; also, the count needs to be done for just the
+	// non-deleted instances, so use CKB::CountNonDeletedRefStringInstances(CTargetUnit*)
 	if (pCurTgtUnit != NULL)
 	{
+		int countNonDeleted;
+		countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
 		int nMatchedRefString = -1; // whm added 24Jan09
+		int countShowable = 0;
 		while (pos != NULL)
 		{
 			pCurRefString = (CRefString*)pos->GetData();
 			pos = pos->GetNext();
-			wxString str = pCurRefString->m_translation;
-			if (str.IsEmpty())
+			// only put into the list CRefString instances which are not marked as deleted
+			if (!pCurRefString->GetDeletedFlag())
 			{
-				str = s;
-			}
-			 
-			int aIndex = m_pListBoxExistingTranslations->Append(str,pCurRefString); // whm 
-													// modified 24Jan09 to use 2nd param
-            // whm update 10Nov08: We can use the Append function that takes the second
-            // parameter for the client data. This is more efficient. Therefore, I've
-            // commented out the original code below:
-			//int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, str, 
-			//                                             caseSensitive, exactString);
-			//wxASSERT(nNewSel != -1); // we just added it so it must be there!
-			//m_pListBoxExistingTranslations->SetClientData(nNewSel,pCurRefString);
-			
-			// If the ref string's m_translation member is the same as the m_
-			if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation == 
-								gpApp->m_pActivePile->GetSrcPhrase()->m_targetStr)
-			{
-				nMatchedRefString = aIndex;
-			}
-		}
+				countShowable++; // it's not deleted so count it
+				wxString str = pCurRefString->m_translation;
+				if (str.IsEmpty())
+				{
+					str = s; // set "<no adaptation>"
+				}
+				 
+				int anIndex = m_pListBoxExistingTranslations->Append(str,pCurRefString); // whm 
+														// modified 24Jan09 to use 2nd param			
+				// If the ref string's m_translation member is the same as the m_adaption or,
+				// for a glossingKB, the m)gloss, set nMatchedRefString to the current index
+				if (GetGlossingKBFlag(pKB))
+				{
+					// no punctuation stripping is done with the glossingKB, so just test for
+					// a match with m_gloss contents (which could contain puntuation)
+					if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation == 
+										gpApp->m_pActivePile->GetSrcPhrase()->m_gloss)
+					{
+						nMatchedRefString = anIndex;
+					}
+				}
+				else
+				{
+					// its an adaptingKB (use m_adaption, as it has punctuation stripped off,
+					// whereas m_targetStr doesn't and is never entered into the KB's maps)
+					if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation == 
+										gpApp->m_pActivePile->GetSrcPhrase()->m_adaption)
+					{
+						nMatchedRefString = anIndex;
+					}
+				}
+			} // end TRUE block for test: if (!pCurRefString->m_bDeleted)
+		} // end while loop
 
-		wxASSERT(m_pListBoxExistingTranslations->GetCount() > 0);
+		//wxASSERT(countShowable > 0 && countShowable == countNonDeleted); // <<-- remove
+		// because if the user has removed all the list's entries, this assert would trip
+		// even though no error has happened
+		
 		// if possible select the matched m_translation in the Ref String
+        int listcount = m_pListBoxExistingTranslations->GetCount();
 		if (nMatchedRefString != -1)
 		{
 			// there was a match
@@ -1857,33 +2019,54 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		}
 		else
 		{
-			// select the first translation in the listbox by default -- there will always be at least one
-			m_pListBoxExistingTranslations->SetSelection(0);
+            // select the first translation in the listbox by default -- there will always
+            // be at least one - except when the user has just used the Remove button to
+            // remove all the entries
+			if (listcount > 0)
+			{
+				m_pListBoxExistingTranslations->SetSelection(0);
+			}
 		}
-		wxString str = m_pListBoxExistingTranslations->GetStringSelection();
-		int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
-		wxASSERT(nNewSel != -1);
-		pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nNewSel);
-		wxASSERT(pCurRefString != 0);
-		m_refCount = pCurRefString->m_refCount;
-		m_refCountStr.Empty();
-		m_refCountStr << m_refCount;
-		if (m_refCount < 0)
+		if (listcount > 0)
 		{
-			m_refCount = 0; // an error condition
-			m_refCountStr = _T("0");
-			wxMessageBox(_T("A value of zero for the reference count means there was an error."),_T(""),wxICON_WARNING);
-		}
+			wxString str = m_pListBoxExistingTranslations->GetStringSelection();
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
+			wxASSERT(nNewSel != -1);
+			pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nNewSel);
+			wxASSERT(pCurRefString != 0);
+			m_refCount = pCurRefString->m_refCount;
+			m_refCountStr.Empty();
+			m_refCountStr << m_refCount;
+			if (m_refCount < 0)
+			{
+				m_refCount = 0; // an error condition
+				m_refCountStr = _T("0");
+				wxMessageBox(_T("A value of zero for the reference count means there was an error."),_T(""),wxICON_WARNING);
+			}
 
-		// get the selected translation text
-		m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
+			// get the selected translation text; if nNewSel is the same value as the default
+			// selection of index 0, then m_edTransStr can be got from the top element in the
+			// list, but if nNewSel is > 0, we must assign str's contents to it instead
+			if (nNewSel > 0)
+			{
+				m_edTransStr = str;
+			}
+			else
+			{
+				m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
+			}
+		}
+		else
+		{
+			m_edTransStr.Empty();
+		}
 	}
 
-	m_pTypeSourceBox->SetSelection(-1,-1); //(0,0); // MFC intends to select the whole contents
+	m_pTypeSourceBox->SetSelection(-1,-1); // select all
 	m_pTypeSourceBox->SetFocus();
 		
-	m_pEditRefCount->SetValue(m_refCountStr);
-	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);// whm added
+	m_pEditRefCount->ChangeValue(m_refCountStr);
+	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);// whm added
 	UpdateButtons();
 }
  
@@ -2006,3 +2189,53 @@ void CKBEditor::UpdateComboInEachPage()
 	// select the top
 	m_pComboOldSearches->SetSelection(0);
 }
+
+/* these two are not needed, as it turns out
+// A helper for Move Up and Move Down buttons (required because kbVersion 2 stores deleted
+// CRefString instances in the KB, and so the moving up or down over the contents of a
+// CTargetUnit instance will have to skip over any deleted CRefString instances in its
+// m_pTranslations list; so we'll do the moves and then repopulate the list from scratch
+// for each move)
+// params:
+// pTgtUnit    ->  the current CTargetUnit instance whose contents are displayed in the 
+//                 KBEditor's m_pTranslations list box
+// BEW added 22Jun10, in support of kbVersion 2
+void CKBEditor::PopulateTranslationsListBox(CTargetUnit* pTgtUnit)
+{
+	wxASSERT(pTgtUnit);
+	wxString s = _("<no adaptation>");
+	int countNonDeleted = pKB->CountNonDeletedRefStringInstances(pTgtUnit);
+	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	int countShowable = 0;
+	CRefString* pRefStr = NULL;
+	int anIndex = -1;
+	while (pos != NULL)
+	{
+		pRefStr = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		// only put into the list CRefString instances which are not marked as deleted
+		if (!pRefStr->GetDeletedFlag())
+		{
+			countShowable++; // it's not deleted so count it
+			wxString str = pRefStr->m_translation;
+			if (str.IsEmpty())
+			{
+				str = s; // set "<no adaptation>"
+			}
+            // cast to (void*) to ensure pRefStr is not considered owned by this list, so
+            // that a later Clear() call will not delete any of the client data
+			anIndex = m_pListBoxExistingTranslations->Append(str,(void*)pRefStr);			
+		} // end TRUE block for test: if (!pCurRefString->m_bDeleted)
+	} // end while loop
+	wxASSERT(countShowable == countNonDeleted);
+	countShowable = countNonDeleted; // avoid a compiler warning in Release build
+}
+
+void CKBEditor::EraseTranslationsListBox()
+{
+	m_pListBoxExistingTranslations->Clear();
+}
+*/
+
+

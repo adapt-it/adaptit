@@ -26,7 +26,7 @@
 // forward references:
 #include "Pile.h"
 class CStrip;
-class CLayout; // make the "friend class CLayout" declaration work
+class CLayout;
 
 WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
 
@@ -49,12 +49,7 @@ private:
 	// attributes
 	int				m_nStrip;	// index of this strip in CLayout's m_arrStrips array of pointers
 	CLayout*		m_pLayout;  // the owning CLayout
-#ifdef _ALT_LAYOUT_
-	wxArrayInt		m_arrPileIndices; // array of CPile* indices into m_pileList, 
-									  // for those CPile pointers which comprise the strip
-#else
 	wxArrayPtrVoid	m_arrPiles; // array of CPile* instances which comprise the strip
-#endif
 	wxArrayInt		m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile
 	int				m_nFree;	// how many pixels wide the free space at end is
 	bool			m_bValid;  // TRUE if has populated fully, or not involved in any user
@@ -81,13 +76,6 @@ public:
 	void	GetFreeTransRect(wxRect& rect);
 	wxRect	GetFreeTransRect(); // overloaded version
 
-#ifdef _ALT_LAYOUT_
-	int		CreateStrip(int nIndexToFirst, int nStripWidth, int gap); // return index of next 
-																	  // for placement
-	int		GetPileIndicesCount();
-	CPile*	GetPileByIndexInStrip(int index);
-	wxArrayInt* GetPileIndicesArray();
-#else
 	PileList::Node* CreateStrip(PileList::Node*& pos, int nStripWidth, int gap); // return 
 															// iterator of next for placement
 	// next version is overloaded, uses indices, and has nEndPileIndex for the index of
@@ -100,7 +88,6 @@ public:
 	int		GetPileCount();
 	CPile*	GetPileByIndex(int index);
 	wxArrayPtrVoid* GetPilesArray();
-#endif
 
 	// validity flag for a strip, TRUE if strip is unchanged by user editing
 	void	SetValidityFlag(bool bValid);

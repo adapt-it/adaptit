@@ -75,8 +75,6 @@ enum TextType {
 	note
 };
 
-
-
 /// The CSourcePhrase class represents what could be called a "TranslationUnit".
 /// When the input source text is parsed, each word gets stored on one instance
 /// of CSourcePhrase on the heap. Mergers of source text words cause their
@@ -115,7 +113,9 @@ public:
 	bool			m_bFootnote;	// TRUE for the first source phrase in a section of footnote text
 	bool			m_bChapter;		// TRUE if the source phrase is first one in a new chapter
 	bool			m_bVerse;		// TRUE if the source phrase is the first one in a new verse
-	bool			m_bParagraph;   // TRUE if the source phrase is the first one after a \p marker
+	// BEW 8Oct10, repurposed m_bParagraph to be m_bUnused
+	//bool			m_bParagraph;   // TRUE if the source phrase is the first one after a \p marker
+	bool			m_bUnused;   
 	bool			m_bSpecialText; // TRUE if the text is special, such as \id contents, or 
 									// subheading, etc
 	bool			m_bBoundary;	// marks right boundary for selection extension, to prevent spurious
@@ -169,18 +169,27 @@ public:
 	// new attributes for VERSION_NUMBER 4, for supporting free translations, notes and bookmarks
 	bool			m_bHasFreeTrans; // TRUE whenever this sourcephrase is associated with a free translation
 	bool			m_bStartFreeTrans; // TRUE if this sourcephrase is the first in a free translation
-									   // section - this is the one which stores its text, filtered, in m_markers
+									   // section - this is the one which stores its text, in m_freeTrans
+									   // (considered filtered)
 	bool			m_bEndFreeTrans; // TRUE if this sourcephrase is the last in a free translation
-	bool			m_bHasNote; // TRUE if this sourcephrase contains a note (in m_markers, filtered, with
-								// marker \note and endmarker \note*)
+	bool			m_bHasNote; // TRUE if this sourcephrase contains a note (in m_note, considered filtered)
 	bool			m_bHasBookmark; // TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
 
-	// whm 10Jan11 added the following 10 as public members from version 6 for use by version 5.2.4
+    // BEW added 9Feb10, extra wxString members for refactoring support for free
+    // translations, notes, collected back translations, endMarkers, and filtered
+	// information; these are private as should have been the case for the above too, but
+	// that is a change we can defer to much later on
+private:
 	wxString		m_endMarkers;
 	wxString		m_freeTrans;
 	wxString		m_note;
 	wxString		m_collectedBackTrans;
 	wxString		m_filteredInfo;
+	// BEW added 11Oct10, the next five are needed in order to properly handle inline
+	// (character formatting) markers, and the interactions of punctuation and marker
+	// types - in particular to support punctuation which follows inline markers (rather
+	// than assuming that punctuation binds more closely to the word than do endmarkers
+	// and beginmarkers)
 	wxString		m_inlineBindingMarkers;
 	wxString		m_inlineBindingEndMarkers;
 	wxString		m_inlineNonbindingMarkers;
@@ -188,12 +197,6 @@ public:
 	wxString		m_follOuterPunct; // store any punctuation after endmarker (inline
 									  // non-binding, or \f* or \x*) here; but puncts
 									  // after inline binding mkr go in m_follPunct
-// Serialization
-	//virtual void	Serialize(CArchive& ar); // MFC used this
-	// MFC's Serialize() function is handled in the wxWidgets version with SaveObject() 
-	// and LoadObject() below
-	//wxOutputStream& SaveObject(wxOutputStream& stream, bool bParentCall);
-	//wxInputStream& LoadObject(wxInputStream& stream, bool bParentCall);
 
 // Operations
 public:
@@ -220,8 +223,51 @@ public:
 	// BEW added 04Nov05
 	bool ChapterColonVerseStringIsNotEmpty();
 
+	// BEW added 12Feb10, getters and setters for the 5 new private wxString members
+	wxString GetFreeTrans();
+	wxString GetNote();
+	wxString GetCollectedBackTrans();
+	wxString GetFilteredInfo();
+	bool	 GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
+									wxArrayString* pFilteredEndMarkers,
+									wxArrayString* pFilteredContent,
+									bool bUseSpaceForEmpty = FALSE);
+	wxString GetEndMarkers();
+	bool GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
+	//bool GetAllEndMarkersAsArray(wxArrayString* pEndmarkersArray); // ditto, gets not just from
+				// m_endMarkers, but also from the two storage members for inline endmarkers
+	void SetFreeTrans(wxString freeTrans);
+	void SetNote(wxString note);
+	void SetCollectedBackTrans(wxString collectedBackTrans);
+	void AddToFilteredInfo(wxString filteredInfo);
+	void SetFilteredInfo(wxString filteredInfo);
+	void SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
+									wxArrayString* pFilteredEndMarkers,
+									wxArrayString* pFilteredContent,
+									bool bChangeSpaceToEmpty = FALSE);
+	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);
+	void SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray);
+
+	//BEW added 11Oct10
+	wxString GetInlineBindingEndMarkers();
+	wxString GetInlineNonbindingEndMarkers();
+	wxString GetInlineBindingMarkers();
+	wxString GetInlineNonbindingMarkers();
+	wxString GetFollowingOuterPunct();
+	void SetInlineBindingMarkers(wxString mkrStr);
+	void SetInlineNonbindingMarkers(wxString mkrStr);
+	void SetInlineBindingEndMarkers(wxString mkrStr);
+	void SetInlineNonbindingEndMarkers(wxString mkrStr);
+	void AppendToInlineBindingMarkers(wxString str);
+	void AppendToInlineBindingEndMarkers(wxString str);
+	void SetFollowingOuterPunct(wxString punct);
 	void AddFollOuterPuncts(wxString outers);
+
+/* uncomment out when we make m_markers a private member
+	wxString GetMarkers();
+	void SetMarkers(wxString markers);
+*/
 
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)

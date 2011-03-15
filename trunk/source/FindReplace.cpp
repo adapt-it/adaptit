@@ -15,13 +15,8 @@
 /// the heap and are displayed with Show(), not ShowModal().
 /// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in FindReplace.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
+// BEW 26Mar10, these classes are updated for support of doc version 5
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -45,6 +40,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 
 #include "Adapt_It.h"
+#include "KB.h"
 #include "FindReplace.h"
 #include "Adapt_ItView.h"
 #include "Cell.h"
@@ -123,6 +119,7 @@ CFindDlg::~CFindDlg()
 {
 }
 
+// BEW 26Mar10, no changes needed for support of doc version 5
 CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	: wxDialog(parent, -1, _("Find"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -211,6 +208,7 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	m_pComboSFM->SetValidator(wxGenericValidator(&m_marker)); // use validator
 }
 
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	gbFound = FALSE;
@@ -409,6 +407,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 }
 // initdialog here above
 
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CFindDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -439,7 +438,7 @@ void CFindDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
+					pView->MakeTargetStringIncludingPunctuation(gpApp->m_pActivePile->GetSrcPhrase(),
 											gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
@@ -452,24 +451,21 @@ void CFindDlg::DoFindNext()
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
+					pRefStr = gpApp->m_pGlossingKB->GetRefString(1,
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
-					if (pRefStr == NULL && 
-						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pGlossingKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 				else
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pKB,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-										gpApp->m_targetPhrase);
+					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -1208,6 +1204,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	pReplaceDlgSizer->Layout(); // force the sizers to resize the dialog
 }
 
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CReplaceDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -1235,7 +1232,7 @@ void CReplaceDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
+					pView->MakeTargetStringIncludingPunctuation(gpApp->m_pActivePile->GetSrcPhrase(),
 												gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
@@ -1248,24 +1245,21 @@ void CReplaceDlg::DoFindNext()
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
-					if (pRefStr == NULL && 
-						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					pRefStr = gpApp->m_pGlossingKB->GetRefString(1,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pGlossingKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 				else
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pKB,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-										gpApp->m_targetPhrase);
+					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -1655,6 +1649,7 @@ bool CReplaceDlg::OnePassReplace()
 		return FALSE;
 }
 
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event)) 
 {
 	CAdapt_ItView* pView = gpApp->GetView();

@@ -11,6 +11,7 @@
 /// during export of the target text in the event that RebuildTargetText() needs user
 /// input as to the final placement of markers that were merged together during Retranslation.
 /// \derivation		The CPlaceRetranslationInternalMarkers class is derived from AIModalDialog.
+/// BEW 1Apr10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef PlaceRetranslationInternalMarkers_h
@@ -21,10 +22,16 @@
     #pragma interface "PlaceRetranslationInternalMarkers.h"
 #endif
 
-/// The CPlaceRetranslationInternalMarkers class provides a dialog which is presented to the user
-/// during export of the target text in the event that RebuildTargetText() needs user
-/// input as to the final placement of markers that were merged together during Retranslation.
-/// \derivation		The CPlaceRetranslationInternalMarkers class is derived from AIModalDialog.
+/// The CPlaceRetranslationInternalMarkers class provides a dialog which is presented to
+/// the user during export of the target text in the event that RebuildTargetText() needs
+/// user input as to the final placement of markers that because retranslation-medial when
+/// the retranslation was created. That is, any endmarkers on the first CSourcePhrase, any
+/// non-endmarkers on the final CSourcePhrase (of the retranslation), and any other
+/// markers whether endmarkers or not, on any CSourcePhrase instances between the first
+/// and the last. (The way this class works will, in doc version 5, be the same as the way
+/// the CPlaceInternalMarkers class works - and both use the same dialog resource.) 
+/// \derivation The CPlaceRetranslationInternalMarkers class is derived from
+/// AIModalDialog.
 class CPlaceRetranslationInternalMarkers : public AIModalDialog
 {
 public:
@@ -32,14 +39,23 @@ public:
 	virtual ~CPlaceRetranslationInternalMarkers(void); // destructor
 	// other methods
 
-	//enum { IDD = IDD_PLACE_MARKERS_RETRANS };
+	// getters and setters
+	void	SetNonEditableString(wxString str); // sets m_srcPhrase
+	void	SetUserEditableString(wxString str); // sets m_tgtPhrase
+	void	SetPlaceableDataStrings(wxArrayString* pMarkerDataArray); // populates pListBox
+	wxString	GetPostPlacementString(); // for returning m_tgtPhrase data, after
+										  // placements are finished, to the caller
+private:
+	// the next 3 are for accepting data from outside using the setters
+	wxArrayString m_markersToPlaceArray;
 	wxString	m_srcPhrase;
 	wxString	m_tgtPhrase;
 	wxString	m_markers;
-	
+	// control pointers - these have to be initialized in the creator, 
+	// and not in in InitDialog() which would be too late
 	wxTextCtrl* pEditDisabled;
-	wxListBox* pListBox;
 	wxTextCtrl* pEditTarget;
+	wxListBox* pListBox;
 	wxTextCtrl*	pTextCtrlAsStaticPlaceIntMkrs;
 
 protected:

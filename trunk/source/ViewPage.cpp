@@ -98,6 +98,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	//m_pCheckSupressLast = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_LAST);
 	m_pCheckWelcomeVisible = (wxCheckBox*)FindWindowById(IDC_CHECK_WELCOME_VISIBLE);
 	m_pCheckHighlightAutoInsertedTrans = (wxCheckBox*)FindWindowById(IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS);
+	m_pPanelAutoInsertColor = (wxPanel*)FindWindowById(ID_PANEL_AUTO_INSERT_COLOR);
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 }
 
@@ -136,6 +137,8 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 		// BEW 22Aug09 fixed failure to change colour
 		colorData = colorDlg.GetColourData();
 		tempAutoInsertionsHighlightColor  = colorData.GetColour();
+		m_pPanelAutoInsertColor->SetBackgroundColour(tempAutoInsertionsHighlightColor);
+		m_pPanelAutoInsertColor->Refresh();
 	}	
 }
 
@@ -355,6 +358,8 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pCheckWelcomeVisible->SetValue(tempMakeWelcomeVisible);
 	m_pCheckHighlightAutoInsertedTrans->SetValue(tempHighlightAutoInsertions);
 	m_pCheckShowAdminMenu->SetValue(tempShowAdminMenu);
+
+	m_pPanelAutoInsertColor->SetBackgroundColour(tempAutoInsertionsHighlightColor);
 
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.

@@ -2,7 +2,7 @@ Source: adaptit
 Section: editors
 Priority: optional
 Maintainer: Bill Martin <bill_martin@sil.org>
-Build-Depends: debhelper (>= 5), libwxgtk2.8-dev, zip
+Build-Depends: debhelper (>= 5), libwxgtk2.8-dev, zip, uuid-dev, libcurl3-gnutls-dev
 Standards-Version: 3.7.2
 
 Package: adaptit

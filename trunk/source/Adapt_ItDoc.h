@@ -33,7 +33,34 @@ class wxFile;
 class CAdapt_ItApp;
 class CAdapt_ItDoc;
 class CLayout;
+class CFreeTrans;
+class CNotes;
 
+struct AutoFixRecord;
+
+/// wxList declaration and partial implementation of the AFList class being
+/// a list of pointers to AutoFixRecord objects
+WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
+
+
+
+enum SaveType {
+	normal_save,
+	save_as
+};
+
+enum PunctChangeType {
+	was_empty_stays_empty,
+	was_empty_added,
+	exists_removed,
+	exists_replaced,
+	exists_unchanged
+};
+
+enum WhichLang {
+	sourceLang,
+	targetLang
+};
 
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
@@ -64,8 +91,8 @@ class CAdapt_ItDoc : public wxDocument
 	// creatable from run-time type information. 
 	// MFC uses DECLARE_DYNCREATE(CAdapt_ItDoc)
 
-  // Attributes
-  public:
+	// Attributes
+public:
 	CAdapt_ItDoc(); // moved constructor to public access for wxWidgets 
 					// version (see note above)
 
@@ -98,8 +125,9 @@ protected:
 	void			AddParagraphMarkers(wxString& rText, int& rTextLength);
 	bool			AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
 									wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
-	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp));
+	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
 	int				ClearBuffer();
+	//void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList); BEW deprecated 8Mar11
 	CBString		ConstructSettingsInfoAsXML(int nTabLevel); // BEW added 05Aug05 for XML doc output support
 	int				ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, wxString filterList,
 						wxString& wholeMkr, wxString& wholeShortMkr, wxString& endMkr, bool& bHasEndmarker,
@@ -110,12 +138,20 @@ protected:
 	bool			IsPreviousTextTypeWanted(wxChar* pChar,USFMAnalysis* pAnalysis);
 	void			GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap, wxString str); // used in SetupForSFMSetChange
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
-	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
+	//bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
+	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
+	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
+							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
+							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); // BEW created 11Oct10
+	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
+							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
+							wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
+							wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
+							wxString& spacelessPuncts);
 	bool			IsUnstructuredPlainText(wxString& rText);
-	void			MakeOutputBackupFilenames(wxString& curOutputFilename, bool bSaveAsXML);
-	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
+	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
 #ifndef __WXMSW__
@@ -126,14 +162,14 @@ protected:
 	void			RemoveVenturaOptionalHyphens(wxString*& pstr);
 	bool			ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList, 
 								SPList::Node* pos, CSourcePhrase*& pSrcPhrase, wxString& fixesStr);
-	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& pList, SPList::Node* pos, 
-								 CSourcePhrase*& pSrcPhrase, wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
+	bool			ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, SPList*& WXUNUSED(pList),
+								SPList::Node* WXUNUSED(pos), CSourcePhrase*& pSrcPhrase, 
+								wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned);
 	bool			ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr);
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,
 							wxString newFilterMarkers, wxString& secondPassFilterStr, enum WhichPass pass);
 	void			SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
 	void			ValidateFilenameAndPath(wxString& curFilename, wxString& curPath, wxString& pathForSaveFolder);
-	void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
 
 public:
 	void			AdjustSequNumbers(int nValueForFirst, SPList* pList);
@@ -153,10 +189,12 @@ public:
 										   // but does not delete each partner pile (use DestroyPiles()
 										   // defined in CLayout for that)
 	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
-	bool			DoFileSave(bool bShowWaitDlg);
-	bool			DoLegacyFileSave(bool bShowWaitDlg,wxString pathName); // whm added 11Jan11 modified v6 DoFileSave() used in 5.2.4
+	bool			DoFileSave_Protected(bool bShowWaitDlg);
+	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* pRenamedFilename,
+								bool& bUserCancelled); // BEW added bUserCancelled 20Aaug10
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
+	bool			DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog = TRUE);
 	bool			DoTransformedDocFileSave(wxString path);
 	void			EraseKB(CKB* pKB);
 	bool			FilenameClash(wxString& typedName); // BEW added 22July08 to 
@@ -165,13 +203,12 @@ public:
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of
 											// the project configuration file to the project's directory
+	int				GetCurrentDocVersion();
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
-	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
+	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
-	int				GetLoadedDocVersion(); // whm 12Jan11 added
-	void			SetLoadedDocVersion(int nDocVer); // whm 12Jan11 added
-	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
-					wxString* fileTitle);
+	//bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
+	//				wxString* fileTitle);
 	CPile*			GetPile(const int nSequNum);
 	wxString		GetUnFilteredMarkers(wxString& src);
 	wxString		GetWholeMarker(wxChar *pChar);
@@ -185,59 +222,112 @@ public:
 											wxString & unkMkrsStr,
 											enum SetInitialFilterStatus mkrInitStatus);
 	wxString		GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, wxArrayInt* pUnkMkrsFlags);
+	bool			HasMatchingEndMarker(wxString& mkr, CSourcePhrase* pSrcPhrase);
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar *pChar);
 	int				ParseNumber(wxChar* pChar);
 	int				IndexOf(CSourcePhrase* pSrcPhrase); // BEW added 17Mar09
 	bool			IsVerseMarker(wxChar* pChar, int& nCount);
+	bool			IsFootnoteInternalEndMarker(wxChar* pChar);
+	bool			IsCrossReferenceInternalEndMarker(wxChar* pChar);
+	bool			IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar);
+	//bool			IsFootnoteOrCrossReferenceEndMarker(wxString str); //overload, str must start with endmarker
 	bool			IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsChapterMarker(wxChar* pChar);
 	bool			IsAmbiguousQuote(wxChar* pChar);
 	bool			IsOpeningQuote(wxChar* pChar);
+	bool			IsStraightQuote(wxChar* pChar);
 	bool			IsClosingQuote(wxChar* pChar);
+	bool			IsClosingCurlyQuote(wxChar* pChar);
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
-	bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
-	bool			IsMarker(wxChar* pChar); // whm added 10Jan11 from v6 code
+	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);
+	bool			IsMarker(wxChar* pChar);
+	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
+	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
+	bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList *LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis*	LookupSFM(wxChar *pChar);
 	USFMAnalysis*	LookupSFM(wxString bareMkr);
+	// BEW created 13Jan11, pass in the CSourcePhrase instance's m_targetStr value (it may
+	// have punctuation, and possibly also be a fixed-space (~) conjoined pair; internally
+	// parse it & extract and return the equivalent puncuation-less string
+	wxString		MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation, int startingSequNum);
 	bool			MarkerExistsInArrayString(wxArrayString* pUnkMarkers, wxString unkMkr, int& MkrIndex);
 	bool			MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, int& markerPos);
 	wxString		MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd);
 	wxString		NormalizeToSpaces(wxString str);
 	bool			OpenDocumentInAnotherProject(wxString lpszPathName);
+	void			TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSourcePhrase* pFromSrcPhrase);
+	int				ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
+								wxString& spacelessPuncts, int len, bool& bExitOnReturn, 
+								bool& bHasPrecedingStraightQuote, wxString& additions,
+								bool bPutInOuterStorage);
+	int				ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd, CSourcePhrase*& pSrcPhrase,
+								wxString& inlineNonBindingEndMkrs, int len, 
+								bool& bInlineBindingEndMkrFound, wxString& endMkr);
+	int				ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int len);
 	int				ParseMarker(wxChar* pChar);
 	int				ParseWhiteSpace(wxChar *pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 							wxChar *pBuffStart, wxChar *pEnd);
-	int				ParseFilteredMarkerText(const wxString wholeMkr, wxChar *pChar, 
-							wxChar *pBuffStart, wxChar *pEnd);
-	int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
+	wxChar*			FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
+											bool* pbFoundInlineBindingEndMarker,
+											bool* pbFoundFixedSpaceMarker,
+											bool* pbFoundClosingBracket,
+											bool* pbFoundHaltingWhitespace,
+											int& nFixedSpaceOffset,
+											int& nEndMarkerCount); // BEW created 25Jan11
+	void			ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
+							int nEndMkrsCount, wxString& inlineBindingEndMarkers,
+							wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
+							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
+	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
+								// created 31Jan11, a helper for round tripping punctuation changes
+	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
+	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
+	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
+							wxChar* pEnd, // pointer to the null at the end of the string buffer
+							CSourcePhrase* pSrcPhrase, // where we store what we parse
+							wxString& spacelessPuncts, // punctuationset used, with spaces removed
+							wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+							wxString& inlineNonbindingEndMrks, // fast access string for \wj* \qt* \sls* \tl* \fig*
+							bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
+							// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
+							bool& bIsInlineBindingMkr); // TRUE if pChar is pointing at a beginmarker
+							// from the remaining inline marker set (but excluding \f* and
+							// \x* and any others beginning with \f or \x)
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
 	wxString		RemoveAnyFilterBracketsFromString(wxString str);
 	wxString		RemoveMultipleSpaces(wxString& rString);
 	void			ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, wxString unfilterMkrs);
 	void			ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, enum resetMarkers resetMkrs);
+	void			RestoreCurrentDocVersion(); // BEW added 19Apr10 for Save As... support
 	void			RestoreDocParamsOnInput(wxString buffer); // BEW added 08Aug05 to facilitate XML doc input
 															  // as well as binary (legacy) doc input & its
 															  // output equivalent function is SetupBufferForOutput
 	int				RetokenizeText(	bool bChangedPunctuation,
 									bool bChangedFiltering, bool bChangedSfmSet);
+	bool			SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
+	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
 	wxString		SetupBufferForOutput(wxString* pCString);
-	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,int nTextLength);
+	// BEW 11Oct10 (actually 11Jan11) added bTokenizingTargetText param so as to be able
+	// to parse target text, with target punctuation settings, as if it was source text -
+	// this is useful for handling user-changes from Preferences to the punctuation settings
+	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
+									int nTextLength, bool bTokenizingTargetText = FALSE);
 	void			UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,bool bKBBackupPath,
 										   bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
-
 	void			SetFilename(const wxString& filename, bool notifyViews);
+	
 
 public:
 	// Destructor from the MFC version
@@ -245,10 +335,13 @@ public:
 
 protected:
 
-// Generated message map functions (from MFC version)
+	// Generated message map functions (from MFC version) ... most of these should not be
+	// public!!! (BEW 17May10)
 public:
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
+	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);
 	void OnFileOpen(wxCommandEvent& WXUNUSED(event));
 	void OnFileClose(wxCommandEvent& event);
 	void OnUpdateFileClose(wxUpdateUIEvent& event);
@@ -266,10 +359,30 @@ public:
 	void OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event));
 	void OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
+	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 
   private:
-	int		m_nLoadedDocV5;
+    int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
+	bool	m_bLegacyDocVersionForSaveAs;
+	bool	m_bDocRenameRequestedForSaveAs;
+	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
+	bool	IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr);
+	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
+					size_t itemLen, CSourcePhrase* pSrcPhrase);
+	void	DoConsistencyCheck(CAdapt_ItApp* pApp);	// the legacy function 
+	void	DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy);	// BEW added 9July10
+											// for support of looping over all book folders
+	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
+	wxChar	GetFirstChar(wxString& strText);
+	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
+	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
+  public:
+										  // (" or ') is encountered preceding the word when
+										  // parsing using TokenizeText()
 
+  private:
+	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
 	DECLARE_EVENT_TABLE()
 };
 

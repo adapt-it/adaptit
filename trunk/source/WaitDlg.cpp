@@ -120,6 +120,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 13: 
 			WaitMsg = _("Searching...");
 			break;
+		case 14: 
+			WaitMsg = _("Please wait while Adapt It exports the KB...");
+			break;
 		default:
 			WaitMsg = _("Please wait. This may take a while...");
 	}

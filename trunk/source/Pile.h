@@ -41,6 +41,13 @@ WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 
 const int PHRASE_BOX_WIDTH_UNSET = -1;
 
+//GDLC Added 2010-02-10
+enum phraseBoxWidthAdjustMode {
+	contracting,
+	steadyAsSheGoes,
+	expanding
+};
+
 /// The CPile class represents the next smaller divisions of a CStrip. The CPile instances
 /// are laid out sequentially within a CStrip. Each CPile stores a stack or "pile" of
 /// CCells stacked vertically in the pile. Within a CPile the top CCell displays the source
@@ -87,13 +94,15 @@ public:
 	bool		IsWrapPile();
 
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
-	int			CalcPhraseBoxGapWidth();
+//GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	void		SetStrip(CStrip* pStrip);
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();
+	int			GetWidth(); // BEW added 14Mar11
 
 	int			Width();
 	int			Height();
@@ -104,8 +113,10 @@ public:
 	void		TopLeft(wxPoint& ptTopLeft);
 
 	void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
-	void		SetPhraseBoxGapWidth();  // sets m_nWidth (the width to be used at active 
-										 //location, calls CalcPhraseBoxGapWidth())
+//GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
+	void		SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); 
+											// sets m_nWidth (the width to be used at active 
+											//location, calls CalcPhraseBoxGapWidth())
 	void		SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
 	int			GetMinWidth(); // returns value of m_nMinWidth
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth

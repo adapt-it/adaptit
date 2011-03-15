@@ -57,7 +57,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h>
 #include "CaseEquivPage.h"
-#include "USFMPage.h"
+#include "UsfmFilterPage.h"
 #include "PunctCorrespPage.h"
 #include "Adapt_It.h"
 #include "Pile.h"
@@ -70,7 +70,7 @@
 //extern bool gbWizardNewProject; // for initiating a 4-page wizard
 
 /// This global is defined in Adapt_It.cpp.
-extern CUSFMPageWiz* pUsfmPageWiz;
+extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
@@ -694,7 +694,7 @@ wxWizardPage* CCaseEquivPageWiz::GetPrev() const
 wxWizardPage* CCaseEquivPageWiz::GetNext() const
 {
 	// add code here to determine the next page to show in the wizard
-    return pUsfmPageWiz;
+    return pUsfmFilterPageWiz;
 }
 
 void CCaseEquivPageWiz::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
@@ -886,9 +886,9 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	
 
 		// Movement through wizard pages is sequential - the next page is the usfmPageWiz.
-		// The pUsfmPageWiz's InitDialog need to be called here just before going to it
+		// The pUsfmFilterPageWiz's InitDialog need to be called here just before going to it
 		wxInitDialogEvent idevent;
-		pUsfmPageWiz->InitDialog(idevent);
+		pUsfmFilterPageWiz->InitDialog(idevent);
 	}
 	else
 	{

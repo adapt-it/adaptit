@@ -17,14 +17,6 @@
 /// and following punctuation, its sequence number, text type, etc.
 /// \derivation		The CSourcePhrase class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items (in order of importance): (search for "TODO")
-// 1. NONE. Current with MFC version 3.2.2
-//
-// Unanswered questions: (search for "???")
-// 
-// 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "SourcePhrase.h"
@@ -43,6 +35,7 @@
 #endif
 
 #include "Adapt_It.h"
+#include "helpers.h"
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
 #include "RefString.h" // needed here???
@@ -56,6 +49,12 @@
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
+
+extern const wxChar* filterMkr;
+extern const wxChar* filterMkrEnd;
+const int filterMkrLen = 8;
+const int filterMkrEndLen = 9;
+extern wxChar gSFescapechar;
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -93,7 +92,9 @@ CSourcePhrase::CSourcePhrase()
 	m_bFootnote = FALSE;
 	m_bChapter = FALSE;
 	m_bVerse = FALSE;
-	m_bParagraph = FALSE;
+	// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
+	//m_bParagraph = FALSE;
+	m_bUnused = FALSE;
 	m_bSpecialText = FALSE;
 	m_bBoundary = FALSE;
 	m_bHasInternalMarkers = FALSE;
@@ -110,6 +111,7 @@ CSourcePhrase::CSourcePhrase()
 	m_markers   = _T("");
 	m_follPunct = _T("");
 	m_precPunct = _T("");
+	m_follOuterPunct = _T("");
 	m_srcPhrase = _T("");
 	m_key		= _T("");
 	m_targetStr = _T("");
@@ -131,6 +133,17 @@ CSourcePhrase::CSourcePhrase()
 	m_bHasNote = FALSE;
 	m_bHasBookmark = FALSE;
 
+	m_endMarkers = _T("");
+	m_freeTrans = _T("");
+	m_note = _T("");
+	m_collectedBackTrans = _T("");
+	m_filteredInfo = _T("");
+
+	m_inlineBindingMarkers = _T("");
+	m_inlineBindingEndMarkers = _T("");
+	m_inlineNonbindingMarkers = _T("");
+	m_inlineNonbindingEndMarkers = _T("");
+
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
 	wxASSERT(m_pSavedWords != NULL);
@@ -138,395 +151,33 @@ CSourcePhrase::CSourcePhrase()
 	wxASSERT(m_pMedialMarkers != NULL);
 	m_pMedialPuncts = new wxArrayString;
 	wxASSERT(m_pMedialPuncts != NULL);
+//#ifdef __WXDEBUG__
+// Leave this stuff here, commented out -- see comment in destructor for why
+//	wxLogDebug(_T("Creator: address = %x  first array = %x  second array = %x  SPList = %x"),
+//		(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
+//		(unsigned int)this->m_pSavedWords);
+//#endif
 }
 
 CSourcePhrase::~CSourcePhrase()
 {
-
+//#ifdef __WXDEBUG__
+	// Don't remove this, just comment it out when not wanted, it is potentially valuable
+	// because if anyone has a memory lapse and codes "delete pSrcPhrase;" somewhere,
+	// instead of the correct "DeleteSingleSrcPhrase(pSrcPhrase);", then the former will
+	// lead to the two wxArrayString instances on the heap (each 16 bytes) and the one
+	// SPList on the heap (28 bytes) being leaked. This can be detected by this wxLogDebug
+	// call because if the Delete...() function mentioned above is used, the first array,
+	// second array, and SPList values will be written to the Output window each have a 0
+	// (zero) value; but if the values are non-zero, you can be sure there is a "delete
+	// pSrcPhrase;" line somewhere in the code - a breakpoint in this destructor will then
+	// enable you to find where in the code the error is. (Try generate the error with a
+	// short document, to save yourself a lot of tedious button pressing.)
+	//wxLogDebug(_T("Destructor: address = %x  first array = %x  second array = %x  SPList = %x"),
+	//	(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
+	//	(unsigned int)this->m_pSavedWords);
+//#endif
 }
-
-//void CSourcePhrase::Serialize(CArchive& ar)
-
-/*
-// MFC's Serialize() above is replaced by SaveObject() here and LoadObject() below
-wxOutputStream& CSourcePhrase::SaveObject(wxOutputStream& stream,
-							bool bParentCall)
-{
-	wxDataOutputStream ar( stream );
-
-	//CObject::Serialize(ar); // serialize base class – not
-	// available in wxWidgets
-	//
-	// The Adapt_ItDoc::SaveObject() method has called this
-	// CSourcePhrase::SaveObject() method on the list of 
-	// m_pSourcePhrases. 
-
-	// In our wxWidgets version, we do not really need to store
-	// the name of the class or tags indicating whether the 
-	// data is the first instance of its class. The only thing
-	// that would be helpful is storing a VERSION_NUMBER. 
-	//
-	// The VERSION_NUMBER for the wxWidgets version will be
-	// totally different from the MFC accounting of the same.
-	// We'll use something like wxUint32 90 (0x5a000000) as 
-	// our starting version number (defined in 
-	// AdaptItConstants.h).
-	// 
-	// Note: Archiving of the version number could well be
-	// placed in the Doc's SaveObject() method so that it 
-	// is only placed at the beginning of the archive, 
-	// rather than repeated here before each CSourcePhrase 
-	// getting serialized. I'll leave it here for the time 
-	// being so we don't get involved in too many structural
-	// changes during the conversion to wxWidgets. The 5a 
-	// hex ('Z...') will also help to flag the beginning of
-	// each CSourcePhrase's data when examining the archive
-	// file with a hex editor.
-
-	// First, serialize the data schema version number
-	ar.Write32(VERSION_NUMBER); //ar << wxUint32(VERSION_NUMBER); // Data file version 90 
-							// or 0x5a000000 ('Z...')
-
-	// At this point MFC had m_pMedialPuncts->Serialize(ar);
-	// MFC used CStringList*, wxWidgets uses wxArrayString*
-	// Under wxWidgets we need to serialize each wxArrayString
-	// item individually
-	wxUint32 count;
-	count = m_pMedialPuncts->GetCount();
-	// First, stream out a count value so the equivalent
-	// LoadObject counterpart will know how many strings to
-	// read back into the wxArrayString.
-	ar.Write32(count); //ar << wxUint32(count);
-	// stream out all items in the wxArrayString
-	for ( size_t n = 0; n < count; n++ )
-	{
-		// stream out the item
-		ar << m_pMedialPuncts->Item(n);
-	}
-
-	// MFC code here had m_pMedialMarkers->Serialize(ar);
-	// Again serialize each wxArrayString item individually
-	count = m_pMedialMarkers->GetCount();
-	// First, stream out a count value so the equivalent
-	// LoadObject counterpart will know how many strings to
-	// read back into the wxArrayString.
-	ar.Write32(count); //ar << wxUint32(count);
-	// stream out all items in the wxArrayString
-	for ( size_t s = 0; s < count; s++ )
-	{
-		// stream out the item
-		ar << m_pMedialMarkers->Item(s);
-	}
-
-	// MFC code had m_pSavedWords->Serialize(ar);
-	// Note: m_pSavedWords is a list (SPList) of CSourcePhrase
-	// instances which is embedded within the CSourcePhrase
-	// instance we are currently serializing out to persistent
-	// storage. Under wxWidgets we need to serialize each 
-	// SPList CSourcePhrase item individually. In the MFC
-	// design the nesting or embedding is supposed to never 
-	// be more than 1 level deep. We will make a recursive 
-	// call here to CSourcePhrase::SaveObject() (recursing
-	// only one level deeper than we are currenly executing)
-	// for each item in m_pSavedWords.
-	// If bParentCall == TRUE in the call to SaveObject, we 
-	// are saving a parent object and we will save all of 
-	// its children m_pSavedWords. 
-	// If bParentCall == FALSE, we are saving children 
-	// CSourcePhrases and won't save any grandchildren 
-	// CSourcePhrase objects from our children m-pSavedWords.
-	if (bParentCall)
-	{
-		// First, stream out a count value so the equivalent
-		// LoadObject counterpart will know how many CSourcePhrase
-		// objects to read back into the SPList when serializing
-		// back in.
-		count = m_pSavedWords->GetCount();
-		ar.Write32(count); //ar << wxUint32(count);
-		// stream out all CSourcePhrase children in the SPList
-		for ( SPList::Node *node = m_pSavedWords->GetFirst(); node; node = node->GetNext() )
-		{
-			CSourcePhrase *pData = node->GetData();
-			// stream out the embedded CSourcePhrase object
-			pData->SaveObject (stream, FALSE);  
-			// FALSE in the above call means this is a child
-			// CSourcePhrase object. This recursive call to
-			// SaveObject will not recurse to any grandchildren.
-		}
-	}
-	else
-	{
-		// for child CSourcePhrases we won't save any next
-		// generation children (grandchildren)
-		count = 0;
-		ar.Write32(count); //ar << wxUint32(count);
-	}
-
-	// Now continue serializing the parent CSourcePhrase's
-	// other members
-	// Serialize the booleans first
-	ar.Write16(m_bFirstOfType); //ar << wxUint16(m_bFirstOfType); // MFC has (WORD) (2 bytes)
-	ar.Write16(m_bFootnoteEnd); // MFC has (WORD)
-	ar.Write16(m_bFootnote); // MFC has (WORD)
-	ar.Write16(m_bChapter); // MFC has (WORD)
-	ar.Write16(m_bVerse); // MFC has (WORD)
-	ar.Write16(m_bParagraph); // MFC has (WORD)
-	ar.Write16(m_bSpecialText); // MFC has (WORD)
-	ar.Write16(m_bBoundary); // MFC has (WORD)
-	ar.Write16(m_bHasInternalMarkers); // MFC has (WORD)
-	ar.Write16(m_bHasInternalPunct); // MFC has (WORD)
-	ar.Write16(m_bRetranslation); // MFC has (WORD)
-	ar.Write16(m_bNotInKB); // MFC has (WORD)
-	ar.Write16(m_bNullSourcePhrase); // MFC has (WORD)
-	ar.Write16(m_bHasKBEntry); // MFC has (WORD)
-	// now the ints & texttype
-	ar.Write32(m_nSrcWords); //ar << wxInt32(m_nSrcWords); // int (4 bytes)
-	ar.Write32(m_nSequNumber); //ar << wxInt32(m_nSequNumber);// int
-	ar.Write16(m_curTextType); //ar << wxUint16(m_curTextType); // MFC has (WORD) (2 bytes)
-	// now the strings
-	ar << m_inform;
-	ar << m_chapterVerse;
-	ar << m_adaption;
-	ar << m_markers;
-	ar << m_follPunct;
-	ar << m_precPunct;
-	ar << m_srcPhrase;
-	ar << m_key;
-	ar << m_targetStr;
-	// now the extra flags for version_number == 2
-	ar.Write16(m_bBeginRetranslation); //ar << wxUint16(m_bBeginRetranslation); // MFC has (WORD)
-	ar.Write16(m_bEndRetranslation); //ar << wxUint16(m_bEndRetranslation); // MFC has (WORD)
-	// VERSION_NUMBER == 3, the m_gloss attribute
-	ar.Write16(m_bHasGlossingKBEntry); //ar << wxUint16(m_bHasGlossingKBEntry); // MFC has (WORD)
-	ar << m_gloss;
-
-	// wxWidgets Notes: 
-	// 1. Stream errors should be dealt with in the caller of Adapt_ItDoc::SaveObject()
-	//    which would be either DoFileSave(), or DoTransformedDocFileSave().
-	// 2. Streams automatically close their file descriptors when they
-	//    go out of scope. 
-	return stream;
-}
-
-// MFC's Serialize() is replaced by LoadObject() here and SaveObject() above
-wxInputStream& CSourcePhrase::LoadObject(wxInputStream& stream,
-						 bool bParentCall)
-{
-	wxDataInputStream ar( stream );
-
-	//CObject::Serialize(ar);	// serialize base class
-	// (See notes for SaveObject() above)
-
-	// First we'll read the data version number
-	wxUint32 nSchema;
-	ar >> nSchema; // read 4 byte int into nSchema
-
-	// MFC code had m_pMedialPuncts->Serialize(ar);
-	// Under wxWidgets we need to serialize in each item
-	// individually
-	// First get the number of Strings we can expect
-	wxUint32 count;
-	wxString Item;
-	ar >> count;
-	for ( size_t n = 0; n < count; n++ )
-    {
-		// stream in the item
-		ar >> Item;
-		// Add item to array
-		m_pMedialPuncts->Add(Item);
-	}
-
-
-	// MFC code had m_pMedialMarkers->Serialize(ar);
-	// Under wxWidgets we need to serialize each item
-	// individually
-	// First get the number of Strings we can expect
-	ar >> count;
-	for ( size_t s = 0; s < count; s++ )
-    {
-		// stream in the item
-		ar >> Item;
-		// Add item to array
-		m_pMedialMarkers->Add(Item);
-	}
-
-	// MFC code had m_pSavedWords->Serialize(ar);
-	// Note: m_pSavedWords is a list (SPList) of CSourcePhrase
-	// instances which is embedded within the CSourcePhrase
-	// instance we are currently serializing in from persistent
-	// storage. Under wxWidgets we need to serialize each 
-	// SPList CSourcePhrase item individually. In the MFC
-	// design the nesting or embedding is supposed to never 
-	// be more than 1 level deep. We will make a recursive 
-	// call here to CSourcePhrase::LoadObject() (recursing
-	// only one level deeper than we are currenly executing)
-	// for each item in m_pSavedWords.
-	// If bParentCall == TRUE in the call to LoadObject, we 
-	// are loading a parent object and we will load all of 
-	// its children m_pSavedWords. 
-	// If bParentCall == FALSE, we are loading children 
-	// CSourcePhrases and won't load any grandchildren 
-	// CSourcePhrase objects from our children m-pSavedWords.
-	if (bParentCall)
-	{
-		ar >> count;
-		for ( size_t n = 0; n < count; n++ )
-		{
-			CSourcePhrase* pData = new CSourcePhrase;
-			wxASSERT(pData != NULL);
-			// stream in the item
-			pData->LoadObject(stream, FALSE); 
-			// FALSE in the call above means this is a child
-			// CSourcePhrase object
-			// Add item to array
-			m_pSavedWords->Append(pData);
-		}
-	}
-	else
-	{
-		ar >> count;
-		wxASSERT(count == 0); // it should be zero, but make sure
-	}
-
-	// The MFC version retrieved the versionable schema number
-	// here with the following call:
-	//UINT nSchema = ar.GetObjectSchema();
-	// In the wxWidgets version we retrieved our own nSchema
-	// above, and our wxWidgets version cannot be made
-	// compatible with earlier MFC versions, so we’ve started
-	// our first version with a unique versionable schema
-	// number. The code below reflects the same data as the
-	// MFC version 3.
-
-	switch(nSchema)
-	{
-		case 90:	// wxWidgets' first data version 
-				// (same as MFC version 3)
-		{
-			// serialize the booleans first
-			wxUint16 a,b,c,d; // MFC has WORD
-			wxUint16 g; // MFC has WORD
-
-			ar >> a;
-			if (a == 0)
-				m_bFirstOfType = FALSE;
-			else
-				m_bFirstOfType = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bFootnoteEnd = FALSE;
-			else
-				m_bFootnoteEnd = TRUE;
-			ar >> c;
-			if (c == 0)
-				m_bFootnote = FALSE;
-			else
-				m_bFootnote = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bChapter = FALSE;
-			else
-				m_bChapter = TRUE;
-			ar >> a;
-			if (a == 0)
-				m_bVerse = FALSE;
-			else
-				m_bVerse = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bParagraph= FALSE;
-			else
-				m_bParagraph = TRUE;
-			ar >> c;
-			if (c == 0)
-				m_bSpecialText = FALSE;
-			else
-				m_bSpecialText = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bBoundary = FALSE;
-			else
-				m_bBoundary = TRUE;
-			ar >> a;
-			if (a == 0)
-				m_bHasInternalMarkers = FALSE;
-			else
-				m_bHasInternalMarkers = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bHasInternalPunct = FALSE;
-			else
-				m_bHasInternalPunct = TRUE;
-			ar >> c;
-			if (c == 0)
-				m_bRetranslation = FALSE;
-			else
-				m_bRetranslation = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bNotInKB = FALSE;
-			else
-				m_bNotInKB = TRUE;
-			ar >> a;
-			if (a == 0)
-				m_bNullSourcePhrase = FALSE;
-			else
-				m_bNullSourcePhrase = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bHasKBEntry = FALSE;
-			else
-				m_bHasKBEntry = TRUE;
-			// then the ints & texttype
-			ar >> m_nSrcWords;
-			ar >> m_nSequNumber;
-			ar >> g;
-			m_curTextType = (TextType)g;
-			// then the strings
-			ar >> m_inform;
-			ar >> m_chapterVerse;
-			ar >> m_adaption;
-			ar >> m_markers;
-			ar >> m_follPunct;
-			ar >> m_precPunct;
-			ar >> m_srcPhrase;
-			ar >> m_key;
-			ar >> m_targetStr;
-
-			// now the two new booleans for the
-			// version_number == 2 schema,
-			// then flag and m_gloss for version == 3
-			ar >> c;
-			if (c == 0)
-				m_bBeginRetranslation = FALSE;
-			else
-				m_bBeginRetranslation = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bEndRetranslation = FALSE;
-			else
-				m_bEndRetranslation = TRUE;
-
-			// for schema 3
-			ar >> c;
-			if (c == 0)
-				m_bHasGlossingKBEntry = FALSE;
-			else
-				m_bHasGlossingKBEntry = TRUE;
-			ar >> m_gloss;
-			break;
-		}
-		default:
-			//IDS_UNKNOWN_VERSION
-			wxMessageBox(_("Sorry, Adapt It does not recognize the version for the file format you are trying to read in."), _T(""), wxICON_ERROR);
-			//AfxAbort();
-			wxExit();
-			break;
-	}
-	return stream;
-}
-*/
-
 
 CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 {
@@ -546,7 +197,9 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bFootnote = sp.m_bFootnote;
 	m_bChapter = sp.m_bChapter;
 	m_bVerse = sp.m_bVerse;
-	m_bParagraph = sp.m_bParagraph;
+	// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
+	//m_bParagraph = sp.m_bParagraph;
+	m_bUnused = sp.m_bUnused;
 	m_bSpecialText = sp.m_bSpecialText;
 	m_bBoundary = sp.m_bBoundary;
 	m_bHasInternalMarkers = sp.m_bHasInternalMarkers;
@@ -570,7 +223,7 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bHasNote = sp.m_bHasNote;
 	m_bHasBookmark = sp.m_bHasBookmark;
 
-	// and doc version 5's 10 new members
+	// the doc version 10 new members
 	m_endMarkers = sp.m_endMarkers;
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
@@ -657,7 +310,9 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bFootnote = sp.m_bFootnote;
 	m_bChapter = sp.m_bChapter;
 	m_bVerse = sp.m_bVerse;
-	m_bParagraph = sp.m_bParagraph;
+	// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
+	//m_bParagraph = sp.m_bParagraph;
+	m_bUnused = sp.m_bUnused;
 	m_bSpecialText = sp.m_bSpecialText;
 	m_bBoundary = sp.m_bBoundary;
 	m_bHasInternalMarkers = sp.m_bHasInternalMarkers;
@@ -680,7 +335,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bHasNote = sp.m_bHasNote;
 	m_bHasBookmark = sp.m_bHasBookmark;
 
-	// and doc version 5's 10 new members
+	// the doc version five's 10 new members
 	m_endMarkers = sp.m_endMarkers;
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
@@ -767,8 +422,8 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 // of CSourcePhrase produced with the copy constructor or operator=
 // Usage: for example: 
 // CSourcePhrase oldSP; ....more application code defining oldSP contents....
-// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); // uses operator=
-//			pNewSP.DeepCopy(); // *pNewSP is now a deep copy of oldSP
+// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); <<-- this uses operator=
+// then do:		pNewSP.DeepCopy(); <<-- *pNewSP is now a deep copy of oldSP
 // What DeepCopy() does is take the list of pointers to CSourcePhrase which
 // are in the m_pSavedWords SPList, for each of them it defines a new
 // CSourcePhrase instance using operator= which duplicates everything (including
@@ -781,6 +436,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 // duplicates of those pointed at by the m_pSavedWords list in oldSP
 // If the m_pSavedWords list is empty, the DeepCopy() operation does nothing
 // & the owning CSourcePhrase instance is already a deep copy
+// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
 void CSourcePhrase::DeepCopy(void)
 {
 	SPList::Node* pos = m_pSavedWords->GetFirst(); //POSITION pos = m_pSavedWords->GetHeadPosition();
@@ -846,14 +502,17 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// to restore the original sequence of minimal CSourcePhrase instances
 	if (m_pSavedWords == NULL)
 	{
-		m_pSavedWords = new SPList; // previously was wxList; // get a new list if there isn't one yet
+		m_pSavedWords = new SPList; // get a new list if there isn't one yet
 		wxASSERT(m_pSavedWords != NULL);
 	}
 
 	if (m_pSavedWords->GetCount() == 0)
 	{
 		// save the current src phrase in it as its first element, if list is empty
-		CSourcePhrase* pSP = new CSourcePhrase(*this); // use copy constructor
+		CSourcePhrase* pSP = new CSourcePhrase(*this); // use copy constructor, the
+				// fact that it is not a deep copy doesn't matter, because originals
+				// can never have medial puncts, nor medial markers, nor stored instances
+				// of CSourcePhrase, & everything else gets copied in the shallow copy
 		wxASSERT(pSP != NULL);
 		m_pSavedWords->Append(pSP); // adding single item
 	}
@@ -861,13 +520,14 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	m_pSavedWords->Append(pSrcPhrase); // next store the pointer to the srcPhrase being merged
 										// saving single item
 
-	m_chapterVerse += pSrcPhrase->m_chapterVerse; // append ch:vs if it exists
+	m_chapterVerse += pSrcPhrase->m_chapterVerse; // append ch:vs if it exists on the 2nd original
 
 	// if there is a marker, it will become phrase-internal, so accumulate it and set
 	// the flag
-	if (!pSrcPhrase->m_markers.IsEmpty())
+	if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->m_inlineNonbindingMarkers.IsEmpty()
+		|| !pSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 	{
-		// the marker will end up medial - so accumulate it, etc.
+		// any such beginmarkers will end up medial - so accumulate them, etc.
 		m_bHasInternalMarkers = TRUE;
 
 		// make a string list to hold it, if none exists yet
@@ -875,16 +535,101 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 			m_pMedialMarkers = new wxArrayString;
 		wxASSERT(m_pMedialMarkers != NULL);
 
-		// accumulate it
-		m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+		// accumulate any which exist (in the order inline non-binding, those in m_markers
+		// (including any verse or chapter number strings etc), then inline binding ones;
+		// if any storage has multiple markers, accept them all as a unit rather than one
+		// by one (that will show the user in the placement dialog which ones go together)
+		wxString mkrStr = pSrcPhrase->GetInlineNonbindingMarkers();
+		if (!mkrStr.IsEmpty())
+		{
+			m_pMedialMarkers->Add(mkrStr);
+			mkrStr.Empty();
+		}
+		mkrStr = pSrcPhrase->m_markers;
+		if (!mkrStr.IsEmpty())
+		{
+			m_pMedialMarkers->Add(mkrStr);
+			mkrStr.Empty();
+		}
+		mkrStr = pSrcPhrase->GetInlineBindingMarkers();
+		if (!mkrStr.IsEmpty())
+		{
+			m_pMedialMarkers->Add(mkrStr);
+			mkrStr.Empty();
+		}
+	}
+
+    // any endmarkers on pSrcPhrase are not yet medial because on this call of Merge() they
+    // are at the end of the phrase; but if they are present at a later iteration on the
+    // CSourcePhrase which is pointed at by the this pointer, then they become medial and
+    // have to be accumulated in m_MedialMarkers - and then on export of the data the
+    // placement dialog will come up so they can be 'placed' correctly
+	//bool bAddedSomething = FALSE;
+	if (!pSrcPhrase->m_endMarkers.IsEmpty() || !pSrcPhrase->m_inlineNonbindingEndMarkers.IsEmpty()
+		|| !pSrcPhrase->m_inlineBindingEndMarkers.IsEmpty())
+	{
+		// the CSourcePhrase being merged to its predecessor has content in one of more of its
+		// 3 storage locations which store endmarkers, i.e. m_endMarkers member, or the 2
+		// for inline binding or non-binding endmarkers
+		if (m_endMarkers.IsEmpty() && m_inlineNonbindingEndMarkers.IsEmpty() 
+			&& m_inlineBindingEndMarkers.IsEmpty())
+		{
+            // these 3 locations are empty, and the ones on pSrcPhrase are not yet medial,
+            // (but a subsequent call of Merge() would make them so) so just copy all 3 of
+            // pSrcPhrase's endmarker storages locations, and don't add anything to
+            // m_pMedialMarkers in the this pointer
+			SetEndMarkers(pSrcPhrase->GetEndMarkers());
+			SetInlineNonbindingEndMarkers(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			SetInlineBindingEndMarkers(pSrcPhrase->GetInlineBindingEndMarkers());
+		}
+		else
+		{
+			// there are endMarkers already on the 'this' pointer, so these are medial
+			// now, and need to be stored in conformity to that fact; their former storage
+			// locations are then to be cleard, and the endmarkers stored on pSrcPhrase
+			// (those are not yet medial) are to be moved to the 3 storage strings on the
+			// merged CSourcePhrase instance (the this pointer)
+			
+            // first deal with the endmarkers that have just become 'old' ie. medial to the
+            // phrase (the following call tests for m_pMedialMarkers = NULL, and if so
+            // creates a string array for it on the heap, so the use of m_pMedialMarkers
+            // further below is safe)
+			SetEndMarkersAsNowMedial(m_pMedialMarkers); // sets m_bHasInternalMarkers = TRUE;
+	
+			// now clear those locations on the merged CSourcePhrase instance
+			wxString emptyStr = _T("");
+			SetEndMarkers(emptyStr);
+			SetInlineNonbindingEndMarkers(emptyStr);
+			SetInlineBindingEndMarkers(emptyStr);
+
+			// now transfer the endmarkers from pSrcPhrase, these are now endmarkers on
+			// the merged CSourcePhrase instance too
+			SetEndMarkers(pSrcPhrase->GetEndMarkers());
+			SetInlineNonbindingEndMarkers(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			SetInlineBindingEndMarkers(pSrcPhrase->GetInlineBindingEndMarkers());
+		}
+	}
+	else if (!this->m_endMarkers.IsEmpty() || !m_inlineNonbindingEndMarkers.IsEmpty()
+		|| !m_inlineBindingEndMarkers.IsEmpty())
+	{
+		// these endmarkers have become medial now, but pSrcPhrase has none to contribute;
+		// here we have the possibility that endmarkers have just been made non-final, and
+		// so have become internal to the phrase, so we must update the medial markers array
+		SetEndMarkersAsNowMedial(m_pMedialMarkers);
+
+		// now clear those locations
+		wxString emptyStr = _T("");
+		SetEndMarkers(emptyStr);
+		SetInlineNonbindingEndMarkers(emptyStr);
+		SetInlineBindingEndMarkers(emptyStr);
 	}
 
 	// if there is punctuation, some or all may become phrase-internal, so check it out and
 	// accumulate as necessary and then set the flag if there is internal punctuation
 	if (!m_follPunct.IsEmpty())
 	{
-		// the current srcPhrase has following punctuation, so adding a further srcPhrase will
-		// make that punctuation become phrase-internal, so set up accordingly
+        // the current srcPhrase has following punctuation, so adding a further srcPhrase
+        // will make that punctuation become phrase-internal, so set up accordingly
 		m_bHasInternalPunct = TRUE;
 
 		// create a list, if one does not yet exist
@@ -896,10 +641,27 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_pMedialPuncts->Add(m_follPunct);
 		m_follPunct = _T("");
 	}
+	if (!m_follOuterPunct.IsEmpty())
+	{
+        // the current srcPhrase has following outer punctuation, so adding a further
+        // srcPhrase will make that punctuation become phrase-internal, so set up
+        // accordingly
+		m_bHasInternalPunct = TRUE;
+
+		// create a list, if one does not yet exist
+		if (m_pMedialPuncts == NULL)
+			m_pMedialPuncts = new wxArrayString;
+		wxASSERT(m_pMedialPuncts != NULL);
+
+		// put the m_follOuterPunct string into the list & clear the attribute
+		m_pMedialPuncts->Add(GetFollowingOuterPunct());
+		SetFollowingOuterPunct(_T(""));
+	}
 
 	if (!pSrcPhrase->m_precPunct.IsEmpty())
 	{
-		// the preceding punctuation will end up medial - so accumulate it, etc.
+		// the preceding punctuation on pSrcPhrase will end up medial - so 
+		// accumulate it, etc.
 		m_bHasInternalPunct = TRUE;
 
 		// make a string list to hold it, if none exists yet
@@ -907,21 +669,24 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 			m_pMedialPuncts = new wxArrayString;
 		wxASSERT(m_pMedialPuncts != NULL);
 
-		// accumulate it
+		// accumulate it, leaving the original member unchanged as pSrcPhrase will become
+		// an 'old' one in the m_pSavedWords list, so we may need it later for unmerging
 		m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
 	}
 
 	// any final punctuation on the merged srcPhrase will be non-medial, so just copy it
 	if (!pSrcPhrase->m_follPunct.IsEmpty())
 		m_follPunct = pSrcPhrase->m_follPunct;
+	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+		SetFollowingOuterPunct(pSrcPhrase->GetFollowingOuterPunct());
 
-	// append the source phrase 
+	// append the m_srcPhrase string 
 	// do I do it in reverse order for RTL layout? - I don't think so; but in case I should
 	// I will code it and comment it out. I think I have to do the appending in logical order,
 	// and for text which is RTL, the resulting phrase will be laid out RTL in the CEdit
 	// For version 3, allow for empty strings; but m_srcPhrase cannot be empty so we
 	// don't need a test here, but we do for the key
-	m_srcPhrase = m_srcPhrase + _T(" ") + pSrcPhrase->m_srcPhrase; 
+	m_srcPhrase += _T(" ") + pSrcPhrase->m_srcPhrase; 
 
 	// ditto for the key string, for version 3 allow for empty strings
 	if (m_key.IsEmpty())
@@ -930,7 +695,7 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	}
 	else
 	{
-		m_key = m_key + _T(" ") + pSrcPhrase->m_key;
+		m_key += _T(" ") + pSrcPhrase->m_key;
 	}
 
 	// do the same for the m_adaption and m_targetStr fields
@@ -938,14 +703,14 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_adaption = pSrcPhrase->m_adaption;
 	else
 	{
-			m_adaption = m_adaption + _T(" ") + pSrcPhrase->m_adaption;
+			m_adaption += _T(" ") + pSrcPhrase->m_adaption;
 	}
 
 	if (m_targetStr.IsEmpty())
 		m_targetStr = pSrcPhrase->m_targetStr;
 	else
 	{
-			m_targetStr = m_targetStr + _T(" ") + pSrcPhrase->m_targetStr;
+			m_targetStr += _T(" ") + pSrcPhrase->m_targetStr;
 	}
 
 	// likewise for the m_gloss field in VERSION_NUMBER == 3
@@ -953,506 +718,1270 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_gloss = pSrcPhrase->m_gloss;
 	else
 	{
-			m_gloss = m_gloss + _T(" ") + pSrcPhrase->m_gloss;
+			m_gloss += _T(" ") + pSrcPhrase->m_gloss;
 	}
 
+	// doc version 5, these new members (an additional one is above)
+    // free translations, notes, collected back translations or filtered information are
+    // only allowed on the first CSourcePhrase in a merger - we filter any attempt to merge
+    // across a CSourcePhrase which carries such information, warn the user and abort the
+    // merge attempt. But just in case something goes wrong and a merge is attempted in
+    // such a scenario, here we can just append the strings involved to give a behaviour
+    // that makes sense (ie. accumulating two notes, or two free translations, etc if any
+    // such should slip through our net of checks to prevent this)
+	if (!pSrcPhrase->m_freeTrans.IsEmpty())
+		m_freeTrans = m_freeTrans + _T(" ") + pSrcPhrase->m_freeTrans;
+	if (!pSrcPhrase->m_note.IsEmpty())
+		m_note = m_note + _T(" ") + pSrcPhrase->m_note;
+	if (!pSrcPhrase->m_collectedBackTrans.IsEmpty())
+		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
+	if (!pSrcPhrase->m_filteredInfo.IsEmpty())
+		m_filteredInfo = m_filteredInfo + _T(" ") + pSrcPhrase->m_filteredInfo;
+
+
 	// increment the number of words in the phrase
-	m_nSrcWords += pSrcPhrase->m_nSrcWords; // do it this way, which will be correct if it is a
-											// null source phrase being merged
+	m_nSrcWords += pSrcPhrase->m_nSrcWords;
 
 	// if we are merging a bounding srcPhrase, then the phrase being constructed is also 
 	// a boundary
 	if (pSrcPhrase->m_bBoundary)
 		m_bBoundary = TRUE;
-	// BEW removed else branch, 10Aut06, because if the one with the boundary is not last, then
-	// the last merger in the set will remove the m_bBoundary's true setting
-	//else
-	//	m_bBoundary = FALSE;
 
-	// copy across the BOOL values for free translation, note, and/or bookmark, for versionable_schema 4
-	// (1) if either instance has a bookmark, then the merger must have one too (BEW added 22Jul05)
+    // copy across the BOOL values for free translation, note, and/or bookmark, for
+    // versionable_schema 4 (1) if either instance has a bookmark, then the merger must
+    // have one too (BEW added 22Jul05)
 	if (!m_bHasBookmark)
 	{
 		if (pSrcPhrase->m_bHasBookmark)
 			m_bHasBookmark = TRUE;
 	}
-	// (2) if the first has a note, then so must the merger - we don't need to do anything because the
-	// merger process will do it automatically because m_bHasNote was TRUE on the first in the merger
-	// and merging across filtered material (of which note is an example) is not permitted
-	// (3) handling m_bStartFreeTrans is done automatically by the merging protocol, it's m_bEndFreeTrans
-	// that we must make sure it properly dealt with
+    // (2) if the first has a note, then so must the merger - we don't need to do anything
+    // because the merger process will do it automatically because m_bHasNote was TRUE on
+    // the first in the merger and merging across filtered material (of which note is an
+    // example) is not permitted
+    // (3) handling m_bStartFreeTrans is done automatically by the merging protocol, it's
+    // m_bEndFreeTrans that we must make sure it properly dealt with
 	if (pSrcPhrase->m_bHasFreeTrans)
 		m_bHasFreeTrans = TRUE;
 	if (pSrcPhrase->m_bEndFreeTrans)
 		m_bEndFreeTrans = TRUE;
 
-	// we never merge phrases, only minimal phrases (ie. single source word objects), so it
-	// will never be the case that we need to copy from m_pSaveWords in the Merge function
-	// and similarly for the m_pMedialPuncts and m_pMedialMarkers lists.
+    // we never merge phrases, only minimal phrases (ie. single source word objects), so it
+    // will never be the case that we need to copy from m_pSaveWords in the Merge function
+    // and similarly for the m_pMedialPuncts and m_pMedialMarkers lists.
 	return TRUE;
 }
 
+// MakeXML makes the <S> ... </S> productions which store the data in CSourcePhrase
+// instances, each pass through the function makes the production for one CSourcePhrase.
+// Attribute names are kept short to avoid undue bloat, but newer ones may need a little
+// explaining: here are the ones for the 5 new data stores added by BEW on 11Oct10 for
+// document version 5 to better handle USFM markup.
+// for m_inlineBindingMarkers use iBM
+// for m_inlineBindingEndMarkers use iBEM
+// for m_inlineNonbindingMarkers use iNM
+// for m_inlineNonbindingEndMarkers use iNEM
+// for m_follOuterPunct use fop
+// BEW 3Mar11, changed at Bob Eaton's request from using \t (tab char) for indenting the
+// xml elements, to using "  " (two spaces) for each tabUnit indent - to comply with 3-way
+// merge in Chorus, to prevent the latter from sending the whole document file as the
+// change set; same change made in KB.cpp for the indents for the KB's xml output)
 CBString CSourcePhrase::MakeXML(int nTabLevel)
 {
+	CBString tabUnit = "  "; // BEW added 3Mar11
+	// get the doc version number to be used for this save
+	int docVersion = gpApp->GetDocument()->GetCurrentDocVersion();
+
 	// nTabLevel specifies how many tabs are to start each line,
 	// nTabLevel == 1 inserts one, 2 inserts two, etc
 	CBString bstr;
 	bstr.Empty();
 	CBString btemp;
 	int i;
+	int len;
+	int extraIndent;
+	int nCount;
 	wxString tempStr;
+	SPList::Node* posSW;
 	// wx note: the wx version in Unicode build refuses assign a CBString to char numStr[24]
 	// so I'll declare numStr as a CBString also
 	CBString numStr; //char numStr[24];
+
 #ifdef _UNICODE
 
-	// first line -- element name and 4 attributes (two may be absent)
-	for (i = 0; i < nTabLevel; i++)
+	switch (docVersion)
 	{
-		bstr += "\t"; // tab the start of the line
-	}
-
-	bstr += "<S s=\"";
-	btemp = gpApp->Convert16to8(m_srcPhrase); // get the source string
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\" k=\"";
-	btemp = gpApp->Convert16to8(m_key); // get the key string (lacks punctuation, but we can't rule out it 
-				   // may contain " or > so we will need to do entity insert for these
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\"";
-
-	if (!m_targetStr.IsEmpty())
-	{
-		bstr += " t=\"";
-		btemp = gpApp->Convert16to8(m_targetStr);
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	if (!m_adaption.IsEmpty())
-	{
-		bstr += " a=\"";
-		btemp = gpApp->Convert16to8(m_adaption);
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	// second line -- 4 attributes (all obligatory), starting with the flags string
-	bstr += "\r\n";
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	btemp = MakeFlags(this);
-	bstr += "f=\"";
-	bstr += btemp; // add flags string
-	bstr += "\" sn=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSequNumber;
-	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add m_nSequNumber string
-	bstr += "\" w=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSrcWords;
-	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add m_nSrcWords string
-	bstr += "\" ty=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << (int)m_curTextType;
-	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add m_curTextType string
-	bstr += "\""; // delay adding newline, there may be no more content
-
-	// third line -- 5 attributes, possibly all absent
-	if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
-		|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
-	{
-		// there is something on this line, so form the line
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+	default:
+	case 5:
+		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
-		if (!m_precPunct.IsEmpty())
+
+		bstr += "<S s=\"";
+		btemp = gpApp->Convert16to8(m_srcPhrase); // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = gpApp->Convert16to8(m_key); // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
 		{
-			bstr += "pp=\"";
-			btemp = gpApp->Convert16to8(m_precPunct);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_precPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_follPunct.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " fp=\"";
-			else
-				bstr += "fp=\"";
-			btemp = gpApp->Convert16to8(m_follPunct);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_follPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_gloss.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " g=\"";
-			else
-				bstr += "g=\"";
-			btemp = gpApp->Convert16to8(m_gloss);
+			bstr += " t=\"";
+			btemp = gpApp->Convert16to8(m_targetStr);
 			InsertEntities(btemp);
 			bstr += btemp;
 			bstr += "\"";
-			bStarted = TRUE;
 		}
-		if (!m_inform.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " i=\"";
-			else
-				bstr += "i=\"";
-			btemp = gpApp->Convert16to8(m_inform);
-			InsertEntities(btemp); // just in case, do it for unicode (eliminates potential bug)
-			bstr += btemp; // add m_inform string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_chapterVerse.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " c=\"";
-			else
-				bstr += "c=\"";
-			btemp = gpApp->Convert16to8(m_chapterVerse);
-			InsertEntities(btemp); // ditto
-			bstr += btemp; // add m_chapterVerse string
-			bstr += "\"";
-		}
-	}
 
-	// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
-	// because if present it may be very long (eg. it may contain filtered material)
-	if (!m_markers.IsEmpty())
-	{
-		// there is something on this line, so form the line
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		for (i = 0; i < nTabLevel; i++)
+		if (!m_adaption.IsEmpty())
 		{
-			bstr += "\t"; // tab the start of the line
-		}
-		bstr += "m=\"";
-		btemp = gpApp->Convert16to8(m_markers);
-		InsertEntities(btemp);
-		bstr += btemp; // add m_markers string
-		bstr += "\"";
-	}
-
-	// we can now close off the S opening tag
-	bstr += ">";
-
-	// there are potentially up to three further information types - each or all may be
-	// empty, and each, if present, is a list of one or more things - the first two are
-	// string lists, and the last is embedded sourcephrase instances - these we will
-	// handle by embedding the XML representations with an extra level of tabbed indent
-	int nCount = m_pMedialPuncts->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial punctuation strings (these require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
-		for (i = 0; i < nTabLevel; i++)
-		{
-			bstr += "\t"; // tab the start of the line
-		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MP mp=\"";
-			btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+			bstr += " a=\"";
+			btemp = gpApp->Convert16to8(m_adaption);
 			InsertEntities(btemp);
-			bstr += btemp; // add punctuation string
-			bstr += "\"/>";
+			bstr += btemp;
+			bstr += "\"";
 		}
-	}
-	nCount = m_pMedialMarkers->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial marker strings (these don't require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
 		bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MM mm=\"";
-			btemp = gpApp->Convert16to8(m_pMedialMarkers->Item(i));
-			bstr += btemp; // add marker(s) string
-			bstr += "\"/>";
-		}
-	}
-	// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
-	// and will use posSW as a node of the m_pSavedWords SPList.
-	SPList::Node* posSW;
-	nCount = m_pSavedWords->GetCount();
-	int extraIndent = nTabLevel + 1;
-	if (nCount > 0)
-	{
-		// handle the list of medial marker strings (these don't require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		CSourcePhrase* pSrcPhrase;
-		bstr += "\r\n"; // get a new line open
-		posSW = m_pSavedWords->GetFirst();
-		while(posSW != NULL)
-		{
-			pSrcPhrase = (CSourcePhrase*)posSW->GetData();
-			posSW = posSW->GetNext();
-			bstr += pSrcPhrase->MakeXML(extraIndent);
-		}
-	}
-	// now close off the element, at the original indentation level
-	int len = bstr.GetLength();
-	if (bstr.GetAt(len-1) != '\n')
-		bstr += "\r\n";
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	bstr += "</S>\r\n";
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
 
+		// third line -- 6 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty() || !m_follOuterPunct.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = gpApp->Convert16to8(m_precPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = gpApp->Convert16to8(m_follPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follOuterPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fop=\"";
+				else
+					bstr += "fop=\"";
+				btemp = gpApp->Convert16to8(m_follOuterPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follOuterPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = gpApp->Convert16to8(m_gloss);
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				btemp = gpApp->Convert16to8(m_inform);
+				InsertEntities(btemp); // just in case, do it for unicode (eliminates potential bug)
+				bstr += btemp; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				btemp = gpApp->Convert16to8(m_chapterVerse);
+				InsertEntities(btemp); // ditto
+				bstr += btemp; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+        // fourth line -- 6 attributes in doc version 5, 1 in doc version 4, all possibly
+        // absent, m_markers and, for vers 5, also m_endMarkers, m_inlineBindingMarkers,
+        // m_inlineBindingEndMarkers, m_inlineNonbindingMarkers, and
+        // m_inlineNonbindingEndMarkers; in vers 4 m_markers may be very long (eg. it may
+		// contain filtered material), but in vers 5 it won't have filtered material
+		// because (filtered info will be elsewhere), so em etc can be on same line as m;
+		// entity conversions are not needed for standard format markers of any kind
+		if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty() || !m_inlineBindingMarkers.IsEmpty()
+			|| !m_inlineBindingEndMarkers.IsEmpty() || !m_inlineNonbindingMarkers.IsEmpty()
+			|| !m_inlineNonbindingEndMarkers.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_markers.IsEmpty())
+			{
+				bstr += "m=\"";
+				btemp = gpApp->Convert16to8(m_markers);
+				bstr += btemp; // add m_markers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_endMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " em=\"";
+				else
+					bstr += "em=\"";
+				btemp = gpApp->Convert16to8(m_endMarkers);
+				bstr += btemp; // add m_endMarkers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inlineBindingMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " iBM=\"";
+				else
+					bstr += "iBM=\"";
+				btemp = gpApp->Convert16to8(m_inlineBindingMarkers);
+				bstr += btemp; // add m_inlineBindingMarkers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inlineBindingEndMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " iBEM=\"";
+				else
+					bstr += "iBEM=\"";
+				btemp = gpApp->Convert16to8(m_inlineBindingEndMarkers);
+				bstr += btemp; // add m_inlineBindingEndMarkers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inlineNonbindingMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " iNM=\"";
+				else
+					bstr += "iNM=\"";
+				btemp = gpApp->Convert16to8(m_inlineNonbindingMarkers);
+				bstr += btemp; // add m_inlineNonbindingMarkers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inlineNonbindingEndMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " iNEM=\"";
+				else
+					bstr += "iNEM=\"";
+				btemp = gpApp->Convert16to8(m_inlineNonbindingEndMarkers);
+				bstr += btemp; // add m_inlineNonbindingMarkers string
+				bstr += "\"";
+			}
+		}
+
+		// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
+			|| !m_filteredInfo.IsEmpty())
+		{
+			// there is something in this group, so form the needed lines
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_freeTrans.IsEmpty())
+			{
+				bstr += "ft=\"";
+				btemp = gpApp->Convert16to8(m_freeTrans);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_freeTrans string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// sixth line... (possibly, or fifth)
+			if (!m_note.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for next line
+				}
+				bstr += "no=\"";
+				btemp = gpApp->Convert16to8(m_note);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_note string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// seventh line... (possibly, or sixth, or fifth)
+			if (!m_collectedBackTrans.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "bt=\"";
+				btemp = gpApp->Convert16to8(m_collectedBackTrans);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_collectedBackTrans string
+				bstr += "\"";
+				bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+			// eighth line... (possibly, or seventh or sixth, or fifth)
+			if (!m_filteredInfo.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the eigth or seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "fi=\"";
+				btemp = gpApp->Convert16to8(m_filteredInfo);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_filteredInfo string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = gpApp->Convert16to8(m_pMedialMarkers->Item(i));
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while(posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+		bstr += "</S>\r\n";
+
+		break; // for Unicode version, building for VERSION_NUMBER (currently 5)
+	case 4:
+	case 3:
+	case 2:
+	case 1:
+		// first line -- element name and 4 attributes (two may be absent)
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+
+		bstr += "<S s=\"";
+		btemp = gpApp->Convert16to8(m_srcPhrase); // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = gpApp->Convert16to8(m_key); // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
+		{
+			bstr += " t=\"";
+			btemp = gpApp->Convert16to8(m_targetStr);
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = gpApp->Convert16to8(m_adaption);
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
+		bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = gpApp->Convert16to8(m_precPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = gpApp->Convert16to8(m_follPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = gpApp->Convert16to8(m_gloss);
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				btemp = gpApp->Convert16to8(m_inform);
+				InsertEntities(btemp); // just in case, do it for unicode (eliminates potential bug)
+				bstr += btemp; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				btemp = gpApp->Convert16to8(m_chapterVerse);
+				InsertEntities(btemp); // ditto
+				bstr += btemp; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+		// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
+		// because if present it may be very long (eg. it may contain filtered material)
+		if (!m_markers.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			bstr += "m=\"";
+			btemp = gpApp->Convert16to8(m_markers);
+			InsertEntities(btemp);
+			bstr += btemp; // add m_markers string
+			bstr += "\"";
+		}
+
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = gpApp->Convert16to8(m_pMedialMarkers->Item(i));
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while(posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+		bstr += "</S>\r\n";
+
+		break; // for Unicode version, building for DOCVERSION4 (currently 4) or earlier
+	}
 #else // regular version
 
-	// first line -- element name and 4 attributes (two may be absent)
-	for (i = 0; i < nTabLevel; i++)
+	switch (docVersion)
 	{
-		bstr += "\t"; // tab the start of the line
-	}
-
-	bstr += "<S s=\"";
-	btemp = m_srcPhrase; // get the source string
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\" k=\"";
-	btemp = m_key; // get the key string (lacks punctuation, but we can't rule out it 
-				   // may contain " or > so we will need to do entity insert for these
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\"";
-
-	if (!m_targetStr.IsEmpty())
-	{
-		bstr += " t=\"";
-		btemp = m_targetStr;
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	if (!m_adaption.IsEmpty())
-	{
-		bstr += " a=\"";
-		btemp = m_adaption;
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	// second line -- 4 attributes (all obligatory), starting with the flags string
-	bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	btemp = MakeFlags(this);
-	bstr += "f=\"";
-	bstr += btemp; // add flags string
-	bstr += "\" sn=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSequNumber;
-	numStr = tempStr;
-	bstr += numStr; // add m_nSequNumber string
-	bstr += "\" w=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSrcWords;
-	numStr = tempStr;
-	bstr += numStr; // add m_nSrcWords string
-	bstr += "\" ty=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << (int)m_curTextType;
-	numStr = tempStr;
-	bstr += numStr; // add m_curTextType string
-	bstr += "\""; // delay adding newline, there may be no more content
-
-	// third line -- 5 attributes, possibly all absent
-	if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
-		|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
-	{
-		// there is something on this line, so form the line
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+	default:
+	case 5:
+		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
-		if (!m_precPunct.IsEmpty())
+
+		bstr += "<S s=\"";
+		btemp = m_srcPhrase; // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = m_key; // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
 		{
-			bstr += "pp=\"";
-			btemp = m_precPunct;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_precPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_follPunct.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " fp=\"";
-			else
-				bstr += "fp=\"";
-			btemp = m_follPunct;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_follPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_gloss.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " g=\"";
-			else
-				bstr += "g=\"";
-			btemp = m_gloss;
+			bstr += " t=\"";
+			btemp = m_targetStr;
 			InsertEntities(btemp);
 			bstr += btemp;
 			bstr += "\"";
-			bStarted = TRUE;
 		}
-		if (!m_inform.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " i=\"";
-			else
-				bstr += "i=\"";
-			//btemp = m_inform;
-			//InsertEntities(btemp); // entities not needed for this member
-			bstr += m_inform; // add m_inform string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_chapterVerse.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " c=\"";
-			else
-				bstr += "c=\"";
-			//btemp = m_chapterVerse;
-			//InsertEntities(btemp); // entities not needed for this member
-			bstr += m_chapterVerse; // add m_chapterVerse string
-			bstr += "\"";
-		}
-	}
 
-	// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
-	// because if present it may be very long (eg. it may contain filtered material)
-	if (!m_markers.IsEmpty())
-	{
-		// there is something on this line, so form the line
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = m_adaption;
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
-		bstr += "m=\"";
-		btemp = m_markers;
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = tempStr;
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = m_precPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = m_follPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = m_gloss;
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				//btemp = m_inform;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_inform; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				//btemp = m_chapterVerse;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_chapterVerse; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+		// fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
+		// absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
+		// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
+		// will be elsewhere), so em can be on same line as m
+		if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_markers.IsEmpty())
+			{
+				bstr += "m=\"";
+				btemp = m_markers;
+				bstr += btemp; // add m_markers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_endMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " em=\"";
+				else
+					bstr += "em=\"";
+				//btemp = m_endMarkers;
+				//bstr += btemp; // add m_endMarkers string
+				bstr += m_endMarkers; // this is quicker
+				bstr += "\"";
+			}
+		}
+
+		// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
+			|| !m_filteredInfo.IsEmpty())
+		{
+			// there is something in this group, so form the needed lines
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_freeTrans.IsEmpty())
+			{
+				bstr += "ft=\"";
+				btemp = m_freeTrans;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_freeTrans string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// sixth line... (possibly, or fifth)
+			if (!m_note.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for next line
+				}
+				bstr += "no=\"";
+				btemp = m_note;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_note string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// seventh line... (possibly, or sixth, or fifth)
+			if (!m_collectedBackTrans.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "bt=\"";
+				btemp = m_collectedBackTrans;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_collectedBackTrans string
+				bstr += "\"";
+				bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+			// eighth line... (possibly, or seventh or sixth, or fifth)
+			if (!m_filteredInfo.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the eigth or seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "fi=\"";
+				btemp = m_filteredInfo;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_filteredInfo string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = m_pMedialPuncts->Item(i);
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = m_pMedialMarkers->Item(i);
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of embedded CSourcePhrase instances which comprised the
+			// original selection which resulted in this current merged CSourcePhrase instance
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while (posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+		bstr += "</S>\r\n";
+
+		break; // for ANSI version, building for VERSION_NUMBER (currently 5)
+
+	case 4:
+	case 3:
+	case 2:
+	case 1:
+		// first line -- element name and 4 attributes (two may be absent)
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+
+		bstr += "<S s=\"";
+		btemp = m_srcPhrase; // get the source string
 		InsertEntities(btemp);
-		bstr += btemp; // add m_markers string
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = m_key; // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
 		bstr += "\"";
-	}
 
-	// we can now close off the S opening tag
-	bstr += ">";
-
-	// there are potentially up to three further information types - each or all may be
-	// empty, and each, if present, is a list of one or more things - the first two are
-	// string lists, and the last is embedded sourcephrase instances - these we will
-	// handle by embedding the XML representations with an extra level of tabbed indent
-	int nCount = m_pMedialPuncts->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial punctuation strings (these require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
-		for (i = 0; i < nTabLevel; i++)
+		if (!m_targetStr.IsEmpty())
 		{
-			bstr += "\t"; // tab the start of the line
-		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MP mp=\"";
-			btemp = m_pMedialPuncts->Item(i);
+			bstr += " t=\"";
+			btemp = m_targetStr;
 			InsertEntities(btemp);
-			bstr += btemp; // add punctuation string
-			bstr += "\"/>";
+			bstr += btemp;
+			bstr += "\"";
 		}
-	}
-	nCount = m_pMedialMarkers->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial marker strings (these don't require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
+
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = m_adaption;
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
+		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
 		for (i = 0; i < nTabLevel; i++)
 		{
-			bstr += "\t"; // tab the start of the line
+			bstr += tabUnit; // tab the start of the line
 		}
-		for (i = 0; i < nCount; i++)
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = tempStr;
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
 		{
-			bstr += "<MM mm=\"";
-			btemp = m_pMedialMarkers->Item(i);
-			bstr += btemp; // add marker(s) string
-			bstr += "\"/>";
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = m_precPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = m_follPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = m_gloss;
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				//btemp = m_inform;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_inform; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				//btemp = m_chapterVerse;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_chapterVerse; // add m_chapterVerse string
+				bstr += "\"";
+			}
 		}
-	}
-	// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
-	// and will use posSW as a node of the m_pSavedWords SPList.
-	SPList::Node* posSW;
-	nCount = m_pSavedWords->GetCount();
-	int extraIndent = nTabLevel + 1;
-	if (nCount > 0)
-	{
-		// handle the list of embedded CSourcePhrase instances which comprised the
-		// original selection which resulted in this current merged CSourcePhrase instance
-		CSourcePhrase* pSrcPhrase;
-		bstr += "\r\n"; // get a new line open
-		posSW = m_pSavedWords->GetFirst();
-		while (posSW != NULL)
+
+		// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
+		// because if present it may be very long (eg. it may contain filtered material)
+		if (!m_markers.IsEmpty())
 		{
-			pSrcPhrase = (CSourcePhrase*)posSW->GetData();
-			posSW = posSW->GetNext();
-			bstr += pSrcPhrase->MakeXML(extraIndent);
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			bstr += "m=\"";
+			btemp = m_markers;
+			InsertEntities(btemp);
+			bstr += btemp; // add m_markers string
+			bstr += "\"";
 		}
+
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = m_pMedialPuncts->Item(i);
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = m_pMedialMarkers->Item(i);
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of embedded CSourcePhrase instances which comprised the
+			// original selection which resulted in this current merged CSourcePhrase instance
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while (posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += tabUnit; // tab the start of the line
+		}
+		bstr += "</S>\r\n";
+
+		break; // for ANSI version, building for DOCVERSION4 (currently 4) or earlier
 	}
-	// now close off the element, at the original indentation level
-	int len = bstr.GetLength();
-	if (bstr.GetAt(len-1) != '\n')
-		bstr += "\r\n";
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	bstr += "</S>\r\n";
+
 #endif
+	// a dummy comment, I just want to do a new commit to svn to add a further log message
+	// I forgot just now (3Mar11)
 	return bstr;
 }
 
@@ -1469,6 +1998,431 @@ wxString CSourcePhrase::GetChapterNumberString()
 bool CSourcePhrase::ChapterColonVerseStringIsNotEmpty()
 {
 	return !this->m_chapterVerse.IsEmpty();
+}
+
+// some getters and setters...
+
+/* uncomment out when we make m_markers a private member
+// the app never needs to get individual markers in m_markers, but just the whole lot as a
+// single string, so this is the only getter needed
+wxString CSourcePhrase::GetMarkers()
+{
+	return m_markers;
+}
+*/
+/* we've not yet made m_markers private, uncomment out when we do
+void CSourcePhrase::SetMarkers(wxString markers)
+{
+	m_markers = markers;
+}
+*/
+
+wxString CSourcePhrase::GetFreeTrans()
+{
+	return m_freeTrans;
+}
+wxString CSourcePhrase::GetNote()
+{
+	return m_note;
+}
+wxString CSourcePhrase::GetCollectedBackTrans()
+{
+	return m_collectedBackTrans;
+}
+wxString CSourcePhrase::GetFilteredInfo()
+{
+	return m_filteredInfo;
+}
+// return TRUE if there is something filtered, FALSE if nothing is there; the three arrays
+// work in parallel - for a given index, the returned marker in the first and second are
+// the wrapping markers for the content; some filtered info may have no endmarker, in which
+// case the pFilteredEndMarkers will have an empty string (or space) at the appropriate index.
+// If bUseSpaceForEmpty is TRUE, any empty string for an endmarker is returned in the
+// pFilteredEndMarkers array as a single space character, rather than as the empty string.
+// Default is to leave the empty string for an endmarker as an empty string (ie. the
+// default bUseSpaceForEmpty value is FALSE)
+bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
+											wxArrayString* pFilteredEndMarkers,
+											wxArrayString* pFilteredContent,
+											bool bUseSpaceForEmpty)
+{
+	wxString mkr = _T("");
+	wxString content = _T("");
+	wxString endMkr = _T("");
+	pFilteredMarkers->Empty();
+	pFilteredContent->Empty();
+	pFilteredEndMarkers->Empty();
+	int offsetToStart = 0;
+	int offsetToEnd = 0;
+	if (m_filteredInfo.IsEmpty())
+		return FALSE;
+
+	// get the each \~FILTER ... \~FILTER*  wrapped substring, each such contains one SF
+	// marked up content string, of form \marker <content> \endMarker (but no < or > chars)
+	wxString info = m_filteredInfo;
+	offsetToStart = info.Find(filterMkr);
+	offsetToEnd = info.Find(filterMkrEnd);
+	while (offsetToStart != wxNOT_FOUND && offsetToEnd != wxNOT_FOUND && !info.IsEmpty())
+	{
+		offsetToStart += filterMkrLen + 1; // point at USFM or SFM, +1 is for its 
+										   // trailing space
+        // a wrapping \~FILTER* endmarker may have a preceding space, so use Trim() to
+		// get rid of it; and also use Trim(FALSE) to remove any initial space just in
+		// case there was more than one space after the \~FILTER marker
+		int length = offsetToEnd - offsetToStart;
+		wxString markersAndContent = info.Mid(offsetToStart,length);
+		markersAndContent.Trim(FALSE); // trim at left hand end
+		markersAndContent.Trim(); // trim at right hand end
+
+		// we now have a string of the form:
+        // \somemarker some textual content \somemarker* (endmarker may be absent, or \F,
+        // or \fe, or a USFM marker of the type \xxx* and the space before the endmarker
+        // is not likely to be present, but could be)
+        
+        // Before extracting the markers and content from markersAndContent, shorten the
+        // original string's copy (i.e. info) to prepare for the next extraction
+		info = info.Mid(offsetToEnd + filterMkrEndLen);
+
+		// BEW added 8Dec10, a markup "?error?" (it's not really an error, but it is sure
+		// incompatible with filtering of things like footnotes when punctuation follows
+		// the final \f* marker - which is a legal USFM markup scenario) is that we can
+		// come here with having had \~FILTER \f <footnote text content here, etc>
+		// \f*<punct>\~FILTER*, so that after removal of the filter brackets and trimming
+		// of the ends, we have content which ends with .... \f*<punct> where <punct> is
+		// one or more characters of punctuation. This defeats the internal algorithm
+		// within the ParseMarkersAndContent() call below -- it will do a reversal and
+		// look for an endmarker which it expects, if present, to be at the reversed
+		// string's start - and so expects the first character to be * (if that isn't the
+		// case, it assumes the input was not reversed and expects an initial backslash
+		// which won't be there - and the assert trips, and in the release build, who
+		// knows what corruption will happen from then on). What to do?
+        // We don't want to abandon the punctuation following \f*, so we move it to be
+        // preceding the \f*. That is a reasonable temporary solution - it makes the
+        // ParseMarkersAndContent() call below robust. It should happen seldom though -
+        // only when filtering out something where punctuation is both sides of \f* or \fe*
+        // or \x*, and how often will that happen?!) So, the next bit of code is a kludge
+        // to make the data safe for the call lower down.
+		bool bCheckFurther = FALSE;
+		int fullLen = 0;
+		int lastMkrLen = 0;
+		wxString firstMkr;
+		int offset = wxNOT_FOUND;
+		int offset2 = wxNOT_FOUND;
+		offset = markersAndContent.Find(gSFescapechar); // there has to always be a beginmarker
+		wxASSERT(offset != wxNOT_FOUND);
+		wxString lastMkr = GetLastMarker(markersAndContent); // we may have just found the
+													// first and only marker, so beware
+		offset2 = markersAndContent.Find(lastMkr); // it will certainly find a marker
+		if (offset == offset2)
+		{
+			// first and last markers are one and the same, so there is no endmarker, and
+			// we need go no further with this kludge code
+		}
+		else
+		{
+			// there is at least one marker beyond the first
+			 bCheckFurther = TRUE;
+			 lastMkrLen = lastMkr.Len();
+			if (gpApp->gCurrentSfmSet == PngOnly)
+			{
+				// the only possible endmarkers are \fe or \F, both are footnote endmarker
+				// alternatives
+				if (lastMkr == _T("\\fe") || lastMkr == _T("\\F"))
+				{
+					fullLen = markersAndContent.Len();
+					if (offset2 + lastMkrLen < fullLen)
+					{
+						// there is some content after lastMkr that we want to move to be
+						// before it - do it here
+						wxString firstBit = markersAndContent.Left(offset2);
+						wxString theRest = markersAndContent.Mid(offset2);
+						wxString liesBeyond = theRest.Mid(lastMkrLen); // move this stuff
+						liesBeyond.Trim(FALSE); // don't want the space which must follow \fe or \F
+						markersAndContent = firstBit + liesBeyond + lastMkr; 
+						markersAndContent += _T(' '); // the \F or \fe needs a following space
+					}
+				}
+			}
+			else // assume UsfmOnly
+			{
+				if (lastMkr[lastMkrLen - 1] == _T('*'))
+				{
+					// its a USFM endmarker, so look for content beyond it, and move it to
+					// precede the endmarker if there is any
+					wxString firstBit = markersAndContent.Left(offset2);
+					wxString theRest = markersAndContent.Mid(offset2);
+					wxString liesBeyond = theRest.Mid(lastMkrLen); // move this stuff
+					liesBeyond.Trim(); // don't want final space (shouldn't be any anyway)
+					markersAndContent = firstBit + liesBeyond + lastMkr; // now it's safe
+				}
+				// if it's not *, then assume the marker was within the string and ignore
+				// it, we don't have an endmarker at the end
+			}
+		}
+ 
+		// Now process markersAndContent to extract the marker and endmarker, and the
+		// content string, adding them to the respective arrays; the ParseMarkersAndContent()
+		// function handles initial marker and end marker, whether SFM set or USFM set,
+		// equally well
+		ParseMarkersAndContent(markersAndContent, mkr, content, endMkr); // defined in xml.cpp
+		pFilteredMarkers->Add(mkr);
+		pFilteredContent->Add(content);
+		if (bUseSpaceForEmpty)
+		{
+			if (endMkr.IsEmpty())
+				endMkr = _T(" ");  // a space
+		}
+		pFilteredEndMarkers->Add(endMkr);
+
+		// prepare for next iteration
+		offsetToStart = info.Find(filterMkr);
+		offsetToEnd = info.Find(filterMkrEnd);
+	}
+	return TRUE;
+}
+wxString CSourcePhrase::GetEndMarkers()
+{
+	return m_endMarkers;
+}
+
+// next ones for the following four added by BEW 11Oct10
+wxString CSourcePhrase::GetInlineBindingEndMarkers()
+{
+	return m_inlineBindingEndMarkers;
+}
+
+wxString CSourcePhrase::GetInlineNonbindingEndMarkers()
+{
+	return m_inlineNonbindingEndMarkers;
+}
+
+wxString CSourcePhrase::GetInlineBindingMarkers()
+{
+	return m_inlineBindingMarkers;
+}
+
+wxString CSourcePhrase::GetInlineNonbindingMarkers()
+{
+	return m_inlineNonbindingMarkers;
+}
+
+void CSourcePhrase::SetInlineBindingMarkers(wxString mkrStr)
+{
+	m_inlineBindingMarkers = mkrStr;
+}
+
+void CSourcePhrase::AppendToInlineBindingMarkers(wxString mkrStr)
+{
+	m_inlineBindingMarkers += mkrStr;
+}
+
+void CSourcePhrase::AppendToInlineBindingEndMarkers(wxString mkrStr)
+{
+	m_inlineBindingEndMarkers += mkrStr;
+}
+
+void CSourcePhrase::SetInlineNonbindingMarkers(wxString mkrStr)
+{
+	m_inlineNonbindingMarkers = mkrStr;
+}
+
+void CSourcePhrase::SetInlineBindingEndMarkers(wxString mkrStr)
+{
+	m_inlineBindingEndMarkers = mkrStr;
+}
+
+void CSourcePhrase::SetInlineNonbindingEndMarkers(wxString mkrStr)
+{
+	m_inlineNonbindingEndMarkers = mkrStr;
+}
+
+wxString CSourcePhrase::GetFollowingOuterPunct()
+{
+	return m_follOuterPunct;
+}
+
+void CSourcePhrase::SetFollowingOuterPunct(wxString punct)
+{
+	m_follOuterPunct = punct;
+}
+
+
+// return FALSE if empty, else TRUE (I'm not sure we'll ever need to get individual
+// endmarkers, I think we only need to add the member contents to the document export at
+// some point, but I'll provide this in case) 
+// BEW 11Oct10, This function only gets from m_endMarkers; to get from m_endMarkers and
+// also from m_inlineNonbindingEndMarkers and m_inlineBindingEndMarkers, use
+// GetAllEndMarkersAsArray()
+bool CSourcePhrase::GetEndMarkersAsArray(wxArrayString* pEndmarkersArray)
+{
+	pEndmarkersArray->Empty();
+	bool bGotSome = FALSE;
+	if (m_endMarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		bGotSome = GetSFMarkersAsArray(m_endMarkers, *pEndmarkersArray);
+	}
+	return bGotSome;
+}
+
+/* wrote this then found I didn't need it
+// GetAllEndMarkersAsArray gets from all storage locations for endmarkers on a
+// CSourcePhrase instance - there are 3 wxStrings it then must check and collect from.
+bool CSourcePhrase::GetAllEndMarkersAsArray(wxArrayString* pEndmarkersArray)
+{
+	pEndmarkersArray->Empty();
+	wxArrayString arr1;
+	wxArrayString arr2;
+	wxArrayString arr3;
+	bool bGotSome = FALSE;
+	bool bThisHasSome = FALSE;
+	if (m_endMarkers.IsEmpty() && m_inlineNonbindingEndMarkers.IsEmpty()
+		&& m_inlineBindingEndMarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		// try all
+		bThisHasSome = GetSFMarkersAsArray(m_inlineBindingEndMarkers, arr1);
+		if (bThisHasSome)
+		{
+			bGotSome = TRUE;
+		}
+		bThisHasSome = GetSFMarkersAsArray(m_inlineNonbindingEndMarkers, arr2);
+		if (bThisHasSome)
+		{
+			bGotSome = TRUE;
+		}
+		bThisHasSome = GetSFMarkersAsArray(m_endMarkers, arr3);
+		if (bThisHasSome)
+		{
+			bGotSome = TRUE;
+		}
+	}
+	// put them all together into the one array; we don't care about the returned boolean
+	// for these calls as we've already got bGotSome set; in these calls the 3rd param 
+	// bExcludeDuplicates is default FALSE
+	if (!arr1.IsEmpty())
+		AddNewStringsToArray(pEndmarkersArray, &arr1);
+	if (!arr2.IsEmpty())
+		AddNewStringsToArray(pEndmarkersArray, &arr2);
+	if (!arr3.IsEmpty())
+		AddNewStringsToArray(pEndmarkersArray, &arr3);
+	return bGotSome;
+}
+*/
+
+void CSourcePhrase::SetFreeTrans(wxString freeTrans)
+{
+	m_freeTrans = freeTrans;
+}
+void CSourcePhrase::SetNote(wxString note)
+{
+	m_note = note;
+}
+void CSourcePhrase::SetCollectedBackTrans(wxString collectedBackTrans)
+{
+	m_collectedBackTrans = collectedBackTrans;
+}
+void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
+{
+	// Use this for appending \~FILTER ... \~FILTER* wrapped filtered information into the
+	// private m_filteredInfo member string; no delimiting space is to be used between
+	// each such substring. The TokenizeText() parser will use this setter function, as
+	// will the other setter, SetFilteredInfoFromArrays()
+	m_filteredInfo += filteredInfo;
+}
+
+// BEW changed 5Mar10, to support changing a space in the pFilteredEndMarkers .Item()
+// into an empty string; default is not to attempt the change (ie. assume the array will
+// have only an empty endmarker string rather than a placeholding space; it is the 
+// View Filtered Information dialog which uses a placeholding space)
+// BEW changed 7Dec10, to rectify a logic error which resulted in endmarker and \~FILTER*
+// not being added to the end of the content string
+void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
+					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
+					bool bChangeSpaceToEmpty)
+{
+	m_filteredInfo.Empty(); // clear out old contents
+	size_t index;
+	size_t count = pFilteredContent->GetCount();
+	if (count == 0)
+	{
+		return;
+	}
+	wxString markersAndContent;
+	markersAndContent.Empty();
+	wxString theRest;
+	theRest.Empty();
+	wxString aSpace = _T(" ");
+	for (index = 0; index < count; index++)
+	{
+		markersAndContent << filterMkr << aSpace << pFilteredMarkers->Item(index) \
+			<< aSpace << pFilteredContent->Item(index);
+        // if there is an endmarker, insert it, but with no space before it - a space is
+        // allowed, but in some publication scenarios punctuation might be wanted hard up
+        // against the end of a preceding word and followed after the endmarker with a
+        // textual note callout character -- so it's safer to not have any space before the
+        // endmarker, since parsers recognise a marker when the backslash is encountered,
+        // and LSDev, Paratext and Adapt It all accept the * of an endmarker as closing off
+        // an endmarker. What we won't support is a callout character positioned
+        // immediately after \fe or \F footnote end markers used in the old PNG SFM marker
+        // set - for these callout character or punctuation would be treated as part of the
+        // marker definition - leading to an "unknown marker" for Adapt It to handle. If
+        // that happened, the user would have to edit the source text (in Adapt It, using
+        // the Edit / Edit Source Text... command) and add the need post-endmarker space
+        // manually. However, we are a decade or more from the last use of the old 1998 PNG
+        // SFM marker set, everyone uses USFM these days, so we won't bother to do anything
+        // smart here to handle such a contingency within our code.
+		if (pFilteredEndMarkers->Item(index).IsEmpty())
+		{
+			// this content string takes no endMarker (add a delimiting space though)
+			theRest << aSpace << filterMkrEnd;
+		}
+		else
+		{
+			// there is something, it could be an endmarker, or a placeholding space
+			if (pFilteredEndMarkers->Item(index) == aSpace)
+			{
+				// this content string takes no endMarker (but a delimiting space after
+				// the content string is probably a good idea)
+				if (bChangeSpaceToEmpty)
+				{
+					theRest << filterMkrEnd;
+				}
+				else
+				{
+					theRest << aSpace << filterMkrEnd;
+				}
+			}
+			else
+			{
+				// this content string takes an endMarker and there is one ready for
+				// appending
+				theRest << pFilteredEndMarkers->Item(index) << aSpace << filterMkrEnd;
+			}
+		}
+		markersAndContent += theRest;
+		AddToFilteredInfo(markersAndContent);
+		markersAndContent.Empty();
+		theRest.Empty();
+	}
+}
+
+void CSourcePhrase::AddFollOuterPuncts(wxString outers)
+{
+	if (m_follOuterPunct.IsEmpty())
+	{
+		m_follOuterPunct = outers;
+	}
+	else
+	{
+		m_follOuterPunct += outers;
+	}
 }
 
 void CSourcePhrase::AddEndMarker(wxString endMarker)
@@ -1505,14 +2459,50 @@ void CSourcePhrase::AddEndMarker(wxString endMarker)
 	}
 }
 
-void CSourcePhrase::AddFollOuterPuncts(wxString outers)
+void CSourcePhrase::SetEndMarkers(wxString endMarkers)
 {
-	if (m_follOuterPunct.IsEmpty())
+	m_endMarkers = endMarkers;
+}
+void CSourcePhrase::SetFilteredInfo(wxString filteredInfo)
+{
+	m_filteredInfo = filteredInfo;
+}
+
+// BEW 11Oct10, updated for support of additional doc version 5 changes
+void CSourcePhrase::SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray)
+{
+	bool bAddedSomething = FALSE;
+
+	// make a string array to hold it or them, if no string array exists yet
+	if (pMedialsArray == NULL)
+		pMedialsArray = new wxArrayString;
+	wxASSERT(pMedialsArray != NULL);
+
+	// try ordering them in the most likely order that their appearance in a list would be
+	// most helpful to the user when placing them; keep the multiple occurrences in a
+	// single storage location together, so that they appear on one line in the placement
+	// dialog and then the user will realize they are to be stored together when placed
+	wxString oldEndMkrs1 = GetInlineBindingEndMarkers();
+	wxString oldEndMkrs2 = GetEndMarkers();
+	wxString oldEndMkrs3 = GetInlineNonbindingEndMarkers();
+	m_bHasInternalMarkers = TRUE;
+
+	wxArrayString oldsArray;
+	if (!oldEndMkrs1.IsEmpty())
 	{
-		m_follOuterPunct = outers;
+		oldsArray.Add(oldEndMkrs1);
 	}
-	else
+	if (!oldEndMkrs2.IsEmpty())
 	{
-		m_follOuterPunct += outers;
+		oldsArray.Add(oldEndMkrs2);
 	}
+	if (!oldEndMkrs3.IsEmpty())
+	{
+		oldsArray.Add(oldEndMkrs3);
+	}
+	// add to m_pMedials, from 11Oct10 onwards, we are quite happy to have duplicates in
+	// the list - if they are there, they are there because they are needed and should be
+	// placed by the user if asked (i.e. he's shown the Place Internal Markers dialog)
+	// (param 3, bool bExcludeDuplicates is default FALSE)
+	bAddedSomething = AddNewStringsToArray(pMedialsArray, &oldsArray);
 }

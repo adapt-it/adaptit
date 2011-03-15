@@ -47,30 +47,48 @@ public:
 	wxButton* pRemoveBtn;
 	wxString markers;
 
-	// the following are indexed in parallel and contain info from all markers, filtered and not filtered
-	wxArrayString AllMkrsList; // list of all markers in m_markers (both filtered and non-filtered)
-	wxArrayInt AllMkrsFilteredFlags; // array of ints that flag if marker in AllMkrsList is filtered (1) or not (0)
+	// For docVersion = 5, there are significant changes. The legacy code extracted all
+	// markers from m_markers, both filtered and non-filtered, which produced
+	// complications because the index obtained for a user click in the dialog's markers
+	// list box may then not correspond to the item in AllMkrsList if the latter contained
+	// non-filtered markers.
+	// For docVersion 5, we don't store any filtered information in m_markers, so we can
+	// ignore that member entirely. Filtered information instead is in m_filteredInfo
+	// (along with marker, and any endmarker, and wrapping \~FILTER and \~FILTER* markers,
+	// for each filtered information type), and/or in one, two or three of the wxString
+	// members m_freeTrans, m_note, and m_collectedBackTrans - the latter three contain
+	// the content strings only, no markers, and so for the dialog if any of these are
+	// present, we need to generate \free \free*, \note \note*, and \bt markers,
+	// respectively for showing in the relevant dialog list boxes. Version 5 also has a
+	// smarter CSourcePhrase, which extracts the information in m_filteredInfo in three
+	// parallel wxArrayString parameters, which simplifies getting access to the markers,
+	// endmarkers and content strings as discrete information chunks.
+	// All the above calls for a redesign of the code for supporting the View Filtered
+	// Material dialog. Instead of 8 arrays, we only need 5 - three for the arrays of
+	// markers, content text strings, endmarkers; one for the after-edit content text
+	// strings, and one for the bare markers array for lookup purposes of USFM info.
+	// We also define a fixed order for display in the dialog: first, if present, is the
+	// free translation; second, if present, is the note; third, if present, is the
+	// collected back translation; after those follow any filtered information from
+	// m_filteredInfo. Having the filtered free translation first allows the user to have
+	// the free translation shown in the view filtered material dialog, and a note
+	// displayed in the note dialog, at the same time and with no clicking other than on
+	// the respective green wedge and note icons in the main window.
+	 
+	// the following are indexed in parallel and contain info from all filtered markers only
+	//wxArrayString AllMkrsList; // list of all markers in m_markers (filtered and non-filtered)
+	//wxArrayInt AllMkrsFilteredFlags; // array of ints that flag if marker in AllMkrsList is filtered (1) or not (0)
 	wxArrayString AllWholeMkrsArray; // array of all whole markers encountered in m_markers
 	wxArrayString AllEndMkrsArray; // array of all end markers encountered in m_markers (contains a space if no end marker)
-
-	// the following are indexed in parallel
 	wxArrayString bareMarkerArray;
-	// BEW added comment for clarity 17Nov05; because AllMkrsList, and the parallel array AllMkrsFilteredFlags
-	// potentially contain information for markers which are not filtered, and therefore which are not visible
-	// in the View Filtered pMarkers dialog, we cannot assume that the index returned by a click in a marker list
-	// in the dialog will also index the appropriate marker in AllMkrsList, nor the appropriate flag in
-	// AllMkrsFilteredFlags; hence we maintain a CUIntArray called markerLBIndexIntoAllMkrList which, given a
-	// returned index from a marker list (either the initial one, or the end markers list) entry click in the
-	// dialog, we can look up the index we need for AllMkrsList in the CUIntArray markerLBIndexIntoAllMkrList.
-	wxArrayInt markerLBIndexIntoAllMkrList;
+	//wxArrayInt markerLBIndexIntoAllMkrList;
 	wxArrayString assocTextArrayBeforeEdit;
 	wxArrayString assocTextArrayAfterEdit;
-	int indexIntoAllMkrSelection;
+
 	int indexIntoMarkersLB;
 	int currentMkrSelection;
 	int prevMkrSelection;
 	int newMkrSelection;
-	bool changesMade;
 	bool bCanRemoveBT; // TRUE if user has just clicked on a \bt or derivative \bt marker, else FALSE
 	bool bCanRemoveFT; // TRUE if user has just clicked on a \free marker, else FALSE
 	wxString btnStr;
@@ -78,9 +96,9 @@ public:
 	wxString btStr;
 	wxString removeBtnTitle;
 	bool bRemovalDone; // true when the Remove.. button has removed a free translation or back translation
-	void OnCancel(wxCommandEvent& WXUNUSED(event));
 	wxSizer* pViewFilteredMaterialDlgSizer;
 
+	void OnCancel(wxCommandEvent& WXUNUSED(event)); // CAdapt_ItCanvas accesses this, so it's public
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void ReinterpretEnterKeyPress(wxCommandEvent& event);
@@ -91,7 +109,6 @@ protected:
 	void OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(event));
 	void SetRemoveButtonFlags(wxListBox* pMarkers, int nSelection, bool& bCanRemoveFT, bool& bCanRemoveBT);
 	void GetAndShowMarkerDescription(int indexIntoAllMkrSelection);
-	void UpdateContentOnRemove();
 #ifdef _UNICODE
 	void OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(event));
 #endif

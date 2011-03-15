@@ -14,12 +14,6 @@
 /// from right to left.
 /// \derivation		The CStrip class is derived from wxObject.
 // *****************************************************************************
-// Pending Implementation Items (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 
-// *****************************************************************************
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -73,6 +67,8 @@ extern bool		gbRTL_Layout;
 /// This global is defined in Adapt_It.cpp.
 extern struct PageOffsets pgOffsets;
 
+// BEW 22Feb10 no changes to any functions needed for support of doc version 5
+
 // *******************************************************************
 // Construction/Destruction
 // *******************************************************************
@@ -101,67 +97,21 @@ CStrip::~CStrip()
 
 }
 
-#ifdef _ALT_LAYOUT_
-wxArrayInt* CStrip::GetPileIndicesArray()
-{
-	return &m_arrPileIndices;
-}
-#else
 wxArrayPtrVoid* CStrip::GetPilesArray()
 {
 	return &m_arrPiles;
 }
-#endif
 
-#ifdef _ALT_LAYOUT_
-int CStrip::GetPileIndicesCount()
-{
-	return m_arrPileIndices.GetCount();
-}
-#else
 int CStrip::GetPileCount()
 {
 	return m_arrPiles.GetCount();
 }
-#endif
 
-#ifdef _ALT_LAYOUT_
-CPile* CStrip::GetPileByIndexInStrip(int index)
-{
-	int indexInPileList = m_arrPileIndices.Item(index);
-	PileList::Node* pos = m_pLayout->m_pileList.Item(indexInPileList);
-	return pos->GetData();
-}
-#else
 CPile* CStrip::GetPileByIndex(int index)
 {
 	return (CPile*)m_arrPiles.Item(index);
 }
-#endif
 
-#ifdef _ALT_LAYOUT_
-void CStrip::Draw(wxDC* pDC)
-{
-	if (gbIsPrinting)
-	{
-        // whm Note: The pOffsets members nTop and nBottom were negative in the MFC
-        // version, but remain positive in the wx version.
-		POList* pList = &m_pLayout->m_pApp->m_pagesList;
-		POList::Node* pos = pList->Item(gnCurPage-1);
-		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
-		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
-			return;
-	}
-	int i;
-	int nPileCount = m_arrPileIndices.GetCount();
-	for (i = 0; i < nPileCount; i++)
-	{
-		CPile* pPile = GetPileByIndexInStrip(i);
-		if (pPile != NULL)
-			pPile->Draw(pDC);
-	}
-}
-#else
 void CStrip::Draw(wxDC* pDC)
 {
 	if (gbIsPrinting)
@@ -190,196 +140,13 @@ void CStrip::Draw(wxDC* pDC)
 		aPilePtr->Draw(pDC);
 	}
 }
-#endif
 
 // refactored CreateStrip() returns the iterator set for the CPile instance which is to be
 // first when CreateStrip() is again called in order to build the next strip, or NULL if
 // the document end has been reached (passing in the iterator avoids having to have a
 // PileList::Item() call at the start of the function, so time is saved when setting up the
 // strips for a whole document)
-// if _ALT_LAYOUT_ is #defined it passes in the index to the next CPile* to be placed in
-// the new strip, and returns the index of the next one which is to be replaced on next
-// entry 
-#ifdef _ALT_LAYOUT_
-int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
-{
-	m_nFree = nStripWidth;
-	int nPileIndexInLayout = nIndexToFirst;
-	PileList::Node* pos = m_pLayout->m_pileList.Item(nPileIndexInLayout);
-	wxASSERT(pos);
-
-	CPile* pPile = NULL;
-	int pileWidth = 0;
-	int nCurrentSpan = 0;
-
-    // clear the two arrays - failure to do this leaves gargage in their members in debug mode
-	m_arrPileIndices.Clear();
-	m_arrPileOffsets.Clear();
-
-	// lay out the piles
-/*
-#ifdef __WXDEBUG__
-	SPList* pSrcPhrases = m_pLayout->m_pApp->m_pSourcePhrases;
-	SPList::Node* posDebug = pSrcPhrases->GetFirst();
-	int index = 0;
-	while (posDebug != NULL)
-	{
-		CSourcePhrase* pSrcPhrase = posDebug->GetData();
-		wxLogDebug(_T("Index = %d   pSrcPhrase pointer  %x"),index,pSrcPhrase);
-		posDebug = posDebug->GetNext();
-		index++;
-	}
-#endif
-*/
-    // this refactored code is commented out because it turned out that RTL layout and LRT
-    // layout of the piles in the strip uses exactly the same code - they are appended to
-    // the strip in logical order, and it is only the rectangle calculations (none of which
-    // are done here) which specify the differing locations of pile[0], pile[1] etc for RTL
-    // versus LTR layout -- so that information will be in the coordinate calculations -
-    // specifically, in CPile::Left()
-//	if (!gbRTL_Layout)
-	{
-		// Unicode version or Regular version, and Left to Right layout is wanted
-		int nHorzOffset_FromLeft = 0;
-		int pileIndex_InStrip = 0; // index into CStrip's m_arrPileIndices array of indices
-								   // into the CPile* members in CLayout::m_pileList
-		int nWidthOfPreviousPile = 0;
-		
-        // we must always have at least one pile's index in the strip in order to prevent an
-        // infinite loop of empty strips if the width of the first pile should happen to
-        // exceed the strip's width; so we place the first unilaterally, regardless of its
-        // width
-		pPile = (CPile*)pos->GetData(); // (the cast is unnecessary) this is the CPile 
-										// pointer for the current nPileIndexInLayout value
-		// set the pile's m_pOwningStrip member
-		pPile->m_pOwningStrip = this;
-		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
-		{
-			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
-		}
-		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
-                    // large enough to accomodate the phrase box's width, even if just
-                    // expanded due to the user's typing
-		}
-		else
-		{
-			pileWidth = pPile->m_nMinWidth;
-		}
-		m_arrPileIndices.Add(nPileIndexInLayout); // store in CStrip's m_arrPileIndices array
-		m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
-		m_nFree -= pileWidth; // reduce the free space accordingly
-		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's 
-				// m_arrPileIndices array into the CPile instance in CLayout::m_pileList
-		// Note: I suspect we won't need to make use of this m_nPile member of
-		// CPile, so should we delete it from Pile.h & .cpp? *** TODO *** ??
-
-		// prepare for next iteration
-		nWidthOfPreviousPile = pileWidth;
-		pileIndex_InStrip++;
-		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-		nPileIndexInLayout++; // index for the next CPile* instance in CLayout::m_pileList
-		nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
-
-		// if m_nFree went negative or zero, we can't fit any more piles, so declare 
-		// the strip full
-		if (m_nFree <= 0)
-		{
-			m_bValid = TRUE;
-			return nPileIndexInLayout;
-		}
-
-		// append second and later piles to the strip
-		while (pos != NULL  && m_nFree > 0)
-		{
-			pPile = (CPile*)pos->GetData();
-			wxASSERT(pPile != NULL);
-
-            // break out of the loop without including this pile in the strip if it is a
-            // non-initial pile which contains a marker in its pointed at pSrcPhrase which
-            // is a wrap marker for text (we want strips to wrap too, provided the view
-            // menu item has that feature turned on)
-			if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
-			{
-				bool bCausesWrap = pPile->IsWrapPile();
-				// do the wrap only if it is a wrap marker and we have not just deal with
-				// a document-initial marker, such as \id
-				if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
-				{
-					// if we need to wrap, discontinue assigning piles to this strip (the
-					// nPileIndex_InList value is already correct for returning to caller)
-					m_bValid = TRUE;
-					return nPileIndexInLayout;
-				}
-			}
-
-            // if control gets to here, the pile is a potential candidate for inclusion in
-            // this strip, so work out if it will fit - and if it does, add it to the
-            // m_arrPiles, etc
-            if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
-			{
-				// when at the doc end, every pile uses m_nMinWidth value, as phrase box
-				// is hidden
-				pileWidth = pPile->m_nMinWidth;
-			}
-			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
-                                // large enough to accomodate the phrase box's width, even
-                                // if just expanded due to the user's typing
-			}
-			else
-			{
-				pileWidth = pPile->m_nMinWidth;
-			}
-			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree 
-                                // space for this pile to be eligible for inclusion in the
-                                // strip
-			if (nCurrentSpan <= m_nFree)
-			{
-				// this pile will fit in the strip, so add it
-				m_arrPileIndices.Add(nPileIndexInLayout); // store in CStrip's array
-				m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
-				m_nFree -= nCurrentSpan; // reduce the free space accordingly
-				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's
-					// m_arrPileIndices array into the CPile instance in CLayout::m_pileList
-			}
-			else
-			{
-				// this pile won't fit, so the strip is full - declare it full and return
-				// the pile list's index for use in the next strip's creation
-				m_bValid = TRUE;
-				return nPileIndexInLayout;
-			}
-
-			// set the pile's m_pOwningStrip member
-			pPile->m_pOwningStrip = this;
-
-			// update index for next iteration
-			nWidthOfPreviousPile = pileWidth;
-			pileIndex_InStrip++;
-
-			// advance the iterator for the CLayout's m_pileList list of pile pointers
-			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-			nPileIndexInLayout++; // index for the next CPile* instance in CLayout::m_pileList
-
-			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
-		}
-	}
-//	else
-//	{
-		// RTL code omitted here (see #else block below, where it is preserved) because it is
-		// identical to LTR code except for a name change of one variable, so don't need 2 blocks
-//	}
-	// if the loop exits because the while test yields FALSE, then either we are at the end of the
-	// document or the first pile was wider than the whole strip - in either case we must declare
-	// this strip valid and we are done
-	m_bValid = TRUE;
-	return nPileIndexInLayout; // the index value where we start when we create the next strip
-}
-#else
+// BEW 22Feb10 no changes needed for support of doc version 5
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -660,7 +427,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	m_bValid = TRUE;
 	return pos; // the iterator value where we start when we create the next strip
 }
-#endif
 
 // the following is an overrided version to be used when refilling emptied strips, for a
 // range of piles - rather than all the piles to the document's end, and so it has an
@@ -668,6 +434,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 // The value returned is a count of how many CPile pointers were placed in the current
 // strip, there will always be at least one - empty strips are illegal; the function
 // should not be called if there are no more piles to be placed.
+// BEW 22Feb10 no changes needed for support of doc version 5
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -992,8 +759,6 @@ bool CStrip::GetValidityFlag()
 {
 	return m_bValid;
 }
-
-
 
 // use GetStripRect_CellsOnly() to set a local strip rectangle which bounds the enclosed
 // cells only, that is, omitting the free translation rectangle if gbFreeTranslationMode is

@@ -13,13 +13,7 @@
 /// whether back translations, free translations, and notes are to be formatted as
 /// boxed paragraphs, rows of interlinear tables, balloon comments, or footnotes.
 /// \derivation		The CExportOptionsDlg class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ExportOptionsDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, no changes needed for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -717,12 +711,12 @@ void CExportOptionsDlg::OnBnClickedButtonIncludeInExport(wxCommandEvent& WXUNUSE
 
 void CExportOptionsDlg::LoadActiveSFMListBox()
 {
-	// LoadActiveSFMListBox fills the CCheckListBox with the sfms that are 
-	// currently active in the document. These were collected in the caller 
-	// (from the Doc's source phrase m_markers members) and currently exist 
-	// in the CStringArrays m_exportBareMarkers and m_exportMarkerAndDescriptions, 
-	// and have corresponding export flags in the CUIntArrays m_exportFilterFlags 
-	// and m_exportFilterFlagsBeforeEdit. 
+    // LoadActiveSFMListBox fills the CCheckListBox with the sfms that are currently active
+    // in the document. These were collected in the caller (from the Doc's source phrase
+    // m_markers, m_filteredInfo, and the three marker-less storage locations, m_freeTrans,
+    // m_note, m_collectedBackTrans members) and currently exist in the CStringArrays
+    // m_exportBareMarkers and m_exportMarkerAndDescriptions, and have corresponding export
+    // flags in the CUIntArrays m_exportFilterFlags and m_exportFilterFlagsBeforeEdit.
 	// The currently filtered sfms are listed with [FILTERED] prefixed to the 
 	// description. Unknown markers are listed with [UNKNOWN MARKER] as their 
 	// description. We list all markers that are used in the document, and if the 
