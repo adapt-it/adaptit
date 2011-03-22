@@ -4899,7 +4899,7 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 			}
 		}
 
-		gbUserCancelledChooseTranslationDlg = TRUE; // use in MoveToNextEmptyPile() to 
+		gbUserCancelledChooseTranslationDlg = TRUE; // use in MoveToNextPile() to 
 							// suppress a second showing of dialog from LookUpSrcWord()
 		pView->RemoveSelection();
 		return FALSE;
