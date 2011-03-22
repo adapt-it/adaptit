@@ -9,11 +9,8 @@
 /* Begin PBXBuildFile section */
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
-		0396BFCB11BEA67600100CC4 /* CRefString_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */; };
-		0396BFCC11BEA67600100CC4 /* KB_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
-		0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
@@ -140,16 +137,10 @@
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
 		0386CB741140CEB9000F9E2E /* Retranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Retranslation.cpp; path = ../../source/Retranslation.cpp; sourceTree = SOURCE_ROOT; };
-		0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CRefString_Standoff.cpp; path = ../../source/CRefString_Standoff.cpp; sourceTree = SOURCE_ROOT; };
-		0396BFC211BEA67600100CC4 /* CRefString_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CRefString_Standoff.h; path = ../../source/CRefString_Standoff.h; sourceTree = SOURCE_ROOT; };
-		0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KB_Standoff.cpp; path = ../../source/KB_Standoff.cpp; sourceTree = SOURCE_ROOT; };
-		0396BFC411BEA67600100CC4 /* KB_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KB_Standoff.h; path = ../../source/KB_Standoff.h; sourceTree = SOURCE_ROOT; };
 		0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageCodesDlg.cpp; path = ../../source/LanguageCodesDlg.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LanguageCodesDlg.h; path = ../../source/LanguageCodesDlg.h; sourceTree = SOURCE_ROOT; };
 		0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RefStringMetadata.cpp; path = ../../source/RefStringMetadata.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC811BEA67600100CC4 /* RefStringMetadata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RefStringMetadata.h; path = ../../source/RefStringMetadata.h; sourceTree = SOURCE_ROOT; };
-		0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TargetUnit_Standoff.cpp; path = ../../source/TargetUnit_Standoff.cpp; sourceTree = SOURCE_ROOT; };
-		0396BFCA11BEA67600100CC4 /* TargetUnit_Standoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TargetUnit_Standoff.h; path = ../../source/TargetUnit_Standoff.h; sourceTree = SOURCE_ROOT; };
 		03D7A717112A2601004F6D39 /* Notes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Notes.h; path = ../../source/Notes.h; sourceTree = "<group>"; };
 		03D7A718112A2601004F6D39 /* Notes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Notes.cpp; path = ../../source/Notes.cpp; sourceTree = "<group>"; };
 		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
@@ -432,16 +423,10 @@
 				03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */,
 				03F468AD11F759A300B3CAEC /* PeekAtFile.h */,
 				03F468AE11F759A300B3CAEC /* tellenc.h */,
-				0396BFC111BEA67600100CC4 /* CRefString_Standoff.cpp */,
-				0396BFC211BEA67600100CC4 /* CRefString_Standoff.h */,
-				0396BFC311BEA67600100CC4 /* KB_Standoff.cpp */,
-				0396BFC411BEA67600100CC4 /* KB_Standoff.h */,
 				0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */,
 				0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */,
 				0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */,
 				0396BFC811BEA67600100CC4 /* RefStringMetadata.h */,
-				0396BFC911BEA67600100CC4 /* TargetUnit_Standoff.cpp */,
-				0396BFCA11BEA67600100CC4 /* TargetUnit_Standoff.h */,
 				031BF31811932FF6005223ED /* Uuid_AI.cpp */,
 				031BF31911932FF6005223ED /* Uuid_AI.h */,
 				C805DBEE11705519006919E2 /* Placeholder.h */,
@@ -874,11 +859,8 @@
 				C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */,
 				C805DBF011705519006919E2 /* Placeholder.cpp in Sources */,
 				031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */,
-				0396BFCB11BEA67600100CC4 /* CRefString_Standoff.cpp in Sources */,
-				0396BFCC11BEA67600100CC4 /* KB_Standoff.cpp in Sources */,
 				0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */,
 				0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */,
-				0396BFCF11BEA67600100CC4 /* TargetUnit_Standoff.cpp in Sources */,
 				03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */,
 				C80E02BB1222481000ECCA6A /* AdminEditMenuProfile.cpp in Sources */,
 				C80E02BC1222481000ECCA6A /* NavProtectNewDoc.cpp in Sources */,
