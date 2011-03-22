@@ -46,6 +46,7 @@
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
 		C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
+		C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */ = {isa = PBXBuildFile; fileRef = C85085A21338466C006E9457 /* curl-ca-bundle.crt */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
@@ -201,6 +202,7 @@
 		C8141435112256EF006764C6 /* FreeTrans.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTrans.h; path = ../../source/FreeTrans.h; sourceTree = SOURCE_ROOT; };
 		C8141436112256EF006764C6 /* FreeTrans.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTrans.cpp; path = ../../source/FreeTrans.cpp; sourceTree = SOURCE_ROOT; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
+		C85085A21338466C006E9457 /* curl-ca-bundle.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "curl-ca-bundle.crt"; path = "../../docs/curl-ca-bundle.crt"; sourceTree = SOURCE_ROOT; };
 		C850F3A610C75D19008739FF /* AdminMoveOrCopy.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AdminMoveOrCopy.h; path = ../../source/AdminMoveOrCopy.h; sourceTree = SOURCE_ROOT; };
 		C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AdminMoveOrCopy.cpp; path = ../../source/AdminMoveOrCopy.cpp; sourceTree = SOURCE_ROOT; };
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
@@ -626,7 +628,6 @@
 			isa = PBXGroup;
 			children = (
 				7D527D45124308E30077F9FE /* AI_UserProfiles.xml */,
-				C853F9991222543700334B95 /* iso639-3codes.txt */,
 				C80E02BF1222483C00ECCA6A /* AIWX2.xpm */,
 				C80E02C01222483C00ECCA6A /* AIWX2.bmp */,
 				C80E02C11222483C00ECCA6A /* ai_new.ico */,
@@ -677,6 +678,8 @@
 		7DA17E930F4BC92500BDDF30 /* docs */ = {
 			isa = PBXGroup;
 			children = (
+				C85085A21338466C006E9457 /* curl-ca-bundle.crt */,
+				C853F9991222543700334B95 /* iso639-3codes.txt */,
 			);
 			name = docs;
 			sourceTree = "<group>";
@@ -756,6 +759,7 @@
 				C80E02CA1222483C00ECCA6A /* ai_16.ico in Resources */,
 				C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */,
 				7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */,
+				C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
