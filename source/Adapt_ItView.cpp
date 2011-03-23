@@ -25760,6 +25760,12 @@ void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 // OnExportOXES() is based on the view function, DoExportSfmText()
 void CAdapt_ItView::OnExportOXES(wxCommandEvent& WXUNUSED(event))
 {
+	// whm 23Mar11 added the following temporary message and return
+	// REMOVE CODE BELOW AFTER 6.0.0 is released and development resumes for 6.1.0
+	wxMessageBox(_T("Export to OXES is currently unavailable. It is planned for the 6.1.0 release."));
+	return;
+	// REMOVE CODE ABOVE AND UNCOMMENT BELOW AFTER 6.0.0 is released and development resumes for 6.1.0
+/*
 	int versionNum = 1;
 
 
@@ -25771,6 +25777,7 @@ void CAdapt_ItView::OnExportOXES(wxCommandEvent& WXUNUSED(event))
     // TRUE here, then such data is not a candidate for an OXES export - the latter expects
     // SFM or USFM markup
 	DoExportAsOxes(versionNum); // BEW created 2Sep10
+*/
 }
 
 // same conditions asa for OnUpdateFileExport() (the latter is for exporting the

@@ -14233,12 +14233,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 // ************************* TEMPORARY FOR 6.0.0 ONLY ****************************************
 	// For OXES -- in 6.0.0 it isn't supported, so remove the menu item temporarily, and
 	// restore it for 6.1.0
+	
+	// whm 23Mar11 change: The following creates a memory leak and is risks complications for
+	// the user profiles menu routines. I've commented this out, and placed a wxMessageBox()
+	// notification to the user in CAdapt_ItView::OnExportOXES()
+	/*
 	wxMenu* pItsMenu = NULL;
 	wxMenuItem* pHideThisOxesMenuItem = pMenuBar->FindItem(ID_EXPORT_OXES, &pItsMenu);
 	if (pItsMenu != NULL) // whm 15Mar11 added test for NULL pointer (might happen if menu item is hidden/removed in user profiles)
 	{
 		pItsMenu->Remove(pHideThisOxesMenuItem);
 	}
+	*/
 // ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
 
 	// Hide the Glossing check box
