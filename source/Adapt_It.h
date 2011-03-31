@@ -525,15 +525,17 @@ enum ExportType
 
 enum KBExportSaveAsType
 {
-	KBExportSaveAsLIFT_XML,
+	// whm 31Mar11 changed default to be KBExportSaveAsSFM, i.e., enum 0
 	KBExportSaveAsSFM_TXT,
+	KBExportSaveAsLIFT_XML,
 	KBExportAllFiles
 };
 
 enum KBImportFileOfType
 {
-	KBImportFileOfLIFT_XML,
+	// whm 31Mar11 changed default to be KBExportSaveAsSFM, i.e., enum 0
 	KBImportFileOfSFM_TXT,
+	KBImportFileOfLIFT_XML,
 	KBImportAllFiles
 };
 
@@ -1838,6 +1840,7 @@ public:
 	
 	bool m_bECConnected; // whm added for wx version
 	bool bECDriverDLLLoaded; // set TRUE or FALSE in OnInit()
+	bool bParatextSharedDLLLoaded;
 	CFindDlg* m_pFindDlg; // whm added to partly replace original 
 						  // m_pFindReplaceDlg (non-modal)
 	CReplaceDlg* m_pReplaceDlg; // whm added to partly replace original 

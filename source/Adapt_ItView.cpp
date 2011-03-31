@@ -19279,10 +19279,10 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxString message;
 	message = _(
-	"Extend the knowledge base by importing LIFT or SFM dictionary records");
+	"Extend the knowledge base by importing SFM or LIFT dictionary records");
 	wxString filter;
 	filter = _(
-	"XML LIFT import (*.lift)|*.lift|SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||");
+	"SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||");
 	wxString importFilename = _T(""); // empty string
 	wxString defaultDir;
 	if (pApp->m_kbExportPath.IsEmpty())
@@ -19322,6 +19322,9 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	pApp->m_kbExportPath = importPath.Left(pathLen - nameLen - 1);
 	int filterIndex;
 	filterIndex = fileDlg.GetFilterIndex();
+	// NOTE: If you decide to change the default Import type you must make sure that 
+	// the KBImportFileOfType enum ordering (in Adapt_It.h) has the same enum values 
+	// as the filterIndex value returned here by GetFilterIndex() !!!
 
 	if (filterIndex == KBImportFileOfLIFT_XML)
 	{

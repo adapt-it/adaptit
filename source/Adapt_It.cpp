@@ -5719,6 +5719,7 @@ wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
+wxDynamicLibrary ptSharedDynamicLibrary;
 
 #if defined(__WXMSW__)
 const wxChar *LIB_NAME = _T("ECDriver.dll");
@@ -5727,6 +5728,8 @@ const wxChar *LIB_NAME = _T("/lib/ecdriver.so");
 #else
 #error "Cannot load wxDynamicLibrary ecdriver on this platform.";
 #endif
+
+const wxChar *PT_LIB_NAME = _T("ParatextShared.dll");
 
 // whm Note: constants must be static and integral types to be initialized within a class
 const wxChar *FUNC_NAME_EC_IS_INSTALLED = _T("IsEcInstalled");
@@ -10131,10 +10134,17 @@ bool CAdapt_ItApp::ParatextIsInstalled()
 		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
 		{
 			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+			// Note: the dirStrValue path ends with a backslash so we don't add one here.
 			dirStrValue = keyPTInstallDir.QueryDefaultValue();
 			if (::wxDirExists(dirStrValue))
 			{
-				if (::wxFileExists(dirStrValue + _T("Paratext.exe")))
+				// Note: There are two main Paratext components that we check for to determine
+				// if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
+				// the main program. The other is the shared dynamic library with which our 
+				// collaboration with Paratext is achieved. We later interact with the 
+				// ParatextShared.dll library.
+				if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
+					&& ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
 				{
 					bPTInstalled = TRUE;
 				}
@@ -10188,7 +10198,14 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 bool CAdapt_ItApp::ParatextIsRunning()
 {
 	bool bIsRunning = FALSE;
-
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	// Determine the Windows API to call to determine if a Paratext.exe
+	// process is currently running on the Windows machine.
+	// 
+	// TODO: Implement and comment out the message box call below
+	wxMessageBox(_T("Note to Programmer: This function is not yet implemented and always returns FALSE!!"));
+	
+#endif
 
 	return bIsRunning;
 }
@@ -11372,6 +11389,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bParatextIsInstalled = FALSE;
 	m_bParatextIsRunning = FALSE;
 	m_ParatextProjectsDirPath.Empty();
+	bParatextSharedDLLLoaded = FALSE;
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
@@ -13812,8 +13830,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
 	// If it exists, it queries the string value associated with the key which will be
 	// the directory where Paratext is installed, i.e., "C:\Program Files\Paratext 7\"
-	// It then checks for the existence of a "Paratext.exe" executable file within that
-	// directory. If all checks pass, we assume Paratext is installed on the host system.
+	// It then checks for the existence of a "Paratext.exe" executable file and a
+	// ParatextShared.dll dynamic library file within that directory. If all checks 
+	// pass, we assume Paratext is installed on the host system.
 	if (ParatextIsInstalled())
 	{
 		m_bParatextIsInstalled = TRUE;
@@ -13827,6 +13846,43 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Note: a non empty path in m_ParatextProjectsDirPath ends with a Windows \ path separator.
 	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
 
+	// whm 28Mar11 TESTING BELOW !!!
+	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
+	// loaded by the wxDynamicLibrary::Load() method.
+	/*
+	if (m_bParatextIsInstalled)
+	{
+		// try loading the managed code ParatextShared.dll
+		if (wxGetWinVersion() >= wxWinVersion_5)
+		{
+			// Turn off system message "Failed to load shared library...(error 126: the specified
+			// module could not be found", which pops up in idle time if following .Load() call
+			// fails. We have our own message.
+			wxLogNull logNo;	// eliminates any spurious messages from the system while 
+								// reading read-only folders/files
+			bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
+			if (!ptSharedDynamicLibrary.IsLoaded())
+			{
+				// the ParatextShared.dll file was not found or could not be loaded
+				bParatextSharedDLLLoaded = FALSE;
+				wxString msg;
+				// This error shouldn't happen with normal install, so it can remain in English
+				msg = msg.Format(_T(
+		"Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
+				PT_LIB_NAME);
+				wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
+			}
+			else
+			{
+				bParatextSharedDLLLoaded = TRUE;
+			}
+		}
+		
+	}
+
+	
+	// whm 28Mar11 TESTING ABOVE !!!
+	*/
     // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
     // it would necessarily be a good thing for users to be able to open AI documents by
@@ -34729,8 +34785,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	wxString extToBeUsed;
 	wxString tempStr;
 
-	// use the .lift extension as default
-	extToBeUsed = _T(".lift"); // the extension is not localizable
+	// use the SFM .txt extension as default
+	extToBeUsed = _T(".txt"); // the extension is not localizable
 	if (gbIsGlossing)
 	{
 		glossStr = _("Glossing");
@@ -34744,7 +34800,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		dictFilename.Trim(TRUE); // trim any white space from right end
 	}
 	dictFilename = dictFilename + _T("%s");
-	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .lift 
+	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .txt 
 													// as the default export extension
 	wxString defaultDir;
 	if (m_kbExportPath.IsEmpty())
@@ -34758,7 +34814,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	// get a file dialog
 	wxString filter;
-	filter = _("XML LIFT export (*.lift)|*.lift|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+	filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"); 
 	wxFileDialog fileDlg(
 		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 		_("Filename For KB Export"),
@@ -34786,6 +34842,9 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	wxString dicPath = fileDlg.GetPath(); 
 	int filterIndex;
 	filterIndex = fileDlg.GetFilterIndex();
+	// NOTE: If you decide to change the default Export type you must make sure that 
+	// the KBExportSaveAsType enum ordering (in Adapt_It.h) has the same enum values 
+	// as the filterIndex value returned here by GetFilterIndex() !!!
 
 	if (filterIndex == KBExportSaveAsSFM_TXT)
 	{
@@ -34807,8 +34866,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		return; // return since it is not a fatal error
 	}
 
-	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, 
-	{										   //i.e., first item in drop down list
+	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 1, 
+	{										   //i.e., second item in drop down list
 		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
 	}
 	else
