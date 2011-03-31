@@ -201,6 +201,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5F901A5B5FCB46458BB496089D4EFCA3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_60A85D7C9F364B7587850C5A45384CC7"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -238,6 +244,12 @@
         "Entry"
         {
         "MsmKey" = "8:_6EBA92D86D704F0AB44DA66E5A1A13F7"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_72A93B261ED6486BBC5783022AFC3ADA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -381,7 +393,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_B838A2C101DC43339DDA5C844FFC27FE"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_BDED456001E745C38FC063B5ECAB1027"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C461828BD7084469A5C2270EAC704568"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -517,6 +541,12 @@
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_72A93B261ED6486BBC5783022AFC3ADA"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -590,6 +620,14 @@
         {
             "LaunchCondition"
             {
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_799CFB1ECDFF4E7C93CF38659DD3E7DE"
+                {
+                "Name" = "8:.NET Framework"
+                "Message" = "8:[VSDNETMSG]"
+                "Version" = "8:3.5.21022"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=76617"
+                }
             }
         }
         "File"
@@ -1214,6 +1252,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5F901A5B5FCB46458BB496089D4EFCA3"
+            {
+            "SourcePath" = "8:..\\..\\setup Regular\\curl-ca-bundle.crt"
+            "TargetName" = "8:curl-ca-bundle.crt"
+            "Tag" = "8:"
+            "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_60A85D7C9F364B7587850C5A45384CC7"
             {
             "SourcePath" = "8:..\\..\\setup Regular\\Images\\Adapt It Quick Start\\Image19.gif"
@@ -1340,6 +1398,37 @@
             "TargetName" = "8:Adapt_It.mo"
             "Tag" = "8:"
             "Folder" = "8:_18C910215950468C915B7248949C2C6E"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_72A93B261ED6486BBC5783022AFC3ADA"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:rdwrtp7, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_72A93B261ED6486BBC5783022AFC3ADA"
+                    {
+                    "Name" = "8:rdwrtp7.exe"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:..\\..\\setup Regular\\rdwrtp7.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1814,12 +1903,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B838A2C101DC43339DDA5C844FFC27FE"
+            {
+            "SourcePath" = "8:..\\..\\setup Regular\\iso639-3codes.txt"
+            "TargetName" = "8:iso639-3codes.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BDED456001E745C38FC063B5ECAB1027"
             {
             "SourcePath" = "8:..\\..\\res\\CC32x32-4color.ico"
             "TargetName" = "8:CC32x32-4color.ico"
             "Tag" = "8:"
             "Folder" = "8:_164A344207E04CB2A7D048980741B24C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C461828BD7084469A5C2270EAC704568"
+            {
+            "SourcePath" = "8:..\\..\\setup Regular\\AI_UserProfiles.xml"
+            "TargetName" = "8:AI_UserProfiles.xml"
+            "Tag" = "8:"
+            "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2445,19 +2574,20 @@
         "MsiBootstrapper"
         {
         "LangId" = "3:1033"
+        "RequiresElevation" = "11:FALSE"
         }
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Adapt It WX"
-        "ProductCode" = "8:{9995F195-66FF-4D85-9728-5280D878EC5C}"
-        "PackageCode" = "8:{47F6961C-C7A8-4FAB-83D9-71919978C969}"
+        "ProductCode" = "8:{9D2095A8-9C1F-4CEA-ABC6-DDFE35B5A593}"
+        "PackageCode" = "8:{1CA03F14-9DE0-4A51-90E2-55C9CEA21268}"
         "UpgradeCode" = "8:{12266E65-1D48-4090-BC83-9069A2DEA219}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.0.1"
+        "ProductVersion" = "8:6.0.0"
         "Manufacturer" = "8:SIL"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://code.google.com/p/adaptit/"
