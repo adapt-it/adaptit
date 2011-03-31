@@ -141,6 +141,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_35C568490D414F08944FC2E15BB38F23"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3E5235A69A6643EBA679874FA40DEDCC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -363,6 +369,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_A12A9817F577467A91BBA937D03C1E77"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_A6242B08830E4F45B95CFDF7310155A9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -418,6 +430,12 @@
         "Entry"
         {
         "MsmKey" = "8:_C3D1CFBB0D934534B48DE1CEDA7A2ACC"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_CAE5D03534DA4F68B5DDFDF231443866"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -495,6 +513,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_EDA6C5518C254A01A7429B9A4109CBF6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_EDD364BDC4FF461BB5B9B6EEEA950521"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -557,6 +581,12 @@
         {
         "MsmKey" = "8:_FFF9C9670CDF476A975851CC535AE58B"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_A12A9817F577467A91BBA937D03C1E77"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -632,6 +662,14 @@
         {
             "LaunchCondition"
             {
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_584505254F374ACBB2C686FCA17C8C70"
+                {
+                "Name" = "8:.NET Framework"
+                "Message" = "8:[VSDNETMSG]"
+                "Version" = "8:3.5.21022"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=76617"
+                }
             }
         }
         "File"
@@ -1040,6 +1078,26 @@
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Adapt It changes.txt"
             "TargetName" = "8:Adapt It changes.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_35C568490D414F08944FC2E15BB38F23"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\AI_UserProfiles.xml"
+            "TargetName" = "8:AI_UserProfiles.xml"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
@@ -1796,6 +1854,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A12A9817F577467A91BBA937D03C1E77"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:rdwrtp7, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_A12A9817F577467A91BBA937D03C1E77"
+                    {
+                    "Name" = "8:rdwrtp7.exe"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:..\\..\\setup Unicode\\rdwrtp7.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A6242B08830E4F45B95CFDF7310155A9"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\tpi\\wxstd.mo"
@@ -1980,6 +2069,26 @@
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Adapt It Quick Start.htm"
             "TargetName" = "8:Adapt It Quick Start.htm"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE5D03534DA4F68B5DDFDF231443866"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\iso639-3codes.txt"
+            "TargetName" = "8:iso639-3codes.txt"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
@@ -2222,6 +2331,26 @@
             "TargetName" = "8:extract_free_trans.cct"
             "Tag" = "8:"
             "Folder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EDA6C5518C254A01A7429B9A4109CBF6"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\curl-ca-bundle.crt"
+            "TargetName" = "8:curl-ca-bundle.crt"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2666,14 +2795,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Adapt It WX Unicode"
-        "ProductCode" = "8:{8816BF80-0AA1-411F-9FDF-BC6D224031A1}"
-        "PackageCode" = "8:{DEC072AF-8DA7-4500-BA2C-4750AD594828}"
+        "ProductCode" = "8:{7073EF2C-DAD5-4D4A-8D63-A39295285FEC}"
+        "PackageCode" = "8:{20605FA8-658D-4F12-A54E-5D3691ED4B0A}"
         "UpgradeCode" = "8:{64C9A09B-737D-4B47-BF3A-ED7EFAF5831B}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.0.1"
+        "ProductVersion" = "8:6.0.0"
         "Manufacturer" = "8:SIL"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://code.google.com/p/adaptit/"
