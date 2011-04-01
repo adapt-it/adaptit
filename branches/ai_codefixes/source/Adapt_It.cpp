@@ -169,6 +169,14 @@
 #include "CorGuess.h"
 
 
+// Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
+#ifdef __WXMSW__
+	#include <windows.h>
+	#include <tlhelp32.h>
+	#include <tchar.h>
+#endif
+
+
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
 #endif // wxUSE_WXHTML_HELP
@@ -10187,8 +10195,57 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 
 bool CAdapt_ItApp::ParatextIsRunning()
 {
-	bool bIsRunning = FALSE;
+		bool bIsRunning = FALSE;
 
+#ifdef __WXMSW__ // only implemented on a Windows host system currently
+
+		try {
+		
+			HANDLE hProcessSnap;
+			//HANDLE hProcess;
+			PROCESSENTRY32 pe32;
+			//DWORD dwPriorityClass;
+
+			// Take a snapshot of all processes in the system.
+			hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
+			if( hProcessSnap == INVALID_HANDLE_VALUE )
+			{
+				// Error encountered
+				return bIsRunning;
+			}
+			// Set the size of the structure before using it.
+			pe32.dwSize = sizeof( PROCESSENTRY32 );
+
+			// Retrieve information about the first process,
+			// and exit if unsuccessful
+			if( !Process32First( hProcessSnap, &pe32 ) )  // Unknown Error retreiving process-abort
+			{	
+				return bIsRunning;
+			}
+			
+			// Now walk the snapshot of processes, and
+			// display information about each process in turn
+			do
+			{				
+				wxString sProcess = pe32.szExeFile;
+				//wxLogDebug(_T("PROCESS NAME = %s"),sProcess); // 
+
+				if (sProcess.Contains(_T("Paratext")))
+				{
+					// Process found
+					wxLogDebug(_T("PARATEXT PROCESS FOUND = %s"),sProcess);
+					bIsRunning = TRUE;
+					break;
+				}
+
+			} while( Process32Next( hProcessSnap, &pe32 ) );
+
+			CloseHandle( hProcessSnap );           // clean the snapshot object
+
+		}
+		catch (...) {} // Just ignore - app continues, function should return FALSE as default
+
+#endif
 
 	return bIsRunning;
 }
@@ -15610,6 +15667,9 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
 	m_pAdaptationsGuesser = new Guesser;
 	m_pGlossesGuesser = new Guesser;
+
+	//klb test
+	//bool a = ParatextIsRunning();
 
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
 	//	m_pTargetBox->GetCancelAndSelectFlag());
