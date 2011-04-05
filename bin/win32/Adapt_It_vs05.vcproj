@@ -48,8 +48,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)\include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\mswd&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE"
+				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)\include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\mswd&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Debug/Adapt_It.pch"
@@ -76,12 +76,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="wxmsw28d_adv.lib wxmsw28d_html.lib wxmsw28d_core.lib wxbase28d.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexd.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib oleacc.lib odbc32.lib"
+				AdditionalDependencies="wxmsw28d_adv.lib wxmsw28d_html.lib wxmsw28d_core.lib wxbase28d.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexd.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
 				Version="5.1.4"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)\contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -147,8 +147,8 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)/include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\msw&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\msw&quot;"
-				PreprocessorDefinitions="NDEBUG,WIN32,_WINDOWS,__WINDOWS__,__WXMSW__,__WIN95__,__WIN32__,WINVER=0x0400,STRICT"
+				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)/include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\msw&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\msw&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				PreprocessorDefinitions="NDEBUG,WIN32,_WINDOWS,__WINDOWS__,__WXMSW__,__WIN95__,__WIN32__,WINVER=0x0400,STRICT;CURL_STATICLIB"
 				StringPooling="false"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -176,11 +176,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="wxmsw28_adv.lib wxmsw28_html.lib wxmsw28_core.lib wxbase28.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregex.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib oleacc.lib odbc32.lib"
+				AdditionalDependencies="wxmsw28_adv.lib wxmsw28_html.lib wxmsw28_core.lib wxbase28.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregex.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				Version="5.1.4"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)\contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile=".\Release/Adapt_It.pdb"
 				SubSystem="2"
@@ -237,8 +237,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)\include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\mswud&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE"
+				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)\include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="$(IntDir)/Adapt_It.pch"
@@ -260,12 +260,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxmsw28ud_adv.lib wxmsw28ud_html.lib wxmsw28ud_core.lib wxbase28ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib oleacc.lib odbc32.lib"
+				AdditionalDependencies="wxmsw28ud_adv.lib wxmsw28ud_html.lib wxmsw28ud_core.lib wxbase28ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
 				Version="5.1.4"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;..\..\source\"
+				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)\contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 			/>
@@ -321,8 +321,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)\include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\mswu&quot;"
-				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE"
+				AdditionalIncludeDirectories="&quot;$(WXWIN_VS05)\include&quot;;&quot;$(WXWIN_VS05)\contrib\include&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib\mswu&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="$(IntDir)/Adapt_It.pch"
@@ -344,13 +344,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxmsw28u_adv.lib wxmsw28u_html.lib wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib oleacc.lib odbc32.lib"
+				AdditionalDependencies="wxmsw28u_adv.lib wxmsw28u_html.lib wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
 				Version="5.1.4"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN_VS05)\lib&quot;;&quot;$(WXWIN_VS05)\contrib\lib&quot;;&quot;$(WXWIN_VS05)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -450,6 +450,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AdminEditMenuProfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AdminMoveOrCopy.cpp"
 				>
 			</File>
@@ -459,6 +463,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\AutoSavingPage.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\base64.cpp"
 				>
 			</File>
 			<File
@@ -518,6 +526,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CorGuess.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\DocPage.cpp"
 				>
 			</File>
@@ -531,6 +543,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\EditSourceTextDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\EmailReportDlg.cpp"
 				>
 			</File>
 			<File
@@ -554,10 +570,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\FilterPage.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\FindReplace.cpp"
 				>
 			</File>
@@ -566,7 +578,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\FreeTrans.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GoToDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GuesserSettingsDlg.cpp"
 				>
 			</File>
 			<File
@@ -591,6 +611,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBPage.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\LanguageCodesDlg.cpp"
 				>
 			</File>
 			<File
@@ -622,7 +646,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\NavProtectNewDoc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\NoteDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Notes.cpp"
 				>
 			</File>
 			<File
@@ -634,11 +666,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\PeekAtFile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\PhraseBox.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\source\Pile.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Placeholder.cpp"
 				>
 			</File>
 			<File
@@ -671,6 +711,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\RefString.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\RefStringMetadata.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Retranslation.cpp"
 				>
 			</File>
 			<File
@@ -734,7 +782,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\USFMPage.cpp"
+				RelativePath="..\..\source\Usfm2Oxes.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\UsfmFilterPage.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Uuid_AI.cpp"
 				>
 			</File>
 			<File
@@ -803,6 +859,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AdminEditMenuProfile.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AdminMoveOrCopy.h"
 				>
 			</File>
@@ -812,6 +872,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\AutoSavingPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\base64.h"
 				>
 			</File>
 			<File
@@ -871,6 +935,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CorGuess.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\DocPage.h"
 				>
 			</File>
@@ -888,6 +956,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\EditSourceTextDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\EmailReportDlg.h"
 				>
 			</File>
 			<File
@@ -915,10 +987,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\FilterPage.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\FindReplace.h"
 				>
 			</File>
@@ -927,7 +995,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\FreeTrans.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GoToDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GuesserSettingsDlg.h"
 				>
 			</File>
 			<File
@@ -952,6 +1028,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\LanguageCodesDlg.h"
 				>
 			</File>
 			<File
@@ -983,7 +1063,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\NavProtectNewDoc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\NoteDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Notes.h"
 				>
 			</File>
 			<File
@@ -995,11 +1083,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\PeekAtFile.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\PhraseBox.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\source\Pile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Placeholder.h"
 				>
 			</File>
 			<File
@@ -1032,6 +1128,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\RefString.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\RefStringMetadata.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Retranslation.h"
 				>
 			</File>
 			<File
@@ -1075,6 +1179,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\tellenc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.h"
 				>
 			</File>
@@ -1091,7 +1199,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\USFMPage.h"
+				RelativePath="..\..\source\Usfm2Oxes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\UsfmFilterPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Uuid_AI.h"
 				>
 			</File>
 			<File
