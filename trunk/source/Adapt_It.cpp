@@ -11861,6 +11861,91 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	////////////// END OF WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////
 	*/
 
+	// BEW 6April2011 **** DO NOT REMOVE COMMENTED OUT CODE BELOW **** THIS IS VALUABLE FOR BEW ****
+	//
+	// Some code to get the sequence of utf-8 bytes for a given utf-16 character
+	// in the output window -- run this in the Unicode build, it's useless in the ANSI build
+	// Designed for Doulos SIL font (using utf8 CC I couldn't get to work right, but this
+	// bit of quick & dirty code below is what I can use for perhaps a little applet with
+	// a minimal GUI - just a standard file in dialog to get a file, and a standard file out
+	// dialog to write to a given folder).
+	// Input a file of Takia ANSI data and convert it to utf-8 and write to disk;
+	// I only need to convert upper and lower case velar n, for Takia data. And I only
+	// need do this on each Takia NT book - therefore 27 times. So having it here is enough.
+	/*
+	//CBString inStr = "Þai ýieg abag ari gup tamol aýal san maýau ýipiteýanaý a."; // test string, hacked ANSI legacy Takia text
+	// get a file dialog to file in the wanted Takia sfm text file to inStr
+	wxString fullPath = _T("");
+	wxString takia_message = _T("Select Takia SFM file for conversion");
+	wxString default_path = _T("C:\\Users\\watersb\\Documents");
+	fullPath = ::wxFileSelector(takia_message,default_path);
+	if (!fullPath.IsEmpty())
+	{
+		wxFileName fn(fullPath);
+		wxString itsFilename = fn.GetFullName();
+		wxString itsPath = fn.GetPath();
+		wxFile fileIn;
+		bool bOpen = fileIn.Open(fullPath);
+		if (bOpen)
+		{
+			size_t aSafeLength = 320000; // about .3Mb, Takia Luke is 177MB so 
+										 // this will get all of any Takia NT file
+			// need a big enough byte buffer
+			char* pBuff = new char[aSafeLength];
+			memset(pBuff,0,aSafeLength);
+			size_t actualNumBytes = fileIn.Read((void*)pBuff, aSafeLength);
+			// make a CBString with a copy of the buffer contents
+			CBString inStr(pBuff);
+			delete pBuff; // no longer needed
+			wxString outStr;
+			int length = inStr.GetLength();
+			for (int i = 0; i < length; i++)
+			{
+				unsigned char ch = inStr[i];
+				unsigned char lcEng = 0xFD; // in PNG SIL Doulos
+				unsigned char ucEng = 0xDE; // ditto
+				wxChar lcEngW = 0x014B;
+				wxChar ucEngW = 0x14A;
+				wxString s;
+				if (ch == lcEng)
+				{
+					outStr += lcEngW;
+				}
+				else if (ch == ucEng)
+				{
+					outStr += ucEngW;
+				}
+				else
+				{
+					CBString byteStr;
+					byteStr = ch;
+					s = Convert8to16(byteStr);
+					outStr += s;
+				}
+			}
+			CBString utf8Str = Convert16to8(outStr); // convert to utf-8
+			int itsLength = utf8Str.GetLength();
+			//wxString outfilename = _T("C:\\CC\\MyTest_AsUtf8.txt");
+			wxString outfilename = itsPath; // initialize with the path to the folder
+			wxString newName = itsFilename;
+			int offset = newName.Find(_T('.'));
+			if (offset != wxNOT_FOUND)
+			{
+				newName = newName.Left(offset);
+			}
+			newName += _T("_utf8.txt"); // keep the old file unchanged
+			outfilename += _T('\\');
+			outfilename += newName; // store in the same folder as the original
+			wxFile f;
+			f.Create(outfilename,TRUE);
+			size_t writtenCount = f.Write((void*)(char*)utf8Str,itsLength);
+			f.Close(); // load into AI Unicode and select Doulos SIL and see how it looks
+					   // (it works nice - is correctly converted; or Notepad)
+		}
+	}
+	int stop_here = 1;	// put a break point here; cancel the run & reenter debugger to do next book	    
+	*/
+
 	// *** Variable initializations below moved here from the App's constructor ***
 	
     // BEW 24Aug10, changed comment. Reinit of KB structures is done in view->OnCreate().
@@ -32296,8 +32381,12 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 {
 	wxString caption = _("Type A Password");
 	wxString message = _(
-"The password can be a mix of letters, numbers or punctuation. Less than four characters will not be accepted.\nEmptying the box will remove an existing password.");
-	wxString default_value = _T("");
+"The password can be a mix of letters, numbers and punctuation. Less than five characters will not be accepted.\nEmptying the text box erases the previously set password, leaving no password set.\nTyping a different password replaces the current one.");
+	//wxString default_value = _T(""); <- email exchanges 4-5April2011 with Bob Buss,
+	// we agreed that it would be more helpful to see the current password in the clear,
+	// and that should be okay because the Administrator menu should not be open in the
+	// novice user's presence, but if it is, its the administrator's problem to sort out
+	wxString default_value = m_adminPassword;
 	wxString password = ::wxGetTextFromUser(message,caption,default_value,m_pMainFrame);
 	int length = password.Len();
 	if (length == 0)
