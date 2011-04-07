@@ -1,19 +1,25 @@
 [OPTIONS]
 Auto Index=Yes
-Compiled file=Adapt_It.chm
-Contents file=Adapt_It.hhc
+Compiled File=Adapt_It.chm
+Contents File=Adapt_It.hhc
 Default Window=main
-Default topic=Using_Adapt_It.htm
+Default Topic=Using_Adapt_It.htm
 Display compile progress=Yes
 Error log file=_errorlog.txt
 Full-text search=Yes
-Index file=Adapt_It.hhk
+Index File=Adapt_It.hhk
 Language=0x409 English (United States)
 Title=Adapt It Help
+Binary TOC=No
+Binary Index=Yes
+Default Font=
+Create CHI file=No
+Compatibility=1.1 or later
+Full text search stop list file=
+Display compile notes=Yes
 
 [WINDOWS]
-main=,"Adapt_It.hhc","Adapt_It.hhk","glossary_of_terms.htm","glossary_of_terms.htm",,,,,0x23520,222,0x1046,[10,10,780,560],0xb0000,,,,,,0
-
+main="Adapt It Help","Adapt_It.hhc","Adapt_It.hhk","Using_Adapt_It.htm","Using_Adapt_It.htm",,,,,0x23520,222,0x1046,[10,10,780,560],0xB0000,,,,,,0
 
 [FILES]
 Exclude.txt
@@ -26,16 +32,16 @@ tip_icon.gif
 Using_Adapt_It.htm
 warning_icon.gif
 Adapt_It_Concepts\About_Adapt_It.htm
-Adapt_It_Concepts\Adaptation_versus_retranslation.htm
-Adapt_It_Concepts\Adaptation_versus_Translation.htm
 Adapt_It_Concepts\Adapt_It_Advanced_Topics_Overview.htm
 Adapt_It_Concepts\Adapt_It_basic_procedures.htm
 Adapt_It_Concepts\Adapt_It_Concepts_Overview.htm
 Adapt_It_Concepts\Adapt_It_Process_table.htm
+Adapt_It_Concepts\Adaptation_versus_retranslation.htm
+Adapt_It_Concepts\Adaptation_versus_Translation.htm
 Adapt_It_Concepts\Contact_the_authors.htm
 Adapt_It_Concepts\Exporting_overview.htm
-Adapt_It_Concepts\How_adaptation_is_done.htm
 Adapt_It_Concepts\How_Adapt_It_does_adaptation.htm
+Adapt_It_Concepts\How_adaptation_is_done.htm
 Adapt_It_Concepts\Importing_overview.htm
 Adapt_It_Concepts\Knowledge_base_overview.htm
 Adapt_It_Concepts\Phrase.htm
@@ -68,13 +74,13 @@ Adapt_It_Structure\File_Structure\File_Management\XML_in_Adapt_It.htm
 Adapt_It_Structure\File_Structure\Folders\The_Adapt_It_Folder_Organization.htm
 Adapt_It_Structure\Proj_and_Docs\Book_folders_mode.htm
 Adapt_It_Structure\Proj_and_Docs\Book_folders_overview.htm
-Adapt_It_Structure\Proj_and_Docs\Book_Identifier_Codes.htm
 Adapt_It_Structure\Proj_and_Docs\Book_Identifier_Code_Table.htm
+Adapt_It_Structure\Proj_and_Docs\Book_Identifier_Codes.htm
 Adapt_It_Structure\Proj_and_Docs\Changing_the_book_folder_structure.htm
 Adapt_It_Structure\Proj_and_Docs\create_a_document_using_start_working.htm
 Adapt_It_Structure\Proj_and_Docs\creating_a_new_document.htm
-Adapt_It_Structure\Proj_and_Docs\Projects_books_and_documents_overview.htm
 Adapt_It_Structure\Proj_and_Docs\Project_structure.htm
+Adapt_It_Structure\Proj_and_Docs\Projects_books_and_documents_overview.htm
 Adapt_It_Structure\UI_Structure\Adapt_It_user_interface.htm
 Adapt_It_Structure\UI_Structure\Adapt_It_user_interface_control_bars.htm
 Adapt_It_Structure\UI_Structure\Navigation_text.htm
@@ -83,8 +89,8 @@ Adapt_It_Structure\UI_Structure\Strips_piles_and_cells.htm
 Adapt_It_Structure\UI_Structure\Toolbars.htm
 Advanced_Topics\Adapt_It_and_Keyman\Using_Adapt_It_and_Keyman.htm
 Advanced_Topics\Back_Translation\Back_translation_overview.htm
-Advanced_Topics\Back_Translation\Collecting_filtered_back_translations.htm
 Advanced_Topics\Back_Translation\Collect_back_translations.htm
+Advanced_Topics\Back_Translation\Collecting_filtered_back_translations.htm
 Advanced_Topics\Back_Translation\Create_a_gloss_line_literal_back_translation.htm
 Advanced_Topics\Back_Translation\Create_a_separate_back_translation_project.htm
 Advanced_Topics\Back_Translation\Creating_back_translations.htm
@@ -100,10 +106,10 @@ Advanced_Topics\Consistent_Changes\Use_consistent_changes.htm
 Advanced_Topics\Exporting\Change_export_filter_options_for_interlinear_texts.htm
 Advanced_Topics\Exporting\Change_export_filter_options_for_src_or_tgt_rtf_texts.htm
 Advanced_Topics\Exporting\Change_export_filter_options_for_src_or_tgt_sfm_texts.htm
+Advanced_Topics\Exporting\Export_filter_options.htm
 Advanced_Topics\Exporting\exported_interlinear_text_with_filtered_material.htm
 Advanced_Topics\Exporting\Exported_text_including_filtered_material.htm
 Advanced_Topics\Exporting\Exported_text_including_filtered_material_RTF.htm
-Advanced_Topics\Exporting\Export_filter_options.htm
 Advanced_Topics\Exporting\filtered_material_in_interlinear_RTF_exports.htm
 Advanced_Topics\Exporting\filtered_material_in_source-target_RTF_exports.htm
 Advanced_Topics\Exporting\Interlinear_text_samples.htm
@@ -116,8 +122,8 @@ Advanced_Topics\Filtering\Preparing_to_use_filters.htm
 Advanced_Topics\Filtering\Propagation_of_filtered_information.htm
 Advanced_Topics\Filtering\Set_filtering_preferences.htm
 Advanced_Topics\Filtering\Using_PGN_SFM_vs_USFM.htm
-Advanced_Topics\Filtering\Viewing_and_editing_filtered_material.htm
 Advanced_Topics\Filtering\View_Filtered_Material.htm
+Advanced_Topics\Filtering\Viewing_and_editing_filtered_material.htm
 Advanced_Topics\Free_Translation\Create_a_free_translation.htm
 Advanced_Topics\Free_Translation\Free_translation_compose_bar_and_navigation_buttons.htm
 Advanced_Topics\Free_Translation\Free_translation_mode.htm
@@ -147,8 +153,8 @@ Getting_Started\Adapt_It_Regular_versus_Adapt_It_Unicode.htm
 Getting_Started\Installing_Adapt_It.htm
 Getting_Started\Launching_Adapt_It_the_first_time.htm
 Getting_Started\Opening_a_Previously_Created_Project.htm
-Getting_Started\The_Startup_Wizard.htm
 Getting_Started\The_Start_Working_Wizard.htm
+Getting_Started\The_Startup_Wizard.htm
 Getting_Started\Launching_Adapt_It\Case_dialog.htm
 Getting_Started\Launching_Adapt_It\Create_a_project.htm
 Getting_Started\Launching_Adapt_It\Filtering_dialog.htm
@@ -250,18 +256,18 @@ Images\FILE_MENU_PRINT_MANAGEMENT.PNG
 Images\FILE_MENU_PROJECT_MANAGEMENT.PNG
 Images\FILE_MENU_RECENT_DOCUMENTS.PNG
 Images\Filtering_dialog.PNG
+Images\Find_a_Phrase.PNG
 Images\find_and_replace_dialog.PNG
 Images\find_and_replace_dialog_both.PNG
 Images\Find_and_replace_section.PNG
-Images\Find_a_Phrase.PNG
 Images\Find_dialog.PNG
 Images\find_dialog_both.PNG
 Images\Find_spec_search_dialog.PNG
 Images\find_trans_dialog.PNG
 Images\FOLDER_OPTIONS_DIALOG.PNG
+Images\Font_Color_and_Size_Dialog.PNG
 Images\Fonts_dialog.PNG
 Images\FONTS_DIALOG_UNICODE.PNG
-Images\Font_Color_and_Size_Dialog.PNG
 Images\FORCE_CHOICE_CHECKBOX.GIF
 Images\FORCE_CHOICE_CHECKED.GIF
 Images\Force_Choice_Toggle_Button.PNG
@@ -272,8 +278,8 @@ Images\Free_trans_sample.gif
 Images\Free_trans_sample.PNG
 Images\Get_CC_Tables_1.PNG
 Images\Get_CC_Tables_2.PNG
-Images\GLOSSING_CHECKBOX.GIF
 Images\Glossing_check_box.gif
+Images\GLOSSING_CHECKBOX.GIF
 Images\GO_TO_DIALOG.PNG
 Images\gray_wedge.GIF
 Images\Green_wedge.GIF
@@ -289,13 +295,13 @@ Images\INCONSISTENCY_FOUND_MARKUP.PNG
 Images\INPUT_TEXT_FILE_DIALOG.PNG
 Images\Installing_Adapt_It.PNG
 Images\Installing_Adapt_It_2.PNG
-Images\InterlinearSample.gif
 Images\INTERLINEAR_DOCUMENT_SAMPLE.PNG
 Images\Interlinear_text_only_in_table_rows.PNG
 Images\Interlinear_with_free_and_bt_in_table_rows.PNG
 Images\Interlinear_with_free_in_table_row.PNG
 Images\Interlinear_with_free_in_table_row_bt_in_footnotes.PNG
 Images\Interlinear_with_note_as_balloon_comment.png
+Images\InterlinearSample.gif
 Images\INVALID_ADDRESS_WARNING_MESSAGE.PNG
 Images\invalid_Case_list.PNG
 Images\Join_Doc_by_append_dialog.PNG
@@ -313,8 +319,8 @@ Images\Make_phrase.gif
 Images\Making_a_Phrase.PNG
 Images\MENU_BAR.PNG
 Images\MODE_BAR.PNG
-Images\move_a_document_dialog.PNG
 Images\Move_a_doc_to_adaptions.PNG
+Images\move_a_document_dialog.PNG
 Images\Move_bundle_down.gif
 Images\Move_bundle_up.gif
 Images\Move_note.PNG
@@ -324,6 +330,8 @@ Images\Move_to_Previous_Note.GIF
 Images\Move_to_start.gif
 Images\navigation_text.PNG
 Images\New_document.GIF
+Images\No_Adaptation.GIF
+Images\No_punctuation_copy.GIF
 Images\Note_and_Filtered_Icons.gif
 Images\Note_and_Phrase_Box.PNG
 Images\Note_deletion_Warning.PNG
@@ -331,8 +339,6 @@ Images\Note_dialog.png
 Images\Note_Icon.GIF
 Images\Note_nav_buttons_on_toolbar.gif
 Images\Note_not_found.PNG
-Images\No_Adaptation.GIF
-Images\No_punctuation_copy.GIF
 Images\olive_wedge.GIF
 Images\OPEN_AN_ADAPTATION_DOCUMENT_DIALOG.PNG
 Images\Open_document.GIF
@@ -346,9 +352,9 @@ Images\PAGE_SETUP_DIALOG.PNG
 Images\PAGE_SETUP_PRINTER_DIALOG.PNG
 Images\PAPER_SELECTION_DROPDOWN_LIST.PNG
 Images\PASTE.GIF
+Images\Phrase_box.PNG
 Images\Phrase-Medial_dialog.PNG
 Images\Phrase-Medial_dialog_placed.PNG
-Images\Phrase_box.PNG
 Images\Placeholder.gif
 Images\Placeholder_location.PNG
 Images\Placeholder_remove.gif
@@ -412,8 +418,8 @@ Images\Save_icon.GIF
 Images\Save_to_Knowledge_Base_Checkbox.GIF
 Images\search_in_punct_line.GIF
 Images\search_span.GIF
-Images\See_Glossing_menuunselected.PNG
 Images\See_Glossing_menu_selected.PNG
+Images\See_Glossing_menuunselected.PNG
 Images\See_Glossing_off.PNG
 Images\See_Glossing_on.PNG
 Images\Select_KB_translation.PNG
@@ -446,20 +452,20 @@ Images\Type_Retranslation_Text_dialog.PNG
 Images\Under_Construction.htm
 Images\Unmake_phrase.gif
 Images\USFM_dialog.PNG
-Images\ViewFilteredMaterialDialog.gif
-Images\Viewing_and_editing_filtered_back_translations.htm
 Images\View_Filtered_Material_Dialog.gif
 Images\View_Filtered_Material_Dialog.PNG
 Images\View_Menu.PNG
 Images\View_menu_Bar_Management.PNG
 Images\View_Translations_or_Glosses_Elsewher.PNG
+Images\ViewFilteredMaterialDialog.gif
+Images\Viewing_and_editing_filtered_back_translations.htm
 Images\window_with_target_only.PNG
 Knowledge_Base\Adaptation_knowledge_base.htm
 Knowledge_Base\Glossing_knowledge_base.htm
 Knowledge_Base\Share_knowledge_bases_across_machines.htm
-Knowledge_Base\Editing_a_KB\Editing_a_knowledge_base.htm
 Knowledge_Base\Editing_a_KB\Edit_Add_or_Rearrange_Translations.htm
 Knowledge_Base\Editing_a_KB\Edit_and_arrange_command_buttons.htm
+Knowledge_Base\Editing_a_KB\Editing_a_knowledge_base.htm
 Knowledge_Base\Editing_a_KB\Force_Making_a_Translation_Choice.htm
 Knowledge_Base\Editing_a_KB\Preparing_knowledge_base_entries_in_a_word_processor.htm
 Knowledge_Base\Editing_a_KB\Removing_knowledge_base_entries.htm
@@ -493,8 +499,8 @@ User_Interface\Dialog_Boxes\Document_dialog.htm
 User_Interface\Dialog_Boxes\Edit_or_Examine_the_Knowledge_Base_dialog.htm
 User_Interface\Dialog_Boxes\Move_a_document_dialog.htm
 User_Interface\Dialog_Boxes\Number_of_Copies.htm
-User_Interface\Dialog_Boxes\Print_dialog_box_Printer.htm
 User_Interface\Dialog_Boxes\Print_dialog_box_Print_range.htm
+User_Interface\Dialog_Boxes\Print_dialog_box_Printer.htm
 User_Interface\Dialog_Boxes\Print_Setup_Dialog Box.htm
 User_Interface\Dialog_Boxes\Remove_Unwanted_Files_from_The_List.htm
 User_Interface\Dialog_Boxes\Using_the_Choose_Translation_dialog.htm
@@ -607,9 +613,9 @@ User_Interface\Preferences\Backups_and_KB_tab.htm
 User_Interface\Preferences\Filtering_tab.htm
 User_Interface\Preferences\Fonts_tab.htm
 User_Interface\Preferences\Lower_to_Upper_Case_Equivalences.htm
-User_Interface\Preferences\managing_fonts.htm
 User_Interface\Preferences\Managing_font_color.htm
 User_Interface\Preferences\Managing_font_type_and_size.htm
+User_Interface\Preferences\managing_fonts.htm
 User_Interface\Preferences\Managing_Preferences.htm
 User_Interface\Preferences\Preferences_dialog.htm
 User_Interface\Preferences\Unicode_preferences_dialog.htm
