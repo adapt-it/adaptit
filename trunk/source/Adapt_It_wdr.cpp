@@ -8033,8 +8033,8 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_SETUP_PARATEXT_COLLABORATION, _("Setup Parate&xt Collaboration..."), _("Configure Adapt It to use a Paratext project for its input (source) texts, and a different Paratext project exporting its (target) texts") );
     item9->AppendSeparator();
     item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("&Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
-    item9->Append( ID_SOURCE_DATA_FOLDER, _("Open &Source Data Folder..."), _("Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.") );
-    item9->Append( ID_EXPORT_DATA_FOLDER, _("Assign Location for Translation &Exports..."), _("Assigns the Export folder to be used for translated/adapted texts (creating it first if necessary). Protects the user from folder navigation of exports.") );
+    item9->Append( ID_SOURCE_DATA_FOLDER, _("Assign Location for Source Text &Imports..."), _("Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.") );
+    item9->Append( ID_EXPORT_DATA_FOLDER, _("Assign Location for Translation Text &Exports..."), _("Assigns the Export folder to be used for translated/adapted texts (creating it first if necessary). Protects the user from folder navigation of exports.") );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item0->Append( item9, _("Ad&ministrator") );
