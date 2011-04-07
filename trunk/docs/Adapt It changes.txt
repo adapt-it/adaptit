@@ -123,16 +123,17 @@ characters, there will be no problems with Adapt It's parsing. This
 restriction about 'no internal punctuation in words' applies only to
 words conjoined with !$ fixed space marker; other words will parse
 correctly even if they have internal punctuation symbols.)
-* Legacy versions of Adapt It (prior to and including 5.2.1) will 
-not be able to read docVersion 5 xml documents. Upgrading the
-internal document model to version 5 was necessitated by certain
+* Legacy versions of Adapt It (prior to and including 5.2.3) will 
+not be able to read docVersion 5 xml documents. Only the legacy
+version 5.2.4 is capable of reading the new xml format. Upgrading 
+the internal document model to version 5 was necessitated by certain
 complex USFM markup scenarios that the legacy document model could
 not handle adequately.
 Note: to give limited support to people in teams where some may 
-be working with a legacy Adapt It version, and others in the 
-team with 6.0.0 or later, we have included an option for saving 
-the current document in docVersion 4, doing so from within 
-version 6.0.0 or later. This option is available from the 
+be working with a legacy Adapt It version (5.2.3 or earlier), and 
+others in the team with 6.0.0 or later, we have included an option 
+for saving the current document in docVersion 4, doing so from 
+within version 6.0.0 or later. This option is available from the 
 File / Save As... command. (Send the document file saved as 
 docVersion 4 to whoever needs it before you do any more work in 
 it with Adapt It version 6.0.0 or later, because when you next 
@@ -178,12 +179,11 @@ Adaptations To Glosses command as many times as desired, as
 completed "Other project" adaptation documents become completed 
 and therefore available for transformation. In addition, because 
 the process no longer loses KB data, the warning message about 
-what used to get lost now no longer needs to be shown. In addition, 
-the transform of adaptations to glosses is now also done on the 
-stored original document storage elements that were involved in 
-forming a merger. This means that if the user unmerges so as to 
-restore the originals to the document, the originals will still 
-have the adaptations stored instead as glosses.
+what used to get lost now no longer needs to be shown. Also the 
+transformation of adaptation to glosses now also takes place on 
+any hidden original data storage elements stored on a merger - 
+so that if the user later unmerges any of these, he'll see 
+glosses as expected rather than untransformed adaptations.
 * If the user cancelled from the Which Files? dialog when doing 
 a restore of the knowledge base, the knowledge base was left 
 emptied. Now the application will make a temporary copy of the  
@@ -287,7 +287,7 @@ crash. It now works as it was designed to.
 * Any SFM export would have a bogus space put preceding an endmarker. 
 This no longer happens.
 * Parsing input text with punctuation following an endmarker would
-resultin the punctuation being placed on an extra storage element with
+result in the punctuation being placed on an extra storage element with
 no source text. This, and a number of non-compliance issues with 
 complex USFM markup are now fixed.
 * The Delete All Notes button, in some recent versions, failed to  
