@@ -17434,10 +17434,13 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 #ifdef __WXMAC__
-	// GDLC Trying various techniques for Mac to avoid garbled displays if the doc is
-	// scrolled away from the start of the doc.
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
-	GetLayout()->PlaceBox();
+	// GDLC 2011-04-08 The Mac version of AI needs only the two commands not commented out!
+	// Question: Will Windows and Linux work correctly with only the two commands PlaceBox() and ClearBackground()?
+//	Invalidate();				// Doesn't do anything useful on Mac
+//	canvas->ClearBackground();	// On Mac this does the redraw rather than merely clearing the background!
+//	GetLayout()->Redraw();		// Not needed on Mac
+	GetLayout()->PlaceBox();	// Sets the parameters for the updated placement of the phrase box without changing the screen
+	canvas->ClearBackground();	// Updates the contents of the window to show the changed layout direction
 #else
 	Invalidate();
 	canvas->ClearBackground(); // BEW added 23Feb11, because without it, if the layout
