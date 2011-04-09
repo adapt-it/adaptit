@@ -77,8 +77,8 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_MINOR_PART 0
 #define VERSION_BUILD_PART 0
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 31
-#define VERSION_DATE_MONTH 3
+#define VERSION_DATE_DAY 7
+#define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2011
 
 // whm added 20Oct10 for user profiles support
@@ -2774,7 +2774,7 @@ public:
 	void OnUpdateOpenSourceDataFolder(wxUpdateUIEvent& event);
 	void OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event);
-	void OnSetupParatextCollaboration(wxCommandEvent& WXUNUSED(event));
+	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event);
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
