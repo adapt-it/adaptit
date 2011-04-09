@@ -167,6 +167,7 @@
 #include "AdminEditMenuProfile.h"
 #include "Usfm2Oxes.h"
 #include "CorGuess.h"
+#include "SetupEditorCollaboration.h"
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -4838,7 +4839,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnUpdateOpenSourceDataFolder)
 	EVT_MENU(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnAssignTargetExportDataFolder)
 	EVT_UPDATE_UI(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder)
-	EVT_MENU(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnSetupParatextCollaboration)
+	EVT_MENU(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
 	EVT_UPDATE_UI(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnUpdateSetupParatextCollaboration)
 	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
@@ -32311,9 +32312,15 @@ void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event
 	*/
 }
 
-void CAdapt_ItApp::OnSetupParatextCollaboration(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_T("The OnSetupParatextCollaboration function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	wxMessageBox(_T("The dialog for the Setup Paratext Collaboration function will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	CSetupEditorCollaboration dlg(GetMainFrame());
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		// all setup should be done within the CSetupEditorCollaborationDlg class
+	}
+
 }
 
 void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)

@@ -733,6 +733,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\SetupEditorCollaboration.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\SilConverterSelectDlg.cpp"
 				>
 			</File>
@@ -1147,6 +1151,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\SetEncodingDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\SetupEditorCollaboration.h"
 				>
 			</File>
 			<File
