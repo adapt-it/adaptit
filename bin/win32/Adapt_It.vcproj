@@ -517,6 +517,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ConflictResolutionDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ConsistencyCheckDlg.cpp"
 				>
 			</File>
@@ -578,6 +582,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\FreeTrans.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GetSourceTextFromEditor.cpp"
 				>
 			</File>
 			<File
@@ -930,6 +938,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ConflictResolutionDlg.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ConsistencyCheckDlg.h"
 				>
 			</File>
@@ -999,6 +1011,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\FreeTrans.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GetSourceTextFromEditor.h"
 				>
 			</File>
 			<File
