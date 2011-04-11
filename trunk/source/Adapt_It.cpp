@@ -168,6 +168,7 @@
 #include "Usfm2Oxes.h"
 #include "CorGuess.h"
 #include "SetupEditorCollaboration.h"
+#include "GetSourceTextFromEditor.h"
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -4725,6 +4726,13 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 
 	// File Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	EVT_MENU(wxID_NEW, CAdapt_ItApp::OnFileNew)
+	
+	// whm added the following 10Apr11 for AI-PT collaboration
+	EVT_MENU(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnGetSourceTextFromPT)
+	EVT_UPDATE_UI(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnUpdateGetSourceTextFromPT)
+	EVT_MENU(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnTransferTransToPT)
+	EVT_UPDATE_UI(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnUpdateTransferTransToPT)
+
 	// OnFileOpen is in the Doc 
 	EVT_MENU(wxID_PAGE_SETUP,CAdapt_ItApp::OnFilePageSetup)
 	EVT_UPDATE_UI(wxID_PAGE_SETUP, CAdapt_ItApp::OnUpdateFilePageSetup)
@@ -25228,6 +25236,36 @@ void CAdapt_ItApp::OnFileNew(wxCommandEvent& event)
 		m_pDocManager->OnFileNew(event);
 }
 
+// whm added the following 10Apr11 for AI-PT collaboration
+void CAdapt_ItApp::OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event))
+{
+	wxMessageBox(_T("The dialog for the Get Source Text From Paratext menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	CGetSourceTextFromEditorDlg dlg(GetMainFrame());
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		// TODO:
+		// all setup should be done within the CSetupEditorCollaborationDlg class
+	}
+}
+
+void CAdapt_ItApp::OnUpdateGetSourceTextFromPT(wxUpdateUIEvent& event)
+{
+	// TODO: Add conditions to the following update UI handler
+	event.Enable(TRUE);
+}
+
+void CAdapt_ItApp::OnTransferTransToPT(wxCommandEvent& WXUNUSED(event))
+{
+	wxMessageBox(_T("The OnTransferTransToPT function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+}
+
+void CAdapt_ItApp::OnUpdateTransferTransToPT(wxUpdateUIEvent& event)
+{
+	// TODO: Add conditions to the following update UI handler
+	event.Enable(TRUE);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      srcPunctuation   <- a wxString that receives the source language punctuation
@@ -32314,10 +32352,11 @@ void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event
 
 void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_T("The dialog for the Setup Paratext Collaboration function will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	wxMessageBox(_T("The dialog for the Setup Paratext Collaboration menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
 	CSetupEditorCollaboration dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
+		// TODO:
 		// all setup should be done within the CSetupEditorCollaborationDlg class
 	}
 
