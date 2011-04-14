@@ -62,7 +62,7 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 END_EVENT_TABLE()
 
 CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Setup Collaboration with an external editor"),
+: AIModalDialog(parent, -1, _("Set Up Paratext Collaboration"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
