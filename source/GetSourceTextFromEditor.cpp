@@ -70,18 +70,34 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	GetSourceTextFromEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	// use wxValidator for simple dialog data transfer
-	// sample text control initialization below:
-	//wxTextCtrl* pEdit;
-	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
-	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
-	//pEdit->SetBackgroundColour(sysColorBtnFace);
+	wxColour sysColorBtnFace; // color used for read-only text controls displaying
+	// color used for read-only text controls displaying static text info button face color
+	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	
+	wxComboBox* pComboSourceProjectName;
+	pComboSourceProjectName = (wxComboBox*)FindWindowById(ID_COMBO_SOURCE_PT_PROJECT_NAME);
+	wxASSERT(pComboSourceProjectName != NULL);
 
-	// sample radio button control initialization below:
-	//wxRadioButton* pRadioB;
-	//pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_BUTTON);
-	//pRadioB->SetValue(TRUE);
-	//pRadioB->SetValidator(wxGenericValidator(&m_bVariable));
+	wxComboBox* pComboDestinationProjectName;
+	pComboDestinationProjectName = (wxComboBox*)FindWindowById(ID_COMBO_DESTINATION_PT_PROJECT_NAME);
+	wxASSERT(pComboDestinationProjectName != NULL);
+
+	wxRadioBox* pRadioBoxWholeBookOrChapter;
+	pRadioBoxWholeBookOrChapter = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
+	wxASSERT(pRadioBoxWholeBookOrChapter != NULL);
+
+	wxListBox* pListBoxBookNames;
+	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
+	wxASSERT(pListBoxBookNames != NULL);
+
+	wxListBox* pListBoxChapterNumberAndStatus;
+	pListBoxChapterNumberAndStatus = (wxListBox*)FindWindowById(ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS);
+	wxASSERT(pListBoxChapterNumberAndStatus != NULL);
+
+	wxTextCtrl* pStaticTextCtrlNote;
+	pStaticTextCtrlNote = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NOTE);
+	wxASSERT(pStaticTextCtrlNote != NULL);
+	pStaticTextCtrlNote->SetBackgroundColour(sysColorBtnFace);
 
 	// other attribute initializations
 }

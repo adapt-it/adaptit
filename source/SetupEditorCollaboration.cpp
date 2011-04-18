@@ -48,8 +48,9 @@
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_INIT_DIALOG(CSetupEditorCollaboration::InitDialog)// not strictly necessary for dialogs based on wxDialog
-	// Samples:
-	//EVT_BUTTON(wxID_OK, CSetupEditorCollaboration::OnOK)
+	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListSourceProj)
+	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListTargetProj)
+	EVT_BUTTON(wxID_OK, CSetupEditorCollaboration::OnOK)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnDoSomething)
 	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnUpdateDoSomething)
 	//EVT_BUTTON(ID_SOME_BUTTON, CSetupEditorCollaboration::OnDoSomething)
@@ -72,18 +73,41 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	SetupEditorCollaborationFunc(this, TRUE, TRUE);
 	// The declaration is: SetupParatextCollaborationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	// use wxValidator for simple dialog data transfer
-	// sample text control initialization below:
-	//wxTextCtrl* pEdit;
-	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
-	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
-	//pEdit->SetBackgroundColour(sysColorBtnFace);
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(m_pApp != NULL);
+	
+	wxColour sysColorBtnFace; // color used for read-only text controls displaying
+	// color used for read-only text controls displaying static text info button face color
+	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	
+	pStaticTextCtrlTopNote = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_TOP_NOTE);
+	wxASSERT(pStaticTextCtrlTopNote != NULL);
+	pStaticTextCtrlTopNote->SetBackgroundColour(sysColorBtnFace);
 
-	// sample radio button control initialization below:
-	//wxRadioButton* pRadioB;
-	//pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_BUTTON);
-	//pRadioB->SetValue(TRUE);
-	//pRadioB->SetValidator(wxGenericValidator(&m_bVariable));
+	pStaticTextCtrlImportantBottomNote = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_IMPORTANT_BOTTOM_NOTE);
+	wxASSERT(pStaticTextCtrlImportantBottomNote != NULL);
+	pStaticTextCtrlImportantBottomNote->SetBackgroundColour(sysColorBtnFace);
+
+	pStaticTextCtrlSelectedSourceProj = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ);
+	wxASSERT(pStaticTextCtrlSelectedSourceProj != NULL);
+	pStaticTextCtrlSelectedSourceProj->SetBackgroundColour(sysColorBtnFace);
+
+	pStaticTextCtrlSelectedTargetProj = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_SELECTED_TGT_PROJ);
+	wxASSERT(pStaticTextCtrlSelectedTargetProj != NULL);
+	pStaticTextCtrlSelectedTargetProj->SetBackgroundColour(sysColorBtnFace);
+
+	pListOfProjects = (wxListBox*)FindWindowById(IDC_LIST_OF_PT_PROJECTS);
+	wxASSERT(pListOfProjects != NULL);
+
+	pRadioBoxCollabOnOrOff = (wxRadioBox*)FindWindowById(ID_RADIOBOX_PT_COLLABORATION_ON_OFF);
+	wxASSERT(pRadioBoxCollabOnOrOff != NULL);
+
+	pBtnSelectFmListSourceProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ);
+	wxASSERT(pBtnSelectFmListSourceProj != NULL);
+
+	pBtnSelectFmListTargetProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ);
+	wxASSERT(pBtnSelectFmListTargetProj != NULL);
+
 
 	// other attribute initializations
 }
@@ -96,16 +120,135 @@ CSetupEditorCollaboration::~CSetupEditorCollaboration() // destructor
 void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	
+	// initialize our dialog temp variables from those held on the App
+	m_bTempCollaboratingWithParatext = m_pApp->m_bCollaboratingWithParatext;
+	m_TempPTProjectForSourceInputs = m_pApp->m_PTProjectForSourceInputs;
+	m_TempPTProjectForTargetExports = m_pApp->m_PTProjectForTargetExports;
 
+	if (m_bTempCollaboratingWithParatext)
+		pRadioBoxCollabOnOrOff->SetSelection(0);
+	else
+		pRadioBoxCollabOnOrOff->SetSelection(1);
+	
+	// get list of PT projects
+	m_pApp->m_ListOfPTProjects.Clear();
+	m_pApp->m_ListOfPTProjects = m_pApp->GetListOfPTProjects();
+
+	// Check for at least two usable PT projects in list
+	if (m_pApp->m_ListOfPTProjects.GetCount() < 2)
+	{
+		// error: PT is not set up with enought projects for collaboration
+	}
+	else
+	{
+		int i;
+		for (i = 0; i < (int)m_pApp->m_ListOfPTProjects.GetCount(); i++)
+		{
+			wxString tempStr;
+			tempStr = m_pApp->m_ListOfPTProjects.Item(i);
+			pListOfProjects->Append(tempStr);
+		}
+
+	}
+	// fill in the "Use this project initially ..." read-only edit boxes
+	pStaticTextCtrlSelectedSourceProj->ChangeValue(m_TempPTProjectForSourceInputs);
+	pStaticTextCtrlSelectedTargetProj->ChangeValue(m_TempPTProjectForTargetExports);
 }
 
 // event handling functions
 
-//CSetupEditorCollaboration::OnDoSomething(wxCommandEvent& event)
-//{
-//	// handle the event
+void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event))
+{
+	// Note: For source project, the project can be readable or writeable (all in list)
+	// The OnOK() handler will check to insure that the project selected for source
+	// text inputs is different from the project selected for target text exports.
 	
-//}
+	// use a temporary array list
+	wxArrayString tempListOfProjects;
+	tempListOfProjects.Add(_("[No Project Selected]"));
+	int ct;
+	int tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		// load the rest of the projects into the temp array list
+		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+	}
+	wxString msg;
+	msg = _("Choose an default project the user will see initially for source text inputs");
+	wxSingleChoiceDialog ChooseProjectForSourceTextInputs(this,msg,_T("Select a project from this list"),tempListOfProjects);
+	// preselect the project that was last selected if any
+	int nPreselectedProjIndex = -1;
+	// check to see if one was previously selected in the temp array list
+	tot = (int)tempListOfProjects.GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		if (tempListOfProjects.Item(ct) == m_TempPTProjectForSourceInputs)
+		{
+			nPreselectedProjIndex = ct;
+			break;
+		}
+	}
+	if (nPreselectedProjIndex != -1)
+	{
+		// choose the preselected project
+		ChooseProjectForSourceTextInputs.SetSelection(nPreselectedProjIndex);
+	}
+	int userSelectionInt;
+	wxString userSelectionStr;
+	if (ChooseProjectForSourceTextInputs.ShowModal() == wxID_OK)
+	{
+		userSelectionStr = ChooseProjectForSourceTextInputs.GetStringSelection();
+		userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
+	}
+	pStaticTextCtrlSelectedSourceProj->SetLabel(userSelectionStr);
+	m_TempPTProjectForSourceInputs = userSelectionStr;
+}
+
+void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
+{
+	// Note: For target project, we must insure that the Paratext project is writeable
+	// TODO: remove from list any that are not writeable
+	
+	// use a temporary array list
+	wxArrayString tempListOfProjects;
+	tempListOfProjects.Add(_("[No Project Selected]"));
+	int ct;
+	int tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		// load the rest of the projects into the temp array list
+		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+	}
+	wxString msg;
+	msg = _("Choose an default project the user will see initially for translation text exports");
+	wxSingleChoiceDialog ChooseProjectForTargetTextInputs(this,msg,_T("Select a project from this list"),tempListOfProjects);
+	// preselect the project that was last selected if any
+	int nPreselectedProjIndex = -1;
+	// check to see if one was previously selected in the temp array list
+	tot = (int)tempListOfProjects.GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		if (tempListOfProjects.Item(ct) == m_TempPTProjectForTargetExports)
+		{
+			nPreselectedProjIndex = ct;
+			break;
+		}
+	}
+	if (nPreselectedProjIndex != -1)
+	{
+		ChooseProjectForTargetTextInputs.SetSelection(nPreselectedProjIndex);
+	}
+	int userSelectionInt;
+	wxString userSelectionStr;
+	if (ChooseProjectForTargetTextInputs.ShowModal() == wxID_OK)
+	{
+		userSelectionStr = ChooseProjectForTargetTextInputs.GetStringSelection();
+		userSelectionInt = ChooseProjectForTargetTextInputs.GetSelection();
+	}
+	pStaticTextCtrlSelectedTargetProj->SetLabel(userSelectionStr);
+	m_TempPTProjectForTargetExports = userSelectionStr;
+}
 
 //CSetupEditorCollaboration::OnUpdateDoSomething(wxUpdateUIEvent& event)
 //{
@@ -121,17 +264,40 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 // if the dialog is modeless.
 void CSetupEditorCollaboration::OnOK(wxCommandEvent& event) 
 {
-	// sample code
-	//wxListBox* pListBox;
-	//pListBox = (wxListBox*)FindWindowById(IDC_LISTBOX_ADAPTIONS);
-	//int nSel;
-	//nSel = pListBox->GetSelection();
-	//if (nSel == LB_ERR) // LB_ERR is #define -1
-	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
-	//}
-	//m_projectName = pListBox->GetString(nSel);
+	// The OnOK() handler first checks to insure that the project selected for source
+	// text inputs is different from the project selected for target text exports, unless
+	// both are [No Project Selected].
+	// If the same project is selected, inform the administrator and abort the OK
+	// operation so the administrator can select different projects or abort and
+	// set up the needed projects in Paratext first.
+	if (m_TempPTProjectForSourceInputs == m_TempPTProjectForTargetExports && m_TempPTProjectForSourceInputs != _("[No Project Selected]"))
+	{
+		wxString msg, msg1;
+		msg = _("The projects selected for getting source texts and receiving translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
+		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
+		//msg = msg + _T("\n") + msg1;
+		wxMessageBox(msg);
+		return; // don't accept any changes - abort the OnOK() handler
+	}
 	
+	// Set the App values for the PT projects to be used for PT collaboration
+	m_pApp->m_PTProjectForSourceInputs = m_TempPTProjectForSourceInputs;
+	m_pApp->m_PTProjectForTargetExports = m_TempPTProjectForTargetExports;
+
+	// Get the state of collaboration
+	int nSel;
+	nSel = pRadioBoxCollabOnOrOff->GetSelection();
+	if (nSel == 0)
+		m_pApp->m_bCollaboratingWithParatext = TRUE;
+	else if (nSel == 1)
+		m_pApp->m_bCollaboratingWithParatext = FALSE;
+	else
+	{
+		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK."));
+	}
+
+	// TODO: configure the menu interface for collaboration
+
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
