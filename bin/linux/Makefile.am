@@ -5,7 +5,8 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
 	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
-	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ChooseConsistencyCheckTypeDlg.h \
+	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
+	../../source/ChooseConsistencyCheckTypeDlg.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/CorGuess.h \
@@ -14,9 +15,10 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ExportInterlinearDlg.h \
 	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h \
 	../../source/FilenameConflictDlg.h \
-	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h ../../source/GoToDlg.h \
-	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBEditSearch.h \
-	../../source/KBPage.h ../../source/KB_Standoff.h \
+	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h \
+	../../source/GetSourceTextFromEditor.h ../../source/GoToDlg.h \
+	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
+	../../source/KBEditSearch.h ../../source/KBPage.h \
 	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
 	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
 	../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h \
@@ -27,10 +29,11 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
 	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h \
 	../../source/RefStringMetadata.h ../../source/Retranslation.h ../../source/RetranslationDlg.h \
-	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
+	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SetupEditorCollaboration.h \
+	../../source/SilConverterSelectDlg.h \
 	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
-	../../source/TargetUnit_Standoff.h ../../source/tellenc.h \
+	../../source/tellenc.h \
 	../../source/TransformToGlossesDlg.h \
 	../../source/UsfmFilterPage.h ../../source/Usfm2Oxes.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
@@ -78,16 +81,16 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
-	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
-	../../source/FontPage.cpp ../../source/FreeTrans.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
-	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp  ../../source/KB_Standoff.cpp \
+	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
@@ -99,10 +102,10 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
 	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
-	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp \
+	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
+	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/TargetUnit_Standoff.cpp \
 	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp \
 	 ../../source/UsfmFilterPage.cpp ../../source/Usfm2Oxes.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
