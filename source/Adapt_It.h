@@ -2518,7 +2518,11 @@ public:
 	// whm added 9Feb11 in support of Paratext collaboration
 	bool m_bParatextIsInstalled;
 	bool m_bParatextIsRunning;
+	bool m_bCollaboratingWithParatext;
+	wxString m_PTProjectForSourceInputs;
+	wxString m_PTProjectForTargetExports;
 	wxString m_ParatextProjectsDirPath;
+	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -2873,6 +2877,10 @@ public:
 	//wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label); // unused
+	
+	// whm added 15Apr11 for AI-PT Collaboration
+	wxArrayString GetListOfPTProjects();
+	wxString GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
