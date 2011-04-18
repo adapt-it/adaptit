@@ -5425,6 +5425,27 @@ wxString szBackupDocument = _T("BackupDocumentFlag");
 /// m_nWorkflowProfile member variable.
 wxString szWorkflowProfile = _T("WorkflowProfile");
 
+// whm added 15Apr11 for Paratext collaboration support
+// The label that identifies the following string encoded number as the application's
+// "CollaboratingWithParatext". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a boolean in the App's
+// m_bCollaboratingWithParatext member variable.
+wxString szCollaboratingWithParatext = _T("CollaboratingWithParatext");
+
+// whm added 15Apr11 for Paratext collaboration support
+// The label that identifies the following string encoded number as the application's
+// "PTProjectForSourceInputs". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a boolean in the App's
+// m_PTProjectForSourceInputs member variable.
+wxString szPTProjectForSourceInputs = _T("PTProjectForSourceInputs");
+
+// whm added 15Apr11 for Paratext collaboration support
+// The label that identifies the following string encoded number as the application's
+// "PTProjectForTargetExports". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a boolean in the App's
+// m_PTProjectForTargetExports member variable.
+wxString szPTProjectForTargetExports = _T("PTProjectForTargetExports");
+
 // window position and size
 
 /// The label that identifies the following string encoded number as the application's 
@@ -11456,6 +11477,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm added 9Feb11 in support of Paratext collaboration
 	m_bParatextIsInstalled = FALSE;
 	m_bParatextIsRunning = FALSE;
+	m_bCollaboratingWithParatext = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
+	m_PTProjectForSourceInputs = _T("");
+	m_PTProjectForTargetExports = _T("");
 	m_ParatextProjectsDirPath.Empty();
 	bParatextSharedDLLLoaded = FALSE;
 
@@ -21845,6 +21869,24 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
+
+	// whm added 15Apr11 for Paratext collaboration
+	if (m_bCollaboratingWithParatext)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szCollaboratingWithParatext << tab << number;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szPTProjectForSourceInputs << tab << m_PTProjectForSourceInputs;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szPTProjectForTargetExports << tab << m_PTProjectForTargetExports;
+	pf->AddLine(data);
+
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
 	// because it we do that, the user could get confused if next time his document
 	// doesn't show and punctuation and he didn't realize he shut down with this setting
@@ -23164,6 +23206,24 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			if (num < 0 || num > 10)
 				num = 0; // if out of reasonable range default to a profile of "None".
 			m_nWorkflowProfile = num;
+		}
+		else if (name == szCollaboratingWithParatext) // whm added 15Apr11
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0;
+			if (num == 1)
+				m_bCollaboratingWithParatext = TRUE;
+			else
+				m_bCollaboratingWithParatext = FALSE;
+		}
+		else if (name == szPTProjectForSourceInputs) // whm added 15Apr11
+		{
+			m_PTProjectForSourceInputs = strValue;
+		}
+		else if (name == szPTProjectForTargetExports) // whm added 15Apr11
+		{
+			m_PTProjectForTargetExports = strValue;
 		}
 		else if (name == szHidePunctuation)
 		{
@@ -32352,7 +32412,7 @@ void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event
 
 void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_T("The dialog for the Setup Paratext Collaboration menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	//wxMessageBox(_T("The dialog for the Setup Paratext Collaboration menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
 	CSetupEditorCollaboration dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -35121,3 +35181,199 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 }
 #endif
 
+wxArrayString CAdapt_ItApp::GetListOfPTProjects()
+{
+	wxArrayString tempListOfPTProjects;
+	tempListOfPTProjects.Clear();
+	wxString PT_ProjectsDirPath;
+	PT_ProjectsDirPath = GetParatextProjectsDirPath();
+	// Note: PT_ProjectsDirPath will end with a backslash
+	// Within the PT_ProjectsDirPath folder, the Paratext projects each have a file
+	// composed of the abbreviated PT project name with a .ssf extension. 
+	// Resource projects under Paratext cannot be used as collaboration projects
+	// (technically they could be read from, but we cannot assume that is possible
+	// without specific permission of UBS).
+	// So, we read each <file>.ssf within the folder and determine if the project
+	// represented is a candidate for Adapt It collaboration (either for reading
+	// as source texts, or for transferring AI-produced translation texts).
+	
+	// PT's ssf files are small xml formatted files. We only need some values from
+	// the file, so rather than using our XML reading routines, I think it will be
+	// more efficient to just use the xxTextFile class to read each xml formatted 
+	// file into memory and read the information we need from it there.
+			
+	wxDir finder;
+	bool bOK = (::wxSetWorkingDirectory(PT_ProjectsDirPath) && 
+								finder.Open(PT_ProjectsDirPath)); 
+								// wxDir must call .Open() before enumerating files!
+	if (!bOK)
+	{
+		// TODO: error
+	}
+
+	// Must call wxDir::Open() before calling GetFirst() - see above
+	wxString str = _T("");
+	// whm note: in GetFirst below, the wxDIR_FILES flag finds 
+	// files only, not . nor .. nor hidden files
+	bool bWorking = finder.GetFirst(&str,_T("*.ssf"),wxDIR_FILES);
+	while (bWorking)
+	{
+		// the str variable contains the found .ssf file (case is ignored
+		// so it will find .ssf as well as .SSF files).
+		wxLogDebug(_T("Found file: %s"),str.c_str());
+		
+		// open the .ssf file and glean the necessary information to
+		// determine if the project is a potential collaboration project
+		wxTextFile f;
+		bool bFileExists = wxFileExists(str);
+		if (bFileExists)
+		{
+			bool bOpenedOK;
+			bOpenedOK = f.Open(str);
+			if (bOpenedOK)
+			{
+				// The ssf file is now in memory and accessible line-by-line using wxTextFile
+				// methods.
+				// Initialize some variables for fields we are intereste in.
+				bool bProjectIsNotResource = TRUE;
+				bool bProjectIsEditable = TRUE;
+				wxString fullName = _T("");
+				wxString shortName = _T("");
+				wxString languageName = _T("");
+				wxString ethnologueCode = _T("");
+				wxString projectDir = _T("");
+				wxString booksPresentFlags = _T("");
+
+				wxString lineStr;
+				// scan through all lines of file setting field values as we go
+				for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
+				{
+					//wxLogDebug(_T("%s"),lineStr.c_str());
+					// collect data fields for filling in PTProject structs.
+					lineStr.Trim(FALSE);
+					lineStr.Trim(TRUE);
+					wxString tagName;
+					wxString endTagName;
+
+					tagName = _T("<FullName>");
+					endTagName = _T("</FullName>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<Name>");
+					endTagName = _T("</Name>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<Language>");
+					endTagName = _T("</Language>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<EthnologueCode>");
+					endTagName = _T("</EthnologueCode>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						ethnologueCode = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<Directory>");
+					endTagName = _T("</Directory>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<BooksPresent>");
+					endTagName = _T("</BooksPresent>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<ResourceText>");
+					endTagName = _T("</ResourceText>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						wxString temp;
+						temp = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						// Note: non-Resource projects often don't have the "<ResourceText>"
+						// tag at all, therefore we set bProjectIsNotResource to TRUE as its
+						// default, unless <ResourceText>T</ResourceText> is present.
+						if (temp == _T("T"))
+						{
+							bProjectIsNotResource = FALSE;
+						}
+					}
+
+					tagName = _T("<Editable>");
+					endTagName = _T("</Editable>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						wxString temp;
+						temp = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						if (temp == _T("T"))
+						{
+							bProjectIsEditable = TRUE;
+						}
+						else if (temp == _T("F"))
+						{
+							bProjectIsEditable = FALSE;
+						}
+					}
+
+				}
+				wxString storageStr;
+				// We do not allow collaboration with resource projects or
+				// projects that have no short name, since the short name is
+				// the basic PT name for the project (and the folder it is
+				// contained in).
+				if (bProjectIsNotResource && !shortName.IsEmpty())
+				{
+					storageStr = shortName;
+					if (!fullName.IsEmpty())
+					{
+						storageStr += _T(" : ") + fullName;
+					}
+					if (!languageName.IsEmpty())
+					{
+						storageStr += _T(" : ") + languageName;
+					}
+					if (!ethnologueCode.IsEmpty())
+					{
+						storageStr += _T(" : ") + ethnologueCode;
+					}
+					tempListOfPTProjects.Add(storageStr);
+				}
+				f.Close();
+			}
+		}
+
+		bWorking = finder.GetNext(&str);
+	}
+
+	return tempListOfPTProjects;
+}
+
+wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag)
+{
+	wxString tempStr;
+	tempStr.Empty();
+	int nTagPos;
+	nTagPos = lineStr.Find(beginTag);
+	if (nTagPos == 0)
+	{
+		// the <FullName> tag begins the line
+		int nEndTagPos;
+		nEndTagPos = lineStr.Find(endTag);
+		wxASSERT(nEndTagPos != wxNOT_FOUND && nEndTagPos > nTagPos); // it should have an end tag
+		tempStr = lineStr.Mid(beginTag.Length(),nEndTagPos - beginTag.Length());
+	}
+	return tempStr;
+}

@@ -793,9 +793,14 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		//pStartWorkingWizard->EndModal(1);
 		
         // default the m_nActiveSequNum value to 0 when getting the doc created
-		pApp->m_nActiveSequNum = 0; 
+		pApp->m_nActiveSequNum = -1; 
 		bool bResult = pDoc->OnNewDocument();
-		if (!bResult)
+		// whm 17Apr11 changed test below to include check for m_nActiveSequNum being
+		// -1 after return of OnNewDocument(). If user cancels the file dialog within
+		// OnNewDocument() it still returns TRUE within bResult (due to a change Bruce
+		// made on 25Aug10). The test is needed to prevent a crash if the Preferences
+		// dialog is called when no document is active.
+		if (!bResult || pApp->m_nActiveSequNum == -1)
 		{
             // BEW added test on 21Mar07, to distinguish a failure due to a 3-letter code
             // mismatch preventing the document being constructed for the currently active
