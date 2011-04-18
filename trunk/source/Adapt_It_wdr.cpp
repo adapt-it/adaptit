@@ -7903,7 +7903,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_STATIC_LIST_OF_PROJECTS, _("List of Paratext Projects on this computer:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_STATIC_LIST_OF_PROJECTS, _("List of Paratext Projects on this computer: (including full name : language : ethnologue code)"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxString *strs6 = (wxString*) NULL;
@@ -7929,63 +7929,56 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
     item7->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("You may pre-select projects below:") );
-    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
+    wxFlexGridSizer *item11 = new wxFlexGridSizer( 2, 0, 0 );
+    item11->AddGrowableCol( 0 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Optional setup - you may pre-select projects for the user here:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for getting source texts:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for getting source texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(250,-1), wxTE_READONLY );
-    item16->SetToolTip( _("Select a default project for user to obtain source texts") );
-    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item17 = new wxButton( parent, ID_BUTTON, _("Select from List"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetToolTip( _("Click this button to select a default project to put in the box at left") );
-    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ, wxT(""), wxDefaultPosition, wxSize(250,-1), wxTE_READONLY );
+    item14->SetToolTip( _("Use the button at right to select a default project for user to obtain source texts") );
+    item11->Add( item14, 0, wxGROW|wxALL, 0 );
 
-    item13->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item15 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, _("Select from List"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("Click this button to select a default project to put in the box at left") );
+    item11->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for receiving translation texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+    item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for receiving translation texts:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_TGT_PROJ, wxT(""), wxDefaultPosition, wxSize(250,-1), wxTE_READONLY );
+    item17->SetToolTip( _("Use the button at right to select a default project for user where translated texts will be transferred") );
+    item11->Add( item17, 0, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(250,-1), wxTE_READONLY );
-    item21->SetToolTip( _("Select a default project for user where translated texts will be transferred") );
-    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item22 = new wxButton( parent, ID_BUTTON, _("Select from List"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Click this button to select a default project to put in the box at left") );
-    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item11->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item18 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, _("Select from List"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("Click this button to select a default project to put in the box at left") );
+    item11->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item7->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item20 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item23->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item19->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item25 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetDefault();
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item21 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetDefault();
+    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -8163,7 +8156,7 @@ wxSizer *ConflictResolutionDlgFunc( wxWindow *parent, bool call_fit, bool set_si
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You can optionally edit the text in the \"Earlier version\" or the \"Recent version\" box below, to improve the meaning. You can also select and copy text from one box to the other. Choose one box only in which to do the improvements. When your edits are finished, click the button underneath that box to have that box's meaning become the final version."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY|wxTE_PROCESS_TAB );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_INSTRUCTIONS, _("You can optionally edit the text in the \"Earlier version\" or the \"Recent version\" box below, to improve the meaning. You can also select and copy text from one box to the other. Choose one box only in which to do the improvements. When your edits are finished, click the button underneath that box to have that box's meaning become the final version."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxFlexGridSizer *item6 = new wxFlexGridSizer( 2, 0, 0 );
@@ -8171,7 +8164,7 @@ wxSizer *ConflictResolutionDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     item6->AddGrowableCol( 1 );
     item6->AddGrowableRow( 2 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_STATIC_LIST_OF_PROJECTS, _("Earlier version:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Earlier version:"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Recent version:"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -8180,7 +8173,7 @@ wxSizer *ConflictResolutionDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_EARLIER_FROM, _("Adapted From:"), wxDefaultPosition, wxSize(80,30), wxTE_MULTILINE|wxTE_READONLY );
     item6->Add( item9, 0, wxGROW|wxALL, 5 );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_RECENT_FROM, _("Adapted From:"), wxDefaultPosition, wxSize(80,30), wxTE_MULTILINE );
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_RECENT_FROM, _("Adapted From:"), wxDefaultPosition, wxSize(80,30), wxTE_MULTILINE|wxTE_READONLY );
     item6->Add( item10, 0, wxGROW|wxALL, 5 );
 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_EARLIER_VERSION, wxT(""), wxDefaultPosition, wxSize(300,120), wxTE_MULTILINE );
@@ -8222,6 +8215,162 @@ wxMenuBar *AIMenuBarFunc()
     wxMenu* item1 = new wxMenu;
     item1->Append( wxID_NEW, _("&New\tCtrl-N"), _("Create a new document") );
     item1->Append( ID_MENU_GET_SOURCE_FROM_PT, _("&Get Source Text From Paratext..."), _("Get a text to adapt from Paratext") );
+    item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
+    item1->Append( ID_MENU_TRANSFER_TRANS_TO_PT, _("&Transfer Translation To Paratext"), _("Transfer the translation (target) text to Paratext") );
+    item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );
+    item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-A"), _("Save the document with different xml format, or different filename") );
+    item1->Append( wxID_CLOSE, _("&Close"), _("Close the active document") );
+    item1->Append( ID_FILE_PACK_DOC, _("Pack Document..."), _("Pack document for transfer to another computer") );
+    item1->Append( ID_FILE_UNPACK_DOC, _("Unpack Document..."), _("Unpack a document that was packed on another computer") );
+    item1->AppendSeparator();
+    item1->Append( wxID_PRINT, _("&Print...\tCtrl-P"), _("Print the active document") );
+    item1->Append( wxID_PREVIEW, _("Print Pre&view"), _("Show what printed pages will look like (without printing)") );
+    item1->Append( wxID_PAGE_SETUP, _("P&age Setup..."), _("Change the printing options") );
+    item1->AppendSeparator();
+    item1->Append( ID_FILE_STARTUP_WIZARD, _("Start &Working...\tCtrl-W"), _("Show the sequence of dialog windows used for accessing a project and working on documents") );
+    item1->Append( ID_FILE_CLOSEKB, _("Close Pro&ject\tCtrl-J"), _("Save the knowledge base and document, then close this project") );
+    item1->Append( ID_FILE_CHANGEFOLDER, _("Change Folder..."), _("Change to a different book folder for document storage (book mode must be ON)") );
+    item1->AppendSeparator();
+    item1->Append( ID_FILE_SAVEKB, _("Save &Knowledge Base"), _("Update the knowledge base file for this project") );
+    item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
+    item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
+    item1->AppendSeparator();
+    item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
+    item1->AppendSeparator();
+    item0->Append( item1, _("&File") );
+    
+    wxMenu* item2 = new wxMenu;
+    item2->Append( wxID_UNDO, _("&Undo\tCtrl-Z"), _("Undo the last action") );
+    item2->AppendSeparator();
+    item2->Append( ID_EDIT_CUT, _("Cu&t\tCtrl-X"), _("Cut the selection and put it on the Clipboard") );
+    item2->Append( ID_EDIT_COPY, _("&Copy\tCtrl-C"), _("Copy the selection and put it on the Clipboard") );
+    item2->Append( ID_EDIT_PASTE, _("&Paste\tCtrl-V"), _("Insert Clipboard contents") );
+    item2->AppendSeparator();
+    item2->Append( ID_GO_TO, _("&Go To...\tCtrl-G"), _("Go to a specific chapter and verse") );
+    item2->Append( ID_EDIT_SOURCE_TEXT, _("Edit &Source Text...\tCtrl-Q"), _("Edit the selected source text") );
+    item2->Append( ID_EDIT_CONSISTENCY_CHECK, _("Consist&ency Check..."), _("Check all translations with those in the knowledge base for consistency") );
+    item2->AppendSeparator();
+    item2->Append( ID_EDIT_MOVE_NOTE_FORWARD, _("Move Note Forward\tCtrl-3"), _("Move the note forward in the document to the next word or phrase") );
+    item2->Append( ID_EDIT_MOVE_NOTE_BACKWARD, _("Move Note Backward\tCtrl-2"), _("Move the note backward in the document to the previous word or phrase") );
+    item2->AppendSeparator();
+    item2->Append( wxID_PREFERENCES, _("Pre&ferences..."), _("Adapt It settings") );
+    item0->Append( item2, _("&Edit") );
+    
+    wxMenu* item3 = new wxMenu;
+    item3->Append( ID_VIEW_TOOLBAR, _("&Toolbar"), _("Show or hide the toolbar"), wxITEM_CHECK );
+    item3->Append( ID_VIEW_STATUS_BAR, _("&Status Bar"), _("Show or hide the status bar"), wxITEM_CHECK );
+    item3->Append( ID_VIEW_COMPOSE_BAR, _("&Compose Bar"), _("Show or hide the bar for composing text"), wxITEM_CHECK );
+    item3->AppendSeparator();
+    item3->Append( ID_COPY_SOURCE, _("Copy Sourc&e"), _("Copy source text to phrase box as default translation"), wxITEM_CHECK );
+    item3->Append( ID_MARKER_WRAPS_STRIP, _("&Wrap At Standard Format Markers"), _("Start a new strip whenever a standard format marker is encountered"), wxITEM_CHECK );
+    item3->Append( ID_UNITS, _("&Units of Measurement..."), _("Units to be used when printing") );
+    item3->AppendSeparator();
+    item3->Append( ID_CHANGE_INTERFACE_LANGUAGE, _("Change Interface Language..."), _("Change the language of the program interface. You may need to restart Adapt It for the change to take effect") );
+    item0->Append( item3, _("&View") );
+    
+    wxMenu* item4 = new wxMenu;
+    item4->Append( wxID_FIND, _("&Find...\tCtrl-F"), _("Find text in source or target or both, or special search") );
+    item4->Append( wxID_REPLACE, _("Find and &Replace...\tCtrl-H"), _("Replace in target text") );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_DEFINE_CC, _("&Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
+    item4->Append( ID_UNLOAD_CC_TABLES, _("&Unload Consistent Changes"), _("Unload any loaded consistent changes tables") );
+    item4->Append( ID_USE_CC, _("Use &Consistent Changes"), _("Use the consistent changes when copying source text"), wxITEM_CHECK );
+    item4->Append( ID_ACCEPT_CHANGES, _("&Accept Changes Without Stopping"), _("Accept the changed source text as the translation and continue on"), wxITEM_CHECK );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_DEFINE_SILCONVERTER, _("&SIL Converters..."), _("Load an SIL Converter") );
+    item4->Append( ID_USE_SILCONVERTER, _("Use S&IL Converter"), _("Use a loaded SIL Converter"), wxITEM_CHECK );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_KB_EDITOR, _("&Knowledge Base Editor...\tCtrl-K"), _("Display dialog for editing the knowledge base") );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_AUTO_CAPITALIZATION, _("Use Automatic Capitalization"), _("Use automatic capitalization when copying source text"), wxITEM_CHECK );
+    item4->AppendSeparator();
+    item4->Append( ID_RETRANS_REPORT, _("Re&translation Report..."), _("Output a file listing all retranslations") );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_SPLIT_DOC, _("Split Document..."), _("Split the document into two or more documents") );
+    item4->Append( ID_TOOLS_JOIN_DOCS, _("Join Documents..."), _("Join two or more documents into a single document") );
+    item4->Append( ID_TOOLS_MOVE_DOC, _("Move Document..."), _("Move documents between the Adaptations folder and a book folder location") );
+    item0->Append( item4, _("&Tools") );
+    
+    wxMenu* item5 = new wxMenu;
+    item5->Append( ID_FILE_EXPORT_SOURCE, _("Export &Source Text..."), _("Export the source language text as a *.txt file type") );
+    item5->Append( ID_FILE_EXPORT, _("&Export Translation Text..."), _("Export the target language translation as a *.txt file type") );
+    item5->Append( ID_FILE_EXPORT_TO_RTF, _("Export Interlinear &Text..."), _("Export the Source and Target languages in interlinear form as an *.rtf file type") );
+    item5->Append( ID_EXPORT_GLOSSES, _("Export &Glosses As Text..."), _("Export the glossing lines' contents as text") );
+    item5->Append( ID_EXPORT_FREE_TRANS, _("Export Free Translation..."), _("Collect all the free translation sections' contents, adding standard format markers, and export") );
+    item5->Append( ID_EXPORT_OXES, _("Export &Open XML for Editing Scripture (OXES)..."), _("Export the translation text according to the OXES version 1 standard") );
+    item5->AppendSeparator();
+    item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in standard format or LIFT format") );
+    item5->Append( ID_IMPORT_TO_KB, _("&Import to Knowledge Base..."), _("Extend knowledge base by importing dictionary records") );
+    item5->AppendSeparator();
+    item5->Append( ID_MENU_IMPORT_EDITED_SOURCE_TEXT, _("Import Edited Source Text..."), _("Import an edited version of the text that was used for the currently open document") );
+    item0->Append( item5, _("E&xport-Import") );
+    
+    wxMenu* item6 = new wxMenu;
+    item6->Append( ID_ADVANCED_ENABLEGLOSSING, _("See Glosses"), _("Make glossing line visible on screen"), wxITEM_CHECK );
+    item6->Append( ID_ADVANCED_GLOSSING_USES_NAV_FONT, _("Glossing Uses Navigation Text's Font"), _("Use the navigation text font for glossing text"), wxITEM_CHECK );
+    item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, _("Transform Adaptations Into Glosses..."), _("Transform adaptations from another project into the current project's glosses") );
+    item6->Append( ID_ADVANCED_DELAY, _("Delay..."), _("Slow automatic insertions down to a speed suitable for reading along") );
+    item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_BOOKMODE, _("Storing Documents in Book Folders"), _("Turn on, or off, storage of documents to book folders"), wxITEM_CHECK );
+    item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_FREE_TRANSLATION_MODE, _("Free Translation Mode"), _("Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"), wxITEM_CHECK );
+    item6->Append( ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, _("Use Target Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing target text"), wxITEM_CHECK );
+    item6->Append( ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, _("Use Gloss Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing gloss text"), wxITEM_CHECK );
+    item6->Append( ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, _("Remove Filtered Free Translations"), _("Removes all the filtered free translations in the document") );
+    item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_COLLECT_BACKTRANSLATIONS, _("Collect Back Translations..."), _("Collect adaptations, or glosses, and store them with a back translation marker as filtered material") );
+    item6->Append( ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, _("Remove Filtered Back Translations"), _("Deletes all the filtered back translations in the document") );
+    item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_USETRANSLITERATIONMODE, _("Use Transliteration Mode"), _("Select this item to use SIL Converters in transliteration mode"), wxITEM_CHECK );
+    item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, _("Send Synchronized Scrolling Messages"), _("Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"), wxITEM_CHECK );
+    item6->Append( ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, _("Receive Synchronized Scrolling Messages"), _("Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"), wxITEM_CHECK );
+    item0->Append( item6, _("&Advanced") );
+    
+    wxMenu* item7 = new wxMenu;
+    item7->Append( ID_ALIGNMENT, _("Layout Window Right To Left\tCtrl-1"), _("Layout text in window from right to left") );
+    item0->Append( item7, _("&Layout") );
+    
+    wxMenu* item8 = new wxMenu;
+    item8->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
+    item8->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
+    item8->AppendSeparator();
+    item8->Append( ID_REPORT_A_PROBLEM, _("Report a problem..."), _("Send a bug or problem report to the Adapt It developers") );
+    item8->Append( ID_GIVE_FEEDBACK, _("Give feedback..."), _("Give the developers feedback on your use of Adapt It") );
+    item8->AppendSeparator();
+    item8->Append( ID_HELP_USE_TOOLTIPS, _("Use Tooltips"), _("Select this item to turn on or turn off tooltip help messages"), wxITEM_CHECK );
+    item8->AppendSeparator();
+    item8->Append( wxID_ABOUT, _("&About Adapt It..."), _("Display program information, version number and copyright") );
+    item0->Append( item8, _("&Help") );
+    
+    wxMenu* item9 = new wxMenu;
+    item9->Append( ID_CUSTOM_WORK_FOLDER_LOCATION, _("&Custom Work Folder Location..."), _("Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere") );
+    item9->Append( ID_LOCK_CUSTOM_LOCATION, _("&Lock Custom Location"), _("Make the custom work folder location permanent until explicitly changed") );
+    item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
+    item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
+    item9->AppendSeparator();
+    item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password..."), _("Set a password, it will be stored in the clear in the basic configuration file") );
+    item9->AppendSeparator();
+    item9->Append( ID_SETUP_PARATEXT_COLLABORATION, _("Setup Parate&xt Collaboration..."), _("Configure Adapt It to use a Paratext project for its input (source) texts, and a different Paratext project exporting its (target) texts") );
+    item9->AppendSeparator();
+    item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("&Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
+    item9->Append( ID_SOURCE_DATA_FOLDER, _("Assign Location for Source Text &Imports..."), _("Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.") );
+    item9->Append( ID_EXPORT_DATA_FOLDER, _("Assign Location for Translation Text &Exports..."), _("Assigns the Export folder to be used for translated/adapted texts (creating it first if necessary). Protects the user from folder navigation of exports.") );
+    item9->AppendSeparator();
+    item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
+    item0->Append( item9, _("Ad&ministrator") );
+    
+    return item0;
+}
+
+wxMenuBar *AICollabMenuBarFunc()
+{
+    wxMenuBar *item0 = new wxMenuBar;
+    
+    wxMenu* item1 = new wxMenu;
+    item1->Append( wxID_NEW, _("&New\tCtrl-N"), _("Create a new document") );
+    item1->Append( wxID_NEW, _("&Get Source Text From Paratext..."), _("Get a text to adapt from Paratext") );
     item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
     item1->Append( ID_MENU_TRANSFER_TRANS_TO_PT, _("&Transfer Translation To Paratext"), _("Transfer the translation (target) text to Paratext") );
     item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );

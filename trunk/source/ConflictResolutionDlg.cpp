@@ -70,18 +70,44 @@ CConflictResolutionDlg::CConflictResolutionDlg(wxWindow* parent) // dialog const
 	ConflictResolutionDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ConflictResolutionDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	// use wxValidator for simple dialog data transfer
-	// sample text control initialization below:
-	//wxTextCtrl* pEdit;
-	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
-	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
-	//pEdit->SetBackgroundColour(sysColorBtnFace);
+	wxColour sysColorBtnFace; // color used for read-only text controls displaying
+	// color used for read-only text controls displaying static text info button face color
+	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	
+	wxTextCtrl* pStaticTextCtrlInstructions;
+	pStaticTextCtrlInstructions = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_INSTRUCTIONS);
+	wxASSERT(pStaticTextCtrlInstructions != NULL);
+	pStaticTextCtrlInstructions->SetBackgroundColour(sysColorBtnFace);
 
-	// sample radio button control initialization below:
-	//wxRadioButton* pRadioB;
-	//pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_BUTTON);
-	//pRadioB->SetValue(TRUE);
-	//pRadioB->SetValidator(wxGenericValidator(&m_bVariable));
+	wxTextCtrl* pStaticTextCtrlEarlierFrom;
+	pStaticTextCtrlEarlierFrom = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EARLIER_FROM);
+	wxASSERT(pStaticTextCtrlEarlierFrom != NULL);
+	pStaticTextCtrlEarlierFrom->SetBackgroundColour(sysColorBtnFace);
+
+	wxTextCtrl* pStaticTextCtrlRecentFrom;
+	pStaticTextCtrlRecentFrom = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_RECENT_FROM);
+	wxASSERT(pStaticTextCtrlRecentFrom != NULL);
+	pStaticTextCtrlRecentFrom->SetBackgroundColour(sysColorBtnFace);
+
+	wxTextCtrl* pTextCtrlSourceTextVerse;
+	pTextCtrlSourceTextVerse = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_TEXT_VERSE);
+	wxASSERT(pTextCtrlSourceTextVerse != NULL);
+
+	wxTextCtrl* pTextCtrlEarlierVersion;
+	pTextCtrlEarlierVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EARLIER_VERSION);
+	wxASSERT(pTextCtrlEarlierVersion != NULL);
+
+	wxTextCtrl* pTextCtrlRecentVersion;
+	pTextCtrlRecentVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_RECENT_VERSION);
+	wxASSERT(pTextCtrlRecentVersion != NULL);
+
+	wxButton* pBtnUseEarlierVersion;
+	pBtnUseEarlierVersion = (wxButton*)FindWindowById(ID_BUTTON_USE_EARLIER);
+	wxASSERT(pBtnUseEarlierVersion != NULL);
+
+	wxButton* pBtnUseRecentVersion;
+	pBtnUseRecentVersion = (wxButton*)FindWindowById(ID_BUTTON_USE_RECENT);
+	wxASSERT(pBtnUseRecentVersion != NULL);
 
 	// other attribute initializations
 }

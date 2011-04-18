@@ -28,12 +28,33 @@ public:
 	CSetupEditorCollaboration(wxWindow* parent); // constructor
 	virtual ~CSetupEditorCollaboration(void); // destructor
 	// other methods
+	
+	// These are temporary values for holding settings until user clicks OK.
+	// If user clicks Cancel, these values are ignored and not copied to the
+	// corresponding settings on the App.
+	bool m_bTempCollaboratingWithParatext;
+	wxString m_TempPTProjectForSourceInputs;
+	wxString m_TempPTProjectForTargetExports;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
+	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
 
 private:
+
+	wxArrayString* pListOfPTProjects; // local pointer to list on App
+	CAdapt_ItApp* m_pApp;
+	wxTextCtrl* pStaticTextCtrlTopNote;
+	wxTextCtrl* pStaticTextCtrlImportantBottomNote;
+	wxTextCtrl* pStaticTextCtrlSelectedSourceProj;
+	wxTextCtrl* pStaticTextCtrlSelectedTargetProj;
+	wxListBox* pListOfProjects;
+	wxRadioBox* pRadioBoxCollabOnOrOff;
+	wxButton* pBtnSelectFmListSourceProj;
+	wxButton* pBtnSelectFmListTargetProj;
+
 	// class attributes
 	// wxString m_stringVariable;
 	// bool m_bVariable;
