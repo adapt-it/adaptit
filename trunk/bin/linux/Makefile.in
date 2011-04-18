@@ -73,21 +73,22 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
-	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
-	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
-	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
-	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
-	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
-	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
-	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
-	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) GoToDlg.$(OBJEXT) \
+	ConflictResolutionDlg.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
+	ConsistentChanger.$(OBJEXT) CorGuess.$(OBJEXT) \
+	DocPage.$(OBJEXT) EarlierTranslationDlg.$(OBJEXT) \
+	EditPreferencesDlg.$(OBJEXT) EditSourceTextDlg.$(OBJEXT) \
+	EmailReportDlg.$(OBJEXT) ExportFunctions.$(OBJEXT) \
+	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
+	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
+	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
-	KB_Standoff.$(OBJEXT) LanguageCodesDlg.$(OBJEXT) \
-	LanguagesPage.$(OBJEXT) Layout.$(OBJEXT) \
-	ListDocumentsInOtherFolderDialog.$(OBJEXT) MainFrm.$(OBJEXT) \
-	MoveDialog.$(OBJEXT) Mover.$(OBJEXT) MyListBox.$(OBJEXT) \
-	NavProtectNewDoc.$(OBJEXT) NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
+	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
+	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
+	MainFrm.$(OBJEXT) MoveDialog.$(OBJEXT) Mover.$(OBJEXT) \
+	MyListBox.$(OBJEXT) NavProtectNewDoc.$(OBJEXT) \
+	NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
 	OpenExistingProjectDlg.$(OBJEXT) OutputFilenameDlg.$(OBJEXT) \
 	PeekAtFile.$(OBJEXT) PhraseBox.$(OBJEXT) Pile.$(OBJEXT) \
 	Placeholder.$(OBJEXT) PlaceInternalMarkers.$(OBJEXT) \
@@ -98,13 +99,13 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	RefString.$(OBJEXT) RefStringMetadata.$(OBJEXT) \
 	Retranslation.$(OBJEXT) RetranslationDlg.$(OBJEXT) \
 	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
+	SetupEditorCollaboration.$(OBJEXT) \
 	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) Strip.$(OBJEXT) \
-	TargetUnit.$(OBJEXT) TargetUnit_Standoff.$(OBJEXT) \
-	tellenc.$(OBJEXT) TransformToGlossesDlg.$(OBJEXT) \
-	UsfmFilterPage.$(OBJEXT) Usfm2Oxes.$(OBJEXT) \
-	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
+	TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
+	TransformToGlossesDlg.$(OBJEXT) UsfmFilterPage.$(OBJEXT) \
+	Usfm2Oxes.$(OBJEXT) UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
 	ViewFilteredMaterialDlg.$(OBJEXT) ViewPage.$(OBJEXT) \
 	WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) WhichBook.$(OBJEXT) \
@@ -347,7 +348,8 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
 	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
-	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ChooseConsistencyCheckTypeDlg.h \
+	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
+	../../source/ChooseConsistencyCheckTypeDlg.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/CorGuess.h \
@@ -356,9 +358,10 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ExportInterlinearDlg.h \
 	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h \
 	../../source/FilenameConflictDlg.h \
-	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h ../../source/GoToDlg.h \
-	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBEditSearch.h \
-	../../source/KBPage.h ../../source/KB_Standoff.h \
+	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h \
+	../../source/GetSourceTextFromEditor.h ../../source/GoToDlg.h \
+	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
+	../../source/KBEditSearch.h ../../source/KBPage.h \
 	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
 	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
 	../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h \
@@ -369,10 +372,11 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
 	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h \
 	../../source/RefStringMetadata.h ../../source/Retranslation.h ../../source/RetranslationDlg.h \
-	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
+	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SetupEditorCollaboration.h \
+	../../source/SilConverterSelectDlg.h \
 	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
-	../../source/TargetUnit_Standoff.h ../../source/tellenc.h \
+	../../source/tellenc.h \
 	../../source/TransformToGlossesDlg.h \
 	../../source/UsfmFilterPage.h ../../source/Usfm2Oxes.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
@@ -406,16 +410,16 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
-	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
-	../../source/FontPage.cpp ../../source/FreeTrans.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
-	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp  ../../source/KB_Standoff.cpp \
+	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
@@ -427,10 +431,10 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
 	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
-	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp \
+	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
+	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/TargetUnit_Standoff.cpp \
 	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp \
 	 ../../source/UsfmFilterPage.cpp ../../source/Usfm2Oxes.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
@@ -552,6 +556,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseTranslation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComposeBarEditBox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConflictResolutionDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistencyCheckDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistentChanger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CorGuess.Po@am__quote@
@@ -568,6 +573,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FindReplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FontPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTrans.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GetSourceTextFromEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GoToDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GuesserSettingsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JoinDialog.Po@am__quote@
@@ -575,7 +581,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditSearch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KB_Standoff.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguageCodesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
@@ -606,6 +611,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RetranslationDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetDelay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetEncodingDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetupEditorCollaboration.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SilConverterSelectDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SourcePhrase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SplitDialog.Po@am__quote@
@@ -613,7 +619,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StartWorkingWizard.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit_Standoff.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsPage.Po@am__quote@
@@ -962,6 +967,20 @@ ComposeBarEditBox.obj: ../../source/ComposeBarEditBox.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ComposeBarEditBox.obj `if test -f '../../source/ComposeBarEditBox.cpp'; then $(CYGPATH_W) '../../source/ComposeBarEditBox.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ComposeBarEditBox.cpp'; fi`
 
+ConflictResolutionDlg.o: ../../source/ConflictResolutionDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConflictResolutionDlg.o -MD -MP -MF $(DEPDIR)/ConflictResolutionDlg.Tpo -c -o ConflictResolutionDlg.o `test -f '../../source/ConflictResolutionDlg.cpp' || echo '$(srcdir)/'`../../source/ConflictResolutionDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConflictResolutionDlg.Tpo $(DEPDIR)/ConflictResolutionDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConflictResolutionDlg.cpp' object='ConflictResolutionDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConflictResolutionDlg.o `test -f '../../source/ConflictResolutionDlg.cpp' || echo '$(srcdir)/'`../../source/ConflictResolutionDlg.cpp
+
+ConflictResolutionDlg.obj: ../../source/ConflictResolutionDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConflictResolutionDlg.obj -MD -MP -MF $(DEPDIR)/ConflictResolutionDlg.Tpo -c -o ConflictResolutionDlg.obj `if test -f '../../source/ConflictResolutionDlg.cpp'; then $(CYGPATH_W) '../../source/ConflictResolutionDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConflictResolutionDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConflictResolutionDlg.Tpo $(DEPDIR)/ConflictResolutionDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConflictResolutionDlg.cpp' object='ConflictResolutionDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConflictResolutionDlg.obj `if test -f '../../source/ConflictResolutionDlg.cpp'; then $(CYGPATH_W) '../../source/ConflictResolutionDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConflictResolutionDlg.cpp'; fi`
+
 ConsistencyCheckDlg.o: ../../source/ConsistencyCheckDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsistencyCheckDlg.o -MD -MP -MF $(DEPDIR)/ConsistencyCheckDlg.Tpo -c -o ConsistencyCheckDlg.o `test -f '../../source/ConsistencyCheckDlg.cpp' || echo '$(srcdir)/'`../../source/ConsistencyCheckDlg.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsistencyCheckDlg.Tpo $(DEPDIR)/ConsistencyCheckDlg.Po
@@ -1186,6 +1205,20 @@ FreeTrans.obj: ../../source/FreeTrans.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTrans.obj `if test -f '../../source/FreeTrans.cpp'; then $(CYGPATH_W) '../../source/FreeTrans.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTrans.cpp'; fi`
 
+GetSourceTextFromEditor.o: ../../source/GetSourceTextFromEditor.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GetSourceTextFromEditor.o -MD -MP -MF $(DEPDIR)/GetSourceTextFromEditor.Tpo -c -o GetSourceTextFromEditor.o `test -f '../../source/GetSourceTextFromEditor.cpp' || echo '$(srcdir)/'`../../source/GetSourceTextFromEditor.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GetSourceTextFromEditor.Tpo $(DEPDIR)/GetSourceTextFromEditor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/GetSourceTextFromEditor.cpp' object='GetSourceTextFromEditor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GetSourceTextFromEditor.o `test -f '../../source/GetSourceTextFromEditor.cpp' || echo '$(srcdir)/'`../../source/GetSourceTextFromEditor.cpp
+
+GetSourceTextFromEditor.obj: ../../source/GetSourceTextFromEditor.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GetSourceTextFromEditor.obj -MD -MP -MF $(DEPDIR)/GetSourceTextFromEditor.Tpo -c -o GetSourceTextFromEditor.obj `if test -f '../../source/GetSourceTextFromEditor.cpp'; then $(CYGPATH_W) '../../source/GetSourceTextFromEditor.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/GetSourceTextFromEditor.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GetSourceTextFromEditor.Tpo $(DEPDIR)/GetSourceTextFromEditor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/GetSourceTextFromEditor.cpp' object='GetSourceTextFromEditor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GetSourceTextFromEditor.obj `if test -f '../../source/GetSourceTextFromEditor.cpp'; then $(CYGPATH_W) '../../source/GetSourceTextFromEditor.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/GetSourceTextFromEditor.cpp'; fi`
+
 GoToDlg.o: ../../source/GoToDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GoToDlg.o -MD -MP -MF $(DEPDIR)/GoToDlg.Tpo -c -o GoToDlg.o `test -f '../../source/GoToDlg.cpp' || echo '$(srcdir)/'`../../source/GoToDlg.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GoToDlg.Tpo $(DEPDIR)/GoToDlg.Po
@@ -1283,20 +1316,6 @@ KBPage.obj: ../../source/KBPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBPage.cpp' object='KBPage.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBPage.obj `if test -f '../../source/KBPage.cpp'; then $(CYGPATH_W) '../../source/KBPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBPage.cpp'; fi`
-
-KB_Standoff.o: ../../source/KB_Standoff.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KB_Standoff.o -MD -MP -MF $(DEPDIR)/KB_Standoff.Tpo -c -o KB_Standoff.o `test -f '../../source/KB_Standoff.cpp' || echo '$(srcdir)/'`../../source/KB_Standoff.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KB_Standoff.Tpo $(DEPDIR)/KB_Standoff.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KB_Standoff.cpp' object='KB_Standoff.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KB_Standoff.o `test -f '../../source/KB_Standoff.cpp' || echo '$(srcdir)/'`../../source/KB_Standoff.cpp
-
-KB_Standoff.obj: ../../source/KB_Standoff.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KB_Standoff.obj -MD -MP -MF $(DEPDIR)/KB_Standoff.Tpo -c -o KB_Standoff.obj `if test -f '../../source/KB_Standoff.cpp'; then $(CYGPATH_W) '../../source/KB_Standoff.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KB_Standoff.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KB_Standoff.Tpo $(DEPDIR)/KB_Standoff.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KB_Standoff.cpp' object='KB_Standoff.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KB_Standoff.obj `if test -f '../../source/KB_Standoff.cpp'; then $(CYGPATH_W) '../../source/KB_Standoff.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KB_Standoff.cpp'; fi`
 
 LanguageCodesDlg.o: ../../source/LanguageCodesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.o -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
@@ -1718,6 +1737,20 @@ SetEncodingDlg.obj: ../../source/SetEncodingDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SetEncodingDlg.obj `if test -f '../../source/SetEncodingDlg.cpp'; then $(CYGPATH_W) '../../source/SetEncodingDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/SetEncodingDlg.cpp'; fi`
 
+SetupEditorCollaboration.o: ../../source/SetupEditorCollaboration.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SetupEditorCollaboration.o -MD -MP -MF $(DEPDIR)/SetupEditorCollaboration.Tpo -c -o SetupEditorCollaboration.o `test -f '../../source/SetupEditorCollaboration.cpp' || echo '$(srcdir)/'`../../source/SetupEditorCollaboration.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SetupEditorCollaboration.Tpo $(DEPDIR)/SetupEditorCollaboration.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/SetupEditorCollaboration.cpp' object='SetupEditorCollaboration.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SetupEditorCollaboration.o `test -f '../../source/SetupEditorCollaboration.cpp' || echo '$(srcdir)/'`../../source/SetupEditorCollaboration.cpp
+
+SetupEditorCollaboration.obj: ../../source/SetupEditorCollaboration.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SetupEditorCollaboration.obj -MD -MP -MF $(DEPDIR)/SetupEditorCollaboration.Tpo -c -o SetupEditorCollaboration.obj `if test -f '../../source/SetupEditorCollaboration.cpp'; then $(CYGPATH_W) '../../source/SetupEditorCollaboration.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/SetupEditorCollaboration.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SetupEditorCollaboration.Tpo $(DEPDIR)/SetupEditorCollaboration.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/SetupEditorCollaboration.cpp' object='SetupEditorCollaboration.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SetupEditorCollaboration.obj `if test -f '../../source/SetupEditorCollaboration.cpp'; then $(CYGPATH_W) '../../source/SetupEditorCollaboration.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/SetupEditorCollaboration.cpp'; fi`
+
 SilConverterSelectDlg.o: ../../source/SilConverterSelectDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SilConverterSelectDlg.o -MD -MP -MF $(DEPDIR)/SilConverterSelectDlg.Tpo -c -o SilConverterSelectDlg.o `test -f '../../source/SilConverterSelectDlg.cpp' || echo '$(srcdir)/'`../../source/SilConverterSelectDlg.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SilConverterSelectDlg.Tpo $(DEPDIR)/SilConverterSelectDlg.Po
@@ -1815,20 +1848,6 @@ TargetUnit.obj: ../../source/TargetUnit.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TargetUnit.cpp' object='TargetUnit.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TargetUnit.obj `if test -f '../../source/TargetUnit.cpp'; then $(CYGPATH_W) '../../source/TargetUnit.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TargetUnit.cpp'; fi`
-
-TargetUnit_Standoff.o: ../../source/TargetUnit_Standoff.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TargetUnit_Standoff.o -MD -MP -MF $(DEPDIR)/TargetUnit_Standoff.Tpo -c -o TargetUnit_Standoff.o `test -f '../../source/TargetUnit_Standoff.cpp' || echo '$(srcdir)/'`../../source/TargetUnit_Standoff.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TargetUnit_Standoff.Tpo $(DEPDIR)/TargetUnit_Standoff.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TargetUnit_Standoff.cpp' object='TargetUnit_Standoff.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TargetUnit_Standoff.o `test -f '../../source/TargetUnit_Standoff.cpp' || echo '$(srcdir)/'`../../source/TargetUnit_Standoff.cpp
-
-TargetUnit_Standoff.obj: ../../source/TargetUnit_Standoff.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TargetUnit_Standoff.obj -MD -MP -MF $(DEPDIR)/TargetUnit_Standoff.Tpo -c -o TargetUnit_Standoff.obj `if test -f '../../source/TargetUnit_Standoff.cpp'; then $(CYGPATH_W) '../../source/TargetUnit_Standoff.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TargetUnit_Standoff.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TargetUnit_Standoff.Tpo $(DEPDIR)/TargetUnit_Standoff.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TargetUnit_Standoff.cpp' object='TargetUnit_Standoff.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TargetUnit_Standoff.obj `if test -f '../../source/TargetUnit_Standoff.cpp'; then $(CYGPATH_W) '../../source/TargetUnit_Standoff.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TargetUnit_Standoff.cpp'; fi`
 
 tellenc.o: ../../source/tellenc.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tellenc.o -MD -MP -MF $(DEPDIR)/tellenc.Tpo -c -o tellenc.o `test -f '../../source/tellenc.cpp' || echo '$(srcdir)/'`../../source/tellenc.cpp
