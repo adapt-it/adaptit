@@ -32342,6 +32342,10 @@ void CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 {
+#ifndef __WXMSW__
+	// Paratext is not available as a Linux application
+	event.Enable(FALSE);
+#endif
 	if (m_curProjectPath.IsEmpty())
 	{
 		event.Enable(FALSE);
