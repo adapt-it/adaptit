@@ -8005,25 +8005,16 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Get Source Texts from this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxString strs4[] = 
-    {
-        _("Language A"), 
-        _("Language B"), 
-        _("Language C")
-    };
-    wxComboBox *item4 = new wxComboBox( parent, ID_COMBO_SOURCE_PT_PROJECT_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 3, strs4, wxCB_DROPDOWN|wxCB_READONLY );
+    wxString *strs4 = (wxString*) NULL;
+    wxComboBox *item4 = new wxComboBox( parent, ID_COMBO_SOURCE_PT_PROJECT_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0, strs4, wxCB_DROPDOWN|wxCB_READONLY );
     item4->SetToolTip( _("Click on this drop down list if you need to select a different project from which to get a source text") );
     item2->Add( item4, 0, wxGROW|wxALL, 0 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Transfer Translation texts to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxString strs6[] = 
-    {
-        _("Language D"), 
-        _("Language E")
-    };
-    wxComboBox *item6 = new wxComboBox( parent, ID_COMBO_DESTINATION_PT_PROJECT_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs6, wxCB_DROPDOWN|wxCB_READONLY );
+    wxString *strs6 = (wxString*) NULL;
+    wxComboBox *item6 = new wxComboBox( parent, ID_COMBO_DESTINATION_PT_PROJECT_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0, strs6, wxCB_DROPDOWN|wxCB_READONLY );
     item6->SetToolTip( _("Click on this drop down list if you need to select a different project where Adapt It will transfer the translated texts") );
     item2->Add( item6, 0, wxGROW|wxALL, 0 );
 
@@ -8051,29 +8042,8 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Select a book:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxString strs13[] = 
-    {
-        _("Matthew"), 
-        _("Mark"), 
-        _("Luke"), 
-        _("John"), 
-        _("Acts"), 
-        _("Romans"), 
-        _("1 Corinthians"), 
-        _("2 Corinthians"), 
-        _("Galatians"), 
-        _("Ephesians"), 
-        _("Philippians"), 
-        _("Colossians"), 
-        _("1 Thessalonians"), 
-        _("2 Thessalonians"), 
-        _("1 Timothy"), 
-        _("2 Timothy"), 
-        _("Titus"), 
-        _("Philemon"), 
-        _("Hebrews")
-    };
-    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,200), 19, strs13, wxLB_MULTIPLE );
+    wxString *strs13 = (wxString*) NULL;
+    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,200), 0, strs13, wxLB_MULTIPLE );
     item13->SetToolTip( _("List of books available in this project") );
     item11->Add( item13, 1, wxGROW|wxALL, 5 );
 
@@ -8086,19 +8056,8 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Select a chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxString strs16[] = 
-    {
-        _("1 - Not Translated (empty)"), 
-        _("2 - Not Translated (empty)"), 
-        _("3 - Partly Translated"), 
-        _("4 - Not Translated (empty)"), 
-        _("5 - Translated"), 
-        _("6 - Translated (Changes NOT Transferred)"), 
-        _("7 - Not Translated (empty)"), 
-        _("8 - Partly Translated (Changes NOT Transferred)"), 
-        _("9 - Translated (Conflicts Exist)")
-    };
-    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(300,200), 9, strs16, wxLB_SINGLE );
+    wxString *strs16 = (wxString*) NULL;
+    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(300,200), 0, strs16, wxLB_SINGLE );
     item16->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
     item14->Add( item16, 1, wxGROW|wxALL, 5 );
 
