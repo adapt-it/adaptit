@@ -238,7 +238,7 @@ contemporary look on all platforms.
 ----------------------------------------------
 Bug fixes in 6.0.0
 ----------------------------------------------
-* For several years, a uer or two has reported an overlap problem of the 
+* For several years, a user or two has reported an overlap problem of the 
 phrase box with the text either before it, or after it. Noone, including the 
 developers, could reproduce this error at will. We have put in some extra 
 checks and associated 'fix it' code which should make this problem never 
@@ -310,6 +310,10 @@ the window's display was garbled until the next window update.
 * Support for opening Adapt It with command line switches such as 
 -frm (force review mode) has been broken from version 5.2.1 and 
 onwards; it's fixed again now.
+* Doing an SFM export of, say, the source text, and specifying that a
+marker be filtered, resulted in the words before and after the filtered 
+marker and its content and endmarker being wrongly joined as a bogus
+composite word due to loss of the intervening space between them.
 
 ----------------------------------------------
 Version 5.2.4 update 31January2011:

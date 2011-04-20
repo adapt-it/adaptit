@@ -386,6 +386,8 @@ protected:
 	void OnUpdateCopySource(wxUpdateUIEvent& event);
 	void OnClearContentsButton(wxCommandEvent& WXUNUSED(event));
 	void OnSelectAllButton(wxCommandEvent& WXUNUSED(event));
+	void OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateImportEditedSourceText(wxUpdateUIEvent& event);
 	
 	void OnEditCopy(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditCopy(wxUpdateUIEvent& event);

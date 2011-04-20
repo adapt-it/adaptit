@@ -15882,12 +15882,19 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 					// if after parsing the marker we're now pointing at a new line, preserve it
 
 					// parse any remaining white space but preserve new lines
-					if (*pOld == _T('\n'))
+					// BEW 18Apr2011 -- just preserving newline means that the one and
+					// only space between the endmarker and the following text is also
+					// removed, and if there was not a space before the begin marker, this
+					// makes a bogus coalescence of two words - so we need to retain at
+					// least one space
+					if (*pOld == _T('\n') || *pOld == _T(' '))
 					{
-						// just copy the new line and then advance
+						// just copy the new line or one space and then advance over it
 						*pNew++ = *pOld++;
 					}
-					else
+					//else
+					// remove any additional spaces
+					if (*pOld == _T(' '))
 					{
 						itemLen = pDoc->ParseWhiteSpace(pOld);
 						pOld += itemLen;

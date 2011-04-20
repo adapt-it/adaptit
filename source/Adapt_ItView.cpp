@@ -119,6 +119,7 @@
 #include "Retranslation.h"
 #include "Placeholder.h"
 #include "GuesserSettingsDlg.h"
+#include "MergeUpdatedSrc.h"
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -925,6 +926,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
 	EVT_MENU(ID_EXPORT_OXES, CAdapt_ItView::OnExportOXES)
 	EVT_UPDATE_UI(ID_EXPORT_OXES, CAdapt_ItView::OnUpdateExportOXES)
+	EVT_MENU(ID_MENU_IMPORT_EDITED_SOURCE_TEXT, CAdapt_ItView::OnImportEditedSourceText)
+	EVT_UPDATE_UI(ID_MENU_IMPORT_EDITED_SOURCE_TEXT, CAdapt_ItView::OnUpdateImportEditedSourceText)
 	// End of Export-Import Menu
 
 	// Advanced Menu
@@ -13251,7 +13254,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 
 // Tokenize the source text string, str, storing the CSourcePhrase instances in pNewList.
 // nInitialSequNum is what will be used for the sequence number of the first element
-// tokenized. The tokenizing creates on CSourcePhrase instance per word in str, where
+// tokenized. The tokenizing creates one CSourcePhrase instance per word in str, where
 // "word" is a sequence of non-punctuation characters (the parser will skip word-internal
 // punctuation, if present, as it works from both ends inwards); and the parser will deal
 // with fixed-space (~) marker, SFM or USFM markup, distinquishing between inline binding
@@ -13260,7 +13263,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 // the word - it also supports USFM markup where punctuation can both precede and follow an
 // endmarker such as \f* (footnote) \fe* (endnote) or \x* (cross reference). The grunt work
 // is done by the ParseWord() function which is called within the internal TokenizeText()
-// call. Punctuation settins for the source text are used by default. A count of how many
+// call. Punctuation settings for the source text are used by default. A count of how many
 // CSourcePhrase instances were created is returned.
 // BEW 23Mar10, updated for support of doc version 5 (no changes needed, except in internally
 // called function)
@@ -19346,6 +19349,341 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pKB->DoKBImport(pathName,KBImportFileOfSFM_TXT);
 	}
 }
+
+void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CAdapt_ItView* pView = pApp->GetView();
+
+	// get an input buffer for the new source text
+	wxString buffer;
+	wxString* pBuffer = &buffer;
+
+	wxString message;
+	message = _(
+"Import your edited version of the source text which belongs to the currently open document");
+
+	wxString filter;
+	filter = _("SFM plain text import(*.txt)|*.txt|All Files (*.*)|*.*||");
+	wxString importFilename = _T(""); // empty string
+	wxString defaultDir = pApp->m_curProjectPath;
+	wxFileDialog fileDlg(
+		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+		message,
+		defaultDir,	// empty string causes it to use the 
+					// current working directory (set above)
+		importFilename,	// default filename
+		filter,
+		wxFD_OPEN); 
+	fileDlg.Centre();
+	// open as modal dialog
+	if (fileDlg.ShowModal() != wxID_OK)
+		return; // user cancelled
+
+	wxString pathName;
+	pathName = fileDlg.GetPath(); // gets directory and filename
+
+	/*
+	wxFile f;
+	//wxLogNull logno; // prevent unwanted system messages
+	// (until wxLogNull goes out of scope, ALL log messages are suppressed - be warned)
+
+	if( !f.Open( pathName, wxFile::read))
+	{
+		wxMessageBox(_("Unable to open edited source text file for opening and importing. Nothing will be done."),
+	  _T(""), wxICON_WARNING);
+		return;
+	}
+	wxFileOffset length = f.Length();
+	*/
+
+	// copied from OnNewDocument() -- better, failsafe code with file contents checking;
+	// but using a local pBuffer pointer instead of the m_pBuffer in the application class
+	switch(GetNewFile(pBuffer,pApp->m_nInputFileLength,pathName))
+	{
+	case getNewFile_success:
+	{
+        // BEW added 26Aug10. In case we are loading a marked up file we earlier
+        // exported, our custom markers in the exported output would have been changed
+        // to \z-prefixed forms, \zfree, \zfree*, \znote, etc. Here we must convert
+        // back to our internal marker forms, which lack the 'z'. (The z was to support
+        // Paratext import of data containing 3rd party markers unknown to
+        // Paratext/USFM.)
+		ChangeParatextPrivatesToCustomMarkers(*pBuffer);
+		
+		// whm wx version: moved the following OverwriteUSFMFixedSpaces and
+        // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
+        // if user requires, change USFM fixed spaces (marked by the ~ character) to a space - this does not change the
+        // length of the data in the buffer
+		if (pApp->m_bChangeFixedSpaceToRegularSpace)
+			pDoc->OverwriteUSFMFixedSpaces(pBuffer);
+
+        // Change USFM discretionary line breaks // to a pair of spaces. We do this
+        // unconditionally because these types of breaks are not likely to be
+        // located in the same place if allowed to pass through to the target text,
+        // and are usually placed in the translation in the final typesetting
+        // stage. This does not change the length of the data in the buffer.
+		pDoc->OverwriteUSFMDiscretionaryLineBreaks(pBuffer);
+
+#ifndef __WXMSW__
+#ifndef _UNICODE
+		// whm added 12Apr2007
+		OverwriteSmartQuotesWithRegularQuotes(pBuffer);
+#endif
+#endif
+
+		// parse the input file
+		int nHowMany;
+		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
+		nHowMany = TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
+		SPList* pUpdatedSrcPhrases= new SPList; // to store the results of the importing & merging
+
+		// compute the new list from the old one plus the tokenized newly updated list
+		if (nHowMany > 0)
+		{
+			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pUpdatedSrcPhrases);
+
+			// take the pUpdatedSrcPhrases list, delete the m_pSourcePhrases list's contents,
+			// add to m_pSourcePhrases deep copies of the what is in pUpdatedSrcPhrases list,
+			// and do the stuff below
+ 			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
+			while (posCur != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = posCur->GetData();
+				posCur = posCur->GetNext();
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // also delete partner piles
+			}
+			// retain pApp->m_pSourcePhrases itself, it's now empty ready for refilling
+			wxASSERT(!pApp->m_pSourcePhrases->IsEmpty());
+			SPList::Node* posnew = pUpdatedSrcPhrases->GetFirst();
+			while (posnew != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = posnew->GetData();
+       			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+				pDeepCopy->DeepCopy();
+				pApp->m_pSourcePhrases->Append(pDeepCopy);
+			}
+			// the deep copies have been appended to m_pSourcePhrases document list
+
+            // after the above changes that result in the modifications to m_pSourcePhrases
+            // being finished ... delete the temporary new list of CSourcePhrase instances
+            // created by tokenizing the edited source text read in above
+			SPList::Node* pos = pSourcePhrases->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = pos->GetData();
+				pos = pos->GetNext();
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
+																// as there are none anyway
+			}
+			delete pSourcePhrases; // don't leak memory
+			// ditto for the merged list returned from the MergeUpdatedSourceText() call
+			SPList::Node* posUpdated = pUpdatedSrcPhrases->GetFirst();
+			while (posUpdated != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = posUpdated->GetData();
+				posUpdated = posUpdated->GetNext();
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
+																// as there are none anyway
+			}
+			delete pUpdatedSrcPhrases; // don't leak memory
+		}
+		else
+		{
+			// no CSourcePhrase token instances...
+			if (pApp->m_pSourcePhrases->IsEmpty())
+			{
+				wxMessageBox(_(
+"Warning: there was no source language data in the file you imported, so the document has not been changed."),
+					_T(""), wxICON_WARNING);
+
+				// restore everything
+				//pApp->m_pTargetBox->ChangeValue(_T(""));
+				pView->Invalidate();
+				GetLayout()->PlaceBox();
+				return;
+			}
+		}
+        // Get any unknown markers stored in the m_markers member of the Doc's
+        // source phrases whm ammended 29May06: Bruce desired that the filter
+        // status of unk markers be preserved for new documents created within the
+        // same project within the same session, so I've changed the last parameter
+        // of GetUnknownMarkersFromDoc from setAllUnfiltered to
+		// useCurrentUnkMkrFilterStatus. (Re-call this because the user may have removed,
+		// added or edited USFM or SFM markers before importing the edited source text)
+		pDoc->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet, &pApp->m_unknownMarkers, 
+								&pApp->m_filterFlagsUnkMkrs, 
+								pApp->m_currentUnknownMarkersStr, 
+								useCurrentUnkMkrFilterStatus);
+
+		// calculate the layout in the view
+
+		CLayout* pLayout = GetLayout();
+		pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+					// UpdateTextHeights() and calls other relevant setters
+#ifdef _NEW_LAYOUT
+		bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+		bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+		if (!bIsOK)
+		{
+			// unlikely to fail, so just have something for the developer here
+			wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
+			_T(""), wxICON_STOP);
+			wxASSERT(FALSE);
+			wxExit();
+		}
+
+		// mark document as modified
+		pDoc->Modify(TRUE);
+
+		// show the initial phraseBox - place it at the first empty target slot
+		pApp->m_pActivePile = GetPile(0);
+
+		pApp->m_nActiveSequNum = 0;
+		bool bTestForKBEntry = FALSE;
+		CKB* pKB;
+		if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
+						  // but I will code for safety, since it can be handled okay
+		{
+			bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry;
+			pKB = pApp->m_pGlossingKB;
+		}
+		else
+		{
+			bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry;
+			pKB = pApp->m_pKB;
+		}
+		if (bTestForKBEntry)
+		{
+			// it's not an empty slot, so search for the first empty one & do it there; but if
+			// there are no empty ones, then revert to the first pile
+			CPile* pPile = pApp->m_pActivePile;
+			pPile = pView->GetNextEmptyPile(pPile);
+			if (pPile == NULL)
+			{
+				// there was none, so we must place the box at the first pile
+				pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+				pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+				pView->Invalidate();
+				pApp->m_nActiveSequNum = 0;
+				gnOldSequNum = -1; // no previous location exists yet
+				return;
+			}
+			else
+			{
+				pApp->m_pActivePile = pPile;
+				pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+			}
+		}
+
+		// BEW added 10Jun09, support phrase box matching of the text colour chosen
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+		}
+		else
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+		}
+
+		// set initial location of the targetBox
+		pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
+		translation = pApp->m_targetPhrase;
+		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
+
+		// set the initial global position variable
+		break;
+	}// end of case getNewFile_success
+	case getNewFile_error_at_open:
+	{
+		wxString strMessage;
+		strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
+		wxMessageBox(strMessage,_T(""), wxICON_ERROR);
+		break;
+	}
+	case getNewFile_error_opening_binary:
+	{
+        // A binary file - probably not a valid input file such as a MS Word doc.
+        // Notify user that Adapt It cannot read binary input files, and abort the
+        // loading of the file.
+		wxString strMessage = _(
+		"The file you selected for input appears to be a binary file.");
+		wxString strMessage2;
+		strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+		strMessage2 += _T("\n");
+		strMessage2 += strMessage;
+		wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+		break;
+	}
+	case getNewFile_error_ansi_CRLF_not_in_sequence:
+	{
+        // this error cannot occur, because the code where it may be generated is
+        // never entered for a GetNewFile() call made in OnNewDocument, but the
+        // compiler needs a case for this enum value otherwise there is a warning
+        // generated
+		wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
+		_T(""),wxICON_ERROR);
+		break;
+	}
+	case getNewFile_error_no_data_read:
+	{
+		// we got no data, so this constitutes a read failure
+		wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+		break;
+	}
+	case getNewFile_error_unicode_in_ansi:
+	{
+		// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
+		// user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
+		// file.
+		wxString strMessage = _("The file you selected for input is a Unicode file.");
+		strMessage += _T("\n");
+		strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
+		strMessage += _T("\n");
+		strMessage += _(
+		"You should install and use the Unicode version of Adapt It to process Unicode text files.");
+		wxString strMessage2;
+		strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+		strMessage2 += _T("\n");
+		strMessage2 += strMessage;
+		wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+		break;
+	}
+	}// end of switch()
+
+
+}
+
+void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() == 0)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() && 
+		pApp->m_nActiveSequNum >= 0)
+	{
+		if (gnOldSequNum == -1)
+			event.Enable(FALSE);
+		else
+			event.Enable(TRUE);
+	}
+	else
+		event.Enable(FALSE);
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

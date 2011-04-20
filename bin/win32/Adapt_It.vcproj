@@ -641,6 +641,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\MergeUpdatedSrc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\MoveDialog.cpp"
 				>
 			</File>
@@ -1067,6 +1071,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\MainFrm.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\MergeUpdatedSrc.h"
 				>
 			</File>
 			<File
