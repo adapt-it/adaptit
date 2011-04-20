@@ -549,7 +549,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// wxWidgets which allows the user to navigate the hierarchical file/folder system
 		// BEW 22Aug10, included m_bShowAdministratorMenu in the test, so that we don't
 		// make the administrator have the Source Data folder restriction and
-		// navigation-protection feature be force on him when the Administrator menu is
+		// navigation-protection feature be forced on him when the Administrator menu is
 		// visible. I've also put a conditional compile here so that when the developer is
 		// debugging, he can choose which behaviour he wants for testing purposes
 		bool bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();

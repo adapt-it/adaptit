@@ -102,3 +102,12 @@
 // allowing for 5 such characters should probably be enough for any real situation
 #define MAX_MOVED_FORMER_PUNCTS   5
 
+// a CSourcePhrase count for limiting the span of source text being checked for belonging
+// to a source text string and also belonging to the same string after being edited outside
+// of the application, -- looking for an unchanged subspan (we assume at the constraints on
+// scripture meaning won't allow a verse to be edited so as to have all different words,
+// and so a limit small enough to encompass the averge verse size, plus a bit extra, will
+// suffice for keeping the algorithm efficient (we don't want to have to check hundreds and
+// hundreds of words) at every iteration)
+#define SPAN_LIMIT 50
+

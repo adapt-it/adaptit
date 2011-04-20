@@ -152,11 +152,15 @@ protected:
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
+public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
+protected:
 #ifndef __WXMSW__
 #ifndef _UNICODE
+public:
 	void			OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr);
+protected:
 #endif
 #endif
 	void			RemoveVenturaOptionalHyphens(wxString*& pstr);
