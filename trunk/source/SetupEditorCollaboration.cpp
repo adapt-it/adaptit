@@ -296,7 +296,9 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK."));
 	}
 
-	// TODO: configure the menu interface for collaboration
+	// TODO: configure the menu interface for collaboration. The menu interface changes have
+	// to be done in such a way that they are compatible with the user profile changes to the
+	// user interface.
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
