@@ -1140,7 +1140,7 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item6->SetToolTip( _("Check this box if the source text uses capitalization") );
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECK_USE_AUTO_CAPS, _("Check here if you want Adapt It to automatically distinguish between upper and lower case"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECK_USE_AUTO_CAPS, _("Check here if you want Adapt It to automatically capitalize a word-initial lower case letter when appropriate"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetToolTip( _("Check this box to Use Automatic Capitalization") );
     item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
