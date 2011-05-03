@@ -71,13 +71,17 @@ void	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Sub
 int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
 int		GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, 
 										wxString& keysStr, int limit);
-int		GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
+int		GetMaxCommonSubspan(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, bool bClosedEnd, wxArrayString* pWords,
 				Subspan* pMaxInCommonSubspan);
 bool	GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt,
 					   int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, int& oldMatchedStart, 
 					   int& oldMatchedEnd, int & newMatchedStart, int& newMatchedEnd, int& oldLastIndex,
 					   int& newLastIndex);
+bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
+					   int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, 
+					   int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart, 
+					   int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, Subspan* pSubspan);
 int		GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldSrcKeysStr, int limit);
 int		GetWordsInCommon(SPArray& arr, Subspan* pSubspan, wxString& uniqueKeysStr, wxArrayString& strArray,
 						 int limit);
@@ -91,7 +95,8 @@ void	InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 						  int newStartPos, int oldEndPos, int newEndPos, bool bClosedEnd = TRUE);
 bool	IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
-bool	IsMatchupWithinAnyStoredSpanPair(int oldPos, int newPos, wxArrayPtrVoid* pSubspansArray);
+bool	IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
+						int newPosEnd, wxArrayPtrVoid* pSubspansArray);
 bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList,
 							   int limit = SPAN_LIMIT);

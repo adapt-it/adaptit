@@ -849,7 +849,7 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 /// protocol for deciding this:
 /// (a) Check the placeholder, is it left-associated, right-associated, or neither
 /// (b) If right-associated, deem it to belong in commonSpan as the latter's first
-/// CSourcePhrase instance ( (we'll support sequences of manually inserted placeholders,
+/// CSourcePhrase instance (we'll support sequences of manually inserted placeholders,
 /// although it's highly likely they never will occur);
 /// (c) If left-associated, deem it to belong at the end of beforeSpan;
 /// (d) If it is neither left- nor right-associated, treat it the same as for (c)
@@ -864,6 +864,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount)
 {
+	oldEndAt = oldEndAt; newEndAt = newEndAt; // avoid compiler warnings about unused variables
 	CSourcePhrase* pOldSrcPhrase = NULL;
 	CSourcePhrase* pNewSrcPhrase = NULL;
 	oldCount = 0;
@@ -1323,6 +1324,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 				int newStartAt, int& newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount, bool bClosedEnd)
 {
+	newStartAt = newStartAt; oldStartAt = oldStartAt; // avoid compiler warning re unused variables
 	CSourcePhrase* pOldSrcPhrase = NULL;
 	CSourcePhrase* pNewSrcPhrase = NULL;
 	oldCount = 0;
@@ -1793,7 +1795,8 @@ int	GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int 
 	return wordsInCommonAndInSuccession;
 }
 
-bool IsMatchupWithinAnyStoredSpanPair(int oldPos, int newPos, wxArrayPtrVoid* pSubspansArray)
+bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
+						int newPosEnd, wxArrayPtrVoid* pSubspansArray)
 {
 	int count = pSubspansArray->GetCount();
 	if (count == 0)
@@ -1803,13 +1806,13 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPos, int newPos, wxArrayPtrVoid* pS
 	for (index = 0; index < count; index++)
 	{
 		pSubspan = (Subspan*)pSubspansArray->Item(index);
-		if (oldPos >= pSubspan->oldStartPos && oldPos <= pSubspan->oldEndPos)
+		if (oldPosStart >= pSubspan->oldStartPos && oldPosEnd <= pSubspan->oldEndPos)
 		{
-			// oldPos is within the subspan derived from arrOld, so this is a candidate
-			// for a possible matchup
-			if (newPos >= pSubspan->newStartPos && newPos <= pSubspan->newEndPos)
+            // oldPosStart to oldPosEnd is within the subspan derived from arrOld, so this
+            // is a candidate for a possible matchup
+			if (newPosStart >= pSubspan->newStartPos && newPosEnd <= pSubspan->newEndPos)
 			{
-				// we've got a matchup, so return TRUE;
+				// this matchup lies within this span, so return TRUE;
 				return TRUE;
 			}
 		}
@@ -2244,8 +2247,9 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
  			bNewIsFixedspaceConjoined = IsFixedSpaceSymbolWithin(phrase2);
 			if (bNewIsFixedspaceConjoined)
 			{
-				// we require both words in arrOld and arrNew to match, and within the
-				// span bounds - if not, treat it as unmatched
+                // we require both words in arrOld and arrNew to match, and within the
+                // bounds defined by newStartFrom and newEndAt - if not, treat it as
+                // unmatched
 				wxString word1;
 				wxString word2;
 				SPList::Node* pos = pNewSrcPhrase->m_pSavedWords->GetFirst();
@@ -2271,9 +2275,9 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 							oldMatchedEnd = nextOldIndex;
 							newMatchedStart = newMatchIndex;
 							newMatchedEnd = newMatchIndex;
-
+							// set the next two so that the caller can search for another span
 							oldLastIndex = oldMatchedEnd;
-							newLastIndex = newMatchIndex;
+							newLastIndex = newMatchedEnd;
 							return TRUE;
 						}
 					}
@@ -2290,9 +2294,9 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 				{
 					// the word must have matched the second word of the pseudo-merger, so
 					// require that the first word, word1, matches the preceding word in
-					// arrOld, and that its location in arrOld is >= oldStartAt
+					// arrOld, and that its location in arrOld is >= oldStartFrom
 					int prevOldIndex = oldMatchIndex - 1;
-					if (prevOldIndex >= oldStartAt)
+					if (prevOldIndex >= oldStartFrom)
 					{
 						CSourcePhrase* pPrevSP = arrOld.Item(prevOldIndex);
 						wxASSERT(pPrevSP != NULL);
@@ -2302,9 +2306,9 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 							oldMatchedEnd = oldMatchIndex;
 							newMatchedStart = newMatchIndex;
 							newMatchedEnd = newMatchIndex;
-
-							oldLastIndex = oldMatchIndex;
-							newLastIndex = newMatchIndex;
+							// set the next two so that the caller can search for another span
+							oldLastIndex = oldMatchedEnd;
+							newLastIndex = newMatchedEnd;
 							return TRUE;
 						}
 					}
@@ -2327,25 +2331,90 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			}
 		}
 	} // end of TRUE block for test: if (pOldSrcPhrase->m_nSrcWords == 1)
-
 	else
 	{
 		// it's a merger, or a fixedspace conjoined pseudo-merger 
 		bOldIsFixedspaceConjoined = IsFixedSpaceSymbolWithin(phrase);
 		if (bOldIsFixedspaceConjoined)
 		{
-			// it's fixedspace conjoined
-
-
-
-
-		}
+			// it's fixedspace conjoined pseudo-merger - for this to succeed in the
+			// matchup attempt, both words must be within the the bounds oldStartFrom to
+			// oldEndAt inclusive; and their must be either the identical fixedspace
+			// conjoining at the arrNew matching location, or at that location the two words
+			// must be on successive CSourcePhrase instances which lie within the
+			// boundaries newStartFrom to newEndAt, inclusive.
+			newMatchIndex = FindNextInArray(word, arrNew, newStartFrom, newEndAt, phrase2);
+			if (newMatchIndex == wxNOT_FOUND)
+			{
+				return FALSE; // & newLastIndex is already set to wxNOT_FOUND
+			}
+			// test for identical fixedspace pseudo-mergers first
+			pNewSrcPhrase = arrNew.Item(newMatchIndex);
+			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+			{
+				// they match, so this is a successful matchup
+				oldMatchedStart = oldMatchIndex;
+				oldMatchedEnd = oldMatchIndex;
+				newMatchedStart = newMatchIndex;
+				newMatchedEnd = newMatchIndex;
+				// set next two so that caller can search for other spans further on
+				oldLastIndex = oldMatchedEnd;
+				newLastIndex = newMatchedEnd;
+				return TRUE;
+			}
+			// there was no matching fixedspace pseudo-merger, so look for two ordinary
+			// CSourcePhrase instances with matching m_key values for the two words in the
+			// arrOld's fixedspace pseudo-merger
+			wxString word1;
+			wxString word2;
+			SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
+			wxASSERT(pos != NULL);
+			CSourcePhrase* pSP1 = pos->GetData();
+			pos = pos->GetNext();
+			CSourcePhrase* pSP2 = pos->GetData();
+			word1 = pSP1->m_key;
+			word2 = pSP2->m_key;
+			// test for a match of word1 with what is at the match location in arrNew
+			if (word1 == pNewSrcPhrase->m_key)
+			{
+				// the first word matches, test now for a match of word2 with the key
+				// within the next CSourcePhrase instance in arrNew
+				CSourcePhrase* pNextNewSrcPhrase = arrNew.Item(newMatchIndex + 1);
+				if (word2 == pNextNewSrcPhrase->m_key)
+				{
+					// both match, so treat this as a successful matchup
+					oldMatchedStart = oldMatchIndex;
+					oldMatchedEnd = oldMatchIndex;
+					newMatchedStart = newMatchIndex;
+					newMatchedEnd = newMatchIndex + 1;
+					// set next two so that caller can search for other spans further on
+					oldLastIndex = oldMatchedEnd;
+					newLastIndex = newMatchedEnd;
+					return TRUE;
+				}
+				else
+				{
+					// second word does not match, so this matchup attempt fails
+					oldLastIndex = oldMatchIndex;
+					newLastIndex = newMatchIndex;
+					return FALSE;
+				}
+			}
+			else
+			{
+				// the first word doesn't match, so this matchup attempt fails
+				oldLastIndex = oldMatchIndex;
+				newLastIndex = newMatchIndex;
+				return FALSE;
+			}
+		} // end of TRUE block for test: if (bOldIsFixedspaceConjoined)
 		else
 		{
 			// it's an ordinary merger - but we don't know which word in the merger we
 			// matched; so we have to work out which word it is, and then look for the
 			// word in arrNew at newStartAt and onwards, and if matched, see if the
-			// adjoining words either side match those in the arrOld's merger
+			// adjoining words either side match those in the arrOld's merger & if they do
+			// then we have a successful matchup
 			wxString thePhrase = pOldSrcPhrase->m_key;
 			int numWords = pOldSrcPhrase->m_nSrcWords;
 			wxArrayString arrKeys; // store the individual word tokens here
@@ -2354,7 +2423,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			long howmanywords = SmartTokenize(delimiters, thePhrase, arrKeys, FALSE);
 			howmanywords = howmanywords; // avoid compiler warning in release version
 			wxASSERT((int)howmanywords == numWords);
-			wxASSERT(howmanywords > 1);
+			wxASSERT(howmanywords > 1L);
 			// find the index for the word which matches the one passed in
 			int i;
 			wxString aWord;
@@ -2372,7 +2441,8 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 
 			// now try for a match in arrNew, the match must do the following:
 			// (a) FindNextInArray() must return a positive index <= newEndAt
-			// (b) the m_key value for that location's CSourcePhrase must equal word
+			// (b) the m_key value for that location's CSourcePhrase must equal the
+			// string in the passed-in word parameter
 			// (c) the numBefore amount of preceding CSourcePhrase instances in arrNew
 			// must be all single-word CSourceInstances with m_key values matching those
 			// in arrKeys, in reverse order, starting from the index one less than
@@ -2381,12 +2451,372 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// must be all single-word CSourcePhrase instances with m_key values
 			// matching those in arrKeys, in increasing order, starting from the index one
 			// more than newMatchIndex's value
+			newMatchIndex = FindNextInArray(word, arrNew, newStartFrom, newEndAt, phrase2);
+			if (newMatchIndex == wxNOT_FOUND)
+			{
+				return FALSE; // & newLastIndex is already set to wxNOT_FOUND
+			}
+			// Looking for a matchup there is a potential (rare) problem. Suppose the user
+			// edited the source text that was imported at the matchup location, and the
+			// edit was to use ~ (USFM fixedspace) to conjoin two words which, in arrOld
+			// are part of the merger now being compared. What should we do? If would be
+			// inappropriate to honour the conjoining, since mergers are very important
+			// for transfer of meaning accurately, so we will honour the merger and
+			// abandon the conjoining.
+            // The first algorithm is to move leftwards, getting each word, and comparing
+            // with what is in the corresponding cell of arrKeys
+			int leftWordCount = 0;
+			int leftIndex = newMatchIndex;
+			leftIndex--;
+			while (leftIndex >= newStartFrom && leftWordCount < numBefore)
+			{
+				CSourcePhrase* pSrcPhrase = arrNew.Item(leftIndex);
+				wxString aWord = pSrcPhrase->m_key;
+				bool bHasFixedspaceMkr = IsFixedSpaceSymbolWithin(aWord);
+				if (bHasFixedspaceMkr)
+				{
+					int offset = aWord.Find(_T('~'));
+					wxASSERT(offset != wxNOT_FOUND);
+					wxString word1 = aWord.Left(offset);
+					offset++;
+					wxString word2 = aWord.Mid(offset);
+					// now test them for matches with the words in arrKeys
+					int anIndex = numBefore - leftWordCount - 1;
+					if (arrKeys.Item(anIndex) == word2)
+					{
+						// word2 matches with the arrOld's one in the merger
+						leftWordCount++; // count this word
+						anIndex--;
+						if (leftWordCount >= numBefore)
+						{
+							// word1 is a word too many, so no matchup - we require the
+							// whole conjoining to be in commonSpan, if not, exclude it
+							newLastIndex = newMatchIndex;
+							oldLastIndex = oldMatchIndex;
+							return FALSE;
+						}
+						// we can test word1 now
+						if (arrKeys.Item(anIndex) == word1)
+						{
+							// word1 matches with the arrOld's one in the merger too, so
+							// the whole conjoining has matched - hence so far we are
+							// successful
+							leftWordCount++; // count this word
+							leftIndex--; // prepare for next iteration
+						}
+					}
+					else
+					{
+						// the words don't match, so no matchup
+						newLastIndex = newMatchIndex;
+						oldLastIndex = oldMatchIndex;
+						return FALSE;
+					}
+				} // end of TRUE block for test: if (bHasFixedspaceMkr)
+				else
+				{
+					// the m_key value is just a single source text word
+					int anIndex = numBefore - leftWordCount - 1;
+					if (arrKeys.Item(anIndex) == aWord)
+					{
+						// the word matches with the corresponding one in arrKeys, so all
+						// is okay so far
+						leftWordCount++; // count the word
+						leftIndex--; // prepare for next iteration
+					}
+					else
+					{
+						// word match failure, so no matchup
+						newLastIndex = newMatchIndex;
+						oldLastIndex = oldMatchIndex;
+						return FALSE;
+					}
+				} // end of else block for test: if (bHasFixedspaceMkr), ie. it's a single word
+
+			} // end of while loop: while (leftIndex >= newStartFrom && leftWordCount < numBefore)
+
+			// The loop may exit because all words to the left were matched (in which case
+			// leftWordCount will equal numBefore), or because leftIndex became less than
+			// the newStartFrom value -- and in the latter situation it may or may not be the
+			// case that all words were matched, so we have to test
+			if (leftWordCount < numBefore)
+			{
+				// unsuccessful matchup attempt
+				newLastIndex = newMatchIndex;
+				oldLastIndex = oldMatchIndex;
+				return FALSE;
+			}
+			// the words to the left were matched successfully, and leftIndex will be one
+			// less than the index at which matching words commences so set
+			// oldMatchedStart and newMatchedStart while we know what the values should be
+			oldMatchedStart = oldMatchIndex;
+			newMatchedStart = leftIndex++;
+			// *** NOTE *** the above pair need to be reset to wxNOT_FOUND if the attempt
+			// to match rightwards for the rest of the merged words should fail
+			
+            // The second algorithm is to move rightwards, getting each word, and comparing
+            // with what is in the corresponding cell of arrKeys
+			int rightWordCount = 0;
+			int rightIndex = newMatchIndex;
+			rightIndex++;
+			while (rightIndex <= newEndAt && rightWordCount < numAfter)
+			{
+				CSourcePhrase* pSrcPhrase = arrNew.Item(rightIndex);
+				wxString aWord = pSrcPhrase->m_key;
+				bool bHasFixedspaceMkr = IsFixedSpaceSymbolWithin(aWord);
+				if (bHasFixedspaceMkr)
+				{
+					int offset = aWord.Find(_T('~'));
+					wxASSERT(offset != wxNOT_FOUND);
+					wxString word1 = aWord.Left(offset);
+					offset++;
+					wxString word2 = aWord.Mid(offset);
+					// now test them for matches with the words in arrKeys
+					int anIndex = rightWordCount + 1;
+					if (arrKeys.Item(anIndex) == word1)
+					{
+						// word1 matches with the arrOld's one in the merger
+						rightWordCount++; // count this word
+						anIndex++;
+						if (rightWordCount >= numAfter)
+						{
+							// word2 is a word too many, so no matchup - we require the
+							// whole conjoining to be in commonSpan, if not, exclude it
+							newLastIndex = newMatchIndex;
+							oldLastIndex = oldMatchIndex;
+							oldMatchedStart = wxNOT_FOUND;
+							newMatchedStart = wxNOT_FOUND;
+							return FALSE;
+						}
+						// we can test word2 now
+						if (arrKeys.Item(anIndex) == word2)
+						{
+							// word2 matches with the arrOld's one in the merger too, so
+							// the whole conjoining has matched - hence so far we are
+							// successful
+							rightWordCount++; // count this word
+							rightIndex++; // prepare for next iteration
+						}
+					}
+					else
+					{
+						// the words don't match, so no matchup
+						newLastIndex = newMatchIndex;
+						oldLastIndex = oldMatchIndex;
+						oldMatchedStart = wxNOT_FOUND;
+						newMatchedStart = wxNOT_FOUND;
+						return FALSE;
+					}
+				} // end of TRUE block for test: if (bHasFixedspaceMkr)
+				else
+				{
+					// the m_key value is just a single source text word
+					int anIndex = rightWordCount + 1;
+					if (arrKeys.Item(anIndex) == aWord)
+					{
+						// the word matches with the corresponding one in arrKeys, so all
+						// is okay so far
+						rightWordCount++; // count the word
+						rightIndex++; // prepare for next iteration
+					}
+					else
+					{
+						// word match failure, so no matchup
+						newLastIndex = newMatchIndex;
+						oldLastIndex = oldMatchIndex;
+						oldMatchedStart = wxNOT_FOUND;
+						newMatchedStart = wxNOT_FOUND;
+						return FALSE;
+					}
+				} // end of else block for test: if (bHasFixedspaceMkr), ie. it's a single word
+
+			} // end of while loop: while (rightIndex <= newEndAt && rightWordCount < numAfter)
+
+			// The loop may exit because all words to the right were matched (in which case
+			// rightWordCount will equal numAfter), or because rightIndex became greater than
+			// the newEndAt value -- and in the latter situation it may or may not be the
+			// case that all words were matched, so we have to test
+			if (rightWordCount < numAfter)
+			{
+				// unsuccessful matchup attempt
+				newLastIndex = newMatchIndex;
+				oldLastIndex = oldMatchIndex;
+				oldMatchedStart = wxNOT_FOUND;
+				newMatchedStart = wxNOT_FOUND;
+				return FALSE;
+			}
+			// the words to the right were matched successfully, and rightIndex will be one
+			// more than the index at which matching words ended so set
+			// oldMatchedEnd and newMatchedEnd while we know what the values should be
+			oldMatchedEnd = oldMatchIndex;
+			newMatchedEnd = rightIndex--;
+			// set the next two so that further spans can be searched for in the caller
+			oldLastIndex = oldMatchedEnd;
+			newLastIndex = newMatchedEnd;
+			// *** NOTE *** the above pair need to be reset to wxNOT_FOUND if the attempt
+			// to match rightwards for the rest of the merged words should fail
+		} // end of else block for test: if (bOldIsFixedspaceConjoined), i.e. it's an ordinary merger
+
+	} // end of else block for test: if (pOldSrcPhrase->m_nSrcWords == 1)
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                     TRUE for a successful matchup and widening, FALSE
+///                             otherwise, that is, FALSE means that this tentative
+///                             Subspan instance should be abandoned (ie. deleted from the
+///                             heap)
+/// \param  word             -> the word being searched for at or after the starting index
+///                             locations in arrOld and arrNew
+/// \param  arrOld           -> array of old CSourcePhrase instances (may have mergers,
+///                             placeholders, retranslation, fixedspace conjoinings as 
+///                             well as minimal CSourcePhrase instances)
+/// \param  arrNew           -> array of new CSourcePhrase instances (will only be minimal
+///                             CSourcePhrase instances, but could also contain fixedspace
+///                             conjoined instances too)
+/// \param  oldStartAt       -> index at which span is left-bounded (right-bounded for RTL 
+///                             languages)
+/// \param  newStartAt       -> index at which span is right-bounded (left-bounded for RTL 
+///                             languages)
+/// \param  oldStartFrom     -> index from which to start searching in arrOld
+/// \param  oldEndAt         -> index in arrOld at which last search is to be tried
+/// \param  newStartFrom     -> index from which to start searching in arrNew
+/// \param  newEndAt         -> index in arrNew at which last search is to be tried
+/// \param  oldMatchedStart  <- index of initial matched CSourcePhrase in arrOld, 
+///                             wxNOT_FOUND if no match
+/// \param  oldMatchedEnd    <- index of last matched CSourcePhrase in arrOld, 
+///                             wxNOT_FOUND if no match
+/// \param  newMatchedStart  <- index of initial matched CSourcePhrase in arrNew, 
+///                             wxNOT_FOUND if no match
+/// \param  newMatchedEnd    <- index of last matched CSourcePhrase in arrNew, 
+///                             wxNOT_FOUND if no match
+/// \param  oldLastIndex     <- index of CSourcePhrase in which the word matched in arrOld,
+///                             (but it may not have resulted in a matchup) but we need it
+///                             in the caller so that we can retry the call starting from
+///                             the index following it, provided that index is in the span
+/// \param  newLastIndex     <- index of CSourcePhrase in which the word matched in arrNew,
+///                             (but it may not have resulted in a matchup) but we need it
+///                             in the caller so that we can retry the call starting from
+///                             the index following it, provided that index is in the span
+/// \param  pSubspan         <- ptr to a commonSpan Subspan instance on the heap which stores
+///                             the widened (to both left and right, as far as possible)
+///                             spans pair for in-common CSourcePhrase instances (i.e.
+///                             unedited ones). If the commonSpan doesn't get defined
+///                             properly, the function returns FALSE and the caller must
+///                             test for that and detele pSubspan from the heap.                        
+/// \remarks
+/// For how the parameters are used, see the description of the GetNextMatchup() function.
+/// The GetNextCommonSpan() function adds an extra parameter to the former's ones, the
+/// pSubspan parameter which is to be defined in scope (ie. starting and ending index
+/// values in both arrOld and arrNew) for the CSourcePhrase instances which are in this
+/// tentative new commonSpan. We get a matchup location using GetNextCommonSpan(), and
+/// then call WidenLeftwardsOnce() in a loop until we can't widen further, than do
+/// similarly rightwards using WidenRightwardsOnce(), thereby (providing a failure
+/// condition has not been encountered yet by any of those 3 functions) defining the
+/// boundaries for the in-common span pair. The returned parameters are used to set the
+/// relevant indices in the passed in pSubspan instance, and TRUE is returned; failure to
+/// get a properly defined commonSpan causes FALSE to be returned, and in that
+/// circumstance the caller must remove pSubspan from the heap. A valid pSubspan must be
+/// checked in the caller to make sure it doesn't define an already defined subspan, and
+/// provided that is so, the new span is, in the caller, added to the relevant storage
+/// array which is of type wxArrayPtrVoid (later, a higher level function will examine all
+/// such stored subspans to determine which to keep - the "widest", the rest would get
+/// abandoned and their instances removed from the heap).
+/// Note 1: GetNextMatchup() doesn't necessarily return indices for just one CSourcePhrase
+/// in arrOld, and one in arrNew, for a matchup. A matchup can involve mergers, for
+/// instance, or fixedspace conjoined pairs, and so what is returned is, for a valid
+/// matchup, the starting and ending index values in arrOld and the same in arrNew. Only
+/// when the matchup involves simple one-word CSourcePhrase instances are the starting and
+/// ending indices the same for the matchup.
+/// Note 2: GetNextMatchup() also initializes to wxNOT_FOUND the following parameters:
+/// oldMatchedStart, oldMatchedEnd, newMatchedStart, newMatchedEnd, oldLastIndex, and
+/// newLastIndex; alsa oldCount and newCount are internally initialized to 0 at each call.
+/// Note 3: oldLastIndex and newLastIndex are updated within the GetNextMatchup() call,
+/// and will be returned with new (larger) values if the internal calls within it to
+/// FindNextInArray() return non-negative values, but that does not mean that the matchup
+/// has succeeded - the return value must be also checked for TRUE returned, and when
+/// FALSE is returned, oldMatchedStart, etc, will have the value wxNOT_FOUND, indicating a
+/// matchup failure, even though the word passed in resulted in positive finds in both
+/// arrOld and arrNew. For instance, the word passed in may be successfully found within a
+/// merger within arrOld, and also at some location in arrNew, but the ensuing attempt to
+/// determine that all the merger's words have matching equivalents in arrNew at the
+/// location found in arrNew, fails.
+/// Note 4: Each time GetNextCommonSpan() is called, the caller should have initialized the
+/// pSubspan indices to oldStartAt & oldEndAt within arrOld, and newStartAt & newEndAt
+/// within arrNew. Don't get confused with the intial matchup - which has to return
+/// indices with the range oldStartFrom to oldEndAt in arrOld, and newStartFrom to
+/// newEndAt in arrNew, because a matchup is being sought at index values at or beyond
+/// oldStartFrom in arrOld and newStartFrom in arrNew - up to the bounding values set for
+/// each subarray; but the subsequent widening-to-left attempt is allowed to go to index
+/// values less than oldStartAt in arrOld, and less than newStartAt in arrNew, because we
+/// want our widening to go as wide as there are in-common CSourcePhrase instances within
+/// the parent subspan.
+bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
+			int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, 
+			int& oldMatchedStart, int& oldMatchedEnd, int& newMatchedStart, 
+			int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, Subspan* pSubspan)
+{
+	if (GetNextMatchup(word, arrOld, arrNew, oldStartAt, newStartAt, oldStartFrom,
+		oldEndAt, newStartFrom, newEndAt, oldMatchedStart, oldMatchedEnd, newMatchedStart,
+		newMatchedEnd, oldLastIndex, newLastIndex))
+	{
+        // we obtained a valid matchup within the allowed index ranges; now try to widen it
+        // to either side, starting with a left widening loop; a return value of FALSE from
+        // a widening attempt means "the boundary for widening in that direction has been
+        // reached"
+		int oldLeftBdryIndex = oldMatchedStart - 1;
+		int newLeftBdryIndex = newMatchedStart - 1;
+		int oldLeftCount = 0;
+		int newLeftCount = 0;
+		bool bOK = WidenLeftwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt, 
+				newEndAt, oldLeftBdryIndex, newLeftBdryIndex, oldLeftCount, newLeftCount);
+		if (bOK)
+		{
+			// update the left boundary variables
+			if (oldLeftCount > 0)
+			{
+				oldLeftBdryIndex  -= oldLeftCount;
+			}
+			if (newLeftCount > 0)
+			{
+				newLeftBdryIndex  -= newLeftCount;
+			}
+// *** done to here ****
 
 
-// *** done to here
+			// use a loop for the rest of the leftwards widening attempts
+
+
+
 
 		}
-	} // end of else block for test: if (pOldSrcPhrase->m_nSrcWords == 1)
+		else
+		{
+			// a failure shouldn't involve some widening - but we'll look at the counts
+			// and use any values returned as non-zero
+			if (oldLeftCount > 0)
+			{
+				oldLeftBdryIndex  -= oldLeftCount;
+			}
+			if (newLeftCount > 0)
+			{
+				newLeftBdryIndex  -= newLeftCount;
+			}
+		}
+
+
+		// do rightwards widening now, using a rightwards widening loop
+		int oldRightBdryIndex ;
+		int newRightBdryIndex;
+		int rightOldCount = 0;
+		int rightNewCount = 0;
+
+
+
+
+		return TRUE;
+	}
+	// getting a valid span failed
 	return FALSE;
 }
 
