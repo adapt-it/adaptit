@@ -8043,7 +8043,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,200), 0, strs13, wxLB_MULTIPLE );
+    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,200), 0, strs13, wxLB_SINGLE );
     item13->SetToolTip( _("List of books available in this project") );
     item11->Add( item13, 1, wxGROW|wxALL, 5 );
 
@@ -8069,7 +8069,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, _("This box will contain information about the status of a selected chapter or book..."), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
     item18->SetToolTip( _("More information about the status of a selected chapter or book") );
     item17->Add( item18, 1, wxALIGN_CENTER|wxALL, 5 );
 
