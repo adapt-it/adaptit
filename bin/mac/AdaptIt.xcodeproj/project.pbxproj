@@ -46,6 +46,7 @@
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
 		C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
+		C8442B86135FADD300981EB2 /* MergeUpdatedSrc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */; };
 		C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */ = {isa = PBXBuildFile; fileRef = C85085A21338466C006E9457 /* curl-ca-bundle.crt */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
@@ -202,6 +203,8 @@
 		C8141435112256EF006764C6 /* FreeTrans.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTrans.h; path = ../../source/FreeTrans.h; sourceTree = SOURCE_ROOT; };
 		C8141436112256EF006764C6 /* FreeTrans.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTrans.cpp; path = ../../source/FreeTrans.cpp; sourceTree = SOURCE_ROOT; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
+		C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MergeUpdatedSrc.cpp; path = ../../source/MergeUpdatedSrc.cpp; sourceTree = SOURCE_ROOT; };
+		C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MergeUpdatedSrc.h; path = ../../source/MergeUpdatedSrc.h; sourceTree = SOURCE_ROOT; };
 		C85085A21338466C006E9457 /* curl-ca-bundle.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "curl-ca-bundle.crt"; path = "../../docs/curl-ca-bundle.crt"; sourceTree = SOURCE_ROOT; };
 		C850F3A610C75D19008739FF /* AdminMoveOrCopy.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AdminMoveOrCopy.h; path = ../../source/AdminMoveOrCopy.h; sourceTree = SOURCE_ROOT; };
 		C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AdminMoveOrCopy.cpp; path = ../../source/AdminMoveOrCopy.cpp; sourceTree = SOURCE_ROOT; };
@@ -403,12 +406,6 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
-				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
-				7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */,
-				7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */,
-				7DB6FC9E135BE3DD006CC95A /* GetSourceTextFromEditor.h */,
-				7DB6FC9A135BE3B4006CC95A /* ConflictResolutionDlg.cpp */,
-				7DB6FC9B135BE3B4006CC95A /* ConflictResolutionDlg.h */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -421,6 +418,14 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
+				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
+				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
+				7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */,
+				7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */,
+				7DB6FC9E135BE3DD006CC95A /* GetSourceTextFromEditor.h */,
+				7DB6FC9A135BE3B4006CC95A /* ConflictResolutionDlg.cpp */,
+				7DB6FC9B135BE3B4006CC95A /* ConflictResolutionDlg.h */,
 				7DCCD19E128CF1CF00A42526 /* EmailReportDlg.cpp */,
 				7DCCD19F128CF1CF00A42526 /* EmailReportDlg.h */,
 				7DCCD186127FA19000A42526 /* CorGuess.cpp */,
@@ -888,6 +893,7 @@
 				7DB6FC9C135BE3B4006CC95A /* ConflictResolutionDlg.cpp in Sources */,
 				7DB6FC9F135BE3DD006CC95A /* GetSourceTextFromEditor.cpp in Sources */,
 				7DB6FCA2135BE402006CC95A /* SetupEditorCollaboration.cpp in Sources */,
+				C8442B86135FADD300981EB2 /* MergeUpdatedSrc.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

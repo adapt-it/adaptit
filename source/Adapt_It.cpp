@@ -30832,6 +30832,26 @@ wxString CAdapt_ItApp::FindAppPath(const wxString& argv0, const wxString& cwd,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxMemorySize giving the number of bytes of free memory
+/// \remarks
+/// Called from the App's OnInit() and CEmailReportDlg::FormatSysInfoIntoString(). 
+/// On Windows and Linux uses the wxWidgets function wxGetFreeMemory but on Macintosh uses
+/// Mac OS X APIs to determine the free memory (this code was put into helpers.cpp to
+/// avoid header problems with __BEGIN_DECLS inside the class CAdapt_ItApp.
+////////////////////////////////////////////////////////////////////////////////////////
+
+wxMemorySize CAdapt_ItApp::GetFreeMemory(void)
+{	
+#ifdef __WXMSW__
+	return ::wxGetFreeMemory();
+#elif defined(__WXGTK__)
+	return ::wxGetFreeMemory();
+#elif defined(__WXMAC__)
+	return MacGetFreeMemory();
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the file name with any .xml extension removed
 /// \param      anyName   -> a wxString representing a file name
 /// \remarks

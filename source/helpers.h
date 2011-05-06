@@ -320,4 +320,9 @@ void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
 //void ShowSPandPile(int atSequNum, int whereTis);
 //void ShowInvalidStripRange();
 
+#ifdef __WXMAC__
+// GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp
+wxMemorySize MacGetFreeMemory(void);
+#endif
+
 #endif	// helpers_h

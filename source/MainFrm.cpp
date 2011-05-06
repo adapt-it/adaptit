@@ -1357,7 +1357,8 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	sysID = ::wxGetOsVersion(&OSMajorVersion,&OSMinorVersion);
 	wxMemorySize memSize;
 	wxLongLong MemSizeMB;
-	memSize = ::wxGetFreeMemory();
+	// GDLC 6May11 Used the app's GetFreeMemory()
+	memSize = gpApp->GetFreeMemory();
 	MemSizeMB = memSize / 1048576;
 	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
 
