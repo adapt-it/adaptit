@@ -6603,5 +6603,40 @@ void ShowInvalidStripRange()
 }
 */
 
+#ifdef __WXMAC__
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return Free memory in megabytes
+/// \remarks
+/// Note: The wxWidgets function ::wxGetFreeMemory returns a nonsense value on Mac. This function
+/// interrogates the internal structures of the Mach kernel on MacOS X to get a value for free memory.
+/// Added GDLC 6May11 to avoid including the MachOS headers inside the class CAdapt_ItApp.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
+
+#include <mach/mach.h>
+#include <mach/mach_host.h>
+
+wxMemorySize MacGetFreeMemory()
+{
+	mach_port_t				host_port = mach_host_self();
+	mach_msg_type_number_t	host_size = sizeof(vm_statistics_data_t) / sizeof(integer_t);
+	vm_size_t				pagesize;
+	vm_statistics_data_t	vm_stat;
+	
+	host_page_size(host_port, &pagesize);
+	
+	if (host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vm_stat, &host_size) != KERN_SUCCESS) return -1LL;
+	
+	//	natural_t   mem_used = (vm_stat.active_count + vm_stat.inactive_count + vm_stat.wire_count) * pagesize;
+	natural_t   mem_free = vm_stat.free_count * pagesize;
+	//	natural_t   mem_total = mem_used + mem_free;
+	
+	return static_cast <wxMemorySize> (mem_free);
+}
+
+#endif	/* __WXMAC__ */
 

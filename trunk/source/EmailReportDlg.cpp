@@ -290,7 +290,8 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	wxString memSizeStr;
 	wxMemorySize memSize;
 	wxLongLong MemSizeMB;
-	memSize = ::wxGetFreeMemory();
+	// GDLC 6May11 Used the app's GetFreeMemory()
+	memSize = pApp->GetFreeMemory();
 	MemSizeMB = memSize / 1048576;
 	memSizeStr << MemSizeMB;
 	pStaticFreeMemory->SetLabel(memSizeStr); //ID_TEXT_FREE_MEMORY
@@ -1343,7 +1344,7 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	wxString memSizeStr;
 	wxMemorySize memSize;
 	wxLongLong MemSizeMB;
-	memSize = ::wxGetFreeMemory();
+	memSize = pApp->GetFreeMemory();
 	MemSizeMB = memSize / 1048576;
 	memSizeStr << MemSizeMB;
 	sysInfoStr += _T("Free Memory (MB): ");

@@ -3113,7 +3113,10 @@ public:
 	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
 	// docs re "Writing installers for wxWidgets applications"
 	wxString FindAppPath(const wxString& argv0, const wxString& cwd, 
-				const wxString& appVariableName); 
+				const wxString& appVariableName);
+	// GDLC Added 16Apr11 from suggestion by Bill Martin in order to provide a realistic response
+	// for the amount of free memory - wxGetFreeMemory() doesn't do anything useful on MacOS.
+	wxMemorySize CAdapt_ItApp::GetFreeMemory(void);
 
 private:
 	void	EnsureWorkFolderPresent();
