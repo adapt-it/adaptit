@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			MergeUpdatedSrc.cpp
+/// \file			helpers.cpp
 /// \author			Bruce Waters, revised for wxWidgets by Bill Martin
 /// \date_created	6 January 2005
 /// \date_revised	20 July 2010
