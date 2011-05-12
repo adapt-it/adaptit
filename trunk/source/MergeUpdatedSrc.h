@@ -111,10 +111,5 @@ bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 bool	WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount);
-// WidenMatchup() is coded okay, but I forgot I did it, and made a (more useful) function
-// called GetNextCommonSpan() which takes in a wxString word param, so I'll use the latter
-//void	WidenMatchup(SPArray& arrOld, SPArray& arrNew,  int oldStartPos, int newStartPos, 
-//				int oldEndPos, int newEndPos, int oldMatchLoc, int newMatchLoc, 
-//				bool bClosedEnd, Subspan* pSubspan);
 
 #endif	// mergeUpdatedSrc_h
