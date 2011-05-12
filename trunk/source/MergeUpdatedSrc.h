@@ -65,52 +65,56 @@ struct Subspan {
 
 const int tupleSize = 3;
 
-void	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
+void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
+int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
+bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				wxArrayString* pUniqueCommonWordsArray, wxArrayPtrVoid* pSubspansArray, 
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
-int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
 int		GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, 
 										wxString& keysStr, int limit);
-int		GetMaxCommonSubspan(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
-				int newStartAt, int newEndAt, bool bClosedEnd, wxArrayString* pWords,
-				Subspan* pMaxInCommonSubspan);
+Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit);
 bool	GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt,
 					   int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, int& oldMatchedStart, 
 					   int& oldMatchedEnd, int & newMatchedStart, int& newMatchedEnd, int& oldLastIndex,
 					   int& newLastIndex);
-bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
+bool	GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
 					   int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, 
 					   int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart, 
-					   int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, Subspan* pSubspan);
+					   int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, bool bClosedEnd, 
+					   wxArrayPtrVoid* pCommonSpans, wxArrayInt* pWidthsArray);
 int		GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldSrcKeysStr, int limit);
 int		GetWordsInCommon(SPArray& arr, Subspan* pSubspan, wxString& uniqueKeysStr, wxArrayString& strArray,
 						 int limit);
-//int		GetWordsInCommon(SPArray& arrOld, int oldStartAt, SPArray& arrNew, int newStartAt, 
-//						 wxArrayString& strArray, int limit); // overload which
-							// encapsulates the GetUniqueSrcKeysAsAString() call
 int		GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArrayString& strArray,
-						 int limit); // overload which
-						// encapsulates the GetUniqueSrcKeysAsAString() call
+						 int limit); // overload which encapsulates the GetUniqueSrcKeysAsAString() call
 void	InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos, 
-						  int newStartPos, int oldEndPos, int newEndPos, bool bClosedEnd = TRUE);
+						  int oldEndPos, int newStartPos, int newEndPos, bool bClosedEnd = TRUE);
 bool	IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 bool	IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
 						int newPosEnd, wxArrayPtrVoid* pSubspansArray);
 bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc);
+void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList,
 							   int limit = SPAN_LIMIT);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
 						int limit, Subspan* tuple[]); // the array size is always 3, so 
 													  // we don't need a parameter for it
+bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
+						int limit);
+//void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
+//					  int& newEndAt, int limit, bool bClosedEnd); <<-- not needed yet
+void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit); // overload
 bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount);
-bool	WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& oldEndAt,
-				int newStartAt, int& newEndAt, int oldStartingPos, int newStartingPos,
-				int& oldCount, int& newCount, bool bClosedEnd);
-void	WidenMatchup(SPArray& arrOld, SPArray& arrNew,  int oldStartPos, int newStartPos, 
-				int oldEndPos, int newEndPos, int oldMatchLoc, int newMatchLoc, 
-				bool bClosedEnd, Subspan* pSubspan);
+bool	WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
+				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
+				int& oldCount, int& newCount);
+// WidenMatchup() is coded okay, but I forgot I did it, and made a (more useful) function
+// called GetNextCommonSpan() which takes in a wxString word param, so I'll use the latter
+//void	WidenMatchup(SPArray& arrOld, SPArray& arrNew,  int oldStartPos, int newStartPos, 
+//				int oldEndPos, int newEndPos, int oldMatchLoc, int newMatchLoc, 
+//				bool bClosedEnd, Subspan* pSubspan);
 
 #endif	// mergeUpdatedSrc_h

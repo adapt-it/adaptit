@@ -19437,15 +19437,15 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		int nHowMany;
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 		nHowMany = TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
-		SPList* pUpdatedSrcPhrases= new SPList; // to store the results of the importing & merging
+		SPList* pMergedList = new SPList; // to store the results of the importing & merging
 
 		// compute the new list from the old one plus the tokenized newly updated list
 		if (nHowMany > 0)
 		{
-			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pUpdatedSrcPhrases);
+			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList);
 
-			// take the pUpdatedSrcPhrases list, delete the m_pSourcePhrases list's contents,
-			// add to m_pSourcePhrases deep copies of the what is in pUpdatedSrcPhrases list,
+			// take the pMergedList list, delete the app's m_pSourcePhrases list's contents,
+			// add to m_pSourcePhrases deep copies of the what is in pMergedList list,
 			// and do the stuff below
  			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
 			while (posCur != NULL)
@@ -19454,12 +19454,16 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 				posCur = posCur->GetNext();
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // also delete partner piles
 			}
+			// now clear the pointers from the list
+			pApp->m_pSourcePhrases->Clear();
+			
 			// retain pApp->m_pSourcePhrases itself, it's now empty ready for refilling
-			wxASSERT(!pApp->m_pSourcePhrases->IsEmpty());
-			SPList::Node* posnew = pUpdatedSrcPhrases->GetFirst();
+			wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+			SPList::Node* posnew = pMergedList->GetFirst();
 			while (posnew != NULL)
 			{
 				CSourcePhrase* pSrcPhrase = posnew->GetData();
+				posnew = posnew->GetNext();
        			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 				pDeepCopy->DeepCopy();
 				pApp->m_pSourcePhrases->Append(pDeepCopy);
@@ -19477,17 +19481,20 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
 																// as there are none anyway
 			}
+			pSourcePhrases->Clear();
 			delete pSourcePhrases; // don't leak memory
+
 			// ditto for the merged list returned from the MergeUpdatedSourceText() call
-			SPList::Node* posUpdated = pUpdatedSrcPhrases->GetFirst();
-			while (posUpdated != NULL)
+			SPList::Node* posMergedList = pMergedList->GetFirst();
+			while (posMergedList != NULL)
 			{
-				CSourcePhrase* pSrcPhrase = posUpdated->GetData();
-				posUpdated = posUpdated->GetNext();
+				CSourcePhrase* pSrcPhrase = posMergedList->GetData();
+				posMergedList = posMergedList->GetNext();
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
 																// as there are none anyway
 			}
-			delete pUpdatedSrcPhrases; // don't leak memory
+			pMergedList->Clear();
+			delete pMergedList; // don't leak memory
 		}
 		else
 		{
@@ -19505,6 +19512,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 				return;
 			}
 		}
+
         // Get any unknown markers stored in the m_markers member of the Doc's
         // source phrases whm ammended 29May06: Bruce desired that the filter
         // status of unk markers be preserved for new documents created within the

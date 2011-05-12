@@ -54,6 +54,10 @@ public:
 	inline bool GetReplaceInTranslation() {return m_bReplaceInRetranslation; }
 	inline void SetReplaceInTranslation(bool bNewValue) {m_bReplaceInRetranslation = bNewValue; }
 
+	void		RemoveRetranslation(SPList* pList, int first, int last, wxString& oldAdaptation); // remove 
+					// the retranslation which goes from indices first to last, from a passed in list
+					// of CSourcePhrase instances (BEW added 11May11). Return its old adaptation too
+
 	/* BEW deprecated 9Mar11
 	// a function for use when converting a sublist of (modified) CSourcePhrase instances
 	// generated when the user has changed punctuation settings, to a retranslation -
@@ -81,7 +85,7 @@ protected:
 	void		ReplaceMatchedSubstring(wxString strSearch, wxString& strReplace, wxString& strAdapt);
 	void		RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,int nCurCount,
 																  int nStartingSequNum,SPList* pSublist);
-	void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase);
+	//void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase); // BEW deprecated 12May11
 	void		RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& str);
 	void		SetNotInKBFlag(SPList* pList,bool bValue = TRUE);
 	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);

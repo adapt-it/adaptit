@@ -70,11 +70,15 @@ extern CAdapt_ItApp* gpApp;
 /// done in Paratext at an earlier time, but not necessarily done in Paratext), and this
 /// fact should make our approach within the MergeUpdatedSourceText() function a little
 /// more efficient than would be the case if the order was random.
-/// Note: some CSourcePhrase instances encountered may be mergers, and so will contain
+/// 
+/// Note 1: some CSourcePhrase instances encountered may be mergers, and so will contain
 /// two or more words. We have to break these into individual word tokens and check for
 /// duplicates on each such token. We ignore ellipses (...) for placeholders and don't put
 /// them into the return string. Any pseudo-merger conjoined pairs are decomposed into two
 /// individual words.
+/// Note 2: pSubspan passed in may have one of the subspans with indices (-1,-1) because
+/// the subspan in the relevant array is empty, so we need to protect from using such
+/// bogus index values as real indices for lookup
 /////////////////////////////////////////////////////////////////////////////////////////////
 int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldSrcKeysStr, int limit)
 {
@@ -92,8 +96,14 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 	if (pSubspan->bClosedEnd)
 	{
 		// we must not display more content than up to and including the oldEndAt
-		// index
+		// index; & beware if -1 index values (they occur as paired -1 start & end values,
+		// so if the start is not -1, neither is the end)
 		nStartAt = pSubspan->oldStartPos;
+		if (nStartAt == -1)
+		{
+			// the subspan in arrOld is empty, so there cannot be any matchups
+			return 0;
+		}
 		activeSpanCount = pSubspan->oldEndPos - nStartAt + 1;
 		if (activeSpanCount == 0)
 			return 0;
@@ -104,6 +114,11 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 		// how many words we display is limited only by the limit value, and if the
 		// latter is -1, it is not limited at all
 		nStartAt = pSubspan->oldStartPos;
+		if (nStartAt == -1)
+		{
+			// the subspan in arrOld is empty, so there cannot be any matchups
+			return 0;
+		}
 		activeSpanCount = count - nStartAt; // a default (max) value
 		if (activeSpanCount == 0)
 			return 0;
@@ -123,13 +138,20 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 			howMany = limit;
 		}
 	}
-	for (index = nStartAt; index < howMany; index++)
+	index = nStartAt;
+	int aSrcPhraseCounter = 0;
+	while (aSrcPhraseCounter < howMany)
 	{
 		CSourcePhrase* pSrcPhrase = arr.Item(index);
 		wxASSERT(pSrcPhrase != NULL);
 		wxString aKey = pSrcPhrase->m_key;
+		aSrcPhraseCounter++;
+		index++;
+
 		if (aKey == ellipsis)
+		{
 			continue; // skip over any ... ellipses (placeholders)
+		}
 		if (pSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger -- so get the word tokens and deal with each individually
@@ -368,12 +390,16 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 /// on the 4th param, limit, which if absent defaults to SPAN_LIMIT = 50 (CSourcePhrase
 /// instances) - but the whole arr if limit is passed in as -1, or if the arr count is
 /// less than the limit value.
-/// Note: some CSourcePhrase instances encountered may be mergers, and so will contain
+/// 
+/// Note 1: Some CSourcePhrase instances encountered may be mergers, and so will contain
 /// two or more words. We have to break these into individual word tokens and check for
 /// duplicates on each such token. We ignore ellipses (...) for placeholders - and there
 /// shouldn't be any in the arr array anyway, since what is in arr will be the
 /// just-tokenized CSourcePhrase instances arising from calling TokenizeText() on the
 /// just-edited (outside of Adapt It) source text USFM plain text string.
+/// 
+/// Note 2: Beware, empty subspans within a Subspan instance will manifest as starting and
+/// ending index pairs with values (-1,-1), so protect from using these as real index values
 ////////////////////////////////////////////////////////////////////////////////////////
 int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr, wxArrayString& strArray, int limit)
 {
@@ -393,6 +419,11 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 		// we must not access more content than up to and including the newEndPos
 		// index
 		nStartAt = pSubspan->newStartPos;
+		if (nStartAt == -1)
+		{
+			// the arrNew subspan is empty - so no words are in common
+			return 0;
+		}
 		activeSpanCount = pSubspan->newEndPos - nStartAt + 1;
 		if (activeSpanCount == 0)
 			return 0;
@@ -403,6 +434,11 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
         // how many CSourcePhrase instandes we access is limited only by the limit value,
         // and if the latter is -1, it is not limited at all
 		nStartAt = pSubspan->newStartPos;
+		if (nStartAt == -1)
+		{
+			// the arrNew subspan is empty - so no words are in common
+			return 0;
+		}
 		activeSpanCount = count - nStartAt; // a default (max) value
 		if (activeSpanCount == 0)
 			return 0;
@@ -425,11 +461,15 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 	if (nStartAt > count - 1)
 		return 0; // otherwise there would be a bounds error
 
-	for (index = nStartAt; index < howMany; index++)
+	int aSrcPhraseCounter = 0;
+	index = nStartAt;
+	while (aSrcPhraseCounter < howMany)
 	{
 		CSourcePhrase* pSrcPhrase = arrNew.Item(index);
 		wxASSERT(pSrcPhrase != NULL);
 		wxString aKey = pSrcPhrase->m_key;
+		index++;
+		aSrcPhraseCounter++;
 		if (aKey == ellipsis)
 			continue; // skip over any ... ellipses (placeholders)
 		if (pSrcPhrase->m_nSrcWords > 1)
@@ -463,7 +503,6 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 						}
 					}
 				}
-
 			}
 			else
 			{
@@ -506,14 +545,17 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 				}
 			}
 		}
-	} // end of for loop for scanning a span (or all)
+	} // end of while loop for scanning a span (or all if limit == -1)
 	return strArray.GetCount();
 }
 
-// overloaded version, which takes both arrays as params etc
-//int GetWordsInCommon(SPArray& arrOld, int oldStartAt, SPArray& arrNew, 
-//					 int newStartAt, wxArrayString& strArray, int limit)
-int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArrayString& strArray, int limit){
+// overloaded version, which takes both arrays as params etc; returns a count of the
+// number of words which are in common; they are stored in order of occurrence in strArray
+// which returns them to the caller (pSubspan may have empty subspan with (-1,-1) values,
+// but each of the called functions tests for this and if one such happens, zero is
+// returned because nothing can be in common with an empty span)
+int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArrayString& strArray, int limit)
+{
 	strArray.Clear();
     // turn the array of old CSourcePhrase instances into a fast access string made up of
     // the unique m_key words (note, if the instances contain mergers, phrases will be
@@ -522,15 +564,22 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
     wxString oldUniqueSrcWords;
 	// there will be no placeholder ellipses in the returned string oldUniqueSrcWords
 	int oldUniqueWordsCount = GetUniqueOldSrcKeysAsAString(arrOld, pSubspan, oldUniqueSrcWords, limit);
+	// the return value can be zero of course, but it would be rare (e.g. a single source
+	// text's CSourcePhrase instance is in the arrOld's subspan here, and that
+	// CSourcePhrase instance just happens to be a placeholder)
 #ifdef __WXDEBUG__
-	wxLogDebug(_T("oldUniqueWordsCount = %d ,  oldUniqueSrcWords:  %s"), oldUniqueWordsCount, oldUniqueSrcWords.c_str());
+	if (oldUniqueWordsCount > 0)
+		wxLogDebug(_T("oldUniqueWordsCount = %d ,  oldUniqueSrcWords:  %s"), oldUniqueWordsCount, oldUniqueSrcWords.c_str());
+	else
+		wxLogDebug(_T("oldUniqueWordsCount = 0 ,  oldUniqueSrcWords:  <empty string>"));
 #endif
-	wxASSERT(!oldUniqueSrcWords.IsEmpty());
-
+	if (oldUniqueWordsCount == 0)
+		return 0;
 	// compare the initial words from the arrNew array of CSourcePhrase instances with
 	// those in oldUniqueSrcWords
 	int commonsCount = GetWordsInCommon(arrNew, pSubspan, oldUniqueSrcWords, strArray, limit);
 #ifdef __WXDEBUG__
+	if (commonsCount > 0)
 	{
 		int i = 0;
 		wxString word[12];
@@ -559,12 +608,16 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 				word[10].c_str(), word[11].c_str());
 		}
 	}
+	else
+	{
+		wxLogDebug(_T("  commonsCount = 0     Words in common:  <empty string>"));
+	}
 #endif
 	return commonsCount;
 }
 
 void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos, 
-				int newStartPos, int oldEndPos, int newEndPos, bool bClosedEnd)
+						int oldEndPos, int newStartPos, int newEndPos, bool bClosedEnd)
 {
 	pSubspan->childSubspans[0] = NULL; 
 	pSubspan->childSubspans[1] = NULL; 
@@ -609,31 +662,57 @@ void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase)
 {
 	int i;
-	bool bFound = FALSE;
 	for (i = startFrom; i <= endAt; i++)
 	{
 		CSourcePhrase* pSrcPhrase = arr.Item(i);
-		int offset = pSrcPhrase->m_key.Find(word);
-		if (offset != wxNOT_FOUND)
+		if (pSrcPhrase->m_nSrcWords == 1)
 		{
-			// this instance contains the string within word, determine now if it's a
-			// merger and if so, put the m_key value into the phrase parameter
-			phrase.Empty();
-			if (pSrcPhrase->m_nSrcWords > 1)
+			// make sure all the word matches, not just part of it
+			if (pSrcPhrase->m_key == word)
 			{
-				// it's a merger, or a fixedspace pseudo-merger
-				phrase = pSrcPhrase->m_key; // keys have no preceding or following space
-											// so no need to call Trim()
+				phrase.Empty();
+				return i;
 			}
-			bFound = TRUE;
-			break;
+		}
+		else
+		{
+			// must be a merger, or a fixedspsace pseudo-merger
+			phrase = pSrcPhrase->m_key;
+			if (IsFixedSpaceSymbolWithin(phrase))
+			{
+				int offset2 = phrase.Find(_T("~"));
+				wxString word1 = phrase.Left(offset2);
+				wxString word2 = phrase.Mid(offset2 + 1);
+				if (word == word1)
+				{
+					return i;
+				}
+				if (word == word2)
+				{
+					return i;
+				}
+			}
+			else
+			{
+				// it's a normal merger - get a list of the words in the merger and see if
+				// word matches any of them
+				wxArrayString arrStr;
+				wxString delim = _T(' ');
+				long aCount = SmartTokenize(delim, pSrcPhrase->m_key, arrStr, FALSE);
+				int index;
+				for (index = 0; index < (int)aCount; index++)
+				{
+					if (word == arrStr.Item(index))
+					{
+						return i;
+					}
+				}
+			}
 		}
 	}
-	if (!bFound)
-	{
-		i = wxNOT_FOUND;
-	}
-	return i;
+	// no match made
+	phrase.Empty();
+	return wxNOT_FOUND;
 }
 
 void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit)
@@ -700,17 +779,222 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	tuple[1] = NULL;
 	Subspan* pSubspan = new Subspan;
 	tuple[2] = pSubspan;
-	// initialize tuple[2]
-	InitializeSubspan(pSubspan, afterSpan, 0, 0, oldSPCount - 1, 
-						newSPCount - 1, FALSE); // FALSE is bClosedEnd
+    // initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
+    // extents of arrOld and arrNew -- the subsequent SetEndIndices() call will limit the
+    // value, provided limit is not -1
+    // In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
+	InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
+	// update the end indices to more reasonable values, the above could bog processing down
+	SetEndIndices(arrOld, arrNew, pSubspan, SPAN_LIMIT); // SPAN_LIMIT is currently 50
 
-    // when this next call finally returns after being called possibly very many times, the
-    // merging is complete 
+    // Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
+    // call finally returns after being recursively called possibly very many times, the
+    // merging is complete
     RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, tuple);
 
-	// finally, get the CSourcePhrase instances appropriately numbered in the temporary
+	// Get the CSourcePhrase instances appropriately numbered in the temporary
 	// list which is to be returned to the caller
-	gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+	if (!pMergedList->IsEmpty())
+	{
+		gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+
+        // Call an adjustment helper function which looks for retranslation spans that were
+        // partially truncated (at their beginning and/or at their ending), and removes the
+        // adaptations in the remainder fragments of such retranslation trucated spans,
+        // fixing the relevant flags, and if placeholders need to be removed from the end
+        // of a retranslation, does any transfers of ending puncts and/or inline markers
+        // back to the last non-placeholder instance
+		EraseAdaptationsFromRetranslationTruncations(pMergedList);
+	}
+}
+
+// look for retranslations that have lost content at either end -- remove the adaptations
+// within them and reset the flags to make them normal CSourcePhrase instances (the
+// adaptations must go, because it can't be assured that they correspond to the source
+// text above them)
+void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
+{
+	int count = pMergedList->GetCount();
+	if (count < 2)
+		return;
+	int index;
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pPrevSrcPhrase = NULL;
+	CRetranslation* pRetranslation = gpApp->GetRetranslation();
+	// we assume that a chopped off retranslation does not commence the document
+	SPList::Node* pos = pMergedList->GetFirst();
+	pPrevSrcPhrase = pos->GetData();
+	pos = pos->GetNext();
+	for (index = 1; pos != NULL && index < count; index++)
+	{
+		pSrcPhrase = pos->GetData();
+        // check the pair pPrevSrcPhrase and pSrcPhrase; if the former has m_bRetranslation
+        // FALSE and the latter has it TRUE and with m_bBeginRetranslation FALSE, then we
+        // have a retranslation with its start chopped off
+		if (!pPrevSrcPhrase->m_bRetranslation && 
+			(pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bBeginRetranslation))
+		{
+            // clear out the bad stuff until we get to a non-retranslation instance, or the
+            // start of an immediately following (valid) retranslation...fix it, by making
+            // it a "valid" retranslation and then removing it's retranslation status
+            // (which also clears out its target text words), our algorithm automatically
+            // handles any auto-inserted padding placeholders & removes them, & and fixes
+            // the doc
+			SPList::Node* posLocal = pos;
+			CSourcePhrase* pSP = posLocal->GetData(); // same as pSrcPhrase
+			CSourcePhrase* pKickoffSP = pSP;
+			pSP->m_bBeginRetranslation = TRUE; // give it a valid start flag
+			SPList::Node* posEnd = pos;
+			int first = pMergedList->IndexOf(pSP);
+			while (posLocal != NULL &&  pSP->m_bRetranslation 
+				&& (pSP->m_bRetranslation && !pSP->m_bEndRetranslation)
+				&& !(pSP != pKickoffSP &&  pSP->m_bRetranslation && pSP->m_bBeginRetranslation))
+			{
+				posEnd = posLocal;
+                // it "ends" when a new retranslation starts at location different from the
+                // kickoff one, or when a non-retranslation instance is found, or when a
+                // retranslation one is found which also has m_bEndRetranslation already
+                // set TRUE; then set m_bEndRetranslation when it isn't already set
+				posLocal = posLocal->GetNext();
+				pSP = posLocal->GetData(); // get the CSourcePhrase instance
+			}
+			wxASSERT(posEnd != NULL);
+			// the loop exit could be because we found a valid final CSourcePhrase instance
+			// which is in the retranslation and having m_bEndRetranslation TRUE already,
+			// or because we don't find a valid end and go one instance further - so check
+			// and process accordingly
+			int last;
+			if (pSP->m_bEndRetranslation)
+			{
+				// it has a valid end already, so do nothing except set the last value
+				last = pMergedList->IndexOf(pSP);
+			}
+			else
+			{
+				// we didn't find a valid end, so the previous location is the true end,
+				// get that location's CSourcePhrase instance and set it's end flag and
+				// calculate the variable last's value
+				CSourcePhrase* pSP_AtEnd = posEnd->GetData();
+				pSP_AtEnd->m_bEndRetranslation = TRUE;
+				last = pMergedList->IndexOf(pSP_AtEnd);
+			}
+					
+			// now do RemoveRetranslation() on the now-valid short retranslation fragment
+			wxString strAdaptationToThrowAway;
+			pRetranslation->RemoveRetranslation(pMergedList,first,last,strAdaptationToThrowAway);
+			strAdaptationToThrowAway.Empty();
+			gpApp->GetDocument()->UpdateSequNumbers(0,pMergedList);
+
+            // CSourcePhrase instances may have been removed (e.g. placeholders following a
+            // partial retranslation), so get an updated count value before iterating
+			count = pMergedList->GetCount();
+			// restart the iterations from a safe location - the pos value corresponding
+			// to the value stored in first is suitable; & pPrevSrcPhrase still points at
+			// the instance stored at the previous position to that one
+			index = first;
+			pos = pMergedList->Item(first);
+		}
+		else 
+        // deal with retranslations which have their end chopped off; because the caller
+        // always keeps any auto-inserted placeholders belonging to the retranslation
+        // together with the retranslation, a 'chopped off end' will always have chopped
+        // off any such placeholders as well as at least one of the final non-placeholder
+        // retranslation CSourcePhrase instances in the retranslation
+		if ( (pPrevSrcPhrase->m_bRetranslation && !pPrevSrcPhrase->m_bEndRetranslation) &&
+		(!pSrcPhrase->m_bRetranslation || 
+		(pSrcPhrase->m_bRetranslation && pSrcPhrase->m_bBeginRetranslation)))
+		{
+			// The above condition for detecting a chopped off end is: (1) previous
+			// CSourcePhrase must have m_bRetranslation flag set, but the
+			// m_bEndRetranslation flag not set (it would be set if it was not a chopped
+			// off one) and (2) the following CSourcePhrase instance must be not part of the
+			// retranslation which means that it must either have it's m_bRetranslation
+			// flag FALSE, or be the start of a new retranslation - which means that the
+			// latter flag would be TRUE and also it's m_bBeginRetranslation flag would be
+			// TRUE as well.
+			
+			// Clear out the bad stuff starting at pPrevSrcPhrase and going backwards
+			// until we get to a non-retranslation instance or the end of a (valid)
+			// retranslation; pSP will start off being pPrevSrcPhrase, and we iterate to
+			// get the pSP which is at the start of the retranslation (we can't be certain
+			// the user's edits didn't also chop off the start of the retranslation, but
+			// that will have been handled beforehand (above), so probably the initiap pSP
+			// will have m_bBeginRetranslation set TRUE, but we won't count on it being so)
+			SPList::Node* posLocal = pos;
+			SPList::Node* posAfter = pos;
+			posLocal = posLocal->GetPrevious(); // get the one on which pPrevSrcPhrase is stored
+			CSourcePhrase* pSP = posLocal->GetData(); // same as pPrevSrcPhrase
+			pSP->m_bEndRetranslation = TRUE; // give it a valid end flag
+			CSourcePhrase* pSP_AtStart = pSP; // it could be the location both starts and ends the
+											  // retranslation, i.e. there is only one in it
+			CSourcePhrase* pKickOffSP = pSP; // don't check for a m_bEndRetranslation on an instance
+											 // where pKickOffSP and pSP are the same CSourcePhrase!
+			SPList::Node* posStart = posLocal;
+			int last = pMergedList->IndexOf(pSP);
+			while ( posLocal != NULL  && (pSP->m_bRetranslation && !pSP->m_bBeginRetranslation)
+				 && pSP->m_bRetranslation 
+				 && !(pSP != pKickOffSP && pSP->m_bRetranslation && pSP->m_bEndRetranslation) )
+			{
+                // the above condition means: keep moving pSP backwards so long as there is
+                // a CSourcePhrase existing at the earlier location, and provided we don't
+                // encounter the beginning of the retranslation being backed over, and
+                // provided we are backing over a retranslation, and provided we are at a
+                // different retranslation CSourcePhrase instance than the initial kickoff
+                // one - and that different one is the end of a previous (valid)
+                // retranslation which immediately precedes the one we are removing
+				posStart = posLocal;
+				posAfter = posLocal; // preserve a value "after" position, in case the it
+									 // happens to be the start of the pMergedList, so we
+									 // don't lose that location
+				posLocal = posLocal->GetPrevious();
+				if (posLocal != NULL)
+				{
+					pSP = posLocal->GetData();
+				}
+			} // end of loop
+			// we must test several possible exit conditions
+			int first = last; // initialize to last's value
+			if (posLocal == NULL)
+			{
+				// posAfter is at the start of pMergedList, & it must be the start of the 
+				// retranslation
+				pSP_AtStart = posAfter->GetData();
+				pSP_AtStart->m_bBeginRetranslation = TRUE;
+				first = 0;
+			}
+			else // posLocal is not NULL on exit from the loop
+			{
+				// first, check if the retranslation we are fixing already has a valid
+				// beginning, and if so, set first to the index for that location
+				if (pSP->m_bBeginRetranslation)
+				{
+					// we've a valid start at pSP's location
+					first = pMergedList->IndexOf(pSP);
+				}
+				else
+				{	
+					// the starting CSourcePhrase must be the one which follows pSP, and
+					// it will need it's flag to be set as well as first's value calculated
+					pSP_AtStart = posAfter->GetData();
+					pSP_AtStart->m_bBeginRetranslation = TRUE;
+					first = pMergedList->IndexOf(pSP_AtStart);
+				}
+			}
+			// now remove the adaptations and clear relevant flags, etc
+			wxString strAdaptationToThrowAway;
+			pRetranslation->RemoveRetranslation(pMergedList,first,last,strAdaptationToThrowAway);
+			strAdaptationToThrowAway.Empty();
+			gpApp->GetDocument()->UpdateSequNumbers(0,pMergedList);
+
+			// in the unlikely event that a CSourcePhrase got removed, update count, and
+			// continue looping from the location where pSrcPhrase is
+			count = pMergedList->GetCount();
+			pos = pMergedList->Item(first);
+		}
+		// iterate in the outer loop which scans over all of pMergedList
+		pPrevSrcPhrase = pSrcPhrase;
+		pos = pos->GetNext();
+	} // end of for loop: for (index = 1; pos != NULL && index < count; index++)
 }
 
 // Checks for an indicator of left-association: returns TRUE if one is found. Otherwise
@@ -815,10 +1099,11 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 /// retranslations - and therefore, once the recursions are finished, it may be the case
 /// that we have some retranslations which are lost (that's not a problem), some retained
 /// (that's not a problem either), and some which have the start or end chopped off (that
-/// IS a problem and we must fix it). We do the fix for the latter in a separate function
-/// which runs after recursion is completed and which spans whole newly merged document
-/// looking for the messed-up retranslation subspans, and fixes things - the fixes remove
-/// the adaptations within the retranslation fragments that have lost either end. 
+/// IS a problem and we must make an appropriate adjustment). We do the adjustment for the
+/// latter in a separate function which runs after recursion is completed and which spans
+/// whole newly merged document looking for the messed-up retranslation subspans, and fixes
+/// things - the fixes involve removing the adaptations within the retranslation fragments
+/// that have lost either end.
 /// 
 /// But the WidenLeftwardsOnce() function still has to handle retranslations to some extent
 /// (see below), and all placeholders which are not placeholders within a retranslation.
@@ -857,7 +1142,8 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 /// An additional complication is that arrOld will probably contain mergers, but arrNew
 /// never will. So when widening, if an merger is encountered, IsMergerAMatch() must be
 /// called to determine if the potentially equivalent word sequence is in arrNew starting
-/// at an appropriate index value.
+/// at an appropriate index value. This also leads to newCount being > 1 if the
+/// corresponding sequence exists in arrNew.
 /// (There is also a WidenRightwardsOnce() function which has similar rules, but different 
 /// in places for obvious reasons)
 bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
@@ -869,17 +1155,19 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 	CSourcePhrase* pNewSrcPhrase = NULL;
 	oldCount = 0;
 	newCount = 0;
-	if (oldStartingPos == oldStartAt || newStartingPos == newStartAt)
+	if (oldStartingPos < oldStartAt || newStartingPos < newStartAt)
 	{
-		// we are at the parent's left bound, so can't widen to the left any further
+		// we are earlier than the parent's left bound, so can't widen to the left any
+		// further
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at ONE"));
+#endif
 		return FALSE;
 	}
 	int oldIndex = oldStartingPos;
 	int newIndex = newStartingPos;
 	if (oldIndex > oldStartAt && newIndex > newStartAt)
 	{
-		oldIndex--;
-		newIndex--;
 		pOldSrcPhrase = arrOld.Item(oldIndex);
 		pNewSrcPhrase = arrNew.Item(newIndex);
 		// The first test should be for the most commonly occurring situation - a
@@ -898,6 +1186,9 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			{
 				// a non-match means that the left bound for the commonSpan has been
 				// reached
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at TWO -- the single-single mismatch"));
+#endif
 				return FALSE;
 			}
 		}
@@ -906,25 +1197,25 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		// than the other complications we must handle. We'll also handle fixedspace
 		// conjoining here too - and accept a non-conjoined identical word pair in arrNew
 		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair) 
-		if (pOldSrcPhrase->m_nSrcWords > 1)
+		else if (pOldSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger, or conjoined pseudo-merger
 			wxASSERT(!pOldSrcPhrase->m_bRetranslation);
 			wxASSERT(!pOldSrcPhrase->m_bNullSourcePhrase);
 			int numWords = pOldSrcPhrase->m_nSrcWords;
 			bool bIsFixedspaceConjoined = IsFixedSpaceSymbolWithin(pOldSrcPhrase);
-            // If it's a normal (non-fixedspace) merger, then we do the same check
-            // as for a fixedspace merger, because if ~ is still in the edited
-            // source text, then that will parse to a conjoined (pseudo merger)
-            // CSourcePhrase with m_nSrcWords set to 2 - so check for either of
-            // these first, and if there isn't a match, then check if the old
-            // instance really is a fixedspace merger, and is so try matching each
-            // word of the two word sequence at the approprate location, without
-			// any ~, -- if that succeeds, treat it as a match; if none of that gives a
-			// match, then there isn't one and we are done - return FALSE if so
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+            // If it's a normal (non-fixedspace) merger, then we do the same check as for a
+            // fixedspace merger, because if ~ is still in the edited source text, then
+            // that will parse to a conjoined (pseudo merger) CSourcePhrase with
+            // m_nSrcWords set to 2 - so check for either of these, and if there isn't a
+            // match, then check if the old instance really is a fixedspace merger, and is
+            // so try matching each word of the two word sequence at the approprate
+            // location, without any ~, -- if that succeeds, treat it as a match; if none
+            // of that gives a match, then there isn't one and we are done - return FALSE
+            // if so
+			if (bIsFixedspaceConjoined)
 			{
-				if (bIsFixedspaceConjoined)
+				if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
 				{
 					// we can extend the commonSpan successfully leftwards to this 
 					// pair of instances, each has the fixedspace (~) marker in its
@@ -935,78 +1226,89 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 				}
 				else
 				{
-					// it's a plain vanilla merger, so get the starting index for it on
-					// the assumption that arrNew has a matching word sequence, then test
-					// for the match
-					int newStartIndex = newStartingPos - numWords; // == newIndex - numWords + 1
-					bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newStartIndex);
-					if (bMatched)
+					// the arrNew array at the match location doesn't have a fixedspace
+					// pseudo-merger, so attempt to match the words there individually
+					if (newIndex - numWords + 1 >= newStartAt)					
 					{
-						oldCount++; // it now equals 1
-						newCount += numWords; // no mergers in arrNew, so we count the
-								// requisite number of words which belong in commonSpan
-						return TRUE;
+                        // there are enough words available for a match attempt... get the
+                        // individual words in pOldSrcPhrase and then check for a match
+                        // with two successive new CSourcePhrase instances' m_key values
+						int newStartingIndex = newIndex - numWords + 1;
+						SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
+						wxASSERT(pos != NULL);
+						wxString word1 = pos->GetData()->m_key;
+						pos = pos->GetNext();
+						wxString word2 = pos->GetData()->m_key;
+						wxString newWord1 = arrNew.Item(newStartingIndex)->m_key;
+						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_key;
+						if (word1 == newWord1 && word2 == newWord2)
+						{
+							// consider this a match
+							oldCount++;
+							newCount += 2;
+							return TRUE;
+						}
+						else
+						{
+							// no match
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at THREE"));
+#endif
+							return FALSE;
+						}	
 					}
 					else
 					{
-						// no match
+						// not enough words available, so no match is possible
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
+#endif
 						return FALSE;
 					}
-				} // end of else block for test: if (bIsFixedspaceConjoined)
-			} // end of TRUE block for test: if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
-			else if (bIsFixedspaceConjoined && (newIndex - numWords + 1 >= newStartAt))
+				}
+			} // end of TRUE block for test: if (bIsFixedspaceConjoined)
+			else
 			{
-                // for a non-match, check if there was a fixedspace (~) in
-                // pOldSrcPhrase->m_key, and if so try for a match by matching the two
-                // words separately -- but the match is only possible provided there are
-                // numWords amount of matching keys available in arrNew at or after
-                // the newStartAt value
-				int newStartingIndex = newIndex - numWords + 1;
-				SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
-				wxASSERT(pos != NULL);
-				wxString word1 = pos->GetData()->m_key;
-				pos = pos->GetNext();
-				wxString word2 = pos->GetData()->m_key;
-				wxString newWord1 = arrNew.Item(newStartingIndex)->m_key;
-				wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_key;
-				if (word1 == newWord1 && word2 == newWord2)
+                // it's a plain vanilla merger, so get the starting index for it and ensure
+                // that lies within arrNew's bounds, if so we assume then that arrNew may
+                // have a matching word sequence, so we test for the match
+				int newStartIndex = newStartingPos - numWords; // == newIndex - numWords + 1
+				bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newStartIndex);
+				if (bMatched)
 				{
-					// consider this a match
-					oldCount++;
-					newCount += 2;
+					oldCount++; // it now equals 1
+					newCount += numWords; // no mergers in arrNew, so we count the
+							// requisite number of words which belong in commonSpan
 					return TRUE;
 				}
 				else
 				{
-					// no match
+					// no match, so return FALSE
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+#endif
 					return FALSE;
-				}	
-			}
-			else
-			{
-                // we've exhausted all possibilities, so there is no match & so we are at
-                // the left hand end of commonSpan
-				return FALSE;
-			}
+				}
+			} // end of else block for test: if (bIsFixedspaceConjoined)
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_nSrcWords > 1)
 
-		// Next complications are placeholders and mergers. So, because placeholders can
-		// occur at the end of a retranslation, I'll test first for pOldSrcPhrase being a
-		// placeholder, and then within the TRUE block distinguish between placeholders
-		// within retranslations and one or more plain vanilla (i.e. manually inserted
-		// previously) placeholders which are not in a retranslation. (We expect that a
-		// user would never insert two or more placeholders manually at the same location,
-		// but just in case he does, we'll handle them.) Our approach to plain vanilla
-		// placeholder(s) is to defer action until we know if there is a match of the
-		// farther-out abutting CSourcePhrase instance in arrOld with the potential
-		// matching one in arrNew - if the match obtains, then the enclosed placeholder(s)
-		// are taken into commonSpan; if the matchup fails, then the placeholder(s) are at
-		// the boundary of beforeSpan and commonSpan - and which side of it will then
-		// depend on whether there is indication of left association (then it/they belong in
-		// beforeSpan) or right association (then it/they belong in commonSpan) or no
-		// indication of association -- in which case we have no criterion to guide us, so
-		// we'll assume that it/they should be in beforeSpan (and so get removed in the
-		// merger process)
+        // Next complications are placeholders and retranslations. So, because placeholders
+        // can occur at the end of a retranslation, test first for pOldSrcPhrase being a
+        // placeholder, and then within the TRUE block distinguish between placeholders
+        // within retranslations and one or more plain vanilla (i.e. manually inserted
+        // previously) placeholders which are not in a retranslation. (We expect that a
+        // user would never insert two or more placeholders manually at the same location,
+        // but just in case he does, we'll handle them.) Our approach to plain vanilla
+        // placeholder(s) is to defer action until we know if there is a match of the
+        // farther-out abutting CSourcePhrase instance in arrOld with the potential
+        // matching one in arrNew - if the match obtains, then the enclosed placeholder(s)
+        // are taken into commonSpan; if the matchup fails, then the placeholder(s) are at
+        // the boundary of beforeSpan and commonSpan - and which side of it will then
+        // depend on whether there is indication of left association (then it/they belong
+        // in beforeSpan) or right association (then it/they belong in commonSpan) or no
+        // indication of association -- in which case we have no criterion to guide us, so
+        // we'll assume that it/they should be in beforeSpan (and so get removed in the
+        // merger process)
 		if (pOldSrcPhrase->m_bNullSourcePhrase)
 		{
 			// it's a placeholder
@@ -1100,6 +1402,9 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							{
 								// all the one or more placeholders belong in beforeSpan,
 								// so return oldCount = 0, newCount = 0, and FALSE
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
+#endif
 								return FALSE;
 							}
 							else
@@ -1125,6 +1430,9 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at FIVE"));
+#endif
 									return FALSE; // tell the caller not to try another leftwards widening
 								}
 								else if (IsLeftAssociatedPlaceholder(pRightmostPlaceholder))
@@ -1132,30 +1440,56 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									// it/they are left-associated, so keep it/them with
 									// what precedes it/them, which means that it/they
 									// belong in beforeSpan, and we can't widen any further
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at SIX"));
+#endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
 								// same as left-associated
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at SEVEN"));
+#endif
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
 						} // end of else block for test: if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
 					} // end of TRUE block for test: if (pPrevSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					else
 					{
-						// it's a merger
+						// it's a merger (we'll assume no fixed-space conjoining, but just
+						// a normal merger) -- pass in prevIndex here, as we are using
+						// that index for our 'looking back' within arrOld
 						int numWords = pPrevSrcPhrase->m_nSrcWords;
-						int newStartIndex = newStartingPos - numWords; // == newIndex - numWords + 1
-						bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newStartIndex);
-						if (bMatched)
+                        // the loop condition tests for prevIndex >= oldStartAt, so we
+                        // don't need to repeat the test here, but here we do need to test
+                        // to ensure that there are enough words in arrNew at or after
+                        // newStartAt for a potential match - if not, we return FALSE
+						int newStartIndex = prevIndex - numWords + 1;
+						if (newStartIndex >= newStartAt)
 						{
-							oldCount++; // it now equals 1
-							newCount += numWords; // no mergers in arrNew, so we count the
-									// requisite number of words which belong in commonSpan
-							return TRUE;
+							// there are enough words for a test for a match
+							bool bMatched = IsMergerAMatch(arrOld, arrNew, prevIndex, newStartIndex);
+							if (bMatched)
+							{
+								oldCount++;
+								newCount += numWords;
+								return TRUE;
+							}
+							else
+							{
+								// no match
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at EIGHT"));
+#endif
+								return FALSE;
+							}
 						}
 						else
 						{
-							// no match
+							// not enough words available
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at NINE"));
+#endif
 							return FALSE;
 						}
 					} // end of else block for test: if (pPrevSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
@@ -1195,6 +1529,9 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					oldCount++; // counts the placeholder at oldIndex
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at TEN"));
+#endif
 					return FALSE; // tell the caller not to try another leftwards widening
 				}
 				else if (IsLeftAssociatedPlaceholder(pRightmostPlaceholder))
@@ -1202,16 +1539,25 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                     // it/they are left-associated, so keep it/them with
                     // what precedes it/them, which means that it/they
                     // belong in beforeSpan, and we can't widen any further
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at ELEVEN"));
+#endif
                     return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
 				// same as left-associated
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at TWELVE"));
+#endif
 				return FALSE;
 			}
 
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_bNullSourcePhrase)
 
 	} // end of TRUE block for test: if (oldIndex > oldStartAt && newIndex > newStartAt)
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Leftwards ONCE: exiting at THE_END (THIRTEEN)"));
+#endif
 	return FALSE;
 }
 
@@ -1221,9 +1567,9 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// \param  arrOld          ->  array of old CSourcePhrase instances
 /// \param  arrNew          ->  array of new CSourcePhrase instances
 /// \param  oldStartAt      ->  starting index in arrOld for parent Subspan
-/// \param  oldEndAt        ->  ref to ending (inclusive) index in arrOld for parent Subspan
+/// \param  oldEndAt        ->  ending (inclusive) index in arrOld for parent Subspan
 /// \param  newStartAt      ->  starting index in arrNew for parent Subspan                
-/// \param  newEndAt        ->  ref to ending (inclusive) index in arrNew for parent Subspan
+/// \param  newEndAt        ->  ending (inclusive) index in arrNew for parent Subspan
 /// \param  oldStartingPos  ->  the index in arrOld from which we start our rightwards jump
 /// \param  newStartingPos  ->  the index in arrNew from which we start our rightwards jump
 /// \param  oldCount        <-  ref to a count of the number of CSourcePhrase instances to accept
@@ -1233,19 +1579,15 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 ///                             to the right in our "single" jump within the arrNew array (it should 
 ///                             always be just one - see below, because arrNew will NEVER
 ///                             have any retranslations or placeholders in it)
-/// \param  bClosedEnd      ->  the parent Subspan's bClosedEnd value (if FALSE, then in this
-///                             function matching words in common can go beyond the oldEndAt and 
-///                             newEndAt bounding values, but if TRUE, the bounds must be obeyed)
 ///                         
 /// \remarks
-/// Note: WidenRightwardsOnce() passes in oldEndAt and newEndAt as references, because
-/// when the parent span is bClosedEnd == FALSE (ie. is open), we check within the
-/// function to make sure that the oldEndAt and newEndAt values passed in are the max
-/// index values possible for the contents of arrOld and arrNew respectively -- and if
-/// that is not the case, we fix the values to be so - and we want the fixes to be
-/// returned to the parent Subspan (which would be the rightmost afterSpan) - because we
-/// allow widening rightwards to go as far as the end of the arrOld and arrNew arrays when
-/// bClosedEnd is FALSE in the caller's afterSpan.
+/// Note: WidenRightwardsOnce() has passed to it either the oldEndAt set to the highest
+/// index in arrOld (when bClosedEnd is FALSE in the parent), and newEndAt set to the
+/// highest index in arrNew (when bClosedEnd is FALSE in the parent); or, when bCloseEnd
+/// is TRUE in the parent, limited values for both oldEndAt and newEndAt (according to the
+/// SPAN_LIMIT value -- see AdaptitConstants.h) When the end is 'open' we don't want to
+/// cut short successful rightwards widening at some arbitrary point, but let it go as far
+/// as possible.
 ///                      
 /// This function tries to extend a matchup of an in-common word rightwards by one step,
 /// and since it is called repeatedly until a failure results, the kick off point will move
@@ -1320,47 +1662,36 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// at an appropriate index value.
 /// (There is also a WidenLeftwardsOnce() function which has similar rules, but different 
 /// in places for obvious reasons, and it doesn't need the bClosedEnd parameter)
-bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& oldEndAt,
-				int newStartAt, int& newEndAt, int oldStartingPos, int newStartingPos,
-				int& oldCount, int& newCount, bool bClosedEnd)
+bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
+				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
+				int& oldCount, int& newCount)
 {
 	newStartAt = newStartAt; oldStartAt = oldStartAt; // avoid compiler warning re unused variables
 	CSourcePhrase* pOldSrcPhrase = NULL;
 	CSourcePhrase* pNewSrcPhrase = NULL;
 	oldCount = 0;
 	newCount = 0;
-	// check if the end is open, if it is, then ensure that oldEndAt is equal to the size
-	// of arrOld less 1; and that newEndAt is equal to the size of arrNew less 1; and if
-	// that is not the case, fix it (the values are passed in by reference, and so the
-	// fixes will appear in the caller's afterSpan too)
-	if (!bClosedEnd)
+	if (oldStartingPos > oldEndAt || newStartingPos > newEndAt)
 	{
-		int oldEndIndex = arrOld.GetCount() - 1;
-		int newEndIndex = arrNew.GetCount() - 1;
-		if (oldEndAt < oldEndIndex)
-		{
-			// a fix is needed
-			oldEndAt = oldEndIndex;
-		}
-		if (newEndAt < newEndIndex)
-		{
-			// a fix is needed
-			newEndAt = newEndIndex;
-		}
-	}
-	if (oldStartingPos == oldEndAt || newStartingPos == newEndAt)
-	{
-		// we are at the parent's right bound, so can't widen to the right any further
+		// we are past the parent's right bound, so can't widen to the right any further
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at ONE"));
+#endif
 		return FALSE;
 	}
 	int oldIndex = oldStartingPos;
 	int newIndex = newStartingPos;
 	if (oldIndex < oldEndAt && newIndex < newEndAt)
 	{
-		oldIndex++;
-		newIndex++;
 		pOldSrcPhrase = arrOld.Item(oldIndex);
 		pNewSrcPhrase = arrNew.Item(newIndex);
+
+#ifdef __WXDEBUG__
+//		if (oldIndex == 42)
+//		{
+//			int break_point = 1;
+//		}
+#endif
         // The first test should be for the most commonly occurring situation - a
         // non-merged, non-placeholder, non-retranslation CSourcePhrase potential pair;
         // we also don't mind if it is one from a retranslation provided it is not a
@@ -1379,6 +1710,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 			{
 				// a non-match means that the right bound for the commonSpan has been
 				// reached
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at TWO -- the single-single mismatch"));
+#endif
 				return FALSE;
 			}
 		}
@@ -1387,25 +1721,25 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 		// than the other complications we must handle. We'll also handle fixedspace
 		// conjoining here too - and accept a non-conjoined identical word pair in arrNew
 		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair) 
-		if (pOldSrcPhrase->m_nSrcWords > 1)
+		else if (pOldSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger, or conjoined pseudo-merger
 			wxASSERT(!pOldSrcPhrase->m_bRetranslation);
 			wxASSERT(!pOldSrcPhrase->m_bNullSourcePhrase);
 			int numWords = pOldSrcPhrase->m_nSrcWords;
  			bool bIsFixedspaceConjoined = IsFixedSpaceSymbolWithin(pOldSrcPhrase);
-            // If it's a normal (non-fixedspace) merger, then we do the same check
-            // as for a fixedspace merger, because if ~ is still in the edited
-            // source text, then that will parse to a conjoined (pseudo merger)
-            // CSourcePhrase with m_nSrcWords set to 2 - so check for either of
-            // these first, and if there isn't a match, then check if the old
-            // instance really is a fixedspace merger, and is so try matching each
-            // word of the two word sequence at the approprate location, without
-			// any ~, -- if that succeeds, treat it as a match; if none of that gives a
-			// match, then there isn't one and we are done - return FALSE if so
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+            // If it's a normal (non-fixedspace) merger, then we do the same check as for a
+            // fixedspace merger, because if ~ is still in the edited source text, then
+            // that will parse to a conjoined (pseudo merger) CSourcePhrase with
+            // m_nSrcWords set to 2 - so check for either of these, and if there isn't a
+            // match, then check if the old instance really is a fixedspace merger, and is
+            // so try matching each word of the two word sequence at the approprate
+            // location, without any ~, -- if that succeeds, treat it as a match; if none
+            // of that gives a match, then there isn't one and we are done - return FALSE
+            // if so
+			if (bIsFixedspaceConjoined)
 			{
-				if (bIsFixedspaceConjoined)
+				if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
 				{
 					// we can extend the commonSpan successfully rightwards to this 
 					// pair of instances, each has the fixedspace (~) marker in its
@@ -1416,88 +1750,100 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 				}
 				else
 				{
-                    // it's a plain vanilla merger, so get the ending index for it and
-                    // ensure that lies within arrNew's bounds, if so we assume then that
-                    // arrNew may have a matching word sequence, so we test for the match
-					int newEndIndex = newStartingPos + numWords - 1;
-					if (newEndIndex <= newEndAt)
+					// the arrNew array at the match location doesn't have a fixedspace
+					// pseudo-merger, so attempt to match the words there individually
+					if (newIndex + numWords - 1 <= newEndAt)					
 					{
-						// there is a potential match
-						bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newIndex);
-						if (bMatched)
+                        // there are enough words available for a match attempt... get the
+                        // individual words in pOldSrcPhrase and then check for a match
+                        // with two successive new CSourcePhrase instances' m_key values
+						int newStartingIndex = newIndex;
+						SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
+						wxASSERT(pos != NULL);
+						wxString word1 = pos->GetData()->m_key;
+						pos = pos->GetNext();
+						wxString word2 = pos->GetData()->m_key;
+						wxString newWord1 = arrNew.Item(newStartingIndex)->m_key;
+						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_key;
+						if (word1 == newWord1 && word2 == newWord2)
 						{
-							oldCount++; // it now equals 1
-							newCount += numWords; // no non-conjoined mergers can be in 
-											// arrNew, so we count the requisite number of 
-											// words which belong in commonSpan
+							// consider this a match
+							oldCount++;
+							newCount += 2;
 							return TRUE;
 						}
 						else
 						{
-							// didn't match match, so we are at the end of commonSpan
+							// no match
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+#endif
 							return FALSE;
 						}
 					}
 					else
 					{
-						// not enough words for a match, so return FALSE
+						// not enough words available, so no match is possible
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at FOUR"));
+#endif
 						return FALSE;
 					}
-				} // end of else block for test: if (bIsFixedspaceConjoined)
-			} // end of TRUE block for test: if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
-			else if (bIsFixedspaceConjoined && (newIndex + numWords - 1 <= newEndAt))
+				}
+			} // end of TRUE block for test: if (bIsFixedspaceConjoined)
+			else
 			{
-                // for a non-match, check if there was a fixedspace (~) in
-                // pOldSrcPhrase->m_key, and if so try for a match by matching the two
-                // words separately -- but the match is only possible provided there are
-                // numWords amount of matching keys available in arrNew prior to or up to
-                // the newEndAt value, so test for this too
-				int newStartingIndex = newIndex;
-				SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
-				wxASSERT(pos != NULL);
-				wxString word1 = pos->GetData()->m_key;
-				pos = pos->GetNext();
-				wxString word2 = pos->GetData()->m_key;
-				wxString newWord1 = arrNew.Item(newStartingIndex)->m_key;
-				wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_key;
-				if (word1 == newWord1 && word2 == newWord2)
+                // it's a plain vanilla merger, so get the ending index for it and ensure
+                // that lies within arrNew's bounds, if so we assume then that arrNew may
+                // have a matching word sequence, so we test for the match
+				int newEndIndex = newStartingPos + numWords - 1;
+				if (newEndIndex <= newEndAt)
 				{
-					// consider this a match
-					oldCount++;
-					newCount += 2;
-					return TRUE;
+					// there is a potential match
+					bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newIndex);
+					if (bMatched)
+					{
+						oldCount++; // it now equals 1
+						newCount += numWords; // count matched CSourcePhrase instances
+											  // (each stores only a single word)
+						return TRUE;
+					}
+					else
+					{
+						// didn't match match, so we are at the end of commonSpan
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at FIVE"));
+#endif
+						return FALSE;
+					}
 				}
 				else
 				{
-					// no match
+					// not enough words for a match, so return FALSE
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at SIX"));
+#endif
 					return FALSE;
 				}
-					
-			}
-			else
-			{
-				// we've exhausted all possibilities, so there is no match & we are at the
-				// right hand end of commonSpan
-				return FALSE;
-			}
-		} // end of TRUE block for test: if (pOldSrcPhrase->m_nSrcWords > 1)
+			} // end of else block for test: if (bIsFixedspaceConjoined)
+		} // end of TRUE block for test: else if (pOldSrcPhrase->m_nSrcWords > 1)
 
-        // Next complications are placeholders and mergers. I'll test first for
-        // pOldSrcPhrase being a placeholder, and then within the TRUE block distinguish
-        // between placeholders within retranslations and one or more plain vanilla (i.e.
-        // manually inserted previously) placeholders which are not in a retranslation. (We
-        // expect that a user would never insert two or more placeholders manually at the
-        // same location, but just in case he does, we'll handle them.) Our approach to
-        // plain vanilla placeholder(s) is to defer action until we know if there is a
-        // match of the farther-out abutting CSourcePhrase instance in arrOld with the
-        // potential matching one in arrNew - if the match obtains, then the enclosed
-        // placeholder(s) are taken into commonSpan; if the matchup fails, then the
-        // placeholder(s) are at the boundary of commonSpan and afterSpan - and on which
-        // side of it will then depend on whether there is indication of left association
-        // (then it/they belong in commonSpan) or right association (then it/they belong in
-        // afterSpan) or no indication of association -- in which case we have no criterion
-        // to guide us, so we'll assume that it/they should be in afterSpan (and so get
-        // removed in the merger process)
+        // If none of the above apply, the complications are placeholders and
+        // retranslations. Test first for pOldSrcPhrase being a placeholder, and then
+        // within the TRUE block distinguish between placeholders within retranslations and
+        // one or more plain vanilla (i.e. manually inserted previously) placeholders which
+        // are not in a retranslation. (We expect that a user would never insert two or
+        // more placeholders manually at the same location, but just in case he does, we'll
+        // handle them.) Our approach to plain vanilla placeholder(s) is to defer action
+        // until we know if there is a match of the farther-out abutting CSourcePhrase
+        // instance in arrOld with the potential matching one in arrNew - if the match
+        // obtains, then the enclosed placeholder(s) are taken into commonSpan; if the
+        // matchup fails, then the placeholder(s) are at the boundary of commonSpan and
+        // afterSpan - and on which side of it will then depend on whether there is
+        // indication of left association (then it/they belong in commonSpan) or right
+        // association (then it/they belong in afterSpan) or no indication of association
+        // -- in which case we have no criterion to guide us, so we'll assume that it/they
+        // should be in afterSpan (and so get removed in the merger process)
 		if (pOldSrcPhrase->m_bNullSourcePhrase)
 		{
 			// it's a placeholder
@@ -1578,6 +1924,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 								oldCount++; // counts the placeholder at oldIndex
 								oldCount += nExtraCount; // adds the count of the extra ones traversed
 								//newCount is unchanged (still zero)
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at SEVEN"));
+#endif
 								return FALSE;
 							}
 							else
@@ -1603,6 +1952,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at EIGHT"));
+#endif
 									return FALSE; // tell the caller not to try another leftwards widening
 								}
 								else if (IsRightAssociatedPlaceholder(pNextSrcPhrase))
@@ -1611,32 +1963,60 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
                                     // what follows it/them, which means that it/they
                                     // belong in at the start of afterSpan, and we can't
                                     // widen commonSpan any further
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at NINE"));
+#endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
 								// same as right-associated
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at TEN"));
+#endif
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
 						} // end of else block for test: if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
 					} // end of TRUE block for test: if (pNextSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					else
 					{
-						// it's a merger
+						// it's a merger (we'll assume no fixed-space conjoining, but just
+						// a normal merger) -- pass in nextIndex here, as we are using
+						// that index for our 'looking ahead' within arrOld
 						int numWords = pNextSrcPhrase->m_nSrcWords;
-						bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newIndex);
-						if (bMatched)
+                        // the loop condition tests for nextIndex <= oldEndAt, so we don't
+                        // need to repeat the test here, but here we do need to test to
+                        // ensure that nextIndex + numWords - 1 is <= to newEndAt, so that
+                        // there are enough words in arrNew for a potential match - if not,
+                        // we return FALSE
+						if (newIndex + numWords - 1 <= newEndAt)
 						{
-							oldCount++; // it now equals 1
-							newCount += numWords; // no mergers in arrNew (other than fixedspace 
-									// pseudo mergers), so we count the requisite number of words 
-									// which belong in commonSpan
-							return TRUE;
-						}
+							// there are enough words for the match attempt
+							bool bMatched = IsMergerAMatch(arrOld, arrNew, nextIndex, newIndex);
+							if (bMatched)
+							{
+								oldCount++; // it now equals 1
+								newCount += numWords; // no mergers in arrNew (other than fixedspace 
+										// pseudo mergers), so we count the requisite number of words 
+										// which belong in commonSpan
+								return TRUE;
+							}
+							else
+							{
+								// no match
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at ELEVEN"));
+#endif
+								return FALSE;
+							}
+						} // end of TRUE block for test: if (newIndex + numWords - 1 <= newEndAt)
 						else
 						{
-							// no match
+							// not enough words available
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at TWELVE"));
+#endif
 							return FALSE;
-						}
+						} // end of else block for test: if (newIndex + numWords - 1 <= newEndAt)
 					} // end of else block for test: if (pNextSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					break;
 				} // end of else block for test: if (pNextSrcPhrase->m_bNullSourcePhrase)
@@ -1674,6 +2054,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
 					oldCount++; // counts the placeholder at oldIndex
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at THIRTEEN"));
+#endif
 					return FALSE; // tell the caller not to try another leftwards widening
 				}
 				else if (IsRightAssociatedPlaceholder(pNextSrcPhrase))
@@ -1682,117 +2065,130 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int& 
                     // what follows it/them, which means that it/they
                     // belong in at the start of afterSpan, and we can't
                     // widen commonSpan any further
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at FOURTEEN"));
+#endif
 					return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
 				// same as right-associated
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at FIFTEEN"));
+#endif
 				return FALSE;
 			}
 
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_bNullSourcePhrase)
 
 	} // end of TRUE block for test: if (oldIndex < oldEndAt && newIndex < newEndAt)
-	return FALSE;
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Rightwards ONCE: exiting at THE_END (SIXTEEN)"));
+#endif
+	return FALSE; // we didn't make any matches, so widening must halt
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-/// \return          count of words which are in common and in succession in each array
-///                 (therefore the returned value could be 0, a small value, a large 
-///                 value greater than SPAN_LIMIT and exceeding the parent span's breadth
-///                 (but the latter only if bClosedEnd is FALSE, otherwise oldEndAt and 
-///                 newEndAt are boundaries in each array)
-/// \param  arrOld      ->  array of old CSourcePhrase instances
-/// \param  arrNew      ->  array of new CSourcePhrase instances
-/// \param  oldStartAt  ->  starting index in arrOld for parent Subspan
-/// \param  oldEndAt    ->  ending (inclusive) index in arrOld for parent Subspan
-/// \param  newStartAt  ->  starting index in arrNew for parent Subspan                
-/// \param  newEndAt    ->  ending (inclusive) index in arrNew for parent Subspan
-/// \param  bClosedEnd  ->  the parent Subspan's bClosedEnd value (if FALSE, then in this function
-///                         matching words in common can go beyond the oldEndAt and newEndAt 
-///                         bounding values, but if TRUE, the bounds must be obeyed)
-/// \param  pWords      ->  array of words which are common to both arrOld and arrNew in the parent
-///                         Subspan (these are what we search for, looking for matchups of embedded
-///                         spans of in-common and in-seqence words, and we'll pass back the longest
-///                         such span in pMaxInCommonSubspan)
-/// \param  pMaxInCommonSubspan <-> passed in initialized to parent index values, but later
-///                         filled out here with the details for the max subspan - to pass them
-///                         back to the caller
+/// \return                         pointer to the Subspan instance which has maximum
+///                                 composite width (ie. sum of widths from both arrays)
+/// \param  arrOld              ->  array of old CSourcePhrase instances
+/// \param  arrNew              ->  array of new CSourcePhrase instances
+/// \param  pParentSubspan      ->  the Subspan which we are decomposing by finding the
+///                                 longest in-common subspans within arrOld and arrNew 
+///                                 which are matched
+/// \param  limit               ->  the span width limit value, used for defining a 
+///                                 less-than-all width, or if -1, use-all width for the
+///                                 subspans in which the set of unique in-common words
+///                                 are obtained
 /// \remarks
-/// We look for a matchup -- a word from pWords is found in arrNew and in arrOld, start from
-/// the left - the matchup is expanded to left and right in both arrays, until corresponding
-/// words are not the same - that ends the expanding, and we store the word count of the
-/// expanded matchup in a wxArrayInt, and the start and end index details in a Subspan* on
-/// the heap - with pointer stored in a wxArrayPtrVoid - there may be several valid
-/// subspans in the parent span, and we need to get each one and pass back the longest
-/// (and delete the others - they'll be re-found at a later call in the recursion). If the
-/// parent Subspan has SpanType of afterSpan, it will be bClosedEnd = FALSE, and in that
-/// circumstance the longest matchup might go beyond the end of the parent's Subspan -- we
-/// allow this because if the user edited just the start of the original source text,
-/// there's no good reason to stop the matchups going to the very end of both arrOld and
-/// arrNew, so as to save processing time by avoiding lots of recursion.
-/// Our algorithm potentially finds the first subspan of in-common words quickly, if there
-/// is such a span, it's words should be near the top of the passed in pWords array. Once
-/// we have found the matchup and expanded it, we start the hunt for the next potential
-/// subspan starting over in pWords, but starting the searching at the index values which
-/// lie one greater than the end of the last found subspan of in-common and in-sequence
-/// words. We find all such subspans, and as soon as one of them reaches or exceeds the
-/// oldEndAt and / or newEndAt index values (these are passed in from the parent Subspan)
-/// then we have found all possible in-common subarrays in the parent Subspan. At that
-/// point we check for the longest, and use that one as the one we pass back in the
-/// pMaxInComnmonSubspan parameter. (It's the caller which has the job of checking the
-/// ending indices in the Subspan passed back - and setting up a tuple, and if the
-/// matchups extend to the ends of arrOld and arrNew, then the tuple's afterSpan would be
-/// empty.)
-/// This function is the core of the Import Edited Source Text functionality.             
-int	GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
-				int newStartAt, int newEndAt, bool bClosedEnd, wxArrayString* pWords,
-				Subspan* pMaxInCommonSubspan)
+/// We take the parent Subspan instance, use it's bounds to delineate subspans of arrOld
+/// and arrNew (typically SPAN_LIMIT amound of CSourcePhrase instances, but could be less
+/// if not that many are available for the parent Subspan), and then from those two
+/// subspans obtain an array of unique in-common words (yes, words, not CSourcePhrase
+/// instances) which are common to both subspans. These words enable us to find matchup
+/// locations within arrOld and arrNew, and ultimately to get the longest such matchup -
+/// the latter jobs are done by calling GetAllCommonSubspansFromOneParentSpan. Internally
+/// we create some arrays that we need for doing these tasks, an array for the unique
+/// in-common words, one for all Subspan instances that we find - and a parallel array of
+/// their composite width values. The longest Subspan is taken and all the others (which
+/// are all on the heap) are deleted, and the longest is then used in the caller, along
+/// with the parent Subspan bounds, to work out the beginning and ending indices for the
+/// tuple of beforeSpan, commonSpan, and afterSpan.
+Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit)
 {
-	int wordsInCommonAndInSuccession = 0;
-	wxArrayInt arrSpanWidths;
-	wxArrayPtrVoid arrSubspans;
-	wxString anInCommonWord;
-	
-	int inCommonCount = pWords->GetCount();
-	int lastInCommonIndex = -1;
-	int oldNextStartPos = oldStartAt;
-	int newNextStartPos = newStartAt;
-	int oldFoundStart;
-	int oldFoundEnd;
-	int newFoundStart;
-	int newFoundEnd;
-	int oldStartHere = oldStartAt;
-	int newStartHere = newStartAt;
-	bool bParentHasClosedEnd = bClosedEnd;
-	wxString phrase;
-	Subspan* pSubspan = new Subspan;
-	// initialize to parent's params
-	InitializeSubspan(pSubspan, commonSpan, oldStartAt, newStartAt, oldEndAt, newEndAt, bClosedEnd);
-	int index;
-	while (pWords->GetCount() > 0)
+	wxArrayString arrUniqueInCommonWords; 
+	wxArrayPtrVoid arrSubspans; 
+	wxArrayInt arrWidths;
+	// The first task is to populate the arrUniqueInCommonWords array, based on the data
+	// in pParentSubspan
+	int wordCount = GetWordsInCommon(arrOld, arrNew, pParentSubspan, arrUniqueInCommonWords, limit);
+	wordCount = wordCount; // avoid compiler warning
+	// The second task is to use the array of in-common words to get the set of all
+	// possible Subspan instances definable within the bounds of pParentSpan (when the
+	// parent span is the rightmost one, it's bClosedEnd member will be FALSE, and in that
+	// case it is possible that one of the spans will end beyond the bounds set by the
+	// oldEndPos and newEndPos members - potentially going as far as the ends of arrOld or
+	// arrNew or the ends of both), and the in-sync array of width values (a composite
+	// constructed from the widths of the subspan in arrOld plus the width of the matched
+	// subspan in arrNew). The Subspan pointers, and the widths, are stored in arrSubspans
+	// and arrWidths, respectively.
+	bool bThereAreSpans = GetAllCommonSubspansFromOneParentSpan(arrOld, arrNew, pParentSubspan, 
+				&arrUniqueInCommonWords, &arrSubspans, &arrWidths, pParentSubspan->bClosedEnd);
+	if (bThereAreSpans)
 	{
-		for (index = 0; index < inCommonCount; index++)
+		wxASSERT(arrSubspans.GetCount() == arrWidths.GetCount()); // verify they are in-sync
+
+		// find the maximum width stored Subspan instance, delete the rest from the heap,
+		// and return the max one to the caller in pMaxInCommonSubspan, clear the arrays
+		int widthsCount = arrWidths.GetCount();
+		int maxWidth = arrWidths.Item(0); // initialize to composite width of the first
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0); 
+#endif
+		int lastIndexForMax = 0; // initialize 
+		int i;
+		for (i = 1; i < widthsCount; i++)
 		{
-			// get the next in-common word
-			lastInCommonIndex++;
-			anInCommonWord = pWords->Item(lastInCommonIndex);
-			// find next instance of it in arrOld, starting from next instance after last subspan
-			phrase.Empty(); 
-			int anOldLoc = FindNextInArray(anInCommonWord, arrOld, oldStartHere, oldEndAt, phrase);
-			// no matchup is possible within the bounds of the parent subspan 
-			// if anOldLoc is wxNOT_FOUND, or if anOldLoc is +ve but greater than oldEndAt
-
-
-
-		} // end of for loop: for (index = 0; index < inCommonCount; index++)
-
-		// when control gets here, all possibilities for words-in ...??? careful, spurious
-		// matches..?? rethink a bit...
-
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("\nComposite WIDTH =  %d  for index value  %d"),arrWidths.Item(i), i);
+			Subspan* pSub = (Subspan*)arrSubspans.Item(i);
+			wxLogDebug(_T("Subspan's two spans: OLD  start = %d  end = %d ,  NEW  start = %d  end = %d"),
+				pSub->oldStartPos, pSub->oldEndPos, pSub->newStartPos, pSub->newEndPos);
+#endif
+			if (arrWidths.Item(i) > maxWidth)
+			{	
+				// only accept a new value if it is bigger, this way if all are equal
+				// size, we'll take the index for the first of them, which is a better
+				// idea when trying to work left to right
+				maxWidth = arrWidths.Item(i);
+				lastIndexForMax = i;
+			}
+		}
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("lastIndexForMax value = %d"), lastIndexForMax); 
+#endif
+		Subspan* pMaxInCommonSubspan = (Subspan*)arrSubspans.Item(lastIndexForMax);
+		// delete the rest
+		arrWidths.Clear();
+		for (i = 0; i < widthsCount; i++)
+		{
+			// delete all except the one we are returning to the caller
+			if (i != lastIndexForMax)
+			{
+				delete (Subspan*)arrSubspans.Item(i);
+			}
+		}
+		arrSubspans.Clear();
+		return pMaxInCommonSubspan; // Returning a commonSpan Subspan instance means the 
+					 // parent span is segmentable into beforeSpan, commonSpan and
+					 // and afterSpan, thereby defining a child tuple - which must
+					 // then be processed by a call of RecursiveTupleProcessor(), 
+					 // passing in that tuple
 	}
-
-
-	return wordsInCommonAndInSuccession;
+    // There were no in-common words, and hence no commonSpan type of Subspan instances
+    // created in order to find a child in-common Subspan; so return NULL because that
+    // will tell the caller to halt recursion and use the parent span to instead do the
+    // merge of the relevant CSourcePhrase instances from arrNew
+	return NULL;
 }
 
 bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
@@ -1822,174 +2218,12 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return                     nothing
-/// \param  arrOld          ->  array of old CSourcePhrase instances (may have mergers,
-///                             placeholders, retranslation, fixedspace conjoinings as 
-///                             well as minimal CSourcePhrase instances)
-/// \param  arrNew          ->  array of new CSourcePhrase instances (will only be minimal
-///                             CSourcePhrase instances, but could also contain fixedspace
-///                             conjoined instances too)
-/// \param  oldStartPos      -> starting index in arrOld for the parent Subspan
-/// \param  newStartPos      -> starting index in arrNew for the parent Subspan                
-/// \param  oldEndPos        -> ref to ending (inclusive) index in arrOld for the parent Subspan
-/// \param  newEndPos        -> ref to ending (inclusive) index in arrNew for the parent Subspan
-/// \param  oldMatchLoc      -> the index in arrOld from which we start our expansion to the
-///                             left and to the right
-/// \param  newMatchLoc      -> the index in arrNew from which we start our expansion to the
-///                             left and to the right
-/// \param  pSubspan        <-  ptr to a Subspan struct in which we store the extents of
-///                             the paired in-common CSourcPhrase instances from arrOld
-///                             and arrNew; pass this back to the caller for storage in a
-///                             wxArrayPtrVoid which collects all such structs from the
-///                             current span being examined, in order to then work out
-///                             which is the longest, and retain that - building it in to
-///                             a tuple of beforeSpan, commonSpan and afterSpan, which is
-///                             then processed recursively.
-/// \param  bClosedEnd      ->  the parent Subspan's bClosedEnd value (if FALSE, then in this
-///                             function matching words in common can go beyond limited oldEndAt 
-///                             and newEndAt bounding values, going as far as the ends of
-///                             arrOld and arrNew; but if TRUE, the bounds must be obeyed)
-///                         
-/// \remarks
-/// This function builds a single Subspan instance of type commonSpan, that is, in-common
-/// data which hasn't changed in the user's source text edits done outside of Adapt It. It
-/// starts from a matchup location (that is, an assocation of two index values, one in
-/// arrOld, and one in arrNew, at which the same source text word or phrase was found) and
-/// expands the matchup to both the left and the right in both arrays, one step at a time.
-/// "One step" may turn out to actually traverse more than a single CSourcePhrase instance
-/// if one or more placeholders are encountered - and these can be either manually inserted
-/// ones (we support sequences of these too), or programmatically inserted ones at the end
-/// of a retranslation in order to provide enough CSourcePhrase instances to display all
-/// the retranslation's words lined up interlinearly. The details of placeholders,
-/// retranslations, mergers, and fixedspace (~) pseudo-mergers, are all encapsulated in the
-/// lower level functions, WidenLeftwardsOnce() and WidenRightwardsOnce(), which are called
-/// here. The commonSpan is returned as an assocations of old consecutive CSourcePhrase
-/// instances, and the matching set of new CSourcePhrase instances obtained by tokenizing
-/// the edited source text that was imported. At a higher level, after all possible Subspan
-/// instances in the span are identified, the widest is taken and the others thrown away.
-/// (They will be recreated of course at a later stage in the recursion, and the longest
-/// taken each time, etc.)
-/// 
-/// We iterate the leftwards widening first. It proceeds until WidenLeftwardsOnce()
-/// returns FALSE - that indicates the left bound for the widening has been reached,
-/// however that does NOT also imply that no CSourcePhrase instances were traversed
-/// because it is possible that one or more placeholders were traversed. We then iterate
-/// from the starting location rightwards, until WidenRightwardsOnce()returns FALSE,
-/// indicating the right boundary for the commonSpan based on the passed in matchup, and
-/// the same non-implication applies here too. WidenRightwardsOnce() also internally
-/// checks the passed in bClosedEnd value, and if FALSE, it makes sure that oldEndPos is
-/// set to the max index in arrOld (and changes it to be so if that is not the case), and
-/// likewise, if the passed in newEndPos value is not the same as the max index in arrNew,
-/// it is reset to that - and the possibly adjusted oldEndPos and newEndPos values are
-/// returned to WidenMatchup() via the signature of WidenRightwardsOnce().
-/// 
-/// Note 1: the commonSpan Subspan obtained does not necessarily start at the same index
-/// value in both arrOld and arrNew, nor end at the same index value in arrOld and arrNew,
-/// nor are there necessarily the same number of CSourcePhrase instances in each (due to
-/// the possibility that the oldArr sequence of CSourcePhrase instances contains mergers
-/// and / or placeholders and / or fixedspace pseudo-mergers, and arrNew may contain
-/// fixedspace pseudo-mergers retained, or added in the user's editing before the import
-/// was done).
-/// 
-/// Note 2: we don't pass the potentially internally altered values of oldEndPos and
-/// newEndPos (which can internally get reset to the max index values of arrOld and arrNew,
-/// respectively, when bCloseEnd is FALSE) back to the caller. This is because the caller
-/// has to be restricted to finding commonSpan Subspan instances from a limited range of
-/// indices within arrOld and arrNew, otherwise processing will bog down due to the huge
-/// number of possibilities needing to be checked (see the explanation of the SPAN_LIMIT
-/// value in AdaptitConstants.h). So the caller won't get upset if the oldEndAt and
-/// newEndAt values passed back to it in pSubspan lie beyond the oldEndPos and newEndPos
-/// values passed in here - provided that the caller is processing the rightmost afterSpan
-/// Subspan - and the latter always must have the bClosedEnd parameter set to FALSE.
-/// 
-/// Note 3: bounds checking for the index values is done within the called functions for
-/// widening to the left and to the right.
-////////////////////////////////////////////////////////////////////////////////////////
-void WidenMatchup(SPArray& arrOld, SPArray& arrNew,  int oldStartPos, int newStartPos, 
-					 int oldEndPos, int newEndPos, int oldMatchLoc, int newMatchLoc, 
-					 bool bClosedEnd, Subspan* pSubspan)
-{
-	wxASSERT(pSubspan->spanType == commonSpan);
-	// oldIndex and newIndex will change with each iteration of the loop, the loop each
-	// time starts with the passed in oldMatchLoc and newMatchLoc values
-	int oldIndex = oldMatchLoc;
-	int newIndex = newMatchLoc;
-	// oldCount and newCount are passed in (their value doesn't matter), are internally
-	// set to zero, and then each stores a count of the CSourcePhrase instances
-	// successfully traversed as belonging in the commonSpan - oldCount counts those
-	// traversed within arrOld, and newCount counts those traversed within arrNew - and
-	// these two counts, while usually both 0 or both 1, can potentially each be different
-	// than 1. For example, a matched merger of 5 source phrase words will return 1 for
-	// oldCount, but 5 for newCount.
-	int oldCount = 0;
-	int newCount = 0;
-	// accumulate the counts in the following local variables
-	int oldAccumulatedLeftCount = 0;
-	int newAccumulatedLeftCount = 0;
-	int oldAccumulatedRightCount = 0;
-	int newAccumulatedRightCount = 0;
-	// widen to smaller sequence numbers first (i.e. leftwards), leftwards widening can
-	// never be 'open', so the bClosedEnd param value doesn't have any bearing on it
-	while (WidenLeftwardsOnce(arrOld,arrNew,oldStartPos,oldEndPos,newStartPos,newEndPos,
-			oldIndex,newIndex,oldCount,newCount))
-	{
-		// update the accumulated counts
-		oldAccumulatedLeftCount += oldCount;
-		newAccumulatedLeftCount += newCount;
-
-		// update the oldIndex and newIndex values ready for the next iteration, pass in
-		// the leftmost matched SourcePhrase instance's index in both arrOld and arrNew
-		oldIndex -= oldCount;
-		newIndex -= newCount;
-
-		// next two lines are redundant, but retained as they are self-documenting
-		oldCount = 0;
-		newCount = 0;
-	}
-    // update the accumulated counts when FALSE was returned (we can't assume both oldCount
-    // and newCount will be returned as zero)
-	oldAccumulatedLeftCount += oldCount;
-	newAccumulatedLeftCount += newCount;
-
-	// now do the same for widening rightwards, in this case, if the parent span is the
-	// rightmost (so far defined) afterSpan, then it's bClosedEnd value should be FALSE
-	// (meaning the limited span is 'opened' for widening to the end of the arrays) - so
-	// WidenRightwardsOnce() requires the bClosedEnd value passed in so it can check, and
-	// adjust if necessary, the end bounding index values
-	oldCount = 0;
-	newCount = 0;
-	oldIndex = oldMatchLoc;
-	newIndex = newMatchLoc;
-	while (WidenRightwardsOnce(arrOld,arrNew,oldStartPos,oldEndPos,newStartPos,newEndPos,
-			oldIndex,newIndex,oldCount,newCount,bClosedEnd))
-	{
-		// update the accumulated counts
-		oldAccumulatedRightCount += oldCount;
-		newAccumulatedRightCount += newCount;
-
-		// update the oldIndex and newIndex values ready for the next iteration, pass in
-		// the rightmost matched SourcePhrase instance's index in both arrOld and arrNew
-		oldIndex += oldCount;
-		newIndex += newCount;
-
-		// next two lines are redundant, but retained as they are self-documenting
-		oldCount = 0;
-		newCount = 0;
-	}
-    // update the accumulated counts when FALSE was returned (we can't assume both oldCount
-    // and newCount will be returned as zero)
-	oldAccumulatedRightCount += oldCount;
-	newAccumulatedRightCount += newCount;
-	
-	// return the commonSpan index data
-	pSubspan->oldStartPos = oldMatchLoc - oldAccumulatedLeftCount;
-	pSubspan->oldEndPos = oldMatchLoc + oldAccumulatedRightCount;
-	pSubspan->newStartPos = newMatchLoc - newAccumulatedLeftCount;
-	pSubspan->newEndPos = newMatchLoc + newAccumulatedRightCount;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return                     nothing
+/// \return                     TRUE in all circumstances except when there are no unique
+///                             in-common words in the pUniqueCommonWordsArray passed in,
+///                             in which case FALSE is returned. (FALSE is equivalent to
+///                             the caller testing that the array of unique common words
+///                             is empty and that no Subspan instances were created and 
+///                             stored)
 /// \param  arrOld           -> array of old CSourcePhrase instances (may have mergers,
 ///                             placeholders, retranslation, fixedspace conjoinings as 
 ///                             well as minimal CSourcePhrase instances)
@@ -2079,7 +2313,7 @@ void WidenMatchup(SPArray& arrOld, SPArray& arrNew,  int oldStartPos, int newSta
 /// CSourcePhrase instances in arrOld and arrNew are involved in the matchup - this
 /// information is then passed in to the WidenMatchup() function.
 ////////////////////////////////////////////////////////////////////////////////////////
-void GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, 
+bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, 
 			Subspan* pParentSubspan, wxArrayString* pUniqueCommonWordsArray, 
 			wxArrayPtrVoid* pSubspansArray, wxArrayInt* pWidthsArray, bool bClosedEnd)
 {
@@ -2092,14 +2326,165 @@ void GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 	int newParentSpanStart = pParentSubspan->newStartPos;
 	int newParentSpanEnd = pParentSubspan->newEndPos;
 
-	// define iterators for scanning across the two spans as defined above
-	int oldIndex;
-	int newIndex;
+	// define iterators for scanning across the two spans as defined above; must start
+	// always at the start of the parent span (not before), otherwise we can get an
+	// infinite loop because we keep matching an outside-of-boundaries early subspan
+	int oldIndex = oldParentSpanStart; // use for the subspan within arrOld
+	int newIndex = newParentSpanStart; // use for the subspan within arrNew
 
-	// the outer loop ranges over all the unique words within
+	// clear pSubspansArray prior to filling it with pSubspan instances below, likewise
+	// for pWidthsArray -- note, the latter stores the sum of the arrOld and arrNew
+	// matched spans' widths, not just one of these
+	pSubspansArray->Clear();
+	pWidthsArray->Clear();
 
+    // if there are no unique in-common words, just return FALSE - the caller also can
+    // detect that pSubspansArray is empty and so too would be pWidthsArray and act
+    // appropriately
+	if (pUniqueCommonWordsArray->IsEmpty())
+		return FALSE;
+	// next four delineate a matchup location, usually all oldMatchedStart = oldMatchedEnd
+	// = 1, and newMatchedStart = newMatchedEnd = 1. However, mergers etc can result in
+	// different values. A matchup failure will return wxNOT_FOUND in these, from the
+	// GetNextCommonSpan() call. These four are initialized internally in
+	// GetNextCommonSpan() to each be wxNOT_FOUND when the latter function is entered
+	int oldMatchedStart;
+	int oldMatchedEnd;
+	int newMatchedStart;
+	int newMatchedEnd;
+	// the next two are index variables which define the rightmost index values in arrOld
+	// and arrNew that have been considered in the loop at that point in time, each
+	// iteration of the inner while loop advances newLastIndex, and each iteration of the
+	// outer while loop advances newLastIndex; and when the newLastIndex is returned as
+	// wxNOT_FOUND, the outer loop's word is advanced to the next location in arrOld and
+	// the inner loop tried all over again from start to finish etc. These variables allow
+	// the start-form location to be determined for each successive iteration within one
+	// of the while loops
+	int oldLastIndex = wxNOT_FOUND;
+	int newLastIndex = wxNOT_FOUND;
 
+	// the outer loop ranges over all the unique words within pUniqueCommonWordsArray -
+	// all must be tried (but GetNextCommonSpan() abandons processing when a matchup is
+	// within a Subspan instance already stored in the pSubspansArray array, to save time
+	// by avoiding to redundantly delineate an already found Subspan)
+	wxString searchWord;
+	bool bMatchupSucceeded;
+	int wordCount = pUniqueCommonWordsArray->GetCount();
+	int wordIndex;
+	for (wordIndex = 0; wordIndex < wordCount; wordIndex++)
+	{
+		searchWord = pUniqueCommonWordsArray->Item(wordIndex);
+		if (searchWord.IsEmpty())
+			continue; // ignore empty strings (there shouldn't be any, but I got one
+					  // when testing, so best to simply ensure they are ignored
+		// all possible combinations of the searchWord at all locations it occurs in both
+		// arrOld and arrNew must be tried - pSubspansArray and pWidthsArray are populated
+		// as processing progresses - the elements of these two arrays are synced by index
 
+        // the other while loop tries for all matches of searchWord within the old-text's
+        // subspan within arrOld
+		while (TRUE)
+		{
+			// the inner while loop tries for all matches of searchWord within the
+			// new-text's subspan within arrNew
+			while (TRUE)
+			{
+				// try for the first or next matchup (oldMatchedStart to newMatchedEnd are
+				// uninitialized, but set to -1 when the function has just been entered)
+				bMatchupSucceeded = GetNextCommonSpan(searchWord, arrOld, arrNew, 
+					oldParentSpanStart, newParentSpanStart, oldIndex, oldParentSpanEnd, 
+					newIndex, newParentSpanEnd, oldMatchedStart, oldMatchedEnd, 
+					newMatchedStart, newMatchedEnd, oldLastIndex, newLastIndex, 
+					bClosedEnd, pSubspansArray, pWidthsArray);
+				// determine whether the inner loop has finished or not, and if not,
+				// update the oldIndex and newIndex values to be one greater than the
+				// oldLastIndex and newLastIndex values respectively, provided the latter
+				// are positive; but if the latter are wxNOT_FOUND, the inner loop is
+				// ended and the outer loop iterates to try searchWord at the next
+				// possible location within arrOld's subspan
+				if (bMatchupSucceeded)
+				{
+					// a new pSubspan has been stored, and it's composite width stored
+					// too, so just prepare for a new iteration
+					newIndex = newLastIndex + 1;
+					if (newIndex >= newParentSpanEnd)
+					{
+						newIndex = newParentSpanStart; // start over when next outer 
+													   // loop location is tested
+						break; // no room for looking ahead, so the inner loop ends
+					}
+				}
+				else
+				{
+                    // we must test oldLastIndex first, because if it returns as -1 because
+                    // the inner loop has exited and there are no more Finds possible in
+                    // the outer loop, then we don't want the inner loop to chug along any
+                    // more (it's newLastIndex value won't be -1 typically at such a time),
+                    // so we have to test for oldLastIndex being -1 and if so force
+                    // newLastIndex to -1 so that both while loops exit immediately.
+					if (oldLastIndex == wxNOT_FOUND)
+					{
+						// force exit of both while loops
+						newLastIndex = wxNOT_FOUND;
+					}
+                    // if newLastIndex is wxNOT_FOUND, we can't do another inner loop
+                    // iteration (it would be this value if the newIndex was out-of-bounds
+                    // (we'll not code explicitly for this, it shouldn't happen; but we
+                    // will code for the following condition:) or if the internal Find...()
+                    // call fails in arrNew
+					if (newLastIndex == wxNOT_FOUND)
+					{
+						// the inner loop is done, for the given searchWord at the given
+						// location within arrOld
+						newIndex = newParentSpanStart; // start over when next outer loop
+													   // location is tested
+						break;
+					}
+					else
+					{
+						// no matchup, but we did advance to a new location in arrNew from
+						// which we can do a Find...() starting from what lies beyond that
+						// location - so prepare for the next iteration 
+						newIndex = newLastIndex + 1;
+						if (newIndex >= newParentSpanEnd)
+						{
+							newIndex = newParentSpanStart; // start over when next outer 
+														   // loop location is tested
+							break; // no room for looking ahead, so the inner loop ends
+						}
+					}
+				}
+			} // end of inner while loop with test: while (TRUE)
+			if (oldLastIndex == wxNOT_FOUND)
+			{
+				// the searchWord is not found further ahead in the subspan within arrOld,
+				// so exit the outer loop
+				break;
+			}
+			else
+			{
+                // no matchup, but we have not yet had a match failure in arrOld from a
+                // Find...(); so starting from what lies beyond the oldLastIndex location,
+                // prepare a new oldIndex value for the next iteration in arrOld
+				oldIndex = oldLastIndex + 1;
+				if (oldIndex >= oldParentSpanEnd)
+				{
+					// no room, so the outer loop is done
+					break;
+				}
+			}
+		} // end of outer while loop with test: while (TRUE)
+
+		// prepare for a new searchWord, by initializing the start locations to start of
+		// each subspan again
+		oldIndex = oldParentSpanStart;
+		newIndex = newParentSpanStart;
+	} // end of for loop: for (wordIndex = 0; wordIndex < wordCount; wordIndex)
+
+    // TRUE returned means that one or more matchups were made, & so one will be found to
+    // be the biggest or as large as any others, and so recursion will happen; FALSE
+    // returned means we didn't find any matchups (most unlikely!)
+	return pWidthsArray->GetCount() > 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -2131,11 +2516,15 @@ void GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 /// \param  oldLastIndex     <- index of CSourcePhrase in which the word matched in arrOld,
 ///                             (but it may not have resulted in a matchup) but we need it
 ///                             in the caller so that we can retry the call starting from
-///                             the index following it, provided that index is in the span
+///                             the index following it, provided that index is in the span;
+///                             set to wxNOT_FOUND if the Find... operation fails,
+///                             otherwise it is +ve
 /// \param  newLastIndex     <- index of CSourcePhrase in which the word matched in arrNew,
 ///                             (but it may not have resulted in a matchup) but we need it
 ///                             in the caller so that we can retry the call starting from
-///                             the index following it, provided that index is in the span
+///                             the index following it, provided that index is in the span;
+///                             set to wxNOT_FOUND if the Find... operation fails,
+///                             otherwise it is +ve
 ///                         
 /// \remarks
 /// Besides the easy and most common situation where a the two matched up CSourcePhrase
@@ -2185,7 +2574,13 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 		int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart, 
 		int& newMatchedEnd, int& oldLastIndex, int& newLastIndex)
 {
-	// default initializations
+	oldStartAt = oldStartAt; newStartAt = newStartAt; // prevent two compiler warnings
+
+    // default initializations; initialize the oldLastIndex and newLastIndex ones to the
+    // starting from indices, so that only a FindNextInArray() failure to find results in
+    // a wxNOT_FOUND value for these
+	oldLastIndex = oldStartFrom; 
+	newLastIndex = newStartFrom;
 	oldMatchedStart = wxNOT_FOUND;
 	oldMatchedEnd = wxNOT_FOUND;
 	newMatchedStart = wxNOT_FOUND;
@@ -2198,34 +2593,52 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 	wxString phrase2; // used for a search in arrNew
 	bool bOldIsFixedspaceConjoined = FALSE;
 	bool bNewIsFixedspaceConjoined = FALSE;
-	oldLastIndex = wxNOT_FOUND;
-	newLastIndex = wxNOT_FOUND;
 
-	// test we are starting within bounds, return FALSE if not
-	if (oldStartFrom > oldEndAt || newStartFrom > newEndAt || 
-		oldStartFrom < oldStartAt || newStartFrom < newStartAt)
+	// test the sanity conditions for the bounds , return FALSE if not in bounds; the
+	// sanity conditions for arrOld would be that oldStartFrom is is <= oldEndAt, and that
+	// oldEndAt is < arrOld's count value; similar ones apply for arrNew
+	if (oldStartFrom > oldEndAt || newStartFrom > newEndAt)
+	{
+		oldLastIndex = wxNOT_FOUND; // GetAllCommonSpansFromOneParentSpan() needs this
 		return FALSE;
+	}	
+	if (oldEndAt >= (int)arrOld.GetCount() || newEndAt >= (int)arrNew.GetCount())
+	{
+		newLastIndex = wxNOT_FOUND; // GetAllCommonSpansFromOneParentSpan() needs this
+		return FALSE;
+	}
 
 	// get the next occurrence of word in arrOld, return wxNOT_FOUND in oldLastIndex 
 	// if not found
 	oldMatchIndex = FindNextInArray(word, arrOld, oldStartFrom, oldEndAt, phrase);
 	if (oldMatchIndex == wxNOT_FOUND)
 	{
-		return FALSE; // & oldLastIndex is already set to wxNOT_FOUND
+		oldLastIndex = wxNOT_FOUND; // & newLastIndex is still set to newStartFrom
+		return FALSE;
 	}
+	oldLastIndex = oldMatchIndex; // ensure oldLastIndex value advances for the caller
+	// try the equivalent Find... in arrNew
+	newMatchIndex = FindNextInArray(word, arrNew, newStartFrom, newEndAt, phrase2);
+	if (newMatchIndex == wxNOT_FOUND)
+	{
+		newLastIndex = wxNOT_FOUND; // & oldLastIndex is still set +ve
+		return FALSE;
+	}
+	newLastIndex = newMatchIndex; // ensure newLastIndex value advances for the caller
+
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("GetNextMatchup(): word = %s , oldStartFrom = %d , newStartFrom = %d, oldMatchIndex = %d, newMatchIndex = %d "),
+		word.c_str(), oldStartFrom, newStartFrom, oldMatchIndex, newMatchIndex);
+#endif
+
 	// get the CSourcePhrase's m_key value - what we do depends on whether it is a single
 	// word, a merger, or a fixed space conjoining (placeholder ... ellipses are never
 	// matched)
 	pOldSrcPhrase = arrOld.Item(oldMatchIndex);
 	if (pOldSrcPhrase->m_nSrcWords == 1)
 	{
-		// old instance's key is a single word - see if there is a match in arrNew
-		newMatchIndex = FindNextInArray(word, arrNew, newStartFrom, newEndAt, phrase2);
-		if (newMatchIndex == wxNOT_FOUND)
-		{
-			return FALSE; // & newLastIndex is already set to wxNOT_FOUND
-		}
-		// we have a potential match location, check it out in more detail
+		// old instance's key is a single word... 
+		// & we have a potential match location in newArr, check it out in more detail
 		pNewSrcPhrase = arrNew.Item(newMatchIndex);
 		if (pNewSrcPhrase->m_nSrcWords == 1)
 		{
@@ -2343,11 +2756,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// conjoining at the arrNew matching location, or at that location the two words
 			// must be on successive CSourcePhrase instances which lie within the
 			// boundaries newStartFrom to newEndAt, inclusive.
-			newMatchIndex = FindNextInArray(word, arrNew, newStartFrom, newEndAt, phrase2);
-			if (newMatchIndex == wxNOT_FOUND)
-			{
-				return FALSE; // & newLastIndex is already set to wxNOT_FOUND
-			}
+			
 			// test for identical fixedspace pseudo-mergers first
 			pNewSrcPhrase = arrNew.Item(newMatchIndex);
 			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
@@ -2451,11 +2860,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// must be all single-word CSourcePhrase instances with m_key values
 			// matching those in arrKeys, in increasing order, starting from the index one
 			// more than newMatchIndex's value
-			newMatchIndex = FindNextInArray(word, arrNew, newStartFrom, newEndAt, phrase2);
-			if (newMatchIndex == wxNOT_FOUND)
-			{
-				return FALSE; // & newLastIndex is already set to wxNOT_FOUND
-			}
+
 			// Looking for a matchup there is a potential (rare) problem. Suppose the user
 			// edited the source text that was imported at the matchup location, and the
 			// edit was to use ~ (USFM fixedspace) to conjoin two words which, in arrOld
@@ -2550,7 +2955,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// less than the index at which matching words commences so set
 			// oldMatchedStart and newMatchedStart while we know what the values should be
 			oldMatchedStart = oldMatchIndex;
-			newMatchedStart = leftIndex++;
+			newMatchedStart = ++leftIndex;
 			// *** NOTE *** the above pair need to be reset to wxNOT_FOUND if the attempt
 			// to match rightwards for the rest of the merged words should fail
 			
@@ -2649,7 +3054,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// more than the index at which matching words ended so set
 			// oldMatchedEnd and newMatchedEnd while we know what the values should be
 			oldMatchedEnd = oldMatchIndex;
-			newMatchedEnd = rightIndex--;
+			newMatchedEnd = --rightIndex;
 			// set the next two so that further spans can be searched for in the caller
 			oldLastIndex = oldMatchedEnd;
 			newLastIndex = newMatchedEnd;
@@ -2698,39 +3103,57 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 ///                             (but it may not have resulted in a matchup) but we need it
 ///                             in the caller so that we can retry the call starting from
 ///                             the index following it, provided that index is in the span
-/// \param  pSubspan         <- ptr to a commonSpan Subspan instance on the heap which stores
-///                             the widened (to both left and right, as far as possible)
-///                             spans pair for in-common CSourcePhrase instances (i.e.
-///                             unedited ones). If the commonSpan doesn't get defined
-///                             properly, the function returns FALSE and the caller must
-///                             test for that and detele pSubspan from the heap.                        
+/// \param  bClosedEnd       -> TRUE if the right boundary index values are to be strictly
+///                             obeyed when attempting to widen to the right, FALSE if the
+///                             boundaries are to be ignored when rightwards widening,
+///                             allowing the rightwards widening to potentially go as far
+///                             as the limits of both arrOld and arrNew
+/// \param  pCommonSpans     <- ptr to array of already delineated pSubspan instances for the
+///                             subspan being analysed. If the matchup location falls within
+///                             any of these, we don't bother to widen, since the same
+///                             span would result; and just pass back FALSE; but if the
+///                             span matchup doesn't lie within any of them, we add the
+///                             new pSubspan passed in to this array. (We do this check to
+///                             save time.)
+/// \param  pWidthsArray     <- Stores, in sync with pCommonSpans Subspan instance, the width
+///                             of that Subspan's subspan in arrOld plus the width of the
+///                             matching subspan in arrNew as a single integer value. The
+///                             caller will later use this array to quickly find which at
+///                             which index the composite span width value is largest -
+///                             and then look up that Subspan instance in pCommonSpan in
+///                             order to use that in the tuple as the 'longest' one.
 /// \remarks
 /// For how the parameters are used, see the description of the GetNextMatchup() function.
 /// The GetNextCommonSpan() function adds an extra parameter to the former's ones, the
 /// pSubspan parameter which is to be defined in scope (ie. starting and ending index
 /// values in both arrOld and arrNew) for the CSourcePhrase instances which are in this
-/// tentative new commonSpan. We get a matchup location using GetNextCommonSpan(), and
-/// then call WidenLeftwardsOnce() in a loop until we can't widen further, than do
-/// similarly rightwards using WidenRightwardsOnce(), thereby (providing a failure
-/// condition has not been encountered yet by any of those 3 functions) defining the
-/// boundaries for the in-common span pair. The returned parameters are used to set the
-/// relevant indices in the passed in pSubspan instance, and TRUE is returned; failure to
-/// get a properly defined commonSpan causes FALSE to be returned, and in that
-/// circumstance the caller must remove pSubspan from the heap. A valid pSubspan must be
-/// checked in the caller to make sure it doesn't define an already defined subspan, and
-/// provided that is so, the new span is, in the caller, added to the relevant storage
-/// array which is of type wxArrayPtrVoid (later, a higher level function will examine all
-/// such stored subspans to determine which to keep - the "widest", the rest would get
-/// abandoned and their instances removed from the heap).
+/// tentative new commonSpan. We get a matchup location using GetNextCommonSpan(), and then
+/// call WidenLeftwardsOnce() in a loop until we can't widen further, than do similarly
+/// rightwards using WidenRightwardsOnce(), thereby (providing a failure condition has not
+/// been encountered yet by any of those 3 functions) defining the boundaries for the
+/// in-common span pair. 
+/// The parameters are used to set the relevant indices in a newly created (on the heap)
+/// pSubspan instance, provided all went well, and the new instance is stored in the
+/// pCommonSpans array so that the caller will have access to it, and a composite count of
+/// the length in pWidthsArray, and TRUE is returned; failure to get a properly defined
+/// commonSpan causes FALSE to be returned, and in that circumstance no Subspan instance is
+/// created nor stored etc. A valid pSubspan must be checked here first to make sure it
+/// doesn't define an already defined subspan, and provided that is so, the new span is
+/// added to the above-mentioned array which is of type wxArrayPtrVoid (later, a higher
+/// level function will examine all such stored subspans to determine which to keep - the
+/// "widest", the rest would get abandoned and their instances removed from the heap).
+/// 
 /// Note 1: GetNextMatchup() doesn't necessarily return indices for just one CSourcePhrase
 /// in arrOld, and one in arrNew, for a matchup. A matchup can involve mergers, for
 /// instance, or fixedspace conjoined pairs, and so what is returned is, for a valid
 /// matchup, the starting and ending index values in arrOld and the same in arrNew. Only
 /// when the matchup involves simple one-word CSourcePhrase instances are the starting and
 /// ending indices the same for the matchup.
+/// 
 /// Note 2: GetNextMatchup() also initializes to wxNOT_FOUND the following parameters:
 /// oldMatchedStart, oldMatchedEnd, newMatchedStart, newMatchedEnd, oldLastIndex, and
-/// newLastIndex; alsa oldCount and newCount are internally initialized to 0 at each call.
+/// newLastIndex; also oldCount and newCount are internally initialized to 0 at each call.
+/// 
 /// Note 3: oldLastIndex and newLastIndex are updated within the GetNextMatchup() call,
 /// and will be returned with new (larger) values if the internal calls within it to
 /// FindNextInArray() return non-negative values, but that does not mean that the matchup
@@ -2741,82 +3164,201 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 /// merger within arrOld, and also at some location in arrNew, but the ensuing attempt to
 /// determine that all the merger's words have matching equivalents in arrNew at the
 /// location found in arrNew, fails.
-/// Note 4: Each time GetNextCommonSpan() is called, the caller should have initialized the
-/// pSubspan indices to oldStartAt & oldEndAt within arrOld, and newStartAt & newEndAt
-/// within arrNew. Don't get confused with the intial matchup - which has to return
-/// indices with the range oldStartFrom to oldEndAt in arrOld, and newStartFrom to
-/// newEndAt in arrNew, because a matchup is being sought at index values at or beyond
-/// oldStartFrom in arrOld and newStartFrom in arrNew - up to the bounding values set for
-/// each subarray; but the subsequent widening-to-left attempt is allowed to go to index
-/// values less than oldStartAt in arrOld, and less than newStartAt in arrNew, because we
-/// want our widening to go as wide as there are in-common CSourcePhrase instances within
-/// the parent subspan.
+/// 
+/// Note 4: Don't get confused with the constraints on index values for the intial matchup
+/// - which has to return indices with the range oldStartFrom to oldEndAt in arrOld, and
+/// newStartFrom to newEndAt in arrNew, because a matchup is being sought at index values
+/// at or beyond oldStartFrom in arrOld and newStartFrom in arrNew - up to the bounding
+/// values set for each subarray. However the subsequent widening-to-left attempt is
+/// allowed to go to index values less than oldStartAt in arrOld, and less than newStartAt
+/// in arrNew, because we want our widening to go as wide as there are in-common
+/// CSourcePhrase instances within the parent subspan.
 bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
 			int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, 
 			int& oldMatchedStart, int& oldMatchedEnd, int& newMatchedStart, 
-			int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, Subspan* pSubspan)
+			int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, bool bClosedEnd,
+			wxArrayPtrVoid* pCommonSpans, wxArrayInt* pWidthsArray)
 {
 	if (GetNextMatchup(word, arrOld, arrNew, oldStartAt, newStartAt, oldStartFrom,
-		oldEndAt, newStartFrom, newEndAt, oldMatchedStart, oldMatchedEnd, newMatchedStart,
-		newMatchedEnd, oldLastIndex, newLastIndex))
+						oldEndAt, newStartFrom, newEndAt, oldMatchedStart, oldMatchedEnd,
+						newMatchedStart, newMatchedEnd, oldLastIndex, newLastIndex))
 	{
-        // we obtained a valid matchup within the allowed index ranges; now try to widen it
-        // to either side, starting with a left widening loop; a return value of FALSE from
-        // a widening attempt means "the boundary for widening in that direction has been
-        // reached"
-		int oldLeftBdryIndex = oldMatchedStart - 1;
-		int newLeftBdryIndex = newMatchedStart - 1;
+		Subspan* pSubspan = NULL; // create on heap only if we delineate a Subspan successfully
+		// we obtained a valid matchup within the allowed index ranges; first check if it
+		// lies within an already-delineated Subspan instance - if so, abandon this
+		// attempt and return FALSE; if not, add the new pSubspan instance to this array
+		// later below 
+        bool bAlreadyExists = IsMatchupWithinAnyStoredSpanPair(oldMatchedStart, oldMatchedEnd,
+											newMatchedStart, newMatchedEnd, pCommonSpans);
+        if (bAlreadyExists)
+		{
+			// reset the matchup indices to -1, so that the caller will get the right
+			// message from the FALSE which we return here
+			oldMatchedStart = wxNOT_FOUND;
+			oldMatchedEnd = wxNOT_FOUND;
+			newMatchedStart = wxNOT_FOUND;
+			newMatchedEnd = wxNOT_FOUND;
+			return FALSE;
+		}
+        // now try to widen the matchup to either side, starting with a left widening loop;
+        // a return value of FALSE from a widening attempt means "the boundary for widening
+        // in that direction has been reached"
+        
+		// the next two track the left boundaries within arrOld and arrNew of the commonSpan 
+		// being delimited by the widening loop below
+		int oldLeftBdryIndex = oldMatchedStart;
+		int newLeftBdryIndex = newMatchedStart;
+		// suppressors to prevent bounds errors in the loops below
+		bool bSuppressLeftWidening = FALSE;
+		bool bSuppressRightWidening = FALSE;
+
+        // The next two track the jumping off locations in arrOld and arrNew, for the loop
+		int oldJumpFromIndex = oldMatchedStart - 1; // might be out of bounds
+		int newJumpFromIndex = newMatchedStart - 1; // might be out of bounds
+		// suppress if out of bounds
+		if (oldJumpFromIndex < oldStartAt || newJumpFromIndex < newStartAt)
+			bSuppressLeftWidening = TRUE;
+
+		// the next two track the counts of how many CSourcePhrase instances were
+		// traversed in arrOld and arrNew for a single call of WidenLeftwardsOnce() - each
+		// is initialized to zero at the start of WidenLeftwardsOnce()
 		int oldLeftCount = 0;
 		int newLeftCount = 0;
-		bool bOK = WidenLeftwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt, 
-				newEndAt, oldLeftBdryIndex, newLeftBdryIndex, oldLeftCount, newLeftCount);
-		if (bOK)
+		bool bOK = TRUE;
+		if (!bSuppressLeftWidening)
 		{
-			// update the left boundary variables
-			if (oldLeftCount > 0)
+            // only widen leftwards if the current in-common left boundary is later
+            // than the span's left boundary
+			while (oldLeftBdryIndex > oldStartAt && newLeftBdryIndex > newStartAt)
 			{
-				oldLeftBdryIndex  -= oldLeftCount;
+				// attempt another leftwards "step"
+				bOK = WidenLeftwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt, 
+								newEndAt, oldJumpFromIndex, newJumpFromIndex, oldLeftCount, 
+								newLeftCount);
+				if (bOK)
+				{
+					// calculate the new values for the left bounds
+					oldLeftBdryIndex -= oldLeftCount;
+					newLeftBdryIndex -= newLeftCount;
+					// prepare for the next iteration, get updated jump index values
+					oldJumpFromIndex = oldLeftBdryIndex - 1;
+					newJumpFromIndex = newLeftBdryIndex - 1;
+				}
+				else
+				{
+					// the widening attempt fails, so exit the loop, retaining the boundary
+					// indices as they were at the end of the last iteration
+					break;
+				}
 			}
-			if (newLeftCount > 0)
-			{
-				newLeftBdryIndex  -= newLeftCount;
-			}
-// *** done to here ****
+		}
+		// do rightwards widening now, using a rightwards widening loop, if bounds permit
+        // The next two track the jumping off locations in arrOld and arrNew, for the loop
+        
+		// the next two track the right boundaries within arrOld and arrNew of the commonSpan 
+		// being delimited by the widening loop below
+		int oldRightBdryIndex = oldMatchedEnd;
+		int newRightBdryIndex = newMatchedEnd;
 
-
-			// use a loop for the rest of the leftwards widening attempts
-
-
-
-
+		// next two may be out of bounds
+		oldJumpFromIndex = oldMatchedEnd + 1;
+		newJumpFromIndex = newMatchedEnd + 1;
+        // check bounds and suppress if out of bounds (also see comments a little further
+        // down in the if(!bClosedEnd) test's TRUE block)
+		if (bClosedEnd)
+		{
+			// the passed in oldEndAt and newEndAt values must be strictly obeyed
+			if (oldJumpFromIndex > oldEndAt || newJumpFromIndex > newEndAt)
+				bSuppressRightWidening = TRUE;
 		}
 		else
 		{
-			// a failure shouldn't involve some widening - but we'll look at the counts
-			// and use any values returned as non-zero
-			if (oldLeftCount > 0)
-			{
-				oldLeftBdryIndex  -= oldLeftCount;
-			}
-			if (newLeftCount > 0)
-			{
-				newLeftBdryIndex  -= newLeftCount;
-			}
+			// the span's end, for widening purposes, is considered to be open, so the
+			// suppression test here is more generous
+			if (oldJumpFromIndex >= (int)arrOld.GetCount() || newJumpFromIndex > (int)arrNew.GetCount())
+				bSuppressRightWidening = TRUE;
 		}
 
+		// the next two track the counts of how many CSourcePhrase instances were
+		// traversed in arrOld and arrNew for a single call of WidenRightwardsOnce() - each
+		// is initialized to zero at the start of WidenRightwardsOnce()-- note, for an
+		// open afterSpan, we can widen past the passed in bounding end values. If that is
+		// the case, update oldEndAt and newEndAt here to array-end values for arrOld &
+		// arrNew 
+		int oldRightCount = 0;
+		int newRightCount = 0;
+		// set the right limits for widening, according to whether the end is closed or open
+		if (!bClosedEnd)
+		{
+            // When FALSE, we are free to widen the end bound as far as the end of arrOld,
+            // and/or the end of arrNew NOTE: oldEndAt and newEndAt are not passed in as
+            // reference variables, so these changed values disappear once
+            // GetNextCommonSpan() returns. 
+            // THESE NEXT TWO LINES ARE THE SHARP END OF WHAT THE bClosedEnd PARAMETER IS
+            // ALL ABOUT, IT'S ONLY HERE AND A FEW LINES ABOVE THAT IT DOES ITS JOB OF
+            // ENABLING A WIDER SPAN
+			oldEndAt = arrOld.GetCount() - 1;
+			newEndAt = arrNew.GetCount() - 1;
+		}
+		if (!bSuppressRightWidening)
+		{
+            // only widen rightwards if the current in-common right boundary is earlier
+            // than the span's right boundary
+			while (oldRightBdryIndex < oldEndAt && newRightBdryIndex < newEndAt)
+			{
+				// attempt another rightwards "step" 
+				bOK = WidenRightwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt, 
+								newEndAt, oldJumpFromIndex, newJumpFromIndex, oldRightCount, 
+								newRightCount);
+				if (bOK)
+				{
+					// calculate the new values for the left bounds
+					oldRightBdryIndex += oldRightCount;
+					newRightBdryIndex += newRightCount;
+					// prepare for the next iteration, get updated jump index values
+					oldJumpFromIndex = oldRightBdryIndex + 1;
+					newJumpFromIndex = newRightBdryIndex + 1;
+				}
+				else
+				{
+					// the widening attempt fails, so exit the loop, retaining the boundary
+					// indices as they were at the end of the last iteration
+					break;
+				}
+			}
+		}
+		// create a new commonSpan type of Subspan instance & set up the index values within
+		// pSubspan, and recall that commonSpans are always bClosedEnd = TRUE
+		pSubspan = new Subspan;
+		InitializeSubspan(pSubspan, commonSpan, oldLeftBdryIndex, oldRightBdryIndex, 
+							newLeftBdryIndex, newRightBdryIndex, TRUE); // TRUE is bClosedEnd
 
-		// do rightwards widening now, using a rightwards widening loop
-		int oldRightBdryIndex ;
-		int newRightBdryIndex;
-		int rightOldCount = 0;
-		int rightNewCount = 0;
+		// add the span to pCommonSpans, and calculate the composite width value and add
+		// it to pWidthsArray
+		pCommonSpans->Add((void*)pSubspan);
 
+		// calculate and store the composite spans width
+		int oldWidth = oldRightBdryIndex - oldLeftBdryIndex + 1;
+		int newWidth = newRightBdryIndex - newLeftBdryIndex + 1;
+		pWidthsArray->Add(oldWidth + newWidth);
 
-
-
-		return TRUE;
+		return TRUE; // indicate to caller that we succeeded
+	} // end of TRUE block for test:  	if (GetNextMatchup(word, ...other params omitted...))
+	else
+	{
+		// getting a valid matchup with GetNextMatchup() failed ; there are two possibilities...
+		// (1) oldMatchedStart, oldMatchedEnd, newMatchedStart & newMatchedEnd are each
+		// wxNOT_FOUND, but the internal Find...() calls succeeded, so that oldLastIndex
+		// and newLastIndex are +ve  which means that the word can, in the caller, be
+		// searched for again at a different kickoff location (one may be held constant
+		// while the other is advanced in an inner loop). OR
+		// (2) the above, except that oldLastIndex and newLastIndex are each wxNOT_FOUND,
+		// this means that the word should no longer be searched for, or, that the word
+		// should be searched for from a later location in the outer loop, and the inner
+		// loop iterates over all possible locations.
+		// Either way, we return the values to the caller for it to decide what to do.
+		;
 	}
-	// getting a valid span failed
 	return FALSE;
 }
 
@@ -2849,17 +3391,601 @@ bool IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLo
 	return oldPhrase == newPhrase;
 }
 
+/* don't think I'll need this one
+// Sets the oldEndAt and newEndAt index values, based on the current values passed in for
+// oldStartAt and newStartAt, and oldEndAt and newEndAt, using limit and bClosedEnd values
+// to control if new end values are calculated and what they should be. When the end of the
+// span is closed, the oldEndAt and newEndAt values are known and retained unchanged - they
+// are strict limits which must be obeyed in order that our subspans don't overlap
+// resulting in doubling up of the same CSourcePhrase instances in the final merged list.
+// When the span is open, the end locations are determined by the limit value in
+// conjunction with the arrOld and arrNew element counts.
+void SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
+					  int& newEndAt, int limit, bool bClosedEnd)
+{
+	if (bClosedEnd)
+	{
+		// use oldEndAt and newEndAt as passed in, they must not be changed
+		return;
+	}
+	else
+	{
+        // it's an open ended span (only the rightmost afterSpan at any recursion level
+        // qualifies for being open ended) so set the nominal oldEndAt and newEndAt values
+        // - these are what are used for the determination of the set of unique in-common
+        // words, but the repeated call of WidenRightwardsOnce(), in the
+        // GetNextCommonSpan() function, which gets a right boundary for the in-common
+        // CSourcePhrase instances, will ignore these limits - and potentially the iteration
+        // loop may result in matchups going as far as the ends of arrOld and/or arrNew
+		if (limit == -1)
+		{
+			// no limitation is wanted ... the whole extent of the CSourcePhrase instances
+			// should be used - this requires we set the end index to the max index for each
+			// array (NOTE: this would bog processing down if there are many CSourcePhrase
+			// instances, such as more than a verse or two's worth, so only use limit = -1
+			// when processing of a verse or at most a few verses is being done.)
+			oldEndAt = arrOld.GetCount() - 1;
+			newEndAt = arrNew.GetCount() - 1;
+		}
+		else
+		{
+			// go as far as we can, up to the limit value, or array end, whichever comes first
+			oldEndAt = wxMin((unsigned int)(oldStartAt + limit), (unsigned int)(arrOld.GetCount())) - 1;
+			newEndAt = wxMin((unsigned int)(newStartAt + limit), (unsigned int)(arrNew.GetCount())) - 1;
+		}
+	}
+}
+*/
+// the next is an overload for the above, passing in a Subspan pointer with it's
+// oldStartPos and newStartPos members already set correctly
+void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit)
+{
+	if (pSubspan->bClosedEnd)
+	{
+		// use oldEndAt and newEndAt as passed in, they must not be changed; it shouldn't
+		// be called when bClosedEnd is TRUE, but if it is, this ensures no damage is done
+		return;
+	}
+	else
+	{
+        // it's an open ended span (only the rightmost afterSpan at any recursion level
+        // qualifies for being open ended) so set the nominal oldEndAt and newEndAt values
+        // - these are what are used for the determination of the set of unique in-common
+        // words, but the repeated call of WidenRightwardsOnce(), in the
+        // GetNextCommonSpan() function, which gets a right boundary for the in-common
+        // CSourcePhrase instances, will ignore these limits - and potentially the iteration
+        // loop may result in matchups going as far as the ends of arrOld and/or arrNew
+		if (limit == -1)
+		{
+			// no limitation is wanted ... the whole extent of the CSourcePhrase instances
+			// should be used - this requires we set the end index to the max index for each
+			// array (NOTE: this would bog processing down if there are many CSourcePhrase
+			// instances, such as more than a verse or two's worth, so only use limit = -1
+			// when processing of a verse or at most a few verses is being done.)
+			pSubspan->oldEndPos = arrOld.GetCount() - 1;
+			pSubspan->newEndPos = arrNew.GetCount() - 1;
+		}
+		else
+		{
+			// go as far as we can, up to the limit value, or array end, whichever comes first
+			pSubspan->oldEndPos = 
+				wxMin((unsigned int)(pSubspan->oldStartPos + limit), (unsigned int)(arrOld.GetCount())) - 1;
+			pSubspan->newEndPos = 
+				wxMin((unsigned int)(pSubspan->newStartPos + limit), (unsigned int)(arrNew.GetCount())) - 1;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 nothing
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         well as minimal CSourcePhrase instances)
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too)
+/// \param  pSubspan    ->  the Subspan instance which defines either the new CSourcePhrase
+///                         instances which are to replace the old ones for a range of index
+///                         values in arrOld, or the old CSourcePhrase instances which are
+///                         in common and so will be retained from arrOld
+/// \param  pMergedList ->  the list of CSourcePhrase instances being built - when done,
+///                         this will become the new version of the document and be laid
+///                         out for the user to fill the "holes" with new adaptations
+/// \remarks
+/// MergeOldAndNew() is called at the bottom of the recursion process, after parent Subspan
+/// instances have been successively decomposed to smaller and smaller tuples, finally, at
+/// the leaves of the recursion tree we get a Subspan instance which has nothing in common
+/// (these can be either beforeSpan or afterSpan types) or all is in common (and every
+/// commonSpan is, by definition, one such). When such leaves are reached, merging can be
+/// done. The commonSpan merging just copies the commonSpan's pointed-at CSourcePhrase
+/// instances from arrOld, appending them to pMergedList; beforeSpan or afterSpan will have
+/// nothing in common, and so the CSourcPhrase they point to are copied from arrNew,
+/// appending them to pMergedList.
+/// 
+/// Note 1: The source text editing done earlier by someone outside of Adapt It can do any
+/// or all of the following (1) alter the spelling of words, (2) move blocks of words
+/// around, (3) insert new words, (4) remove existing words. Moving blocks is equivalent to
+/// removing from one location and inserting at some other location, so (2) is just a
+/// sequence of (3) and (4). Removing words manifests within a Subspan instance as an empty
+/// subspan in arrNew, and we signal empty subspans by the starting and ending indices for
+/// the subspan being (-1,-1). Inserting words manifests as an empty subspan in arrOld
+/// (indicated by indices (-1,-1) for (oldStartPos,oldEndPos) within the Subspan instance).
+/// Words edited in their spelling manifest by a subspan within arrOld having a different
+/// set of CSourcePhrase instances (ie. different m_key values in the latter) in the
+/// subspan within arrNew. The arrNew instances then must replace the arrOld instances.
+/// 
+/// Note 2: after the merger done as described above, the Subspan instance passed in MUST
+/// be removed from the heap - it is required no longer, and a memory leak would result if
+/// it was not deleted after it's data was used.
+/// 
+/// Note 3: a Subspan which is ready for merger never has any Subspan instances managed by
+/// its childSubspans member - this 3 member array will just be {NULL,NULL,NULL} and so it
+/// manages nothing on the heap
+////////////////////////////////////////////////////////////////////////////////////////
+void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList)
+{
+	if (pSubspan->spanType == commonSpan)
+	{
+		// retain the old ones
+		int index;
+		CSourcePhrase* pSrcPhrase = NULL;
+		for (index = pSubspan->oldStartPos; index <= pSubspan->oldEndPos; index++)
+		{
+			pSrcPhrase = (CSourcePhrase*)arrOld.Item(index);
+			// make a deep copy and append to pMergedList
+			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+			pDeepCopy->DeepCopy();
+			pMergedList->Append(pDeepCopy);
+		}
+	}
+	else
+	{
+        // retain the new ones - but the situation is a bit more complex than that, we must
+        // distinguish between replacements, insertions, and removals (see the function
+        // description's Note 1.) Former human editing resulting in insertions
+        // or replacements just require deep copying the relevant subspan from arrNew here;
+        // instances removed by human editing, however, mean that the arrOld ones in this
+        // subspan are just ignored, and nothing is copied from arrNew.
+		int index;
+		CSourcePhrase* pSrcPhrase = NULL;
+		if (pSubspan->newStartPos != -1 && pSubspan->newEndPos != -1)
+		{
+			// it's not a removal, that is, it's either an insertion or a replacement
+			for (index = pSubspan->newStartPos; index <= pSubspan->newEndPos; index++)
+			{
+				pSrcPhrase = (CSourcePhrase*)arrNew.Item(index);
+				// make a deep copy and append to pMergedList
+				CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+				pDeepCopy->DeepCopy();
+				pMergedList->Append(pDeepCopy);
+			}
+		}
+	}
+	// delete the Subspan instance
+	delete pSubspan;
+#ifdef __WXDEBUG__
+	// track progress in populating the pMergedList
+	wxLogDebug(_T("pMergedList progressive count:  %d  ( compare arrOld %d , arrNew %d )"),
+		pMergedList->GetCount(), arrOld.Count(), arrNew.Count());
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 TRUE if a commonSpan is found, FALSE if not; if the parent 
+///                         Subspan passed in is a commonSpan, this will be detected and
+///                         FALSE returned and no attempt made to find a child tuple
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         well as minimal CSourcePhrase instances)
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too)
+/// \param  pParentSubspan ->  the parent Subspsan instance which defines, by it's index
+///                         values, the two subspans (on in arrOld, the other in arrNew)
+///                         being compared in order to find the largest commonSpan, and
+///                         hence by index arithmetic, what the beforeSpan, commonSpan,
+///                         and afterSpan (children) are
+/// \param  tuple       <-> an empty one,  passed in and if there are any in-common
+///                         words at the appropriate index ranges of arrOld and arrNew,
+///                         the child tuple is built after determining what index ranges
+///                         are maximal for commonSpan, and RecursiveTupleProcessor()
+///                         called on it; but if nothing is in common, tuple remains
+///                         empty (storing three null pointers)
+/// \param  limit       ->  used for defining how big Subspans are
+/// \remarks
+/// SetupChildTuple() is called whenever a Subspan instance is ready to be decomposed into
+/// a tuple of beforeSpan, commonSpan and afterSpan. Then the tuple is set up,
+/// RecursiveTupleProcessor() must be immediately called, passing in the child tuple just
+/// defined. When recursion returns to this level, from a beforeSpan Subspan instance, the
+/// lower level child tuples will have been processed and the CSourcePhrase instances
+/// pertaining to those subspans merged. Then the caller, which is
+/// RecursiveTupleProcessor(), will merge the CSourcePhrase instances in current tuple's
+/// commonSpan; then RecursiveTupleProcessor() will attempt to handle it's afterSpan - so
+/// then SetupChildTuple is called again, and recursion potentially happens. Then recursion
+/// returns, in the parent Subspan instance, to that Subspan's parent level - and all the
+/// way up in this fashion to the 0th level - where unprocessed CSourcePhrase instances to
+/// the right are checked for, a Subspan defined for the next SPAN_LIMIT amount of them,
+/// and recusion called on that -- the latter process is how the index ranges being
+/// considered move progressively from left to right until all of arrOld and arrNew are
+/// processed. That is, processing continues until the 0th level's right hand ends get to
+/// the end of arrNew and arrOld. SetupChildTuple(), however, just does part of the job:
+/// it defines a child tuple, if one can be defined, and for that it needs to call
+/// GetMaxInCommonSubspan().
+/// SetupChildTuple() calls RecursiveTupleProcessor() to recurse to lower (less wider)
+/// Subspans after GetMaxInCommonSubspan() returns TRUE, and but returns FALSE if no
+/// commonSpan was found. (When FALSE is returned, the caller, RecursiveTupleProcessor(),
+/// will call MergeOldAndNew() to do the mergers.)
+/// GetMaxInCommonSubspan() is used to attempt to find a child commonSpan Subspan. It
+/// returns the maximal one if there is one, but NULL if there wasn't one - meaning nothing
+/// was in common for the index ranges being considered. If this function returns NULL,
+/// FALSE is returned from SetupChildTuple().
+/// Note: bClosedEnd is passed in within pParentSubspan, it is used for determining when
+/// the parent pSubspan is a bClosedEnd == FALSE one, the child afterSpan then also has to
+/// have it's bClosedEnd member set FALSE, since that is the rightmost one in the arrays,
+/// for that level
+////////////////////////////////////////////////////////////////////////////////////////
+bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[], 
+						int limit)
+{
+ 	wxASSERT(pParentSubspan != NULL);
+    // get bClosedEnd, if the parent Subspan is the rightmost one bClosedEnd in
+    // pParentSubspan is false, we pass a bClosedEnd = FALSE value to the child afterSpan
+    // if we succed in defining the latter; otherwise, if bCloseEnd from pParentSubspan is
+    // TRUE (the default value) then an afterSpan, if we define one, will not be the
+    // rightmost, and the TRUE value must be passed to the afterSpan child Subspan instance
+	bool bClosedEnd = pParentSubspan->bClosedEnd;
+	//wxASSERT(tuple[0] == NULL);
+	//wxASSERT(tuple[1] == NULL);
+	//wxASSERT(tuple[2] == NULL);
+	if (pParentSubspan->spanType == commonSpan)
+	{
+		// return FALSE, there was no need to make the SetupChildTuple() call for a
+		// Subspan we already know is a commonSpan type
+		return FALSE;
+	}
+	Subspan* pCommonSubspan = GetMaxInCommonSubspan(arrOld, arrNew, pParentSubspan, limit);
+#ifdef __WXDEBUG__
+	// get a log display in the Output window to see what we got for the longest in-common
+	// Subspan instance
+	if (pCommonSubspan)
+	{
+		// display what we got
+		Subspan* pMaxInCommonSubspan = pCommonSubspan;
+		int incommonsCount = pMaxInCommonSubspan->oldEndPos - pMaxInCommonSubspan->oldStartPos + 1; 
+		{
+			int i = 0;
+			wxString word[12];
+			int nLines = incommonsCount / 12;
+			if (incommonsCount % 12 > 0)
+				nLines++;
+			wxLogDebug(_T("\n\n  MAX Subspan, incommonsCount = %d     in-common CSourcePhrase instances' m_keys in succession:"), incommonsCount);
+			int index = 0;
+			for (i = 0; i < nLines; i++)
+			{
+				for (index = 0; index < 12; index++)
+				{
+					int index2 = i*12 + index + pMaxInCommonSubspan->oldStartPos;
+					if (index2 < incommonsCount + pMaxInCommonSubspan->oldStartPos)
+					{
+						CSourcePhrase* pSP = arrOld.Item(index2);
+						word[index] = pSP->m_key;
+					}
+					else
+					{
+						word[index] = _T(' ');
+					}
+				}
+				wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),  
+					word[0].c_str(), word[1].c_str(), word[2].c_str(), word[3].c_str(), word[4].c_str(),
+					word[5].c_str(), word[6].c_str(), word[7].c_str(), word[8].c_str(), word[9].c_str(),
+					word[10].c_str(), word[11].c_str());
+			}
+		}
+
+	} // end of TRUE block for test: if (pCommonSubspan)
+	else
+	{
+		if (pParentSubspan->newStartPos != -1)
+		{
+			// the subspan in arrNew is not empty, so display the words
+			wxLogDebug(_T("*** No Subspans created (as there were no in-common words) ***  arrNew words in this span: "));
+			int nonCommonsCount = pParentSubspan->newEndPos - pParentSubspan->newStartPos + 1; 
+			{
+				int i = 0;
+				wxString word[12];
+				int nLines = nonCommonsCount / 12;
+				if (nonCommonsCount % 12 > 0)
+					nLines++;
+				int index = 0;
+				for (i = 0; i < nLines; i++)
+				{
+					for (index = 0; index < 12; index++)
+					{
+						int index2 = i*12 + index + pParentSubspan->newStartPos;
+						if (index2 < nonCommonsCount + pParentSubspan->newStartPos)
+						{
+							CSourcePhrase* pSP = arrNew.Item(index2);
+							word[index] = pSP->m_key;
+						}
+						else
+						{
+							word[index] = _T(' ');
+						}
+					}
+					wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),  
+						word[0].c_str(), word[1].c_str(), word[2].c_str(), word[3].c_str(), word[4].c_str(),
+						word[5].c_str(), word[6].c_str(), word[7].c_str(), word[8].c_str(), word[9].c_str(),
+						word[10].c_str(), word[11].c_str());
+				}
+			}
+		}
+		else
+		{
+			// the subspan in arrNew is empty
+			wxLogDebug(_T("*** No Subspans created (as there were no in-common words) ***  arrNew subspan is empty (-1,-1)"));
+		}
+	} // end of else block for test: if (pCommonSubspan)
+#endif
+
+	if (pCommonSubspan != NULL)
+	{
+		// there are one or more CSourcePhrases which are in common, for the maximal
+		// commonSpan Subspan child
+		tuple[1] = pCommonSubspan; // its spanType is already set to commonSpan, and 
+								   // bClosedEnd is already set to TRUE
+		// define the beforeSpan and afterSpan
+		Subspan* pBeforeSpan = NULL;
+		Subspan* pAfterSpan = NULL;
+		int parentOldStartAt = pParentSubspan->oldStartPos;
+		int parentOldEndAt = pParentSubspan->oldEndPos; // note, if the parent Subspan was
+                    // one with its bClosedEnd member set FALSE, then the pCommonSubspan
+                    // found above may potentially have it's oldEndPos value set much
+                    // larger than parentOldStartAt + SPAN_LIMIT value, in fact the latter
+                    // could be as large as arrOld.GetCount() - 1 if the user did not make
+                    // edits to the source text later in the document
+        int parentNewStartAt = pParentSubspan->newStartPos;
+		int parentNewEndAt = pParentSubspan->newEndPos; // note, if the parent Subspan was
+                    // one with its bClosedEnd member set FALSE, then the pCommonSubspan
+                    // found above may potentially have it's newEndPos value set much
+                    // larger than parentNewStartAt + SPAN_LIMIT value, in fact the latter
+                    // could be as large as arrNew.GetCount() - 1 if the user did not make
+                    // edits to the source text later in the document
+
+		// handle any beforeSpan first....in the InitializeSubspan() calls below, TRUE is
+        // bClosedEnd
+		pBeforeSpan = new Subspan;
+		if (parentOldStartAt < pCommonSubspan->oldStartPos)
+		{
+			// the beforeSpan has some content from arrOld, so check the situation in arrNew 
+			if (parentNewStartAt < pCommonSubspan->newStartPos)
+			{
+                // there is content from both arrOld and arrNew for this pBeforeSpan (that
+                // means there is potentially some old CSourcePhrase instances to be
+                // replaced with ones from the user's edits; we say "potentially" because
+                // possibly not all of it would end up being replaced, as there could be
+                // smaller subspans within it which are in common, and these would be
+                // delineated in the recursing to greater depth
+				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
+						pCommonSubspan->oldStartPos - 1, parentNewStartAt, 
+						pCommonSubspan->newStartPos - 1, TRUE);
+			}
+			else
+			{
+                // There is no content from arrNew to match what is in arrOld here, in that
+                // case, set pBeforeSpan's newStartPos and newEndPos values to -1 so the
+                // caller will know that the arrNew subspan in this pBeforeSpan is empty
+                // (this situation arises when the user's editing of the source phrase text
+                // has removed some of it, so the material in arrOld's subspan has to be
+                // ignored and nothing from this pBeforeSpan goes into pMergedList)
+				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
+						pCommonSubspan->oldStartPos - 1, -1, -1, TRUE);
+			}
+		} // end of TRUE block for test: if (parentOldStartAt < pCommonSubspan->oldStartPos)
+		else
+		{
+			// there is no content for pBeforeSpan's subspan in arrOld
+			if (parentNewStartAt < pCommonSubspan->newStartPos)
+			{
+                // when there is no content for beforeSpan in arrOld, set pBeforeSpan's
+                // oldStartPos and oldEndPos values to -1 so the caller will know this
+                // subspan was empty (this means that the user's editing of the source text
+                // at this point inserted CSourcePhrase instances into the source text, so
+                // they appear in arrNew, so we must add them to pMergedList later)
+				InitializeSubspan(pBeforeSpan, beforeSpan, -1, -1, parentNewStartAt,
+					pCommonSubspan->newStartPos - 1, TRUE);
+			}
+			else
+			{
+                // the pCommonSubspan abutts both the start of the parent subspan in arrOld
+                // and the parent subspan in arrNew -- meaning that beforeSpan is empty, so
+                // in this case delete it and use NULL as it's pointer
+				delete pBeforeSpan;
+				pBeforeSpan = NULL;
+			}
+		} // end of else block for test: if (parentOldStartAt < pCommonSubspan->oldStartPos)
+
+        // Next, the afterSpan -- and well do different processing depending on the
+        // bClosedEnd value. If the latter is TRUE, the end limits are strict limits and
+        // we'll process accordingly. If the latter is FALSE, the afterSpan is anything
+        // after the pCommonSubspan's oldEndPos value in arrOld, and newEndPos value in
+        // arrNew - and it would make sense, since the latter two values may lie close to
+        // the parent Subspan's right boundaries, to extend oldEndPos and newEndPos to be a
+        // new amount of CSourcePhrase instances, using the limit value (unless limit is
+        // -1, in which case oldEndPos and newEndPos for the child pAfterSpan should be set
+        // to the arrOld and arrNew limit indices) -- SetEndIndices() does this right
+        // boundary setting job for us
+        // TRUE or FALSE in the InitializeSubspan() calls below, is the value of bClosedEnd
+		pAfterSpan = new Subspan;
+		pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value in the
+											 // child pAfterSpan, so that if the parent was
+											 // rightmost, the child pAfterSpan will also
+											 // be rightmost
+		if (bClosedEnd)
+		{
+			// right boundary index limits are to be strictly obeyed...
+			if (parentOldEndAt > pCommonSubspan->oldEndPos)
+			{
+				// pAfterSpan has some arrOld content ..., now check the end of the arrNew
+				// subspan
+				if (parentNewEndAt > pCommonSubspan->newEndPos)
+				{
+					// pAfterSpan's subspan in arrNew has some content too - obey the end
+					// limits (TRUE forces that)
+					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
+								pParentSubspan->oldEndPos, pCommonSubspan->newEndPos + 1, 
+								pParentSubspan->newEndPos, TRUE);
+				}
+				else
+				{
+                    // the end of the preceding commonSpan reaches, in arrNew, to the
+                    // pParentSubspan's newEndPos value (this means that the user has
+                    // earlier edited the old source text at this point by removing some
+                    // CSourcePhrase instances, so those in arrOld's subspan have to be
+                    // ignored and not copied to pMergedList))
+					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,  
+								pParentSubspan->oldEndPos, -1, -1, TRUE); 
+				}
+			} // end of TRUE block for test: if (parentOldEndAt > pCommonSubspan->oldEndPos)
+			else
+			{
+                // the end of the preceding commonSpan reaches, in arrOld, to the
+                // pParentSubspan's oldEndPos value (this means that the user has, in his
+                // edits of the source text, at this location in the document inserted some
+                // CSourcePhrase instances - these will need to be added to pMergedList)
+				if (parentNewEndAt > pCommonSubspan->newEndPos)
+				{
+					InitializeSubspan(pAfterSpan, afterSpan, -1, -1, 
+								pCommonSubspan->newEndPos + 1, parentNewEndAt, TRUE);
+				}
+				else
+				{
+					// the pCommonSubspan has no content from either arrOld nor arrNew
+					// after the commonSpan
+					delete pAfterSpan;
+					pAfterSpan = NULL;
+				}
+			} // end of else block for test: if (parentOldEndAt > pCommonSubspan->oldEndPos)
+		} // end of TRUE block for test: if (bClosedEnd)
+		else
+		{
+			// right boundary index limits are potentially fluid - we've a bit more to do...
+			// (FALSE in the InitializeSubspan() calls is value to be assigned to
+			// bClosedEnd member) 
+			int oldMaxIndex = arrOld.GetCount() - 1;
+			int newMaxIndex = arrNew.GetCount() - 1;
+
+            // Get tentative values for the new oldStartAt and newStartAt kick-off values
+            // for this pAfterSpan based on what follows the end of the in-common span - if
+            // anything follows, etc
+			int oldStartAt = pCommonSubspan->oldEndPos + 1; // might be > oldMaxIndex
+			int newStartAt = pCommonSubspan->newEndPos + 1; // might be > newMaxIndex
+
+			// Check if oldStartAt and/or newStartAt exceed the array bounds - if one
+			// does, do a special calculation, if neither do, just call SetEndIndices() to
+			// get appropriate end indices set up
+			if (oldStartAt > oldMaxIndex) 
+			{
+				// the subspan in pCommonSubspan belonging to arrOld must end at
+				// oldMaxIndex, so a special calc is needed here - we can call
+				// SetEndIndices() here so long as when it returns we reset the
+				// oldStartPos and oldEndPos values in pAfterSpan to -1 to indicate that
+				// the arrOld's subspan within pAfterSpan is empty
+				pAfterSpan->oldStartPos = oldStartAt; // invalid, but we'll correct it below
+				pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
+				
+				// also check the situation which exists in arrNew...
+				if (newStartAt > newMaxIndex)
+				{
+                    // the subspan in pCommonSubspan belonging to arrNew must end at
+                    // newMaxIndex also, so both commonSpan subspans end at their
+                    // respective arrOld and arrNew ends - hence pAfterSpan is empty & can
+                    // be deleted and its pointer set to NULL (for assigning to tuple[2]
+                    // below)
+					delete pAfterSpan;
+					pAfterSpan = NULL;
+				}
+				else
+				{
+                    // the subspan in pCommonSubspan belonging to arrNew ends earlier than
+                    // the end of arrNew, so there are one or more CSourcePhrase instances
+                    // beyond pCommonSubspan->newEndPos which we need to process
+					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
+								pParentSubspan->oldEndPos, pCommonSubspan->newEndPos + 1, 
+								pParentSubspan->newEndPos, FALSE);
+                    // override the oldEndPos and newEndPos values in pAfterSpan with more
+                    // useful span widths which will promote progress rightwards through
+                    // the data
+					SetEndIndices(arrOld, arrNew, pAfterSpan, limit);
+				}
+			} // end of TRUE block for test: if (oldStartAt > oldMaxIndex)
+			else
+			{
+                // the subspan in pCommonSubspan belonging to arrOld ends earlier than the
+                // end of arrOld, so there are one or more CSourcePhrase instances beyond
+                // pCommonSubspan->oldEndPos which we need to process
+				pAfterSpan->oldStartPos = oldStartAt; // valid
+				pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
+
+				// check the situation which exists in arrNew...
+				if (newStartAt > newMaxIndex)
+				{
+					// the subspan in pCommonSubspan belonging to arrNew must end at
+					// newMaxIndex, so a special calc is needed here
+					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
+								pParentSubspan->oldEndPos, -1, -1, FALSE);
+                    // override the oldEndPos and newEndPos values in pAfterSpan with more
+                    // useful span widths which will promote progress rightwards through
+                    // the data
+					SetEndIndices(arrOld, arrNew, pAfterSpan, limit); // only oldStartPos and
+																	  // oldEndPos are valid
+					// newStartPos and newEndPos have to be -1, so override again
+					pAfterSpan->newStartPos = -1; // tell caller it's an empty subspan
+					pAfterSpan->newEndPos = -1;   // within arrNew
+				}
+				else
+				{
+                    // the subspan in pCommonSubspan belonging to arrNew ends earlier than
+                    // the end of arrNew, so there are one or more CSourcePhrase instances
+                    // beyond pCommonSubspan->newEndPos which we need to process
+					InitializeSubspan(pAfterSpan, afterSpan, oldStartAt, pParentSubspan->oldEndPos,
+								newStartAt, pParentSubspan->newEndPos, FALSE);
+                    // override the oldEndPos and newEndPos values in pAfterSpan with more
+                    // useful span widths which will promote progress rightwards through
+                    // the data
+					SetEndIndices(arrOld, arrNew, pAfterSpan, limit);
+				}
+			}  // end of else block for test: if (oldStartAt > oldMaxIndex)
+
+		} // end of else block for test: if (bClosedEnd) i.e. the pAfterSpan is open ended
+
+		// tuple[1] is set already, so set the remaining two
+		tuple[0] = pBeforeSpan;
+		tuple[2] = pAfterSpan;
+	} // end of TRUE block for test: if (pCommonSubspan != NULL)
+	else
+	{
+		// NULL was returned, so there is nothing in common; tell that to the caller,
+		// which will then append the parent Subspan's arrNew instances to pMergedList
+		return FALSE;
+	}
+	return TRUE;
+}
+
 void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
 							   int limit, Subspan* tuple[])
 {
-	int siz = tupleSize;
+	int siz = tupleSize; // set to:  const int 3;
 	int tupleIndex;
+	Subspan* pParent = NULL;
 	SubspanType type;
+	bool bMadeChildTuple = FALSE;
 	bool bIsClosedEnd = TRUE; // default, but can be changed below
+	/*
 #ifdef __WXDEBUG__
-	wxString allOldSrcWords; // for debugging displays in Output window using wxLogDebug
-	wxString allNewSrcWords; // ditto
+	wxString allOldSrcWords; // for debugging displays in Output window using
+	wxString allNewSrcWords; // wxLogDebug() calls that are below
 #endif
+	*/
 	for (tupleIndex = 0; tupleIndex < siz; tupleIndex++)
 	{
 		if (tupleIndex == 1) //  the commonSpan (middle of the three)
@@ -2870,14 +3996,20 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			}
 			else
 			{
-                // *** TODO **** code for handling the CSourcePhrase instances which are
-                // in common (i.e. unchanged by the user's edits of the source text
-                // outside of the application)
-				type = tuple[tupleIndex]->spanType;
-				bIsClosedEnd = TRUE; // the commonSpan type is always closed
+                // Handle the CSourcePhrase instances which are in common (i.e. unchanged
+                // by the user's edits of the source text outside of the application). For
+                // these we need no child tuple, but can immediately make deep copies and
+                // store in pMergedList. (The ptr to Subspan which is stored in
+                // tuple[tupleIndex] is removed from the heap before MergeOldAndNew()
+                // returns)
+                pParent = tuple[tupleIndex];
+				type = pParent->spanType;
+				wxASSERT(type == commonSpan);
+				bIsClosedEnd = TRUE;
+				wxASSERT(bIsClosedEnd == pParent->bClosedEnd);
 
-
-
+				// do the old CSourcePhrase instances' transfers
+				MergeOldAndNew(arrOld, arrNew, pParent, pMergedList);
 			}
 		}
 		else
@@ -2892,111 +4024,265 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			{
 				continue; // not defined, so skip this Subspan
 			}
-			// the Subspan must exist, so process it
-			type = tuple[tupleIndex]->spanType;
-			bIsClosedEnd = tuple[tupleIndex]->bClosedEnd; // only the rightmost afterSpan at
-							// any given nesting level will be FALSE, other afterSpans at the
-							// same level are always TRUE, and all beforeSpans are TRUE
-							// regardless of the level they are at, as are all commonSpans 
-							// likewise
-			int oldStartAt = tuple[tupleIndex]->oldStartPos;
-			int newStartAt = tuple[tupleIndex]->newStartPos;
-				
+			// the Subspan ptr stored in tuple[tupleIndex] must exist, so process it
+			pParent = tuple[tupleIndex];
+			/*				
 #ifdef __WXDEBUG__
 			// The GetKeysAsAString_KeepDuplicates() calls are not needed, but useful initially for
 			// debugging purposes -- comment them out later on
-			// 
-			// turn the array of old CSourcePhrase instances into a string of m_key values (there will
-			// be no mergers in this stuff), and don't remove word duplicates; call without 4th
-			// param int limit, so defaults to SPAN_LIMIT = 50 (we need the duplicates so we can
-			// later check any merger to see if it's source text is retained unchanged in the
-			// edited source text) ... no placeholder ellipses in the returned string
-			// allOldSrcWords
 			int oldWordCount = 0;
 			// TRUE is bShowOld
-			oldWordCount = GetKeysAsAString_KeepDuplicates(arrOld, tuple[tupleIndex], TRUE, allOldSrcWords, limit); 													
+			oldWordCount = GetKeysAsAString_KeepDuplicates(arrOld, pParent, TRUE, allOldSrcWords, limit); 													
 			wxLogDebug(_T("oldWordCount = %d ,  allOldSrcWords:  %s"), oldWordCount, allOldSrcWords.c_str());
 			if (allOldSrcWords.IsEmpty())
 				return;
-			// turn the array of new CSourcePhrase instances into a string of m_key values (there will
-			// be no mergers in this stuff), and don't remove word duplicates; call without 4th
-			// param int limit, so defaults to SPAN_LIMIT = 50 (we need the duplicates so we can
-			// later check any merger to see if it's source text is retained unchanged in the
-			// edited source text) ... no placeholder ellipses in the returned string
-			// allNewSrcWords
 			int newWordCount = 0;
 			// FALSE is bShowOld
-			newWordCount = GetKeysAsAString_KeepDuplicates(arrNew, tuple[tupleIndex], FALSE, allNewSrcWords, limit); 													
+			newWordCount = GetKeysAsAString_KeepDuplicates(arrNew, pParent, FALSE, allNewSrcWords, limit); 													
 			wxLogDebug(_T("newWordCount = %d ,  allNewSrcWords:  %s"), newWordCount, allNewSrcWords.c_str());
 			if (allNewSrcWords.IsEmpty())
 				return;
 #endif
-			// Take a span of limit CSourcePhrase instances in the new array, starting at
-			// newStartAt, and find the set of unique m_key words by comparison with a similar
-			// length span in the old array, starting at oldStartAt.(Note, if the instances contain
-			// mergers they will be tokenized to single-word tokens). If limit is -1, the rest of
-			// the arrays are checked, but we'll use the default value (the call without 6th param
-			// limit explicitly set defaults it to SPAN_LIMIT = 50)
-			wxArrayString arrInCommon; // store here source text words which are in both of the
-									   // scanned initial parts of oldList and newList (or the
-									   // whole if newList is short enough (i.e. < SPAN_LIMIT)
-			int commonsCount = GetWordsInCommon(arrOld, arrNew, tuple[tupleIndex], arrInCommon, limit);
-			commonsCount = commonsCount; // avoid compiler warning
-
-			// determine match associated positions in each array using the set of common words,
-			// starting from the top of the latter's array, since these will be approximately in
-			// order of occurrence in both arrays - thereby reducing the number of tests needed to
-			// get matches which we can then expand into subspans of common CSourcePhrase
-			// instances, (but bogus matches will generate short subspans, so taking the longest
-			// gives us safety from setting up a bogus span association) 
-			int oldEndAt;
-			int newEndAt;
-			// set oldEndAt and newEndAt so that our searches don't go beyond the end of the
-			// relevant limited (by the limit parameter's value) spans being tested
-			if (bIsClosedEnd)
+			*/
+#ifdef __WXDEBUG__
+			type = pParent->spanType;
+			bIsClosedEnd = pParent->bClosedEnd; // only the rightmost afterSpan at
+						// any given nesting level will be FALSE, other afterSpans at
+						// the same level are always TRUE, and all beforeSpans are TRUE
+						// regardless of the level they are at, as are all commonSpans 
+						// likewise							
+			if (tupleIndex == 0)
 			{
-				// when the end is closed, the end index coming from the oldEndPos (for
-				// arrOld) and newEndPos (for arrNew) as stored in the tuple's Subspan
-				// which we are processing supplies the strict end, which must not be
-				// exceeded - otherwise neighbouring Subspans would overlap, which would
-				// result in duplicating CSourcePhrase instances bogusly in pMergedList
-				oldEndAt = tuple[tupleIndex]->oldEndPos;
-				newEndAt = tuple[tupleIndex]->newEndPos;
+				// pParent stores a beforeSpan, so we must try make a child
+				// tuple, and if that returns FALSE, call MergeOldAndNew() to replace the
+				// old CSourcePhrase instances from the subspan within arrOld with those
+				// from the subspan within arrNew
+				wxASSERT(type == beforeSpan); // it has to be a beforeSpan
 			}
 			else
 			{
-				// when the end is open, it's legal for the in-common instances matching
-				// to progress past the calculated end of the subinterval - providing the
-				// end of the array has not been reached
-				if (limit == -1)
-				{
-					// no limitation is wanted - this requires we set the end index to the
-					// max index for each array
-					oldEndAt = arrOld.GetCount() - 1;
-					newEndAt = arrNew.GetCount() - 1;
-				}
-				else
-				{
-					oldEndAt = wxMin((unsigned int)(oldStartAt + limit), (unsigned int)(arrOld.GetCount())) - 1;
-					newEndAt = wxMin((unsigned int)(newStartAt + limit), (unsigned int)(arrNew.GetCount())) - 1;
-				}
+                // tuple[tupleIndex] stores an afterSpan - it may or may not be closed
+                // ended. The SetupChildTuple() will overwrite the default TRUE value of
+                // bClosedEnd, in the child afterSpan, with FALSE if it sees that the
+                // passed in Subspan's bClosedEnd value is FALSE
+				wxASSERT(type == afterSpan); // it has to be a beforeSpan
 			}
-			Subspan* pMaxInCommonSubspan = new Subspan;
-			InitializeSubspan(pMaxInCommonSubspan, type, oldStartAt, 
-						  newStartAt, oldEndAt, newEndAt, bIsClosedEnd);
-			int nSpanWidth = GetMaxInCommonSubspan(arrOld, arrNew, oldStartAt, oldEndAt,
-				newStartAt, newEndAt, bIsClosedEnd, &arrInCommon, pMaxInCommonSubspan);
+#endif
+			Subspan* aChildTuple[3]; // an array of three pointer-to-Subspan (the
+									 // SetupChildTuple() call will create the 
+									 // pointers internally and pass them back)
+			// Make a child tuple which can be populated with beforeSpan, commonSpan, and
+			// afterSpan Subspan pointers by the SetupChildTuple() call below
+			aChildTuple[0] = NULL;
+			aChildTuple[1] = NULL;
+			aChildTuple[2] = NULL;
 
+			bMadeChildTuple = SetupChildTuple(arrOld, arrNew, pParent, aChildTuple, limit);
 
-
-
-
+			// are we at a leaf of the recursion tree? If so, do the merging, if not
+			// then a child tuple was successfully made, and we must immediately
+			// recurse to process it
+			if (bMadeChildTuple)
+			{
+#ifdef __WXDEBUG__
+				if (pParent != NULL)
+				{
+					wxLogDebug(_T("** Recursing into child tuple from parent: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+						pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, pParent->newEndPos, (int)pParent->bClosedEnd); 
+				}
+#endif
+				RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, aChildTuple);
+			}
+			else
+			{
+				if (pParent != NULL)
+				{
+					wxLogDebug(_T("** Merging the parent: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+						pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, pParent->newEndPos, (int)pParent->bClosedEnd); 
+				}
+				MergeOldAndNew(arrOld, arrNew, pParent, pMergedList);
+			}
 		} // end of else block for test: if (tupleIndex == 1) i.e. it is 0 or 2
+
 	} // end of for loop: for (tupleIndex = 0; tupleIndex < tupleSize; tupleIndex++)
 }
 
 
+/* 
+// I forgot I did this, and created a GetNextCommonSpan() which takes a word, makes a matchup
+// and does the widening & setting indexes for pSubspan, so I don't probably need this one
+// //////////////////////////////////////////////////////////////////////////////////////
+// / \return                     nothing
+// / \param  arrOld          ->  array of old CSourcePhrase instances (may have mergers,
+// /                             placeholders, retranslation, fixedspace conjoinings as 
+// /                             well as minimal CSourcePhrase instances)
+// / \param  arrNew          ->  array of new CSourcePhrase instances (will only be minimal
+// /                             CSourcePhrase instances, but could also contain fixedspace
+// /                             conjoined instances too)
+// / \param  oldStartPos      -> starting index in arrOld for the parent Subspan
+// / \param  newStartPos      -> starting index in arrNew for the parent Subspan                
+// / \param  oldEndPos        -> ref to ending (inclusive) index in arrOld for the parent Subspan
+// / \param  newEndPos        -> ref to ending (inclusive) index in arrNew for the parent Subspan
+// / \param  oldMatchLoc      -> the index in arrOld from which we start our expansion to the
+// /                             left and to the right
+// / \param  newMatchLoc      -> the index in arrNew from which we start our expansion to the
+// /                             left and to the right
+// / \param  pSubspan        <-  ptr to a Subspan struct in which we store the extents of
+// /                             the paired in-common CSourcPhrase instances from arrOld
+// /                             and arrNew; pass this back to the caller for storage in a
+// /                             wxArrayPtrVoid which collects all such structs from the
+// /                             current span being examined, in order to then work out
+// /                             which is the longest, and retain that - building it in to
+// /                             a tuple of beforeSpan, commonSpan and afterSpan, which is
+// /                             then processed recursively.
+// / \param  bClosedEnd      ->  the parent Subspan's bClosedEnd value (if FALSE, then in this
+// /                             function matching words in common can go beyond limited oldEndAt 
+// /                             and newEndAt bounding values, going as far as the ends of
+// /                             arrOld and arrNew; but if TRUE, the bounds must be obeyed)
+// /                         
+// / \remarks
+// / This function builds a single Subspan instance of type commonSpan, that is, in-common
+// / data which hasn't changed in the user's source text edits done outside of Adapt It. It
+// / starts from a matchup location (that is, an assocation of two index values, one in
+// / arrOld, and one in arrNew, at which the same source text word or phrase was found) and
+// / expands the matchup to both the left and the right in both arrays, one step at a time.
+// / "One step" may turn out to actually traverse more than a single CSourcePhrase instance
+// / if one or more placeholders are encountered - and these can be either manually inserted
+// / ones (we support sequences of these too), or programmatically inserted ones at the end
+// / of a retranslation in order to provide enough CSourcePhrase instances to display all
+// / the retranslation's words lined up interlinearly. The details of placeholders,
+// / retranslations, mergers, and fixedspace (~) pseudo-mergers, are all encapsulated in the
+// / lower level functions, WidenLeftwardsOnce() and WidenRightwardsOnce(), which are called
+// / here. The commonSpan is returned as an assocations of old consecutive CSourcePhrase
+// / instances, and the matching set of new CSourcePhrase instances obtained by tokenizing
+// / the edited source text that was imported. At a higher level, after all possible Subspan
+// / instances in the span are identified, the widest is taken and the others thrown away.
+// / (They will be recreated of course at a later stage in the recursion, and the longest
+// / taken each time, etc.)
+// / 
+// / We iterate the leftwards widening first. It proceeds until WidenLeftwardsOnce()
+// / returns FALSE - that indicates the left bound for the widening has been reached,
+// / however that does NOT also imply that no CSourcePhrase instances were traversed
+// / because it is possible that one or more placeholders were traversed. We then iterate
+// / from the starting location rightwards, until WidenRightwardsOnce()returns FALSE,
+// / indicating the right boundary for the commonSpan based on the passed in matchup, and
+// / the same non-implication applies here too. WidenRightwardsOnce() also internally
+// / checks the passed in bClosedEnd value, and if FALSE, it makes sure that oldEndPos is
+// / set to the max index in arrOld (and changes it to be so if that is not the case), and
+// / likewise, if the passed in newEndPos value is not the same as the max index in arrNew,
+// / it is reset to that - and the possibly adjusted oldEndPos and newEndPos values are
+// / returned to WidenMatchup() via the signature of WidenRightwardsOnce().
+// / 
+// / Note 1: the commonSpan Subspan obtained does not necessarily start at the same index
+// / value in both arrOld and arrNew, nor end at the same index value in arrOld and arrNew,
+// / nor are there necessarily the same number of CSourcePhrase instances in each (due to
+// / the possibility that the oldArr sequence of CSourcePhrase instances contains mergers
+// / and / or placeholders and / or fixedspace pseudo-mergers, and arrNew may contain
+// / fixedspace pseudo-mergers retained, or added in the user's editing before the import
+// / was done).
+// / 
+// / Note 2: we don't pass the potentially internally altered values of oldEndPos and
+// / newEndPos (which can internally get reset to the max index values of arrOld and arrNew,
+// / respectively, when bCloseEnd is FALSE) back to the caller. This is because the caller
+// / has to be restricted to finding commonSpan Subspan instances from a limited range of
+// / indices within arrOld and arrNew, otherwise processing will bog down due to the huge
+// / number of possibilities needing to be checked (see the explanation of the SPAN_LIMIT
+// / value in AdaptitConstants.h). So the caller won't get upset if the oldEndAt and
+// / newEndAt values passed back to it in pSubspan lie beyond the oldEndPos and newEndPos
+// / values passed in here - provided that the caller is processing the rightmost afterSpan
+// / Subspan - and the latter always must have the bClosedEnd parameter set to FALSE.
+// / 
+// / Note 3: bounds checking for the index values is done within the called functions for
+// / widening to the left and to the right.
+// //////////////////////////////////////////////////////////////////////////////////////
+void WidenMatchup(SPArray& arrOld, SPArray& arrNew,  int oldStartPos, int newStartPos, 
+					 int oldEndPos, int newEndPos, int oldMatchLoc, int newMatchLoc, 
+					 bool bClosedEnd, Subspan* pSubspan)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+	// oldIndex and newIndex will change with each iteration of the loop, the loop each
+	// time starts with the passed in oldMatchLoc and newMatchLoc values
+	int oldIndex = oldMatchLoc;
+	int newIndex = newMatchLoc;
+	// oldCount and newCount are passed in (their value doesn't matter), are internally
+	// set to zero, and then each stores a count of the CSourcePhrase instances
+	// successfully traversed as belonging in the commonSpan - oldCount counts those
+	// traversed within arrOld, and newCount counts those traversed within arrNew - and
+	// these two counts, while usually both 0 or both 1, can potentially each be different
+	// than 1. For example, a matched merger of 5 source phrase words will return 1 for
+	// oldCount, but 5 for newCount.
+	int oldCount = 0;
+	int newCount = 0;
+	// accumulate the counts in the following local variables
+	int oldAccumulatedLeftCount = 0;
+	int newAccumulatedLeftCount = 0;
+	int oldAccumulatedRightCount = 0;
+	int newAccumulatedRightCount = 0;
+	// widen to smaller sequence numbers first (i.e. leftwards), leftwards widening can
+	// never be 'open', so the bClosedEnd param value doesn't have any bearing on it
+	while (WidenLeftwardsOnce(arrOld,arrNew,oldStartPos,oldEndPos,newStartPos,newEndPos,
+			oldIndex,newIndex,oldCount,newCount))
+	{
+		// update the accumulated counts
+		oldAccumulatedLeftCount += oldCount;
+		newAccumulatedLeftCount += newCount;
 
+		// update the oldIndex and newIndex values ready for the next iteration, pass in
+		// the leftmost matched SourcePhrase instance's index in both arrOld and arrNew
+		oldIndex -= oldCount;
+		newIndex -= newCount;
+
+		// next two lines are redundant, but retained as they are self-documenting
+		oldCount = 0;
+		newCount = 0;
+	}
+    // update the accumulated counts when FALSE was returned (we can't assume both oldCount
+    // and newCount will be returned as zero)
+	oldAccumulatedLeftCount += oldCount;
+	newAccumulatedLeftCount += newCount;
+
+	// now do the same for widening rightwards, in this case, if the parent span is the
+	// rightmost (so far defined) afterSpan, then it's bClosedEnd value should be FALSE
+	// (meaning the limited span is 'opened' for widening to the end of the arrays) - so
+	// WidenRightwardsOnce() requires the bClosedEnd value passed in so it can check, and
+	// adjust if necessary, the end bounding index values
+	oldCount = 0;
+	newCount = 0;
+	oldIndex = oldMatchLoc;
+	newIndex = newMatchLoc;
+	if (!bClosedEnd)
+	{
+		oldEndPos = arrOld.GetCount() - 1;
+		newEndPos = arrNew.GetCount() - 1;
+	}
+	while (WidenRightwardsOnce(arrOld,arrNew,oldStartPos,oldEndPos,newStartPos,newEndPos,
+			oldIndex,newIndex,oldCount,newCount)
+	{
+		// update the accumulated counts
+		oldAccumulatedRightCount += oldCount;
+		newAccumulatedRightCount += newCount;
+
+		// update the oldIndex and newIndex values ready for the next iteration, pass in
+		// the rightmost matched SourcePhrase instance's index in both arrOld and arrNew
+		oldIndex += oldCount;
+		newIndex += newCount;
+
+		// next two lines are redundant, but retained as they are self-documenting
+		oldCount = 0;
+		newCount = 0;
+	}
+    // update the accumulated counts when FALSE was returned (we can't assume both oldCount
+    // and newCount will be returned as zero)
+	oldAccumulatedRightCount += oldCount;
+	newAccumulatedRightCount += newCount;
+	
+	// return the commonSpan index data
+	pSubspan->oldStartPos = oldMatchLoc - oldAccumulatedLeftCount;
+	pSubspan->oldEndPos = oldMatchLoc + oldAccumulatedRightCount;
+	pSubspan->newStartPos = newMatchLoc - newAccumulatedLeftCount;
+	pSubspan->newEndPos = newMatchLoc + newAccumulatedRightCount;
+}
+*/
 
 
 

@@ -1595,6 +1595,7 @@ void CRetranslation::SetRetranslationFlag(SPList* pList,bool bValue)
 
 // old code was based on code in TokenizeText in doc file; new code is based on code in
 // RemovePunctuation() which is much smarter & handles word-building punctuation properly
+/* BEW deprecated 12May11, it didn't handle docV5 data well enough, nor all of it
 void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 {
 	wxString src = pSrcPhrase->m_srcPhrase;
@@ -1665,7 +1666,7 @@ void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 		pSrcPhrase->m_key = tempStr;
 	}
 }
-
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // Event handlers
@@ -3039,6 +3040,203 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	m_bInsertingWithinFootnote = FALSE; // restore default value
 }
 
+// RemoveRetranslation() does the core work that the OnRemoveRetranslation() handler does,
+// but is public and passes in the list which is to be worked on, and doesn't have any of
+// the code relating to the GUI. Because RemoveRetranslation() should not be used with
+// m_pSourcePhrases document list, but with some other list, we assume there are no
+// partner piles and so don't try to remove them. In strAdapt we also return the old
+// adaptation for the retranslation, in case the caller may want to use it for some purpose
+void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, wxString& strAdapt)
+{
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	SPList* pList = new SPList; // list of the CSourcePhrase objects in the retranslation section
+	SPList* pSrcPhrases = pSPList; // pSrcPhrases is a local synonym for pSPList
+	CSourcePhrase* pSrcPhrase = NULL;
+
+	// get the initial sequence number for pSPList
+	int initialSequNum = pSPList->GetFirst()->GetData()->m_nSequNumber;
+	
+    // get the source phrases which comprise the section retranslated
+	SPList::Node* posStart = pSPList->Item(first);
+	wxASSERT(posStart != NULL);
+	SPList::Node* posEnd = pSPList->Item(last);
+	wxASSERT(posEnd != NULL);
+	SPList::Node* pos; // iterator to range over the closed interval 
+					   // [ posStart , posEnd ]
+     
+	
+	// get the range of retranslation CSourcePhrase instances into pList
+	wxASSERT(pList->IsEmpty());
+	pSrcPhrase = posStart->GetData();
+	pList->Append(pSrcPhrase);
+	pos = posStart;
+	int width = last - first + 1; // for safety first use
+	if (posStart == posEnd)
+	{
+		// there is only one CSourcePhrase in the retranslation, and it is already in
+		// pList so do nothing here
+		;
+	}
+	else
+	{
+		// there is at least a second CSourcePhrase instance in the retranslation
+		int count = 1;
+		while (pos != posEnd && count < width)
+		{
+			pos = pos->GetNext();
+			pSrcPhrase = pos->GetData();
+			count++; // for ensuring bound is not transgressed
+			pList->Append(pSrcPhrase); // the one at posEnd will be the last one
+									   // added before the loop exits
+		}
+	}
+	
+	// accumulate the translation text of the old retranslation and return it to the
+	// caller - though probably we won't ever need to use it, but just in case...
+	strAdapt.Empty();
+	wxString str2; // a temporary storage string
+	str2.Empty();
+	SPList::Node* posList = pList->GetFirst();
+	wxASSERT(posList != NULL);
+	while (posList != NULL)
+	{
+		// accumulate the old retranslation's text and return it to the caller in case it
+		// is needed
+		pSrcPhrase = (CSourcePhrase*)posList->GetData();
+		posList = posList->GetNext();
+		str2 = pSrcPhrase->m_targetStr;
+		if (strAdapt.IsEmpty())
+		{
+			strAdapt += str2;
+		}
+		else
+		{
+			if (!str2.IsEmpty())
+				strAdapt += _T(" ") + str2;
+		}	
+	}
+	
+    // any null source phrases have to be thrown away, and update the sequence numbers of
+    // the CSourcePhrase instances remaining in pSPList - use initialSequNum value since we
+    // should not assume that the first in pSPList will have value zero
+	pos = pList->GetFirst();
+	wxASSERT(pos != NULL);
+	int nCount = pList->GetCount();
+	int nDeletions = 0; // number of null source phrases to be deleted
+	wxString endmarkersStr = _T("");
+	bool bEndHasEndMarkers = FALSE;
+	bool bEndIsAlsoFreeTransEnd = FALSE;
+	wxString bindingEMkrs;
+	wxString nonbindingEMkrs;
+	wxString follPunct;
+	wxString follOuterPunct;
+	while (pos != NULL)
+	{
+		SPList::Node* savePos = pos;
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bNullSourcePhrase)
+		{
+            // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
+            // on every one, or if not so, then only the last will have a TRUE value
+			if (pSrcPhrase->m_bEndFreeTrans)
+				bEndIsAlsoFreeTransEnd = TRUE;
+
+			// likewise, test for a non-empty m_endMarkers member at the end - there can
+			// only be one such member which has content - the last one
+			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				endmarkersStr = pSrcPhrase->GetEndMarkers();
+				bEndHasEndMarkers = TRUE;
+			}
+
+			bindingEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+			nonbindingEMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+			follPunct = pSrcPhrase->m_follPunct;
+			follOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
+
+            // null source phrases in a retranslation are never stored in the KB, so we
+            // need only remove their pointers from the lists and delete them from the heap
+			nDeletions++; // count it
+			SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase); 
+			wxASSERT(pos1 != NULL); // it has to be there
+			pSrcPhrases->DeleteNode(pos1); // remove its pointer from the passed in pSPList
+			
+			delete pSrcPhrase->m_pMedialPuncts;
+			delete pSrcPhrase->m_pMedialMarkers;
+			pSrcPhrase->m_pSavedWords->Clear();
+			delete pSrcPhrase->m_pSavedWords;
+			delete pSrcPhrase; // delete the null source phrase itself
+			pList->DeleteNode(savePos); // also remove its pointer from the local sublist
+		}
+		else
+		{
+            // of those source phrases which remain, throw away the contents of their
+            // m_adaption member, clear the flags for start and end, and clear the flag
+            // which designates them as retranslations and also the one which says they are
+            // not in the KB
+			pSrcPhrase->m_adaption.Empty();
+			pSrcPhrase->m_targetStr.Empty();
+			pSrcPhrase->m_bRetranslation = FALSE;
+			if (m_pApp->m_pKB->IsItNotInKB(pSrcPhrase))
+				pSrcPhrase->m_bNotInKB = TRUE;
+			else
+				pSrcPhrase->m_bNotInKB = FALSE;
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+			pSrcPhrase->m_bBeginRetranslation = FALSE;
+			pSrcPhrase->m_bEndRetranslation = FALSE;						
+		}
+	}
+	
+	// transfer back info formerly moved to the last placeholder
+	if ((int)pList->GetCount() < nCount)
+	{
+		// handle transferring the indication of the end of a free translation
+		if (bEndIsAlsoFreeTransEnd)
+		{
+			SPList::Node* spos = pList->GetLast();
+			CSourcePhrase* pSPend = (CSourcePhrase*)spos->GetData();
+			pSPend->m_bEndFreeTrans = TRUE;
+		}
+
+		// handle transferring of m_endMarkers content and the other stuff, gathered from
+		// the last placeholder, back to the last non-placeholder it was earlier obtained
+		// from 
+		SPList::Node* pos = pList->GetLast();
+		CSourcePhrase* pSPend = (CSourcePhrase*)pos->GetData();
+		if (bEndHasEndMarkers)
+		{
+			pSPend->SetEndMarkers(endmarkersStr);
+		}
+		// 12May11 add the following
+		if (!bindingEMkrs.IsEmpty())
+		{
+			pSPend->SetInlineBindingEndMarkers(bindingEMkrs);
+		}
+		if (!nonbindingEMkrs.IsEmpty())
+		{
+			pSPend->SetInlineNonbindingEndMarkers(nonbindingEMkrs);
+		}
+		if (!follPunct.IsEmpty())
+		{
+			pSPend->m_follPunct = follPunct;
+		}
+		if (!follOuterPunct.IsEmpty())
+		{
+			pSPend->SetFollowingOuterPunct(follOuterPunct);
+		}
+	}
+	// update the sequence numbers to be consecutive within the passed in pSPList content;
+	// strictly speaking it isn't necessary if the list was not shortened by deleting some
+	// retranslation-final placeholders, but there is no harm in always doing it, and
+	// indeed, it is safe to do so
+	pDoc->UpdateSequNumbers(initialSequNum, pSPList);
+	
+	// remove from the heap the temporary pList
+	pList->Clear();
+	delete pList;
+}
+
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
 // transferring endmarker content from the last placeholder back to end of the
 // CSourcePhrase list of non-placeholders)
@@ -3233,9 +3431,22 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	// non-empty member on the last placeholder, and if non-empty, save it's contents to a
 	// wxString, set a flag to signal this condition obtained, and in the block which
 	// follows put the endmarkers back on the last CSourcePhrase which is not a placeholder
+	
+	// BEW 12May11, also, for docVersion 5, the final placeholder will have had
+	// transferred to it, any non-empty m_inlineBindingEndMarker,
+	// m_inlineNonbindingEndMarker, m_follPunct, m_follOuterPunct. Legacy code called
+	// RestoreOriginalRetranslation(pSrcPhrase), but that was built when docVersion 4 was
+	// in effect and it does things unhelpfully and doesn't handle the above, so I'm going
+	// to remove it and instead add code here to do what is needed
 	wxString endmarkersStr = _T("");
 	bool bEndHasEndMarkers = FALSE;
 	bool bEndIsAlsoFreeTransEnd = FALSE;
+	// 12May11 add the following
+	wxString bindingEMkrs;
+	wxString nonbindingEMkrs;
+	wxString follPunct;
+	wxString follOuterPunct;
+	// end 12May11 additions
 	while (pos != NULL)
 	{
 		SPList::Node* savePos = pos;
@@ -3255,6 +3466,13 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 				endmarkersStr = pSrcPhrase->GetEndMarkers();
 				bEndHasEndMarkers = TRUE;
 			}
+
+			// 12May11 add the following (since transfer was only to the last, this is okay)
+			bindingEMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+			nonbindingEMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+			follPunct = pSrcPhrase->m_follPunct;
+			follOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
+			// end 12May11 additions
 
             // null source phrases in a retranslation are never stored in the KB, so we
             // need only remove their pointers from the lists and delete them from the heap
@@ -3292,7 +3510,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			pSrcPhrase->m_bEndRetranslation = FALSE;
 			
 			// we have to restore the original punctuation too
-			RestoreOriginalPunctuation(pSrcPhrase);
+			// BEW 12May11, removed because it didn't handle all of docV5 stuff, and put
+			// extra code instead further below
+			//RestoreOriginalPunctuation(pSrcPhrase);
 			
 			// these pSrcPhrase instances have to have their partner piles' 
 			// widths recalculated
@@ -3300,7 +3520,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		}
 	}
 	
-	if ((int)pList->GetCount() < nCount)
+	if ((int)pList->GetCount() < nCount) // TRUE means there was at least one placeholder
 	{
 		// handle transferring the indication of the end of a free translation
 		if (bEndIsAlsoFreeTransEnd)
@@ -3310,13 +3530,32 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			pSPend->m_bEndFreeTrans = TRUE;
 		}
 
-		// handle transferring of m_endMarkers content
+		// handle transferring of m_endMarkers content and other stuff as per 12May11
+		// additions above
+		SPList::Node* pos = pList->GetLast();
+		CSourcePhrase* pSPend = (CSourcePhrase*)pos->GetData();
 		if (bEndHasEndMarkers)
 		{
-			SPList::Node* pos = pList->GetLast();
-			CSourcePhrase* pSPend = (CSourcePhrase*)pos->GetData();
 			pSPend->SetEndMarkers(endmarkersStr);
 		}
+		// 12May11 add the following
+		if (!bindingEMkrs.IsEmpty())
+		{
+			pSPend->SetInlineBindingEndMarkers(bindingEMkrs);
+		}
+		if (!nonbindingEMkrs.IsEmpty())
+		{
+			pSPend->SetInlineNonbindingEndMarkers(nonbindingEMkrs);
+		}
+		if (!follPunct.IsEmpty())
+		{
+			pSPend->m_follPunct = follPunct;
+		}
+		if (!follOuterPunct.IsEmpty())
+		{
+			pSPend->SetFollowingOuterPunct(follOuterPunct);
+		}
+		// end 12May11 additions	
 
 		// update the sequence numbers to be consecutive across the deletion location
 		m_pView->UpdateSequNumbers(nStartingSequNum);
