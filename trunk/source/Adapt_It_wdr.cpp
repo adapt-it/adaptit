@@ -8010,7 +8010,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item4->SetToolTip( _("Click on this drop down list if you need to select a different project from which to get a source text") );
     item2->Add( item4, 0, wxGROW|wxALL, 0 );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Transfer Translation texts to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Transfer Translation Texts to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxString *strs6 = (wxString*) NULL;

@@ -445,6 +445,7 @@ const char emailsendersname[] = "emailsendersname";
 const char usagelogfilepathname[] = "usageLogFilePathName";
 const char packeddocumentfilepathname[] = "packedDocumentFilePathName";
 
+
 /// struct for saving top and bottom logical coord offsets for printing pages, stored in
 /// m_pagesList Instances of PageOffsets are populated in the PaginateDoc() function in the
 /// View.
@@ -1019,6 +1020,29 @@ struct UserProfileItem
 	wxArrayString usedProfileNames;
 	wxArrayString usedVisibilityValues;
 	wxArrayString usedFactoryValues;
+};
+
+struct PT_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration support
+{
+	// Note: Paratext .ssf files also have some tag fields that provide file naming
+	// structure, i.e., <FileNameForm>, <FileNamePostPart>, <FileNamePrePart>. Since
+	// by using rdwrtp7.exe, we don't have to know the actual Paratext file names,
+	// or do any file name parsing, those fields are not really significant to Adapt It.
+	bool bProjectIsNotResource; // default is TRUE
+	bool bProjectIsEditable; // default is TRUE
+	wxString versification; // default is _T("");
+	wxString fullName; // default is _T("");
+	wxString shortName; // default is _T("");
+	wxString languageName; // default is _T("");
+	wxString ethnologueCode; // default is _T("");
+	wxString projectDir; // default is _T("");
+	wxString booksPresentFlags; // default is _T("");
+	wxString chapterMarker; // default is _T("c");
+	wxString verseMarker; // default is _T("v");
+	wxString defaultFont; // default is _T("10");
+	wxString defaultFontSize; // default is _T("Arial")
+	wxString leftToRight; // default is _T("T");
+	wxString encoding; // default is _T("65001"); // 65001 is UTF8
 };
 
 /// wxList declaration and partial implementation of the ProfileItemList class being
@@ -2521,7 +2545,12 @@ public:
 	bool m_bCollaboratingWithParatext;
 	wxString m_PTProjectForSourceInputs;
 	wxString m_PTProjectForTargetExports;
+	wxString m_PTBookSelected;
+	wxString m_PTChapterSelected;
+
+	wxString m_ParatextInstallDirPath;
 	wxString m_ParatextProjectsDirPath;
+	wxArrayPtrVoid*	m_pArrayOfPTProjects;
 	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
@@ -2841,6 +2870,7 @@ public:
 	bool	ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
 	bool	NewProjectItemIsVisibleInThisProfile(const int nProfile);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
+	wxArrayString GetBooksArrayFromPTFlags(wxString booksStr);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxString GetMenuItemKindAsString(wxItemKind itemKind);
 	wxItemKind GetMenuItemKindFromString(wxString itemKindStr);
@@ -2880,7 +2910,10 @@ public:
 	
 	// whm added 15Apr11 for AI-PT Collaboration
 	wxArrayString GetListOfPTProjects();
+	PT_Project_Info_Struct* GetPT_Project_Struct(wxString projShortName);
 	wxString GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag);
+	wxString GetBookCodeFromBookName(wxString bookName);
+	wxString GetBookNumberAsStrFromName(wxString bookName);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
@@ -2888,6 +2921,7 @@ public:
 	bool	ParatextIsInstalled(); // whm added 9Feb11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
+	wxString GetParatextInstallDirPath(); // whm added 9Feb11
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
