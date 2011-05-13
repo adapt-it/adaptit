@@ -229,6 +229,7 @@ void CFontPageCommon::DoInit()
 
 	tempSpecialTextColor = gpApp->m_specialTextColor;
 	tempReTranslnTextColor = gpApp->m_reTranslnTextColor;
+	tempTgtDiffsTextColor = gpApp->m_tgtDiffsTextColor;
 
 	// Initialize the local temp fontdata vars from the App's values
 	tempSrcFontData = *gpApp->m_pSrcFontData;
@@ -294,6 +295,20 @@ void CFontPageCommon::DoButtonRetranTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempReTranslnTextColor = colorData.GetColour();
+	}	
+}
+
+void CFontPageCommon::DoButtonTgtDiffsTextColor(wxWindow* parent)
+{
+	// change Target Text Differences colour (in target line)
+	wxColourData colorData;
+	colorData.SetColour(tempTgtDiffsTextColor);
+	colorData.SetChooseFull(TRUE);
+	wxColourDialog colorDlg(parent,&colorData);
+	if(colorDlg.ShowModal() == wxID_OK)
+	{
+		colorData = colorDlg.GetColourData();
+		tempTgtDiffsTextColor = colorData.GetColour();
 	}	
 }
 
@@ -565,6 +580,7 @@ BEGIN_EVENT_TABLE(CFontPageWiz, wxWizardPage)
 	EVT_BUTTON(IDC_CHANGE_NAV_TEXT, CFontPageWiz::OnNavTextFontChangeBtn)
 	EVT_BUTTON(IDC_BUTTON_SPECTEXTCOLOR, CFontPageWiz::OnButtonSpecTextColor)
 	EVT_BUTTON(IDC_RETRANSLATION_BUTTON, CFontPageWiz::OnButtonRetranTextColor)
+	EVT_BUTTON(ID_BUTTON_TEXT_DIFFS, CFontPageWiz::OnButtonTgtDiffsTextColor)
 	EVT_BUTTON(IDC_BUTTON_NAV_TEXT_COLOR, CFontPageWiz::OnButtonNavTextColor)
 	EVT_BUTTON(IDC_BUTTON_SOURCE_COLOR, CFontPageWiz::OnButtonSourceTextColor)
 	EVT_BUTTON(IDC_BUTTON_TARGET_COLOR, CFontPageWiz::OnButtonTargetTextColor)
@@ -813,6 +829,7 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		gpApp->m_navTextColor = fontPgCommon.tempNavTextColor;
 		gpApp->m_specialTextColor = fontPgCommon.tempSpecialTextColor;
 		gpApp->m_reTranslnTextColor = fontPgCommon.tempReTranslnTextColor;
+		gpApp->m_tgtDiffsTextColor = fontPgCommon.tempTgtDiffsTextColor;
 
 		// and set the fontData objects with the current colors
 		gpApp->m_pSrcFontData->SetColour(fontPgCommon.tempSourceColor);
@@ -929,6 +946,12 @@ void CFontPageWiz::OnButtonRetranTextColor(wxCommandEvent& WXUNUSED(event)) // b
 	fontPgCommon.DoButtonRetranTextColor(this);
 }
 
+void CFontPageWiz::OnButtonTgtDiffsTextColor(wxCommandEvent& WXUNUSED(event)) // bottom right button
+{
+	fontPgCommon.DoButtonTgtDiffsTextColor(this);
+}
+
+
 void CFontPageWiz::OnButtonNavTextColor(wxCommandEvent& WXUNUSED(event)) // bottom right button
 {
 	fontPgCommon.DoButtonNavTextColor(this);
@@ -975,6 +998,7 @@ BEGIN_EVENT_TABLE(CFontPagePrefs, wxPanel)
 	EVT_BUTTON(IDC_CHANGE_NAV_TEXT, CFontPagePrefs::OnNavTextFontChangeBtn)
 	EVT_BUTTON(IDC_BUTTON_SPECTEXTCOLOR, CFontPagePrefs::OnButtonSpecTextColor)
 	EVT_BUTTON(IDC_RETRANSLATION_BUTTON, CFontPagePrefs::OnButtonRetranTextColor)
+	EVT_BUTTON(ID_BUTTON_TEXT_DIFFS, CFontPagePrefs::OnButtonTgtDiffsTextColor)
 	EVT_BUTTON(IDC_BUTTON_NAV_TEXT_COLOR, CFontPagePrefs::OnButtonNavTextColor)
 	EVT_BUTTON(IDC_BUTTON_SOURCE_COLOR, CFontPagePrefs::OnButtonSourceTextColor)
 	EVT_BUTTON(IDC_BUTTON_TARGET_COLOR, CFontPagePrefs::OnButtonTargetTextColor)
@@ -1115,13 +1139,14 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pNavTextFont->SetWeight(fontPgCommon.tempNavTextFontWeight);
 
 	// Insure that the colors for the 3 main fonts and the
-	// colors for the 3 buttons at bottom of dialog get stored
+	// colors for the 4 buttons at bottom of dialog get stored
 	// store the App's copy of the font colors
 	gpApp->m_sourceColor = fontPgCommon.tempSourceColor;
 	gpApp->m_targetColor = fontPgCommon.tempTargetColor;
 	gpApp->m_navTextColor = fontPgCommon.tempNavTextColor;
 	gpApp->m_specialTextColor = fontPgCommon.tempSpecialTextColor;
 	gpApp->m_reTranslnTextColor = fontPgCommon.tempReTranslnTextColor;
+	gpApp->m_tgtDiffsTextColor = fontPgCommon.tempTgtDiffsTextColor;
 
 	// and set the fontData objects with the current colors
 	gpApp->m_pSrcFontData->SetColour(fontPgCommon.tempSourceColor);
@@ -1237,6 +1262,11 @@ void CFontPagePrefs::OnButtonSpecTextColor(wxCommandEvent& WXUNUSED(event)) // b
 void CFontPagePrefs::OnButtonRetranTextColor(wxCommandEvent& WXUNUSED(event)) // bottom center button
 {
 	fontPgCommon.DoButtonRetranTextColor(this);
+}
+
+void CFontPagePrefs::OnButtonTgtDiffsTextColor(wxCommandEvent& WXUNUSED(event)) // bottom right button
+{
+	fontPgCommon.DoButtonTgtDiffsTextColor(this);
 }
 
 void CFontPagePrefs::OnButtonNavTextColor(wxCommandEvent& WXUNUSED(event)) // bottom right button

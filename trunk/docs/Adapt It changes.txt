@@ -4,7 +4,17 @@ Version 6.0.0 update working on release late 2010 or early 2011
 Feature changes and new features in 6.0.0
 ----------------------------------------------
 New Features in 6.0.0:
- * User Profiles support for an administrator to customize access to 
+* Words and phrases in the target text which differ from the source 
+ text immediately above them are given a different colour. The 
+ colour used is setable from the Preferences / Fonts page.
+* Source text exported from a document can now be edited outside
+ of Adapt It, and then imported back into the same document using
+ a new command "Import Edited Source Text..." on the Export-Import
+ menu. Material that is unchanged retains all the adaptation information,
+ but material that is new or altered appears as unadapted "holes" ready
+ for adapting. The document may then be saved manually if the result 
+ is satisfactory.
+* User Profiles support for an administrator to customize access to 
  certain functionalities. Default user workflow profiles are provided 
  for Novice, Experienced, Skilled, and Custom users. Each of these 
  default user profiles can be further customized by the administrator 
@@ -14,7 +24,7 @@ New Features in 6.0.0:
  by an administrator to reduce complexity and/or confusion for new users, 
  and offer an effective means of introducing features as they are needed
 by team members.
- * OXES version 1 export support. [development is in progress]
+* OXES version 1 export support. [development is in progress]
 * Standard format exports now export the Adapt It custom markers
 \free, \free*, \note, \note* and \bt in a form which Paratext is happy
 to ignore: \zfree, \zfree*, \znote, \znote* and \zbt. Also, source text

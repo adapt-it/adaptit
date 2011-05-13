@@ -304,6 +304,7 @@ public:
 	wxColour	GetNavTextColor();
 	wxColour	GetSpecialTextColor();
 	wxColour	GetRetranslationTextColor();
+	wxColour	GetTgtDiffsTextColor();
 
 	// setters and getters for source, target and navText heights (from TEXTMETRICS), the 
 	// setters access members on the app & later can bypass them when we refactor further

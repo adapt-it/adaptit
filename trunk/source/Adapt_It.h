@@ -2151,6 +2151,7 @@ public:
 	wxColour	m_navTextColor;
 	wxColour	m_specialTextColor;
 	wxColour	m_reTranslnTextColor;
+	wxColour	m_tgtDiffsTextColor;
 	wxColour	m_AutoInsertionsHighlightColor;
 	wxColour	m_GuessHighlightColor; // whm added 1Nov10 for Guesser support
 	wxColour	m_freeTransDefaultBackgroundColor; // it will be light pastel green 

@@ -989,7 +989,13 @@ wxColour CLayout::GetSpecialTextColor()
 wxColour CLayout::GetRetranslationTextColor()
 {
 	return m_pApp->m_reTranslnTextColor; // CLayout does not yet store a copy
-									   // of m_reTranslnTextColor
+									     // of m_reTranslnTextColor
+}
+
+wxColour CLayout::GetTgtDiffsTextColor()
+{
+	return m_pApp->m_tgtDiffsTextColor; // CLayout does not yet store a copy
+									    // of m_tgtDiffsTextColor
 }
 
 // accessors for src, tgt, navText line heights
