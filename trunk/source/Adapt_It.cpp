@@ -25753,8 +25753,17 @@ void CAdapt_ItApp::OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItApp::OnUpdateGetSourceTextFromPT(wxUpdateUIEvent& event)
 {
-	// TODO: Add conditions to the following update UI handler
-	event.Enable(TRUE);
+	// Paratext is not yet available on non-Windows platforms so disable this menu item
+	// TODO: eventually we'll have a different wording for this item when Bibledit is
+	// supported for collaboration with Adapt It.
+	if (this->m_bCollaboratingWithParatext)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
 }
 
 void CAdapt_ItApp::OnTransferTransToPT(wxCommandEvent& WXUNUSED(event))
@@ -25764,8 +25773,17 @@ void CAdapt_ItApp::OnTransferTransToPT(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItApp::OnUpdateTransferTransToPT(wxUpdateUIEvent& event)
 {
-	// TODO: Add conditions to the following update UI handler
-	event.Enable(TRUE);
+	// Paratext is not yet available on non-Windows platforms so disable this menu item
+	// TODO: eventually we'll have a different wording for this item when Bibledit is
+	// supported for collaboration with Adapt It.
+	if (this->m_bCollaboratingWithParatext)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
 }
 
 
