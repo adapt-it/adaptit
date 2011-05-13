@@ -422,7 +422,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
 	if (!::wxDirExists(tempFolder))
 	{
-		wxMkDir(tempFolder);
+		::wxMkdir(tempFolder);
 	}
 
 	wxString sourceProjShortName;
