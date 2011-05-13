@@ -3151,7 +3151,7 @@ public:
 				const wxString& appVariableName);
 	// GDLC Added 16Apr11 from suggestion by Bill Martin in order to provide a realistic response
 	// for the amount of free memory - wxGetFreeMemory() doesn't do anything useful on MacOS.
-	wxMemorySize CAdapt_ItApp::GetFreeMemory(void);
+	wxMemorySize GetFreeMemory(void);
 
 private:
 	void	EnsureWorkFolderPresent();
