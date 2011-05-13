@@ -263,6 +263,9 @@ int CCell::GetCellIndex()
 					// 0 to 3 inclusive)
 }
 
+// BEW added 13May11 support of m_tgtDiffsTextColor, to implement a feature requested by
+// Patrick Rosendall on 27Aug2009, to use a different colour for a target text word/phase
+// which differs in spelling from the source text word/phrase
 wxColour CCell::GetColor()
 {
 	CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
@@ -287,10 +290,28 @@ wxColour CCell::GetColor()
 		if (gbIsGlossing)
 			return m_pLayout->m_navTextColor;
 		else
-			return m_pLayout->m_tgtColor;
+		{
+			if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
+			{
+				return m_pLayout->GetTgtDiffsTextColor();
+			}
+			else
+			{
+				return m_pLayout->m_tgtColor;
+			}
+		}
 	case 2:
 		if (gbIsGlossing)
-			return m_pLayout->m_tgtColor;
+		{
+			if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
+			{
+				return m_pLayout->GetTgtDiffsTextColor();
+			}
+			else
+			{
+				return m_pLayout->m_tgtColor;
+			}
+		}
 		else
 			return m_pLayout->m_navTextColor;
 	}

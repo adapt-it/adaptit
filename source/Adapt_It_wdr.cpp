@@ -927,9 +927,15 @@ wxSizer *FontsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item58->Add( 15, 10, 0, wxALIGN_CENTER, 0 );
 
-    wxButton *item60 = new wxButton( parent, IDC_RETRANSLATION_BUTTON, _("Set Retranslation text Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item60 = new wxButton( parent, IDC_RETRANSLATION_BUTTON, _("Set Retranslation Text Color..."), wxDefaultPosition, wxDefaultSize, 0 );
     item60->SetToolTip( _("Click this button to select a custom retranslation text color") );
     item58->Add( item60, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item58->Add( 15, 10, 0, wxALIGN_CENTER, 0 );
+
+    wxButton *item61 = new wxButton( parent, ID_BUTTON_TEXT_DIFFS, _("Set Text Differences Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item61->SetToolTip( _("Click to set the target text's color for when the text differs from the source text") );
+    item58->Add( item61, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item58, 0, wxALIGN_CENTER|wxALL, 0 );
 

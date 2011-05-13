@@ -83,6 +83,7 @@ public:
 	wxColour	tempNavTextColor;
 	wxColour	tempSpecialTextColor;
 	wxColour	tempReTranslnTextColor;
+	wxColour	tempTgtDiffsTextColor;
 
 	// the following bools not needed in wx version
 	//bool		m_bNoSourceChange;
@@ -122,6 +123,7 @@ public:
 
 	void DoButtonNavTextColor(wxWindow* parent);
 	void DoButtonRetranTextColor(wxWindow* parent);
+	void DoButtonTgtDiffsTextColor(wxWindow* parent);
 	void DoButtonSourceTextColor(wxWindow* parent);
 	void DoButtonSpecTextColor(wxWindow* parent);
 	void DoButtonTargetTextColor(wxWindow* parent);
@@ -181,6 +183,7 @@ public:
 	void OnButtonNavTextColor(wxCommandEvent& WXUNUSED(event));
 	void OnButtonSpecTextColor(wxCommandEvent& WXUNUSED(event));
 	void OnButtonRetranTextColor(wxCommandEvent& WXUNUSED(event));
+	void OnButtonTgtDiffsTextColor(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeSrcEncoding(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeTgtEncoding(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeNavEncoding(wxCommandEvent& WXUNUSED(event));
@@ -233,6 +236,7 @@ public:
 	void OnButtonNavTextColor(wxCommandEvent& WXUNUSED(event));
 	void OnButtonSpecTextColor(wxCommandEvent& WXUNUSED(event));
 	void OnButtonRetranTextColor(wxCommandEvent& WXUNUSED(event));
+	void OnButtonTgtDiffsTextColor(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeSrcEncoding(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeTgtEncoding(wxCommandEvent& WXUNUSED(event));
 	void OnButtonChangeNavEncoding(wxCommandEvent& WXUNUSED(event));

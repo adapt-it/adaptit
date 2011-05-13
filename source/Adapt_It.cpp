@@ -5504,6 +5504,12 @@ wxString szSpecialTextColor = _T("SpecialTextColor");
 wxString szReTranslnTextColor = _T("RetranslationTextColor");
 
 /// The label that identifies the following string encoded number as the application's
+/// "TargetDifferencesTextColor". This value is not written in the "Settings" part of the
+/// basic configuration file. Adapt It stores this path in the App's m_tgtDiffsTextColor
+/// member variable.
+wxString szTgtDiffsTextColor = _T("TargetDifferencesTextColor");
+
+/// The label that identifies the following string encoded number as the application's
 /// "PhraseBoxExpansionMultiplier". This value is written in the "Settings" part of the
 /// basic configuration file. Adapt It stores this path in the App's gnExpandBox member
 /// variable.
@@ -17029,6 +17035,7 @@ void CAdapt_ItApp::InitializeFonts()
 
 	m_specialTextColor = wxColour(255,0,0); // red "255" - whm added
 	m_reTranslnTextColor = wxColour(160,80,0); // mid brown "32896" - whm added
+	m_tgtDiffsTextColor = wxColour(67,100,40); // slightly greenish khaki "2647107" - bew added
 	m_AutoInsertionsHighlightColor = wxColour(203,151,255); // solid light purple "16750539"
 	m_GuessHighlightColor = wxColour(255,180,128); //wxColour(255,128,0); // pastel orange background for Guess - whm added 1Nov10
 	m_freeTransTextColor = wxColour(100,0,100); // dark purple - fixed not user selectable
@@ -22318,6 +22325,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szReTranslnTextColor << tab << WxColour2Int(m_reTranslnTextColor);
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szTgtDiffsTextColor << tab << WxColour2Int(m_tgtDiffsTextColor);
+	pf->AddLine(data);
+
 	if (m_bSuppressWelcome)
 		number = _T("1");
 	else
@@ -23729,6 +23740,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			num = wxAtoi(strValue); // allow anything 
 			m_reTranslnTextColor = Int2wxColour(num);// Int2wxColour() in helpers.h
 		}
+		else if (name == szTgtDiffsTextColor)
+		{
+			num = wxAtoi(strValue); // allow anything 
+			m_tgtDiffsTextColor = Int2wxColour(num);// Int2wxColour() in helpers.h
+		}
 		else if (name == szTS_DOC_MINS)
 		{
 			num = wxAtoi(strValue);
@@ -24690,6 +24706,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szTgtDiffsTextColor << tab << WxColour2Int(m_tgtDiffsTextColor);
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szNavTextColor << tab <<  WxColour2Int(m_navTextColor);
 	pf->AddLine(data);
 
@@ -25318,6 +25338,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			num = wxAtoi(strValue); // allow anything 
 			m_reTranslnTextColor = Int2wxColour(num); // Int2wxColour() in helpers.h
+		}
+		else if (name == szTgtDiffsTextColor)
+		{
+			num = wxAtoi(strValue); // allow anything 
+			m_tgtDiffsTextColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
 		else if (name == szNavTextColor)
 		{

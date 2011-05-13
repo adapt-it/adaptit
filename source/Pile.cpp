@@ -120,6 +120,7 @@ extern const wxChar* filterMkr;
 // globals relevant to the phrase box  (usually defined in Adapt_ItView.cpp)
 extern short gnExpandBox; // set to 8
 
+extern CAdapt_ItApp* gpApp;
 //GDLC Removed 2010-02-10
 // This global is defined in PhraseBox.cpp.
 //extern bool gbExpanding;
@@ -1004,6 +1005,27 @@ void CPile::Draw(wxDC* pDC)
 	{
 		m_pCell[0]->Draw(pDC);
 	}
+	/* Don't think I need do it this way, tweaking CCell::GetColor() is better
+    //BEW added 13May11 to implement a feature requested by Patrick Rosendall on 27Aug2009,
+    //to use a different colour for a target text word/phase which differs in spelling from
+    //the source text word/phrase
+	CSourcePhrase* pSrcPhrase = GetSrcPhrase();
+	wxColour diffColour = gpApp->m_navTextColor; // temporarily avoids a GUI addition of a button
+	//wxColour diffColour = wxColour(160,30,120); // a solid pickish red, darkish but not too much
+	wxColour oldColour;
+	if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
+	{
+		// change the colour for this pile's target text
+		oldColour = pDC->GetTextForeground();
+		pDC->SetTextForeground(diffColour);
+		m_pCell[1]->DrawCell(pDC, diffColour); // always draw the line which has the phrase box
+		pDC->SetTextForeground(oldColour);
+	}
+	else
+	{
+		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
+	}
+	*/
 	m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 	if (gbEnableGlossing)
 	{
