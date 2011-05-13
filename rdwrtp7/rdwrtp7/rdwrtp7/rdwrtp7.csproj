@@ -46,9 +46,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.5.452, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Interop.XceedZipLib, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NetLoc, Version=7.1.119.0, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="ParatextShared, Version=7.1.104.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Paratext 7\ParatextShared.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -62,6 +72,9 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Utilities, Version=7.1.119.0, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -98,18 +111,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>mkdir "$(ProjectDir)..\..\..\setup Regular\"
-copy "$(TargetPath)" "$(ProjectDir)..\..\..\setup Regular\rdwrtp7.exe"
-mkdir "$(ProjectDir)..\..\..\setup Regular - Minimal\"
-copy "$(TargetPath)" "$(ProjectDir)..\..\..\setup Regular - Minimal\rdwrtp7.exe"
-mkdir "$(ProjectDir)..\..\..\setup Regular - No Html Help\"
-copy "$(TargetPath)" "$(ProjectDir)..\..\..\setup Regular - No Html Help\rdwrtp7.exe"
-mkdir "$(ProjectDir)..\..\..\setup Unicode\"
-copy "$(TargetPath)" "$(ProjectDir)..\..\..\setup Unicode\rdwrtp7.exe"
-mkdir "$(ProjectDir)..\..\..\setup Unicode - Minimal\"
-copy "$(TargetPath)" "$(ProjectDir)..\..\..\setup Unicode - Minimal\rdwrtp7.exe"
-mkdir "$(ProjectDir)..\..\..\setup Unicode - No Html Help\"
-copy "$(TargetPath)" "$(ProjectDir)..\..\..\setup Unicode - No Html Help\rdwrtp7.exe"
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

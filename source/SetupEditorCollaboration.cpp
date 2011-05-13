@@ -43,7 +43,9 @@
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
 #include "Adapt_It.h"
+#include "Adapt_ItView.h"
 #include "SetupEditorCollaboration.h"
+#include "GetSourceTextFromEditor.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
@@ -175,8 +177,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
 	}
 	wxString msg;
-	msg = _("Choose an default project the user will see initially for source text inputs");
-	wxSingleChoiceDialog ChooseProjectForSourceTextInputs(this,msg,_T("Select a project from this list"),tempListOfProjects);
+	msg = _("Choose a default project the user will see initially for source text inputs");
+	wxSingleChoiceDialog ChooseProjectForSourceTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
 	int nPreselectedProjIndex = -1;
 	// check to see if one was previously selected in the temp array list
@@ -221,8 +223,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
 	}
 	wxString msg;
-	msg = _("Choose an default project the user will see initially for translation text exports");
-	wxSingleChoiceDialog ChooseProjectForTargetTextInputs(this,msg,_T("Select a project from this list"),tempListOfProjects);
+	msg = _("Choose a default project the user will see initially for translation text exports");
+	wxSingleChoiceDialog ChooseProjectForTargetTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
 	int nPreselectedProjIndex = -1;
 	// check to see if one was previously selected in the temp array list
@@ -296,9 +298,34 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK."));
 	}
 
-	// TODO: configure the menu interface for collaboration. The menu interface changes have
-	// to be done in such a way that they are compatible with the user profile changes to the
-	// user interface.
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		// Configure the menu interface for collaboration. The menu interface changes have
+		// to be done in such a way that they are compatible with the user profile changes to the
+		// user interface.
+		// Some menu changes will override any user profile allowed menu items:
+		// 
+		// TODO: disable Book Folder Mode menu items
+		// TODO: disable other menu items?
+		
+		// Other menu changes may involve adding tests within the menu item handler
+		// such as a test within the File's "UnPack Document..." command to prevent 
+		// the unpacking of documents that are not pertinent to the Paratext projects
+		//
+		// 
+		// Close any open project and/or document if any are open
+		CAdapt_ItView* pView = m_pApp->GetView();
+		if (pView != NULL)
+		{
+			m_pApp->GetView()->CloseProject();
+		}
+		// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
+		// which, when m_bCollaboratingWithParatext is TRUE, actually calls the "Get
+		// Source Text from Paratext Project" dialog instead of the normal startup
+		// wizard
+		m_pApp->m_bJustLaunched = TRUE;
+	}
+
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }

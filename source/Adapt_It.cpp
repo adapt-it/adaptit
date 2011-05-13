@@ -1907,6 +1907,286 @@ const wxString defaultProfileItems[] =
 	_T("/UserProfilesSupport:")
 };
 
+// whm 26Apr11added wxString arrays below for AI-PT collaboration
+// Array of all book ids. (from Paratext's canon.cs source file)
+wxString AllBookIds[] = {
+    _T("GEN"),   
+    _T("EXO"),
+    _T("LEV"),
+    _T("NUM"),
+    _T("DEU"),
+    _T("JOS"),
+    _T("JDG"),
+    _T("RUT"),
+    _T("1SA"),
+    _T("2SA"), // 10
+
+    _T("1KI"),
+    _T("2KI"),
+    _T("1CH"),
+    _T("2CH"),
+    _T("EZR"),
+    _T("NEH"),
+    _T("EST"),
+    _T("JOB"),
+    _T("PSA"),
+    _T("PRO"), // 20
+
+    _T("ECC"),
+    _T("SNG"),
+    _T("ISA"),
+    _T("JER"),
+    _T("LAM"),
+    _T("EZK"),
+    _T("DAN"),
+    _T("HOS"),
+    _T("JOL"),
+    _T("AMO"), // 30
+
+    _T("OBA"),
+    _T("JON"),
+    _T("MIC"),
+    _T("NAM"),
+    _T("HAB"),
+    _T("ZEP"),
+    _T("HAG"),
+    _T("ZEC"),
+    _T("MAL"),
+    _T("MAT"), // 40
+
+    _T("MRK"),
+    _T("LUK"),
+    _T("JHN"),
+    _T("ACT"),
+    _T("ROM"),
+    _T("1CO"),
+    _T("2CO"),
+    _T("GAL"),
+    _T("EPH"),
+    _T("PHP"), // 50
+
+    _T("COL"),
+    _T("1TH"),
+    _T("2TH"),
+    _T("1TI"),
+    _T("2TI"),
+    _T("TIT"),
+    _T("PHM"),
+    _T("HEB"),
+    _T("JAS"),
+    _T("1PE"), // 60
+
+    _T("2PE"),
+    _T("1JN"),
+    _T("2JN"),
+    _T("3JN"),
+    _T("JUD"),
+    _T("REV"),
+    _T("TOB"),
+    _T("JDT"),
+    _T("ESG"),
+    _T("WIS"), // 70
+
+    _T("SIR"),
+    _T("BAR"),
+    _T("LJE"),
+    _T("S3Y"),
+    _T("SUS"),
+    _T("BEL"),
+    _T("1MA"),
+    _T("2MA"),
+    _T("3MA"), 
+    _T("4MA"), // 80
+
+    _T("1ES"),
+    _T("2ES"),
+    _T("MAN"),
+    _T("PS2"),
+    _T("ODA"),
+    _T("PSS"),
+    _T("JSA"),  // actual variant text for JOS, now in LXA text
+    _T("JDB"),  // actual variant text for JDG, now in LXA text
+    _T("TBS"),  // actual variant text for TOB, now in LXA text
+    _T("SST"),  // actual variant text for SUS, now in LXA text // 90
+
+    _T("DNT"),  // actual variant text for DAN, now in LXA text
+    _T("BLT"),  // actual variant text for BEL, now in LXA text
+	_T("XXA"),
+	_T("XXB"),
+	_T("XXC"),
+	_T("XXD"),
+	_T("XXE"),
+	_T("XXF"),
+	_T("XXG"),
+	_T("FRT"), // 100
+
+	_T("BAK"), 
+	_T("OTH"),
+    _T("3ES"),   // Used previously but really should be 2ES 
+    _T("EZA"),   // Used to be called 4ES, but not actually in any known project
+    _T("5EZ"),   // Used to be called 5ES, but not actually in any known project  
+    _T("6EZ"),   // Used to be called 6ES, but not actually in any known project
+	_T("INT"),
+	_T("CNC"),
+	_T("GLO"),
+	_T("TDX"), // 110
+
+	_T("NDX"),
+    _T("DAG"),
+    _T("PS3"),
+    _T("2BA"),
+    _T("LBA"),
+    _T("JUB"),
+    _T("ENO"),
+    _T("1MQ"),
+    _T("2MQ"),
+    _T("3MQ"), // 120
+
+    _T("REP"),
+    _T("4BA"),
+    _T("LAO"),
+};
+
+
+// Array of the English names of all books - from Paratext source canon.cs
+wxString AllBookNames[] = {
+    _("Genesis"),
+    _("Exodus"),
+    _("Leviticus"),
+    _("Numbers"),
+    _("Deuteronomy"),
+    _("Joshua"),
+    _("Judges"),
+    _("Ruth"),
+    _("1 Samuel"),
+    _("2 Samuel"),
+
+    _("1 Kings"),
+    _("2 Kings"),
+    _("1 Chronicles"),
+    _("2 Chronicles"),
+    _("Ezra"),
+    _("Nehemiah"),
+    _("Esther (Hebrew)"),
+    _("Job"),
+    _("Psalms"),
+    _("Proverbs"),
+
+    _("Ecclesiastes"),
+    _("Song of Songs"),
+    _("Isaiah"),
+    _("Jeremiah"),
+    _("Lamentations"),
+    _("Ezekiel"),
+    _("Daniel (Hebrew)"),
+    _("Hosea"),
+    _("Joel"),
+    _("Amos"),
+    
+	_("Obadiah"),
+    _("Jonah"),
+    _("Micah"),
+    _("Nahum"),
+    _("Habakkuk"),
+    _("Zephaniah"),
+    _("Haggai"),
+    _("Zechariah"),
+    _("Malachi"),
+    _("Matthew"),
+    
+	_("Mark"),
+    _("Luke"),
+    _("John"),
+    _("Acts"),
+    _("Romans"),
+    _("1 Corinthians"),
+    _("2 Corinthians"),
+    _("Galatians"),
+    _("Ephesians"),
+    _("Philippians"),
+    
+	_("Colossians"),
+    _("1 Thessalonians"),
+    _("2 Thessalonians"),
+    _("1 Timothy"),
+    _("2 Timothy"),
+    _("Titus"),
+    _("Philemon"),
+    _("Hebrews"),
+    _("James"),
+    _("1 Peter"),
+    
+	_("2 Peter"),
+    _("1 John"),
+    _("2 John"),
+    _("3 John"),
+    _("Jude"),
+    _("Revelation"),
+    _T("Tobit"),
+    _T("Judith"),
+    _T("Esther Greek"),
+    _T("Wisdom of Solomon"),
+    
+	_T("Sirach (Ecclesiasticus)"),
+    _T("Baruch"),
+    _T("Letter of Jeremiah"),
+    _T("Song of 3 Young Men"),
+    _T("Susanna"),
+    _T("Bel and the Dragon"),
+    _T("1 Maccabees"),
+    _T("2 Maccabees"),
+    _T("3 Maccabees"),
+    _T("4 Maccabees"),
+    
+	_T("1 Esdras (Greek)"),
+    _T("2 Esdras (Latin)"),
+    _T("Prayer of Manasseh"),
+    _T("Psalm 151"),
+    _T("Odes"),
+    _T("Psalms of Solomon"),
+    _T("Joshua A. *obsolete*"),
+    _T("Judges B. *obsolete*"),
+    _T("Tobit S. *obsolete*"),
+    _T("Susanna Th. *obsolete*"),
+
+    _T("Daniel Th. *obsolete*"),
+    _T("Bel Th. *obsolete*"),
+	_T("Extra A"),
+	_T("Extra B"),
+	_T("Extra C"),
+	_T("Extra D"),
+	_T("Extra E"),
+	_T("Extra F"),
+	_T("Extra G"),
+	_T("Front Matter"),
+
+	_T("Back Matter"),
+	_T("Other Matter"),
+    _T("3 Ezra *obsolete*"),
+    _T("Apocalypse of Ezra"),
+    _T("5 Ezra"),
+    _T("6 Ezra"),
+	_T("Introduction"),
+	_T("Concordance "),
+	_T("Glossary "),
+	_T("Topical Index"),
+
+	_T("Names Index"),
+    _T("Daniel Greek"),
+    _T("Psalms 152-155"),
+    _T("2 Baruch (Apocalypse)"),
+    _T("Letter of Baruch"),
+    _T("Jubilees"),
+    _T("Enoch"),
+    _T("1 Meqabyan"),
+    _T("2 Meqabyan"),
+    _T("3 Meqabyan"),
+    _T("Reproof"),
+
+    _T("4 Baruch"),
+    _T("Laodiceans")
+};
+
 /*
 // whm removed since the app now gets its default menu structure from a temporary
 // instance of the wxDesigner's AIMenuBarFunc().
@@ -5445,16 +5725,30 @@ wxString szCollaboratingWithParatext = _T("CollaboratingWithParatext");
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
 // "PTProjectForSourceInputs". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a boolean in the App's
+// configuration file. Adapt It stores this value as a wxString in the App's
 // m_PTProjectForSourceInputs member variable.
 wxString szPTProjectForSourceInputs = _T("PTProjectForSourceInputs");
 
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
 // "PTProjectForTargetExports". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a boolean in the App's
+// configuration file. Adapt It stores this value as a wxString in the App's
 // m_PTProjectForTargetExports member variable.
 wxString szPTProjectForTargetExports = _T("PTProjectForTargetExports");
+
+// whm added 27Apr11 for Paratext collaboration support
+// The label that identifies the following string encoded number as the application's
+// "PTBookSelected". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_PTBookSelected member variable.
+wxString szPTBookSelected = _T("PTBookSelected");
+
+// whm added 27Apr11 for Paratext collaboration support
+// The label that identifies the following string encoded number as the application's
+// "PTChapterSelected". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_PTChapterSelected member variable.
+wxString szPTChapterSelected = _T("PTChapterSelected");
 
 // window position and size
 
@@ -10230,6 +10524,53 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 		{
 			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
 			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			// remove the final backslash, since our path values generally don't have a
+			// trailing path separator.
+			if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length()-1) == _T('\\'))
+				dirStrValue.RemoveLast(1);
+			if (::wxDirExists(dirStrValue))
+			{
+				path = dirStrValue;
+			}
+		}
+	}
+#endif
+
+	return path;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the path to the Paratext installation directory
+/// \remarks
+/// Called from: the App's OnInit().
+/// Looks in the Windows registry to get the path to the Paratext Install directory.
+/// The following registry key is queried for the return value: 
+///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+/// If the key is not found, or is found but the value string does not exist on
+/// the system, the function returns an empty string. This function only reads/queries 
+/// the Windows registry; it does not make changes to it.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetParatextInstallDirPath()
+{
+	wxString path;
+	path.Empty();
+#ifdef __WXMSW__ // only need to do this on a Windows host system
+	
+	wxLogNull logNo; // eliminate any spurious messages from the system
+	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
+	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	{
+		wxString dirStrValue;
+		dirStrValue.Empty();
+		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		{
+			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			// remove the final backslash, since our path values generally don't have a
+			// trailing path separator.
+			if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length()-1) == _T('\\'))
+				dirStrValue.RemoveLast(1);
 			if (::wxDirExists(dirStrValue))
 			{
 				path = dirStrValue;
@@ -11149,7 +11490,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//
 	m_pRemovedMenuItemArray = new wxArrayPtrVoid;
 
-
+	// whm added 26Apr11 for AI-PT Collaboration support
+	m_pArrayOfPTProjects = new wxArrayPtrVoid;
+	
 	// test wxProcess functions
 	//unsigned long tempPID = ::wxGetProcessId(); 
 	//bool bPIDExists;
@@ -11490,6 +11833,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bCollaboratingWithParatext = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
 	m_PTProjectForSourceInputs = _T("");
 	m_PTProjectForTargetExports = _T("");
+	m_PTBookSelected = _T("");
+	m_PTChapterSelected = _T("");
+	m_ParatextInstallDirPath.Empty();
 	m_ParatextProjectsDirPath.Empty();
 	bParatextSharedDLLLoaded = FALSE;
 
@@ -14030,7 +14376,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
 	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on 
 	// a Windows host system.
-	// Note: a non empty path in m_ParatextProjectsDirPath ends with a Windows \ path separator.
+	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
+	// the Windows \ path separator from the end of the string
+	m_ParatextInstallDirPath = GetParatextInstallDirPath();
 	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
 
 	// whm 28Mar11 TESTING BELOW !!!
@@ -16201,6 +16549,23 @@ int CAdapt_ItApp::OnExit(void)
 			delete mItem;
 		}
 		delete m_pRemovedMenuItemArray;
+	}
+
+	aTot = m_pArrayOfPTProjects->GetCount();
+	if (aTot == 0L)
+	{
+		delete m_pArrayOfPTProjects;
+	}
+	else
+	{
+		int aIndex;
+		for (aIndex = 0; aIndex < aTot; aIndex++)
+		{
+			PT_Project_Info_Struct* pArrayItem = (PT_Project_Info_Struct*)(*m_pArrayOfPTProjects)[aIndex];
+			delete pArrayItem;
+		}
+		m_pArrayOfPTProjects->Clear();
+		delete m_pArrayOfPTProjects;
 	}
 
 	// whm: before deleting our CConsistentChanger objects, we need to
@@ -19437,6 +19802,33 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 		}
 	}
 
+	// whm added 20Apr11 support for Paratext collaboration.
+	// The App's m_bCollaboratingWithParatext flag indicates whether PT collaboration
+	// is currently in effect. When it is, we don't show the typical Start Working 
+	// Wizard, but instead we show the "Get Source Text from Paratext Project" dialog.
+	if (m_bCollaboratingWithParatext)
+	{
+		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
+		if (dlg.ShowModal() == wxID_CANCEL)
+		{
+			// TODO:
+		}
+
+		// TODO: 
+		// 1. Check to see if an AI project exists yet for the PT projects that are
+		// being used for collaboration. If it already exists, use it. If it doesn't
+		// already exist we must create the project using what we know from the PT
+		// projects' ssf file's xml tags, including creating KB, etc.
+		// 2. When the project exists, we need to do similar things that are done
+		// within the Startup Wizard's pages, i.e., for new documents: loading the
+		// KB, parsing the new input file, etc.; for an existing document, checking
+		// for changes in the document between the PT version and the local AI version,
+		// dealing with any changes, loading the document, etc.
+
+		// Note: we should return TRUE for PT collaboration.
+		return TRUE;
+	}
+
 	CStartWorkingWizard startWorkingWizard(GetMainFrame());
 
 	// Note:
@@ -21897,6 +22289,14 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szPTProjectForTargetExports << tab << m_PTProjectForTargetExports;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szPTBookSelected << tab << m_PTBookSelected;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szPTChapterSelected << tab << m_PTChapterSelected;
+	pf->AddLine(data);
+
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
 	// because it we do that, the user could get confused if next time his document
 	// doesn't show and punctuation and he didn't realize he shut down with this setting
@@ -23234,6 +23634,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szPTProjectForTargetExports) // whm added 15Apr11
 		{
 			m_PTProjectForTargetExports = strValue;
+		}
+		else if (name == szPTBookSelected)
+		{
+			m_PTBookSelected = strValue;
+		}
+		else if (name == szPTChapterSelected)
+		{
+			m_PTChapterSelected = strValue;
 		}
 		else if (name == szHidePunctuation)
 		{
@@ -25309,7 +25717,7 @@ void CAdapt_ItApp::OnFileNew(wxCommandEvent& event)
 // whm added the following 10Apr11 for AI-PT collaboration
 void CAdapt_ItApp::OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_T("The dialog for the Get Source Text From Paratext menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	//wxMessageBox(_T("The dialog for the Get Source Text From Paratext menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
 	CGetSourceTextFromEditorDlg dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -32300,6 +32708,12 @@ void CAdapt_ItApp::OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event))
 {
 	if (m_bShowAdministratorMenu)
 	{
+		if (m_bCollaboratingWithParatext)
+		{
+			wxMessageBox(_("When Paratext Collaboration is ON, this menu item has no effect. Source Text inputs instead come automatically from the relevant Paratext project location."),
+				_T(""), wxICON_INFORMATION);
+			return;
+		}
 		if (m_sourceDataFolderPath.IsEmpty())
 		{
 			// don't expect this to be empty, an English message will do
@@ -32388,7 +32802,17 @@ void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_T("The OnAssignTargetExportDataFolder function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	if (m_bShowAdministratorMenu)
+	{
+		if (m_bCollaboratingWithParatext)
+		{
+			wxMessageBox(_("When Paratext Collaboration is ON, this menu option has no effect. Translation Text exports instead go automatically to the relevant Paratext project location."),
+				_T(""), wxICON_INFORMATION);
+			return;
+		}
+		wxMessageBox(_T("The OnAssignTargetExportDataFolder function has not yet been implemented."),_T(""),wxICON_INFORMATION);
+	}
+
 	/*
 	if (m_bShowAdministratorMenu)
 	{
@@ -35219,6 +35643,18 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 {
 	wxArrayString tempListOfPTProjects;
 	tempListOfPTProjects.Clear();
+	// deallocate any memory for items currently in list on heap 
+	int aTot = (int)m_pArrayOfPTProjects->GetCount();
+	if (aTot > 0)
+	{
+		int aIndex;
+		for (aIndex = 0; aIndex < aTot; aIndex++)
+		{
+			PT_Project_Info_Struct* pArrayItem = (PT_Project_Info_Struct*)(*m_pArrayOfPTProjects)[aIndex];
+			delete pArrayItem;
+		}
+		m_pArrayOfPTProjects->Clear();
+	}
 	wxString PT_ProjectsDirPath;
 	PT_ProjectsDirPath = GetParatextProjectsDirPath();
 	// Note: PT_ProjectsDirPath will end with a backslash
@@ -35268,15 +35704,40 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 			{
 				// The ssf file is now in memory and accessible line-by-line using wxTextFile
 				// methods.
+				
+				PT_Project_Info_Struct* pPTInfo = new PT_Project_Info_Struct;
+				pPTInfo->booksPresentFlags = _T("");
+				pPTInfo->ethnologueCode = _T("");
+				pPTInfo->fullName = _T("");
+				pPTInfo->languageName = _T("");
+				pPTInfo->projectDir = _T("");
+				pPTInfo->shortName = _T("");
+				pPTInfo->versification = _T("");
+				pPTInfo->chapterMarker = _T("c"); // default is c
+				pPTInfo->verseMarker = _T("v"); // default is v
+				pPTInfo->defaultFont = _T("Arial"); // default is Arial
+				pPTInfo->defaultFontSize = _T("10"); // default is 10
+				pPTInfo->leftToRight = _T("T"); // default is T
+				pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8)
+				pPTInfo->bProjectIsNotResource = TRUE;
+				pPTInfo->bProjectIsEditable = TRUE;
+
 				// Initialize some variables for fields we are intereste in.
+				wxString booksPresentFlags = _T("");
+				wxString ethnologueCode = _T("");
+				wxString fullName = _T("");
+				wxString languageName = _T("");
+				wxString projectDir = _T("");
+				wxString shortName = _T("");
+				wxString versification = _T("");
+				wxString chapterMarker = _T("c");
+				wxString verseMarker = _T("v");
+				wxString defaultFont = _T("Arial");
+				wxString defaultFontSize = _T("10");
+				wxString leftToRight = _T("T");
+				wxString encoding = _T("65001");
 				bool bProjectIsNotResource = TRUE;
 				bool bProjectIsEditable = TRUE;
-				wxString fullName = _T("");
-				wxString shortName = _T("");
-				wxString languageName = _T("");
-				wxString ethnologueCode = _T("");
-				wxString projectDir = _T("");
-				wxString booksPresentFlags = _T("");
 
 				wxString lineStr;
 				// scan through all lines of file setting field values as we go
@@ -35289,25 +35750,12 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					wxString tagName;
 					wxString endTagName;
 
-					tagName = _T("<FullName>");
-					endTagName = _T("</FullName>");
+					tagName = _T("<BooksPresent>");
+					endTagName = _T("</BooksPresent>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-					}
-
-					tagName = _T("<Name>");
-					endTagName = _T("</Name>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-					}
-
-					tagName = _T("<Language>");
-					endTagName = _T("</Language>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
 					}
 
 					tagName = _T("<EthnologueCode>");
@@ -35315,6 +35763,23 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
 						ethnologueCode = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->ethnologueCode = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<FullName>");
+					endTagName = _T("</FullName>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<Language>");
+					endTagName = _T("</Language>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
 					}
 
 					tagName = _T("<Directory>");
@@ -35322,13 +35787,71 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
 						projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
 					}
 
-					tagName = _T("<BooksPresent>");
-					endTagName = _T("</BooksPresent>");
+					tagName = _T("<Name>");
+					endTagName = _T("</Name>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<Versification>");
+					endTagName = _T("</Versification>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						versification = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->versification = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<ChapterMarker>");
+					endTagName = _T("</ChapterMarker>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						chapterMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->chapterMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<VerseMarker>");
+					endTagName = _T("</VerseMarker>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						verseMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->verseMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<DefaultFont>");
+					endTagName = _T("</DefaultFont>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						defaultFont = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->defaultFont  = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<DefaultFontSize>");
+					endTagName = _T("</DefaultFontSize>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						defaultFontSize = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->defaultFontSize = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<LeftToRight>");
+					endTagName = _T("</LeftToRight>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						leftToRight = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->leftToRight = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+					}
+
+					tagName = _T("<Encoding>");
+					endTagName = _T("</Encoding>");
+					if (lineStr.Find(tagName) != wxNOT_FOUND)
+					{
+						encoding = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						pPTInfo->encoding = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
 					}
 
 					tagName = _T("<ResourceText>");
@@ -35343,6 +35866,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 						if (temp == _T("T"))
 						{
 							bProjectIsNotResource = FALSE;
+							pPTInfo->bProjectIsNotResource = FALSE;
 						}
 					}
 
@@ -35355,10 +35879,12 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 						if (temp == _T("T"))
 						{
 							bProjectIsEditable = TRUE;
+							pPTInfo->bProjectIsEditable = TRUE;
 						}
 						else if (temp == _T("F"))
 						{
 							bProjectIsEditable = FALSE;
+							pPTInfo->bProjectIsEditable = FALSE;
 						}
 					}
 
@@ -35384,6 +35910,11 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 						storageStr += _T(" : ") + ethnologueCode;
 					}
 					tempListOfPTProjects.Add(storageStr);
+					m_pArrayOfPTProjects->Add(pPTInfo);
+				}
+				else
+				{
+					delete pPTInfo; // it's not a valid PT project we can use
 				}
 				f.Close();
 			}
@@ -35393,6 +35924,24 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	}
 
 	return tempListOfPTProjects;
+}
+
+PT_Project_Info_Struct* CAdapt_ItApp::GetPT_Project_Struct(wxString projShortName)
+{
+	PT_Project_Info_Struct* pPT_Proj;
+	int ct, tot;
+	tot = (int)m_pArrayOfPTProjects->GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		pPT_Proj = (PT_Project_Info_Struct*)m_pArrayOfPTProjects->Item(ct);
+		if (pPT_Proj->shortName == projShortName)
+		{
+			// we found it so return the pointer to it
+			return pPT_Proj;
+		}
+	}
+	// if we get here we did not find the project so return NULL
+	return NULL;
 }
 
 wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag)
@@ -35410,4 +35959,65 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxString lineStr, wxString beginT
 		tempStr = lineStr.Mid(beginTag.Length(),nEndTagPos - beginTag.Length());
 	}
 	return tempStr;
+}
+
+wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
+{
+	// The Paratext list of book codes (3-letter Ids) is located in the App's array of
+	// wxStrings called AllBookIds. The Paratext list of full book names (English)
+	// is located in the App's array of wxStrings called AllBookNames.
+	wxString bookCode;
+	bookCode.Empty();
+	wxArrayString bookIDArray(123,AllBookIds);
+	wxArrayString bookNameArray(123,AllBookNames);
+	wxASSERT(bookIDArray.GetCount() == bookNameArray.GetCount());
+	int i,arrayCt;
+	arrayCt = (int)bookIDArray.GetCount();
+	for (i = 0; i < arrayCt; i++)
+	{
+		if (bookName == bookNameArray.Item(i))
+		{
+			bookCode = bookIDArray.Item(i);
+			break;
+		}
+	}
+	return bookCode;
+}
+
+wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
+{
+	// The Paratext list of book codes (3-letter Ids) is located in the App's array of
+	// wxStrings called AllBookIds. The Paratext list of full book names (English)
+	// is located in the App's array of wxStrings called AllBookNames.
+	wxString bookNumAsStr;
+	bookNumAsStr.Empty();
+	wxArrayString bookIDArray(123,AllBookIds);
+	wxArrayString bookNameArray(123,AllBookNames);
+	wxASSERT(bookIDArray.GetCount() == bookNameArray.GetCount());
+	int i,arrayCt;
+	arrayCt = (int)bookIDArray.GetCount();
+	for (i = 0; i < arrayCt; i++)
+	{
+		if (bookName == bookNameArray.Item(i))
+		{
+			// PT books are numbered from index starting at 1 rather than 0
+			bookNumAsStr << i+1;
+			break;
+		}
+	}
+	return bookNumAsStr;
+}
+
+wxArrayString CAdapt_ItApp::GetBooksArrayFromPTFlags(wxString booksStr)
+{
+	wxArrayString booksArray;
+	int ct,strLen;
+	strLen = booksStr.Length();
+	for (ct = 0; ct < strLen; ct++)
+	{
+		if (booksStr.GetChar(ct) == _T('1'))
+			booksArray.Add(AllBookNames[ct]);
+	}
+
+	return booksArray;
 }
