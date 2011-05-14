@@ -541,6 +541,27 @@ bool FileExists(wxString Path)
 	return wxFileExists(Path);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return TRUE if fileAndPathTrueIfNewer has a more recent mod time than fileAndPathFalseIfNewer, 
+///             otherwise returns FALSE if fileAndPathFalseIfNewer is same date or newer
+/// \param	fileAndPathTrueIfNewer  -> the file being compared, TRUE if this one is newer mod date
+/// \param	fileAndPathFalseIfNewer  -> the file being compared, FALSE if this one is newer mod date
+/// \remarks
+/// Uses methods of wxFilename and wxDataTime to check modification dates of the files. Assumes that
+/// the caller has verified that both paths exist before calling.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool FileHasNewerModTime(wxString fileAndPathTrueIfNewer, wxString fileAndPathFalseIfNewer)
+{
+	wxFileName fnTrueIfNewer(fileAndPathTrueIfNewer);
+	wxFileName fnFalseIfNewer(fileAndPathFalseIfNewer);
+	wxDateTime dtTrueIfNewerAccessTime,dtTrueIfNewerModTime,dtTrueIfNewerCreateTime;
+	wxDateTime dtFalseIfNewerAccessTime,dtFalseIfNewerModTime,dtFalseIfNewerCreateTime;
+	fnTrueIfNewer.GetTimes(&dtTrueIfNewerAccessTime,&dtTrueIfNewerModTime,&dtTrueIfNewerCreateTime);
+	fnFalseIfNewer.GetTimes(&dtFalseIfNewerAccessTime,&dtFalseIfNewerModTime,&dtFalseIfNewerCreateTime);
+	// Check if we have a newer version in fileAndPathTrueIfNewer
+	return dtTrueIfNewerModTime > dtFalseIfNewerModTime;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if a book indicator is found in the file at FilePath.

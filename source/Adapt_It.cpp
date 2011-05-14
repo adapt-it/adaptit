@@ -15125,15 +15125,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // don't do this, tweaks done to the file in incremental version updates won't
             // get implemented unless the user manually moves the file to the work folder
             // and we don't want to expect users to have to remember to do such a thing.
-			wxFileName fnInWorkFolderPath(AIstyleFileWorkFolderPath);
-			wxFileName fnInSetupFolderPath(usfmStyleInstallFolderFileCopyPath);
-			wxDateTime dtWorkFolderFileAccessTime,dtWorkFolderFileModTime,dtWorkFolderFileCreateTime;
-			wxDateTime dtSetupFolderFileAccessTime,dtSetupFolderFileModTime,dtSetupFolderFileCreateTime;
-			fnInWorkFolderPath.GetTimes(&dtWorkFolderFileAccessTime,&dtWorkFolderFileModTime,&dtWorkFolderFileCreateTime);
-			fnInSetupFolderPath.GetTimes(&dtSetupFolderFileAccessTime,&dtSetupFolderFileModTime,&dtSetupFolderFileCreateTime);
 			// Check if we have a newer version in the setup folder
-			//BOOL bSetupFolderHasNewerVersion = statusInSetupFolder.m_mtime > statusInWorkFolder.m_mtime;
-			bSetupFolderHasNewerVersion = dtSetupFolderFileModTime > dtWorkFolderFileModTime;
+			bSetupFolderHasNewerVersion = FileHasNewerModTime(usfmStyleInstallFolderFileCopyPath,AIstyleFileWorkFolderPath);
 		}
 		// If setup folder has a newer version, we will first delete what is in the work 
 		// folder, then copy the file from the setup folder to replace it. If setup folder 

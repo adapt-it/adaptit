@@ -8008,7 +8008,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item2->AddGrowableCol( 1 );
     item2->AddGrowableRow( 1 );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Get Source Texts from this project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Get &Source Texts from this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxString *strs4 = (wxString*) NULL;
@@ -8016,7 +8016,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item4->SetToolTip( _("Click on this drop down list if you need to select a different project from which to get a source text") );
     item2->Add( item4, 0, wxGROW|wxALL, 0 );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Transfer Translation Texts to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Transfer &Translation Texts to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxString *strs6 = (wxString*) NULL;
@@ -8030,8 +8030,8 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxString strs8[] = 
     {
-        _("Get Chapter Only"), 
-        _("Get Whole Book")
+        _("Get Chapter &Only"), 
+        _("Get &Whole Book")
     };
     wxRadioBox *item8 = new wxRadioBox( parent, ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs8, 1, wxRA_SPECIFY_COLS );
     item8->SetToolTip( _("Select amount of text to adapt") );
@@ -8045,7 +8045,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Select a book:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Select a &book:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs13 = (wxString*) NULL;
@@ -8059,7 +8059,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs16 = (wxString*) NULL;

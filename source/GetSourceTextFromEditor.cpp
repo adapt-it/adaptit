@@ -108,6 +108,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pStaticSelectAChapter = (wxStaticText*)FindWindowById(ID_TEXT_SELECT_A_CHAPTER);
 	wxASSERT(pStaticSelectAChapter != NULL);
 
+	pBtnCancel = (wxButton*)FindWindowById(wxID_CANCEL);
+	wxASSERT(pBtnCancel != NULL);
+
 	// other attribute initializations
 }
 
@@ -160,29 +163,69 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// Program Files (if the system will let me to it programmatically).
 		wxString AI_appPath = m_pApp->m_appInstallPathOnly;
 		wxString PT_appPath = m_pApp->m_ParatextInstallDirPath;
-		// TODO: If we continue to use the following copy process to copy the rdwrtp7.exe
-		// dependency dlls to the AI install directory, we should probably also check for
-		// any newer versions of the dlls (comparing to previously copied ones) and copy 
-		// the newer ones when older ones were previously copied
-		if (!::wxFileExists(AI_appPath + m_pApp->PathSeparator + _T("ParatextShared.dll")))
+		// Check for any newer versions of the dlls (comparing to previously copied ones) 
+		// and copy the newer ones if older ones were previously copied
+		wxString fileName = _T("ParatextShared.dll");
+		wxString ai_Path;
+		wxString pt_Path;
+		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+		if (!::wxFileExists(ai_Path))
 		{
-			::wxCopyFile(PT_appPath + m_pApp->PathSeparator + _T("ParatextShared.dll"),AI_appPath + m_pApp->PathSeparator + _T("ParatextShared.dll"));
+			::wxCopyFile(pt_Path,ai_Path);
 		}
-		if (!::wxFileExists(AI_appPath + m_pApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll")))
+		else
 		{
-			::wxCopyFile(PT_appPath + m_pApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll"),AI_appPath + m_pApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll"));
+			if (FileHasNewerModTime(pt_Path,ai_Path))
+				::wxCopyFile(PT_appPath,ai_Path);
 		}
-		if (!::wxFileExists(AI_appPath + m_pApp->PathSeparator + _T("Interop.XceedZipLib.dll")))
+		fileName = _T("ICSharpCode.SharpZipLib.dll");
+		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+		if (!::wxFileExists(ai_Path))
 		{
-			::wxCopyFile(PT_appPath + m_pApp->PathSeparator + _T("Interop.XceedZipLib.dll"),AI_appPath + m_pApp->PathSeparator + _T("Interop.XceedZipLib.dll"));
+			::wxCopyFile(pt_Path,ai_Path);
 		}
-		if (!::wxFileExists(AI_appPath + m_pApp->PathSeparator + _T("NetLoc.dll")))
+		else
 		{
-			::wxCopyFile(PT_appPath + m_pApp->PathSeparator + _T("NetLoc.dll"),AI_appPath + m_pApp->PathSeparator + _T("NetLoc.dll"));
+			if (FileHasNewerModTime(pt_Path,ai_Path))
+				::wxCopyFile(pt_Path,ai_Path);
 		}
-		if (!::wxFileExists(AI_appPath + m_pApp->PathSeparator + _T("Utilities.dll")))
+		fileName = _T("Interop.XceedZipLib.dll");
+		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+		if (!::wxFileExists(ai_Path))
 		{
-			::wxCopyFile(PT_appPath + m_pApp->PathSeparator + _T("Utilities.dll"),AI_appPath + m_pApp->PathSeparator + _T("Utilities.dll"));
+			::wxCopyFile(pt_Path,ai_Path);
+		}
+		else
+		{
+			if (FileHasNewerModTime(pt_Path,ai_Path))
+				::wxCopyFile(pt_Path,ai_Path);
+		}
+		fileName = _T("NetLoc.dll");
+		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+		if (!::wxFileExists(ai_Path))
+		{
+			::wxCopyFile(pt_Path,ai_Path);
+		}
+		else
+		{
+			if (FileHasNewerModTime(pt_Path,ai_Path))
+				::wxCopyFile(pt_Path,ai_Path);
+		}
+		fileName = _T("Utilities.dll");
+		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+		if (!::wxFileExists(ai_Path))
+		{
+			::wxCopyFile(pt_Path,ai_Path);
+		}
+		else
+		{
+			if (FileHasNewerModTime(pt_Path,ai_Path))
+				::wxCopyFile(pt_Path,ai_Path);
 		}
 	}
 
@@ -298,6 +341,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			if (nSel != wxNOT_FOUND)
 			{
 				pListBoxBookNames->SetSelection(nSel);
+				// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
+				pListBoxBookNames->SetFocus(); 
 				wxCommandEvent evt;
 				OnLBBookSelected(evt);
 			}
@@ -351,6 +396,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxString msg;
 		msg = _("The Paratext projects selected for obtaining source texts, and for transferring translation texts cannot be the same. Use the drop down list boxes to select different projects.");
 		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
+		// most likely the target drop down list would need to be changed so set focus to it before returning
+		pComboDestinationProjectName->SetFocus();
 		return;
 	}
 
@@ -359,9 +406,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	pStaticSelectAChapter->SetLabel(_("Please wait while I query Paratext..."));
 	
 	int nSel;
-	wxString strSel;
+	wxString fullBookName;
 	nSel = pListBoxBookNames->GetSelection();
-	strSel = pListBoxBookNames->GetString(nSel);
+	fullBookName = pListBoxBookNames->GetString(nSel);
 	// When the user selects a book, this handler does the following:
 	// 1. Call rdwrtp7 to get a copies of the book in a temporary file at a specified location.
 	//    One copy if made of the source PT project's book, and the other copy is made of the
@@ -416,7 +463,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// 
 	// Usage: rdwrtp7 -r|-w project book chapter|0 fileName
 	wxString bookCode;
-	bookCode = m_pApp->GetBookCodeFromBookName(strSel);
+	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
 	// insure that a .temp folder exists in the m_workFolderPath
 	wxString tempFolder;
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
@@ -431,7 +478,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxASSERT(!m_TempPTProjectForTargetExports.IsEmpty());
 	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForSourceInputs);
 	targetProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForTargetExports);
-	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(strSel);
+	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
 	wxString sourceTempFileName = tempFolder + m_pApp->PathSeparator + bookNumAsStr + bookCode + _T("_") + sourceProjShortName + _T(".tmp");
 	wxString targetTempFileName = tempFolder + m_pApp->PathSeparator + bookNumAsStr + bookCode + _T("_") + targetProjShortName + _T(".tmp");
 	
@@ -461,6 +508,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	long resultTgt = -1;
     wxArrayString outputSrc, errorsSrc;
 	wxArrayString outputTgt, errorsTgt;
+	// Use the wxExecute() override that takes the two wxStringArray parameters. This
+	// also redirects the output and suppresses the dos console window.
 	resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
 	if (resultSrc == 0)
 	{
@@ -555,43 +604,47 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (SourceTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),strSel.c_str(),sourceProjShortName.c_str());
+		msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
 		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
+		pBtnCancel->SetFocus();
 		return;
 	}
 	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),strSel.c_str(),targetProjShortName.c_str());
+		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
+		pBtnCancel->SetFocus();
 		return;
 	}
 
 	pListBoxChapterNumberAndStatus->Clear();
 	wxArrayString chapterListFromTargetBook;
-	chapterListFromTargetBook = GetChapterListFromTargetBook();
+	chapterListFromTargetBook = GetChapterListFromTargetBook(fullBookName);
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),strSel.c_str(),targetProjShortName.c_str());
+		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxChapterNumberAndStatus->Append(_("No chapters and verses found"));
 		pListBoxChapterNumberAndStatus->Enable(FALSE);
+		pBtnCancel->SetFocus();
+		return;
 	}
 	else
 	{
 		pListBoxChapterNumberAndStatus->Append(chapterListFromTargetBook);
 		pListBoxChapterNumberAndStatus->Enable(TRUE);
 	}
-	pStaticSelectAChapter->SetLabel(_("Select a chapter:"));
+	pStaticSelectAChapter->SetLabel(_("Select a &chapter:")); // put & char at same position as in the string in wxDesigner
 	pStaticSelectAChapter->Refresh();
 
 	if (!m_TempPTChapterSelected.IsEmpty())
@@ -600,6 +653,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		if (nSel != wxNOT_FOUND)
 		{
 			pListBoxChapterNumberAndStatus->SetSelection(nSel);
+			pListBoxChapterNumberAndStatus->SetFocus(); // focus is set on Select a chapter
 		}
 	}
 	
@@ -1160,7 +1214,7 @@ wxArrayString CGetSourceTextFromEditorDlg::GetUsfmStructureAndExtent(wxString& s
 	return UsfmStructureAndExtentArray;
 }
 
-wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook()
+wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook(wxString targetBookFullName)
 {
 	// retrieves a wxArrayString of chapters (and their status) from the target 
 	// PT project's TargetTextUsfmStructureAndExtentArray. 
@@ -1216,7 +1270,7 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook()
 				posAfterSp ++; // to point past space
 				tempStr = tempStr.Mid(posAfterSp);
 				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct);
-				wxString listItemStatusSuffix;
+				wxString listItemStatusSuffix,listItem;
 				if (!statusOfChapter.IsEmpty())
 				{
 					listItemStatusSuffix = _("Chapter has empty verse(s): ") + statusOfChapter;
@@ -1225,7 +1279,12 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook()
 				{
 					listItemStatusSuffix = _("Translated (all verses have content)");
 				}
-				chapterArray.Add(tempStr + _T(" - ") + listItemStatusSuffix);
+				listItem.Empty();
+				listItem = targetBookFullName + _T(" ");
+				listItem += tempStr;
+				listItem += _T(" - ");
+				listItem += listItemStatusSuffix;
+				chapterArray.Add(listItem);
 			}
 		}
 	}
@@ -1249,7 +1308,8 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook()
 		{
 			listItemStatusSuffix = _("Translated (all verses have content)");
 		}
-		listItem = _T("1");
+		listItem = targetBookFullName + _T(" ");
+		listItem += _T("1");
 		listItem += _T(" - ");
 		listItem += listItemStatusSuffix;
 		chapterArray.Add(listItem);

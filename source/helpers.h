@@ -100,6 +100,8 @@ wxString ConcatenatePathBits(wxString Bit1, wxString Bit2);
 
 bool FileExists(wxString Path);
 
+bool FileHasNewerModTime(wxString fileAndPathTrueIfNewer, wxString fileAndPathFalseIfNewer);
+
 bool FileContainsBookIndicator(wxString FilePath, wxString& out_BookIndicatorInSpecifiedFile);
 
 //bool SearchFileContentForFixedLengthPattern(wxString FilePath, wxInt8 *Pattern, wxInt8 *PatternMask, wxUint32 PatternLength);
