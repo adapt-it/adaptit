@@ -33,6 +33,7 @@ public:
 	wxListBox* pListBoxChapterNumberAndStatus;
 	wxTextCtrl* pStaticTextCtrlNote;
 	wxStaticText* pStaticSelectAChapter;
+	wxButton* pBtnCancel;
 
 	wxString m_TempPTProjectForSourceInputs;
 	wxString m_TempPTProjectForTargetExports;
@@ -77,7 +78,7 @@ protected:
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
 	wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
-	wxArrayString GetChapterListFromTargetBook();
+	wxArrayString GetChapterListFromTargetBook(wxString targetBookFullName);
 	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem);
 	wxString GetVerseNumberFromVerseStr(const wxString& verseStr);
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
