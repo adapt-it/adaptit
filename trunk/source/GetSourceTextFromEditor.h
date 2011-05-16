@@ -75,6 +75,7 @@ protected:
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
 	bool PTProjectIsEditable(wxString projShortName);
+	bool PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt);
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
 	wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
