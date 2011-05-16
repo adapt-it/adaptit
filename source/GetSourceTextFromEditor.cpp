@@ -347,15 +347,11 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 				OnLBBookSelected(evt);
 			}
 		}
-
-		// TODO:
-		// Initialize/populate the "Select a chapter:" list
-		
-		// TODO:
-		// select LastPTChapterSelected 
-		
+		// Normally at this point the "Select a book" list will be populated and any previously
+		// selected book will now be selected. If a book is selected, the "Select a chapter" list
+		// will also be populated and, if any previously selected chaper will now again be 
+		// selected (from actions done within the OnLBBookSelected handler called above).
 	}
-
  }
 
 // event handling functions
@@ -376,6 +372,9 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEv
 	wxString selStr;
 	nSel = pComboDestinationProjectName->GetSelection();
 	m_TempPTProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
+	// Any change in the selection with the destination/target project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
 	wxCommandEvent evt;
 	OnLBBookSelected(evt);
 }
@@ -464,6 +463,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// Usage: rdwrtp7 -r|-w project book chapter|0 fileName
 	wxString bookCode;
 	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
+	
 	// insure that a .temp folder exists in the m_workFolderPath
 	wxString tempFolder;
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
@@ -483,33 +483,25 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString targetTempFileName = tempFolder + m_pApp->PathSeparator + bookNumAsStr + bookCode + _T("_") + targetProjShortName + _T(".tmp");
 	
 	
-	// Build the command line for  reading the source PT project with rdwrtp7.exe.
+	// Build the command lines for reading the PT projects using rdwrtp7.exe.
 	wxString commandLineSrc,commandLineTgt;
 	commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
 	commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
 	wxLogDebug(commandLineSrc);
 
-	/*
-	// Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
+	// Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
 	// when the overloaded version of wxExecute() is used, it uses the the redirection
 	// of the stdio to the arrays, and with that redirection, it doesn't show the 
 	// console process window by default. It is distracting to have the DOS console
 	// window flashing even momentarily, so we will use that overloaded version of 
 	// rdwrtp7.exe.
-	// This code snippit is from the wxWidgets' exec sample and shows how to call the
-	// overloaded version.
-    wxArrayString output, errors;
-    int code = wxExecute(cmd, output, errors);
-    wxLogStatus(_T("command '%s' terminated with exit code %d."),
-                cmd.c_str(), code);
-	*/
 
 	long resultSrc = -1;
 	long resultTgt = -1;
     wxArrayString outputSrc, errorsSrc;
 	wxArrayString outputTgt, errorsTgt;
 	// Use the wxExecute() override that takes the two wxStringArray parameters. This
-	// also redirects the output and suppresses the dos console window.
+	// also redirects the output and suppresses the dos console window during execution.
 	resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
 	if (resultSrc == 0)
 	{
@@ -730,9 +722,97 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_PTBookSelected = m_TempPTBookSelected;
 	m_pApp->m_PTChapterSelected = m_TempPTChapterSelected;
 	
-	// TODO: 
 	// Set up (or access any existing) project for the selected book/chapter
+	// How this is handled will depend on whether the book/chapter selected
+	// amounts to an existing AI project or not
+	wxString shortProjNameSrc, shortProjNameTgt;
+	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_PTProjectForSourceInputs);
+	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_PTProjectForTargetExports);
 	
+	bool bPTCollaborationUsingExistingAIProject;
+	bPTCollaborationUsingExistingAIProject = PTProjectsExistAsAIProject(shortProjNameSrc,shortProjNameTgt);
+	if (bPTCollaborationUsingExistingAIProject)
+	{
+		// The Paratext projects selected for source text and target texts have an existing
+		// AI project in the user's work folder, so we use that project.
+		// 
+		// TODO: 
+		// 1. Compose an appropriate document name and check if a document by that name
+		//    already exists in the local work folder (or book folder if the project is
+		//    using that mode)
+		// 2. If the document does not exist create it by parsing/tokenizing the string 
+		//    now existing in our sourceFileBuffer, saving it's xml form to disk, and 
+		//    laying the doc out in the main window.
+		// 3. If the document does exist, we first need to do any merging of the existing
+		//    AI document with the incoming one now located in our sourceFileBuffer, so
+		//    that we end up with the merged one's xml form saved to disk, and the resulting
+		//    document laid out in the main window.
+	}
+	else
+	{
+		// The Paratext project selected for source text and target texts do not yet exist
+		// as a previously created AI project in the user's work folder, so we need to 
+		// create the AI project using information contained in the PT_Project_Info_Struct structs
+		// that are populated dynamically in InitDialog() which calls the App's 
+		// GetListOfPTProjects().
+		
+		// Get the PT_Project_Info_Struct structs for the source and target PT projects
+		PT_Project_Info_Struct* pPTInfoSrc;
+		PT_Project_Info_Struct* pPTInfoTgt;
+		pPTInfoSrc = m_pApp->GetPT_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
+																	// pApp->m_pArrayOfPTProjects
+		pPTInfoTgt = m_pApp->GetPT_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
+																	// pApp->m_pArrayOfPTProjects
+		wxASSERT(pPTInfoSrc != NULL);
+		wxASSERT(pPTInfoTgt != NULL);
+
+		// Notes on what the pPTInfoSrc and pPTInfoTgt structs above contain:
+		//bool bProjectIsNotResource; // AI only includes in m_pArrayOfPTProjects the PT projects where this is TRUE
+		//bool bProjectIsEditable; // AI only allows user to see and select a PT TARGET project where this is TRUE
+		//wxString versification; // AI assumes same versification of Target as used in Source
+		//wxString fullName; // This is 2nd field seen in "Get Source Texts from this project:" drop down
+							 // selection (after first ':')
+		//wxString shortName; // This is 1st field seen in "Get Source Texts from this project:" drop down
+							  // selection (before first ':'). It is always the same as the project's folder
+							  // name (and ssf file name) in the "My Paratext Projects" folder. It has to
+							  // be unique for every PT project.
+		//wxString languageName; // This is 3rd field seen in "Get Source Texts from this project:" drop down
+							     // selection (between 2nd and 3rd ':'). We use this as x and y language
+							     // names to form the "x to y adaptations" project folder name in AI if it
+							     // does not already exist
+		//wxString ethnologueCode; // If it exists, this a 3rd field seen in "Get Source Texts from this project:" drop down
+							       // selection (after 3rd ':')
+		//wxString projectDir; // this has the path/directory to the project's actual files
+		//wxString booksPresentFlags; // this is the long 123-element string of 0 and 1 chars indicating which
+									   // books are present within the PT project
+		//wxString chapterMarker; // default is _T("c")
+		//wxString verseMarker; // default is _T("v")
+		//wxString defaultFont; // default is _T("10") or whatever is specified in the PT project's ssf file
+		//wxString defaultFontSize; // default is _T("Arial")or whatever is specified in the PT project's ssf file
+		//wxString leftToRight; // default is _T("T") unless "F" is specified in the PT project's ssf file
+		//wxString encoding; // default is _T("65001"); // 65001 is UTF8
+
+		// For building an AI project we can use as initial values the information within the appropriate
+		// fields of the above struct.
+		// 
+		// TODO:
+		// 1. Create an AI project using the information from the PT structs, setting up
+		//    the necessary directories and the appropriately constructed project config 
+		//    file to disk.
+		// 2. We need to decide if we will be using book folder mode automatically for 
+		//    chapter sized documents of if we will dump them all in the "adaptations" 
+		//    folder. The user won't know the difference except if the administrator 
+		//    decides at some future time to turn PT collaboration OFF. If we used the 
+		//    book folders during PT collaboration for chapter files, we would need to 
+		//    insure that book folder mode stays turned on when PT collaboration was 
+		//    turned off.
+		// 3. Compose an appropriate document name to be used depending on whether the
+		//    document is to contain a chapter or a whole book. 
+		// 4. Create the document by parsing/tokenizing the string now existing in our 
+		//    sourceFileBuffer, saving it's xml form to disk, and laying the doc out in 
+		//    the main window.
+	}
+
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -748,6 +828,45 @@ bool CGetSourceTextFromEditorDlg::PTProjectIsEditable(wxString projShortName)
 		return TRUE;
 	else
 		return FALSE;
+}
+
+bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt)
+{
+	bool bIsAIProject = FALSE;
+
+	PT_Project_Info_Struct* pPTInfoSrc;
+	PT_Project_Info_Struct* pPTInfoTgt;
+	pPTInfoSrc = m_pApp->GetPT_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
+																// pApp->m_pArrayOfPTProjects
+	pPTInfoTgt = m_pApp->GetPT_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
+																// pApp->m_pArrayOfPTProjects
+	wxASSERT(pPTInfoSrc != NULL);
+	wxASSERT(pPTInfoTgt != NULL);
+	wxString srcLangStr = pPTInfoSrc->languageName;
+	wxASSERT(!srcLangStr.IsEmpty());
+	wxString tgtLangStr = pPTInfoTgt->languageName;
+	wxASSERT(!tgtLangStr.IsEmpty());
+	wxString workFolder = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
+	
+	wxArrayString possibleAdaptions;
+	possibleAdaptions.Clear();
+	m_pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
+	int ct, tot;
+	tot = (int)possibleAdaptions.GetCount();
+	if (tot == 0)
+	{
+		return FALSE;
+	}
+	else
+	{
+		for (ct = 0; ct < tot; ct++)
+		{
+			wxString tempStr = possibleAdaptions.Item(ct);
+			if (workFolder == tempStr)
+				return TRUE;
+		}
+	}
+	return bIsAIProject;
 }
 
 wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBProjItem)
@@ -1229,8 +1348,19 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook(wxString
 	PT_Project_Info_Struct* pPTInfo;
 	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
 															// pApp->m_pArrayOfPTProjects
-	wxString chMkr = _T("\\") + pPTInfo->chapterMarker;
-	wxString vsMkr = _T("\\") + pPTInfo->verseMarker;
+	wxASSERT(pPTInfo != NULL);
+	wxString chMkr;
+	wxString vsMkr;
+	if (pPTInfo != NULL)
+	{
+		chMkr = _T("\\") + pPTInfo->chapterMarker;
+		vsMkr = _T("\\") + pPTInfo->verseMarker;
+	}
+	else
+	{
+		chMkr = _T("\\c");
+		vsMkr = _T("\\v");
+	}
 	// Check if the book lacks a \c (as might Philemon, 2 John, 3 John and Jude).
 	// If the book has no chapter we give the chapterArray a chapter 1 and indicate
 	// the status of that chapter.
@@ -1384,8 +1514,19 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 	PT_Project_Info_Struct* pPTInfo;
 	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
 															// pApp->m_pArrayOfPTProjects
-	wxString chMkr = _T("\\") + pPTInfo->chapterMarker;
-	wxString vsMkr = _T("\\") + pPTInfo->verseMarker;
+	wxASSERT(pPTInfo != NULL);
+	wxString chMkr;
+	wxString vsMkr;
+	if (pPTInfo != NULL)
+	{
+		chMkr = _T("\\") + pPTInfo->chapterMarker;
+		vsMkr = _T("\\") + pPTInfo->verseMarker;
+	}
+	else
+	{
+		chMkr = _T("\\c");
+		vsMkr = _T("\\v");
+	}
 	
 	if (indexOfChItem == -1)
 	{

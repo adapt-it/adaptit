@@ -7649,14 +7649,14 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item5->SetToolTip( _("Adapt It developers who will receive this email report") );
     item3->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("FROM: (Your Email Address)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("&FROM: (Your Email Address)"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MY_EMAIL_ADDR, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
     item7->SetToolTip( _("Enter your email address here so we can respond to you") );
     item3->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("RE: Summary (Email Subject)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("&RE: Summary (Email Subject)"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_SUMMARY_SUBJECT, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
@@ -7667,7 +7667,7 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Description (Body of Email):") );
+    wxStaticBox *item11 = new wxStaticBox( parent, -1, _("&Description (Body of Email):") );
     wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
     STATIC_TEXT_DESCRIPTION = item10;
 
@@ -7677,7 +7677,7 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Sender's Name:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Sender's &Name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL_SENDERS_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
@@ -7694,7 +7694,7 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item16->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item18 = new wxButton( parent, ID_BUTTON_VIEW_USAGE_LOG, _("View Usage Log"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item18 = new wxButton( parent, ID_BUTTON_VIEW_USAGE_LOG, _("&View Usage Log"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("Click to view the contents of the Adapt It usage log before sending") );
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -7805,15 +7805,15 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item47 = new wxStaticBox( parent, -1, _("Report handling:") );
     wxStaticBoxSizer *item46 = new wxStaticBoxSizer( item47, wxVERTICAL );
 
-    wxButton *item48 = new wxButton( parent, ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, _("Save report as text file (xml)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item48 = new wxButton( parent, ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, _("&Save report as text file (xml)"), wxDefaultPosition, wxDefaultSize, 0 );
     item48->SetToolTip( _("Click to save this report on your computer, if desired, before sending it as email") );
     item46->Add( item48, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxButton *item49 = new wxButton( parent, ID_BUTTON_LOAD_SAVED_REPORT, _("Load a saved report"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item49 = new wxButton( parent, ID_BUTTON_LOAD_SAVED_REPORT, _("&Load a saved report"), wxDefaultPosition, wxDefaultSize, 0 );
     item49->SetToolTip( _("Click to load a previously saved report - which you can then send as email if you wish") );
     item46->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxButton *item50 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item50 = new wxButton( parent, wxID_OK, _("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item50->SetToolTip( _("Click to close this dialog (you should first save any unsent changes)") );
     item46->Add( item50, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -7831,13 +7831,13 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item55 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item56 = new wxButton( parent, ID_BUTTON_ATTACH_PACKED_DOC, _("Attach this document (packed)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item56 = new wxButton( parent, ID_BUTTON_ATTACH_PACKED_DOC, _("&Attach this document (packed)"), wxDefaultPosition, wxDefaultSize, 0 );
     item56->SetToolTip( _("Click to attach the currently open document as a packed adaptation document - if you refer to it in your report") );
     item55->Add( item56, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item55->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item57 = new wxButton( parent, ID_BUTTON_SEND_NOW, _("Send Now"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item57 = new wxButton( parent, ID_BUTTON_SEND_NOW, _("Send N&ow"), wxDefaultPosition, wxDefaultSize, 0 );
     item57->SetToolTip( _("Click to send this report via email") );
     item55->Add( item57, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -7926,8 +7926,8 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     wxString strs9[] = 
     {
-        _("Paratext Collaboration ON"), 
-        _("Paratext Collaboration OFF")
+        _("Paratext Collaboration &ON"), 
+        _("Paratext Collaboration O&FF")
     };
     wxRadioBox *item9 = new wxRadioBox( parent, ID_RADIOBOX_PT_COLLABORATION_ON_OFF, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs9, 1, wxRA_SPECIFY_COLS );
     item7->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -7938,12 +7938,12 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     wxFlexGridSizer *item11 = new wxFlexGridSizer( 2, 0, 0 );
     item11->AddGrowableCol( 0 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Optional setup - you may pre-select projects for the user here:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Optional setup - you may pre-select projects for the user here (recommended):"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for getting source texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for getting &source texts:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -7952,11 +7952,11 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     item14->SetToolTip( _("Use the button at right to select a default project for user to obtain source texts") );
     item11->Add( item14, 0, wxGROW|wxALL, 0 );
 
-    wxButton *item15 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, _("Select from List"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item15 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, _("Select from &List"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->SetToolTip( _("Click this button to select a default project to put in the box at left") );
     item11->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for receiving translation texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for receiving &translation texts:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -7965,7 +7965,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     item17->SetToolTip( _("Use the button at right to select a default project for user where translated texts will be transferred") );
     item11->Add( item17, 0, wxGROW|wxALL, 0 );
 
-    wxButton *item18 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, _("Select from List"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item18 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, _("Select from L&ist"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("Click this button to select a default project to put in the box at left") );
     item11->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
