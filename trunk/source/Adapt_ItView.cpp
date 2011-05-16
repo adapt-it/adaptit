@@ -19356,6 +19356,12 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CAdapt_ItView* pView = pApp->GetView();
 
+	// choose a spanlimit int value, (a restricted range of CSourcePhrase instances), use
+	// the AdaptitConstant.h value SPAN_LIMIT, set currently to 50. This should be large
+	// enough to guarantee some "in common" text which wasn't user-edited, within a span
+	// of that size.
+	int nSpanLimit = SPAN_LIMIT;	
+
 	// get an input buffer for the new source text
 	wxString buffer;
 	wxString* pBuffer = &buffer;
@@ -19442,7 +19448,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		// compute the new list from the old one plus the tokenized newly updated list
 		if (nHowMany > 0)
 		{
-			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList);
+			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
 
 			// take the pMergedList list, delete the app's m_pSourcePhrases list's contents,
 			// add to m_pSourcePhrases deep copies of the what is in pMergedList list,

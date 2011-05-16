@@ -95,8 +95,7 @@ bool	IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 						int newPosEnd, wxArrayPtrVoid* pSubspansArray);
 bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc);
 void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
-void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList,
-							   int limit = SPAN_LIMIT);
+void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
 						int limit, Subspan* tuple[]); // the array size is always 3, so 
 													  // we don't need a parameter for it
