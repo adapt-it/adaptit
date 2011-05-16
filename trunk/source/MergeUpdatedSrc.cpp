@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			MergeUpdatedSrc.h
+/// \file			MergeUpdatedSrc.cpp
 /// \author			Bruce Waters
 /// \date_created	12 April 2011
 /// \date_revised	
@@ -14,7 +14,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "helpers.h"
+    #pragma implementation "MergeUpdatedSrc.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".

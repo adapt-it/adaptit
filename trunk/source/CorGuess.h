@@ -14,6 +14,10 @@
 #ifndef CorGuess_h
 #define CorGuess_h
 
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma interface "CorGuess.h"
+#endif
 
 /* Correspondence Guesser takes a list of source/target pairs and tries to guess 
 the corresponding target for a source word that is not in the list.

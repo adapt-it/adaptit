@@ -17,7 +17,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "helpers.h"
+    #pragma interface "MergeUpdatedSrc.h"
 #endif
 
 #include <wx/dynarray.h>

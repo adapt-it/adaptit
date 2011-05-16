@@ -18,7 +18,7 @@
 // ////////////////////////////////////////////////////////////////////////
 // whm added standard wxWidgets headers below which includes wx.h (and defines the __WXWINDOWS__ symbol needed below)
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "KB.h"
+    #pragma implementation "CorGuess.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
