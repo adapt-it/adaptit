@@ -734,7 +734,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	if (bPTCollaborationUsingExistingAIProject)
 	{
 		// The Paratext projects selected for source text and target texts have an existing
-		// AI project in the user's work folder, so we use that project.
+		// AI project in the user's work folder, so we use that AI project.
 		// 
 		// TODO: 
 		// 1. Compose an appropriate document name and check if a document by that name
@@ -807,7 +807,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    insure that book folder mode stays turned on when PT collaboration was 
 		//    turned off.
 		// 3. Compose an appropriate document name to be used depending on whether the
-		//    document is to contain a chapter or a whole book. 
+		//    document is to contain a chapter or a whole book. (Do we want to restrict 
+		//    it to chapter only chunks of the target text?)
 		// 4. Create the document by parsing/tokenizing the string now existing in our 
 		//    sourceFileBuffer, saving it's xml form to disk, and laying the doc out in 
 		//    the main window.

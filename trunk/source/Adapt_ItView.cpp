@@ -5685,18 +5685,25 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
-/// Disables the "New" item on the File menu if Vertical Editing is in progress. Enables
-/// the item if the KB pointers are not NULL, and if the strip count is zero, otherwise it
-/// disables the menu item.
+/// Disables the "New" item on the File menu if Vertical Editing or Paratext Collaboration
+/// is in progress. Enables the item if the KB pointers are not NULL, and if the strip 
+/// count is zero (meaning no document is loaded), otherwise it disables the menu item.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	// whm added 16May11. Disallow File "New" menu item when PT collaboration is active
+	if (pApp->m_bCollaboratingWithParatext)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	// we can't use m_pSourcePhrases->GetCount() equal to zero because after a File...Close
 	// only the view (ie. strips) is clobbered, the source phrases don't get clobbered until
 	// DeleteContents() is called, which does not happen until either the user chooses New...
