@@ -4116,6 +4116,140 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	} // end of for loop: for (tupleIndex = 0; tupleIndex < tupleSize; tupleIndex++)
 }
 
+/// returns                 TRUE for a successful analysis, FALSE if unsuccessful or an
+///                         empty string was passed in
+/// 
+/// \param  strChapVerse        ->  ref to a chapter:verse string, or chapter:verse_range string which
+///                                 is passed in to be analysed into its parts
+/// \param  strChapter          <-  ref to the chapter number as a string
+/// \param  nChapter            <-  the int value of strChapter
+/// \param  strDelimiter        <-  if present, whatever separates the parts of a verse range
+/// \param  strStartingVerse    <-  the starting verse of a range, as a string
+/// \param  nStartingVerse      <-  the int value of strStartingVerse                   
+/// \param  strStartingVerseSuffix <- usually a single lower case letter such as a or b
+///                                   after strStartingVerse
+/// \param  strEndingVerse      <-  the ending verse of a range, as a string
+/// \param  nStartingVerse      <-  the int value of strEndingVerse                   
+/// \param  strEndingVerseSuffix <- usually a single lower case letter such as a or b,
+///                                 after strEndingVerse
+/// \remarks
+/// This is similar to the CAdapt_ItView::AnalyseReference() function, but the latter does
+/// not consider the possibility that there may be suffix characters, and it assumes the
+/// only delimiters will be hyphen or comma, it also can handle Arabic chapter number
+/// conversion for the Mac (which can't convert using Atoi() or Wtoi() if the input is
+/// Arabic digits.
+/// AnalyseChapterVerseRef() will likewise handle conversion of Arabic chapter numbers to
+/// western digits for the Mac - doing it also for the verse digits, and will get the
+/// suffix characters if present - it is meant for filling out most of the members of the
+/// SfmChunk struct.
+bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& nChapter, 
+					wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
+					wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
+					int& nEndingVerse, wxChar& charEndingVerseSuffix)
+{
+    // The Adapt It chapterVerse reference string is always of the form ch:vs or
+    // ch:vsrange, the colon is always there except for single chapter books. Single
+    // chapter books with no chapter marker will return 1 as the chapter number
+	nChapter = -1;
+	nStartingVerse = -1;
+	nEndingVerse = -1;
+	strStartingVerse.Empty();
+	strEndingVerse.Empty();
+	charStartingVerseSuffix = _T('\0');
+	charEndingVerseSuffix = _T('\0');
+	strDelimiter.Empty();
+	if (strChapVerse.IsEmpty())
+		return FALSE; // reference passed in was empty
+	wxString range;
+	range.Empty();
+
+	// first determine if there is a chapter number present; handle Arabic digits if on a
+	// Mac machine and Arabic digits were input
+	int nFound = strChapVerse.Find(_T(':'));
+	if (nFound == wxNOT_FOUND)
+	{
+		// no chapter number, so set chapter to 1
+		range = strChapVerse;
+		nChapter = 1;
+		strChapter = _T("1");
+	}
+	else
+	{
+		// chapter number exists, extract it and put the remainder after the colon into range
+		strChapter = SpanExcluding(strChapVerse,_T(":"));
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+		for (size_t imak=0; imak < strChapter.Len(); imak++)
+		{
+			wxChar imaCh = strChapter.GetChar(imak);
+			if (imaCh >= (wchar_t)0x6f0 && imaCh <= (wchar_t)0x6f9)
+				strChapter.SetChar(imak, imaCh & (wchar_t)0x3f);	// zero out the higher bits of these Arabic digits
+		}
+#endif /* __WXMAC__ */
+		nChapter = wxAtoi(strChapter);
+
+		nFound++; // index the first char after the colon
+		range = strChapVerse.Mid(nFound);
+	}
+	// the code above was lifted verbatim from AnalyseReference(), but tweaked just a little
+
+	// now deal with the verse range, or single verse
+	int numChars = range.Len();
+	int index;
+	wxChar aChar = _T('\0');
+	int count = 0;
+	for (index = 0; index < numChars; index++)
+	{
+		aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+		if (imaCh >= (wchar_t)0x6f0 && imaCh <= (wchar_t)0x6f9)
+		{
+			aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+		}
+#endif /* __WXMAC__ */
+		int isDigit = wxIsdigit(aChar);
+		if (isDigit != 0)
+		{
+			// it's a digit
+			strStartingVerse += aChar;
+			count++;
+		}
+		else
+		{
+			// it's not a digit, so exit with what we've collected so far
+			break;
+		}
+	}
+	if (count == numChars)
+	{
+		// all there was in the range variable was the digits of a verse number, so set
+		// the return parameter values and return TRUE
+		nStartingVerse = wxAtoi(strStartingVerse);
+		nEndingVerse = nStartingVerse;
+		strEndingVerse = strStartingVerse;
+		return TRUE;
+
+	}
+	else
+	{
+		// there's more, but get what we've got so far and trim that stuff off of range
+		nStartingVerse = wxAtoi(strStartingVerse);
+		range = range.Mid(count - 1);
+
+// *** finish the rest ****
+
+
+
+
+	}
+	return TRUE;
+}
+
+
+
+
+
 
 
 
