@@ -42,6 +42,25 @@ WX_DEFINE_OBJARRAY(SPArray);
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
+// marker strings needed in this module and populated in InitializeUsfmMkrs()
+wxString m_titleMkrs;
+wxString m_introductionMkrs;
+wxString m_chapterMkrs;
+wxString m_verseMkrs;
+
+void InitializeUsfmMkrs()
+{
+	m_titleMkrs = _T("\\id \\ide \\h \\h1 \\h2 \\h3 \\mt \\mt1 \\mt2 \\mt3 ");
+	m_introductionMkrs = _T("\\imt \\imt1 \\imt2 \\imt3 \\imte \\is \\is1 \\is2 \\is3 \\ip \\ipi \\ipq \\ipr \\iq \\iq1 \\iq2 \\iq3 \\im \\imi \\imq \\io \\io1 \\io2 \\io3 \\iot \\iex \\ib \\ili \\ili1 \\ili2 \\ie ");
+	m_chapterMkrs = _T("\\c \\cl "); // \ca \ca* \p & \cd omitted, they follow \c 
+									 // so aren't needed for chunking
+	m_verseMkrs = _T("\\v \vn "); // \va \va* \vp \vp* omitted, they follow \v
+				// and so are not needed for chunking; \vn is a non-standard
+				// 'verse number' marker that some people use
+
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// \return                    the word count
 /// \param  arr             -> the arrOld from which we extract the m_key member 
@@ -725,28 +744,17 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	int nStartingSequNum;
 	SPArray arrOld;
 	SPArray arrNew;
-	SPList::Node* posOld = oldList.GetFirst();
-	while (posOld != NULL)
-	{
-		CSourcePhrase* pSrcPhraseOld = posOld->GetData();
-		posOld = posOld->GetNext();
-		arrOld.Add(pSrcPhraseOld);
-	}
+	ConvertSPList2SPArray(&oldList, &arrOld);
 	int oldSPCount = oldList.GetCount();
 	if (oldSPCount == 0)
 		return;
 	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the 
 														// sequence numbers right later
-	SPList::Node* posNew = newList.GetFirst();
-	while (posNew != NULL)
-	{
-		CSourcePhrase* pSrcPhraseNew = posNew->GetData();
-		posNew = posNew->GetNext();
-		arrNew.Add(pSrcPhraseNew);
-	}
+	ConvertSPList2SPArray(&newList, &arrNew);
 	int newSPCount = newList.GetCount();
 	if (newSPCount == 0)
 		return;
+	InitializeUsfmMkrs();
 
     // Note: we impose a limit on maximum span size, to keep our algorithms from getting
     // bogged down by having to handle too much data in any one iteration. The limit
@@ -4179,7 +4187,8 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 		strChapter = SpanExcluding(strChapVerse,_T(":"));
 #ifdef __WXMAC__
 // Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
-		for (size_t imak=0; imak < strChapter.Len(); imak++)
+		size_t imak;
+		for (imak=0; imak < strChapter.Len(); imak++)
 		{
 			wxChar imaCh = strChapter.GetChar(imak);
 			if (imaCh >= (wchar_t)0x6f0 && imaCh <= (wchar_t)0x6f9)
@@ -4191,19 +4200,19 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 		nFound++; // index the first char after the colon
 		range = strChapVerse.Mid(nFound);
 	}
-	// the code above was lifted verbatim from AnalyseReference(), but tweaked just a little
 
 	// now deal with the verse range, or single verse
 	int numChars = range.Len();
 	int index;
 	wxChar aChar = _T('\0');
+	// get the verse number, or the first verse number of the range
 	int count = 0;
 	for (index = 0; index < numChars; index++)
 	{
 		aChar = range.GetChar(index);
 #ifdef __WXMAC__
 // Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
-		if (imaCh >= (wchar_t)0x6f0 && imaCh <= (wchar_t)0x6f9)
+		if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
 		{
 			aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
 		}
@@ -4229,23 +4238,428 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 		nEndingVerse = nStartingVerse;
 		strEndingVerse = strStartingVerse;
 		return TRUE;
-
 	}
 	else
 	{
 		// there's more, but get what we've got so far and trim that stuff off of range
 		nStartingVerse = wxAtoi(strStartingVerse);
-		range = range.Mid(count - 1);
-
-// *** finish the rest ****
-
-
-
-
-	}
+		range = range.Mid(count);
+		numChars = range.Len();
+		// if a part-verse marker (assume one of a or b or c only), get it
+		aChar = range.GetChar(0);
+		if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
+		{
+			charStartingVerseSuffix = aChar;
+			range = range.Mid(1); // remove the suffix character
+			numChars = range.Len();
+		}
+		if (numChars == 0)
+		{
+			// we've exhausted the range string, fill params and return TRUE
+			strEndingVerse = strStartingVerse;
+			charEndingVerseSuffix = charStartingVerseSuffix;
+			nEndingVerse = nStartingVerse;
+			return TRUE;
+		}
+		else 
+		{
+			// there is more still, what follows must be the delimiter, we'll assume it is
+			// possible to have more than a single character (exotic scripts might need
+			// more than one) so search for a following digit as the end point, or string
+			// end; and handle Arabic digits too (ie. convert them)
+			count = 0;
+			for (index = 0; index < numChars; index++)
+			{
+				aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+				if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+				{
+					aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+				}
+#endif /* __WXMAC__ */
+				int isDigit = wxIsdigit(aChar);
+				if (isDigit != 0)
+				{
+					// it's a digit, so we've reached the end of the delimiter
+					break;
+				}
+				else
+				{
+					// it's not a digit, so it's part of the delimiter string
+					strDelimiter += aChar;
+					count++;
+				}
+			}
+			if (count == numChars)
+			{
+				// it was "all delimiter" - a formatting error, as there is not verse
+				// number to indicate the end of the range - so just take the starting
+				// verse number (and any suffix) and return FALSE
+				strEndingVerse = strStartingVerse;
+				charEndingVerseSuffix = charStartingVerseSuffix;
+				nEndingVerse = nStartingVerse;
+				return FALSE;
+			}
+			else
+			{
+                // we stopped earlier than the end of the range string, and so presumably
+                // we stopped at the first digit of the verse which ends the range
+				range = range.Mid(count); // now just the final verse and possibly an a, b or c suffix
+				numChars = range.Len();
+				// get the final verse...
+				count = 0;
+				for (index = 0; index < numChars; index++)
+				{
+					aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+					if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+					{
+						aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+					}
+#endif /* __WXMAC__ */
+					int isDigit = wxIsdigit(aChar);
+					if (isDigit != 0)
+					{
+						// it's a digit
+						strEndingVerse += aChar;
+						count++;
+					}
+					else
+					{
+						// it's not a digit, so exit with what we've collected so far
+						break;
+					}
+				}
+				if (count == numChars)
+				{
+                    // all there was in the range variable was the digits of the ending
+                    // verse number, so set the return parameter values and return TRUE
+					nEndingVerse = wxAtoi(strEndingVerse);
+					return TRUE;
+				}
+				else
+				{
+					// there's more, but get what we've got so far and trim that stuff 
+					// off of range
+					nEndingVerse = wxAtoi(strEndingVerse);
+					range = range.Mid(count);
+					numChars = range.Len();
+					// if a part-verse marker (assume one of a or b or c only), get it
+					if (numChars > 0)
+					{
+						// what remains should just be a final a or b or c
+						aChar = range.GetChar(0);
+						if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
+						{
+							charEndingVerseSuffix = aChar;
+							range = range.Mid(1); // remove the suffix character
+							numChars = range.Len(); // numChars should now be 0
+						}
+						if (numChars != 0)
+						{
+							// rhere's still something remaining, so just ignore it, but
+							// alert the developer, not with a localizable string
+							wxString suffix1;
+							wxString suffix2;
+							if (charStartingVerseSuffix != _T('\0'))
+							{
+								suffix1 = charStartingVerseSuffix;
+							}
+							if (charEndingVerseSuffix != _T('\0'))
+							{
+								suffix2 = charEndingVerseSuffix;
+							}
+							wxString msg;
+							msg = msg.Format(
+_T("The verse range was parsed, and the following remains unparsed: %s\nfrom the specification %s:%s%s%s%s%s%s"),
+							range.c_str(),strChapter.c_str(),strStartingVerse.c_str(),suffix1.c_str(),
+							strDelimiter.c_str(),strEndingVerse.c_str(),suffix2.c_str(),range.c_str());
+							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_WARNING);
+						}
+					} //end of TRUE block for test: if (numChars > 0)
+				} // end of else block for test: if (count == numChars)
+			} // end of else block for test: if (count == numChars)
+		} // end of else block for test: if (count == numChars)
+	} // end of else block for test: if (numChars == 0)
 	return TRUE;
 }
 
+// Starting at the index, startFrom, in the array pArray, search ahead for a CSourcePhrase
+// instance which does not have an empty m_markers member, return the index if one is
+// found, and if the match is at the last instance in pArray, or the index goes out of
+// bounds, set bReachedEndOfArray TRUE as well, otherwise the latter returns FALSE.
+int GetNextNonemptyMarkers(SPArray* pArray, int& startFrom, bool& bReachedEndOfArray)
+{
+	bReachedEndOfArray = FALSE;
+	int count = pArray->GetCount();
+	if (startFrom >= count)
+	{
+		bReachedEndOfArray = TRUE;
+		return wxNOT_FOUND;
+	}
+	int index;
+	for (index = startFrom; index < count; index++)
+	{
+		CSourcePhrase* pSrcPhrase = pArray->Item(index);
+		if (!pSrcPhrase->m_markers.IsEmpty())
+		{
+			if (index == count - 1)
+			{
+				bReachedEndOfArray = TRUE;
+			}
+			return index;
+		}
+	}
+	// if control gets to here, we didn't find one
+	bReachedEndOfArray = TRUE;
+	return wxNOT_FOUND;
+}
+
+// Check if the start of arr contains material belonging to stuff which is preceding an
+// introduction (if there is an introduction) or before the first chapter, if there are
+// chapters, or before the first verse, if there are no chapters; if that is so, keep
+// looking until that book-initial material ends - either at an introduction, or chapter
+// marker or if not any chapters, at the first verse marker encountered,
+// Return the index values for the CSourcePhrase instances which lie at the start and end
+// of the book-introduction span and return TRUE, if we do not succeed in delineating any
+// such span, return FALSE (and in that case, startsAt and endsAt values are undefined -
+// I'll probably set them to -1 whenever FALSE is returned)
+bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
+{
+	int count = arrP->GetCount();
+	int endIndex = count - 1;
+	int index = 0;
+	wxString markers;
+	CSourcePhrase* pSrcPhrase = NULL;
+	startsAt = 0;
+	endsAt = 0;
+	if (count == 0)
+	{
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// does arr start with book-initial material, such as \id or a \mt or \h etc
+	// (this stuff is in m_titleMkrs)
+	pSrcPhrase = arrP->Item(index);
+	markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+	{
+		// we don't expect this, but it does at least mean that probably the initial
+		// CSourcePhrase isn't at an \id location, nor an introduction, so caller
+		// probably should assume a verse type of unit
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// m_markers has content, so check what might be in it
+	bool bIsIdOrTitleWithin = IsSubstringWithin(m_titleMkrs, markers);
+	bool bIsIntroductionWithin = IsSubstringWithin(m_introductionMkrs, markers);
+	bool bIsChapterMkrWithin = IsSubstringWithin(m_chapterMkrs, markers);
+	bool bIsVerseMkrWithin = IsSubstringWithin(m_verseMkrs, markers);
+	bool bIsBookInitialChunk = FALSE;
+	if (bIsIdOrTitleWithin)
+	{
+		bIsBookInitialChunk = TRUE;
+	}
+	else
+	{
+		// else, we'll assume it's book-introduction material provided m_markers doesn't
+		// contain any introduction markers, nor a chapter marker, nor a verse marker
+		if (!bIsIntroductionWithin && !bIsChapterMkrWithin && !bIsVerseMkrWithin)
+		{
+			bIsBookInitialChunk = TRUE;
+		}
+	}
+	if (!bIsBookInitialChunk)
+	{
+		// return FALSE, we don't know what it is
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+
+    // we are in a book-initial chunk; so look ahead until we come to, in order of testing,
+    // first, any introduction material, if not that, a chapter number, if not that, a
+    // verse marker - those constitute an end of the book-introduction material
+	index++; // equals 1 now
+	if (index > endIndex)
+	{
+		// it's a very short array!!!!
+		startsAt = 0;
+		endsAt = 0;
+		return TRUE;
+	}
+	bool bReachedEndOfArray = FALSE;
+	int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+	while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+	{
+		// get the m_markers content in this instance, put it into markers
+		pSrcPhrase = arrP->Item(foundIndex);
+		markers = pSrcPhrase->m_markers;
+
+		// check for any marker which indicates the book-initial material is ended
+		bIsIntroductionWithin = IsSubstringWithin(m_introductionMkrs, markers);
+		bIsChapterMkrWithin = IsSubstringWithin(m_chapterMkrs, markers);
+		bIsVerseMkrWithin = IsSubstringWithin(m_verseMkrs, markers);
+	
+		// are we done?
+		if (bIsIntroductionWithin || bIsChapterMkrWithin || bIsVerseMkrWithin)
+		{
+			// we've found the start of the next information chunk, so the previous index
+			// is the ending one for this chunk
+			endsAt = foundIndex - 1;
+			bReachedEndOfArray = FALSE; // must be so
+			return TRUE;
+		}
+		// end of the chunk wasn't found, so prepare to iterate
+		index = foundIndex + 1;
+		if (index > endIndex)
+		{
+			// array end was reached
+			bReachedEndOfArray = TRUE;
+			endsAt = endIndex;
+			return TRUE;
+		}
+		// search for the next non-empty m_markers member
+		foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+	}
+
+	// we didn't find an end, so take it all as book-initial material
+	endsAt = endIndex;
+	return TRUE;
+}
+
+void InitializeNonVerseChunk(SfmChunk* pStruct)
+{
+	pStruct->type = unknownChunkType;
+	pStruct->strChapter.Empty();
+	pStruct->nChapter = -1;
+	pStruct->strDelimiter.Empty();
+	pStruct->strStartingVerse.Empty();
+	pStruct->nStartingVerse = -1;
+	pStruct->charStartingVerseSuffix = _T('\0');
+	pStruct->strEndingVerse.Empty();
+	pStruct->nEndingVerse = -1;
+	pStruct->charEndingVerseSuffix = _T('\0');
+	pStruct->startsAt = -1;
+	pStruct->endsAt = -1;
+	pStruct->bContainsText = TRUE;
+}
+
+// Test whether or not the chunk of CSourcePhrase instances delineated by the range
+// [startsAt,endsAt] contains any text in their m_key members - only need a single
+// character to force a return of TRUE, return FALSE if **ALL** m_key members are empty
+bool DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt)
+{
+	int index;
+	for (index = startsAt; index <= endsAt; index++)
+	{
+		CSourcePhrase* pSrcPhrase = pArray->Item(index);
+		if (!pSrcPhrase->m_key.IsEmpty())
+		{
+			// at least one has some text content, so return TRUE
+			return TRUE;
+		}
+	}
+	// all are empty
+	return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return                 TRUE if the array could be chunked because markers were present,
+///                         FALSE if it could not be chunked (that would almost certainly
+///                         be because the original Plain Text source text from which the
+///                         tokenized CSourcePhrase instances were obtained, did not have
+///                         any USFM or SFM markup)
+/// \param  pInputArray ->  an array of CSourcePhrase pointers (it may be a subarray
+///                         extracted from a larger array, it can't be assumed to be
+///                         the whole document)
+/// \param  pChunkSpecs <-  an array of pointers to SfmChunk structs
+/// \remarks
+/// The SfmChunk struct has the following structure, & is declared in MereUpdatedSrc.h
+/// and comments there describe what each member field is for:
+///struct SfmChunk {
+///	SfmChunkType		type; 
+///	wxString			strChapter;
+///	int					nChapter;
+///	int					strDelimiter;
+///	wxString			strStartingVerse;
+///	int					nStartingVerse;
+///	wxChar				charStartingVerseSuffix;
+///	wxString			strEndingVerse;
+///	int					nEndingVerse;
+///	wxChar				charEndingVerseSuffix;
+/// int					startsAt;
+///	int					endsAt;
+///	bool				bContainsText;
+///};
+/// SfmChunkType is an enum used for typing each SfmChunk instance, with values from the
+/// following: 	bookInitialChunk, introductionChunk, chapterStartChunk, subheadingChunk, 
+/// verseChunk
+/// Note that not every chunk will pertain to a verse of scripture, some will have no
+/// verse information - actually, all of them, except verseChunk; each chunk indexes into
+/// the passed in pInputArray array of CSourcePhrase instances (in document order,
+/// although the first in the array does not necessarily have a m_nSequNumber value of 0)
+bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
+{
+	bool bCannotChunkThisArray = TRUE; // it might turn out to have no (U)SFMs in it
+	pChunkSpecs->Clear(); // ensure it starts empty
+	int nStartsAt = 0;
+	int nEndsAt = wxNOT_FOUND;
+	int count = pInputArray->GetCount();
+	int endIndex = count - 1;
+	if (count == 0)
+	{
+		return FALSE;
+	}
+
+	// first, try for a once-only initial chunk of book-initial material
+	bool bHasBookInitialChunk = GetBookInitialChunk(pInputArray, nStartsAt, nEndsAt);
+	if (bHasBookInitialChunk)
+	{
+		bCannotChunkThisArray = FALSE; // there are (U)SFMs, and also book-initial material
+
+		// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
+		SfmChunk* pSfmChunk = new SfmChunk;
+		InitializeNonVerseChunk(pSfmChunk);
+		pSfmChunk->type = bookInitialChunk;
+		pSfmChunk->startsAt = nStartsAt;
+		pSfmChunk->endsAt = nEndsAt;
+		pSfmChunk->bContainsText = DoesChunkContainSourceText(pInputArray, nStartsAt, nEndsAt);
+		pChunkSpecs->Add(pSfmChunk);
+
+		// consume this chunk, by advancing where we start from next
+		nStartsAt = nEndsAt + 1;
+		nEndsAt = wxNOT_FOUND;
+		if (nStartsAt > endIndex)
+		{
+			// all we've got is book-initial material
+			return TRUE;
+		}
+	}
+	else
+	{
+		// don't advance, so now we need to try below for a chunk containing introduction
+		// material
+		nStartsAt = 0;
+		nEndsAt = wxNOT_FOUND; 
+	}
+
+
+
+// ** done to here **
+
+
+
+	if (bCannotChunkThisArray)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
 
 
 

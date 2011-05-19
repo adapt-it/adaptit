@@ -22,11 +22,13 @@
 #include "string.h"
 #endif
 #include "Adapt_It.h"
+#include "MergeUpdatedSrc.h"
 
 class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
+//class SPArray; // declared in MergeUpdatedSrc.h as a global type, defined in it's .cpp file
 
 /// An enum for return error-state from GetNewFile()
 enum getNewFileState
@@ -243,7 +245,10 @@ bool	 IsFixedSpaceSymbolInSelection(SPList* pList);
 bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
 bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
 bool	 IsFixedSpaceOrBracket(wxChar* ptr); // quick way to detect ~ or ] or [ at ptr
+bool	 IsSubstringWithin(wxString& testStr, wxString& strItems); // tests if one of strings in
+											// testStr is a match for any string in strItems
 void	 SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& othersFilteredStr);
+
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
@@ -314,10 +319,21 @@ bool HasParagraphMkr(wxString& str);
 // situations 
 void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
 
+// input: pList = ptr to the SPList to be converted to a dynamic array
+// output: pArray = ptr to the SPArray which is passed in empty and populated within;
+// Note: the pointers will then be managed by a list and an array, so take care when deleting
+void ConvertSPList2SPArray(SPList* pList, SPArray* pArray);
 
-// two diagnostic functions which can be used for chasing any bug resulting from the
-// partner piles not having all required values filled out, especially m_pSrcPhrase and
-// m_pOwningPile, and so not being properly in sync with the doc list; uncomment places
+// extract a range of CSourcePhrase instances' ptrs (leave m_nSequNumber values unchanged)
+// from the passed in pInputArray, for the range [nStartAt,nEndAt], populating pSubarray
+// with the extracted pointers -- Note: the pointers will be then managed by two arrays,
+// so take care when deleting
+void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pSubarray);
+
+// The following are two diagnostic functions which can be used for chasing any bug
+// resulting from the partner piles not having all required values filled out, especially
+// m_pSrcPhrase and m_pOwningPile, and so not being properly in sync with the doc list;
+// uncomment places
 // where the #define _debugLayout is, and the calls below
 //void ShowSPandPile(int atSequNum, int whereTis);
 //void ShowInvalidStripRange();

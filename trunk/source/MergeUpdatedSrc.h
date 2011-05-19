@@ -112,11 +112,12 @@ const int tupleSize = 3;
 // decomposing for an OXES export of the document.)
 
 enum SfmChunkType {
+	unknownChunkType, // at initialization time & before arriving at a specific type
 	bookInitialChunk, // for data like \id line, \mt main title, secondary title, etc
-	introductionChunk,
-	chapterStartChunk,
-	subheadingChunk,
-	verseChunk
+	introductionChunk, // for introductory material, markers beginning \i.... 
+	chapterStartChunk, // for stuff at the start of a chapter, and before any subheading
+	subheadingChunk, // for a subheading
+	verseChunk // for a verse
 };
 // We do a set of the following stored in wxArrayPtrVoid for the whole existing Adapt It
 // document chunk. As for "document chunk", we have agreed to only store single-chapter
@@ -135,18 +136,22 @@ enum SfmChunkType {
 // tokenized source text arrays.
 struct SfmChunk {
 	SfmChunkType		type; // one of the above types
+	bool				bContainsText; // default TRUE, set FALSE if the information in the chunk is
+									   // absent (such as a \v marker without any text
+									   // following the verse number)
+	int					startsAt; // index into an SPArray defining where the chunk starts
+	int					endsAt; // index into an SPArray defining where the chunk ends
+	// the remaining members pertain to verseChunk type, and store info from the verse
+	// reference within the Adapt It document
 	wxString			strChapter; // chapter number as a string (always set, except for introduction material)
 	int					nChapter; // chapter number (always set, except for introduction material)
-	int					strDelimiter; // delimiter string used in a range, eg. - in 3-5
+	wxString			strDelimiter; // delimiter string used in a range, eg. - in 3-5
 	wxString			strStartingVerse; // string version of the verse number or first verse number of a range
 	int					nStartingVerse;  // decimal digits converted to a number, eg 6 from 6a-8
 	wxChar				charStartingVerseSuffix;  // for the a in something like 6a-8, or 9a
 	wxString			strEndingVerse; // string version of the verse number or final verse number of a range
 	int					nEndingVerse; // the decimal digits converted to a number, eg. 8 from 6a-8
 	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
-	bool				bContainsText; // default TRUE, set FALSE if the information in the chunk is
-									   // absent (such as a \v marker without any text
-									   // following the verse number)
 };
 
 // The two int members in the struct below are for indexing into the first two of the
@@ -196,11 +201,14 @@ bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 						wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
 						wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
+bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
+bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
 int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
 bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				wxArrayString* pUniqueCommonWordsArray, wxArrayPtrVoid* pSubspansArray, 
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
+bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
 int		GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, 
 										wxString& keysStr, int limit);
 Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit);
@@ -213,23 +221,26 @@ bool	GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 					   int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart, 
 					   int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, bool bClosedEnd, 
 					   wxArrayPtrVoid* pCommonSpans, wxArrayInt* pWidthsArray);
+int		GetNextNonemptyMarkers(SPArray* pArray, int& startFrom, bool& bReachedEndOfArray);
 int		GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldSrcKeysStr, int limit);
 int		GetWordsInCommon(SPArray& arr, Subspan* pSubspan, wxString& uniqueKeysStr, wxArrayString& strArray,
 						 int limit);
 int		GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArrayString& strArray,
 						 int limit); // overload which encapsulates the GetUniqueSrcKeysAsAString() call
+void	InitializeUsfmMkrs();
 void	InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos, 
 						  int oldEndPos, int newStartPos, int newEndPos, bool bClosedEnd = TRUE);
 bool	IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
-bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 bool	IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
 						int newPosEnd, wxArrayPtrVoid* pSubspansArray);
 bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc);
+bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
 						int limit, Subspan* tuple[]); // the array size is always 3, so 
 													  // we don't need a parameter for it
+void	InitializeNonVerseChunk(SfmChunk* pStruct);
 bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
 						int limit);
 //void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
