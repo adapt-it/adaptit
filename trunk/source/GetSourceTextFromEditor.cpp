@@ -266,6 +266,13 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			pComboDestinationProjectName->Append(projList.Item(ct));
 		}
 	}
+	
+	pRadioBoxWholeBookOrChapter->SetSelection(0);
+
+	// Current version 6.0 does not allow selecting texts by whole book,
+	// so disable the "Get Whole Book" selection of the wxRadioBox.
+	pRadioBoxWholeBookOrChapter->Enable(1,FALSE);
+
 	bool bSourceProjFound = FALSE;
 	int nIndex = -1;
 	if (!m_TempPTProjectForSourceInputs.IsEmpty())
@@ -340,6 +347,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			int nSel = pListBoxBookNames->FindString(m_TempPTBookSelected);
 			if (nSel != wxNOT_FOUND)
 			{
+				// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
 				pListBoxBookNames->SetSelection(nSel);
 				// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
 				pListBoxBookNames->SetFocus(); 
@@ -364,6 +372,23 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject(wxCommandEvent& 
 	// when the selection changes for the Source project we need to reload the
 	// "Select a book" list.
 	LoadBookNamesIntoList(); // uses the m_TempPTProjectForSourceInputs
+	// Any change in the selection with the source project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	// select LastPTBookSelected 
+	if (!m_TempPTBookSelected.IsEmpty())
+	{
+		int nSel = pListBoxBookNames->FindString(m_TempPTBookSelected);
+		if (nSel != wxNOT_FOUND)
+		{
+			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
+			pListBoxBookNames->SetSelection(nSel);
+			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
+			pListBoxBookNames->SetFocus(); 
+			wxCommandEvent evt;
+			OnLBBookSelected(evt);
+		}
+	}
 }
 
 void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event))
@@ -375,8 +400,26 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEv
 	// Any change in the selection with the destination/target project combo box 
 	// requires that we compare the source and target project's books again, which we
 	// can do by calling the OnLBBookSelected() handler explicitly here.
-	wxCommandEvent evt;
-	OnLBBookSelected(evt);
+	LoadBookNamesIntoList(); // uses the m_TempPTProjectForSourceInputs
+	// Any change in the selection with the source project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	// select LastPTBookSelected 
+	if (!m_TempPTBookSelected.IsEmpty())
+	{
+		int nSel = pListBoxBookNames->FindString(m_TempPTBookSelected);
+		if (nSel != wxNOT_FOUND)
+		{
+			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
+			pListBoxBookNames->SetSelection(nSel);
+			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
+			pListBoxBookNames->SetFocus(); 
+			wxCommandEvent evt;
+			OnLBBookSelected(evt);
+		}
+	}
+	//wxCommandEvent evt;
+	//OnLBBookSelected(evt);
 }
 
 void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
@@ -397,6 +440,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
 		// most likely the target drop down list would need to be changed so set focus to it before returning
 		pComboDestinationProjectName->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 
@@ -550,6 +597,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			}
 		}
 		pListBoxBookNames->SetSelection(-1); // remove any selection
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 
@@ -602,6 +653,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
@@ -613,12 +668,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		//pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 
 	pListBoxChapterNumberAndStatus->Clear();
 	wxArrayString chapterListFromTargetBook;
-	chapterListFromTargetBook = GetChapterListFromTargetBook(fullBookName);
+	chapterListFromTargetBook = GetChapterListAndVerseStatusFromTargetBook(fullBookName);
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
 		wxString msg1,msg2;
@@ -629,6 +688,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pListBoxChapterNumberAndStatus->Append(_("No chapters and verses found"));
 		pListBoxChapterNumberAndStatus->Enable(FALSE);
 		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		//pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 	else
@@ -646,46 +709,49 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		{
 			pListBoxChapterNumberAndStatus->SetSelection(nSel);
 			pListBoxChapterNumberAndStatus->SetFocus(); // focus is set on Select a chapter
+			// Update the wxTextCtrl at the bottom of the dialog with more detailed
+			// info about the book and/or chapter that is selected. 
+			pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+		}
+		else
+		{
+			// Update the wxTextCtrl at the bottom of the dialog with more detailed
+			// info about the book and/or chapter that is selected. In this case we can
+			// just remind the user to select a chapter.
+			pStaticTextCtrlNote->ChangeValue(_T("Please select a chapter in the list at right."));
 		}
 	}
 	
 	wxASSERT(pListBoxBookNames->GetSelection() != wxNOT_FOUND);
 	m_TempPTBookSelected = pListBoxBookNames->GetStringSelection();
 	
-	// TODO: Update the wxTextCtrl at the bottom of the dialog with more detailed
-	// info about the book and/or chapter that is selected. We could use the
-	// wxTextCtrl to explain why the "Get Whole Book" radio button is disabled
-	// in circumstances whenever there are too many discontinuous untranslated 
-	// parts making whole book adapting too tedious and adapting chapter-by-chapter
-	// the allowed option. TODO: Discuss this restriction further with Bruce who
-	// has suggested that we only allow whole-book adaptation when the whole book 
-	// has no adapted content in any chapters.
+	
 }
 
 void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler is called both for single click and double clicks on an
 	// item in the chapter list box, since a double click is sensed initially
-	// as a single click. Therefore, this handler should only handle the changes
-	// in the dialog's interface that need to be updated (the info text box at
-	// the bottom). It should not provide the setup necessary to access the AI 
-	// project represented by the PT source and target projects, setup KB's,
-	// etc. - that setup should be done in the OnOK() handler - which is invoked
-	// by the OnLBDblClickChapterSelected() handler.
-	
-	// TODO: Update the wxTextCtrl at the bottom of the dialog with more detailed
-	// info about the book and/or chapter that is selected. We could use the
-	// wxTextCtrl to explain why the "Get Whole Book" radio button is disabled
-	// in circumstances whenever there are too many discontinuous untranslated 
-	// parts making whole book adapting too tedious and adapting chapter-by-chapter
-	// the allowed option. TODO: Discuss this restriction further with Bruce who
-	// has suggested that we only allow whole-book adaptation when the whole book 
-	// has no adapted content in any chapters.
+	// as a single click.
 
-	if (pListBoxChapterNumberAndStatus->GetSelection() != wxNOT_FOUND)
+	int nSel = pListBoxChapterNumberAndStatus->GetSelection();
+	if (nSel != wxNOT_FOUND)
 	{
 		m_TempPTChapterSelected = pListBoxChapterNumberAndStatus->GetStringSelection();
+		// Update the wxTextCtrl at the bottom of the dialog with more detailed
+		// info about the book and/or chapter that is selected.
+		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
 	}
+	else
+	{
+		// Update the wxTextCtrl at the bottom of the dialog with more detailed
+		// info about the book and/or chapter that is selected. In this case we can
+		// just remind the user to select a chapter.
+		pStaticTextCtrlNote->ChangeValue(_("Please select a chapter in the list at right."));
+	}
+
+	// TODO: Bruce feels that we should get a fresh copy of the PT target project's chapter
+	// file at this point
 }
 
 void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event))
@@ -713,6 +779,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
 		//msg = msg + _T("\n") + msg1;
 		wxMessageBox(msg);
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 	
@@ -868,6 +938,36 @@ bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjN
 		}
 	}
 	return bIsAIProject;
+}
+
+bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
+{
+	// The incoming emptyVersesStr will be of the abbreviated form created by the
+	// AbbreviateColonSeparatedVerses() function, i.e., "1, 2-6, 28-29" when the
+	// chapter has been partly drafted, or "1-29" when all verses are empty. To 
+	// determine whether the empty verse range includes all verses of the chapter
+	// or not, we parse the incoming emptyVersesStr to see if it is of the later
+	// "1-29" form. There will be a single '-' character and no comma delimiters.
+	wxASSERT(!emptyVersesStr.IsEmpty());
+	bool bAllVersesAreEmpty = FALSE;
+	wxString tempStr = emptyVersesStr;
+	// Check if there is no comma in the emptyVersesStr. Lack of a comma indicates
+	// that all verses are empty
+	if (tempStr.Find(',') == wxNOT_FOUND)
+	{
+		// There is no ',' that would indicate a gap in the emptyVersesStr
+		bAllVersesAreEmpty = TRUE;
+	}
+	// Just to be sure do another test to insure there is a '-' and only one '-'
+	// in the string.
+	if (tempStr.Find('-') != wxNOT_FOUND && tempStr.Find('-',FALSE) == tempStr.Find('-',TRUE))
+	{
+		// the position of '-' in the string is the same whether
+		// determined from the left end or the right end of the string
+		bAllVersesAreEmpty = TRUE;
+	}
+
+	return bAllVersesAreEmpty;
 }
 
 wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBProjItem)
@@ -1116,6 +1216,8 @@ wxArrayString CGetSourceTextFromEditorDlg::GetUsfmStructureAndExtent(wxString& s
 {
 	// process the buffers extracting wxArrayStrings representing the 1:1:nnnn data from the
 	// source and target file buffers
+	// TODO: Modify to also include a unique CRC or SHA value as an additional field so that
+	// the form of the representation would be 1:1:nnnn:CRC
 	
 	wxArrayString UsfmStructureAndExtentArray;
 	const wxChar* pBuffer = sourceFileBuffer.GetData();
@@ -1334,12 +1436,14 @@ wxArrayString CGetSourceTextFromEditorDlg::GetUsfmStructureAndExtent(wxString& s
 	return UsfmStructureAndExtentArray;
 }
 
-wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook(wxString targetBookFullName)
+wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName)
 {
-	// retrieves a wxArrayString of chapters (and their status) from the target 
+	// Called from OnLBBookSelected().
+	// Retrieves a wxArrayString of chapters (and their status) from the target 
 	// PT project's TargetTextUsfmStructureAndExtentArray. 
 	wxArrayString chapterArray;
 	chapterArray.Clear();
+	m_staticBoxDescriptionArray.Clear();
 	int ct,tot;
 	tot = TargetTextUsfmStructureAndExtentArray.GetCount();
 	wxString tempStr;
@@ -1381,6 +1485,7 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook(wxString
 	}
 
 	wxString statusOfChapter;
+	wxString nonDraftedVerses; // used to get string of non-drafted verse numbers/range below
 	if (bChFound)
 	{
 		for (ct = 0; ct < tot; ct++)
@@ -1400,22 +1505,19 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook(wxString
 				wxASSERT(posAfterSp > 0);
 				posAfterSp ++; // to point past space
 				tempStr = tempStr.Mid(posAfterSp);
-				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct);
+				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
 				wxString listItemStatusSuffix,listItem;
-				if (!statusOfChapter.IsEmpty())
-				{
-					listItemStatusSuffix = _("Chapter has empty verse(s): ") + statusOfChapter;
-				}
-				else
-				{
-					listItemStatusSuffix = _("Translated (all verses have content)");
-				}
+				listItemStatusSuffix = statusOfChapter;
 				listItem.Empty();
 				listItem = targetBookFullName + _T(" ");
 				listItem += tempStr;
 				listItem += _T(" - ");
 				listItem += listItemStatusSuffix;
 				chapterArray.Add(listItem);
+				// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
+				wxString emptyVsInfo;
+				emptyVsInfo = targetBookFullName + _T(" ") + _("chapter") + _T(" ") + tempStr + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses are empty:") + _T(" ") + nonDraftedVerses;
+				m_staticBoxDescriptionArray.Add(emptyVsInfo ); // return the empty verses string via the nonDraftedVerses ref parameter
 			}
 		}
 	}
@@ -1426,32 +1528,34 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListFromTargetBook(wxString
 		// because GetStatusOfChapter() increments the assumed location of the \c 
 		// line/element in the array before it starts collecting verse information
 		// for that given chapter. Hence, it will actually start collecting verse
-		// information with element 0 (the first element)
-		statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,-1);
+		// information with element 0 (the first element of the 
+		// TargetTextUsfmStructureAndExtentArray)
+		statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,-1,targetBookFullName,nonDraftedVerses);
 		wxString listItemStatusSuffix,listItem;
 		listItemStatusSuffix.Empty();
 		listItem.Empty();
-		if (!statusOfChapter.IsEmpty())
-		{
-			listItemStatusSuffix = _("Chapter has empty verse(s): ") + statusOfChapter;
-		}
-		else
-		{
-			listItemStatusSuffix = _("Translated (all verses have content)");
-		}
-		listItem = targetBookFullName + _T(" ");
-		listItem += _T("1");
+		listItemStatusSuffix = statusOfChapter;
+		//listItem = targetBookFullName + _T(" ");
+		//listItem += _T("1");
 		listItem += _T(" - ");
 		listItem += listItemStatusSuffix;
 		chapterArray.Add(listItem);
+		// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
+		wxString chapterDetails;
+		chapterDetails = targetBookFullName + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses are empty:") + _T(" ") + nonDraftedVerses;
+		m_staticBoxDescriptionArray.Add(chapterDetails ); // return the empty verses string via the nonDraftedVerses ref parameter
 	}
+
 	return chapterArray;
 }
 
 void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 {
+	// clear lists and static text box at bottom of dialog
 	pListBoxBookNames->Clear();
-	
+	pListBoxChapterNumberAndStatus->Clear();
+	pStaticTextCtrlNote->ChangeValue(_T(""));
+
 	wxString ptProjShortName;
 	ptProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForSourceInputs);
 	int ct, tot;
@@ -1486,31 +1590,70 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 		msg2 = _("Please select the Paratext Project that contains the source texts you will use for adaptation work.");
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_T("No books found"),wxICON_WARNING);
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
 	}
 	pListBoxBookNames->Append(booksPresentArray);
 
 }
 
-wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem)
+void CGetSourceTextFromEditorDlg::ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,int& nUpperNumber)
 {
-	// When this function is called indexOfChItem is pointing at a \c n:nnnn line in the TargetArray
+	// The incoming tempStr will have a bridged verse string in the form "3-5".
+	// We parse it and convert its lower and upper number sub-strings into int values to
+	// return to the caller via the reference int parameters.
+	int nPosDash;
+	wxString str = tempStr;
+	str.Trim(FALSE);
+	str.Trim(TRUE);
+	wxString subStrLower, subStrUpper;
+	nPosDash = str.Find('-',TRUE);
+	wxASSERT(nPosDash != wxNOT_FOUND);
+	subStrLower = str.Mid(0,nPosDash);
+	subStrLower.Trim(TRUE); // trim any whitespace at right end
+	subStrUpper = str.Mid(nPosDash+1);
+	subStrUpper.Trim(FALSE); // trim any whitespace at left end
+	nLowerNumber = wxAtoi(subStrLower);
+	nUpperNumber = wxAtoi(subStrUpper);
+}
+
+wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
+													wxString targetBookFullName,wxString& nonDraftedVerses)
+{
+	// When this function is called from GetChapterListAndVerseStatusFromTargetBook() the
+	// indexOfChItem parameter is pointing at a \c n:nnnn line in the TargetArray.
 	// We want to get the status of the chapter by examining each verse of that chapter to see if it 
-	// has content. If none of the verses of the chapter have content we will return "Not Translated"; 
-	// if one or more verses of that chapter have content but one or more other verses have no content 
-	// we will return "Partly Translated"
-	// TODO: Add to the status string an indication of whether the chapter has been transferred to
-	// the target PT project or not (if it has not yet been done).
+	// has content. The returned string will have one of these three values:
+	//    1. "Drafted (all nn verses have content)"
+	//    2. "Partly drafted (nn of a total of mm verses have content)"
+	//    3. "Empty (no verses of a total of mm have content yet)"
+	// When the returned string is 2 above ("Partly drafted...") the reference parameter nonDraftedVerses
+	// will contain a string describing what verses/range of verses are empty, i.e. "The following 
+	// verses are empty: 12-14, 20, 21-29".
 	
-	// scan forward in the TargetArray until we reach the next \c element. For each \v we encounter
-	// we examine the text extent of that \v element. When a particular \v element is empty we make
-	// a string list of verse numbers that are empty, which will display in the "Select a chapter"
-	// list box something like:
-	// 3 - Partly translated -empty verse(s) 12-14, 20, 21-29
+	// Scan forward in the TargetArray until we reach the next \c element. For each \v we encounter
+	// we examine the text extent of that \v element. When a particular \v element is empty we build
+	// a string list of verse numbers that are empty, and collect verse counts for the number of
+	// verses which have content and the total number of verses. These are used to construct the
+	// string return values and the nonDraftedVerses reference parameter - so that the Select a chapter
+	// list box will display something like:
+	// Mark 3 - "Partly drafted (13 of a total of 29 verses have content)"
+	// and the nonDraftedVerses string will contain: "12-14, 20, 21-29" which can be used in the 
+	// read-only text control box at the bottom of the dialog used for providing more detailed 
+	// information about the book or chapter selected.
+
+	int nLastVerseNumber = 0;
+	int nVersesWithContent = 0;
+	int nVersesWithoutContent = 0;
 	int index = indexOfChItem;
 	int tot = (int)TargetArray.GetCount();
 	wxString tempStr;
 	wxString statusStr;
 	statusStr.Empty();
+	wxString emptyVersesStr;
+	emptyVersesStr.Empty();
 	wxString projShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForTargetExports);
 	PT_Project_Info_Struct* pPTInfo;
 	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
@@ -1532,7 +1675,7 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 	if (indexOfChItem == -1)
 	{
 		// When the incoming indexOfChItem parameter is -1 it indicates that this is
-		// a book that does not have a chapter \c marker
+		// a book that does not have a chapter \c marker, i.e., Philemon, 2 John, 3 John, Jude
 		do
 		{
 			index++; // point to first and succeeding lines
@@ -1541,7 +1684,28 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 			tempStr = TargetArray.Item(index);
 			if (tempStr.Find(vsMkr) == 0) // \v
 			{
-				// we're at a verse, so note if it is empty
+				// We're at a verse, so note if it is empty.
+				// But, first get the last verse number in the tempStr. If the last verse 
+				// is a bridged verse, store the higher verse number of the bridge, otherwise 
+				// store the single verse number in nLastVerseNumber.
+				// tempStr is of the form "\v n" or possibly "\v n-m" if bridged
+				wxString str = GetVerseNumberFromVerseStr(tempStr);
+				if (str.Find('-',TRUE) != wxNOT_FOUND)
+				{
+					// The tempStr has a dash in it indicating it is a bridged verse, so
+					// store the higher verse number of the bridge.
+					int nLowerNumber, nUpperNumber;
+					ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+					
+					nLastVerseNumber = nUpperNumber;
+				}
+				else
+				{
+					// The tempStr is a plain number, not a bridged one, so just store
+					// the number.
+					nLastVerseNumber = wxAtoi(str);
+				}
+				// now determine if the verse is empty or not
 				int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
 				wxASSERT(posColon != wxNOT_FOUND);
 				wxString extent;
@@ -1551,9 +1715,35 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 				if (extent == _T("0"))
 				{
 					// The verse is empty so get the verse number, and add it
-					// to the statusStr
-					statusStr += GetVerseNumberFromVerseStr(tempStr);
-					statusStr += _T(':'); 
+					// to the emptyVersesStr
+					emptyVersesStr += GetVerseNumberFromVerseStr(tempStr);
+					emptyVersesStr += _T(':'); 
+					// calculate the nVersesWithoutContent value
+					if (str.Find('-',TRUE) != wxNOT_FOUND)
+					{
+						int nLowerNumber, nUpperNumber;
+						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+						nVersesWithoutContent += (nUpperNumber - nLowerNumber + 1);
+					}
+					else
+					{
+						nVersesWithoutContent++;
+					}
+				}
+				else
+				{
+					// The verse has content so calculate the number of verses to add to
+					// nVersesWithContent
+					if (str.Find('-',TRUE) != wxNOT_FOUND)
+					{
+						int nLowerNumber, nUpperNumber;
+						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+						nVersesWithContent += (nUpperNumber - nLowerNumber + 1);
+					}
+					else
+					{
+						nVersesWithContent++;
+					}
 				}
 			}
 		} while (index < tot);
@@ -1582,7 +1772,34 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 			{
 				if (tempStr.Find(vsMkr) == 0) // \v
 				{
-					// we're at a verse, so note if it is empty
+					// We're at a verse, so note if it is empty.
+					// But, first get the last verse number in the tempStr. If the last verse 
+					// is a bridged verse, store the higher verse number of the bridge, otherwise 
+					// store the single verse number in nLastVerseNumber.
+					// tempStr is of the form "\v n:nnnn" or possibly "\v n-m:nnnn" if bridged
+					
+					// testing only below - uncomment to test the if-else block below
+					//tempStr = _T("\\ v 3-5:0");
+					// testing only above
+					
+					wxString str = GetVerseNumberFromVerseStr(tempStr);
+					if (str.Find('-',TRUE) != wxNOT_FOUND)
+					{
+						// The tempStr has a dash in it indicating it is a bridged verse, so
+						// store the higher verse number of the bridge.
+
+						int nLowerNumber, nUpperNumber;
+						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+						
+						nLastVerseNumber = nUpperNumber;
+					}
+					else
+					{
+						// The tempStr is a plain number, not a bridged one, so just store
+						// the number.
+						nLastVerseNumber = wxAtoi(str);
+					}
+					// now determine if the verse is empty or not
 					int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
 					wxASSERT(posColon != wxNOT_FOUND);
 					wxString extent;
@@ -1592,18 +1809,44 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 					if (extent == _T("0"))
 					{
 						// The verse is empty so get the verse number, and add it
-						// to the statusStr
-						statusStr += GetVerseNumberFromVerseStr(tempStr);
-						statusStr += _T(':'); 
+						// to the emptyVersesStr
+						emptyVersesStr += GetVerseNumberFromVerseStr(tempStr);
+						emptyVersesStr += _T(':');
+						// calculate the nVersesWithoutContent value
+						if (str.Find('-',TRUE) != wxNOT_FOUND)
+						{
+							int nLowerNumber, nUpperNumber;
+							ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+							nVersesWithoutContent += (nUpperNumber - nLowerNumber + 1);
+						}
+						else
+						{
+							nVersesWithoutContent++;
+						}
+					}
+					else
+					{
+						// The verse has content so calculate the number of verses to add to
+						// nVersesWithContent
+						if (str.Find('-',TRUE) != wxNOT_FOUND)
+						{
+							int nLowerNumber, nUpperNumber;
+							ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+							nVersesWithContent += (nUpperNumber - nLowerNumber + 1);
+						}
+						else
+						{
+							nVersesWithContent++;
+						}
 					}
 				}
 			}
 		} while (index < tot  && bStillInChapter);
 	}
-	// TODO: Shorten any statusStr by indicating continuous empty verses with a dash between
-	// the starting and ending continuously empty verses, i.e., 5-7, and format the list with
-	// comma and space between items. Then prefix a localizable " - empty verses: " so that the
-	// result would be something like: "- empty verses: 1, 3, 5-7, 10-22"
+	// Shorten any emptyVersesStr by indicating continuous empty verses with a dash between
+	// the starting and ending of continuously empty verses, i.e., 5-7, and format the list with
+	// comma and space between items so that the result would be something like: 
+	// "1, 3, 5-7, 10-22" which is returned via nonDraftedVerses parameter to the caller.
 	
 	// testing below
 	//wxString wxStr1 = _T("1:3:4:5:6:9:10-12:13:14:20:22:24:25:26:30:");
@@ -1616,12 +1859,35 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 	// test results: testStr2 = _T("1-30")
 	// testing above
 	
-	if (!statusStr.IsEmpty())
+	if (!emptyVersesStr.IsEmpty())
 	{
-		statusStr = AbbreviateColonSeparatedVerses(statusStr);
-
+		// Handle the "partially drafted" and "empty" cases.
+		// The emptyVersesStr has content, so there are one or more empty verses in the 
+		// chapter, including the possibility that all verses have content.
+		// Return the results to the caller via emptyVersesStr parameter and the 
+		// function's return value.
+		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr);
+		if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
+		{
+			statusStr = statusStr.Format(_("Empty (no verses of a total of %d have content yet)"),nLastVerseNumber);
+		}
+		else
+		{
+			statusStr = statusStr.Format(_("Partly drafted (%d of a total of %d verses have content)"),nVersesWithContent,nLastVerseNumber);
+		}
+		nonDraftedVerses = emptyVersesStr;
 	}
-	return statusStr;
+	else
+	{
+		// Handle the "fully drafted" case.
+		// The emptyVersesStr has NO content, so there are no empty verses in the chapter. The
+		// emptyVersesStr ref parameter remains empty.
+		statusStr = statusStr.Format(_("Drafted (all %d verses have content)"),nLastVerseNumber);
+		nonDraftedVerses = _T("");
+	}
+
+	
+	return statusStr; // return the status string that becomes the list item's status in the caller
 }
 
 wxString CGetSourceTextFromEditorDlg::GetVerseNumberFromVerseStr(const wxString& verseStr)
