@@ -237,11 +237,12 @@ void Usfm2Oxes::Initialize()
 	 
 	// setup some useful marker strings
 	m_chapterMkr = _T("\\c");
+	m_idMkr = _T("\\id");
 	m_verseMkr = _T("\\v");
 	backslash = _T("\\");
 	m_majorSectionMkr = _T("\\ms"); // when any of this kind opens a new section, we
 		// don't start a new section if any \s marker is found preceding the next verse
-	
+		
 	// the following are not in the global wxString, charFormatMkrs defined in
 	// Adapt_ItView.cpp file, so we define them here and add these to those so that
 	// m_specialMrks and m_specialEndMkrs will comply with USFM 2.3 with respect to

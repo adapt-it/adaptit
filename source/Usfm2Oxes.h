@@ -422,6 +422,7 @@ private:
 	// members of various structs defined for chunking purposes, using the
 	// PopulatePossibleMarkers() function)
 	wxString m_titleMkrs;
+	wxString m_idMkr;
 	wxString m_haltingMarkers; // populated in Initialize()
 	wxString m_introHaltingMarkers; // for introductory material; populated in Initialize(), these retain digits for level
 	wxString m_haltingMarkers_IntroOnly; // populated in Initialize(), these lack digits for level
@@ -445,7 +446,6 @@ private:
 	wxString m_normalOrMinorMkrs; // \s \s1 and for minor, \s2, any other like \s3 or 
 								 // \s4 we will treat as \s2
 	wxString m_parallelPassageHeadMkrs; // there's only one, \r
-
 	//wxString m_allowedPreParagraphMkrs; // markers like \ms \mr \c \s \r and  <<-- not needed, remove later
 		// \ms# or \s# which can occur in a section but preceding any paragraphs
 	//wxString m_allowedPreParagraphMkrs_NonFirstParagraph; // just \c and \nb

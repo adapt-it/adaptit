@@ -6488,6 +6488,44 @@ void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
 	}
 }
 
+// Tests if one of the substring in testStr is a match for any substring in strItems; the
+// substrings should be delimited by at least one space, and the function doesn't care
+// what meaning the strings have. I'm building it, however, to test whether one of the set
+// of USFM markers within the space-delimited string, testStr, matches a marker within the
+// space-delimited string strItems. Internally it tokenizes testStr storing the individual
+// markers within wxArrayString and uses Find() to check if one exists in strItems. Calls
+// long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
+//	                   bool bStoreEmptyStringsToo) & can be used to test for endmarkers
+// Return TRUE if there is at least one match, FALSE if nothing matches
+bool IsSubstringWithin(wxString& testStr, wxString& strItems)
+{
+	wxString delims = _T(" ");
+	wxArrayString arr;
+	wxString aSpace = _T(' ');
+	long countL = SmartTokenize(delims, testStr, arr, FALSE);
+	long index;
+	wxString str;
+	// make it work with endmarkers in testStr, which aren't necessarily space-delimited
+	wxString asterisk = _T('*');
+	int offset = testStr.Find(asterisk);
+	for (index = 0L; index < countL; index++)
+	{
+		str = arr.Item((size_t)index);
+		if (offset == wxNOT_FOUND)
+		{
+			// no endmarkers, so assume that if they are markers, they are 
+			// beginmarkers
+			str += aSpace; // include the following space in the search string
+		}
+		int nFound = strItems.Find(str);
+		if (nFound != wxNOT_FOUND)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+
+
 /* unused so far
 SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
 	CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal, bool bDeletePartnerPileToo)
@@ -6529,6 +6567,39 @@ bool IsFixedSpaceOrBracket(wxChar* ptr)
 	}
 	return FALSE;
 }
+
+void ConvertSPList2SPArray(SPList* pList, SPArray* pArray)
+{
+	SPList::Node* pos= pList->GetFirst();
+	while (pos != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		pArray->Add(pSrcPhrase);
+	}
+}
+
+void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pSubarray)
+{
+	int nTotal = pInputArray->GetCount();
+	if (nStartAt < 0 || nEndAt >= nTotal)
+	{
+		// tell the developer there is a bounds error & return
+		wxString msg;
+		msg = msg.Format(_T("ExtractSubarray() bounds error: total %d, startAt %d, endAt %d\n The subarray has not been populated."),
+			nTotal,nStartAt,nEndAt);
+		wxMessageBox(msg, _T("Index out of bounds"),wxICON_ERROR);
+		pSubarray->Clear();
+		return;
+	}
+	int index;
+	for (index = nStartAt; index <= nEndAt; index++)
+	{
+		CSourcePhrase* pSrcPhrase = pInputArray->Item(index);
+		pSubarray->Add(pSrcPhrase);
+	}
+}
+
 
 // BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for
 // 5.2.4, but it could be put into the Save As... code for 6.x.y too - if so, we can retain
