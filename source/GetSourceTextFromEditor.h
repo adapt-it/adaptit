@@ -43,10 +43,14 @@ public:
 
 	wxString sourceFileBuffer;
 	wxString targetFileBuffer;
+	wxString sourceChapterBuffer;
+	wxString targetChapterBuffer;
 	wxArrayString SourceTextUsfmStructureAndExtentArray;
 	wxArrayString TargetTextUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtp7PathAndFileName;
+
+	wxArrayString m_staticBoxDescriptionArray;
 
 	// We could use the doc's and helpers's version for most of these instead 
 	// of having them be duplicated in the Doc and as members of 
@@ -76,14 +80,17 @@ protected:
 
 	bool PTProjectIsEditable(wxString projShortName);
 	bool PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt);
+	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
 	wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
-	wxArrayString GetChapterListFromTargetBook(wxString targetBookFullName);
-	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem);
+	wxArrayString GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName);
+	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
+									wxString targetBookFullName,wxString& nonDraftedVerses);
 	wxString GetVerseNumberFromVerseStr(const wxString& verseStr);
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
 	void LoadBookNamesIntoList();
+	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,int& nUpperNumber);
 
 private:
 	CAdapt_ItApp* m_pApp;
