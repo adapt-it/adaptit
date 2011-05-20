@@ -1505,6 +1505,18 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 				wxASSERT(posAfterSp > 0);
 				posAfterSp ++; // to point past space
 				tempStr = tempStr.Mid(posAfterSp);
+				tempStr.Trim(FALSE);
+				tempStr.Trim(TRUE);
+				int chNum;
+				chNum = wxAtoi(tempStr);
+				if (chNum < 10)
+				{
+					tempStr += _T("  "); // add two spaces for chapter digits < 10
+				}
+				else
+				{
+					tempStr += _T(' '); // add one space for chapter digits >= 10
+				}
 				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
 				wxString listItemStatusSuffix,listItem;
 				listItemStatusSuffix = statusOfChapter;
