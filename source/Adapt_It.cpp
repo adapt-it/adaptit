@@ -12063,6 +12063,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
 
 	// *** The variable initializations above were moved here from the View ***
+	
+	/*
+	// Testing the GetBookCodeFastFromDiskFile() function
+	wxString testPathXML, testPathUSFM, testPathUSFMLongNoId, testPathUSFMShortHasId, testPathUSFMShortNoId;
+	wxString testResultXML, testResultUSFM,testResultLongNoId, testResultUSFMShortHasId, testResultUSFMShortNoId;
+	// test a typical AI xml document file
+	testPathXML = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations\\_Hezekiah 7 USFM.xml");
+	testResultXML = GetBookCodeFastFromDiskFile(testPathXML);
+	// test a typical USFM formatted file
+	testPathUSFM = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Source Texts\\All Tok Pisin Book Files\\01-MAT-DTP.txt");
+	testResultUSFM = GetBookCodeFastFromDiskFile(testPathUSFM);
+	// test a malformed file longer than 4K that has no \id NNN line in the first 4K of the file
+	testPathUSFMLongNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Long-without id.txt");
+	testResultLongNoId = GetBookCodeFastFromDiskFile(testPathUSFMLongNoId);
+	// test a file shorter than 4K which has the \id NNN in the file
+	testPathUSFMShortHasId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-with id.txt");
+	testResultUSFMShortHasId = GetBookCodeFastFromDiskFile(testPathUSFMShortHasId);
+	// test a file shorter than 4K which has no \id NNN in the file
+	testPathUSFMShortNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-without id.txt");
+	testResultUSFMShortNoId = GetBookCodeFastFromDiskFile(testPathUSFMShortNoId);
+	*/
+
 	/*
 	// testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
 	// 3198 above)
@@ -35675,6 +35697,32 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 }
 #endif
 
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxArrayString that contains usable Paratext projects on the 
+///             host computer, formatted in string format with fields separated 
+///             by ':' delimiters (see remarks)
+/// \remarks
+/// Called from: the CGetSourceTextFromEditorDlg::InitDialog and
+/// CSetupEditorCollaboration::InitDialog.
+/// Gathers a list of "usable" Paratext (PT) projects from the user's
+/// PT installation (if PT 7.1 is installed). A "usable" PT project is
+/// one which is not a PT "resource" project. It parses the PT project's
+/// .ssf files extracting from the xml the various properties described 
+/// for the given PT project.
+/// 
+/// As a side effect, this function populates the App's m_pArrayOfPTProjects 
+/// array of pointers to PT_Project_Info_Struct structs stored on the heap. 
+/// In the returned wxArrayString, each string element contains identifying 
+/// fields structured as follows:
+/// "shortName : fullName : languageName : ethnologueCode"
+/// The ethnologueCode field is optional and won't appear unless the user has
+/// explicitly entered it in for LIFT file properites within PT.
+/// This string is used in various places such as the combo box controls the 
+/// "Setup Paratext Collaboration... and "Get Source Text from Paratext Project".
+/// It is also used in the basic config file as string values for the 
+/// PTProjectForSourceInputs and PTProjectForTargetExports entries.
+///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 {
 	wxArrayString tempListOfPTProjects;
@@ -35962,6 +36010,19 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	return tempListOfPTProjects;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a pointer to a PT_Project_Info_Struct struct on the heap
+/// \param      projShortName -> the PT project's short name which is unique
+///                             and is used for the PT project's ssf file 
+///                             as well as the project folder where PT stores
+///                             the project's documents
+/// \remarks
+/// Called from: various places in the CGetSourceTextFromEditorDlg's
+/// class methods. 
+/// Examines the App's m_pArrayOfPTProjects and finds the item that points
+/// to the struct containing the given PT project which is uniquely identified 
+/// by projShortName.
+///////////////////////////////////////////////////////////////////////////////
 PT_Project_Info_Struct* CAdapt_ItApp::GetPT_Project_Struct(wxString projShortName)
 {
 	PT_Project_Info_Struct* pPT_Proj;
@@ -35980,6 +36041,21 @@ PT_Project_Info_Struct* CAdapt_ItApp::GetPT_Project_Struct(wxString projShortNam
 	return NULL;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the string value between beginTag and
+///             an endTag of within an xml-formatted line of text (lineStr).
+/// \param      lineStr -> the string containing the beginTag and endTag
+/// \param      beginTag -> the xml tag after which we copy the text
+/// \param      endTag -> the xml tag before which we end copying text
+/// \remarks
+/// Called from: GetListOfPTProjects().
+/// A convenience function to extract the PCDATA text between an xml begin tag 
+/// and its end tag, i.e., <tag> text </tag>. The caller has determined that 
+/// beginTag is located within the lineStr. Assumes that the endTag is also on
+/// the same line. This function is used in parsing the xml Paratext ssf project 
+/// description files in which begin and end tags are located on a single line
+/// in the file. The ssf file resides in memory as a wxTextFile.
+///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag)
 {
 	wxString tempStr;
@@ -35997,6 +36073,15 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxString lineStr, wxString beginT
 	return tempStr;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the 3-letter USFM book code for bookName
+/// \param      bookName -> the full Scripture book name (English)
+/// \remarks
+/// Called from: CGetSourceTextFromEditorDlg::OnLBBookSelected().
+/// Finds the bookName in the App's bookNameArray and uses the found index as an
+/// index into the parallel AllBookIds array, extracting the corresponding 3-letter
+/// book code.
+///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 {
 	// The Paratext list of book codes (3-letter Ids) is located in the App's array of
@@ -36020,6 +36105,125 @@ wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 	return bookCode;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the 3-letter USFM book code from the beginning
+///             part of the input file at pathAndName
+/// \param      pathAndName -> the full path and name of the file being examined
+/// \remarks
+/// Called from: 
+/// Finds the 3-letter book code encoded in the \id marker field that exists in
+/// properly formed USFM and AI Document files. The input file pathAndName can be
+/// either an AI xml document file, or a plain text USFM formatted file. 
+/// Opens the file at pathAndName and reads a small portion into a buffer of
+/// 4K size (4096 bytes - more than enough to get past the header stuff in an AI
+/// xml document file). In plain text files the \id line should be right at
+/// the beginning of the file, but doesn't have to be for this function to
+/// work as long as it is within the first 4K of the file.
+/// If the file is an AI xml adaptation document it searches for the m="\id "
+/// attribute, and if found then scans backwards in the buffer until it finds
+/// the associated s= attribute which should be followed by the book code 
+/// within quote marks, i.e., m="MAT".
+/// If the file is a USFM formatted file, it searches for the \id line (normally
+/// the first line of the file), and if found then gets the code following that
+/// \id line, i.e., \id MAT. 
+/// For large files this routine can be much faster that opening whole documents
+/// with ReadDoc_XML() or with OnOpenDocument(), or even by using the wxTextFile 
+/// class (especially for large files).
+///////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
+{
+	wxString bookCode = _T("");
+	CBString bookCd = "";
+	bool bFoundCode = FALSE;
+	if (wxFileExists(pathAndName))
+	{
+		const int nFourKB = 4096;
+		wxUint32  nRead;
+		char* pBuff = new char[nFourKB + 1];
+		char* ptr = pBuff;
+		char* pEnd;
+		pEnd = pBuff + nFourKB;
+		memset(pBuff,0,nFourKB + 1); // assume no error
+		wxFile f;
+		if (f.Open(pathAndName,wxFile::read))
+		{
+			nRead = f.Read(pBuff, nFourKB);
+			wxASSERT(*pEnd == '\0');
+			if (*ptr != '\\' && *(ptr+1) != 'i' && *(ptr+2) != 'd' && *(ptr+3) != ' ')
+			{
+				ptr++; // advance past start of buffer
+			}
+			while (ptr < pEnd)
+			{
+				if (*ptr == '\\' && *(ptr+1) == 'i' && *(ptr+2) == 'd' && *(ptr+3) == ' ')
+				{
+					// we are at an \id marker. If the "\id " we've detected so far is followed
+					// by a quote mark and closing tag '>' then we know we are in an AI xml document
+					if (*(ptr+4) == '\"' && *(ptr+5) == '>')
+					{
+						// We are in an AI xml document, so scan backwards to find the book code within
+						// the s= field.
+						// Scan back until ptr is pointing at the ':' at the end of the xml header stuff
+						while (ptr > pBuff && *ptr != ':')
+						{
+							ptr--;
+						}
+						// at this point ptr should be pointing at the ':' at the end of the xml header stuff
+						// advance again till we get to the first s= sequenct
+						while (*ptr != 's' && *(ptr+1) != '=')
+						{
+							ptr++;
+						}
+						if (*ptr == 's' && *(ptr+1) == '=' && *(ptr+2) == '\"')
+						{
+							ptr += 3; // point past the s=" sequence
+							int ct;
+							for (ct = 0; ct < 3; ct++)
+							{
+								bookCd += *(ptr+ct);
+							}
+							bFoundCode = TRUE;
+						}
+					}
+					else
+					{
+						// we are in a plain text USFM file which is the easy case
+						// *(ptr+4), *(ptr+5), and *(ptr+6) should contain the bood code
+						if (ptr+6 < pEnd)
+						{
+							bookCd += *(ptr+4);
+							bookCd += *(ptr+5);
+							bookCd += *(ptr+6);
+							bFoundCode = TRUE;
+						}
+					}
+				}
+				if (bFoundCode && bookCd.GetLength() == 3)
+				{
+					break;
+				}
+				ptr++;
+			} // end of while()
+		} // end of if (f.Open...
+		delete pBuff;
+	} // end of if (wxFileExists(pathAndName))
+	if (bFoundCode && bookCd.GetLength() == 3)
+	{
+		bookCode = wxString(bookCd,wxConvUTF8);
+	}
+	return bookCode;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the book number as typically used in
+///             file names of Scripture books within Paratext.
+/// \param      bookName -> the full name of the Scripture book
+/// \remarks
+/// Called from: CGetSourceTextFromEditorDlg::OnLBBookSelected().
+/// Used to get the book's typical number for building unique Paratext style
+/// file names, i.e., 41MATNYNT.PTX where 41 is the book number for the book
+/// of Matthew.
+///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
 {
 	// The Paratext list of book codes (3-letter Ids) is located in the App's array of
@@ -36044,14 +36248,26 @@ wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
 	return bookNumAsStr;
 }
 
-wxArrayString CAdapt_ItApp::GetBooksArrayFromPTFlags(wxString booksStr)
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxArrayString representing the Scripture books that are "present"
+///             in a given Paratext project
+/// \param      bookFlagsStr -> a string of 123 chars composed of '1' or '0' characters
+/// \remarks
+/// Called from: CGetSourceTextFromEditorDlg::LoadBookNamesIntoList().
+/// Used to get an array of the book names that are present in a Paratext project
+/// according to the bookFlagsStr, a string composed of 123 characters in which a
+/// 1 indicates the book is present and 0 indicates the book is not present. The
+/// index into the bookFlagsStr is parallel to the array of Scripture books called
+/// AllBookNames held on the App. 
+///////////////////////////////////////////////////////////////////////////////
+wxArrayString CAdapt_ItApp::GetBooksArrayFromPTFlags(wxString bookFlagsStr)
 {
 	wxArrayString booksArray;
 	int ct,strLen;
-	strLen = booksStr.Length();
+	strLen = bookFlagsStr.Length();
 	for (ct = 0; ct < strLen; ct++)
 	{
-		if (booksStr.GetChar(ct) == _T('1'))
+		if (bookFlagsStr.GetChar(ct) == _T('1'))
 			booksArray.Add(AllBookNames[ct]);
 	}
 

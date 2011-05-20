@@ -2871,7 +2871,7 @@ public:
 	bool	ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
 	bool	NewProjectItemIsVisibleInThisProfile(const int nProfile);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
-	wxArrayString GetBooksArrayFromPTFlags(wxString booksStr);
+	wxArrayString GetBooksArrayFromPTFlags(wxString bookFlagsStr);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxString GetMenuItemKindAsString(wxItemKind itemKind);
 	wxItemKind GetMenuItemKindFromString(wxString itemKindStr);
@@ -2915,6 +2915,7 @@ public:
 	wxString GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
+	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
