@@ -314,7 +314,7 @@ void AnalysePunctChanges(wxString& srcPunctsBefore, wxString& tgtPunctsBefore,
 bool HasParagraphMkr(wxString& str);
 // BEW created 20Jan11, to avoid adding duplicates of ints already in the passed in
 // wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
-// contents won't be used if another layout_selector enum valus is in effect, as
+// contents won't be used if another layout_selector enum value is in effect, because
 // RecalcLayout() would recreate the strips and repopulate the partner piles in such
 // situations 
 void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);

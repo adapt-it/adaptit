@@ -43,21 +43,28 @@ WX_DEFINE_OBJARRAY(SPArray);
 extern CAdapt_ItApp* gpApp;
 
 // marker strings needed in this module and populated in InitializeUsfmMkrs()
-wxString m_titleMkrs;
-wxString m_introductionMkrs;
-wxString m_chapterMkrs;
-wxString m_verseMkrs;
+wxString titleMkrs;
+wxString introductionMkrs;
+wxString chapterMkrs;
+wxString verseMkrs;
+wxString normalOrMinorMkrs;
+wxString rangeOrPsalmMkrs;
+wxString majorOrSeriesMkrs;
+wxString parallelPassageHeadMkrs;
 
 void InitializeUsfmMkrs()
 {
-	m_titleMkrs = _T("\\id \\ide \\h \\h1 \\h2 \\h3 \\mt \\mt1 \\mt2 \\mt3 ");
-	m_introductionMkrs = _T("\\imt \\imt1 \\imt2 \\imt3 \\imte \\is \\is1 \\is2 \\is3 \\ip \\ipi \\ipq \\ipr \\iq \\iq1 \\iq2 \\iq3 \\im \\imi \\imq \\io \\io1 \\io2 \\io3 \\iot \\iex \\ib \\ili \\ili1 \\ili2 \\ie ");
-	m_chapterMkrs = _T("\\c \\cl "); // \ca \ca* \p & \cd omitted, they follow \c 
-									 // so aren't needed for chunking
-	m_verseMkrs = _T("\\v \vn "); // \va \va* \vp \vp* omitted, they follow \v
+	titleMkrs = _T("\\id \\ide \\h \\h1 \\h2 \\h3 \\mt \\mt1 \\mt2 \\mt3 ");
+	introductionMkrs = _T("\\imt \\imt1 \\imt2 \\imt3 \\imte \\is \\is1 \\is2 \\is3 \\ip \\ipi \\ipq \\ipr \\iq \\iq1 \\iq2 \\iq3 \\im \\imi \\imq \\io \\io1 \\io2 \\io3 \\iot \\iex \\ib \\ili \\ili1 \\ili2 \\ie ");
+	chapterMkrs = _T("\\c \\cl "); // \ca \ca* \p & \cd omitted, they follow 
+								   // \c so aren't needed for chunking
+	verseMkrs = _T("\\v \vn "); // \va \va* \vp \vp* omitted, they follow \v
 				// and so are not needed for chunking; \vn is a non-standard
 				// 'verse number' marker that some people use
-
+	normalOrMinorMkrs = _T("\\s \\s1 \\s2 \\s3 \\s4 ");
+	majorOrSeriesMkrs = _T("\\ms \\ms1 \\qa \\ms2 \\ms3 ");
+	parallelPassageHeadMkrs = _T("\\r ");
+	rangeOrPsalmMkrs = _T("\\mr \\d ");
 
 }
 
@@ -755,6 +762,10 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	if (newSPCount == 0)
 		return;
 	InitializeUsfmMkrs();
+
+	wxArrayPtrVoid* pChunksOld = new wxArrayPtrVoid; // remember to delete contents and 
+													 // remove from heap before returning
+	bool bSuccessful_Old =  AnalyseSPArrayChunks(&arrOld, pChunksOld);
 
     // Note: we impose a limit on maximum span size, to keep our algorithms from getting
     // bogged down by having to handle too much data in any one iteration. The limit
@@ -4430,12 +4441,10 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 {
 	int count = arrP->GetCount();
 	int endIndex = count - 1;
-	int index = 0;
+	int index = startsAt;
 	wxString markers;
 	CSourcePhrase* pSrcPhrase = NULL;
-	startsAt = 0;
-	endsAt = 0;
-	if (count == 0)
+	if (count == 0 || (count > 0 && startsAt >= count))
 	{
 		startsAt = -1;
 		endsAt = -1;
@@ -4455,10 +4464,11 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		return FALSE;
 	}
 	// m_markers has content, so check what might be in it
-	bool bIsIdOrTitleWithin = IsSubstringWithin(m_titleMkrs, markers);
-	bool bIsIntroductionWithin = IsSubstringWithin(m_introductionMkrs, markers);
-	bool bIsChapterMkrWithin = IsSubstringWithin(m_chapterMkrs, markers);
-	bool bIsVerseMkrWithin = IsSubstringWithin(m_verseMkrs, markers);
+	bool bIsIdOrTitleWithin = IsSubstringWithin(titleMkrs, markers);
+	bool bIsIntroductionWithin = IsSubstringWithin(introductionMkrs, markers);
+	bool bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+	bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+	bool bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
 	bool bIsBookInitialChunk = FALSE;
 	if (bIsIdOrTitleWithin)
 	{
@@ -4467,8 +4477,10 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	else
 	{
 		// else, we'll assume it's book-introduction material provided m_markers doesn't
-		// contain any introduction markers, nor a chapter marker, nor a verse marker
-		if (!bIsIntroductionWithin && !bIsChapterMkrWithin && !bIsVerseMkrWithin)
+		// contain any introduction markers, nor a chapter marker, nor a subheading, nor
+		// a verse marker
+		if (!bIsIntroductionWithin && !bIsChapterMkrWithin && !bIsVerseMkrWithin
+			&& !bIsSubheadingMkrWithin)
 		{
 			bIsBookInitialChunk = TRUE;
 		}
@@ -4501,12 +4513,14 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		markers = pSrcPhrase->m_markers;
 
 		// check for any marker which indicates the book-initial material is ended
-		bIsIntroductionWithin = IsSubstringWithin(m_introductionMkrs, markers);
-		bIsChapterMkrWithin = IsSubstringWithin(m_chapterMkrs, markers);
-		bIsVerseMkrWithin = IsSubstringWithin(m_verseMkrs, markers);
+		bIsIntroductionWithin = IsSubstringWithin(introductionMkrs, markers);
+		bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+		bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+		bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
 	
 		// are we done?
-		if (bIsIntroductionWithin || bIsChapterMkrWithin || bIsVerseMkrWithin)
+		if (bIsIntroductionWithin || bIsChapterMkrWithin || 
+			bIsSubheadingMkrWithin || bIsVerseMkrWithin)
 		{
 			// we've found the start of the next information chunk, so the previous index
 			// is the ending one for this chunk
@@ -4531,6 +4545,327 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	endsAt = endIndex;
 	return TRUE;
 }
+
+// Check if the start of arr contains material belonging to stuff which is after any
+// book-initial material, but before a chapter marker, standard subheader or verse. If that
+// is so, keep looking until that introduction material ends - either at a chapter marker
+// or if not any chapters, at the first verse marker encountered, or a subheading
+// of some kind.
+// Return the index values for the CSourcePhrase instances which lie at the start and end
+// of the introduction span and return TRUE, if we do not succeed in delineating any
+// such span, return FALSE (and in that case, startsAt and endsAt values are undefined -
+// I'll probably set them to -1 whenever FALSE is returned)
+bool GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt)
+{
+	int count = arrP->GetCount();
+	int endIndex = count - 1;
+	int index = startsAt;
+	wxString markers;
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (count == 0 || (count > 0 && startsAt >= count))
+	{
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// does the starting position within arr have introduction material, such as \imt or
+	// \ip etc? this stuff is in m_introductionMkrs)
+	pSrcPhrase = arrP->Item(index);
+	markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+	{
+		// we don't expect this, because an introduction should commence with a marker
+		// from the introductionMkrs set, so return FALSE so that the caller won't advance
+		// the starting location for the next test (for a chapter beginning)
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// m_markers has content, so check what might be in it
+	bool bIsIntroductionWithin = IsSubstringWithin(introductionMkrs, markers);
+	bool bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+	bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+	bool bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+	bool bIsIntroductionChunk = FALSE;
+    // it's introduction material provided m_markers doesn't contain any subheading
+    // markers, nor a chapter marker, nor a subheading, nor a verse marker, but it does
+    // have a marker from introductionMkrs set
+	if (bIsIntroductionWithin && (!bIsChapterMkrWithin && !bIsVerseMkrWithin && !bIsSubheadingMkrWithin))
+	{
+		bIsIntroductionChunk = TRUE;
+	}
+	else
+	{
+		bIsIntroductionChunk = FALSE;
+	}
+	if (!bIsIntroductionChunk)
+	{
+		// return FALSE, we don't know what it is, and we've not yet got to any chapters
+		// or verses
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+
+    // we are in an introduction chunk; so look ahead until we come to, in order of testing,
+    // first, a chapter number, if not that, a subheading, if not that, a
+	// verse marker - those constitute an end of the introduction material; we'll also
+	// include some other things like \mr, \d \ms, which the user may wrongly put
+	// before the chapter number
+	bool bIsRangeOrPsalmMkrs = FALSE;
+	bool bIsMajorOrSeriesMkrs = FALSE;
+	index++;
+	if (index > endIndex)
+	{
+		// we are done
+		endsAt = endIndex;
+		return TRUE;
+	}
+	bool bReachedEndOfArray = FALSE;
+	int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+	while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+	{
+		// get the m_markers content in this instance, put it into markers
+		pSrcPhrase = arrP->Item(foundIndex);
+		markers = pSrcPhrase->m_markers;
+
+		// check for any marker which indicates the introduction material is ended
+		bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+		bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+		bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+		bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
+		bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+
+
+		// are we done?
+		if (bIsChapterMkrWithin || bIsSubheadingMkrWithin || bIsVerseMkrWithin ||
+			bIsMajorOrSeriesMkrs || bIsRangeOrPsalmMkrs)
+		{
+			// we've found the start of the next information chunk, so the previous index
+			// is the ending one for this chunk
+			endsAt = foundIndex - 1;
+			bReachedEndOfArray = FALSE; // must be so
+			return TRUE;
+		}
+		// end of the chunk wasn't found, so prepare to iterate
+		index = foundIndex + 1;
+		if (index > endIndex)
+		{
+			// array end was reached
+			bReachedEndOfArray = TRUE;
+			endsAt = endIndex;
+			return TRUE;
+		}
+		// search for the next non-empty m_markers member
+		foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+	}
+
+	// we didn't find an end, so take it all as introduction material
+	endsAt = endIndex;
+	return TRUE;
+}
+
+// Check if the start of arr contains material belonging to stuff which is part of the
+// beginning of a chapter: things where \c occurs, and going as far as the end of the
+// first verse which follows (this ensures the chunk has a verse number or verse range).
+// We do it this way because a \c nnn marker and number always is in the m_markers for a
+// bit of text having content, and the latter may be a subheading, or \ms stuff, or \mr
+// stuff, or the first verse. Because of the variations possible, it is better to go from
+// the \c until the end of the first verse, then it doesn't matter what other content is
+// in that chunk.
+// Return the index values for the CSourcePhrase instances which lie at the start and end
+// of the chapter-plus-verse chunk and return TRUE, if we do not succeed in delineating any
+// such span, return FALSE (and in that case, startsAt and endsAt values are undefined -
+// I'll probably set them to -1 whenever FALSE is returned)
+bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
+{
+	int count = arrP->GetCount();
+	int endIndex = count - 1;
+	int index = startsAt;
+	wxString markers;
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (count == 0 || (count > 0 && startsAt >= count))
+	{
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// does the starting position within arr have chapter material, such as \c or \ms
+	// etc? this stuff is in m_chapterMkrs and majorOrSeriesMkrs or rangeOrPsalmMkrs or
+	// normalOrMinorMkrs (i.e. subheading markers) or parallelPassageHeadMkrs or verseMkrs)
+	pSrcPhrase = arrP->Item(index);
+	markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+	{
+        // we don't expect this, because the start of a chapter should commence with a \c
+        // from the chapterMkrs set or with a few other possibilities, so return FALSE so
+        // that the caller won't advance the starting location for the next test (for a
+        // subheading)
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// m_markers has content, so check what might be in it
+	bool bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+	//bool bIsMajorOrSeriesMkrWithin = IsSubstringWithin(majorOrSeriesMkrs, markers);
+	//bool bIsRangeOrPsalmMkrWithin = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+	//bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+	//bool bIsParallelPassageHeadMkrWithin = IsSubstringWithin(parallelPassageHeadMkrs, markers);
+	bool bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+	bool bIsChapterPlusVerseChunk = FALSE;
+    // it's material from \c and we want everything up to the end of the first verse
+	if (bIsChapterMkrWithin)
+	{
+		bIsChapterPlusVerseChunk = TRUE;
+	}
+	else
+	{
+		bIsChapterPlusVerseChunk = FALSE;
+	}
+	if (!bIsChapterPlusVerseChunk)
+	{
+		// return FALSE, it might be a subheading +/- parallel passage material followed
+		// by verses, and we check for that next if this function returns FALSE
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+
+	// we are in a chapterPlusVerseChunk; so look ahead until we come to a CSourcePhrase
+	// instance with \v in it's m_markers (it may be in the same m_markers that \c is in,
+	// or it may be later on, depending on whether or not there is subheading and/or other
+	// stuff before the verse commences). Once we have a CSourcePhrase with a \v, search
+	// ahead to the start of the next instance with either \c or \v - and then the end of
+	// the chunk is the previous CSourcePhrase instance to that one. Once we are past any
+	// introduction material, we want each chunk to just have a single verse in it,
+	// regardless of how much other stuff there might be as well.
+	bool bReachedEndOfArray = FALSE;
+	if (bIsVerseMkrWithin)
+	{
+		// the \c and the \v are stored on the one CSourcePhrase, so get to the end of the
+		// verse
+		;
+	}
+	else
+	{
+        // \v is not stored in the m_markers which stores \c, so scan across the start of
+        // chapter material until the first verse is found and exit this block at that
+        // point
+		index++;
+		if (index > endIndex)
+		{
+			// we are done
+			endsAt = endIndex;
+			return TRUE;
+		}
+		int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+		{
+			// get the m_markers content in this instance, put it into markers
+			pSrcPhrase = arrP->Item(foundIndex);
+			markers = pSrcPhrase->m_markers;
+
+			// check for any marker which indicates the chapterPlusVerse material is ended
+			bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+			//bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+			//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
+			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+			bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+
+			// is this loop done?
+			if (bIsChapterMkrWithin || bIsVerseMkrWithin)
+			{
+				// we've found the start of the next chapter, or first verse of the same chapter
+				break;
+			}
+			// start of next chapter or start of first verse of current chapter wasn't found, so 
+			// prepare to iterate
+			index = foundIndex + 1;
+			if (index > endIndex)
+			{
+				// array end was reached
+				bReachedEndOfArray = TRUE;
+				endsAt = endIndex;
+				return TRUE;
+			}
+			// search for the next non-empty m_markers member
+			foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		} // end of loop: while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+	} // end of else block for test: if (bIsVerseMkrWithin)
+
+    // Once control gets here, we've come to the start of a new chapter, or the start of a
+    // new verse (but not the array end, if we came to that, we'd have returned in the code
+    // above) - in the last circumstance the end of the first verse is the CSourcePhrase
+    // preceding the next one we find -- so move forward and define the chunk's end; in the
+    // former circumstance, the preceding instance from where we currently are pointing is
+    // the chunk's end
+	int end_AtStartOfVerseOrChapter = index;
+	if (bIsChapterMkrWithin)
+	{
+		// exited from the above loop because we came to a chapter \c marker; so can't go
+		// further to include verse material
+		endsAt = end_AtStartOfVerseOrChapter - 1;
+		bReachedEndOfArray = FALSE;
+		return TRUE;
+	}
+	else
+	{
+		index++; // get past the CSourcePhrase instance with the \v in its m_markers
+		if (index > endIndex)
+		{
+			// we are done
+			endsAt = endIndex;
+			return TRUE;
+		}
+		bReachedEndOfArray = FALSE;
+		int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+		{
+			// get the m_markers content in this instance, put it into markers
+			pSrcPhrase = arrP->Item(foundIndex);
+			markers = pSrcPhrase->m_markers;
+
+			// check for any marker which indicates the chapterPlusVerse material is ended
+			bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+			//bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+			//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
+			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+			bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+			// is this loop done?
+			if (bIsChapterMkrWithin || bIsVerseMkrWithin)
+			{
+				// we've found the start of the next chapter, or first verse of the same chapter
+				break;
+			}
+			// start of next chapter or start of second verse of current chapter wasn't found, so 
+			// prepare to iterate
+			index = foundIndex + 1;
+			if (index > endIndex)
+			{
+				// array end was reached
+				bReachedEndOfArray = TRUE;
+				endsAt = endIndex;
+				return TRUE;
+			}
+			// search for the next non-empty m_markers member
+			foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		} // end of loop: while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+
+		// we got over a verse to the start of the next, or to the start of a new chapter
+		// - so the end of the chunk we are delineating is at the previous index value
+		endsAt = --index;
+		return TRUE;
+	} // end of else block for test: if (bIsChapterMkrWithin)
+
+	// Control should never get here, but this is harmless and compiler will be happy
+	endsAt = endIndex;
+	return TRUE;
+}
+
+
 
 void InitializeNonVerseChunk(SfmChunk* pStruct)
 {
@@ -4648,12 +4983,57 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 		nEndsAt = wxNOT_FOUND; 
 	}
 
+	// second, try for an introduction chunk
+	bool bHasIntroductionChunk = GetIntroductionChunk(pInputArray, nStartsAt, nEndsAt);
+	if (bHasIntroductionChunk)
+	{
+		bCannotChunkThisArray = FALSE; // there are (U)SFMs, and also book-initial material
+
+		// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
+		SfmChunk* pSfmChunk = new SfmChunk;
+		InitializeNonVerseChunk(pSfmChunk);
+		pSfmChunk->type = introductionChunk;
+		pSfmChunk->startsAt = nStartsAt;
+		pSfmChunk->endsAt = nEndsAt;
+		pSfmChunk->bContainsText = DoesChunkContainSourceText(pInputArray, nStartsAt, nEndsAt);
+		pChunkSpecs->Add(pSfmChunk);
+
+		// consume this chunk, by advancing where we start from next
+		nStartsAt = nEndsAt + 1;
+		nEndsAt = wxNOT_FOUND;
+		if (nStartsAt > endIndex)
+		{
+			// all we've got is any book-initial material found early, plus this
+			// introduction material
+			return TRUE;
+		}
+	}
+	else
+	{
+		// don't advance, so now we need to try below for a chunk containing chapter-starting
+		// material - such as \c marker, maybe \ms and/or \mr or \r, but excluding a subheading
+		nStartsAt = 0;
+		nEndsAt = wxNOT_FOUND; 
+	}
+
+	// Now we analyse one or more chapters until done. This will involve smaller chunks -
+	// largest should be a verse. The chunks, in order of occurrence that we will search
+	// for, in a loop, are:
+	// 1. chapterBeginChunk, 2. subheadingChunk, 3. parallelRefChunk, 4. verseChunk
+	// All four are tried, in order, per iteration of the loop.
+	while (nStartsAt <= endIndex)
+	{
+
+
+
+
+
 
 
 // ** done to here **
 
 
-
+	}
 	if (bCannotChunkThisArray)
 	{
 		return FALSE;

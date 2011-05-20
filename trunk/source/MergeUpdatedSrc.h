@@ -111,14 +111,25 @@ const int tupleSize = 3;
 // structs here, and the chunking functions which use them, may also have value in
 // decomposing for an OXES export of the document.)
 
+// the last 3 chunk types below each contain a single verse, so whatever else may be
+// there, each will have a verse or verse range - which facilitates comparison of a
+// limited span of text - using a limit value of about 80 characters may be a better idea
+// than using a value of 50 as before; and for introduction chunks limit = -1 should be
+// used as someone may add an introduction as a single slab of source text - possibly
+// hundreds of words. A parallet passage reference (\r) may follow a subheading (\s or
+// \s#) # = 1 to 4, but we don't expect one without a preceding subheading - if we get
+// such a structure, we'll call it a subheadingPlusVerseChunk anyway, so as to minimize
+// the number of distinct chunks to test for.
 enum SfmChunkType {
 	unknownChunkType, // at initialization time & before arriving at a specific type
 	bookInitialChunk, // for data like \id line, \mt main title, secondary title, etc
 	introductionChunk, // for introductory material, markers beginning \i.... 
-	chapterStartChunk, // for stuff at the start of a chapter, and before any subheading
-	subheadingChunk, // for a subheading
-	verseChunk // for a verse
+	chapterPlusVerseChunk, // for stuff from the start of a chapter, to the end of first verse
+	subheadingPlusVerseChunk, // for a subheading plus the content of its following verse
+	verseChunk // for a verse (will collect any preceding \p too, since the USFM parser
+			   // will put the \p \v nnn into the one m_markers member)
 };
+
 // We do a set of the following stored in wxArrayPtrVoid for the whole existing Adapt It
 // document chunk. As for "document chunk", we have agreed to only store single-chapter
 // documents when in PT collaboration mode, never the whole of a book, and this way we can
@@ -209,6 +220,8 @@ bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Sub
 				wxArrayString* pUniqueCommonWordsArray, wxArrayPtrVoid* pSubspansArray, 
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
 bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetChapterBeginChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
 int		GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, 
 										wxString& keysStr, int limit);
 Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit);
