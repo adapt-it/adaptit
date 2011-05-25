@@ -258,6 +258,8 @@
 		<Unit filename="../../source/FontPage.h" />
 		<Unit filename="../../source/FreeTrans.cpp" />
 		<Unit filename="../../source/FreeTrans.h" />
+		<Unit filename="../../source/GetSourceTextFromEditor.cpp" />
+		<Unit filename="../../source/GetSourceTextFromEditor.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
 		<Unit filename="../../source/GoToDlg.h" />
 		<Unit filename="../../source/GuesserSettingsDlg.cpp" />
@@ -272,8 +274,6 @@
 		<Unit filename="../../source/KBEditor.h" />
 		<Unit filename="../../source/KBPage.cpp" />
 		<Unit filename="../../source/KBPage.h" />
-		<Unit filename="../../source/KB_Standoff.cpp" />
-		<Unit filename="../../source/KB_Standoff.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
 		<Unit filename="../../source/LanguageCodesDlg.h" />
 		<Unit filename="../../source/LanguagesPage.cpp" />
@@ -284,6 +284,8 @@
 		<Unit filename="../../source/ListDocumentsInOtherFolderDialog.h" />
 		<Unit filename="../../source/MainFrm.cpp" />
 		<Unit filename="../../source/MainFrm.h" />
+		<Unit filename="../../source/MergeUpdatedSrc.cpp" />
+		<Unit filename="../../source/MergeUpdatedSrc.h" />
 		<Unit filename="../../source/MoveDialog.cpp" />
 		<Unit filename="../../source/MoveDialog.h" />
 		<Unit filename="../../source/Mover.cpp" />
@@ -338,6 +340,8 @@
 		<Unit filename="../../source/SetDelay.h" />
 		<Unit filename="../../source/SetEncodingDlg.cpp" />
 		<Unit filename="../../source/SetEncodingDlg.h" />
+		<Unit filename="../../source/SetupEditorCollaboration.cpp" />
+		<Unit filename="../../source/SetupEditorCollaboration.h" />
 		<Unit filename="../../source/SilConverterSelectDlg.cpp" />
 		<Unit filename="../../source/SilConverterSelectDlg.h" />
 		<Unit filename="../../source/SourcePhrase.cpp" />
@@ -352,8 +356,6 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
-		<Unit filename="../../source/TargetUnit_Standoff.cpp" />
-		<Unit filename="../../source/TargetUnit_Standoff.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
 		<Unit filename="../../source/TransformToGlossesDlg.h" />
 		<Unit filename="../../source/UnitsDlg.cpp" />
