@@ -165,48 +165,101 @@ struct SfmChunk {
 	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
 };
 
-// The two int members in the struct below are for indexing into the first two of the
-// wxArrayPtrVoid arrays described above. Each chunk is typed (see above). A correlation
-// with "nothing" occurs when, in analysing left to right through arrOld and arrNew, the
-// next chunk exists in either arrOld but not in arrNew, or exists in arrNew but not in
-// arrOld. When either of those happens we set bCorrelatesWithNothing to TRUE. When that
-// doesn't happen, we'll have a valid correlation between the two of arrOld and arrNew,
-// which will define a subspan within each which constitute a correlated pair of subspans
-// (ie. milestones in common, such as verses 3 to 5 of a chapter exist in both arrOld and
-// arrNew) and so we will input those subranges to the MergeUpdatedSourceText() function -
-// this ensures we catch any user-source-text-editing that may have been done in Paratext
-// unbeknown to Adapt It since this particular chapter was lasted worked on in Adapt It (in
-// collaborative mode) and merge it into the AI document so that the user can adapt
-// anything which is different before he tries to transfer the finished chapter back to
-// Paratext. But bCorrelatesWithNothing == TRUE means that either milestoned data is to be
-// removed from arrOld, or milestoned data is to be inserted from arrNew, unilaterally
-// (i.e. without any attempt at a recursive merger), since correlation with nothing means,
-// by definition, that there cannot be any group of CSourcePhrase instances in whichever
-// subspan exists which is "in-common" with the non-existing ones in a "nothing" subspan.
-// Such subspans can be dealt with by either ignoring the data to be removed (when data in
-// arrOld correlates with "nothing" in arrNew for some range of milestones), or by
-// apppending it to pMergedList (when data in arrNew correlates with "nothing" in arrOld)
-// which is the case when it is to be added in as new material not hitherto seen within
-// Adapt It's document.
-// Note: if, in arrOld or arrNew, SFM or USFM markup occurs but the source text is absent,
-// (e.g. \v 3 exists but no text for verse three occurs following the verse number) our
-// code will treat this as as a "nothing" location; "nothing" locations would also be
-// things like (1) a discontinuity in the verses within a chapter (we take verse ranges
-// start and end numbers into account, e.g. \v 3-5 where there is text following, those are
-// not discontinuities) -- but if verses 5 to 9 are absent within a chapter, that would be
-// a "nothing" location/subspan. Or (2)a suheading is empty in arrOld, but has content in
-// arrNew - the arrOld location would be considered a "nothing" subspan, and the code would
-// just flow the arrNew subheading text in at the appropriate location to pMergedList,
-// without attempting the unnecessary MergeUpdatedSourceText() call, or (3) other
-// information types where something is contrasted with it's absence in the other array.
-struct SfmChunksCorrelation 
-{
-	bool				bCorrelatesWithNothing; // default FALSE, only TRUE if the previous & after
-											    // chunks have consecutive +ve int values, for one of
-											    // the legacy (arrOld) or incoming (arrNew) data arrays
-	int					indexSfmChunkOld; // indexes into the SfmChunk set from arrOld
-	int					indexSfmChunkNew; // indexes into the SfmChunk set from arrNew, -1 if absent
+// We need an additional enum for the 2 possible data states which the current Adapt It
+// tokenizing parser supports: a gap in the the verses, and SFM or USFM verse structure in
+// which the verses have at least one word of text each. (Our parser does not support the
+// following: SFM or USFM structure in which there are no words following the markers.
+// Data of this type, if presented to the parser, will group all the empty markers
+// together into one long string for storage in a single m_markers member of a
+// CSourcePhrase instance, but that instance won't be created if there is no word anywhere
+// which can be the m_key member of the CSourcePhrase instance - in which case the long
+// string of empty markers is simply lost; but if a word or words occur at a later point,
+// the long list of contentless markers is stored in the CSourcePhrase's m_markers member
+// for the first word. That's not helpful. However, the m_chapterVerse member would have
+// the correct chapter and verse number in the latter situation, for that first word's
+// CSourcePhrase instance. But because the parser doesn't support empty markup, we limit
+// the states we support to the two above, and reject a third which would be: SFM or USFM 
+// structure but the structure has no words in it. So we are supporting only a 2-state model.
+// 
+// Hence the following - we need one each for the 'old' instances and the 'new' instances
+// of CSourcePhrases to be merged. For a 3-state model, that gives 9 possible combinations.
+// For a 2-state model, there are only 4 combinations. Whichever is the case, we need to
+// call MergeUpdatedSrcTextCore() only for one of the total number of allowed combinations;
+// it will be the combination (mkrs_with_content, mkrs_with_content), because all other
+// possibilities will involve wholesale (non-recursive) inserting or removing of
+// CSourcePhrase instances for a span of index values.
+enum WhatsThere {
+	gap, // 'gap' means a discontinuity in the verses, e.g. verses 3 and 4 absent
+	//mkrs_but_no_content, // use this only if we support a 3-state model some day
+	mkrs_with_content
 };
+// Here's the table of combinations and what we would do for each, assuming a 3-state
+// model (which possibly we'll never implement - the parser would need partial rewriting): 
+// (Left applies to arrOld, right applies to arrNew) 'markers' is, here, a shorthand for a
+// CSourcePhrase with one or more SFM or USFM markers in its m_markers member; so when we
+// say, 'replace with the markers' that's just a short way of saying "replace the span of
+// CSourcePhrase instances in which there are markers in their m_markers members" -
+// tokenizing a sfm structure that lacks any words of content will generate CSourcePhrase
+// instances like that; when there is content, however, the instances with markers are
+// separated by instances without, of course.
+// (1) gap , gap : do nothing, the gap remains
+// (2) gap, mkrs_but_no_content : replace the gap with the new (but empty) markers
+// (3) gap, mkrs_with_content : replace the gap with the new instances
+// (4) mkrs_but_no_content , gap : skip, leave the arrOld's contentless instances since
+//                                 they at least have SFM or USFM information, even though
+//                                 m_key members are empty (we don't want to throw away
+//                                 potentially useful information needlessly)
+// (5) mkrs_but_no_content , mkrs_but_no_content : do nothing, no information is added or lost
+// (6) mkrs_but_no_content , mkrs_with_content : replace the contentless instances with the
+//                                 new ones which have content
+// (7) mkrs_with_content , gap : remove the arrOld material, it's unwanted
+// (8) mkrs_with_content , mkrs_but_no_content : replace the content-having instances with the
+//                                 new ones which lack content (we'll assume this new data is
+//                                 deliberately without content words, so will honour the intent)
+// (9) mkrs_with_content , mkrs_with_content : this material requires MergeUpdatedSrcTextCore()
+//                                 be called to merge the new array of instances to the older
+//                                 instances
+//   ****** WE SUPPORT THE FOLLOWING 4-OPTIONS SCHEME, NOT THE ABOVE 9-OPTIONS SCHEME ******
+// Here's the table of combinations, assuming a 2-state model (this is the one which, for
+// the present, we'll be supporting):
+// (1) gap , gap :                             do nothing, the gap in the verses remains
+// (2) gap, mkrs_with_content :                replace the verses gap with arrNew's new CSourcePhrase instances
+// (3) mkrs_with_content , gap :               remove the arrOld material, it's unwanted, leaving a verse range gap
+// (4) mkrs_with_content , mkrs_with_content : this material requires MergeUpdatedSrcTextCore() be called 
+//                                             to merge the new array of instances to the older instances
+// 
+// Analysis of the sets of SfmChunk instances in the two wxArrayPtrVoid arrays has to be
+// done to generate spans of matched data of one type per matchup. Once that is obtained,
+// a loop can scan through the structs involved to do the relevant actions, as in the
+// 4-options list above. A new struct is needed for handling the subspan accretions that are
+// involved in generating the widest possible extents of single or "compatible types" (see below).
+struct ChunkAssociation {
+	SfmChunkType type;
+	WhatsThere oldWhatsThere; // pertains to arrOld data
+	int	oldStartAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrOld
+	int oldEndAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrOld 
+	WhatsThere newWhatsThere; // pertains to arrOld data
+	int	newStartAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrNew
+	int newEndAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrNew
+};
+// "compatible types" are chapterPlusVerseChunk, subheadingPlusVerseChunk, and verseChunk,
+// because these are all milestoned types and each has a single verse reference (or verse
+// range reference) within it. introductionChunk is not compatible with any of these, nor is
+// bookInitialChunk, because the last two are not milestoned - they have no verse info
+// within them.
+// Typical scripture data involves some chapterPlusVerseChunk instances interspersed with
+// lots of verseChunk instances and in the latter there will generally be a few
+// subheadingPlusVerseChunk instances. However, although these are typed differently, the
+// range of verses spanned is consecutive because these types are stored in the same order
+// in which they occur in the SPArray span. So, for example, a chunk association which is
+// mergeable may be, perhaps, chapter 2 verse 1 up to chapter 5 verse 3, because in the
+// new source text we want to merge we find that this range of verses and chapters is also
+// present (there is some discontinuity at either end, obviously, otherwise we'd have a
+// longer matchup), and the additional condition that for every chapter:verse combination
+// in the legacy instances there is the same chapter:verse combination in the new
+// instances. These two conditions, the lack of discontinuities within, and the presence of
+// matched milestones within, make it safe to call MergeUpdatedSrcTextCore() on that paired
+// extent of subranges of arrOld and arrNew that are involved in the association.
 
 bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& nChapter, 
 						wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
@@ -214,14 +267,20 @@ bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
 bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
+void	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
 int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
+wxString FindVerseReference(SPArray* arrP, int startFrom, int endAt);
 bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				wxArrayString* pUniqueCommonWordsArray, wxArrayPtrVoid* pSubspansArray, 
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
 bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
-bool	GetChapterBeginChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
+void	GetChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
+							 wxArrayPtrVoid* pChunkAssociations);
 bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 int		GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, 
 										wxString& keysStr, int limit);
 Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit);
@@ -250,6 +309,7 @@ bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLo
 bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
+void	MergeUpdatedSrcTextCore(SPArray& oldArray, SPArray& newArray, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
 						int limit, Subspan* tuple[]); // the array size is always 3, so 
 													  // we don't need a parameter for it
@@ -259,6 +319,8 @@ bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 //void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
 //					  int& newEndAt, int limit, bool bClosedEnd); <<-- not needed yet
 void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit); // overload
+void	TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo, bool bClearAfterwards);
+void	TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo, bool bClearAfterwards);
 bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount);
