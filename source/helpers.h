@@ -128,6 +128,26 @@ wxString StripPath(wxString FullPath);
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep);
 
 // functions added by whm
+// whm Note: the following group of functions share a lot of code with 
+// their counterparts in the Doc class. However, these functions are all 
+// used on buffers that might be in existence when the actual Doc does 
+// not exist. Hence I've put underscores in their function names so they 
+// won't be confused with the similarly named functions in the 
+// CAdapt_ItDoc class.
+bool Is_AnsiLetter(wxChar c);
+bool Is_ChapterMarker(wxChar* pChar);
+bool Is_VerseMarker(wxChar *pChar, int& nCount);
+wxString GetStringFromBuffer(const wxChar* ptr, int itemLen);
+int Parse_Number(wxChar *pChar);
+bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar);
+bool Is_NonEol_WhiteSpace(wxChar *pChar);
+//int ParseWhiteSpace(wxChar *pChar);
+int Parse_NonEol_WhiteSpace(wxChar *pChar);
+int Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
+bool Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
+wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr);
+wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
+
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10

@@ -1023,6 +1023,487 @@ b:		if (bMatchedTwo)
 	return s; // if we get here, we got no match, which is an error
 }
 
+// functions added by whm
+// whm Note: the following group of functions share a lot of code with 
+// their counterparts in the Doc class. However, these functions are all 
+// used on buffers that might be in existence when the actual Doc does 
+// not exist. Hence I've put underscores in their function names so they 
+// won't be confused with the similarly named functions in the 
+// CAdapt_ItDoc class.
+bool Is_AnsiLetter(wxChar c)
+{
+	return wxIsalpha(c) != FALSE;
+}
+
+bool Is_ChapterMarker(wxChar* pChar)
+{
+	if (*pChar != _T('\\'))
+		return FALSE;
+	wxChar* ptr = pChar;
+	ptr++;
+	if (*ptr == _T('c'))
+	{
+		ptr++;
+		return Is_NonEol_WhiteSpace(ptr);
+	}
+	else
+		return FALSE;
+}
+
+bool Is_VerseMarker(wxChar *pChar, int& nCount)
+{
+	if (*pChar != _T('\\'))
+		return FALSE;
+	wxChar* ptr = pChar;
+	ptr++;
+	if (*ptr == _T('v'))
+	{
+		ptr++;
+		if (*ptr == _T('n'))
+		{
+			// must be an Indonesia branch \vn 'verse number' marker
+			// if white space follows
+			ptr++;
+			nCount = 3;
+		}
+		else
+		{
+			nCount = 2;
+		}
+		return Is_NonEol_WhiteSpace(ptr);
+	}
+	else
+		return FALSE;
+}
+
+wxString GetStringFromBuffer(const wxChar* ptr, int itemLen)
+{
+	return wxString(ptr,itemLen);
+}
+
+int Parse_Number(wxChar *pChar)
+{
+	wxChar* ptr = pChar;
+	int length = 0;
+	while (!Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r'))
+	{
+		ptr++;
+		length++;
+	}
+	return length;
+}
+
+bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar)
+{
+	// The standard white-space characters are the following: space 0x20, tab 0x09, 
+	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
+	// returns true if pChar points to a standard white-space character.
+	// We also let the caller know if it is an eol char by returning TRUE in the
+	// isEOLchar reference param, or FALSE if it is not an eol char.
+	if (*pChar == _T('\r')) // 0x0D CR 
+	{
+		// this is an eol char so we let the caller know
+		IsEOLchar = TRUE;
+		return TRUE;
+	}
+	else if (*pChar == _T('\n')) // 0x0A LF (newline)
+	{
+		// this is an eol char so we let the caller know
+		IsEOLchar = TRUE;
+		return TRUE;
+	}
+	else if (*pChar == _T(' ')) // 0x20 space
+	{
+		IsEOLchar = FALSE;
+		return TRUE;
+	}
+	else if (*pChar == _T('\t')) // 0x09 tab
+	{
+		IsEOLchar = FALSE;
+		return TRUE;
+	}
+	else if (*pChar == _T('\v')) // 0x0B vertical tab
+	{
+		IsEOLchar = FALSE;
+		return TRUE;
+	}
+	else if (*pChar == _T('\f')) // 0x0C FF form-feed
+	{
+		IsEOLchar = FALSE;
+		return TRUE;
+	}
+	else
+	{
+		IsEOLchar = FALSE;
+		return FALSE;
+	}
+	
+	//if (wxIsspace(*pChar) == 0)// _istspace not recognized by g++ under Linux
+	//	return FALSE;
+	//else
+	//	return TRUE;
+}
+
+bool Is_NonEol_WhiteSpace(wxChar *pChar)
+{
+	// The standard white-space characters are the following: space 0x20, tab 0x09, 
+	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
+	// returns true if pChar points to a non EOL white-space character, but FALSE
+	// if pChar points to an EOL char or any other character.
+	if (*pChar == _T(' ')) // 0x20 space
+	{
+		return TRUE;
+	}
+	else if (*pChar == _T('\t')) // 0x09 tab
+	{
+		return TRUE;
+	}
+	else if (*pChar == _T('\v')) // 0x0B vertical tab
+	{
+		return TRUE;
+	}
+	else if (*pChar == _T('\f')) // 0x0C FF form-feed
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+int Parse_NonEol_WhiteSpace(wxChar *pChar)
+{
+	int	length = 0;
+	wxChar* ptr = pChar;
+	while (Is_NonEol_WhiteSpace(ptr))
+	{
+		length++;
+		ptr++;
+	}
+	return length;
+}
+
+int Parse_Marker(wxChar *pChar, wxChar *pEnd)
+{
+    // whm: see note in the Doc's version of ParseMarker for reasons why I've modified
+    // this function to add a pointer to the end of the buffer in its signature.
+	int len = 0;
+	wxChar* ptr = pChar;
+	wxChar* pBegin = ptr;
+	while (ptr < pEnd && !Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r') && *ptr != _T('\0') && gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
+	{
+		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']'))) 
+			break; 
+		ptr++;
+		len++;
+		if (*(ptr -1) == _T('*')) // whm ammended 17May06 to halt after asterisk (end marker)
+			break;
+	}
+	return len;
+}
+
+bool Is_Marker(wxChar *pChar, wxChar *pEnd)
+{
+	// whm modified 2May11 from the IsMarker function in the Doc to add checks for pEnd
+	// to prevent it from accessing memory beyond the buffer. The Doc's version should
+	// also have this check, otherwise a spurious '\' at or near the end of the buffer 
+	// would result in trying to access a char in memory beyond the actual end of the
+	// buffer.
+	// 
+    // also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an
+    // alphabetic one; and in response to issues Bill raised in any email on Jan 31st about
+    // spurious marker match positives, make the test smarter so that more which is not a
+    // genuine marker gets rejected (and also, use IsMarker() in ParseWord() etc, rather
+    // than testing for *ptr == gSFescapechar)
+	if (*pChar == gSFescapechar)
+	{
+		// reject \n but allow the valid USFM markers \nb \nd \nd* \no \no* \ndx \ndx*
+		if ((pChar + 1) < pEnd && *(pChar + 1) == _T('n')) // whm added (pChar + 1) < pEnd test
+		{
+			if ((pChar + 2) < pEnd && IsAnsiLetter(*(pChar + 2))) // whm added (pChar + 2) < pEnd test
+			{
+				// assume this is one of the allowed USFM characters listed in the above
+				// comment
+				return TRUE;
+			}
+			else if ((pChar + 2) < pEnd && (Is_NonEol_WhiteSpace((pChar + 2)) || (*pChar + 2) == _T('\n') || (*pChar + 2) == _T('\r'))) // whm added (pChar + 2) < pEnd test
+			{
+				// it's an \n escaped linefeed indicator, not an SFM
+				return FALSE;
+			}
+			else
+			{
+                // the sequence \n followed by some nonalphabetic character nor
+                // non-whitespace character is unlikely to be a value SFM or USFM, so
+                // return FALSE here too -- if we later want to make the function more
+                // specific, we can put extra tests here
+                return FALSE;
+			}
+		}
+		else if ((pChar + 1) < pEnd && !Is_AnsiLetter(*(pChar + 1))) // whm added (pChar + 1) < pEnd test
+		{
+			return FALSE;
+		}
+		else
+		{
+			// after the backslash is an alphabetic character, so assume its a valid marker
+			return TRUE;
+		}
+	}
+	else
+	{
+		// not pointing at a backslash, so it is not a marker
+		return FALSE;
+	}
+}
+
+wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
+{
+	// Parse the string which is of the form: \v n:nnnn or \c n:nnnn
+	// This function gets the chapter or verse number as a string and works for
+	// either the \c or \v marker.
+	// Since the string is of the form: \v n:nnnn or \c n:nnnn, we cannot use the 
+	// Parse_Number() to get the number itself since, with the :nnnn suffixed to it, 
+	// it does not end in whitespace or CR LF as would a normal verse number, so we 
+	// get the number differently using ordinary wxString methods.
+	wxString numStr = verseStr;
+	int posColon = numStr.Find(_T(':'),TRUE); // TRUE - find from right end
+	wxASSERT(posColon != wxNOT_FOUND);
+	numStr = numStr.Mid(0,posColon);
+	int posSpace = numStr.Find(_T(' '),TRUE);
+	numStr = numStr.Mid(posSpace);
+	numStr.Trim(FALSE);
+	numStr.Trim(TRUE);
+	return numStr;
+}
+
+wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
+{
+	// process the buffers extracting wxArrayStrings representing the 1:1:nnnn data from the
+	// source and target file buffers
+	// TODO: Modify to also include a unique CRC or SHA value as an additional field so that
+	// the form of the representation would be 1:1:nnnn:CRC
+	
+	wxArrayString UsfmStructureAndExtentArray;
+	const wxChar* pBuffer = sourceFileBuffer.GetData();
+	int nBufLen = sourceFileBuffer.Length();
+	int itemLen = 0;
+	wxChar* ptrSrc = (wxChar*)pBuffer;	// point to the first char (start) of the buffer text
+	wxChar* pEnd = ptrSrc + nBufLen;	// point to one char past the end of the buffer text
+	wxASSERT(*pEnd == '\0');
+
+	// Note: the wxConvUTF8 parameter of the above targetFileBuffer constructor also
+	// removes the initial BOM from the string when converting to a wxString
+	// but we'll check here to make sure and skip it if present. Curiously, the string's
+	// buffer after conversion also contains the FEFF UTF-16 BOM as its first char in the
+	// buffer! The wxString's converted buffer is indeed UTF-16, but why add the BOM to a 
+	// memory buffer in converting from UTF8 to UTF16?!
+	const int bomLen = 3;
+	wxUint8 szBOM[bomLen] = {0xEF, 0xBB, 0xBF};
+	bool bufferHasUtf16BOM = FALSE;
+	if (!memcmp(pBuffer,szBOM,nBOMLen))
+	{
+		ptrSrc = ptrSrc + nBOMLen;
+	}
+	else if (*pBuffer == 0xFEFF)
+	{
+		bufferHasUtf16BOM = TRUE;
+		// skip over the UTF16 BOM in the buffer
+		ptrSrc = ptrSrc + 1;
+	}
+	
+	wxString temp;
+	temp.Empty();
+	int nMkrLen = 0;
+
+	// charCount includes all chars in file except for eol chars
+	int charCountSinceLastMarker = 0;
+	int eolCount = 0;
+	int charCount = 0;
+	int charCountMarkersOnly = 0; // includes any white space within and after markers, but not eol chars
+	wxString lastMarker;
+	wxString lastMarkerNumericAugment;
+	// Scan the buffer and extract the chapter:verse:count information
+	while (ptrSrc < pEnd)
+	{
+		while (ptrSrc < pEnd && !Is_Marker(ptrSrc,pEnd))
+		{
+			// This loop handles the parsing and counting of all characters not directly 
+			// associated with sfm markers, including eol characters.
+			if (*ptrSrc == _T('\n') || *ptrSrc == _T('\r'))
+			{
+				// its an eol char
+				ptrSrc++;
+				eolCount++;
+			}
+			else
+			{
+				ptrSrc++;
+				charCount++;
+				charCountSinceLastMarker++;			
+			}
+		}
+		if (ptrSrc < pEnd)
+		{
+			// This loop handles the parsing and counting of all sfm markers themselves.
+			if (Is_Marker(ptrSrc,pEnd))
+			{
+				if (!lastMarker.IsEmpty())
+				{
+					// output the data for the last marker
+					wxString usfmDataStr;
+					// construct data string for the lastMarker
+					usfmDataStr = lastMarker;
+					usfmDataStr += lastMarkerNumericAugment;
+					usfmDataStr += _T(':');
+					usfmDataStr << charCountSinceLastMarker;
+					charCountSinceLastMarker = 0;
+					lastMarker.Empty();
+					UsfmStructureAndExtentArray.Add(usfmDataStr);
+				
+					lastMarkerNumericAugment.Empty();
+				}
+			}
+			
+			if (Is_ChapterMarker(ptrSrc))
+			{
+				// its a chapter marker
+				// parse the chapter marker and following white space
+
+				itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the marker
+				lastMarker = temp;
+				
+				ptrSrc += itemLen; // point past the \c marker
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc);
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get non-eol whitespace
+				lastMarkerNumericAugment += temp;
+
+				ptrSrc += itemLen; // point at chapter number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_Number(ptrSrc); // ParseNumber doesn't parse over eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the number
+				lastMarkerNumericAugment += temp;
+				
+				ptrSrc += itemLen; // point past chapter number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc); // parse the non-eol white space following 
+													     // the number
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the non-eol white space
+				lastMarkerNumericAugment += temp;
+				ptrSrc += itemLen; // point past it
+				charCountMarkersOnly += itemLen;
+				// we've parsed the chapter marker and number and non-eol white space
+			}
+			else if (Is_VerseMarker(ptrSrc,nMkrLen))
+			{
+				// Its a verse marker
+
+				// Parse the verse number and following white space
+				itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the verse marker
+				lastMarker = temp;
+				
+				if (nMkrLen == 2)
+				{
+					// its a verse marker
+					ptrSrc += 2; // point past the \v marker
+					charCountMarkersOnly += itemLen;
+				}
+				else
+				{
+					// its an Indonesia branch verse marker \vn
+					ptrSrc += 3; // point past the \vn marker
+					charCountMarkersOnly += itemLen;
+				}
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc);
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the non-eol white space
+				lastMarkerNumericAugment += temp;
+				ptrSrc += itemLen; // point at verse number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_Number(ptrSrc); // ParseNumber doesn't parse over eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the verse number
+				lastMarkerNumericAugment += temp;
+				ptrSrc += itemLen; // point past verse number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc); // parse white space which is 
+														 // after the marker
+				// we don't need the white space on the lastMarkerNumericAugment which we
+				// would have to remove during parsing of fields on the : delimiters
+				ptrSrc += itemLen; // point past the white space
+				charCountMarkersOnly += itemLen; // count following white space with markers
+			}
+			else if (Is_Marker(ptrSrc,pEnd))
+			{
+				// Its some other marker.
+
+				itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the marker
+				lastMarker = temp;
+				ptrSrc += itemLen; // point past the marker
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc);
+				// we don't need the white space but we count it
+				ptrSrc += itemLen; // point past the white space
+				charCountMarkersOnly += itemLen; // count following white space with markers
+			}
+		}
+		else
+		{
+			// ptrSrc is pointing at or past the pEnd
+			break;
+		}
+	}
+	
+	// output data for any lastMarker that wan't output in above main while 
+	// loop (at the end of the file)
+	if (!lastMarker.IsEmpty())
+	{
+		wxString usfmDataStr;
+		// construct data string for the lastMarker
+		usfmDataStr = lastMarker;
+		usfmDataStr += lastMarkerNumericAugment;
+		usfmDataStr += _T(':');
+		usfmDataStr << charCountSinceLastMarker;
+		charCountSinceLastMarker = 0;
+		lastMarker.Empty();
+		UsfmStructureAndExtentArray.Add(usfmDataStr);
+	
+		lastMarkerNumericAugment.Empty();
+	}
+	//int ct;
+	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
+	//{
+	//	wxLogDebug(UsfmStructureAndExtentArray.Item(ct));
+	//}
+	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
+	// the actual last character so it represents the total number of characters in the buffer. 
+	// Thus the Total Count below doesn't include the beginning UTF-16 BOM character, which is also the length
+	// of the wxString buffer as reported in nBufLen by the sourceFileBuffer.Length() call.
+	// Actual size on disk will be 2 characters larger than charCount's final value here because
+	// the file on disk will have the 3-char UTF8 BOM, and the sourceFileBuffer here has the 
+	// 1-char UTF-16 BOM.
+	int utf16BomLen;
+	if (bufferHasUtf16BOM)
+		utf16BomLen = 1;
+	else
+		utf16BomLen = 0;
+	wxLogDebug(_T("Total Count = %d [charCount (%d) + eolCount (%d) + charCountMarkersOnly (%d)] Compare to nBufLen = %d"),
+		charCount+eolCount+charCountMarkersOnly,charCount,eolCount,charCountMarkersOnly,nBufLen - utf16BomLen);
+	return UsfmStructureAndExtentArray;
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with
 ///		the first character in the string and ending when a character is found in the inputStr

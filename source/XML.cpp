@@ -443,6 +443,10 @@ void InsertEntities(CBString& s)
 	ch = "\"";
 	offset = -1;
 	DoEntityInsert(s,offset,ch,xml_quote);
+	// whm added below 24May11
+	ch = "\t";
+	offset = -1;
+	DoEntityInsert(s,offset,ch,xml_tab);
 }
 
 void DoEntityReplace(CBString& s,Int16& offset,const char* ent,char ch)
@@ -544,6 +548,10 @@ void ReplaceEntities(CBString& s)
 	ch = '\"';
 	offset = -1;
 	DoEntityReplace(s,offset,xml_quote,ch);
+	// whm added below 24May11
+	ch = '\t';
+	offset = -1;
+	DoEntityReplace(s,offset,xml_tab,ch);
 }
 
 void SkipWhiteSpace(char*& pPos,char* pEnd)
@@ -2029,9 +2037,12 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			// definedProfile3 and definedProfile4. The .Find in the test above will return 0 
 			// for all definedProfileN attributes where N is 1,2,3,4...
 #ifdef _UNICODE
-			gpUserProfiles->definedProfileNames.Add(pValueW);
+			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the definedProfile
+			gpUserProfiles->definedProfileNames.Add(::wxGetTranslation(pValueW)); // whm changed 24May11 to use localization
+			//gpUserProfiles->definedProfileNames.Add(pValueW);
 #else
-			gpUserProfiles->definedProfileNames.Add(pValue);
+			gpUserProfiles->definedProfileNames.Add(::wxGetTranslation(pValue)); // whm changed 24May11 to use localization
+			//gpUserProfiles->definedProfileNames.Add(pValue);
 #endif
 		}
 		else if (attrName.Find(descriptionProfile) == 0)
@@ -2042,9 +2053,12 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			// return 0 for all descriptionProfileN attributes where N is 1,2,3,4...
 			// Note: ReplaceEntities() is called on the attrValue above.
 #ifdef _UNICODE
-			gpUserProfiles->descriptionProfileTexts.Add(pValueW);
+			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the descriptionProfile
+			gpUserProfiles->descriptionProfileTexts.Add(::wxGetTranslation(pValueW)); // whm changed 24May11 to use localization
+			//gpUserProfiles->descriptionProfileTexts.Add(pValueW);
 #else
-			gpUserProfiles->descriptionProfileTexts.Add(pValue);
+			gpUserProfiles->descriptionProfileTexts.Add(::wxGetTranslation(pValue)); // whm changed 24May11 to use localization
+			//gpUserProfiles->descriptionProfileTexts.Add(pValue);
 #endif
 		}
 	}
@@ -2073,17 +2087,58 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 		else if (attrName == itemText)
 		{
 #ifdef _UNICODE
-			gpUserProfileItem->itemText = pValueW;
+			// whm note 24May11 For ::wxGetTranslation() to work any tab string ("\\t") needs to be
+			// converted into an actual 't' (0x09) character
+			wxString tempS = pValueW;
+			int posn = tempS.Find(_T("\\t"));
+			wxChar tab = _T('\t');
+			if (posn != wxNOT_FOUND)
+			{
+				tempS.Remove(posn,2);
+				tempS.insert(posn,tab);
+			}
+			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemText
+			wxString tempSwithTabStr = ::wxGetTranslation(tempS); // whm changed 24May11 to use localization
+			// now put the "\\t" back which is what we use in UnserProfiles structs
+			posn = tempSwithTabStr.Find(_T('\t'));
+			if (posn != wxNOT_FOUND)
+			{
+				tempSwithTabStr.Remove(posn,1);
+				tempSwithTabStr.insert(posn,_T("\\t"));
+			}
+			gpUserProfileItem->itemText = tempSwithTabStr;
+			//gpUserProfileItem->itemText = pValueW;
 #else
-			gpUserProfileItem->itemText = pValue;
+			wxString tempS = pValue;
+			int posn = tempS.Find(_T("\\t"));
+			wxChar tab = _T('\t');
+			if (posn != wxNOT_FOUND)
+			{
+				tempS.Remove(posn,2);
+				tempS.insert(posn,tab);
+			}
+			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemText
+			wxString tempSwithTabStr = ::wxGetTranslation(tempS); // whm changed 24May11 to use localization
+			// now put the "\\t" back which is what we use in UnserProfiles structs
+			posn = tempSwithTabStr.Find(_T('\t'));
+			if (posn != wxNOT_FOUND)
+			{
+				tempSwithTabStr.Remove(posn,1);
+				tempSwithTabStr.insert(posn,_T("\\t"));
+			}
+			gpUserProfileItem->itemText = tempSwithTabStr;
+			//gpUserProfileItem->itemText = pValue;
 #endif
 		}
 		else if (attrName == itemDescr)
 		{
 #ifdef _UNICODE
-			gpUserProfileItem->itemDescr = pValueW;
+			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemDescr
+			gpUserProfileItem->itemDescr = ::wxGetTranslation(pValueW); // whm changed 24May11 to use localization
+			//gpUserProfileItem->itemDescr = pValueW;
 #else
-			gpUserProfileItem->itemDescr = pValue;
+			gpUserProfileItem->itemDescr = ::wxGetTranslation(pValue); // whm changed 24May11 to use localization
+			//gpUserProfileItem->itemDescr = pValue;
 #endif
 		}
 		else if (attrName == itemAdminCanChange)
@@ -2101,9 +2156,12 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 		{
 			// add the profile name to the usedProfileNames array
 #ifdef _UNICODE
-			gpUserProfileItem->usedProfileNames.Add(pValueW);
+			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemUserProfile
+			gpUserProfileItem->usedProfileNames.Add(::wxGetTranslation(pValueW)); // whm changed 24May11 to use localization
+			//gpUserProfileItem->usedProfileNames.Add(pValueW);
 #else
-			gpUserProfileItem->usedProfileNames.Add(pValue);
+			gpUserProfileItem->usedProfileNames.Add(::wxGetTranslation(pValue)); // whm changed 24May11 to use localization
+			//gpUserProfileItem->usedProfileNames.Add(pValue);
 #endif
 		}
 		else if (attrName == itemVisibility)

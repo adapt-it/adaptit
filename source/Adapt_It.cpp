@@ -83,6 +83,7 @@
 #include <wx/log.h> // for wxLogStream
 #include <wx/timer.h> // for wxTimer
 #include <wx/tokenzr.h>
+#include <wx/stockitem.h> // for ::wxGetStockLabel()
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -1189,7 +1190,7 @@ const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1
 			// gnDefaultSFMs value is 283, but it will change as UBS adds markers to USFM
 
 // whm added 10Sep10 
-/// An array of wxStrings which, when parsed by ParseUserProfileStrings(), is used as 
+/// An array of wxStrings which, when parsed by SetupDefaultUserProfiles(), is used as 
 /// default list of User Workflow Profile dialog item definitions. There definitions are
 /// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
 /// file.
@@ -1214,7 +1215,7 @@ const wxString defaultProfileItems[] =
 		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile4=\"Custom\":descriptionProfile4=\"The Custom profile can use one of the other profiles as a starting point and further customize the Custom profile to suit the preferences of the administrator.\":"),
-	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save As...\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_SAVE_AS\":itemType=\"subMenu\":itemText=\"Save &As...\tCtrl-A\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1254,7 +1255,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_BACKUP_KB\":itemType=\"subMenu\":itemText=\"Backup Knowledge Base\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_BACKUP_KB\":itemType=\"subMenu\":itemText=\"&Backup Knowledge Base\":itemDescr=\"File menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1264,7 +1265,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit Source Text...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_SOURCE_TEXT\":itemType=\"subMenu\":itemText=\"Edit &Source Text...\tCtrl-Q\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1274,7 +1275,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consistency Check...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_CONSISTENCY_CHECK\":itemType=\"subMenu\":itemText=\"Consist&ency Check...\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1284,7 +1285,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_FORWARD\":itemType=\"subMenu\":itemText=\"Move Note Forward\tCtrl-3\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1294,7 +1295,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":itemType=\"subMenu\":itemText=\"Move Note Backward\tCtrl-2\":itemDescr=\"Edit menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1304,7 +1305,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_VIEW_TOOLBAR\":itemType=\"subMenu\":itemText=\"Toolbar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_VIEW_TOOLBAR\":itemType=\"subMenu\":itemText=\"&Toolbar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1314,7 +1315,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"Status Bar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"&Status Bar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1324,7 +1325,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Source\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Sourc&e\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1334,7 +1335,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"Wrap At Standard Format Markers\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"&Wrap At Standard Format Markers\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1344,7 +1345,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_UNITS\":itemType=\"subMenu\":itemText=\"Units of Measurement...\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_UNITS\":itemType=\"subMenu\":itemText=\"&Units of Measurement...\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1364,7 +1365,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"wxID_REPLACE\":itemType=\"subMenu\":itemText=\"Find and Replace...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"wxID_REPLACE\":itemType=\"subMenu\":itemText=\"Find and &Replace...\tCtrl-H\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1374,7 +1375,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_DEFINE_CC\":itemType=\"subMenu\":itemText=\"Load Consistent Changes...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_CC\":itemType=\"subMenu\":itemText=\"&Load Consistent Changes...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1384,7 +1385,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_UNLOAD_CC_TABLES\":itemType=\"subMenu\":itemText=\"Unload Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_UNLOAD_CC_TABLES\":itemType=\"subMenu\":itemText=\"&Unload Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1394,7 +1395,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_USE_CC\":itemType=\"subMenu\":itemText=\"Use Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_USE_CC\":itemType=\"subMenu\":itemText=\"Use &Consistent Changes\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1404,7 +1405,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ACCEPT_CHANGES\":itemType=\"subMenu\":itemText=\"Accept Changes Without Stopping\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ACCEPT_CHANGES\":itemType=\"subMenu\":itemText=\"&Accept Changes Without Stopping\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1414,7 +1415,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_DEFINE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"SIL Converters...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_DEFINE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"&SIL Converters...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1424,7 +1425,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_USE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"Use SIL Converter\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_USE_SILCONVERTER\":itemType=\"subMenu\":itemText=\"Use S&IL Converter\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1434,7 +1435,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_TOOLS_KB_EDITOR\":itemType=\"subMenu\":itemText=\"Knowledge Base Editor...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_TOOLS_KB_EDITOR\":itemType=\"subMenu\":itemText=\"&Knowledge Base Editor...\tCtrl-K\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1484,7 +1485,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export Source Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export &Source Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1494,7 +1495,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT\":itemType=\"subMenu\":itemText=\"Export Translation Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT\":itemType=\"subMenu\":itemText=\"&Export Translation Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1504,7 +1505,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT_TO_RTF\":itemType=\"subMenu\":itemText=\"Export Interlinear Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_TO_RTF\":itemType=\"subMenu\":itemText=\"Export Interlinear &Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1514,7 +1515,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EXPORT_GLOSSES\":itemType=\"subMenu\":itemText=\"Export Glosses As Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EXPORT_GLOSSES\":itemType=\"subMenu\":itemText=\"Export &Glosses As Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1534,7 +1535,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export &Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1544,7 +1545,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge &Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1554,7 +1555,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_IMPORT_TO_KB\":itemType=\"subMenu\":itemText=\"Import to Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_IMPORT_TO_KB\":itemType=\"subMenu\":itemText=\"&Import to Knowledge Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1714,7 +1715,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ALIGNMENT\":itemType=\"subMenu\":itemText=\"Layout Window Right To Left\":itemDescr=\"Layout menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ALIGNMENT\":itemType=\"subMenu\":itemText=\"Layout Window Right To Left\tCtrl-1\":itemDescr=\"Layout menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -1844,7 +1845,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_CUT\":itemType=\"toolBar\":itemText=\"Cut\":itemDescr=\"Cut the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_CUT\":itemType=\"toolBar\":itemText=\"Cu&t\tCtrl-X\":itemDescr=\"Cut the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1854,7 +1855,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_COPY\":itemType=\"toolBar\":itemText=\"Copy\":itemDescr=\"Copy the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_COPY\":itemType=\"toolBar\":itemText=\"&Copy\tCtrl-C\":itemDescr=\"Copy the selection and put it on the Clipboard\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1864,7 +1865,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EDIT_PASTE\":itemType=\"toolBar\":itemText=\"Paste\":itemDescr=\"Insert Clipboard contents\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_EDIT_PASTE\":itemType=\"toolBar\":itemText=\"&Paste\tCtrl-V\":itemDescr=\"Insert Clipboard contents\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1874,7 +1875,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"wxID_PRINT\":itemType=\"toolBar\":itemText=\"Print\":itemDescr=\"Print the active document\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"wxID_PRINT\":itemType=\"toolBar\":itemText=\"&Print...\tCtrl-P\":itemDescr=\"Print the active document\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1884,8 +1885,8 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"wxID_HELP\":itemType=\"toolBar\":itemText=\"Display Help Topics\":itemDescr=\"Display Adapt It program help topics\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("MENU:itemID=\"wxID_HELP\":itemType=\"toolBar\":itemText=\"&Help Topics\tShift-Ctrl-/\":itemDescr=\"Display Adapt It program help topics\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -2910,6 +2911,24 @@ void SetupDefaultStylesMap()
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 {
+	
+	// testing below !!!
+	//wxArrayString defaultProfItems;
+	//defaultProfItems.Add(_T("Save &As...\tCtrl-A"));
+	//defaultProfItems.Add(::wxGetTranslation(defaultProfItems.Item(0)));
+	//defaultProfItems.Add(_("Save &As...\tCtrl-A"));
+	//defaultProfItems.Add(_T("source"));
+	//defaultProfItems.Add(_("source"));
+	//int testCt;
+	//int testTot = defaultProfItems.GetCount();
+	//for (testCt = 0; testCt < testTot; testCt++)
+	//	wxLogDebug(defaultProfItems.Item(testCt));
+	//int junk;
+	//junk = 1;
+	// Note: testing shows that we can use ::wxGetTranslation() as long as we use the
+	// exact & and \tCtrl-key embellishments.
+	// testing above !!!
+	
 	wxString field = _T("");
 	int nDefaultUserProfileItems;
 	UserProfileItem* pUserProfileItem = NULL;
@@ -2926,7 +2945,6 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 		for (ct = 0; ct < totct; ct++)
 		{
 			// defaultProfileItems[i] represents a whole string line of concatenated tags, attributes and values
-			
 			if (lineStr.GetChar(ct) != _T(':'))
 			{
 				field += lineStr.GetChar(ct);
@@ -3014,14 +3032,18 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					else if (attrStr.Find(wxString::FromAscii(definedProfile)) == 0)
 					{
 						wxASSERT(pUserProfiles != NULL);
-						pUserProfiles->definedProfileNames.Add(valueStr);
+						// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the definedProfile
+						pUserProfiles->definedProfileNames.Add(::wxGetTranslation(valueStr)); // whm changed 24May11 to use localization
+						//pUserProfiles->definedProfileNames.Add(valueStr);
 					}
 					else if (attrStr.Find(wxString::FromAscii(descriptionProfile)) == 0)
 					{
 						wxASSERT(pUserProfiles != NULL);
 						// Note: we keep entity characters in their non xml form here, i.e.,
 						// '<', '>', '&', ''', and '"' remain as it.
-						pUserProfiles->descriptionProfileTexts.Add(valueStr);
+						// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the descriptionProfile
+						pUserProfiles->descriptionProfileTexts.Add(::wxGetTranslation(valueStr)); // whm changed 24May11 to use localization
+						//pUserProfiles->descriptionProfileTexts.Add(valueStr);
 					}
 					else if (attrStr == wxString::FromAscii(itemID))
 					{
@@ -3036,12 +3058,24 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					else if (attrStr == wxString::FromAscii(itemText))
 					{
 						wxASSERT(pUserProfileItem != NULL);
-						pUserProfileItem->itemText = valueStr;
+						// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemText
+						wxString tempS = ::wxGetTranslation(valueStr); // whm changed 24May11 to use localization
+						// change any embedded tab 0x09 char to explicit "\\t"
+						int posn = tempS.Find('\t');
+						if (posn != wxNOT_FOUND)
+						{
+							tempS.Remove(posn,1);
+							tempS.insert(posn,_T("\\t"));
+						}
+						pUserProfileItem->itemText = tempS; 
+						//pUserProfileItem->itemText = valueStr;
 					}
 					else if (attrStr == wxString::FromAscii(itemDescr))
 					{
 						wxASSERT(pUserProfileItem != NULL);
-						pUserProfileItem->itemDescr = valueStr;
+						// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemDescr
+						pUserProfileItem->itemDescr = ::wxGetTranslation(valueStr); // whm changed 24May11 to use localization
+						//pUserProfileItem->itemDescr = valueStr;
 					}
 					else if (attrStr == wxString::FromAscii(itemAdminCanChange))
 					{
@@ -3051,7 +3085,9 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 					else if (attrStr == wxString::FromAscii(itemUserProfile))
 					{
 						wxASSERT(pUserProfileItem != NULL);
-						pUserProfileItem->usedProfileNames.Add(valueStr);
+						// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemUserProfile
+						pUserProfileItem->usedProfileNames.Add(::wxGetTranslation(valueStr)); // whm changed 24May11 to use localization
+						//pUserProfileItem->usedProfileNames.Add(valueStr);
 					}
 					else if (attrStr == wxString::FromAscii(itemVisibility))
 					{
@@ -3501,7 +3537,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 			// determine the int ID of a main menu item in a round-about way.
 			
 			pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
-			//pMainMenuItem->mainMenuID = //can we get along without this string representation mainMenuID?
+			//pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
 			// Consider: When the compiled all of the menu item IDs are determined and those const int values
 			// are used at run time. They don't change during execution or even from session to session of a
 			// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
@@ -3550,7 +3586,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 				
 				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's 
 				// pmbSubMenuItem objects
-				//pSubMenuItem->subMenuID = //can we get along without this string representation mainMenuID?
+				//pSubMenuItem->subMenuID = // we can get along without this string representation mainMenuID
 				// Consider: When the compiled all of the menu item IDs are determined and those const int values
 				// are used at run time. They don't change during execution or even from session to session of a
 				// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
@@ -3987,7 +4023,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 					// In the wxTextFile we search for the line that has descriptionProfileN="str"
 					// and we replace the "str" with "valueFromMap". 
 					// Note: Entity chars are replaced by their xml mandated form (xml_lt, xml_gt,
-					// xml_amp, xml_apos, and xml_quote) in ReplaceDescriptionStrInwxTextFile() below.
+					// xml_amp, xml_apos, and xml_quote and xml_tab) in ReplaceDescriptionStrInwxTextFile() below.
 					int linePos;
 					linePos = ReplaceDescriptionStrInwxTextFile(&textFile,descriptionProfileN,valueFromMap);
 					if (linePos == wxNOT_FOUND)
@@ -7333,6 +7369,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
 			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+			str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
 			
 			composeXmlStr = tab1 + wxString::FromAscii(descriptionProfile) + strVal + _T("=\"") + str + _T("\"");
 			textFile->AddLine(composeXmlStr);
@@ -7365,6 +7402,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
 			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+			str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
 
 			composeXmlStr = tab1 + wxString::FromAscii(itemText) + _T("=\"") + str + _T("\"");
 			textFile->AddLine(composeXmlStr);
@@ -7377,6 +7415,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			str.Replace(_T(">"),wxString::FromAscii(xml_gt));
 			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+			str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
 
 			composeXmlStr = tab1 + wxString::FromAscii(itemDescr) + _T("=\"") + str + _T("\"");
 			textFile->AddLine(composeXmlStr);
@@ -9929,6 +9968,74 @@ int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the current value of the top level menu's identifier,
+///                     i.e., an int for ID_FILE_MENU, etc.
+/// \param      -> topLevelMenu the enum value of the top level menu whose int
+///                                  we are determining
+/// \remarks
+/// Called from: the App's ConfigureMenuBarForUserProfile(). 
+/// This function is an override of the function that uses the menu label string as an
+/// imput parameter. This one determines int value of the top level menu's identifier w
+/// hich is associated with the input enum in topLevelMenu. 
+//////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetTopLevelMenuID(TopLevelMenu topLevelMenu)
+{
+	switch (topLevelMenu)
+	{
+	case fileMenu:
+		{
+			return ID_FILE_MENU;
+			break;
+		}
+	case editMenu:
+		{
+			return ID_EDIT_MENU;
+			break;
+		}
+	case viewMenu:
+		{
+			return ID_VIEW_MENU;
+			break;
+		}
+	case toolsMenu:
+		{
+			return ID_TOOLS_MENU;
+			break;
+		}
+	case exportImportMenu:
+		{
+			return ID_EXPORT_IMPORT_MENU;
+			break;
+		}
+	case advancedMenu:
+		{
+			return ID_ADVANCED_MENU;
+			break;
+		}
+	case layoutMenu:
+		{
+			return ID_LAYOUT_MENU;
+			break;
+		}
+	case helpMenu:
+		{
+			return ID_HELP_MENU;
+			break;
+		}
+	case administratorMenu:
+		{
+			return ID_ADMINISTRATOR_MENU;
+			break;
+		}
+	default:
+	{
+		wxASSERT_MSG(FALSE,_T("Programmer Error in GetTopLevelMenuID() function - Unknown top level menu ID symbol."));
+		return -1;
+	}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a pointer to a wxMenu* object representing the top level menu of the AI
 ///             menu bar which is associated with the incoming topLevelMenu enum parameter
 /// \param      -> topLevelMenu    the enum of the top level menu whose wxMenu object we are 
@@ -10016,6 +10123,7 @@ int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemT
 		str.Replace(_T(">"),wxString::FromAscii(xml_gt));
 		str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 		str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+		str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
 
 		bool bFoundItemTextLine = FALSE;
 		for (lineStr = f->GetFirstLine(); !f->Eof() && !bFoundItemTextLine; lineStr = f->GetNextLine())
@@ -10222,6 +10330,7 @@ int CAdapt_ItApp::ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString desc
 				str.Replace(_T(">"),wxString::FromAscii(xml_gt));
 				str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 				str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+				str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
 
 				lineStr = lineStr.Mid(0,descrProfileN.Length()+1); // removes "="..." to right end of descr line
 				lineStr += _T("=\"");
@@ -10437,6 +10546,7 @@ wxString CAdapt_ItApp::InsertEntities(wxString str)
 	str.Replace(_T(">"),wxString::FromAscii(xml_gt));
 	str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 	str.Replace(_T("\""),wxString::FromAscii(xml_quote));
+	str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
 	return str;
 }
 
@@ -12084,7 +12194,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	testPathUSFMShortNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-without id.txt");
 	testResultUSFMShortNoId = GetBookCodeFastFromDiskFile(testPathUSFMShortNoId);
 	*/
-
+	wxString testRes;
+	wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations");
+	wxString testRef = _T("1CO 2:10");
+	wxString testExt = _T(".XML");
+	testRes = FindBookFileContainingThisReference(testPath, testRef, testExt);
 	/*
 	// testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
 	// 3198 above)
@@ -36204,6 +36318,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 				}
 				ptr++;
 			} // end of while()
+			f.Close();
 		} // end of if (f.Open...
 		delete pBuff;
 	} // end of if (wxFileExists(pathAndName))
@@ -36212,6 +36327,292 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 		bookCode = wxString(bookCd,wxConvUTF8);
 	}
 	return bookCode;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the book path and name which contains
+///             the scripture reference
+/// \param      folderPath -> the path of the folder to search in
+/// \param      reference -> the three letter book code and Scripture reference
+///                          in the form "REV 1:10"
+/// \param      extensionFilter -> the file extension to limit the search if any
+///                             i.e., ".XML"
+/// \remarks
+/// Called from: 
+/// Use this function to get the the path and name of the first disk file in a folder
+/// which contains the Scripture reference specified in the reference parameter.
+/// The reference is of the form "REV 1:10". The search algorithm attempts to take
+/// the shortest/fastest method of determining which file in the folder matches the
+/// specified reference. First we attempt to narrow the choices by examining the
+/// file names themselves and eliminating those which don't have the specified
+/// extension (specified in the extensionFilter parameter), and which don't have
+/// hint numbers within their names, i.e., 41MATNYNT_CH01.xml, in which the 41 is
+/// a hint for the book and _CH01 is a hint for the chapter contained in the file.
+/// Most of the time this function is called on files we have named so this should
+/// work quite efficiently. But, there are times when this function may be called
+/// on files which may not have hints in their names. In such cases we have to 
+/// examine each file within the folder (matching the extensionFilter) and scan its
+/// contents for a \id NNN marker identifying the book, then scanning the rest of
+/// the contents to find matching chapter and verse markers that are specified by
+/// the reference parameter. This function uses the GetBookCodeFastFromDiskFile()
+/// function for speed, and also block reads the file where necessary into a 
+/// buffer for fast in-memory searches.
+///////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter)
+{
+	wxString tempBookPathName;
+	// parse the reference
+	wxString tempRefStr = reference;
+	tempRefStr.Trim(FALSE);
+	tempRefStr.Trim(TRUE);
+	wxString bookStr;
+	wxString chapterStr;
+	wxString verseStr;
+	int posnSpace = tempRefStr.Find(_T(' '));
+	bookStr = tempRefStr.Mid(0,posnSpace);
+	bookStr.Trim(FALSE);
+	bookStr.Trim(TRUE);
+	chapterStr = tempRefStr.Mid(posnSpace);
+	chapterStr.Trim(FALSE);
+	chapterStr.Trim(TRUE);
+	int posnColon = chapterStr.Find(_T(':'));
+	verseStr = chapterStr.Mid(posnColon+1);
+	verseStr.Trim(FALSE);
+	verseStr.Trim(TRUE);
+	chapterStr = chapterStr.Mid(0,posnColon);
+	chapterStr.Trim(FALSE);
+	chapterStr.Trim(TRUE);
+
+	// scan the folderPath and get a list of files which have the \id with the
+	// 3-letter book code (bookStr). This could be more than one file since chapter
+	// files of a given book would have the same \id and book code within them, so 
+	// we store the names and paths in a wxArrayString. Later below we open fully
+	// only those files that have the right \id and book code, and search for the
+	// actual reference. Eventually we find and return the first book that has all
+	// three: the book code, the chapter reference, and the verse reference.
+	 
+	// we may be able to save time by looking at the actual file name and trying to
+	// determine the searched-for book from the number prefixed to its name.
+	
+	// Gather all of the file names that exist in the folder
+	wxArrayString filesInFolder;
+	wxDir finder;
+	bool bOK = (::wxSetWorkingDirectory(folderPath) && finder.Open(folderPath)); // wxDir
+										// must call .Open() before enumerating files!
+
+	if (bOK)
+	{
+		wxString str = _T("");
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
+		// GetFirst() returns just a file name without the path
+		wxString extFilterLower = extensionFilter.MakeLower();
+		bool bAddDotToExt = FALSE;
+		if (extFilterLower.Find(_T('.')) != wxNOT_FOUND)
+		{
+			// incoming extenstionFilter has the dot in the extension, so set flag to add dot below
+			bAddDotToExt = TRUE;
+		}
+		
+		while (bWorking)
+		{
+			if (str.IsEmpty())
+				continue;
+			wxFileName fn(str);
+			wxString fnExt = fn.GetExt(); // extract its extension
+			if (bAddDotToExt)
+			{
+				fnExt = _T('.') + fnExt;
+			}
+			wxString fnExtLower = fnExt;
+			fnExtLower = fnExtLower.MakeLower();
+			int nFound = str.Find(fnExt);
+			if (fnExtLower == extFilterLower  && nFound != wxNOT_FOUND)
+			{
+				filesInFolder.Add(fn.GetFullName()); // add the full filename, but not including the path to the list
+			}
+			bWorking = finder.GetNext(&str);
+		}
+		
+		// if filesInFolder is empty just return an empty string
+		if (filesInFolder.GetCount() == 0)
+			return wxEmptyString;
+
+		// At this point filesInFolder contains all file path/names matching our extensionFilter specs.
+		// First, using the filename itself as a hint, try to find a file name prefix with the Paratex
+		// number scheme corresponding to the 3-letter book code (bookStr).
+		int PT_bookNum;
+		PT_bookNum = GetNumberFromBookCodeForFileNaming(bookStr);
+		wxString pt_bookNumStr;
+		pt_bookNumStr << PT_bookNum; 
+		if (PT_bookNum < 10)
+			pt_bookNumStr = _T('0') + pt_bookNumStr;
+		// At this point pt_bookNumStr will be something like "01" for GEN, "39" 
+		// for MAL, "41" for MAT, "67" for REV
+		
+		// Now, scan through the filesInFolder array and see if there is one or more 
+		// there whose filename begins with the pt_bookNumStr number. Collect them
+		// into a booksWithNamesToCheck array.
+		int totFiles = (int)filesInFolder.GetCount();
+		int ct;
+		int posnBookNum;
+		wxArrayString booksWithNamesToCheck;
+		booksWithNamesToCheck.Empty();
+		wxString tempFileName;
+		for (ct = 0; ct < totFiles; ct++)
+		{
+			tempFileName = filesInFolder.Item(ct);
+			posnBookNum = tempFileName.Find(pt_bookNumStr);
+			if (posnBookNum == 0)
+			{
+				// the book number string is at the beginning of this file's name
+				booksWithNamesToCheck.Add(tempFileName);
+			}
+		}
+		// If the booksWithNamesToCheck has one or more array elements, we check 
+		// those to see if they have a "_CHnn" element in the file name where nn is
+		// a chapter number "01", "02", etc. If such a chapter indication exists we
+		// will just open that file. If it doesn't exist we will check for \id NNN
+		// in that file. 
+		int totNamesToCheck = booksWithNamesToCheck.GetCount();
+		wxString fileNameToCheck = _T("");
+		if (totNamesToCheck != 0)
+		{
+			int ct;
+			bool bFoundChapterHintToCheck = FALSE;
+			for (ct = 0; ct < totNamesToCheck; ct++)
+			{
+				fileNameToCheck = booksWithNamesToCheck.Item(ct);
+				// Note: our collaboration file name will be of the form: 41MATNYNT_CH01.xml
+				int posn = fileNameToCheck.Find(_T("_CH"));
+				if ((posn != wxNOT_FOUND) && ((posn + 4) < (int)fileNameToCheck.Length()))
+				{
+					wxChar firstChDigit = fileNameToCheck.GetChar(posn + 3);
+					wxChar secondChDigit = fileNameToCheck.GetChar(posn + 4);
+					if (wxIsdigit(firstChDigit) && wxIsdigit(secondChDigit))
+					{
+						wxString chNumAsStr = _T("");
+						if (firstChDigit != _T('0'))
+							chNumAsStr += firstChDigit;
+						chNumAsStr += secondChDigit;
+						if (chNumAsStr == chapterStr)
+						{
+							bFoundChapterHintToCheck = TRUE;
+							break;
+						}
+					}
+				}
+			}
+			if (bFoundChapterHintToCheck)
+			{
+				wxASSERT(!fileNameToCheck.IsEmpty());
+				wxString tempFileAndPath = folderPath + PathSeparator + fileNameToCheck;
+				wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
+				wxString fileBuffer;
+				if (bookCode == bookStr) // normalize case ???
+				{
+					// the book code matches, so now verify that the book has the chapter and verse reference
+					
+					// now read the file into a buffer in preparation for analyzing their chapter and
+					// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
+					// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+					// UNICODE BOM of ef bb bf
+					wxFile f(tempFileAndPath,wxFile::read);
+					wxFileOffset fileLen;
+					fileLen = f.Length();
+					// read the raw byte data into pByteBuf (char buffer on the heap)
+					char* pByteBuf = (char*)malloc(fileLen + 1);
+					memset(pByteBuf,0,fileLen + 1); // fill with nulls
+					f.Read(pByteBuf,fileLen);
+					wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
+					f.Close();
+					fileBuffer = wxString(pByteBuf,wxConvUTF8,fileLen);
+					free((void*)pByteBuf);
+
+					// get the usfm structure of the buffer
+					wxArrayString usfmStructureArray;
+					usfmStructureArray = GetUsfmStructureAndExtent(fileBuffer);
+				
+					// We here use the usfmStructureArray to quickly determine if the
+					// chapter and verse reference exists in the book being examined in
+					// the fileBuffer.
+					int ct = 0;
+					int tot;
+					tot = usfmStructureArray.GetCount();
+					wxString arrayLine;
+					bool bRefFound = FALSE;
+					while (ct < tot && !bRefFound)
+					{
+						arrayLine = usfmStructureArray.Item(ct);
+						// arrayLine is of the form \mkr n:nnnn for chapter and verse markers, \mkr:nnnn for others
+						if (arrayLine.Find(_T("\\c ")) != wxNOT_FOUND) // TODO: use the PT defined \c
+						{
+							if (GetNumberFromChapterOrVerseStr(arrayLine) == chapterStr)
+							{
+								// we've found our chapter reference, now scan further down and
+								// see if there is a verse reference for this chapter
+								int newCt = ct+1;
+								arrayLine = usfmStructureArray.Item(newCt);
+								while (newCt < tot && arrayLine.Find(_T("\\c ")) != wxNOT_FOUND) // TODO: use the PT defined \v
+								{
+									if (arrayLine.Find(_T("\\v ")) != wxNOT_FOUND)
+									{
+										if (GetNumberFromChapterOrVerseStr(arrayLine) == verseStr)
+										{
+											// we have a match for both the chapter and the verse number
+											bRefFound = TRUE;
+											break;
+										}
+									}
+									newCt++;
+									if (newCt < tot)
+									{
+										arrayLine = usfmStructureArray.Item(newCt);
+									}
+								}
+							}
+						}
+						ct++;
+					} // end of while (ct < tot && !bRefFound)
+				
+				} // end of if (bookCode == bookStr)
+			} // end of if (bFoundChapterHintToCheck)
+			else
+			{
+				// we did not find a file name contining a _CHnn hint
+				// TODO:
+			}
+		} // end of if (totNamesToCheck != 0)
+		else
+		{
+			// there were no file names with number hints in their names, so we will
+			// have to do a brute check of files until we either run out of files to
+			// check or find the one with the book code, chapter and reference.
+			// TODO: borrow code from above
+		}
+	} // end of if (bOK)
+
+	return tempBookPathName;
+}
+
+int CAdapt_ItApp::GetNumberFromBookCodeForFileNaming(wxString bookStr)
+{
+	int bookNum = -1;
+	wxArrayString bookIDArray(123,AllBookIds);
+	int ct;
+	for (ct = 0; ct < 123; ct++)
+	{
+		if (bookIDArray.Item(ct) == bookStr)
+		{
+			bookNum = ct + 1; // the AllBookIds enum is 1 based rather than 0 base
+			if (ct > 39)
+			{
+				bookNum++;  // from Malachi MAL to Matthew (MAT) the PT book numbering skips 40,
+							// so MAL is 39 and MAT is 41
+			}
+		}
+	}
+	return bookNum;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
