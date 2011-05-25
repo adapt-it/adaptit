@@ -58,7 +58,7 @@ void InitializeUsfmMkrs()
 	introductionMkrs = _T("\\imt \\imt1 \\imt2 \\imt3 \\imte \\is \\is1 \\is2 \\is3 \\ip \\ipi \\ipq \\ipr \\iq \\iq1 \\iq2 \\iq3 \\im \\imi \\imq \\io \\io1 \\io2 \\io3 \\iot \\iex \\ib \\ili \\ili1 \\ili2 \\ie ");
 	chapterMkrs = _T("\\c \\cl "); // \ca \ca* \p & \cd omitted, they follow 
 								   // \c so aren't needed for chunking
-	verseMkrs = _T("\\v \vn "); // \va \va* \vp \vp* omitted, they follow \v
+	verseMkrs = _T("\\v \\vn "); // \va \va* \vp \vp* omitted, they follow \v
 				// and so are not needed for chunking; \vn is a non-standard
 				// 'verse number' marker that some people use
 	normalOrMinorMkrs = _T("\\s \\s1 \\s2 \\s3 \\s4 ");
@@ -748,25 +748,174 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	// turn the lists into arrays of CSourcePhrase*; note, we are using arrays to manage
 	// the same pointers as the SPLists do, so don't in this function try to delete any of
 	// the oldList or newList contents, nor what's in the arrays
-	int nStartingSequNum;
 	SPArray arrOld;
 	SPArray arrNew;
 	ConvertSPList2SPArray(&oldList, &arrOld);
 	int oldSPCount = oldList.GetCount();
 	if (oldSPCount == 0)
 		return;
-	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the 
-														// sequence numbers right later
 	ConvertSPList2SPArray(&newList, &arrNew);
 	int newSPCount = newList.GetCount();
 	if (newSPCount == 0)
 		return;
 	InitializeUsfmMkrs();
 
+	int nStartingSequNum;
+	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the sequence 
+														// numbers correct at the end
+
 	wxArrayPtrVoid* pChunksOld = new wxArrayPtrVoid; // remember to delete contents and 
 													 // remove from heap before returning
 	bool bSuccessful_Old =  AnalyseSPArrayChunks(&arrOld, pChunksOld);
 
+	wxArrayPtrVoid* pChunksNew = new wxArrayPtrVoid; // remember to delete contents and 
+													 // remove from heap before returning
+	bool bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew);
+
+	// get a wxLogDebug() display of the chunks and their types and ranges
+#ifdef __WXDEBUG__
+	wxString unStr = _T("unknownChunkType");
+	wxString biStr = _T("bookInitialChunk");
+	wxString inStr = _T("introductionChunk"); 
+	wxString cvStr = _T("chapterPlusVerseChunk");
+	wxString svStr = _T("subheadingPlusVerseChunk");
+	wxString vsStr = _T("verseChunk");
+	int count = pChunksOld->GetCount();
+	int index;
+	SfmChunk* pChunk = NULL;
+	wxLogDebug(_T("\n\n****  OLD array: SfmChunk instances  ****"));
+	for (index = 0; index < count; index++)
+	{
+		pChunk = (SfmChunk*)pChunksOld->Item(index);
+		wxString typeStr;
+		switch (pChunk->type)
+		{
+		case unknownChunkType:
+			typeStr = unStr;
+			break;
+		case bookInitialChunk:
+			typeStr = biStr;
+			break;
+		case introductionChunk:
+			typeStr = inStr;
+			break;
+		case chapterPlusVerseChunk:
+			typeStr = cvStr;
+			break;
+		case subheadingPlusVerseChunk:
+			typeStr = svStr;
+			break;
+		case verseChunk:
+			typeStr = vsStr;
+			break;
+		}
+		wxLogDebug(_T("type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
+		typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
+		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
+	}
+	wxLogDebug(_T("\n\n****  NEW array: SfmChunk instances  ****"));
+	count = pChunksNew->GetCount();
+	for (index = 0; index < count; index++)
+	{
+		pChunk = (SfmChunk*)pChunksNew->Item(index);
+		wxString typeStr;
+		switch (pChunk->type)
+		{
+		case unknownChunkType:
+			typeStr = unStr;
+			break;
+		case bookInitialChunk:
+			typeStr = biStr;
+			break;
+		case introductionChunk:
+			typeStr = inStr;
+			break;
+		case chapterPlusVerseChunk:
+			typeStr = cvStr;
+			break;
+		case subheadingPlusVerseChunk:
+			typeStr = svStr;
+			break;
+		case verseChunk:
+			typeStr = vsStr;
+			break;
+		}
+		wxLogDebug(_T("type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
+		typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
+		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
+	}
+#endif
+	// if there was no SFM or USFM data, need a limit = -1 merger, plus a progress bar
+	if (!bSuccessful_Old && !bSuccessful_New)
+	{
+
+
+// **** TODO ****
+
+
+		return;
+	}
+
+	// when both don't fail, there are SFMs or USFMs in the data, and so we must do a
+	// further analysis to establish the paired association ranges, and define what kind
+	// of data is in them - and for data paired and with content, call
+	// MergeUpdatedSrcTextCore() on each such subrange of paired extents
+	 
+// **** TODO ****
+
+	// do the merger of the two arrays
+	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
+
+	// get the sequence numbers into correct order (we can't assume the passed in SPList
+	// is the whole document, so the first instance may have a sequence number different
+	// than zero)
+	if (!pMergedList->IsEmpty())
+	{
+		gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+	}
+
+	// remove the SfmChunk instances from the heap
+	int iter;
+	int countStructs = pChunksOld->GetCount();
+	if (countStructs > 0)
+	{
+		for (iter = 0; iter < countStructs; iter++)
+		{
+			SfmChunk* pChunk = (SfmChunk*)pChunksOld->Item(iter);
+			delete pChunk;
+		}
+	}
+	delete pChunksOld;
+
+	countStructs = pChunksNew->GetCount();
+	if (countStructs > 0)
+	{
+		for (iter = 0; iter < countStructs; iter++)
+		{
+			SfmChunk* pChunk = (SfmChunk*)pChunksNew->Item(iter);
+			delete pChunk;
+		}
+	}
+	delete pChunksNew;
+}
+
+// This is the guts of the recursive merging algorithm - it relies on the limit value
+// being as large as or larger than the biggest group of new CSourcePhrase instances added
+// by the user's editing to any one place in the old (probably exported) source text; if
+// that condition is violated, it will not return all the data. I use a value of 50 for
+// limit, but for potentially large blocks of new material, -1 should be used & be
+// prepared for things to slow down! It's an N squared algorithm.
+void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit)
+{
+	int nStartingSequNum;
+	int oldSPCount = arrOld.GetCount();
+	if (oldSPCount == 0)
+		return;
+	int newSPCount = arrNew.GetCount();
+	if (newSPCount == 0)
+		return;
+	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the 
+														// sequence numbers right later
     // Note: we impose a limit on maximum span size, to keep our algorithms from getting
     // bogged down by having to handle too much data in any one iteration. The limit
     // parameter specifies what to do.
@@ -1045,6 +1194,66 @@ bool IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 	return FALSE; // none apply, so it is not left-associated
 }
 
+void TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
+							  bool bFlagsToo, bool bClearAfterwards)
+{
+	wxString empty = _T("");
+	pTo->m_follPunct = pFrom->m_follPunct;
+	if (!pFrom->m_follPunct.IsEmpty() && bClearAfterwards)
+	{
+		pFrom->m_follPunct.Empty();
+	}
+
+	pTo->SetFollowingOuterPunct(pFrom->GetFollowingOuterPunct());
+	if (!pFrom->GetFollowingOuterPunct().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetFollowingOuterPunct(empty);
+	}
+
+	pTo->SetEndMarkers(pFrom->GetEndMarkers());
+	if (!pFrom->GetEndMarkers().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetEndMarkers(empty);
+	}
+
+	pTo->SetInlineBindingEndMarkers(pFrom->GetInlineBindingEndMarkers());
+	if (!pFrom->GetInlineBindingEndMarkers().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetInlineBindingEndMarkers(empty);
+	}
+
+	pTo->SetInlineNonbindingEndMarkers(pFrom->GetInlineNonbindingEndMarkers());
+	if (!pFrom->GetInlineNonbindingEndMarkers().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetInlineNonbindingEndMarkers(empty);
+	}
+
+	if (pFrom->m_bFootnoteEnd && bFlagsToo)
+	{
+		pTo->m_bFootnoteEnd = pFrom->m_bFootnoteEnd;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bFootnoteEnd = FALSE;
+		}
+	}
+	if (pFrom->m_bEndRetranslation && bFlagsToo)
+	{
+		pTo->m_bEndRetranslation = pFrom->m_bEndRetranslation;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bEndRetranslation = FALSE;
+		}
+	}
+	if (pFrom->m_bEndFreeTrans && bFlagsToo)
+	{
+		pTo->m_bEndFreeTrans = pFrom->m_bEndFreeTrans;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bEndFreeTrans = FALSE;
+		}
+	}
+}
+
 // Checks for an indicator of right-association: returns TRUE if one is found. Otherwise
 // returns FALSE. An indicator of right-association would be one of the following:
 // m_precPunct is non-empty, m_markers is non-empty, m_collectedBackTrans is non-empty,
@@ -1074,6 +1283,81 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 	if (pSrcPhrase->m_bFirstOfType)
 		return TRUE;
 	return FALSE; // none apply, so it is not right-associated
+}
+
+void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
+							  bool bFlagsToo, bool bClearAfterwards)
+{
+	wxString empty = _T("");
+
+	pTo->m_precPunct = pFrom->m_precPunct;
+	if (!pFrom->m_precPunct.IsEmpty() && bClearAfterwards)
+	{
+		pFrom->m_precPunct.Empty();
+	}
+
+	pTo->m_markers = pFrom->m_markers;
+	if (!pFrom->m_markers.IsEmpty() && bClearAfterwards)
+	{
+		pFrom->m_markers.Empty();
+	}
+
+	pTo->SetCollectedBackTrans(pFrom->GetCollectedBackTrans());
+	if (!pFrom->GetCollectedBackTrans().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetCollectedBackTrans(empty);
+	}
+
+	pTo->SetFilteredInfo(pFrom->GetFilteredInfo());
+	if (!pFrom->GetFilteredInfo().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetFilteredInfo(empty);
+	}
+
+	pTo->SetInlineBindingMarkers(pFrom->GetInlineBindingMarkers());
+	if (!pFrom->GetInlineBindingMarkers().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetInlineBindingMarkers(empty);
+	}
+
+	pTo->SetInlineNonbindingMarkers(pFrom->GetInlineNonbindingMarkers());
+	if (!pFrom->GetInlineNonbindingMarkers().IsEmpty() && bClearAfterwards)
+	{
+		pFrom->SetInlineNonbindingMarkers(empty);
+	}
+
+	if (pFrom->m_bFootnote && bFlagsToo)
+	{
+		pTo->m_bFootnote = pFrom->m_bFootnote;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bFootnote = FALSE;
+		}
+	}
+	if (pFrom->m_bFirstOfType && bFlagsToo)
+	{
+		pTo->m_bFirstOfType = pFrom->m_bFirstOfType;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bFirstOfType = FALSE;
+		}
+	}
+	if (pFrom->m_bBeginRetranslation && bFlagsToo)
+	{
+		pTo->m_bBeginRetranslation = pFrom->m_bBeginRetranslation;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bBeginRetranslation = FALSE;
+		}
+	}
+	if (pFrom->m_bStartFreeTrans && bFlagsToo)
+	{
+		pTo->m_bStartFreeTrans = pFrom->m_bStartFreeTrans;
+		if (bClearAfterwards)
+		{
+			pFrom->m_bStartFreeTrans = FALSE;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -3506,6 +3790,124 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
 ///                         CSourcePhrase instances, but could also contain fixedspace
 ///                         conjoined instances too)
+/// \param  pSubspan    ->  the Subspan instance, of commonSpan type, which delimits the new 
+///                         CSourcePhrase instances which are to be the origin of the USFM 
+///                         and punctuation data which needs to flow to the retained original
+///                         instances in arrOld
+/// \remarks
+/// Because the edited source text import / merging algorithm only looks at the m_key
+/// members for its decisions, if the user has left words unchanged but edited the USFM
+/// structure or changed the punctuation or its location, those kinds of changes would not
+/// be seen. So this function rectifies the situation, making sure that such changes are
+/// taken account of properly.
+/// What has to be done here is not trivial. Speaking generally, there are 3 kinds of data
+/// to be considered: (i) the boolean flags, (ii) markers, (iii) punctuation. The arrOld
+/// instances can, of course, have all kinds of user-generated things, such as mergers,
+/// manually inserted placeholders, retranslations, stored free translations, stored
+/// notes, stored collected back translations. We don't want to lose any of that
+/// information unnecessarily. The new source text being imported cannot, by definition,
+/// have any of that stuff - it will just have single-word CSourcePhrase instances, and
+/// the only variation for that is that conjoined pairs may be in the tokenized new
+/// instances too. So, what do we do?
+/// First, stored free translations, stored notes, andstored collected back
+/// translations, we leave untouched - they are not stored with markers, so leaving them
+/// in the arrOld instances ought to be safe. (We can't preclude, however, that an editing
+/// change may occur at a word which, when tokenized, replaces an arrOld instance that
+/// stores a free translation, or note, or collected back translation - if so, well that's
+/// just too bad, the user will have to recreate it after the import, if it matters).
+/// Second, punctuation and markers matter - and these can certainly be changed by the
+/// user's editing actions, so we must give careful attention to these.
+/// Third, flags - many flags pertain to information about things which the incoming new
+/// source text can't possibly know about: e.g. whether or not a word or phrase is in the
+/// KB, or in the glossing KB, whether a free translation starts at this word, or ends at
+/// this word, whether or not the matching instance in arrOld is part of a retranslation,
+/// and so forth. Our approach to flag values in the arrOld instances is that we'll simply
+/// retain them unchanged unless we can determine from properties within the arrNew
+/// CSourcePhrase instances that a flag value needs changing - and we'll then change it.
+/// The above are general comments, now to specifics.....
+/// *** MERGERS in arrOld instances ***
+/// Docv5 encapsulates punctuation placement dialogs within the merge code, so we can't
+/// simply take the relevant arrNew instances and remake the merger - it may result in an
+/// incomprehensible Place... dialog being shown to the user during Import. So we have to
+/// retain the arrOld instance's merger -- and that means we must check punctuation and
+/// markers and flow any differences from the arrNew series of instances corresponding to
+/// the merger, into the arrOld instance - handling medial markers and punctuation changes
+/// too; and having done that, copy m_adaption and m_targetStr from the arrOld's
+/// m_pSavedWords instances down to the arrNew's instances, and then make deep copies of
+/// the latter and replace the m_pSavedWords instances with those deep copies! Whew!!!
+/// *** Normal single-word instances in arrOld ***
+/// These, whether they are in a retranslation or not, we just get the corresponding
+/// arrNew instances, test for changes to punctuation and markers, and transfer any changes
+/// to the arrOld paired instance. Easy peasy, if somewhat tedious to code.
+/// *** Manually inserted PLACEHOLDERS in arrOld ***
+/// These are a headache, because there could be left or right association which as moved
+/// values for punctuation, markers, m_curTextType, m_bFirstOfType, m_bSpecialText, to or
+/// from a neighbouring instance. Of course, placeholders are never in the tokenized
+/// arrNew material, because the user doesn't get a chance to put any there. So our
+/// approach is as follows... Leave the arrOld's placeholder 'as is', but make a clone of
+/// it so that we can apply IsLeftAssociatedPlaceholder() and
+/// IsRightAssociatedPlaceholder() and save the boolean results of those two tests. Then
+/// we 'fix' the preceding and following CSourcePhrase instances in arrOld to have any 
+/// necessary punctuation and/or markers updated in the arrOld instances. Then we check
+/// the aforemented two saved boolean values, and we redo the left or right association
+/// data transfers - that is, left association will mean we move data from the end of the
+/// preceding CSourcePhrase in arrOld to the end of the placeholder, and clear where it
+/// came from; and right association clears initial data (eg preceding punctuation) at the
+/// start of the following CSourcePhrase instance in arrOld after first transferring that
+/// data to the start of the placeholder. Then we delete the cloned placeholder. And,
+/// despite the comments above about free translations and collected back translations
+/// being left 'as is', in the case of a manually placed merger in arrOld, if there was
+/// transfer of other of those info types due to a right association, we will have to
+/// restore the transfer of those info types as well when we do the stuff just above.
+/// Likewise for a non-empty m_filteredInfo member under right assocation.
+/// 
+/// Remember that all the above is done just in a commonSpan -- one where the arrOld and
+/// arrNew data is judged to be "in common". What happens with punctuation and markers in
+/// beforeSpan and afterSpan? For those, if there is no arrNew CSourcePhrase instances,
+/// any arrOld instances get deleted -- which can remove markers and punctuation etc. But
+/// if the arrNew material isn't empty, it replaces the instances from arrOld - which
+/// brings with it any new marker structure and punctuation changes resulting from the
+/// user's edits. These behaviours, coupled with the commonSpan protocols mentioned above,
+/// really do work. For instance, suppose arrOld had a subheading immediately following a
+/// \c chapter marker, eg. for chapter 3, and the user edited out
+/// the subheading entirely from the source text being imported. Would the chapter number
+/// disappear? (Because m_markers in the arrOld instance would be "\c 3 \s ", and that
+/// member is carried by the CSourcePhrase which is for the first word of the subheading
+/// itself - so if the user outside of Adapt It deletes the whole subheading, the
+/// tokenized arrNew instances won't have that subheading first word, and so "\c 3 \s"
+/// will not be there!) But the day is saved by the fact that the edited text will have \c
+/// 3 and possibly \p and \v 1 followed by the first word of the first verse, and the
+/// tokenization of that stuff results in an m_markers which is "\c 3 \p \v 1 " on the new
+/// CSourcePhrase which is in arrNew at the start of the verse 1; moreover, and this is
+/// the essential point, that word is "in common" with the arrOld's word in the
+/// CSourcePhrase instance which is first in the old version of verse 1. And the fact
+/// these are in common means that the protocols mentioned above for how
+/// DoUSFMandPunctuationAlterations() is to work, will replace the old "\p \v1 " on the
+/// arrOld instance's m_markers with the correct value, "\c 3 \p \v 1 ", from the matched
+/// instance in arrNew. So, not only is the chapter number not lost, but the correct USFM
+/// markup is established.
+/// I've commented what happens in this detail so that anyone coming to this later on will
+/// not have to recreate all the thinking that went into making this import feature work
+/// robustly. 
+////////////////////////////////////////////////////////////////////////////////////////
+void DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+	int oldSpanStart = pSubspan->oldStartPos;
+	int oldSpanEnd = pSubspan->oldEndPos;
+	int newSpanStart = pSubspan->newStartPos;
+	int newSpanEnd = pSubspan->newEndPos;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 nothing
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         well as minimal CSourcePhrase instances)
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too)
 /// \param  pSubspan    ->  the Subspan instance which defines either the new CSourcePhrase
 ///                         instances which are to replace the old ones for a range of index
 ///                         values in arrOld, or the old CSourcePhrase instances which are
@@ -3548,7 +3950,12 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 {
 	if (pSubspan->spanType == commonSpan)
 	{
-		// retain the old ones
+		// retain the old ones; but the data has to be scanned for changes to punctuation
+		// and SFM structure, and the retained old ones have to receive any alterations
+		// needed from the new CSourcePhrase instances before deep copies are made
+		DoUSFMandPunctuationAlterations(arrOld, arrNew, pSubspan);
+
+		// now make the needed deep copies and store them on pMergedList
 		int index;
 		CSourcePhrase* pSrcPhrase = NULL;
 		for (index = pSubspan->oldStartPos; index <= pSubspan->oldEndPos; index++)
@@ -4161,6 +4568,10 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 /// western digits for the Mac - doing it also for the verse digits, and will get the
 /// suffix characters if present - it is meant for filling out most of the members of the
 /// SfmChunk struct.
+/// If "0:0" is passed in, then there was no chapter:verse reference information found in
+/// the span (and there should have been) - we will set the 0 for chapter and verse in the
+/// caller's struct, and require that our merging algorithms have a robust behaviour if
+/// that happens.
 bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& nChapter, 
 					wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
 					wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
@@ -4709,7 +5120,7 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	bool bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
 	//bool bIsMajorOrSeriesMkrWithin = IsSubstringWithin(majorOrSeriesMkrs, markers);
 	//bool bIsRangeOrPsalmMkrWithin = IsSubstringWithin(rangeOrPsalmMkrs, markers);
-	//bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+	bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
 	//bool bIsParallelPassageHeadMkrWithin = IsSubstringWithin(parallelPassageHeadMkrs, markers);
 	bool bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
 
@@ -4732,14 +5143,15 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		return FALSE;
 	}
 
-	// we are in a chapterPlusVerseChunk; so look ahead until we come to a CSourcePhrase
-	// instance with \v in it's m_markers (it may be in the same m_markers that \c is in,
-	// or it may be later on, depending on whether or not there is subheading and/or other
-	// stuff before the verse commences). Once we have a CSourcePhrase with a \v, search
-	// ahead to the start of the next instance with either \c or \v - and then the end of
-	// the chunk is the previous CSourcePhrase instance to that one. Once we are past any
-	// introduction material, we want each chunk to just have a single verse in it,
-	// regardless of how much other stuff there might be as well.
+    // we are in a chapterPlusVerseChunk; so look ahead until we come to a CSourcePhrase
+    // instance with \v in it's m_markers (it may be in the same m_markers that \c is in,
+    // or it may be later on, depending on whether or not there is subheading and/or other
+    // stuff before the verse commences). Once we have a CSourcePhrase with a \v (or \vn),
+    // search ahead to the start of the next instance with either \c or \v (or \vn) - and
+    // then the end of the chunk is the previous CSourcePhrase instance to that one. Once
+    // we are past any introduction material, we want each chunk to just have a single
+    // verse in it, regardless of how much other stuff there might be as well between the
+    // verse and whatever chunk preceded it.
 	bool bReachedEndOfArray = FALSE;
 	if (bIsVerseMkrWithin)
 	{
@@ -4773,11 +5185,12 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
 			bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
 
-
-			// is this loop done?
+            // is this loop done? (don't test for an end at an \s or \s# because we want to
+            // subsume any subheading within this chunk and it's first following verse)
 			if (bIsChapterMkrWithin || bIsVerseMkrWithin)
 			{
 				// we've found the start of the next chapter, or first verse of the same chapter
+				index = foundIndex; // update index to this location before breaking
 				break;
 			}
 			// start of next chapter or start of first verse of current chapter wasn't found, so 
@@ -4798,7 +5211,8 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
     // Once control gets here, we've come to the start of a new chapter, or the start of a
     // new verse (but not the array end, if we came to that, we'd have returned in the code
     // above) - in the last circumstance the end of the first verse is the CSourcePhrase
-    // preceding the next one we find -- so move forward and define the chunk's end; in the
+    // preceding the next CSourcePhrase with a \v or \vn marker that we can find in a new
+    // loop below, -- so move forward with that loop and define the chunk's end; in the
     // former circumstance, the preceding instance from where we currently are pointing is
     // the chunk's end
 	int end_AtStartOfVerseOrChapter = index;
@@ -4806,9 +5220,21 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	{
 		// exited from the above loop because we came to a chapter \c marker; so can't go
 		// further to include verse material
-		endsAt = end_AtStartOfVerseOrChapter - 1;
-		bReachedEndOfArray = FALSE;
-		return TRUE;
+		if (startsAt == end_AtStartOfVerseOrChapter)
+		{
+			// we didn't advance at all (highly unexpected) so return FALSE and let the
+			// other two functions have a crack at it instead
+			startsAt = -1;
+			endsAt = -1;
+			return FALSE;
+		}
+		else
+		{
+			//  there was progression, so accept what we traversed
+			endsAt = end_AtStartOfVerseOrChapter - 1;
+			bReachedEndOfArray = FALSE;
+			return TRUE;
+		}
 	}
 	else
 	{
@@ -4821,27 +5247,35 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		}
 		bReachedEndOfArray = FALSE;
 		int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		bool bHasAdvanced = FALSE;
 		while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
 		{
 			// get the m_markers content in this instance, put it into markers
+			bHasAdvanced = TRUE;
 			pSrcPhrase = arrP->Item(foundIndex);
 			markers = pSrcPhrase->m_markers;
 
-			// check for any marker which indicates the chapterPlusVerse material is ended
+            // check for any marker which indicates the chapterPlusVerse material is ended
+            // (and we'll have to allow for a second \s or \s# (a subheading) to be
+            // encountered too, though unlikely so soon - because if there is one, we'll
+            // want to halt and get back to the caller so it can parse the new subheading
+            // instance with the GetSubheadingPlusVerseChunk() later on)
 			bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
-			//bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+			bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
 			//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
 			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
 			bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
 
 			// is this loop done?
-			if (bIsChapterMkrWithin || bIsVerseMkrWithin)
+			if (bIsChapterMkrWithin || bIsSubheadingMkrWithin || bIsVerseMkrWithin )
 			{
-				// we've found the start of the next chapter, or first verse of the same chapter
+				// we've found the start of the next chapter, or start of a new
+				// subheading, or start of the second verse of the same chapter
+				index = foundIndex; // before breaking, update index to the location we found
 				break;
 			}
-			// start of next chapter or start of second verse of current chapter wasn't found, so 
-			// prepare to iterate
+            // start of next chapter or a subheading or start of second verse of current
+            // chapter wasn't found, so prepare to iterate
 			index = foundIndex + 1;
 			if (index > endIndex)
 			{
@@ -4854,18 +5288,413 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 			foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
 		} // end of loop: while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
 
-		// we got over a verse to the start of the next, or to the start of a new chapter
-		// - so the end of the chunk we are delineating is at the previous index value
+		// Test for non-advance (it would happen if there was no non-empty m_markers ahead
+		// - as would be the case for the last verse of the last chapter). In such a case,
+		// we just return FALSE, and let the ensuing GetVerseChunk() grab the final material.
+		if (!bHasAdvanced && (end_AtStartOfVerseOrChapter == startsAt))
+		{
+			// no advance (that is, neither in first loop nor the second)
+			startsAt = -1;
+			endsAt = -1;
+			return FALSE;
+		}
+        // We got over a verse to the start of the next, or to the start of a new chapter
+        // or the start of a (new) subheading: no matter which was the case, the end of the
+        // chunk we are delineating is at the previous index value
 		endsAt = --index;
 		return TRUE;
 	} // end of else block for test: if (bIsChapterMkrWithin)
+}
 
-	// Control should never get here, but this is harmless and compiler will be happy
-	endsAt = endIndex;
+// Check if the start of arr contains material belonging to stuff which is a subheading,
+// that is, \s or \s1 or \s2 etc \c occurs, and going as far as the end of the first verse
+// which follows (this ensures the chunk has a verse number or verse range). We do it this
+// way because if there is \r material after the subheading, it will be automatically
+// included. Because of the variations possible, it is better to go from the \s until the
+// end of the first verse, then it doesn't matter what other content is in that chunk.
+// Return the index values for the CSourcePhrase instances which lie at the start and end
+// of the subheading-plus-verse chunk and return TRUE, if we do not succeed in delineating
+// any such span, return FALSE (and in that case, startsAt and endsAt values are undefined
+// - I'll probably set them to -1 whenever FALSE is returned)
+bool GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
+{
+	int count = arrP->GetCount();
+	int endIndex = count - 1;
+	int index = startsAt;
+	wxString markers;
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (count == 0 || (count > 0 && startsAt >= count))
+	{
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// does the starting position within arr have subheading material, such as \s or \s#
+	// etc? this stuff is in normalOrMinorMkrs (i.e. subheading markers)
+	pSrcPhrase = arrP->Item(index);
+	markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+	{
+        // we don't expect this, because the start of a subheading should commence with as
+        // \s or \s1 etc from the normalOrMinorMkrs, so return FALSE so that the caller
+        // won't advance the starting location for the next test (for a verse chunk)
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// m_markers has content, so check what might be in it
+	bool bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+	//bool bIsMajorOrSeriesMkrWithin = IsSubstringWithin(majorOrSeriesMkrs, markers);
+	//bool bIsRangeOrPsalmMkrWithin = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+	bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+	//bool bIsParallelPassageHeadMkrWithin = IsSubstringWithin(parallelPassageHeadMkrs, markers);
+	bool bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+	bool bIsSubheadingPlusVerseChunk = FALSE;
+    // it's material from \s or \s1 or some other \s# marker, and we want everything up to
+    // the end of the first verse
+	if (bIsSubheadingMkrWithin)
+	{
+		bIsSubheadingPlusVerseChunk = TRUE;
+	}
+	else
+	{
+		bIsSubheadingPlusVerseChunk = FALSE;
+	}
+	if (!bIsSubheadingPlusVerseChunk)
+	{
+		// return FALSE, it might be just a verse without any other non-verse marker preceding, 
+		// and we check for that next if this function returns FALSE
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+
+    // we are in a subheadingPlusVerseChunk; so look ahead until we come to a CSourcePhrase
+    // instance with \v in it's m_markers (it may be in the same m_markers that \s is in,
+    // or it may be later on, depending on whether or not there is subheading and/or other
+    // stuff before the verse commences). Once we have a CSourcePhrase with a \v or \vn,
+    // search ahead to the start of the next instance with either \c or \v (or \vn) - and
+    // then the end of the chunk is the previous CSourcePhrase instance to that one. Once
+    // we are past any subheading material, we want each chunk to just have a single verse
+    // in it, regardless of how much other stuff there might be as well between the
+    // subheading and the first verse which follows.
+	bool bReachedEndOfArray = FALSE;
+	if (bIsVerseMkrWithin)
+	{
+		// the \s or \s# and the \v are stored on the one CSourcePhrase, so get to the end 
+		// of the verse in the second loop below (note: the only way \s and \v can be on
+		// the same CSourcePhrase is for \s to have no text content - we don't expect that
+		// to be the case, but it can't be guaranteed so we have to handle the possibility)
+		;
+	}
+	else
+	{
+        // \v or \vn is not stored in the m_markers which stores \s or \s#, so scan across
+        // the the subheading material (and anything else which is non-verse material)
+        // until the start of the first verse is found and exit this block at that point
+        // (the loop which then follows this one will get us to the end of that verse we've
+        // come to here in this loop)
+		index++;
+		if (index > endIndex)
+		{
+			// we are done
+			endsAt = endIndex;
+			return TRUE;
+		}
+		int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+		{
+			// get the m_markers content in this instance, put it into markers
+			pSrcPhrase = arrP->Item(foundIndex);
+			markers = pSrcPhrase->m_markers;
+
+			// check for any marker which indicates the subheadingPlusVerse material is
+			// ended - that could be a verse, or another subheading, or a chapter marker
+			// comes next - test for these
+			bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+			bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+			//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
+			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+			bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+			// is this loop done? (we expect to come to a verse, but for data which was
+			// just USFMs without any text content, we can indeed have \c \s and \v all in
+			// the one CSourcePhrase instance's m_markers member)
+			if (bIsVerseMkrWithin || bIsChapterMkrWithin || bIsSubheadingMkrWithin)
+			{
+				// we've found the start of the next chapter, or the start of a new
+				// subheading or the start of a verse (typically the start of a verse)
+				index = foundIndex; // update index to this location before breaking
+				break;
+			}
+			// start of next chapter or start of a new subheading, or start of a verse of
+			// the current chapter wasn't found, so prepare to iterate
+			index = foundIndex + 1;
+			if (index > endIndex)
+			{
+				// array end was reached
+				bReachedEndOfArray = TRUE;
+				endsAt = endIndex;
+				return TRUE;
+			}
+			// search for the next non-empty m_markers member
+			foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		} // end of loop: while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+	} // end of else block for test: if (bIsVerseMkrWithin)
+
+    // Once control gets here, we've come to the start of a new verse, or the start of a
+    // new chapter or subheading, (but not the array end, if we came to that, we'd have
+    // returned in the code above). If, above, we found a verse start, then we are still at
+    // that index, and have to search forward for the end of the verse. Otherwise, the
+    // index we are pointing at starts a chapter or new subheading and so we can't look
+    // further ahead -- but either of those two would be an unusual circumstance.
+	int end_AtStartOfVerseOrSubheadingOrChapter = index;
+	if (bIsChapterMkrWithin || bIsSubheadingMkrWithin)
+	{
+		// exited from the above loop because we came to a chapter \c marker or a \s or
+		// \s# subheading marker; so can't go further to try include a verse's material
+		if (startsAt == end_AtStartOfVerseOrSubheadingOrChapter)
+		{
+			// we didn't advance - so don't try, we'll let our GetVerseChunk() do any
+			// advancing in such a special circumstance, and we'll try that next if we
+			// return FALSE
+			startsAt = -1;
+			endsAt = -1;
+			return FALSE;
+		}
+		else
+		{
+			// we progressed, so accept what we traversed
+			endsAt = end_AtStartOfVerseOrSubheadingOrChapter - 1;
+			bReachedEndOfArray = FALSE;
+			return TRUE;
+		}
+	}
+	else
+	{
+		index++; // get past the CSourcePhrase instance with the \v or \vn in its m_markers
+		if (index > endIndex)
+		{
+			// we are done
+			endsAt = endIndex;
+			return TRUE;
+		}
+		bReachedEndOfArray = FALSE;
+		int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		bool bHasAdvanced = FALSE;
+		while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+		{
+			// get the m_markers content in this instance, put it into markers
+			bHasAdvanced = TRUE;
+			pSrcPhrase = arrP->Item(foundIndex);
+			markers = pSrcPhrase->m_markers;
+
+			// check for any marker which indicates the subheadingPlusVerse material is ended
+			bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+			bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers); // test 
+																// for a 2nd subheading ahead
+			//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
+			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+			bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+			// is this loop done?
+			if (bIsChapterMkrWithin || bIsSubheadingMkrWithin || bIsVerseMkrWithin)
+			{
+				// we've found the start of the next chapter, or start of a (new)
+				// subheading, or the start of the second verse of the same chapter
+				index = foundIndex; // update index to this location before breaking
+				break;
+			}
+            // start of next chapter or start of a new subheading or start of the second
+            // verse of current chapter wasn't found, so prepare to iterate
+			index = foundIndex + 1;
+			if (index > endIndex)
+			{
+				// array end was reached
+				bReachedEndOfArray = TRUE;
+				endsAt = endIndex;
+				return TRUE;
+			}
+			// search for the next non-empty m_markers member
+			foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+		} // end of loop: while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+
+		// Test for non-advance (it would happen if there was no non-empty m_markers ahead
+		// - as would be the case for the last verse of the last chapter). In such a case,
+		// we just return FALSE, and let the ensuing GetVerseChunk() grab the final material.
+		if (!bHasAdvanced && (end_AtStartOfVerseOrSubheadingOrChapter == startsAt))
+		{
+			// no advance (that is, neither in first loop nor the second)
+			startsAt = -1;
+			endsAt = -1;
+			return FALSE;
+		}
+        // We got over a verse to the start of the next, or to the start of a new chapter
+        // or subheading - so no matter which was the case, the end of the chunk we are
+        // delineating is at the previous index value
+		endsAt = --index;
+		return TRUE;
+	} // end of else block for test: if (bIsChapterMkrWithin)
+}
+
+// Check if the start of arr contains material belonging to stuff which is a (next) verse,
+// that is, \v or \vn occurs, and going as far as the end of that verse. (Either a chapter
+// start or subheading start or a new verse or end of the array follows, for our purposes.)
+// This ensures the chunk has a verse number or verse range. Return the index values for
+// the CSourcePhrase instances which lie within the verse and return TRUE, but if we do not
+// succeed in delineating any such span, return FALSE (and in that case, startsAt and
+// endsAt values are undefined - I'll probably set them to -1 whenever FALSE is returned).
+// 
+// NOTE: if no SFM or USFM is present, verse chunks can't be delineated and in that
+// circumstance we return FALSE, and the caller will detect that all 3 functions returned
+// FALSE within one iteration and then itself return FALSE (indicating we have plain text
+// data without SFMs or USFMs originally - in which case our milestoning pre-processing
+// won't work, and any support of merging edited new source text will have to use a limit
+// value large enough to encompass the largest number of words added as a block in the
+// editing operation done by the user -- may have to ask the user for a manually supplied
+// value for the limit parameter in that circumstance.
+bool GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
+{
+	int count = arrP->GetCount();
+	int endIndex = count - 1;
+	int index = startsAt;
+	wxString markers;
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (count == 0 || (count > 0 && startsAt >= count))
+	{
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// Does the starting position within arr have verse material? that is, \v or \vn ?
+	// This stuff is in normalOrMinorMkrs (i.e. subheading markers, \s or \s1 or \s2 or
+	// \s3 or \s4)
+	pSrcPhrase = arrP->Item(index);
+	markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+	{
+		// we don't expect this, because we get here only if there was not a chapter or
+		// subheading previously followed by a verse; so we should only be pointing at the
+		// start of a verse
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// m_markers has content, so check what might be in it
+	bool bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+	//bool bIsMajorOrSeriesMkrWithin = IsSubstringWithin(majorOrSeriesMkrs, markers);
+	//bool bIsRangeOrPsalmMkrWithin = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+	bool bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+	//bool bIsParallelPassageHeadMkrWithin = IsSubstringWithin(parallelPassageHeadMkrs, markers);
+	bool bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+	bool bIsVerseChunk = FALSE; // initialize
+    // it's gunna be material from \v or \vn, and we want everything up to the end of the
+    // next verse or to the next chapter start or start of a subheading
+	if (bIsVerseMkrWithin)
+	{
+		bIsVerseChunk = TRUE;
+	}
+	else
+	{
+		bIsVerseChunk = FALSE;
+	}
+	if (!bIsVerseChunk)
+	{
+		// return FALSE, this should never happen
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+
+	// We are in a verseChunk; so look ahead until we come to a CSourcePhrase with a
+	// non-empty m_markers which has a chapter marker, or subheading marker, or another
+	// verse marker, or we come to the array end
+	bool bReachedEndOfArray = FALSE;
+	index++; // get past the CSourcePhrase with the start-of-verse \v or \vn marker
+	int foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+
+	// handle the last verse of the final chapter
+	if (foundIndex == wxNOT_FOUND)
+	{
+		endsAt = endIndex;
+		return TRUE;
+	}
+	while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+	{
+		// get the m_markers content in this instance, put it into markers
+		pSrcPhrase = arrP->Item(foundIndex);
+		markers = pSrcPhrase->m_markers;
+
+		// check for any marker which indicates the subheadingPlusVerse material is ended
+		bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
+		bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
+		//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
+		//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
+		bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
+
+		// is this loop done?
+		if (bIsChapterMkrWithin || bIsSubheadingMkrWithin || bIsVerseMkrWithin)
+		{
+			// we've found the start of the next chapter, or start of a
+			// subheading, or the start of the next verse of the same chapter
+			index = foundIndex; // update index to this location before breaking
+			break;
+		}
+        // start of next chapter or start of a subheading or start of the next
+        // verse of current chapter wasn't found, so prepare to iterate
+		index = foundIndex + 1;
+		if (index > endIndex)
+		{
+			// array end was reached
+			endsAt = endIndex;
+			return TRUE;
+		}
+		// search for the next non-empty m_markers member
+		foundIndex = GetNextNonemptyMarkers(arrP, index, bReachedEndOfArray);
+	} // end of loop: while(foundIndex != wxNOT_FOUND && !bReachedEndOfArray)
+
+	// if the end of the array was reached, we have to set index there etc
+	if (bReachedEndOfArray)
+	{
+		endsAt = endIndex;
+		return TRUE;
+	}
+
+    // We are not at the end of the array, but we got over a verse to the start of the
+    // next, or to the start of a new chapter or to a subheading - so no matter which was
+    // the case, the end of the chunk we are delineating is at the previous index value
+	endsAt = --index;
 	return TRUE;
 }
 
+// return the chapter:verse or chapter:verse_range string from the first non-empty
+// m_chapterVerse member encountered in the passed in range of CSourcPhrase instances
+wxString FindVerseReference(SPArray* arrP, int startFrom, int endAt)
+{
+	int index;
+	wxString strRef = _T("0:0");
+    // the m_chapterVerse member is non-empty only after a \v or \vn has been seen, that is
+    // only within a verse - for any \c \ms \mr \s etc material prior to the verse, the
+    // m_chapterVerse member is not set on any of the CSourcePhrase instances tokenized
+    // from that material - so we only would get 0:0 needing to be returned if there was
+    // such chapter initial material defined but no verse following - and data structured
+    // that way ought not to occur (but we must allow for it happening, hence 0:0 returned)
+	for (index = startFrom; index <= endAt; index++)
+	{
+		CSourcePhrase* pSrcPhrase = arrP->Item(index);
+		if (!pSrcPhrase->m_chapterVerse.IsEmpty())
+		{
+			strRef = pSrcPhrase->m_chapterVerse;
+			break;
+		}
+	}
 
+	// didn't find an m_chapVerse member which was non-empty, so send back the default
+	// "0:0" string
+	return strRef; 
+}
 
 void InitializeNonVerseChunk(SfmChunk* pStruct)
 {
@@ -4946,6 +5775,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 	int nEndsAt = wxNOT_FOUND;
 	int count = pInputArray->GetCount();
 	int endIndex = count - 1;
+	int lastSuccessfulEndsAt = wxNOT_FOUND; // -1
 	if (count == 0)
 	{
 		return FALSE;
@@ -4967,7 +5797,8 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 		pChunkSpecs->Add(pSfmChunk);
 
 		// consume this chunk, by advancing where we start from next
-		nStartsAt = nEndsAt + 1;
+		lastSuccessfulEndsAt = nEndsAt;
+		nStartsAt = lastSuccessfulEndsAt + 1;
 		nEndsAt = wxNOT_FOUND;
 		if (nStartsAt > endIndex)
 		{
@@ -4999,7 +5830,8 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 		pChunkSpecs->Add(pSfmChunk);
 
 		// consume this chunk, by advancing where we start from next
-		nStartsAt = nEndsAt + 1;
+		lastSuccessfulEndsAt = nEndsAt;
+		nStartsAt = lastSuccessfulEndsAt + 1;
 		nEndsAt = wxNOT_FOUND;
 		if (nStartsAt > endIndex)
 		{
@@ -5012,35 +5844,425 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 	{
 		// don't advance, so now we need to try below for a chunk containing chapter-starting
 		// material - such as \c marker, maybe \ms and/or \mr or \r, but excluding a subheading
-		nStartsAt = 0;
+		if (lastSuccessfulEndsAt != wxNOT_FOUND)
+		{
+			nStartsAt = lastSuccessfulEndsAt + 1;
+		}
+		else
+		{
+			nStartsAt = 0;
+		}
 		nEndsAt = wxNOT_FOUND; 
 	}
 
 	// Now we analyse one or more chapters until done. This will involve smaller chunks -
 	// largest should be a verse. The chunks, in order of occurrence that we will search
 	// for, in a loop, are:
-	// 1. chapterBeginChunk, 2. subheadingChunk, 3. parallelRefChunk, 4. verseChunk
-	// All four are tried, in order, per iteration of the loop.
-	while (nStartsAt <= endIndex)
+	// 1. chapterPlusVerseChunk, 2. subheadingPlusVerseChunk, 3. verseChunk
+	// Failure to get the first, the second is tried, failure to get the second, the third
+	// is tried (and must succeed); iterate the loop, after consuming each successfully
+	// delineated subspan, until no more data is available
+	bool bHasChapterPlusVerseChunk;
+	bool bHasSubheadingPlusVerseChunk;
+	bool bHasVerseChunk;
+
+    // this loop must consume the rest of the material to be analysed, so the
+    // lastSuccessfulEndsAt local variable enables an appropriate starting value to be
+    // computed when one of the three following calls within the loop fail to obtain a
+    // chunk - on failure we need to reestablish the initial value and retry with the next
+    // function of the three - and the third function, which gets a verse chunk, must
+    // always succeed until the end is arrived at (that is, all three must not fail while
+	// there is still material to be processed) except when there is no USFM or SFM markup
+	// at all, in which case we must avoid an infinite loop and exit FALSE immediately
+	while (lastSuccessfulEndsAt < endIndex)
 	{
+		// first, try for a ChapterPlusVerse chunk; if that fails, try instead for a
+		// SubheadingPlusVerse chunk; if it succeeds, advance the starting location using
+		// the lastSuccessfulEndsAt value, and iterate the loop
+		bHasChapterPlusVerseChunk = FALSE;
+		bHasSubheadingPlusVerseChunk = FALSE;
+		bHasVerseChunk = FALSE;
+		if (lastSuccessfulEndsAt != wxNOT_FOUND)
+		{
+			nStartsAt = lastSuccessfulEndsAt + 1;
+		}
+		else
+		{
+			nStartsAt = 0;
+		}
+		if (lastSuccessfulEndsAt >= endIndex)
+		{
+			// there's no more material to be processed
+			return TRUE;
+		}
+		nEndsAt = wxNOT_FOUND;
+		bool bHasChapterPlusVerseChunk = GetChapterPlusVerseChunk(pInputArray, nStartsAt, nEndsAt);
+		if (bHasChapterPlusVerseChunk)
+		{
+			bCannotChunkThisArray = FALSE; // there are (U)SFMs, \c is first, and there may be
+							// other SFMs, as well as a verse's material
 
+			// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
+			SfmChunk* pSfmChunk = new SfmChunk;
+			InitializeNonVerseChunk(pSfmChunk);
+			pSfmChunk->type = chapterPlusVerseChunk;
+			pSfmChunk->startsAt = nStartsAt;
+			pSfmChunk->endsAt = nEndsAt;
+			pSfmChunk->bContainsText = DoesChunkContainSourceText(pInputArray, nStartsAt, nEndsAt);
+			wxString strChapterVerseRef = FindVerseReference(pInputArray, nStartsAt, nEndsAt);
+			// parse and store the chapter/verse reference information (note: "0:0"  may
+			// have been returned)
+			bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter, 
+									pSfmChunk->nChapter, pSfmChunk->strDelimiter, 
+									pSfmChunk->strStartingVerse, pSfmChunk->nStartingVerse,
+									pSfmChunk->charStartingVerseSuffix, pSfmChunk->strEndingVerse,
+									pSfmChunk->nEndingVerse, pSfmChunk->charEndingVerseSuffix);
+			if (!bValidReference)
+			{
+				pSfmChunk->strChapter = _T("0");
+				pSfmChunk->nChapter = 0;
+				pSfmChunk->strDelimiter.Empty();
+				pSfmChunk->strStartingVerse = _T("0");
+				pSfmChunk->nStartingVerse = 0;
+				pSfmChunk->charStartingVerseSuffix = _T('\0');
+				pSfmChunk->strEndingVerse = _T("0");
+				pSfmChunk->nEndingVerse = 0;
+				pSfmChunk->charEndingVerseSuffix = _T('\0');
+			}
+			pChunkSpecs->Add(pSfmChunk);
 
+			// consume this chunk, by advancing where we start from next
+			lastSuccessfulEndsAt = nEndsAt;
+		}
+		else
+		{
+			// Failure, so don't advance. So retry here for a subheadingPlusVerse chunk
+			nStartsAt = lastSuccessfulEndsAt + 1;
+			nEndsAt = wxNOT_FOUND; 
+			bHasChapterPlusVerseChunk = FALSE;
+			bool bHasSubheadingPlusVerseChunk = GetSubheadingPlusVerseChunk(pInputArray, nStartsAt, nEndsAt);
+			if (bHasSubheadingPlusVerseChunk)
+			{
+				bCannotChunkThisArray = FALSE; // there are (U)SFMs, \s or \s1 etc is first, 
+							// and there may be other SFMs, as well as a verse's material
 
+				// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
+				SfmChunk* pSfmChunk = new SfmChunk;
+				InitializeNonVerseChunk(pSfmChunk);
+				pSfmChunk->type = subheadingPlusVerseChunk;
+				pSfmChunk->startsAt = nStartsAt;
+				pSfmChunk->endsAt = nEndsAt;
+				pSfmChunk->bContainsText = DoesChunkContainSourceText(pInputArray, nStartsAt, nEndsAt);
+				wxString strChapterVerseRef = FindVerseReference(pInputArray, nStartsAt, nEndsAt);
+				// parse and store the chapter/verse reference information (note: "0:0"  may
+				// have been returned)
+				bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter, 
+										pSfmChunk->nChapter, pSfmChunk->strDelimiter, 
+										pSfmChunk->strStartingVerse, pSfmChunk->nStartingVerse,
+										pSfmChunk->charStartingVerseSuffix, pSfmChunk->strEndingVerse,
+										pSfmChunk->nEndingVerse, pSfmChunk->charEndingVerseSuffix);
+				if (!bValidReference)
+				{
+					pSfmChunk->strChapter = _T("0");
+					pSfmChunk->nChapter = 0;
+					pSfmChunk->strDelimiter.Empty();
+					pSfmChunk->strStartingVerse = _T("0");
+					pSfmChunk->nStartingVerse = 0;
+					pSfmChunk->charStartingVerseSuffix = _T('\0');
+					pSfmChunk->strEndingVerse = _T("0");
+					pSfmChunk->nEndingVerse = 0;
+					pSfmChunk->charEndingVerseSuffix = _T('\0');
+				}
+				pChunkSpecs->Add(pSfmChunk);
 
+				// consume this chunk, by advancing where we start from next
+				lastSuccessfulEndsAt = nEndsAt;
+			}
+			else
+			{
+				// Failure, so don't advance. So retry here for a verse chunk
+				nStartsAt = lastSuccessfulEndsAt + 1;
+				nEndsAt = wxNOT_FOUND; 
+				bHasSubheadingPlusVerseChunk = FALSE;
+				bool bHasVerseChunk = GetVerseChunk(pInputArray, nStartsAt, nEndsAt);
+				if (bHasVerseChunk)
+				{
+					bCannotChunkThisArray = FALSE; // there are (U)SFMs, \v or \vn etc is first, 
+								// and there may be other SFMs (eg. \q1, \q2 etc), as well 
+								// as the verse's material
+					// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
+					SfmChunk* pSfmChunk = new SfmChunk;
+					InitializeNonVerseChunk(pSfmChunk);
+					pSfmChunk->type = verseChunk;
+					pSfmChunk->startsAt = nStartsAt;
+					pSfmChunk->endsAt = nEndsAt;
+					pSfmChunk->bContainsText = DoesChunkContainSourceText(pInputArray, nStartsAt, nEndsAt);
+					wxString strChapterVerseRef = FindVerseReference(pInputArray, nStartsAt, nEndsAt);
+					// parse and store the chapter/verse reference information (note: "0:0"  may
+					// have been returned)
+					bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter, 
+											pSfmChunk->nChapter, pSfmChunk->strDelimiter, 
+											pSfmChunk->strStartingVerse, pSfmChunk->nStartingVerse,
+											pSfmChunk->charStartingVerseSuffix, pSfmChunk->strEndingVerse,
+											pSfmChunk->nEndingVerse, pSfmChunk->charEndingVerseSuffix);
+					if (!bValidReference)
+					{
+						pSfmChunk->strChapter = _T("0");
+						pSfmChunk->nChapter = 0;
+						pSfmChunk->strDelimiter.Empty();
+						pSfmChunk->strStartingVerse = _T("0");
+						pSfmChunk->nStartingVerse = 0;
+						pSfmChunk->charStartingVerseSuffix = _T('\0');
+						pSfmChunk->strEndingVerse = _T("0");
+						pSfmChunk->nEndingVerse = 0;
+						pSfmChunk->charEndingVerseSuffix = _T('\0');
+					}
+					pChunkSpecs->Add(pSfmChunk);
 
-
-
-// ** done to here **
-
-
-	}
+					// consume this chunk, by advancing where we start from next
+					lastSuccessfulEndsAt = nEndsAt;
+				}
+				else
+				{
+					// Failure, so don't advance. Failure here means all 3 functions
+					// failed, so don't loop any longer - in all probability the data
+					// doesn't have SFMs or USFMs
+					nStartsAt = lastSuccessfulEndsAt + 1; // in case we want to wxLogDebug() this value
+					nEndsAt = wxNOT_FOUND; 
+					bHasVerseChunk = FALSE;
+					if (!bHasChapterPlusVerseChunk && !bHasSubheadingPlusVerseChunk && !bHasVerseChunk)
+					{
+						bCannotChunkThisArray = TRUE;
+						break;
+					}
+				} // end of else block for test: if (bHasVerseChunk)
+			} // end of else block for test: if (bHasSubheadingPlusVerseChunk)
+		} // end of else block for test: if (bHasChapterPlusVerseChunk)
+	} // end of loop for test: while (lastSuccessfulEndsAt < endIndex)
 	if (bCannotChunkThisArray)
 	{
+		// control enters here only if there was no SFM or USFM data anywhere - e.g.
+		// literacy data or office-related text data etc
+		
+        // *** TODO *** figure out what to do, if anything, here - maybe a message in the
+        //     caller when the 2nd call of this function is made, to suggest he use a limit
+        //     value > maximum wordcount integer of any block of words he's added be used
+        //     for a limit value - and give him a dialog (in caller, not here) to enter a
+        //     limit value - that would be better than just taking whole array, since the
+        //     latter could be huge. E.g. if he added a block of verses comprising about
+        //     250 words, he should use, say, 260 words as a limit value.
+		
 		return FALSE;
 	}
 	return TRUE;
 }
 
+/// \return         nothing
+/// \param      ->  pOldChunks  array of SfmChunk pointers for typed chunks within arrOld
+/// \param      ->  pNewChunks  array of SfmChunk pointers for typed chunks within arrNew
+/// \param      <-  pChunkAssociations  array of  pointer-to-struct ChunkAssociation for 
+///                 pairings of single typed or compatible typed subextents within arrOld
+///                 and arrNew
+/// \remarks
+/// Scan across pOldChunks and pNewChunks, taking account of types and milestones, to
+/// arrive at ChunkAssociation instances (created on the heap) which define appropriate
+/// pairings of extents of CSourcePhrase instances between the old instances of CSourcePhrase,
+/// and the new instances of same arising from the edited source text which was imported.
+/// Then MergeUpdatedSourceText() can work out in which spans it needs to do a
+/// non-recursive simple transfer of information to pMergedList, or a call of the
+/// MergeUpdatedSrcTextCore() function which does a recursive merge.
+void GetChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
+							 wxArrayPtrVoid* pChunkAssociations)
+{
+	int oldCount = pOldChunks->GetCount();
+	int newCount = pNewChunks->GetCount();
+	if (oldCount == 0 && newCount == 0)
+		return;
+	wxASSERT(pChunkAssociations->IsEmpty());
+	// next four are for tracking our progress through the pOldChunks and pNewChunks arrays
+	int oldIndex = 0;
+	int newIndex = 0;
+	int lastOldIndex = -1;
+	int lastNewIndex = -1;
+	// Note: when dealing with a potentially large chunk, such as introductory material,
+	// which is not milestoned by verse numbering, in this context a "gap" means that all
+	// the introductory material is absent from the array; if any is present, no matter
+	// how small an amount, it is a mkrs_with_content situation. Similarly for
+	// bookIntroductionChunk, which is also not milestoned. Non-milestoned material, if
+	// merger is required, has to be merged with a limit = -1 value so as to be sure to
+	// generate spans which encompass the whole of such material in each array.
+	
+	// We will also ignore (gap, gap) associations, since they require no action
+	
+	// In this first section deal just with bookInitialChunk and introductionChunk
+	SfmChunk* pOldChunk = (SfmChunk*)pOldChunks->Item(oldIndex);
+	SfmChunk* pNewChunk = (SfmChunk*)pNewChunks->Item(newIndex);
+	if (pOldChunk->type == bookInitialChunk)
+	{
+		// there is a bookInitialChunk at start of pOldChunks, check out what pNewChunks
+		// has
+		if (pNewChunk->type == bookInitialChunk)
+		{
+			// there is also a bookInitialChunk at start of pNewChunks
+			ChunkAssociation* pAssoc = new ChunkAssociation;
+			pAssoc->type = bookInitialChunk;
+			pAssoc->oldWhatsThere = mkrs_with_content;
+			pAssoc->oldStartAt = oldIndex;
+			pAssoc->oldEndAt = oldIndex;
+			lastOldIndex = oldIndex;
+			pAssoc->newWhatsThere = mkrs_with_content;
+			pAssoc->newStartAt = newIndex;
+			pAssoc->newEndAt = newIndex;
+			lastNewIndex = newIndex;
+			pChunkAssociations->Add(pAssoc); // these will be recursively merged
+		}
+		else
+		{
+			// there is no bookInitialChunk at the start of pNewChunks, that means the
+			// arrNew array has a gap for this information type
+			ChunkAssociation* pAssoc = new ChunkAssociation;
+			pAssoc->type = bookInitialChunk;
+			pAssoc->oldWhatsThere = mkrs_with_content;
+			pAssoc->oldStartAt = oldIndex;
+			pAssoc->oldEndAt = oldIndex;
+			lastOldIndex = oldIndex;
+			pAssoc->newWhatsThere = gap;
+			pAssoc->newStartAt = -1;
+			pAssoc->newEndAt = -1;
+			lastNewIndex = lastNewIndex; // no progression in pNewChunks array
+			pChunkAssociations->Add(pAssoc); // the older CSourcePhrase instances will later be removed
+		}
+	} // end of TRUE block for test: if (pOldChunk->type == bookInitialChunk)
+	else
+	{
+		// there is no bookInitialChunk in pOldChunks, so test for a bookInitialChunk
+		// at the start of pNewChunks
+		if (pNewChunk->type == bookInitialChunk)
+		{
+			// there is a bookInitialChunk at the start of pNewChunks, so there is a
+			// gap in the older material, and later the new instances will be inserted
+			ChunkAssociation* pAssoc = new ChunkAssociation;
+			pAssoc->type = bookInitialChunk;
+			pAssoc->oldWhatsThere = gap;
+			pAssoc->oldStartAt = -1;
+			pAssoc->oldEndAt = -1;
+			lastOldIndex = lastOldIndex; // no progression in pOldChunks array
+			pAssoc->newWhatsThere = mkrs_with_content;
+			pAssoc->newStartAt = newIndex;
+			pAssoc->newEndAt = newIndex;
+			lastNewIndex = newIndex;
+			pChunkAssociations->Add(pAssoc); // the older CSourcePhrase instances will 
+											 // later be inserted in the gap
+		}
+		else
+		{
+			// there is no bookInitialChunk at the start of pNewChunks either, so do
+			// nothing
+			lastOldIndex = lastOldIndex; // hasn't changed
+			lastNewIndex = lastNewIndex; // hasn't changed
+		}
+	}
+	// now handle any introductionChunk material
+	oldIndex = lastOldIndex + 1;
+	newIndex = lastNewIndex + 1;
+	wxASSERT(oldIndex >= 0);
+	wxASSERT(newIndex >= 0);
+	pOldChunk = (SfmChunk*)pOldChunks->Item(oldIndex);
+	pNewChunk = (SfmChunk*)pNewChunks->Item(newIndex);
+	if (pOldChunk->type == introductionChunk)
+	{
+		// there is an introductionChunk in pOldChunks, check out what pNewChunks
+		// has
+		if (pNewChunk->type == introductionChunk)
+		{
+			// there is also an introductionChunk next in pNewChunks
+			ChunkAssociation* pAssoc = new ChunkAssociation;
+			pAssoc->type = introductionChunk;
+			pAssoc->oldWhatsThere = mkrs_with_content;
+			pAssoc->oldStartAt = oldIndex;
+			pAssoc->oldEndAt = oldIndex;
+			lastOldIndex = oldIndex;
+			pAssoc->newWhatsThere = mkrs_with_content;
+			pAssoc->newStartAt = newIndex;
+			pAssoc->newEndAt = newIndex;
+			lastNewIndex = newIndex;
+			pChunkAssociations->Add(pAssoc); // this pair will be recursively merged
+		}
+		else
+		{
+			// there is no introductionChunk next in pNewChunks, that means the
+			// arrNew array has a gap for this information type
+			ChunkAssociation* pAssoc = new ChunkAssociation;
+			pAssoc->type = introductionChunk;
+			pAssoc->oldWhatsThere = mkrs_with_content;
+			pAssoc->oldStartAt = oldIndex;
+			pAssoc->oldEndAt = oldIndex;
+			lastOldIndex = oldIndex;
+			pAssoc->newWhatsThere = gap;
+			pAssoc->newStartAt = -1;
+			pAssoc->newEndAt = -1;
+			lastNewIndex = lastNewIndex; // no progress in pNewChunks array
+			pChunkAssociations->Add(pAssoc); // the older CSourcePhrase introduction
+											 // instances will later be removed
+		}
+	} // end of TRUE block for test: if (pOldChunk->type == introductionChunk)
+	else
+	{
+		// there is no introductionChunk in pOldChunks, so test for an introductionChunk
+		// next in pNewChunks
+		if (pNewChunk->type == introductionChunk)
+		{
+            // there is an introductionChunk next in pNewChunks, so there is a gap in the
+            // older material, and later the new instances will be inserted in the gap
+			ChunkAssociation* pAssoc = new ChunkAssociation;
+			pAssoc->type = introductionChunk;
+			pAssoc->oldWhatsThere = gap;
+			pAssoc->oldStartAt = -1;
+			pAssoc->oldEndAt = -1;
+			lastOldIndex = lastOldIndex; // no progression in pOldChunks array
+			pAssoc->newWhatsThere = mkrs_with_content;
+			pAssoc->newStartAt = newIndex;
+			pAssoc->newEndAt = newIndex;
+			lastNewIndex = newIndex;
+			pChunkAssociations->Add(pAssoc); // the older CSourcePhrase introduction 
+											 // instances will later be inserted in the gap
+		}
+		else
+		{
+			// there is no bookInitialChunk at the start of pNewChunks either, so do
+			// nothing -- no progression in either array
+			lastOldIndex = lastOldIndex;
+			lastNewIndex = lastNewIndex;
+		}
+	}
+    // Now we are ready for milestoned data. This will be handled in a loop. If the verse
+    // milestones match exactly (including ranges, and part verse labels like a, b, c),
+    // then we handle as follows: if the types are the same - eg. both are
+    // chapterPlusVerse, then the indices for the span extent are extended (because matched
+    // milestones and matched types as well only require we later get the starting and
+    // ending indices because we know that everything in-between is present in both arrays.
+    // But if the types are different, eg. one is subheadingPlusVerseChunk and the other is
+    // verseChunk, then either a subheading has been added (if the former is in arrNew) or
+    // removed (if the former is in arrOld) - and for such a milestone matchup without type
+    // matchup, we will do a merger on that pair only (with no attempt to widen) - because
+    // doing that should retain the adaptations if the source text hasn't changed while
+    // building in the new (U)SFM marked up material that led to the type mismatch.
+    // Finally, whenever we come to a milestone gap, that halts any aggregation of structs
+    // into a super-span. Of course, the presence of milestones means that types which
+    // match but the milestones are different are never a match, and must be handled as a
+    // series of (gap,mkrs_with_content) or (mkrs_with_content,gap) pairs, as the case may
+    // be for which array has the gap for each pair.
+
+
+
+
+
+// *** TODO ***
+
+
+
+
+}
 
 
 
