@@ -8296,7 +8296,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
 		if(pFileExitItem != NULL)
 		{
-			pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+			pFileExitItem->SetItemLabel(_("Quit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
 		}
 	}
 
