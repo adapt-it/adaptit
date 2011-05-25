@@ -1196,10 +1196,10 @@ const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1
 /// file.
 const wxString defaultProfileItems[] = 
 {
-	// Note: In the strings below, the itemText field should not use the accelerator substrings, i.e.,
-	// \tCtrl-A. Nor do we use any xml "entities", i.e., the &amp; for '&' to mark the letter used for
-	// ALT+key shortcuts, or &lt; or &gt; for '<' and '>' within the itemText strings. Since the 
-	// descriptionProfileN strings are administrator editable, it is possible that an administrator
+	// Note: In the strings below, the itemText field must use the & ALT-key shortcut as well as the
+	// accelerator substrings, i.e., \tCtrl-A. However, since this is not xml, we don't use any 
+	// xml "entities", i.e., &amp; &lt; or &gt; for '&', '<' and '>' within the itemText strings. 
+	// Since the descriptionProfileN strings are administrator editable, it is possible that an administrator
 	// might edit into the string one of the entity characters '<', '>', '&', ''', or '"'. While these
 	// strings are internal within the program we retain their character representations in order to
 	// facilitate accurate comparisons of the descriptionProfileN strings. When the descriptionProfileN
@@ -1208,8 +1208,8 @@ const wxString defaultProfileItems[] =
 	// 
 	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
 	// stored in the m_pUserProfiles struct on the heap with those that are used in the 
-	// defaultProfileItems string array below. It uses wxLogDebug() calls to alert the
-	// programmer of any significant differences/inconsistencies. 
+	// defaultProfileItems string array below. It uses wxLogDebug() calls and even an assert 
+	// in some cases to alert the programmer of any significant differences/inconsistencies. 
 	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.0.0\":adminModified=\"No\"")
 		_T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
@@ -7275,7 +7275,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		_T("Filename:	AI_UserProfiles.xml"),
 		_T("Author: 	Bill Martin"),
 		_T("Date Created:	27 August 2010"),
-		_T("Last Updated:	22 October 2010, by Bill Martin"),
+		_T("Last Updated:	24 May 2011, by Bill Martin"),
 		_T("Description:	This file contains the user profile definitions and"),
 		_T("		attributes for Adapt It's interface menus and settings."),
 		_T("		Adapt It reads and parses this AI_UserProfiles.xml file"),
