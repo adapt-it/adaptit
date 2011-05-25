@@ -220,6 +220,8 @@ const char xml_apos[] = "&apos;";
 const char xml_lt[] = "&lt;";
 /// the standard entities
 const char xml_gt[] = "&gt;";
+/// the standard entities
+const char xml_tab[] = "&#9;"; // whm added 24May11
 
 
 /// For Adapt It document output as XML, and parsing of XML elements.
@@ -2877,6 +2879,7 @@ public:
 	wxItemKind GetMenuItemKindFromString(wxString itemKindStr);
 	wxArrayPtrVoid GetMenuStructureItemsArrayForThisTopLevelMenu(AI_MainMenuItem* pMainMenuItem);
 	int		GetTopLevelMenuID(const wxString topLevelMenuLabel);
+	int		GetTopLevelMenuID(TopLevelMenu topLevelMenu);
 	wxString GetTopLevelMenuName(TopLevelMenu topLevelMenu);
 	wxMenu* GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu);
 	int		GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar);
@@ -2914,8 +2917,10 @@ public:
 	PT_Project_Info_Struct* GetPT_Project_Struct(wxString projShortName);
 	wxString GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
+	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
+	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString

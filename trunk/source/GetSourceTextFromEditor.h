@@ -52,22 +52,6 @@ public:
 
 	wxArrayString m_staticBoxDescriptionArray;
 
-	// We could use the doc's and helpers's version for most of these instead 
-	// of having them be duplicated in the Doc and as members of 
-	// CGetSourceTextFromEditorDlg.
-	bool IsAnsiLetter(wxChar c);
-	bool IsChapterMarker(wxChar* pChar);
-	bool IsVerseMarker(wxChar *pChar, int& nCount);
-	wxString GetStringFromBuffer(const wxChar* ptr, int itemLen);
-	int ParseNumber(wxChar *pChar);
-	bool IsWhiteSpace(wxChar *pChar, bool& IsEOLchar);
-	bool IsNonEolWhiteSpace(wxChar *pChar);
-	//int ParseWhiteSpace(wxChar *pChar);
-	int ParseNonEolWhiteSpace(wxChar *pChar);
-
-	int ParseMarker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
-	bool IsMarker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
-
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
@@ -83,11 +67,9 @@ protected:
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
-	wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
 	wxArrayString GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName);
 	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
 									wxString targetBookFullName,wxString& nonDraftedVerses);
-	wxString GetVerseNumberFromVerseStr(const wxString& verseStr);
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
 	void LoadBookNamesIntoList();
 	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,int& nUpperNumber);

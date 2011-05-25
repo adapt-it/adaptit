@@ -3,7 +3,7 @@
 Filename:	AI_UserProfiles.xml
 Author: 	Bill Martin
 Date Created:	27 August 2010
-Last Updated:	20 April 2011, by Bill Martin
+Last Updated:	24 May 2011, by Bill Martin
 Description:	This file contains the user profile definitions and
 		attributes for Adapt It's interface menus and settings.
 		Adapt It reads and parses this AI_UserProfiles.xml file
@@ -37,7 +37,7 @@ Description:	This file contains the user profile definitions and
 	>
 <MENU itemID="ID_SAVE_AS"
 	itemType="subMenu"
-	itemText="Save As..."
+	itemText="Save &amp;As...\tCtrl-A"
 	itemDescr="File menu"
 	adminCanChange="1"
 	>
@@ -145,7 +145,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_FILE_BACKUP_KB"
 	itemType="subMenu"
-	itemText="Backup Knowledge Base"
+	itemText="&amp;Backup Knowledge Base"
 	itemDescr="File menu"
 	adminCanChange="1"
 	>
@@ -172,7 +172,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_SOURCE_TEXT"
 	itemType="subMenu"
-	itemText="Edit Source Text..."
+	itemText="Edit &amp;Source Text...\tCtrl-Q"
 	itemDescr="Edit menu"
 	adminCanChange="1"
 	>
@@ -199,7 +199,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_CONSISTENCY_CHECK"
 	itemType="subMenu"
-	itemText="Consistency Check..."
+	itemText="Consist&amp;ency Check..."
 	itemDescr="Edit menu"
 	adminCanChange="1"
 	>
@@ -226,7 +226,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_MOVE_NOTE_FORWARD"
 	itemType="subMenu"
-	itemText="Move Note Forward"
+	itemText="Move Note Forward\tCtrl-3"
 	itemDescr="Edit menu"
 	adminCanChange="1"
 	>
@@ -253,7 +253,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_MOVE_NOTE_BACKWARD"
 	itemType="subMenu"
-	itemText="Move Note Backward"
+	itemText="Move Note Backward\tCtrl-2"
 	itemDescr="Edit menu"
 	adminCanChange="1"
 	>
@@ -280,7 +280,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_VIEW_TOOLBAR"
 	itemType="subMenu"
-	itemText="Toolbar"
+	itemText="&amp;Toolbar"
 	itemDescr="View menu"
 	adminCanChange="1"
 	>
@@ -307,7 +307,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_VIEW_STATUS_BAR"
 	itemType="subMenu"
-	itemText="Status Bar"
+	itemText="&amp;Status Bar"
 	itemDescr="View menu"
 	adminCanChange="1"
 	>
@@ -334,7 +334,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_COPY_SOURCE"
 	itemType="subMenu"
-	itemText="Copy Source"
+	itemText="Copy Sourc&amp;e"
 	itemDescr="View menu"
 	adminCanChange="1"
 	>
@@ -361,7 +361,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_MARKER_WRAPS_STRIP"
 	itemType="subMenu"
-	itemText="Wrap At Standard Format Markers"
+	itemText="&amp;Wrap At Standard Format Markers"
 	itemDescr="View menu"
 	adminCanChange="1"
 	>
@@ -388,7 +388,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_UNITS"
 	itemType="subMenu"
-	itemText="Units of Measurement..."
+	itemText="&amp;Units of Measurement..."
 	itemDescr="View menu"
 	adminCanChange="1"
 	>
@@ -442,7 +442,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="wxID_REPLACE"
 	itemType="subMenu"
-	itemText="Find and Replace..."
+	itemText="Find and &amp;Replace...\tCtrl-H"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -469,7 +469,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_TOOLS_DEFINE_CC"
 	itemType="subMenu"
-	itemText="Load Consistent Changes..."
+	itemText="&amp;Load Consistent Changes..."
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -496,7 +496,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_UNLOAD_CC_TABLES"
 	itemType="subMenu"
-	itemText="Unload Consistent Changes"
+	itemText="&amp;Unload Consistent Changes"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -523,7 +523,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_USE_CC"
 	itemType="subMenu"
-	itemText="Use Consistent Changes"
+	itemText="Use &amp;Consistent Changes"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -550,7 +550,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ACCEPT_CHANGES"
 	itemType="subMenu"
-	itemText="Accept Changes Without Stopping"
+	itemText="&amp;Accept Changes Without Stopping"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -577,7 +577,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_TOOLS_DEFINE_SILCONVERTER"
 	itemType="subMenu"
-	itemText="SIL Converters..."
+	itemText="&amp;SIL Converters..."
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -604,7 +604,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_USE_SILCONVERTER"
 	itemType="subMenu"
-	itemText="Use SIL Converter"
+	itemText="Use S&amp;IL Converter"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -631,7 +631,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_TOOLS_KB_EDITOR"
 	itemType="subMenu"
-	itemText="Knowledge Base Editor..."
+	itemText="&amp;Knowledge Base Editor...\tCtrl-K"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -766,7 +766,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_FILE_EXPORT_SOURCE"
 	itemType="subMenu"
-	itemText="Export Source Text..."
+	itemText="Export &amp;Source Text..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -793,7 +793,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_FILE_EXPORT"
 	itemType="subMenu"
-	itemText="Export Translation Text..."
+	itemText="&amp;Export Translation Text..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -820,7 +820,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_FILE_EXPORT_TO_RTF"
 	itemType="subMenu"
-	itemText="Export Interlinear Text..."
+	itemText="Export Interlinear &amp;Text..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -847,7 +847,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EXPORT_GLOSSES"
 	itemType="subMenu"
-	itemText="Export Glosses As Text..."
+	itemText="Export &amp;Glosses As Text..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -901,7 +901,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EXPORT_OXES"
 	itemType="subMenu"
-	itemText="Export Open XML for Editing Scripture (OXES)..."
+	itemText="Export &amp;Open XML for Editing Scripture (OXES)..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -928,7 +928,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_FILE_EXPORT_KB"
 	itemType="subMenu"
-	itemText="Export Knowledge Base..."
+	itemText="Export Knowledge &amp;Base..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -955,7 +955,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_IMPORT_TO_KB"
 	itemType="subMenu"
-	itemText="Import to Knowledge Base..."
+	itemText="&amp;Import to Knowledge Base..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -1387,7 +1387,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ALIGNMENT"
 	itemType="subMenu"
-	itemText="Layout Window Right To Left"
+	itemText="Layout Window Right To Left\tCtrl-1"
 	itemDescr="Layout menu"
 	adminCanChange="1"
 	>
@@ -1738,7 +1738,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_CUT"
 	itemType="toolBar"
-	itemText="Cut"
+	itemText="Cu&amp;t\tCtrl-X"
 	itemDescr="Cut the selection and put it on the Clipboard"
 	adminCanChange="1"
 	>
@@ -1765,7 +1765,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_COPY"
 	itemType="toolBar"
-	itemText="Copy"
+	itemText="&amp;Copy\tCtrl-C"
 	itemDescr="Copy the selection and put it on the Clipboard"
 	adminCanChange="1"
 	>
@@ -1792,7 +1792,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EDIT_PASTE"
 	itemType="toolBar"
-	itemText="Paste"
+	itemText="&amp;Paste\tCtrl-V"
 	itemDescr="Insert Clipboard contents"
 	adminCanChange="1"
 	>
@@ -1819,7 +1819,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="wxID_PRINT"
 	itemType="toolBar"
-	itemText="Print"
+	itemText="&amp;Print...\tCtrl-P"
 	itemDescr="Print the active document"
 	adminCanChange="1"
 	>
@@ -1846,13 +1846,13 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="wxID_HELP"
 	itemType="toolBar"
-	itemText="Display Help Topics"
+	itemText="&amp;Help Topics\tShift-Ctrl-/"
 	itemDescr="Display Adapt It program help topics"
 	adminCanChange="1"
 	>
 		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
+			itemVisibility="1"
+			factory="1"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"
