@@ -2768,10 +2768,10 @@ public:
 	void OnFileNew(wxCommandEvent& event);
 	
 	// whm added the following 10Apr11 for AI-PT collaboration
-	void OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateGetSourceTextFromPT(wxUpdateUIEvent& event);
-	void OnTransferTransToPT(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateTransferTransToPT(wxUpdateUIEvent& event);
+	//void OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdateGetSourceTextFromPT(wxUpdateUIEvent& event);
+	//void OnTransferTransToPT(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdateTransferTransToPT(wxUpdateUIEvent& event);
 
 	void OnFileExportKb(wxCommandEvent& WXUNUSED(event)); // moved from view class 16Nov10
 	void OnUpdateFileExportKb(wxUpdateUIEvent& event); // moved from view class 16Nov10

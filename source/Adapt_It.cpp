@@ -5054,10 +5054,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_MENU(wxID_NEW, CAdapt_ItApp::OnFileNew)
 	
 	// whm added the following 10Apr11 for AI-PT collaboration
-	EVT_MENU(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnGetSourceTextFromPT)
-	EVT_UPDATE_UI(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnUpdateGetSourceTextFromPT)
-	EVT_MENU(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnTransferTransToPT)
-	EVT_UPDATE_UI(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnUpdateTransferTransToPT)
+	//EVT_MENU(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnGetSourceTextFromPT)
+	//EVT_UPDATE_UI(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnUpdateGetSourceTextFromPT)
+	//EVT_MENU(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnTransferTransToPT)
+	//EVT_UPDATE_UI(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnUpdateTransferTransToPT)
 
 	// OnFileOpen is in the Doc 
 	EVT_MENU(wxID_PAGE_SETUP,CAdapt_ItApp::OnFilePageSetup)
@@ -7464,6 +7464,8 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 /// This function calls a series of functions that set the visibility of the interface's menus, 
 /// modeBar, toolBar, wizardListItem and other potential interface settings, all based on the 
 /// information stored in AI_UserProfiles.xml and the App's m_pAI_MenuStructure member.
+/// Note: The MakeMenuInitializationsAndPlatformAdjustments() function should always be called 
+/// immediately after the ConfigureInterfaceForUserProfile() function.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 {
@@ -8234,8 +8236,9 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 /// \return     nothing
 /// \remarks
 /// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
-/// Adjusts some menu hot key assignments for the different platforms - different
-/// platforms reserve certain hot key combinations for their own system use. 
+/// Adjusts some menu labels and hot key assignments for the different platforms - 
+/// different platforms reserve certain hot key combinations for their own system use. 
+/// Adjustments are also made here for certain modes such as Paratext collaboration.
 /// This function also sets the initial checked/unchecked state of menu items which are 
 /// checkable.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -8243,12 +8246,55 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 {
 	CMainFrame* pMainFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
-	// Get the File Menu, tell the doc manager that we want the File History on the
-	// File Menu, and Load the File History (MRU) to it
+	// Get the File Menu
 	wxMenu* pFileMenu;
 	pFileMenu = GetTopLevelMenuFromAIMenuBar(fileMenu);
 	// Note: The FileHistoryLoad() call is done in OnInit() before the first
 	// call of MakeMenuInitializationsAndPlatformAdjustments.
+
+	// Make adjustments on the Windows platform for when Paratext collaboration is in
+	// effect. We modify the labels for Open... and Save... on the File menu to include
+	// parenthetical explanations as follows:
+	// Open... (Get Source Text From Paratext)
+	// Save... (Transfer Translation To Paratext)
+	// Note: We do not need conditional define here for Windows because m_bCollaboratingWithParatext will
+	// only be TRUE on the platforms that host Paratext, i.e., Windows.
+	if (pFileMenu != NULL && m_bCollaboratingWithParatext)
+	{
+		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
+		// the new label, otherwise everything that comes after the tab will be displaced to the right side
+		// of the File menu (right aligned).
+		wxString label,beforeTab,afterTab;
+		int posTabOpen;
+		label = pFileMenu->GetLabel(wxID_OPEN);
+		posTabOpen = label.Find(_T('\t'));
+		if (posTabOpen != wxNOT_FOUND)
+		{
+			beforeTab = label.BeforeFirst(_T('\t'));
+			afterTab = label.AfterFirst(_T('\t'));
+			label = beforeTab;
+			label += _T(' ');
+			label += _("(Get Source Text From Paratext)");
+			label += _T('\t');
+			label += afterTab;
+		}
+		pFileMenu->SetLabel(wxID_OPEN,label);
+		
+		int posTabSave;
+		label = pFileMenu->GetLabel(wxID_SAVE);
+		posTabSave = label.Find(_T('\t'));
+		if (posTabSave != wxNOT_FOUND)
+		{
+			beforeTab = label.BeforeFirst(_T('\t'));
+			afterTab = label.AfterFirst(_T('\t'));
+			label = beforeTab;
+			label += _T(' ');
+			label += _("(Transfer Translation To Paratext)");
+			label += _T('\t');
+			label += afterTab;
+		}
+		pFileMenu->SetLabel(wxID_SAVE, label);
+	}
 
 	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
     // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
@@ -8306,7 +8352,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		// Edit | Edit Source Text
 		// On Mac, the hot key command to quit the application is Command-Q and we have set a
 		// Ctrl-Q accelerator key to be associated with wxID_Exit, so we've set the menu to use
-		// Ctrl-Shift-E for it here.
+		// Ctrl-Shift-E for Edit Source Text here.
 		if (pEditMenu->FindItem(ID_EDIT_SOURCE_TEXT) != NULL)
 		{
 			pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
@@ -25868,6 +25914,7 @@ void CAdapt_ItApp::OnFileNew(wxCommandEvent& event)
 		m_pDocManager->OnFileNew(event);
 }
 
+/*
 // whm added the following 10Apr11 for AI-PT collaboration
 void CAdapt_ItApp::OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event))
 {
@@ -25914,6 +25961,7 @@ void CAdapt_ItApp::OnUpdateTransferTransToPT(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 	}
 }
+*/
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

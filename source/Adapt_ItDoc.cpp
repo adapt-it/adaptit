@@ -2451,16 +2451,22 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
+
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
+	// whm 25May11 Note: When collaborating with Paratext the Save... command is 
+	// available under the same conditions as when not collaborating with Paratext,
+	// i.e., a Doc is open and it is dirty/modified.
 	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
 		event.Enable(TRUE);
 	else
