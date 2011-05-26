@@ -266,6 +266,7 @@ bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 						wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
 bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
+void	CopyOldAdaptationsAndReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
 void	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
@@ -314,13 +315,19 @@ void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						int limit, Subspan* tuple[]); // the array size is always 3, so 
 													  // we don't need a parameter for it
 void	InitializeNonVerseChunk(SfmChunk* pStruct);
+int		PutBeginMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray);
+int		PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray);
 bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
 						int limit);
 //void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
 //					  int& newEndAt, int limit, bool bClosedEnd); <<-- not needed yet
 void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit); // overload
-void	TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo, bool bClearAfterwards);
-void	TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo, bool bClearAfterwards);
+void	TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
+								 bool bFlagsToo, bool bClearAfterwards);
+void	TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, int newEndAt, CSourcePhrase* pTo);
+void	TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bClearAfterwards);
+void	TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bAICustomMkrsAlso, 
+								 bool bFlagsToo, bool bClearAfterwards);
 bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount);

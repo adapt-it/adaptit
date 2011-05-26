@@ -1194,8 +1194,21 @@ bool IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 	return FALSE; // none apply, so it is not left-associated
 }
 
+// Transfers data from certain fields between CSourcePhrase instances, bClearAfterwards, if
+// TRUE, will clear the 'from' field after its data is transferred, if FALSE, the data is
+// left in place. Transfer of values of m_bFootnoteEnd, m_bEndRetranlation, and
+// m_bEndFreeTrans is governed by the bFlagsToo value, transfer of these values is done if
+// bFlagsToo is TRUE, skipped if FALSE, and the flags are cleared to FALSE after transfer
+// provided both bFlagsToo and bClearAfterwards are TRUE.
+// This function is used in two main contexts: transfer of information from or to a
+// placeholder to a CSourcePhrase before or after - this is when the bool parameters will
+// all be passed as TRUE; secondly, in the import edited source text feature, to transfer
+// punctuation and markers (but not flags) from the incoming (edited) source text's
+// unchanged CSourcePhrase instances to the existing matching CSourcePhrase instances - so
+// as to ensure any user edits of the UFSM structure or punctuation are not missed in the
+// merge process.
 void TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
-							  bool bFlagsToo, bool bClearAfterwards)
+								bool bFlagsToo, bool bClearAfterwards)
 {
 	wxString empty = _T("");
 	pTo->m_follPunct = pFrom->m_follPunct;
@@ -1268,6 +1281,8 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 		return TRUE;
 	if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 		return TRUE;
+	if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+		return TRUE;
 	if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 		return TRUE;
 	if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
@@ -1285,8 +1300,25 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 	return FALSE; // none apply, so it is not right-associated
 }
 
+// Transfers data from certain fields between CSourcePhrase instances, bClearAfterwards, if
+// TRUE, will clear the 'from' field after its data is transferred, if FALSE, the data is
+// left in place. Transfer of values of m_bFootnoteEnd, m_bEndRetranlation, and
+// m_bEndFreeTrans is governed by the bFlagsToo value, transfer of these values is done if
+// bFlagsToo is TRUE, skipped if FALSE, and the flags are cleared to FALSE after transfer
+// provided both bFlagsToo and bClearAfterwards are TRUE; the Adapt It custom fields for
+// storage of filtered info m_filteredInfo, collected back translations (\bt), and free
+// translations (\free) are transferred also if bAICustomMkrsAlso is TRUE (and the fields
+// cleared after transfer if bClearAfterwards is TRUE), otherwise FALSE leaves them
+// untransferred. 
+// This function is used in two main contexts: transfer of information from or to a
+// placeholder to a CSourcePhrase before or after - this is when the bool parameters will
+// all be passed as TRUE; secondly, in the import edited source text feature, to transfer
+// punctuation and markers (but not flags) from the incoming (edited) source text's
+// unchanged CSourcePhrase instances to the existing matching CSourcePhrase instances - so
+// as to ensure any user edits of the UFSM structure or punctuation are not missed in the
+// merge process.
 void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
-							  bool bFlagsToo, bool bClearAfterwards)
+			bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards)
 {
 	wxString empty = _T("");
 
@@ -1302,18 +1334,6 @@ void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 		pFrom->m_markers.Empty();
 	}
 
-	pTo->SetCollectedBackTrans(pFrom->GetCollectedBackTrans());
-	if (!pFrom->GetCollectedBackTrans().IsEmpty() && bClearAfterwards)
-	{
-		pFrom->SetCollectedBackTrans(empty);
-	}
-
-	pTo->SetFilteredInfo(pFrom->GetFilteredInfo());
-	if (!pFrom->GetFilteredInfo().IsEmpty() && bClearAfterwards)
-	{
-		pFrom->SetFilteredInfo(empty);
-	}
-
 	pTo->SetInlineBindingMarkers(pFrom->GetInlineBindingMarkers());
 	if (!pFrom->GetInlineBindingMarkers().IsEmpty() && bClearAfterwards)
 	{
@@ -1326,6 +1346,26 @@ void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 		pFrom->SetInlineNonbindingMarkers(empty);
 	}
 
+	if (bAICustomMkrsAlso)
+	{
+		pTo->SetCollectedBackTrans(pFrom->GetCollectedBackTrans());
+		if (!pFrom->GetCollectedBackTrans().IsEmpty() && bClearAfterwards)
+		{
+			pFrom->SetCollectedBackTrans(empty);
+		}
+
+		pTo->SetFreeTrans(pFrom->GetFreeTrans());
+		if (!pFrom->GetFreeTrans().IsEmpty() && bClearAfterwards)
+		{
+			pFrom->SetFreeTrans(empty);
+		}
+
+		pTo->SetFilteredInfo(pFrom->GetFilteredInfo());
+		if (!pFrom->GetFilteredInfo().IsEmpty() && bClearAfterwards)
+		{
+			pFrom->SetFilteredInfo(empty);
+		}
+	}
 	if (pFrom->m_bFootnote && bFlagsToo)
 	{
 		pTo->m_bFootnote = pFrom->m_bFootnote;
@@ -1358,6 +1398,213 @@ void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 			pFrom->m_bStartFreeTrans = FALSE;
 		}
 	}
+}
+
+// Transfers the contents of all punctuation and marker fields in pFrom to pTo, but does
+// not do anything with any of the flags, and optionally can empty the puncts and marker
+// fields data is transferred from, after the data in them has been transferred. Calls
+// TransferPrecedingMembers() and TransferFollowingMembers(). Fields involved are:
+// m_markers, m_endMarkers, m_inlineBindingMarkers, m_inlineBindingEndMarkers, 
+// m_inlineNonbindingMarkers, m_inlineNonbindingEndMarkers; m_precPunct, m_follPunct and
+// m_follOuterPunct
+// This function is used in one context: in the import edited source text feature, to
+// transfer punctuation and markers (but not flags) from the incoming (edited) source
+// text's lexically unchanged CSourcePhrase instances to the existing matching CSourcePhrase
+// instances - so as to ensure any user edits of the UFSM structure or punctuation are not
+// missed in the merge process. This function is not suitable for transferring data to a
+// merged CSourcePhrase instance -- use TransferMarkersAndPunctsForMerger() for that.
+void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
+										  bool bClearAfterwards)
+{
+	TransferPrecedingMembers(pFrom, pTo, FALSE, FALSE, bClearAfterwards);
+	TransferFollowingMembers(pFrom, pTo, FALSE, bClearAfterwards);
+}
+
+// Transfers the contents of all punctuation and marker fields in the range of
+// CSourcePhrase instances represented by newStartAt to newEndAt, inclusive, from the
+// arrNew array of CSourcePhrase instances resulting from tokenization of the edited
+// source text imported using the Import Edited Source Text command. The transfers are
+// done to the CSourcePhrase in arrOld, pTo, and pTo must be a merger, and the number of
+// arrNew instances must numerically be equal to the pTo->m_nSrcWords member (because this
+// is the count for the instances in pTo->m_pSavedWords, and these represent the data that
+// corresponds to the merger (and since mergers are not created at import time and so
+// arrNew doesn't have any)). It does not do anything with any of the flags. Fields
+// involved are:
+// m_markers, m_endMarkers, m_inlineBindingMarkers, m_inlineBindingEndMarkers,
+// m_inlineNonbindingMarkers, m_inlineNonbindingEndMarkers; m_precPunct, m_follPunct and
+// m_follOuterPunct. Additionally, the m_adaption and m_targetStr contents in the
+// instances saved in pTo->m_pSavedWords are copied back to the range of arrNew instances,
+// and then those arrNew instances are deep copied and replace the ones in
+// pTo->m_pSavedWords in case the user later unmerges the merger.
+// This function is used in one context: in the import edited source text feature, to
+// transfer punctuation and markers (but not flags) from the incoming (edited) source
+// text's lexically unchanged CSourcePhrase instances to the existing matching CSourcePhrase
+// instances - so as to ensure any user edits of the UFSM structure or punctuation are not
+// missed in the merge process.
+void TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, int newEndAt, 
+									  CSourcePhrase* pTo)
+{
+	wxASSERT(pTo->m_nSrcWords > 1);
+	wxASSERT((int)pTo->m_pSavedWords->GetCount() == pTo->m_nSrcWords);
+	int newCount = arrNew.GetCount();
+	int newRange = newEndAt - newStartAt + 1;
+	int oldRange = pTo->m_nSrcWords;
+	wxASSERT(oldRange == newRange);
+	// create a wxArrayPtrVoid storing the new CSourcePhrase instances
+	wxArrayPtrVoid* pRangeNew = new wxArrayPtrVoid;
+	int index;
+	for (index = newStartAt; index <= newEndAt; index++)
+	{
+		pRangeNew->Add(arrNew.Item(index));
+	}
+
+// *** TODO *** finish this
+
+
+
+	pRangeNew->Clear();
+	delete pRangeNew;
+}
+
+// Grab the contents of marker fields and Add() them to pArray (also include the following
+// space character when present, and also including verse and chapter numbers if \v and \c
+// are encountered - we don't think any merger will actually overlap a verse or chapter
+// boundary, so we don't expect to ever grab these two markers - but if we do, they can end
+// up as medial markers, including the following number - since all the user is ever asked
+// to do is to "place" them and he could then also place the number as well). The fields
+// are the following (ignore a field if it's contents are empty):
+// m_markers, m_inlineBindingMarkers, m_inlineNonbindingMarkers
+// Return a count of how many marker fields were stored in pArray (0 if nothing was stored)
+// We use this function for populating the m_pMedialMarkers member of a merged
+// CSourcePhrase - it's useless anywhere else because information about which field coughed
+// up a given marker is lost.
+int PutBeginMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
+{
+	int count = 0;
+	pArray->Clear();
+	if (!pSrcPhrase->m_markers.IsEmpty())
+	{
+		pArray->Add(pSrcPhrase->m_markers);
+		count++;
+	}
+	if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+	{
+		pArray->Add(pSrcPhrase->GetInlineBindingMarkers());
+		count++;
+	}
+	if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+	{
+		pArray->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+		count++;
+	}
+	return count;
+}
+
+// Grab the contents of marker fields and Add() them to pArray (also include the following
+// space character when present). The fields are the following (ignore a field if it's
+// contents are empty):
+// m_endMarkers, m_inlineBindingEndMarkers, m_inlineNonbindingEndMarkers
+// Return a count of how many marker fields were stored in pArray (0 if nothing was stored)
+// We use this function for populating the m_pMedialMarkers member of a merged
+// CSourcePhrase - it's useless anywhere else because information about which field coughed
+// up a given marker is lost.
+int PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
+{
+	int count = 0;
+	pArray->Clear();
+	if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+	{
+		pArray->Add(pSrcPhrase->GetEndMarkers());
+		count++;
+	}
+	if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+	{
+		pArray->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+		count++;
+	}
+	if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+	{
+		pArray->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+		count++;
+	}
+	return count;
+}
+
+// Returns a count of how may punctuation strings were placed into the emptied
+// pMergedSP->m_pMedialPuncts member.
+// pMergedSP is a merged CSourcePhrase in a list of old (that is, 'unedited') instances,
+// and it is "in common" with a subrange of newly created (ie. just tokenized)
+// CSourcePhrase instances derived by imported possibly edited source text - the subrange
+// of new instances are temporarily stored in pArrayNew. The ones in pArrayNew are
+// examined and the punctuation strings which are non-empty and which would be medial if
+// that subarray of new instances were merged, are extracted and stored in the
+// wxArrayString m_pMedialPuncts, after the latter has been cleared of any former
+// contents. This function is used within TransferPunctsAndMarkersToMerger()
+int ReplaceMedialPunctuationInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew)
+{
+	int count = 0;
+	pMergedSP->m_pMedialPuncts->Clear();
+	int total = pArrayNew->GetCount();
+	int index;
+	for (index = 0; index < total; index++)
+	{
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pArrayNew->Item(index);
+		if (index == 0)
+		{
+			// the first instance contributes only from stored end-marker fields
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetEndMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+		}
+		else if (index == count - 1)
+		{
+			// the last instance contributes only from stored begin-marker fields
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_markers);
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+		}
+		else
+		{
+			// any other instances contribute from both begin-marker fields and end-marker
+			// fields
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_markers);
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetEndMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+		}
+	}
+	count = pMergedSP->m_pMedialPuncts->GetCount();
+	return count;
+}
+
+// Returns nothing. Takes a list of newly tokenized CSourcePhrase instances corresponding
+// to the pMergedSP merged CSourcePhrase in a different list of old (that is, 'unedited')
+// CSourcePhrase instances, transfers the adaptation information from pMergedSP's SPList
+// m_pSavedWords's instances (the old originals from before the merger), and copies those
+// adaptations to the matching instances in pArrayNew. Then m_pSavedWords is cleared, and
+// the instances in pArrayNew are deep copied, in top down order (which corresponds to the
+// word order of their m_key words within the (here unedited) source text just imported)
+// into m_pSavedWords - so that if the user later decides to unmerge the merger, the
+// exposed now-unmerged instances will show any user edits of punctuation or USFM
+// structure done when the source text was outside of Adapt It and potentially edited
+// there. This function is used within TransferPunctuationAndMarkersForMerger().
+void CopyOldAdaptationsAndReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew)
+{
+	wxArrayPtrVoid arrRangeOfOldOnes;
+	SPList::Node* pos = pMergedSP->m_pSavedWords->GetFirst();
+	while (pos != NULL)
+	{
+		arrRangeOfOldOnes.Add(pos->GetData());
+		pos = pos->GetNext();
+	}
+
+
+// *** TODO *** finish this
+
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
