@@ -5729,12 +5729,23 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+
+	// whm added 25May11 When collaborating with Paratext we make the Open... command 
+	// always available just as we do for the Start Working Wizard in 
+	// OnUpdateFileStartupWizard().
+	if (pApp->m_bCollaboratingWithParatext)
+	{
+		event.Enable(TRUE);
+		return;
+	}
+
     // we can't use m_pSourcePhrases->GetCount() equal to zero because after a File...Close
     // only the view (ie. strips) is clobbered, the source phrases don't get clobbered
     // until DeleteContents() is called, which does not happen until either the user
@@ -20019,6 +20030,14 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
+	// whm added 25May11 We disable the Edit Source Text... menu command when collaborating
+	// with Paratext - it is Paratext where the source text should be edited.
+	if (pApp->m_bCollaboratingWithParatext)
 	{
 		event.Enable(FALSE);
 		return;

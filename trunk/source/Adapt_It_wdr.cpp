@@ -8179,9 +8179,7 @@ wxMenuBar *AIMenuBarFunc()
     
     wxMenu* item1 = new wxMenu;
     item1->Append( wxID_NEW, _("&New\tCtrl-N"), _("Create a new document") );
-    item1->Append( ID_MENU_GET_SOURCE_FROM_PT, _("&Get Source Text From Paratext..."), _("Get a text to adapt from Paratext") );
     item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
-    item1->Append( ID_MENU_TRANSFER_TRANS_TO_PT, _("&Transfer Translation To Paratext"), _("Transfer the translation (target) text to Paratext") );
     item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );
     item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-A"), _("Save the document with different xml format, or different filename") );
     item1->Append( wxID_CLOSE, _("&Close"), _("Close the active document") );
