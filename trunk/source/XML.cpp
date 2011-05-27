@@ -127,8 +127,6 @@ void* r = memset((void*)emptyStr,0,32); // after the above line
 /// This global is defined in MainFrm.cpp.
 extern SPList* gpDocList; // for synch scrolling support (see MainFrm.cpp)
 
-extern bool gbSyncMsgReceived_DocScanInProgress;
-
 /// This global is defined in Adapt_It.cpp.
 extern USFMAnalysis* gpUsfmAnalysis;
 
@@ -3681,31 +3679,15 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
                     // gpEmbeddedSrcPhrase is NULL, so we've been constructing an unmerged
                     // one, so now we can add it to the doc member m_pSourcePhrases and
                     // clear the pointer
-					if (gbSyncMsgReceived_DocScanInProgress)
+					if (gnDocVersion == 4)
 					{
-						if (gnDocVersion == 4)
-						{
-							FromDocVersion4ToDocVersion5(gpDocList, gpSrcPhrase, FALSE);
-						}
-						if (gpSrcPhrase != NULL)
-						{
-							// it can be made NULL if it was an orphan that got deleted,
-							// so we must check and only append ones that persist
-							gpDocList->Append(gpSrcPhrase);
-						}
+						FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
 					}
-					else
+					if (gpSrcPhrase != NULL)
 					{
-						if (gnDocVersion == 4)
-						{
-							FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
-						}
-						if (gpSrcPhrase != NULL)
-						{
-							// it can be made NULL if it was an orphan that got deleted,
-							// so we must check and only append ones that persist
-							gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
-						}
+						// it can be made NULL if it was an orphan that got deleted,
+						// so we must check and only append ones that persist
+						gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
 					}
 					gpSrcPhrase = NULL;
 				}

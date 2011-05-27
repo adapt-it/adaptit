@@ -913,7 +913,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			wxMessageBox(_(
 "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
 			_T(""), wxICON_STOP);
-			wxExit();
+			return; // wxExit(); whm modified 27May11
 		}
 
 		// put the focus in the phrase box, after any text

@@ -333,10 +333,6 @@ int		gnMatchedSequNumber = -1; // set to the sequence number when a matching ch:
 /// A temporary store for parsed in AI document's list of CSourcePhrase pointers.
 SPList* gpDocList = NULL; 
 
-bool	gbSyncMsgReceived_DocScanInProgress = FALSE; // FALSE, except is TRUE if the document set on disk
-													 // is being scanned in order to find the appropriate
-													 // document file for honouring the synch scroll msg
-
 /*******************************
 *	ExtractScriptureReferenceParticulars
 *
@@ -551,6 +547,8 @@ void SyncScrollSend(const wxString& strThreeLetterBook, const wxString& strChapV
 // BEW 12Mar07, I added strChapVerse as Adapt It stores chapter;verse eg. "12:3" as a wxString in each CSourcePhrase where
 // the verse number changes, so it makes sense to pass this substring intact to my locating code
 // whm modified to return bool if sync scroll received successfully
+// whm 26May11 modified to speed up the multi-document search when the strChapVerse reference is to be found
+// in a document other than the one currently open
 bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse, const wxString& strChapVerse)
 {
     // do what you need to do scroll to the given reference in AdaptIt
@@ -589,6 +587,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 		// being nonnull, or the following two flags both being TRUE - we will use the latter test
 		if (gpApp->m_bKBReady && gpApp->m_bGlossingKBReady)
 		{
+			bool bNeedMultiDocScan = FALSE;
 			// what we do next depends on whether or not there is a document currently open; a non-empty
 			// m_pSourcePhrases list is a sufficient test for that, provided pDoc is also not null
 			if (pDoc != NULL && gpApp->m_pSourcePhrases->GetCount() != 0)
@@ -598,7 +597,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 
 				if (!bGotCode)
 				{
-					goto scan; // try a multi-document scan, because we couldn't find a 3-letter code
+					bNeedMultiDocScan = TRUE; // try a multi-document scan, because we couldn't find a 3-letter code
 							   // in the currently open document
 				}
 				else
@@ -607,7 +606,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					// in the passed in synch scroll message
 					if (strBookCode != strThreeLetterBook)
 					{
-						goto scan; // try a multi-document scan, because the open Adapt It document does 
+						bNeedMultiDocScan = TRUE; //goto scan; // try a multi-document scan, because the open Adapt It document does 
 								   // not contain data from the sending application's open Bible book
 					}
 					else
@@ -620,7 +619,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						{
 							// the scripture reference is not in the open document, so  try a
 							//  multi-document scan
-							goto scan;
+							bNeedMultiDocScan = TRUE;
 						}
 						else
 						{
@@ -635,12 +634,19 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 							CPile* pPile = pView->GetPile(gnMatchedSequNumber);
 							gpApp->m_pActivePile = pPile;
 							CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+							// whm added 27May11. If the Doc was not dirty before the Jump to the new
+							// reference, we will set its modified status to not dirty again after the
+							// Jump (below)
+							bool bWasDirty = pDoc->IsModified();
 							pView->Jump(gpApp,pSrcPhrase); // jump there
+							if (!bWasDirty)
+								pDoc->Modify(FALSE);
 						}
 					} // end block for trying to find a matching scripture reference in the open document
 				} // end block for checking out the open document's 3-letter book code
 			} // end block for testing an open AI document
-			else
+			
+			if (bNeedMultiDocScan)
 			{
 				// no document is open at present, or a document is open but we failed to match either
 				// the book, or chapter;verse reference within it in the above code block, so we will
@@ -651,7 +657,6 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 				// close it and open the other. This has the advantage that if our scanning fails to find
 				// an appropriate document file, then exiting the SynchScrollReceive() function without
 				// doing anything leaves the open document open and unaffected.
-scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing goes to gpDocList
 
 				// NOTE: we cannot redirect MFC serialization to gpDocList without building a whole lot of extra
 				// code; but we can do it easily in XML.cpp's AtDocEndTag() with a simple test on the above
@@ -666,14 +671,11 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 				// which) if book mode is on. The searching within doc files is done only in the one folder; and
 				// in the case of book mode being on, we may have to effect a change to a different book folder
 				// from the one currently active, in order to honour the received sync scroll message
-				wxString strDocName;
-				wxString strDocPath;
 				wxString strFolderPath;
 				wxString strFolderName;
 				bool bOK;
 				wxArrayString* pList = &gpApp->m_acceptedFilesList; // holds the document filenames to be used
 				pList->Clear(); // ensure it starts empty
-				int nCount; // a count of how many files are in the CStringList
 
 				if (gpApp->m_bBookMode)
 				{
@@ -683,7 +685,6 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 					if (strFolderName.IsEmpty())
 					{
 						// could not get the folder name, so just ignore this scripture reference message
-						gbSyncMsgReceived_DocScanInProgress = FALSE;
 						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
 						return FALSE;
 					}
@@ -700,188 +701,141 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 				if (!bOK)
 				{
 					// we shouldn't ever fail in that call, but if we do, then just abandon the sync silently
-					gbSyncMsgReceived_DocScanInProgress = FALSE;
 					return FALSE;
 				}
 
-				// now enumerate the files in the target folder (finds *.adt and *.xmx files, but excludes *.BAK ones)
-				bOK = gpApp->EnumerateDocFiles(pDoc, strFolderPath, TRUE); // TRUE == suppress Which Files dialog
-				if (!bOK)
+				// whm revised 26May11 to use fast functions that find the xml document containing the sync
+				// scroll reference without calling ReadDoc_XML() and fully opening each possible document 
+				// file while searching for the one with the desired reference.
+				wxString docExtToSearch = _T(".xml");
+				wxString foundDocWithReferenceFilePathAndName;
+				wxString refToFind = strThreeLetterBook + _T(' ') + strChapVerse;
+				foundDocWithReferenceFilePathAndName = gpApp->FindBookFileContainingThisReference(strFolderPath, refToFind, docExtToSearch);
+				if (foundDocWithReferenceFilePathAndName.IsEmpty())
 				{
-					// if any directory contents give an error, we'll just not try further, and so do no sync
-					gbSyncMsgReceived_DocScanInProgress = FALSE;
+					// no document with the reference was found
+					bool bOK;
 					bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
 					return FALSE;
 				}
-
-				// our loop will loop across all the files, and we will not look into any *.adt ones; if there are
-				// no files, then return without doing anything
-				int nFound;
-				int index;
-				nCount = pList->GetCount();
-				if (nCount == 0)
+				else
 				{
-					gbSyncMsgReceived_DocScanInProgress = FALSE;
-					bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
-					return FALSE;
-				}
-				for (index = 0; index < nCount; index++)
-				{
-					strDocName = pList->Item(index); //pList->GetNext(pos); // get a document name
-		
-					// check if it is a binary doc file - ignore it if so
-					// wx version - we'll let the following test be made
-					nFound = strDocName.Find(_T(".adt"));
-					if (nFound > 0)
-						continue; // its a legacy *.adt document (binary) file, so skip it
-
-					// form the path to each of those remaining - these will be *.xml document files only
-					strDocPath = strFolderPath + gpApp->PathSeparator + strDocName; 
-
-					// clear the temporary list, get ready for reading in the xml data and storing it in the list
-					DeleteSourcePhrases_ForSyncScrollReceive(pDoc, gpDocList); // also removes gpDocList's contents
-
-					// read in the XML data, forming CSourcePhrase instances and storing them in gpDocList (done
-					// internally in AtDocEndTag() by testing for gbSyncMsgReceived_DocScanInProgress == TRUE)
-					bool bReadOK;
-					bReadOK = ReadDoc_XML(strDocPath,pDoc); // a global function, defined in XML.cpp
-
-					// look inside to see if we can match the chapter:verse reference -- the following code
-					// is cloned from the block above, and tweaked a bit (mostly m_pSourcePhrases replaced
-					// with the global SPList pointer gpDocList). We have to check the 3-letter code here
-					// because we might be iterating through all the docs in the Adaptations folder, and so
-					// most would not be the wanted book.
-					bGotCode = FALSE;
-					bGotCode = Get3LetterCode(gpDocList,strBookCode);
-					if (!bGotCode)
+					// We found a document with the book code, and chapter and verse reference, so
+					// open it and go to the desired reference.
+					// Make this the active document...
+					// First we have to close off the existing document (saving it if it has been modified).
+					if (gpApp->m_pSourcePhrases->GetCount() > 0)
 					{
-						// we couldn't find a 3-letter code in the gpDocList list, so we'll ignore this
-						// document file and skip to the next one, if any
-						continue;
-					}
-					else
-					{
-						// we obtained a 3-letter code, so now we must check if it matches the 3-letter code
-						// in the passed in synch scroll message
-						if (strBookCode != strThreeLetterBook)
+						// there is an open document to be disposed of
+						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						bool bModified = pDoc->IsModified();
+						if (bModified)
 						{
-							// the codes do not match, so skip to the next document file, if any
-							continue;
+							// we need to save it - don't ask the user
+							wxCommandEvent uevent;
+							pDoc->OnFileSave(uevent);
+						}
+						// make sure free translation mode is off
+						if (gpApp->m_bFreeTranslationMode)
+						{
+							// free translation mode is on, so we must first turn it off
+							wxCommandEvent uevent;
+							pFreeTrans->OnAdvancedFreeTranslationMode(uevent);
+						}
+						// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
+						pView->ClobberDocument();
+						pView->Invalidate(); // force immediate update (user sees white client area)
+						gpApp->m_pLayout->PlaceBox();
+					}
+
+					// next thing to do is check if book mode is on, and if a switch of book folder is
+					// required -- and if so, do the path change and set the flag which says we must
+					// close the currently open document first before we make the one in gpDocList visible
+					if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+					{
+						if (gpApp->m_nBookIndex != theBookIndex)
+						{
+							// it's a different book folder than is currently active, so update the path; this
+							// means we have to reset m_bibleBooksFolderPath, and the book index
+							gpApp->m_nLastBookIndex = gpApp->m_nBookIndex;
+							gpApp->m_nBookIndex = theBookIndex;
+							gpApp->m_bibleBooksFolderPath = strFolderPath;
 						}
 						else
 						{
-							// we matched the codes successfully, so we have a document file belonging to
-							// the correct book. Now check if the target ch:verse reference is in it (remember
-							// that there could be several doc files for the one Bible book, so failure here
-							// does not mean we return, but just that we keep iterating)
-							gnMatchedSequNumber = FindChapterVerseLocation(gpDocList,nChap,nVerse,strChapVerse);
-							if (gnMatchedSequNumber == -1)
-							{
-								// the scripture reference is not in the gpDocList's document, so iterate
-								continue;
-							}
-							else
-							{
-								// we successfully matched the scripture reference; make this the active document...
-								// first we have to close off the existing document (saving it if it has been modified)
-								if (gpApp->m_pSourcePhrases->GetCount() > 0)
-								{
-									// there is an open document to be disposed of
-									bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
-									bool bModified = pDoc->IsModified();
-									if (bModified)
-									{
-										// we need to save it - don't ask the user
-										wxCommandEvent uevent;
-										pDoc->OnFileSave(uevent);
-									}
-									// make sure free translation mode is off
-									if (gpApp->m_bFreeTranslationMode)
-									{
-										// free translation mode is on, so we must first turn it off
-										wxCommandEvent uevent;
-										pFreeTrans->OnAdvancedFreeTranslationMode(uevent);
-									}
-									// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
-									pView->ClobberDocument();
-									pView->Invalidate(); // force immediate update (user sees white client area)
-									gpApp->m_pLayout->PlaceBox();
-								}
-
-								// also, remove the gpDocList contents, we'll use OnOpenDocument to set up the document
-								DeleteSourcePhrases_ForSyncScrollReceive(pDoc, gpDocList);
-
-								// next thing to do is check if book mode is on, and if a switch of book folder is
-								// required -- and if so, do the path change and set the flag which says we must
-								// close the currently open document first before we make the one in gpDocList visible
-								if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-								{
-									if (gpApp->m_nBookIndex != theBookIndex)
-									{
-										// it's a different book folder than is currently active, so update the path; this
-										// means we have to reset m_bibleBooksFolderPath, and the book index
-										gpApp->m_nLastBookIndex = gpApp->m_nBookIndex;
-										gpApp->m_nBookIndex = theBookIndex;
-										gpApp->m_bibleBooksFolderPath = strFolderPath;
-									}
-									else
-									{
-										// the book index is unchanged, so the path to the folder is the same (that is
-										// m_bibleBooksFolderPath has the correct folder path already, but the
-										// document may be different or the same - we'll assume different & close the
-										// current one, and open the 'other' and no harm done if it is the same one
-										gpApp->m_nLastBookIndex = gpApp->m_nBookIndex;
-									}
-								}
-								else
-								{
-									// legacy mode - storing in the Adaptations folder
-									gpApp->m_nBookIndex = -1;
-									gpApp->m_bibleBooksFolderPath.Empty();
-
-								}
-								pDoc->SetFilename(strDocPath,TRUE);
-								bOK = ::wxSetWorkingDirectory(strFolderPath); // set the active folder to the path
-								gbSyncMsgReceived_DocScanInProgress = FALSE; // clear it before parsing in the XML doc file
-									// (otherwise, the CSourcePhrase instances would be stored in gpDocList, rather than
-									// where we need them to go - which is m_pSourcePhrases in the document instance)
-
-								// copy & tweak code from DocPage.cpp for getting the document open and view set up
-								// with the phrase box at the wanted sequence number
-								bOK = pDoc->OnOpenDocument(strDocPath);
-								if (!bOK)
-								{
-									// IDS_LOAD_DOC_FAILURE
-									wxMessageBox(_(
-"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
-									_T(""), wxICON_ERROR);
-									// whm TODO: Should the app actually stop here ???
-									wxExit(); //AfxAbort();
-								}
-								if (gpApp->nLastActiveSequNum >= (int)gpApp->m_pSourcePhrases->GetCount())
-									gpApp->nLastActiveSequNum = gpApp->m_pSourcePhrases->GetCount() - 1;
-
-								gpApp->nLastActiveSequNum = gnMatchedSequNumber;
-								CPile* pPile = pView->GetPile(gpApp->nLastActiveSequNum);
-								wxASSERT(pPile != NULL);
-								int nFinish = 1;
-								// initialize m_nActiveSequNum to the nLastActiveSequNum value
-								gpApp->m_nActiveSequNum = gpApp->nLastActiveSequNum;
-								bool bSetSafely;
-								bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
-													gpApp->nLastActiveSequNum,gpApp->m_nActiveSequNum,nFinish);
-								// m_nActiveSequNum might have been changed by the
-								// preceding call, so reset the active pile
-								pPile = pView->GetPile(gpApp->m_nActiveSequNum);
-								gpApp->m_pActivePile = pPile;
-								CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-								pView->Jump(gpApp,pSrcPhrase); // jump there
-								return TRUE; // don't continue in the loop any longer
-							}
+							// the book index is unchanged, so the path to the folder is the same (that is
+							// m_bibleBooksFolderPath has the correct folder path already, but the
+							// document may be different or the same - we'll assume different & close the
+							// current one, and open the 'other' and no harm done if it is the same one
+							gpApp->m_nLastBookIndex = gpApp->m_nBookIndex;
 						}
 					}
-				 } // end of loop for iterating over all doc files in the folder
-				 gbSyncMsgReceived_DocScanInProgress = FALSE; // clear it
+					else
+					{
+						// legacy mode - storing in the Adaptations folder
+						gpApp->m_nBookIndex = -1;
+						gpApp->m_bibleBooksFolderPath.Empty();
+
+					}
+					pDoc->SetFilename(foundDocWithReferenceFilePathAndName,TRUE);
+					bOK = ::wxSetWorkingDirectory(strFolderPath); // set the active folder to the path
+					
+					// copy & tweak code from DocPage.cpp for getting the document open and view set up
+					// with the phrase box at the wanted sequence number
+					bOK = pDoc->OnOpenDocument(foundDocWithReferenceFilePathAndName);
+					if (!bOK)
+					{
+						// IDS_LOAD_DOC_FAILURE
+						wxMessageBox(_(
+"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
+						_T(""), wxICON_ERROR);
+						bool bOK;
+						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						return FALSE;
+					}
+					if (gpApp->nLastActiveSequNum >= (int)gpApp->m_pSourcePhrases->GetCount())
+						gpApp->nLastActiveSequNum = gpApp->m_pSourcePhrases->GetCount() - 1;
+
+					// whm added 26May11
+					gnMatchedSequNumber = FindChapterVerseLocation(gpApp->m_pSourcePhrases,nChap,nVerse,strChapVerse);
+					if (gnMatchedSequNumber == -1)
+					{
+						// this shouldn't happen
+						wxASSERT(FALSE);
+						bool bOK;
+						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
+						return FALSE;
+					}
+
+					// whm added 26May11 - update frame's new document name in the main frame's title: <document name> - Adapt It Unicode
+					wxDocTemplate* pTemplate = pDoc->GetDocumentTemplate();
+					wxASSERT(pTemplate != NULL);
+					wxString typeName, title;
+					typeName = pTemplate->GetDescription(); // should be "Adapt It" or "Adapt It Unicode"
+					wxFileName fn(foundDocWithReferenceFilePathAndName);
+					title = fn.GetFullName() + _T(" - ") + typeName;
+					gpApp->GetMainFrame()->SetTitle(title);
+
+					gpApp->nLastActiveSequNum = gnMatchedSequNumber;
+					CPile* pPile = pView->GetPile(gpApp->nLastActiveSequNum);
+					wxASSERT(pPile != NULL);
+					int nFinish = 1;
+					// initialize m_nActiveSequNum to the nLastActiveSequNum value
+					gpApp->m_nActiveSequNum = gpApp->nLastActiveSequNum;
+					bool bSetSafely;
+					bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
+										gpApp->nLastActiveSequNum,gpApp->m_nActiveSequNum,nFinish);
+					// m_nActiveSequNum might have been changed by the
+					// preceding call, so reset the active pile
+					pPile = pView->GetPile(gpApp->m_nActiveSequNum);
+					gpApp->m_pActivePile = pPile;
+					CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+					pView->Jump(gpApp,pSrcPhrase); // jump there
+					pDoc->Modify(FALSE); // whm added 27May11 - newly opened doc is not dirty on opening
+					gpApp->RefreshStatusBarInfo();
+					return TRUE; // don't continue in the loop any longer
+				}
+				
 			} // end of else block for doing a scan of all doc files
 		}
 	}
@@ -1026,6 +980,7 @@ void Code2BookFolderName(wxArrayPtrVoid* pBooksArray, const wxString& strBookCod
 	nBookIndex = -1;
 }
 
+/* whm removed 27May11 - no longer needed
 void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase = NULL;
@@ -1047,6 +1002,7 @@ void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
 		}
 	}
 }
+*/
 
 #ifdef __WXMSW__
 bool CMainFrame::DoSantaFeFocus(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam))

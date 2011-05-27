@@ -73,7 +73,8 @@ wxString MakeChapVerseStrForSynchronizedScroll(wxString& chapVerseStr);
 int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxString& strChapVerse);
 void Code2BookFolderName(wxArrayPtrVoid* pBooksArray, const wxString& strBookCode, wxString& strFolderName,
 						 int& nBookIndex);
-void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList);
+//void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList); // whm 27May11 removed
+																					//no longer needed
 
 /// The CMainFrame class defines Adapt It's basic interface, including its menu bar, 
 /// tool bar, control bar, compose bar, and status bar. 
