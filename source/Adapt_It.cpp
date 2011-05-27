@@ -12240,11 +12240,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	testPathUSFMShortNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-without id.txt");
 	testResultUSFMShortNoId = GetBookCodeFastFromDiskFile(testPathUSFMShortNoId);
 	*/
-	wxString testRes;
-	wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations");
-	wxString testRef = _T("1CO 2:10");
-	wxString testExt = _T(".XML");
-	testRes = FindBookFileContainingThisReference(testPath, testRef, testExt);
+
+	// Testing the FindBookFileContainingThisReference() function
+	//wxString testRes;
+	//wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations");
+	//wxString testRef = _T("2JN 1:5");
+	//wxString testExt = _T(".XML");
+	//testRes = FindBookFileContainingThisReference(testPath, testRef, testExt);
+	//int junk;
+	//junk = 1;
+	
 	/*
 	// testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
 	// 3198 above)
@@ -14530,22 +14535,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
-	// whm 28Sep10 moved the MakeMenuInitializationsAndPlatformAdjustments() function and the code for
-	// loading the file history (MRU) from this location in OnInit() to much later after
-	// the AI_UserProfiles.xml file has been loaded.
-	/*
-	MakeMenuInitializationsAndPlatformAdjustments();
-
-	// Get the File Menu, tell the doc manager that we want the File History on the
-	// File Menu, and Load the File History (MRU) to it
-	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
-	wxASSERT(pFileMenu != NULL);
-	m_pDocManager->FileHistoryUseMenu(pFileMenu);
-	// This must come after Main Menu is created and FileHistoryUseMenu call
-	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
-												// list from *m_pConfig
-	*/
-
 	// whm added 9Feb11 for Paratext Collaboration support
 	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
 	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
@@ -14606,7 +14595,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	
 	// whm 28Mar11 TESTING ABOVE !!!
 	*/
-    // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
+    
+	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
     // it would necessarily be a good thing for users to be able to open AI documents by
     // double clicking on Adapt It's data files. They are now stored in .xml files which we
@@ -36511,9 +36501,9 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 		{
 			tempFileName = filesInFolder.Item(ct);
 			posnBookNum = tempFileName.Find(pt_bookNumStr);
-			if (posnBookNum == 0)
+			if (posnBookNum >= 0)
 			{
-				// the book number string is at the beginning of this file's name
+				// the book number string is somewhere in this file's name
 				booksWithNamesToCheck.Add(tempFileName);
 			}
 		}
@@ -36524,6 +36514,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 		// in that file. 
 		int totNamesToCheck = booksWithNamesToCheck.GetCount();
 		wxString fileNameToCheck = _T("");
+		
 		if (totNamesToCheck != 0)
 		{
 			int ct;
@@ -36532,6 +36523,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 			{
 				fileNameToCheck = booksWithNamesToCheck.Item(ct);
 				// Note: our collaboration file name will be of the form: 41MATNYNT_CH01.xml
+				// or Collab_41MATNYNT_CH01.xml.
 				int posn = fileNameToCheck.Find(_T("_CH"));
 				if ((posn != wxNOT_FOUND) && ((posn + 4) < (int)fileNameToCheck.Length()))
 				{
@@ -36556,91 +36548,146 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 				wxASSERT(!fileNameToCheck.IsEmpty());
 				wxString tempFileAndPath = folderPath + PathSeparator + fileNameToCheck;
 				wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
-				wxString fileBuffer;
 				if (bookCode == bookStr) // normalize case ???
 				{
 					// the book code matches, so now verify that the book has the chapter and verse reference
-					
-					// now read the file into a buffer in preparation for analyzing their chapter and
-					// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
-					// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
-					// UNICODE BOM of ef bb bf
-					wxFile f(tempFileAndPath,wxFile::read);
-					wxFileOffset fileLen;
-					fileLen = f.Length();
-					// read the raw byte data into pByteBuf (char buffer on the heap)
-					char* pByteBuf = (char*)malloc(fileLen + 1);
-					memset(pByteBuf,0,fileLen + 1); // fill with nulls
-					f.Read(pByteBuf,fileLen);
-					wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
-					f.Close();
-					fileBuffer = wxString(pByteBuf,wxConvUTF8,fileLen);
-					free((void*)pByteBuf);
-
-					// get the usfm structure of the buffer
-					wxArrayString usfmStructureArray;
-					usfmStructureArray = GetUsfmStructureAndExtent(fileBuffer);
-				
-					// We here use the usfmStructureArray to quickly determine if the
-					// chapter and verse reference exists in the book being examined in
-					// the fileBuffer.
-					int ct = 0;
-					int tot;
-					tot = usfmStructureArray.GetCount();
-					wxString arrayLine;
 					bool bRefFound = FALSE;
-					while (ct < tot && !bRefFound)
+					bRefFound = BookHasChapterAndVerseReference(tempFileAndPath,chapterStr,verseStr);
+					
+					if (bRefFound)
 					{
-						arrayLine = usfmStructureArray.Item(ct);
-						// arrayLine is of the form \mkr n:nnnn for chapter and verse markers, \mkr:nnnn for others
-						if (arrayLine.Find(_T("\\c ")) != wxNOT_FOUND) // TODO: use the PT defined \c
-						{
-							if (GetNumberFromChapterOrVerseStr(arrayLine) == chapterStr)
-							{
-								// we've found our chapter reference, now scan further down and
-								// see if there is a verse reference for this chapter
-								int newCt = ct+1;
-								arrayLine = usfmStructureArray.Item(newCt);
-								while (newCt < tot && arrayLine.Find(_T("\\c ")) != wxNOT_FOUND) // TODO: use the PT defined \v
-								{
-									if (arrayLine.Find(_T("\\v ")) != wxNOT_FOUND)
-									{
-										if (GetNumberFromChapterOrVerseStr(arrayLine) == verseStr)
-										{
-											// we have a match for both the chapter and the verse number
-											bRefFound = TRUE;
-											break;
-										}
-									}
-									newCt++;
-									if (newCt < tot)
-									{
-										arrayLine = usfmStructureArray.Item(newCt);
-									}
-								}
-							}
-						}
-						ct++;
-					} // end of while (ct < tot && !bRefFound)
-				
+						// we found the file containing the book code and the chapter and verse reference
+						// so return the file name of the book
+						return tempFileAndPath;
+					}
 				} // end of if (bookCode == bookStr)
 			} // end of if (bFoundChapterHintToCheck)
 			else
 			{
-				// we did not find a file name contining a _CHnn hint
-				// TODO:
+				// The file name had a number hint, but we did not find a file name also 
+				// containing a _CHnn hint so we'll need to scan, all the files in the
+				// booksWithNamesToCheck array. 
+				for (ct = 0; ct < totNamesToCheck; ct++)
+				{
+					tempFileName = booksWithNamesToCheck.Item(ct);
+					wxASSERT(!tempFileName.IsEmpty());
+					wxString tempFileAndPath = folderPath + PathSeparator + tempFileName;
+					wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
+					if (bookCode == bookStr) // normalize case ???
+					{
+						// the book code matches, so now verify that the book has the chapter and verse reference
+						bool bRefFound = FALSE;
+						bRefFound = BookHasChapterAndVerseReference(tempFileAndPath,chapterStr,verseStr);
+						
+						if (bRefFound)
+						{
+							// we found the file containing the book code and the chapter and verse reference
+							// so return the file name of the book
+							return tempFileAndPath;
+						}
+					} // end of if (bookCode == bookStr)
+				}
 			}
 		} // end of if (totNamesToCheck != 0)
 		else
 		{
-			// there were no file names with number hints in their names, so we will
-			// have to do a brute check of files until we either run out of files to
-			// check or find the one with the book code, chapter and reference.
-			// TODO: borrow code from above
+			// there were no file names with number hints within their 
+			// names as used in Paratext, so we will have to do a brute check of all
+			// the files in the folder (names stored in filesInFolder array) until we 
+			// either run out of files to check or find the one with the book code, 
+			// chapter and reference.
+			for (ct = 0; ct < totFiles; ct++)
+			{
+				tempFileName = filesInFolder.Item(ct);
+				wxASSERT(!tempFileName.IsEmpty());
+				wxString tempFileAndPath = folderPath + PathSeparator + tempFileName;
+				wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
+				if (bookCode == bookStr) // normalize case ???
+				{
+					// the book code matches, so now verify that the book has the chapter and verse reference
+					bool bRefFound = FALSE;
+					bRefFound = BookHasChapterAndVerseReference(tempFileAndPath,chapterStr,verseStr);
+					
+					if (bRefFound)
+					{
+						// we found the file containing the book code and the chapter and verse reference
+						// so return the file name of the book
+						return tempFileAndPath;
+					}
+				} // end of if (bookCode == bookStr)
+			}
 		}
 	} // end of if (bOK)
 
 	return tempBookPathName;
+}
+
+bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr)
+{
+	bool bRefFound = FALSE;
+	wxString fileBuffer;
+	// now read the file into a buffer in preparation for analyzing their chapter and
+	// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// UNICODE BOM of ef bb bf
+	wxFile f(fileAndPath,wxFile::read);
+	wxFileOffset fileLen;
+	fileLen = f.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pByteBuf = (char*)malloc(fileLen + 1);
+	memset(pByteBuf,0,fileLen + 1); // fill with nulls
+	f.Read(pByteBuf,fileLen);
+	wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
+	f.Close();
+	fileBuffer = wxString(pByteBuf,wxConvUTF8,fileLen);
+	free((void*)pByteBuf);
+
+	// get the usfm structure of the buffer
+	wxArrayString usfmStructureArray;
+	usfmStructureArray = GetUsfmStructureAndExtent(fileBuffer);
+
+	// We here use the usfmStructureArray to quickly determine if the
+	// chapter and verse reference exists in the book being examined in
+	// the fileBuffer.
+	int ct = 0;
+	int tot;
+	tot = usfmStructureArray.GetCount();
+	wxString arrayLine;
+	while (ct < tot && !bRefFound)
+	{
+		arrayLine = usfmStructureArray.Item(ct);
+		// arrayLine is of the form \mkr n:nnnn for chapter and verse markers, \mkr:nnnn for others
+		if (arrayLine.Find(_T("\\c ")) != wxNOT_FOUND) // TODO: use the PT defined \c
+		{
+			wxString numStr = GetNumberFromChapterOrVerseStr(arrayLine);
+			if (numStr == chapterStr)
+			{
+				// we've found our chapter reference, now scan further down and
+				// see if there is a verse reference for this chapter
+				int newCt = ct+1;
+				arrayLine = usfmStructureArray.Item(newCt);
+				while (newCt < tot && arrayLine.Find(_T("\\c ")) == wxNOT_FOUND) // TODO: use the PT defined \v
+				{
+					if (arrayLine.Find(_T("\\v ")) != wxNOT_FOUND)
+					{
+						if (GetNumberFromChapterOrVerseStr(arrayLine) == verseStr)
+						{
+							// we have a match for both the chapter and the verse number
+							bRefFound = TRUE;
+							break;
+						}
+					}
+					newCt++;
+					if (newCt < tot)
+					{
+						arrayLine = usfmStructureArray.Item(newCt);
+					}
+				}
+			}
+		}
+		ct++;
+	} // end of while (ct < tot && !bRefFound)
+	return bRefFound;
 }
 
 int CAdapt_ItApp::GetNumberFromBookCodeForFileNaming(wxString bookStr)

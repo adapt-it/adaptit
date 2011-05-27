@@ -1271,7 +1271,7 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 	int posColon = numStr.Find(_T(':'),TRUE); // TRUE - find from right end
 	wxASSERT(posColon != wxNOT_FOUND);
 	numStr = numStr.Mid(0,posColon);
-	int posSpace = numStr.Find(_T(' '),TRUE);
+	int posSpace = numStr.Find(_T(' '));
 	numStr = numStr.Mid(posSpace);
 	numStr.Trim(FALSE);
 	numStr.Trim(TRUE);
