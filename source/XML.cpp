@@ -2036,10 +2036,16 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			// for all definedProfileN attributes where N is 1,2,3,4...
 #ifdef _UNICODE
 			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the definedProfile
-			gpUserProfiles->definedProfileNames.Add(::wxGetTranslation(pValueW)); // whm changed 24May11 to use localization
+			wxString tempWS;
+			tempWS = pValueW;
+			tempWS = ::wxGetTranslation(tempWS);
+			gpUserProfiles->definedProfileNames.Add(tempWS); // whm changed 24May11 to use localization
 			//gpUserProfiles->definedProfileNames.Add(pValueW);
 #else
-			gpUserProfiles->definedProfileNames.Add(::wxGetTranslation(pValue)); // whm changed 24May11 to use localization
+			wxString tempWS;
+			tempWS = pValue;
+			tempWS = ::wxGetTranslation(tempWS.c_str());
+			gpUserProfiles->definedProfileNames.Add(tempWS); // whm changed 24May11 to use localization
 			//gpUserProfiles->definedProfileNames.Add(pValue);
 #endif
 		}

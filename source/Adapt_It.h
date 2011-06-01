@@ -2893,6 +2893,7 @@ public:
 				wxString& profileVersionStr,wxString& applicationCompatibilityStr,wxString& adminModifiedStr);
 	bool	BackupExistingUserProfilesFileInWorkFolder(wxString AIuserProfilesWorkFolderPath, wxString& backupPathNameUsed);
 	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt);
+	void	SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt);
 	void	DestroyUserProfiles(UserProfiles*& pUserProfiles);
 	void	DestroyMenuStructure(AI_MenuStructure*& pMenuStructure);
 	bool	SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath);
@@ -2930,6 +2931,8 @@ public:
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
 	wxString GetParatextInstallDirPath(); // whm added 9Feb11
+	wxString GetFileNameForCollaborationDoc(wxString collabPrefix, wxString bookCode, 
+							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 

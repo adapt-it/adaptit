@@ -39,14 +39,17 @@ public:
 	wxString m_TempPTProjectForTargetExports;
 	wxString m_TempPTBookSelected;
 	wxString m_TempPTChapterSelected;
+	wxString m_bareChapterSelected;
 	wxArrayString projList;
 
-	wxString sourceFileBuffer;
-	wxString targetFileBuffer;
+	wxString sourceWholeBookBuffer;
+	wxString targetWholeBookBuffer;
 	wxString sourceChapterBuffer;
 	wxString targetChapterBuffer;
 	wxArrayString SourceTextUsfmStructureAndExtentArray;
 	wxArrayString TargetTextUsfmStructureAndExtentArray;
+	wxArrayString SourceChapterUsfmStructureAndExtentArray;
+	wxArrayString TargetChapterUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtp7PathAndFileName;
 
@@ -73,6 +76,7 @@ protected:
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
 	void LoadBookNamesIntoList();
 	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,int& nUpperNumber);
+	wxString GetBareChFromLBChSelection(wxString lbChapterSelected);
 
 private:
 	CAdapt_ItApp* m_pApp;

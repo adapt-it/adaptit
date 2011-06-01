@@ -3316,12 +3316,18 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 			{
 
 				// pItem->itemText is the string we want to look up, but remove decorations
-				wxString itemTextPlain = RemoveMenuLabelDecorations(pItem->itemText);
+				wxString itemTextPlain = pItem->itemText; //RemoveMenuLabelDecorations(pItem->itemText);
 				// Note: UserProfiles data does not list menuSeparators so itemTextPlain
 				// will never be menuSeparator
 				// now look up the mapped int value
 				MapMenuLabelStrToIdInt::iterator iter;
-				iter = m_mapMenuLabelStrToIdInt.find(itemTextPlain);
+				
+				// Note: the \t chars in the xml and internal strings become \\t literals
+				// and need to be changed to \t to work in the menus.
+				wxString labelStr = itemTextPlain;
+				labelStr.Replace(_T("\\t"),_T("\t"));
+				
+				iter = m_mapMenuLabelStrToIdInt.find(labelStr);
 				int itemId = -1;
 				if (iter != m_mapMenuLabelStrToIdInt.end())
 				{
@@ -3505,7 +3511,8 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 	wxASSERT(pMenuBar != NULL);
 
 	MapMenuLabelStrToIdInt::iterator iter;
-	m_mapMenuLabelStrToIdInt.clear();
+	//m_mapMenuLabelStrToIdInt.clear(); // don't call .clear() here because we've already populated the map
+	//with the untranslated menu label string-to-int associations
 
 	if (pMenuBar == NULL)
 	{
@@ -3546,7 +3553,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 			// insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
 			// Note: we remove menu decorations since we want to be able to look up the plain label in
 			// the map
-			wxString mainMenuItemLabelPlain = RemoveMenuLabelDecorations(mbMainMenuText);
+			wxString mainMenuItemLabelPlain = mbMainMenuText; //RemoveMenuLabelDecorations(mbMainMenuText);
 			iter = m_mapMenuLabelStrToIdInt.find(mainMenuItemLabelPlain);
 			if (iter != m_mapMenuLabelStrToIdInt.end())
 			{
@@ -3598,9 +3605,15 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 				// insert the sub menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
 				// Note: we remove menu decorations since we want to be able to look up the plain label in
 				// the map
-				wxString subMenuItemLabelPlain = RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
+				wxString subMenuItemLabelPlain = pSubMenuItem->subMenuLabel; //RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
 				if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
 					subMenuItemLabelPlain = _T("menuSeparator");
+				
+				// Note: the \t chars in the xml and internal strings become \\t literals
+				// and need to be changed to \t to work in the menus.
+				wxString labelStr = subMenuItemLabelPlain;
+				subMenuItemLabelPlain.Replace(_T("\\t"),_T("\t"));
+				
 				iter = m_mapMenuLabelStrToIdInt.find(subMenuItemLabelPlain);
 				if (iter != m_mapMenuLabelStrToIdInt.end())
 				{
@@ -3622,6 +3635,149 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 				pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
 			}
 			pMenuStructure->aiMainMenuItems.Append(pMainMenuItem);
+		}
+	}
+
+	// Note: calling delete on pMenuBar is sufficient; because of its hierarchy of ownership
+	// all of its child objects get destroyed automatically.
+	delete pMenuBar;
+	pMenuBar = (wxMenuBar*)NULL;
+}
+
+// This function's code borrowed brom SetupDefaultMenuStructure(). In this function, however, we do not 
+// build any AI_MenuStructure, but simply populate the m_mapMenuLabelStrToIdInt map with the untranslated
+// unlocalized menu strings. Hence this function is called before any non-English locale catalog is loaded
+// in OnInit().
+void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt)
+{
+	wxMenuBar* pMenuBar;
+	pMenuBar = AIMenuBarFunc();
+	wxASSERT(pMenuBar != NULL);
+
+	MapMenuLabelStrToIdInt::iterator iter;
+	m_mapMenuLabelStrToIdInt.clear(); // OK to call clear() here
+
+	if (pMenuBar == NULL)
+	{
+		wxASSERT(FALSE);
+		wxLogDebug(_T("The pointer to the temporary AI menu bar is NULL\n -   aborting the SetupDefaultMenuStructure() function"));
+		return;
+	}
+	int ct;
+	int mbct = pMenuBar->GetMenuCount(); // get the number of top level menu items
+	for (ct = 0; ct < mbct; ct++)
+	{
+		wxMenu* pmbMainMenuItem = pMenuBar->GetMenu(ct); // AI menu bar
+		wxASSERT(pmbMainMenuItem != NULL);
+		if (pmbMainMenuItem != NULL)
+		{
+			//pMainMenuItem = new AI_MainMenuItem;
+			//wxASSERT(pMainMenuItem != NULL);
+			//// initialize the new pMainMenuItem's members
+			//pMainMenuItem->mainMenuIDint = -1;
+			////pMainMenuItem->mainMenuID = _T("");
+			//pMainMenuItem->mainMenuLabel = _T("");
+			//pMainMenuItem->aiSubMenuItems.Clear();
+			
+			// get values for pMainMenuItem's members from the temp AI menu bar pMenuBar
+			wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
+			//pMainMenuItem->mainMenuLabel = mbMainMenuText;
+			// For some reason a wxMenu item (top level or sub menu item) does not have a 
+			// GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
+			// determine the int ID of a main menu item in a round-about way.
+			
+			//pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
+			//pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
+			// Consider: When the compiled all of the menu item IDs are determined and those const int values
+			// are used at run time. They don't change during execution or even from session to session of a
+			// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+			// especially since the mainMenuIDint value never changes.
+			
+			// insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+			// Note: we remove menu decorations since we want to be able to look up the plain label in
+			// the map
+			wxString mainMenuItemLabelPlain = mbMainMenuText; //RemoveMenuLabelDecorations(mbMainMenuText);
+			iter = m_mapMenuLabelStrToIdInt.find(mainMenuItemLabelPlain);
+			if (iter != m_mapMenuLabelStrToIdInt.end())
+			{
+				// key exists in the map
+				m_mapMenuLabelStrToIdInt.insert(*iter); // associates (any new) pMainMenuItem->mainMenuIDint value with the keyCopy
+			}
+			else
+			{
+				// key not in the map
+				// The [] index operator can be used either of two ways in assignment statement
+				m_mapMenuLabelStrToIdInt[mainMenuItemLabelPlain] = GetTopLevelMenuID(mbMainMenuText); //pMainMenuItem->mainMenuIDint; // clearest
+				// or, the following is equivalent, but not so clear
+				//pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
+				// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+				// The only difference is that if the given key is not present in the hash map,
+				// an element with the default value_type() is inserted in the table."
+			}
+
+			int i;
+			int imbct;
+			imbct = pmbMainMenuItem->GetMenuItemCount(); // AI menu bar
+			for (i = 0; i < imbct; i++)
+			{
+				wxMenuItemList pmbSubMenuItems = pmbMainMenuItem->GetMenuItems(); // AI menu bar
+				wxMenuItemList::Node* mbListNode; // AI menu bar
+				mbListNode = pmbSubMenuItems.Item(i); // AI menu bar
+				wxMenuItem* pmbSubMenuItem = mbListNode->GetData(); // AI menu bar
+				wxASSERT(pmbSubMenuItem != NULL);
+				//pSubMenuItem = new AI_SubMenuItem;
+				//// initialize pSubMenuItem's members
+				//wxASSERT(pSubMenuItem != NULL);
+				////pSubMenuItem->subMenuID = _T("");
+				//pSubMenuItem->subMenuIDint = -1;
+				//pSubMenuItem->subMenuLabel = _T("");
+				//pSubMenuItem->subMenuHelp = _T("");
+				//pSubMenuItem->subMenuKind = _T("");
+				
+				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's 
+				// pmbSubMenuItem objects
+				//pSubMenuItem->subMenuID = // we can get along without this string representation mainMenuID
+				// Consider: When the compiled all of the menu item IDs are determined and those const int values
+				// are used at run time. They don't change during execution or even from session to session of a
+				// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+				// especially since the mainMenuIDint value never changes.
+				//pSubMenuItem->subMenuIDint = pmbSubMenuItem->GetId(); // GetId() returns -2 for menu separator
+				//pSubMenuItem->subMenuLabel = pmbSubMenuItem->GetItemLabel();
+				//pSubMenuItem->subMenuHelp = pmbSubMenuItem->GetHelp();
+				//pSubMenuItem->subMenuKind = GetMenuItemKindAsString(pmbSubMenuItem->GetKind());
+				// insert the sub menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+				// Note: we remove menu decorations since we want to be able to look up the plain label in
+				// the map
+				wxString subMenuItemLabelPlain = pmbSubMenuItem->GetItemLabel(); //pSubMenuItem->subMenuLabel; //RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
+				if (GetMenuItemKindAsString(pmbSubMenuItem->GetKind()) == _T("wxITEM_SEPARATOR")) //if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
+					subMenuItemLabelPlain = _T("menuSeparator");
+				
+				// Note: the \t chars in the xml and internal strings become \\t literals
+				// and need to be changed to \t to work in the menus.
+				wxString labelStr = subMenuItemLabelPlain;
+				subMenuItemLabelPlain.Replace(_T("\\t"),_T("\t"));
+				
+				iter = m_mapMenuLabelStrToIdInt.find(subMenuItemLabelPlain);
+				if (iter != m_mapMenuLabelStrToIdInt.end())
+				{
+					// key exists in the map
+					m_mapMenuLabelStrToIdInt.insert(*iter); // associates (any new) pNewTU value with the keyCopy
+				}
+				else
+				{
+					// key not in the map
+					// The [] index operator can be used either of two ways in assignment statement
+					m_mapMenuLabelStrToIdInt[subMenuItemLabelPlain] = pmbSubMenuItem->GetId(); //pSubMenuItem->subMenuIDint; // clearest
+					// or, the following is equivalent, but not so clear
+					//pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+					// NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+					// The only difference is that if the given key is not present in the hash map,
+					// an element with the default value_type() is inserted in the table."
+				}
+				// add pSubMenuItem to the pMainMenuItem's aiSubMenuItems list
+				//pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
+			}
+			//pMenuStructure->aiMainMenuItems.Append(pMainMenuItem);
 		}
 	}
 
@@ -7562,7 +7718,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 		{
 			continue;
 		}
-		mainMenuLabel_DefaultStructure = RemoveMenuLabelDecorations(mainMenuLabel_DefaultStructure); // remove any & chars for comparison
+		mainMenuLabel_DefaultStructure = mainMenuLabel_DefaultStructure; //RemoveMenuLabelDecorations(mainMenuLabel_DefaultStructure); // remove any & chars for comparison
 		// get the current top level wxMenu* from the menu bar
 		int topLevelMenuBarIndex;
 		topLevelMenuBarIndex = pMenuBar_Current->FindMenu(mainMenuLabel_DefaultStructure);
@@ -10131,7 +10287,7 @@ int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxStr
 	// or wxMenuBar::FindMenuItem(const wxString& menuString, const wxString& itemString) const
 	// on the appropriate top level menu of the tempMenuBar
 	wxString menuItemLabelPlain = menuItemLabel;
-	menuItemLabelPlain = RemoveMenuLabelDecorations(menuItemLabelPlain);
+	menuItemLabelPlain = menuItemLabelPlain; // RemoveMenuLabelDecorations(menuItemLabelPlain); // FindMenuItem() below strips out decorations
 	int menuItemId;
 	if (menuItemLabelPlain.IsEmpty())
 		return wxID_SEPARATOR; // wxID_SEPARATOR has value of -2.
@@ -10742,6 +10898,84 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 #endif
 
 	return path;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing a suitable document file name for AI's collaboration 
+///                    with Paratext or Bibledit
+/// \param      collabPrefix       -> the USFM 3-letter book code string for a Scripture book
+/// \param      bookCode           -> the USFM 3-letter book code string for a Scripture book
+/// \param      ptProjectShortName -> the Paratext Project's short name the Scripture book is in
+/// \param      chapterNumStr -> the chapter number as a string, optionally can be wxEmptyString
+/// \param      extStr        -> the extension to use, generally will be "xml"
+/// \remarks
+/// 
+/// Builds a suitable file name for Adapt It's local use based partly on the Paratext naming
+/// scheme, and partly for Adapt It's own filename identification purposes. The usual resulting
+/// string is of the form represented by the following example: Collab_nn_BBB_XYZ_CHcc.ext where
+/// nn is the numerical book equivalent in the Paratext scheme (01 is Genesis, 39 is Malachi,
+/// 41 is Matthew, 67 is Revelation); BBB is the USFM 3-letter book code; XYZ is the Paratext
+/// project's short name; cc is the chapter number, and ext is the extension for the filename. 
+/// The format for nn and cc when < 10 has a leading '0'. If the chapterNumStr is empty 
+/// (wxEmptyString or _T("")), the resulting file name string is of the form: Collab_nn_BBB_XYZ.ext. 
+/// The incoming extStr can contain an initial dot or be just the extension itself; the 
+/// function puts the initial dot if it is not present in the incoming extStr. The bookCode and
+/// extStr are the two manditory parameters that cannot be empty strings.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetFileNameForCollaborationDoc(wxString collabPrefix, wxString bookCode, 
+							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr)
+{
+	wxASSERT(!bookCode.IsEmpty());
+	wxASSERT(!extStr.IsEmpty());
+	wxString nameStr;
+	nameStr.Empty();
+	if (!collabPrefix.IsEmpty())
+	{
+		nameStr = collabPrefix; // don't localize
+		nameStr += _T('_');
+	}
+	int num = GetNumberFromBookCodeForFileNaming(bookCode);
+	// the number returned from GetNumberFromBookCodeForFileNaming() will never have leading zeros.
+	if (num < 10)
+	{
+		nameStr += _T('0');
+	}
+	nameStr << num;
+	nameStr += _T('_');
+	nameStr += bookCode;
+	if (!ptProjectShortName.IsEmpty())
+	{
+		nameStr += _T('_');
+		nameStr += ptProjectShortName;
+	}
+	chapterNumStr.Trim(FALSE);
+	chapterNumStr.Trim(TRUE);
+	if (!chapterNumStr.IsEmpty())
+	{
+		int chNum;
+		chNum = wxAtoi(chapterNumStr);
+		// wxAtoi() removes any leading 0 chars, so get the normalized string form of the number for adding below
+		wxString cNum;
+		cNum.Empty();
+		cNum << chNum;
+		nameStr += _T("_CH"); // don't localize
+		if (chNum < 10)
+		{
+			nameStr += _T('0');
+		}
+		nameStr += cNum;
+	}
+	if (extStr.Find(_T('.')) == 0)
+	{
+		// extStr begins with a '.' so just add it
+		nameStr += extStr;
+	}
+	else
+	{
+		nameStr += _T('.');
+		nameStr += extStr;
+	}
+	return nameStr;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -12250,7 +12484,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//int junk;
 	//junk = 1;
 	
-	/*
+	// Testing the FindBookFileContainingThisReference() function
+	//wxString testStr1 = GetFileNameForCollaborationDoc(_T("Collab"), _T("MAT"), _T("NYNT"), _T("3"), _T("xml"));
+	//wxString testStr2 = GetFileNameForCollaborationDoc(wxEmptyString, _T("GEN"), _T("NYNT"), _T("11"), _T(".xml"));
+	//wxString testStr3 = GetFileNameForCollaborationDoc(wxEmptyString, _T("MAL"), wxEmptyString, wxEmptyString, _T(".xml"));
+	//wxString testStr4 = GetFileNameForCollaborationDoc(_T("Collab"), _T("MAL"), _T("NYNT"), _T("01"), _T("tmp"));
+	//int junk;
+	//junk = 1;
+		/*
+	
 	// testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
 	// 3198 above)
 	
@@ -13107,6 +13349,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
+
+	// At this point - just before loading any non-English localization catalog, we
+	// populate the m_mapMenuLabelStrToIdint with the English menu label items and 
+	// their menu id int associations.
+	SetupUnTranslatedMapMenuLabelStrToIdInt(m_mapMenuLabelStrToIdInt);
 
     // NOTE: We determine Adapt It's user interface language here early in OnInit() before
     // the main frame and other visible parts of the interface are shown to the user. If
@@ -36700,11 +36947,12 @@ int CAdapt_ItApp::GetNumberFromBookCodeForFileNaming(wxString bookStr)
 		if (bookIDArray.Item(ct) == bookStr)
 		{
 			bookNum = ct + 1; // the AllBookIds enum is 1 based rather than 0 base
-			if (ct > 39)
+			if (bookNum > 39)
 			{
 				bookNum++;  // from Malachi MAL to Matthew (MAT) the PT book numbering skips 40,
 							// so MAL is 39 and MAT is 41
 			}
+			break;
 		}
 	}
 	return bookNum;
