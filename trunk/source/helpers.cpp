@@ -1293,7 +1293,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 	wxChar* pEnd = ptrSrc + nBufLen;	// point to one char past the end of the buffer text
 	wxASSERT(*pEnd == '\0');
 
-	// Note: the wxConvUTF8 parameter of the above targetFileBuffer constructor also
+	// Note: the wxConvUTF8 parameter of the caller's sourceFileBuffer constructor also
 	// removes the initial BOM from the string when converting to a wxString
 	// but we'll check here to make sure and skip it if present. Curiously, the string's
 	// buffer after conversion also contains the FEFF UTF-16 BOM as its first char in the

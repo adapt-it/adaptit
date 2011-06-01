@@ -526,8 +526,14 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForSourceInputs);
 	targetProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForTargetExports);
 	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
-	wxString sourceTempFileName = tempFolder + m_pApp->PathSeparator + bookNumAsStr + bookCode + _T("_") + sourceProjShortName + _T(".tmp");
-	wxString targetTempFileName = tempFolder + m_pApp->PathSeparator + bookNumAsStr + bookCode + _T("_") + targetProjShortName + _T(".tmp");
+	// use our App's
+	
+	wxString sourceTempFileName;
+	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
+	sourceTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, sourceProjShortName, wxEmptyString, _T(".tmp"));
+	wxString targetTempFileName;
+	targetTempFileName = tempFolder + m_pApp->PathSeparator;
+	targetTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
 	
 	
 	// Build the command lines for reading the PT projects using rdwrtp7.exe.
@@ -617,7 +623,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	f_src.Read(pSourceByteBuf,fileLenSrc);
 	wxASSERT(pSourceByteBuf[fileLenSrc] == '\0'); // should end in NULL
 	f_src.Close();
-	sourceFileBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
+	sourceWholeBookBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
 	free((void*)pSourceByteBuf);
 
 	wxFile f_tgt(targetTempFileName,wxFile::read);
@@ -629,16 +635,17 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	f_tgt.Read(pTargetByteBuf,fileLenTgt);
 	wxASSERT(pTargetByteBuf[fileLenTgt] == '\0'); // should end in NULL
 	f_tgt.Close();
-	targetFileBuffer = wxString(pTargetByteBuf,wxConvUTF8,fileLenTgt);
+	targetWholeBookBuffer = wxString(pTargetByteBuf,wxConvUTF8,fileLenTgt);
 	// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
 	// in ANSI builds so this should work for both ANSI and Unicode data.
 	free((void*)pTargetByteBuf);
 
 	SourceTextUsfmStructureAndExtentArray.Clear();
-	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceFileBuffer);
-	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetFileBuffer);
+	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
+	TargetTextUsfmStructureAndExtentArray.Clear();
+	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
 	
-	// Note: The sourceFileBuffer and targetFileBuffer will not be completely empty even
+	// Note: The sourceWholeBookBuffer and targetWholeBookBuffer will not be completely empty even
 	// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
 	// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
 	// buffer. So, we can tell better whether the book hasn't been created within Paratext
@@ -751,7 +758,9 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxCommandEvent& WXUNUSED(e
 	}
 
 	// TODO: Bruce feels that we should get a fresh copy of the PT target project's chapter
-	// file at this point
+	// file at this point. I think it would be better to do so in the OnOK() handler than here,
+	// since it is the OnOK() handler that will actually open the chapter text as an AI 
+	// document.
 }
 
 void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event))
@@ -791,6 +800,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_PTProjectForTargetExports = m_TempPTProjectForTargetExports;
 	m_pApp->m_PTBookSelected = m_TempPTBookSelected;
 	m_pApp->m_PTChapterSelected = m_TempPTChapterSelected;
+	wxString bareChapterSelectedStr;
+	int chSel = pListBoxChapterNumberAndStatus->GetSelection();
+	if (chSel != wxNOT_FOUND)
+	{
+		chSel++; // the chapter number is one greater than the selected lb index
+	}
+	bareChapterSelectedStr.Empty();
+	bareChapterSelectedStr << chSel;
+	wxString derivedChStr = GetBareChFromLBChSelection(m_TempPTChapterSelected);
+	wxASSERT(bareChapterSelectedStr == derivedChStr);
 	
 	// Set up (or access any existing) project for the selected book/chapter
 	// How this is handled will depend on whether the book/chapter selected
@@ -799,6 +818,137 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_PTProjectForSourceInputs);
 	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_PTProjectForTargetExports);
 	
+	// Get the latest version of the source and target texts from the PT project. We retrieve
+	// only texts for the selected chapter.
+	wxString tempFolder;
+	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_TempPTBookSelected);;
+	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
+	wxString sourceTempFileName;
+	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
+	sourceTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, shortProjNameSrc, bareChapterSelectedStr, _T(".tmp"));
+	wxString targetTempFileName;
+	targetTempFileName = tempFolder + m_pApp->PathSeparator;
+	targetTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, shortProjNameTgt, bareChapterSelectedStr, _T(".tmp"));
+	
+	// Build the command lines for reading the PT projects using rdwrtp7.exe.
+	wxString commandLineSrc,commandLineTgt;
+	commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+	commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	wxLogDebug(commandLineSrc);
+
+	long resultSrc = -1;
+	long resultTgt = -1;
+    wxArrayString outputSrc, errorsSrc;
+	wxArrayString outputTgt, errorsTgt;
+	// Use the wxExecute() override that takes the two wxStringArray parameters. This
+	// also redirects the output and suppresses the dos console window during execution.
+	resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
+	if (resultSrc == 0)
+	{
+		resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
+
+	}
+	if (resultSrc != 0 || resultTgt != 0)
+	{
+		// not likely to happen so an English warning will suffice
+		wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+		wxString temp;
+		temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		m_pApp->LogUserAction(temp);
+		wxLogDebug(temp);
+		int ct;
+		if (resultSrc != 0)
+		{
+			temp.Empty();
+			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
+			{
+				temp += outputSrc.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
+			{
+				temp += errorsSrc.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+		}
+		if (resultTgt != 0)
+		{
+			temp.Empty();
+			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
+			{
+				temp += outputTgt.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
+			{
+				temp += errorsTgt.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+		}
+		pListBoxBookNames->SetSelection(-1); // remove any selection
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListBoxChapterNumberAndStatus->Clear();
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+
+	// now read the tmp files into buffers in preparation for analyzing their chapter and
+	// verse status info (1:1:nnnn).
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// UNICODE BOM of ef bb bf
+	wxFile f_src(sourceTempFileName,wxFile::read);
+	wxFileOffset fileLenSrc;
+	fileLenSrc = f_src.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pSourceByteBuf = (char*)malloc(fileLenSrc + 1);
+	memset(pSourceByteBuf,0,fileLenSrc + 1); // fill with nulls
+	f_src.Read(pSourceByteBuf,fileLenSrc);
+	wxASSERT(pSourceByteBuf[fileLenSrc] == '\0'); // should end in NULL
+	f_src.Close();
+	sourceChapterBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
+	free((void*)pSourceByteBuf);
+
+	wxFile f_tgt(targetTempFileName,wxFile::read);
+	wxFileOffset fileLenTgt;
+	fileLenTgt = f_tgt.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pTargetByteBuf = (char*)malloc(fileLenTgt + 1);
+	memset(pTargetByteBuf,0,fileLenTgt + 1); // fill with nulls
+	f_tgt.Read(pTargetByteBuf,fileLenTgt);
+	wxASSERT(pTargetByteBuf[fileLenTgt] == '\0'); // should end in NULL
+	f_tgt.Close();
+	targetChapterBuffer = wxString(pTargetByteBuf,wxConvUTF8,fileLenTgt);
+	// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
+	// in ANSI builds so this should work for both ANSI and Unicode data.
+	free((void*)pTargetByteBuf);
+
+	SourceChapterUsfmStructureAndExtentArray.Clear();
+	SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
+	TargetChapterUsfmStructureAndExtentArray.Clear();
+	TargetChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetChapterBuffer);
+
+	// At this point the source text chapter text resides in the sourceChapterBuffer wxString buffer.
+	// At this point the target text chapter text resides in the targetChapterBuffer wxString buffer.
+	// At this point the structure of the source text is in SourceChapterUsfmStructureAndExtentArray.
+	// At this point the structure of the target text is in TargetChapterUsfmStructureAndExtentArray.
+	
+	// Now, determine if the PT source and PT target projects exist together as an existing AI project.
+	// If so we access that project and, if determine if an existing source text exists as an AI
+	// chapter document. If so, and if it differs from the incoming source text chapter, we quitely 
+	// merge the source texts using Bruce's import edited source text routine (no user intervention 
+	// occurs in this case). 
+	// We also compare any incoming target text with any existing target/adapted text in the existing 
+	// AI chapter document. If there are differences in the target documents, we will need to merge
+	// them, and show any conflicts to the user for resolution using the conflict resolution dialog.
+	// 
+	// If the PT source and PT target projects do not yet exist as an existing AI project, we create
+	// the project complete with project config file, empty KB, etc., using the information gleaned
+	// from the PT source and PT target projects (i.e., language names, font choices and sizes, 
 	bool bPTCollaborationUsingExistingAIProject;
 	bPTCollaborationUsingExistingAIProject = PTProjectsExistAsAIProject(shortProjNameSrc,shortProjNameTgt);
 	if (bPTCollaborationUsingExistingAIProject)
@@ -807,14 +957,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// AI project in the user's work folder, so we use that AI project.
 		// 
 		// TODO: 
-		// 1. Compose an appropriate document name and check if a document by that name
+		// 1. Grab a fresh copy of the chapter that is selected in the "Select a chapter"
+		//    list box. This text is stored in the sourceChapterBuffer.
+		// 2. Compose an appropriate document name and check if a document by that name
 		//    already exists in the local work folder (or book folder if the project is
 		//    using that mode)
-		// 2. If the document does not exist create it by parsing/tokenizing the string 
-		//    now existing in our sourceFileBuffer, saving it's xml form to disk, and 
+		// 3. If the document does not exist create it by parsing/tokenizing the string 
+		//    now existing in our sourceChapterBuffer, saving it's xml form to disk, and 
 		//    laying the doc out in the main window.
-		// 3. If the document does exist, we first need to do any merging of the existing
-		//    AI document with the incoming one now located in our sourceFileBuffer, so
+		// 4. If the document does exist, we first need to do any merging of the existing
+		//    AI document with the incoming one now located in our sourceChapterBuffer, so
 		//    that we end up with the merged one's xml form saved to disk, and the resulting
 		//    document laid out in the main window.
 	}
@@ -880,7 +1032,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    document is to contain a chapter or a whole book. (Do we want to restrict 
 		//    it to chapter only chunks of the target text?)
 		// 4. Create the document by parsing/tokenizing the string now existing in our 
-		//    sourceFileBuffer, saving it's xml form to disk, and laying the doc out in 
+		//    sourceChapterBuffer, saving it's xml form to disk, and laying the doc out in 
 		//    the main window.
 	}
 
@@ -1544,4 +1696,27 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 		pListBoxChapterNumberAndStatus->Enable(TRUE);
 		pStaticSelectAChapter->Enable(TRUE);
 	}
+}
+
+wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)
+{
+	// the incoming lbChapterSelected is from the "Select a chapter" list and is of the form:
+	// "Acts 2 - Empty(no verses of a total of n have content yet)"
+	wxString chStr;
+	int posHyphen = lbChapterSelected.Find(_T('-'));
+	if (posHyphen != wxNOT_FOUND)
+	{
+		chStr = lbChapterSelected.Mid(0,posHyphen);
+		chStr.Trim(FALSE);
+		chStr.Trim(TRUE);
+		int posSp = chStr.Find(_T(' '),TRUE); // TRUE - find from right end
+		if (posSp != wxNOT_FOUND)
+		{
+			chStr = chStr.Mid(posSp);
+			chStr.Trim(FALSE);
+			chStr.Trim(TRUE);
+		}
+	}
+
+	return chStr;
 }
