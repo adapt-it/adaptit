@@ -51,6 +51,16 @@ enum SubspanType {
 				// -- that is, the yet-to-be-processed instances)
 };
 
+enum WhatYouAre {
+	singleton,
+	singleton_in_retrans,
+	singleton_matches_new_conjoined,
+	merger,
+	conjoined,
+	manual_placeholder,
+	placeholder_in_retrans
+};
+
 struct Subspan {
 	int			oldStartPos;		// index in oldSPArray where CSourcePhrase instances commence
 	int			oldEndPos;			// index in oldSPArray where CSourcePhrase instances end (inclusive)
@@ -266,9 +276,11 @@ bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 						wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
 bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
-void	CopyOldAdaptationsAndReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
+void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
+void	CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
+						wxArrayPtrVoid* pChunkAssociations);
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
-void	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
+bool	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
 int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
 wxString FindVerseReference(SPArray* arrP, int startFrom, int endAt);
@@ -277,8 +289,6 @@ bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Sub
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
 bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
-void	GetChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
-							 wxArrayPtrVoid* pChunkAssociations);
 bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
@@ -317,17 +327,30 @@ void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 void	InitializeNonVerseChunk(SfmChunk* pStruct);
 int		PutBeginMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray);
 int		PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray);
+void	ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
+						wxString& parentPrevPunct, wxString& parentFollPunct, wxString& strFromMedials);
+void	RemoveAll(SPArray* pSPArray);
 bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
 						int limit);
 //void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
 //					  int& newEndAt, int limit, bool bClosedEnd); <<-- not needed yet
 void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit); // overload
+bool	TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,  
+						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
 void	TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
-								 bool bFlagsToo, bool bClearAfterwards);
-void	TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, int newEndAt, CSourcePhrase* pTo);
+						bool bFlagsToo, bool bClearAfterwards);
+bool	TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
+						Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding);
 void	TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bClearAfterwards);
 void	TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bAICustomMkrsAlso, 
-								 bool bFlagsToo, bool bClearAfterwards);
+						 bool bFlagsToo, bool bClearAfterwards);
+bool	TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+bool	TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+bool	TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+						 Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+WhatYouAre	WhatKindAreYou(CSourcePhrase* pSrcPhrase, CSourcePhrase* pNewSrcPhrase);
 bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount);
