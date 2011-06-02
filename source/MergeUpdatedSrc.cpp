@@ -30,14 +30,19 @@
 #endif
 
 #include "Adapt_It.h"
+#include "FreeTrans.h"
 #include "SourcePhrase.h"
 #include "helpers.h"
 #include "Adapt_ItDoc.h"
+#include "Adapt_ItView.h"
 #include "AdaptitConstants.h"
 #include "MergeUpdatedSrc.h"
 
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY(SPArray);
+
+// to turn on wxLogDebug() calls, uncomment out next line
+//#define myLogDebugCalls
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -51,6 +56,18 @@ wxString normalOrMinorMkrs;
 wxString rangeOrPsalmMkrs;
 wxString majorOrSeriesMkrs;
 wxString parallelPassageHeadMkrs;
+
+#ifdef myLogDebugCalls
+// for debugging memory leaks
+#ifdef __WXDEBUG__
+int countBeforeSpans = 0;
+int countCommonSpans = 0;
+int countAfterSpans = 0;
+int countBeforeSpanDeletions = 0;
+int countCommonSpanDeletions = 0;
+int countAfterSpanDeletions = 0;
+#endif
+#endif
 
 void InitializeUsfmMkrs()
 {
@@ -66,6 +83,8 @@ void InitializeUsfmMkrs()
 	parallelPassageHeadMkrs = _T("\\r ");
 	rangeOrPsalmMkrs = _T("\\mr \\d ");
 
+	// I've got memory leaks -- all are 36 byte blocks, so get some struct sizes...
+	//int size_of_Subspan = sizeof(Subspan); // yep, this has size of 36 bytes
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -593,17 +612,20 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 	// the return value can be zero of course, but it would be rare (e.g. a single source
 	// text's CSourcePhrase instance is in the arrOld's subspan here, and that
 	// CSourcePhrase instance just happens to be a placeholder)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //	if (oldUniqueWordsCount > 0)
 //		wxLogDebug(_T("oldUniqueWordsCount = %d ,  oldUniqueSrcWords:  %s"), oldUniqueWordsCount, oldUniqueSrcWords.c_str());
 //	else
 //		wxLogDebug(_T("oldUniqueWordsCount = 0 ,  oldUniqueSrcWords:  <empty string>"));
 //#endif
+//#endif
 	if (oldUniqueWordsCount == 0)
 		return 0;
 	// compare the initial words from the arrNew array of CSourcePhrase instances with
 	// those in oldUniqueSrcWords
 	int commonsCount = GetWordsInCommon(arrNew, pSubspan, oldUniqueSrcWords, strArray, limit);
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 /*
 	if (commonsCount > 0)
@@ -640,6 +662,7 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 		wxLogDebug(_T("  commonsCount = 0     Words in common:  <empty string>"));
 	}
 */
+//#endif
 //#endif
 	return commonsCount;
 }
@@ -743,6 +766,22 @@ int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxSt
 	return wxNOT_FOUND;
 }
 
+// Removes all the CSourcePhrase pointers from pSPArray. Since SPArray is a type of
+// wxObjArray, Remove() would delete the CSourcePhrase pointers from the heap. So instead,
+// Detach() is called on them all, and the pointers thrown away, doing it in reverse order.
+// Then Clear() can be safely called
+void RemoveAll(SPArray* pSPArray)
+{
+	int count = pSPArray->GetCount();
+	int index;
+	for (index = count - 1; index >= 0; index--)
+	{
+		CSourcePhrase** pSP = pSPArray->Detach(index);
+		(*pSP) = NULL;
+	}
+	pSPArray->Clear();
+}
+
 void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit)
 {
 	// turn the lists into arrays of CSourcePhrase*; note, we are using arrays to manage
@@ -773,6 +812,7 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	bool bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew);
 
 	// get a wxLogDebug() display of the chunks and their types and ranges
+#ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 	wxString unStr = _T("unknownChunkType");
 	wxString biStr = _T("bookInitialChunk");
@@ -844,6 +884,7 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 		typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
+#endif
 #endif
 	// if there was no SFM or USFM data, need a limit = -1 merger, plus a progress bar
 	if (!bSuccessful_Old && !bSuccessful_New)
@@ -944,10 +985,25 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	// set up the top level tuple, beforeSpan and commonSpan will be empty (that is, the
 	// tuple[0] and tuple[1] struct pointers will be NULL. Tuple[3] will have the whole
 	// extent of both oldSPArray and newSPArray.
+	
+	// get a pointer to the CFreeTrans module so we can use it's functions that support
+	// the Import Edited Source Text feature, and PT collaboration feature
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	bool bContainsFreeTranslations = FALSE;
+	bContainsFreeTranslations = pFreeTrans->IsFreeTransInArray(&arrOld); // if TRUE we will
+			// later call a free-translation-malformations-fixing function after the
+			// merger is done, to erase free translations corrupted by CSourcePhrase 
+			// replacements from arrNew
+
 	Subspan* tuple[3]; // an array of three pointer-to-Subspan
 	tuple[0] = NULL;
 	tuple[1] = NULL;
 	Subspan* pSubspan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+	countAfterSpans++;
+#endif
+#endif
 	tuple[2] = pSubspan;
     // initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
     // extents of arrOld and arrNew -- the subsequent SetEndIndices() call will limit the
@@ -975,6 +1031,17 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
         // of a retranslation, does any transfers of ending puncts and/or inline markers
         // back to the last non-placeholder instance
 		EraseAdaptationsFromRetranslationTruncations(pMergedList);
+	}
+	// finally, remove corrupted free translations
+	if (bContainsFreeTranslations)
+	{
+		// need to turn pMergedList into an SPArray for the next job, then throw the
+		// copied pointers away, since pMergeList's contents will have been updated and
+		// the copies in SPArray are no longer needed
+		SPArray arrMerged;
+		ConvertSPList2SPArray(pMergedList, &arrMerged);
+		pFreeTrans->EraseMalformedFreeTransSections(&arrMerged);
+		RemoveAll(&arrMerged); // internally calls Detach() in a loop
 	}
 }
 
@@ -1207,8 +1274,8 @@ bool IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 // unchanged CSourcePhrase instances to the existing matching CSourcePhrase instances - so
 // as to ensure any user edits of the UFSM structure or punctuation are not missed in the
 // merge process.
-void TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
-								bool bFlagsToo, bool bClearAfterwards)
+void TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo, 
+							  bool bClearAfterwards)
 {
 	wxString empty = _T("");
 	pTo->m_follPunct = pFrom->m_follPunct;
@@ -1413,8 +1480,7 @@ void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 // instances - so as to ensure any user edits of the UFSM structure or punctuation are not
 // missed in the merge process. This function is not suitable for transferring data to a
 // merged CSourcePhrase instance -- use TransferMarkersAndPunctsForMerger() for that.
-void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
-										  bool bClearAfterwards)
+void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bClearAfterwards)
 {
 	TransferPrecedingMembers(pFrom, pTo, FALSE, FALSE, bClearAfterwards);
 	TransferFollowingMembers(pFrom, pTo, FALSE, bClearAfterwards);
@@ -1435,18 +1501,45 @@ void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 // m_follOuterPunct. Additionally, the m_adaption and m_targetStr contents in the
 // instances saved in pTo->m_pSavedWords are copied back to the range of arrNew instances,
 // and then those arrNew instances are deep copied and replace the ones in
-// pTo->m_pSavedWords in case the user later unmerges the merger.
+// pTo->m_pSavedWords in case the user later unmerges the merger. Also, m_srcPhrase and
+// m_targetStr have to be updated, in case punctuation was added or removed, and similarly
+// in the updated saved originals in m_pSavedWords member.
 // This function is used in one context: in the import edited source text feature, to
 // transfer punctuation and markers (but not flags) from the incoming (edited) source
 // text's lexically unchanged CSourcePhrase instances to the existing matching CSourcePhrase
 // instances - so as to ensure any user edits of the UFSM structure or punctuation are not
 // missed in the merge process.
-void TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, int newEndAt, 
-									  CSourcePhrase* pTo)
+// BEW 28May11, changed the signature to conform to the other Transfer...() functions' signatures
+// old signature: bool TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, 
+//                int newEndAt, CSourcePhrase* pTo)
+bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding)
 {
+	wxASSERT(pSubspan->spanType == commonSpan);
+
+	// check indices don't violate pSubspan's  bounds
+	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
+	{
+		// out of range in subspan in arrOld
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	if (newIndex < pSubspan->newStartPos || newIndex > pSubspan->newEndPos)
+	{
+		// out of range in subspan in arrNew
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	CSourcePhrase* pTo = arrOld.Item(oldIndex);
 	wxASSERT(pTo->m_nSrcWords > 1);
 	wxASSERT((int)pTo->m_pSavedWords->GetCount() == pTo->m_nSrcWords);
-	int newCount = arrNew.GetCount();
+
+	int newStartAt = newIndex; 
+    int newEndAt = newIndex + pTo->m_nSrcWords - 1;
+
+	//int newCount = arrNew.GetCount();
 	int newRange = newEndAt - newStartAt + 1;
 	int oldRange = pTo->m_nSrcWords;
 	wxASSERT(oldRange == newRange);
@@ -1457,13 +1550,46 @@ void TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, int newEn
 	{
 		pRangeNew->Add(arrNew.Item(index));
 	}
+	int last = pRangeNew->GetCount() - 1;
+	// first, transfer preceding punctuation and markers to pTo, using the first
+	// CSourcePhrase in the new array's subrange as the source of the material to transfer;
+	// FALSE, FALSE, FALSE is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
+	TransferPrecedingMembers((CSourcePhrase*)pRangeNew->Item(0), pTo, FALSE, FALSE, FALSE);
+	// second, transfer the following punctuation and markers to pTo, using the last
+	// instance in new array's subrange (anything else will go, further below, in the
+	// m_pMedialPuncts wxArrayString, and m_pSavedWords SPList, using code further below)
+	// // FALSE, FALSE is: bool bFlagsToo, bool bClearAfterwards
+	TransferFollowingMembers((CSourcePhrase*)pRangeNew->Item(last), pTo, FALSE, FALSE);
 
-// *** TODO *** finish this
+	// now gather and transfer the medial punctuation, and markers, if any, and put into the
+	// m_pMedialPuncts array and m_pMedialMarkers array, as appropriate
+	wxString parentPrecPunct = pTo->m_precPunct;
+	wxString parentFollPunct = pTo->m_follPunct + pTo->GetFollowingOuterPunct();
+	wxString srcPhraseUpdated; srcPhraseUpdated.Empty();
+	ReplaceMedialPunctuationAndMarkersInMerger(pTo, pRangeNew, parentPrecPunct,
+								parentFollPunct, srcPhraseUpdated);
+	if (!srcPhraseUpdated.IsEmpty())
+	{
+		pTo->m_srcPhrase = srcPhraseUpdated;
+	}
 
+	// The source text has been handled, and the m_targetStr members in m_pSavedWords
+	// also, but unfortunately we can't reliably rebuild the m_targetStr for the owning
+	// merged CSourcePhrase, because there may be fewer, the same or more words in the
+	// m_targetStr member, and the location of punctuation may be different. So all we can
+	// do is leave that member unchanged - it's up to the user to eyeball that instance
+	// and edit it using the phrase box if he's unsatisfied with it
 
+	// do the storage of the updated CSourcePhrase instances in m_pSavedWords after
+	// adaptations were tranferred to the new instances first
+	ReplaceSavedOriginalSrcPhrases(pTo, pRangeNew);
 
 	pRangeNew->Clear();
 	delete pRangeNew;
+	// update the values to be returned as indices preceding the next kick-off locations
+	oldDoneToIncluding = oldIndex;
+	newDoneToIncluding = newEndAt;
+	return TRUE;
 }
 
 // Grab the contents of marker fields and Add() them to pArray (also include the following
@@ -1530,53 +1656,152 @@ int PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
 	return count;
 }
 
-// Returns a count of how may punctuation strings were placed into the emptied
-// pMergedSP->m_pMedialPuncts member.
+// Returns nothing
 // pMergedSP is a merged CSourcePhrase in a list of old (that is, 'unedited') instances,
 // and it is "in common" with a subrange of newly created (ie. just tokenized)
 // CSourcePhrase instances derived by imported possibly edited source text - the subrange
-// of new instances are temporarily stored in pArrayNew. The ones in pArrayNew are
-// examined and the punctuation strings which are non-empty and which would be medial if
+// of new instances are temporarily stored in pArrayNew. The ones in pArrayNew are examined
+// and the punctuation and marker fields which are non-empty and which would be medial if
 // that subarray of new instances were merged, are extracted and stored in the
-// wxArrayString m_pMedialPuncts, after the latter has been cleared of any former
-// contents. This function is used within TransferPunctsAndMarkersToMerger()
-int ReplaceMedialPunctuationInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew)
+// wxArrayString arrays m_pMedialPuncts and m_pMedialMarkers, after the latter pair of
+// members has been cleared of their former contents - if any. parentPrevPunct is for
+// inputting the intial m_precPunct value for the parent instance, and parentFollPunct
+// does the same for the m_follPunct and m_follOuterPunct values for the parent; while the
+// medial information builds strFromMedials from the new material's m_key members plus
+// punctuation, and returns it to the caller by means of the signature, where it will have
+// the parents previous and following puncts added - to form a new m_srcPhrase value.
+// We also rebuild the m_targetStr members for both parent and it's children. 
+// This function is used within TransferPunctsAndMarkersToMerger()
+void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
+				wxString& parentPrevPunct, wxString& parentFollPunct, wxString& strFromMedials)
 {
-	int count = 0;
+	wxString spaceStr = _T(" ");
+
+	wxArrayPtrVoid arrRangeOfOldOnes;
+	SPList::Node* pos = pMergedSP->m_pSavedWords->GetFirst();
+	while (pos != NULL)
+	{
+		arrRangeOfOldOnes.Add(pos->GetData());
+		pos = pos->GetNext();
+	}
+
 	pMergedSP->m_pMedialPuncts->Clear();
+	pMergedSP->m_pMedialMarkers->Clear();
 	int total = pArrayNew->GetCount();
+	strFromMedials += parentPrevPunct;
 	int index;
+	wxString targetStr;
 	for (index = 0; index < total; index++)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pArrayNew->Item(index);
 		if (index == 0)
 		{
-			// the first instance contributes only from stored end-marker fields
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetEndMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingEndMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+            // add the new instance's m_key to the string being composed for parent's
+            // m_srcPhrase updated value
+			strFromMedials += pSrcPhrase->m_key;
+			strFromMedials += pSrcPhrase->m_follPunct;
+			strFromMedials += pSrcPhrase->GetFollowingOuterPunct();
+			strFromMedials += spaceStr;
+
+			// build a with-punctuation m_targetStr from the old stored original
+			// sourcephrase and copy it to the pSrcPhrase->m_targetStr member
+			CSourcePhrase* pOrig = (CSourcePhrase*)arrRangeOfOldOnes.Item(index);
+			if (!pOrig->m_adaption.IsEmpty())
+			{
+				// we build these members, even though not displayed, just in case the
+				// user later unmergers this merger in the edited & merged document
+				targetStr = parentPrevPunct;
+				targetStr += pOrig->m_adaption;
+				targetStr += pOrig->m_follPunct;
+				targetStr += pOrig->GetFollowingOuterPunct();
+				// insert it into the m_targetStr member of pSrcPhrase, also copy
+				// m_adaption 
+				pSrcPhrase->m_adaption = pOrig->m_adaption;
+				pSrcPhrase->m_targetStr = targetStr;
+			}
+
+			// the first instance contributes only from stored end-marker fields, and
+			// following puncts and following outer puncts
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
 		}
-		else if (index == count - 1)
+		else if (index == total - 1)
 		{
-			// the last instance contributes only from stored begin-marker fields
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_markers);
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+            // add the new instance's m_key to the string being composed for parent's
+            // m_srcPhrase updated value
+			strFromMedials += pSrcPhrase->m_precPunct;
+			strFromMedials += pSrcPhrase->m_key;
+			strFromMedials += parentFollPunct; // LHS combines m_follPunct + m_follOuterPunct
+
+			// build a with-punctuation m_targetStr from the old stored original
+			// sourcephrase and copy it to the pSrcPhrase->m_targetStr member, etc
+			CSourcePhrase* pOrig = (CSourcePhrase*)arrRangeOfOldOnes.Item(index);
+			if (!pOrig->m_adaption.IsEmpty())
+			{
+				// we build these members, even though not displayed, just in case the
+				// user later unmergers this merger in the edited & merged document
+				targetStr = pOrig->m_precPunct;
+				targetStr += pOrig->m_adaption;
+				targetStr += parentFollPunct; // combines m_follPunct + m_follOuterPunct
+				// insert it into the m_targetStr member of pSrcPhrase, also copy
+				// m_adaption 
+				pSrcPhrase->m_adaption = pOrig->m_adaption;
+				pSrcPhrase->m_targetStr = targetStr;
+			}
+
+			// the last instance contributes only from stored begin-marker fields, and
+			// preceding puncts
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
 		}
 		else
 		{
+            // add the new instance's m_key to the string being composed for parent's
+            // m_srcPhrase updated value
+			strFromMedials += pSrcPhrase->m_precPunct;
+			strFromMedials += pSrcPhrase->m_key;
+			strFromMedials += pSrcPhrase->m_follPunct;
+			strFromMedials += pSrcPhrase->GetFollowingOuterPunct();
+			strFromMedials += spaceStr;
+
+			// build a with-punctuation m_targetStr from the old stored original
+			// sourcephrase and copy it to the pSrcPhrase->m_targetStr member, etc
+			CSourcePhrase* pOrig = (CSourcePhrase*)arrRangeOfOldOnes.Item(index);
+			if (!pOrig->m_adaption.IsEmpty())
+			{
+				// we build these members, even though not displayed, just in case the
+				// user later unmergers this merger in the edited & merged document
+				targetStr = pOrig->m_precPunct;
+				targetStr += pOrig->m_adaption;
+				targetStr += pOrig->m_follPunct;
+				targetStr += pOrig->GetFollowingOuterPunct();
+				// insert it into the m_targetStr member of pSrcPhrase, also copy
+				// m_adaption 
+				pSrcPhrase->m_adaption = pOrig->m_adaption;
+				pSrcPhrase->m_targetStr = targetStr;
+			}
+
 			// any other instances contribute from both begin-marker fields and end-marker
-			// fields
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_markers);
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetEndMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineBindingEndMarkers());
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			// fields; and preceding and following and followingOuter punctuation fields
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
+			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
 		}
 	}
-	count = pMergedSP->m_pMedialPuncts->GetCount();
-	return count;
 }
 
 // Returns nothing. Takes a list of newly tokenized CSourcePhrase instances corresponding
@@ -1590,8 +1815,12 @@ int ReplaceMedialPunctuationInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* p
 // exposed now-unmerged instances will show any user edits of punctuation or USFM
 // structure done when the source text was outside of Adapt It and potentially edited
 // there. This function is used within TransferPunctuationAndMarkersForMerger().
-void CopyOldAdaptationsAndReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew)
+void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew)
 {
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	// set up (again) the array of old CSourcePhrase ptrs in pMergedSP's m_pSavedWords
+	// member because we have to delete these before we can append the new copies we've
+	// just constructed in the caller
 	wxArrayPtrVoid arrRangeOfOldOnes;
 	SPList::Node* pos = pMergedSP->m_pSavedWords->GetFirst();
 	while (pos != NULL)
@@ -1599,12 +1828,32 @@ void CopyOldAdaptationsAndReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedS
 		arrRangeOfOldOnes.Add(pos->GetData());
 		pos = pos->GetNext();
 	}
-
-
-// *** TODO *** finish this
-
-
-
+	int index;
+	int count = pMergedSP->m_pSavedWords->GetCount();
+	// delete all the old instances in pMergedSP->m_pSavedWords; since the pointers
+	// are copied to arrRangeOfOldOnes, we can do it easier from there
+	for (index = 0; index < count; index++)
+	{
+		// FALSE is bool bDoPartnerPileDeletionAlso, FALSE because these instances by
+		// definition, being in m_pSavedWords, can't have partner piles
+		pDoc->DeleteSingleSrcPhrase((CSourcePhrase*)arrRangeOfOldOnes.Item(index), FALSE);
+	}
+	pMergedSP->m_pSavedWords->Clear(); // default call doesn't call delete 
+								// on the stored pointers" (because we've deleted them
+								// in the loop above)
+	// now deep copy the new array's matching instances, and append the ptr-to-copy in the
+	// now cleared pMergedSP->m_pSavedWords SPList
+	for (index = 0; index < count; index++)
+	{
+		CSourcePhrase* pSrcPhrase = new CSourcePhrase(*(CSourcePhrase*)pArrayNew->Item(index));
+		pSrcPhrase->DeepCopy();
+		pMergedSP->m_pSavedWords->Append(pSrcPhrase);
+	}
+    // the old instances in m_pSavedWords now reflect any punctuation or marker changes
+    // which the user may have done when editing the source text outside of Adapt It; and
+    // the parent and saved original instances are rebuilt in their m_srcPhrase and
+    // m_targetStr members with the user's punctuation edits, this will catch any
+    // punctuation changes (whether additions, removals, or just left unchanged)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -1711,8 +1960,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 	{
 		// we are earlier than the parent's left bound, so can't widen to the left any
 		// further
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at ONE"));
+//#endif
 //#endif
 		return FALSE;
 	}
@@ -1738,8 +1989,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			{
 				// a non-match means that the left bound for the commonSpan has been
 				// reached
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at TWO -- the single-single mismatch"));
+//#endif
 //#endif
 				return FALSE;
 			}
@@ -1803,8 +2056,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 						else
 						{
 							// no match
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at THREE"));
+//#endif
 //#endif
 							return FALSE;
 						}	
@@ -1812,8 +2067,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					else
 					{
 						// not enough words available, so no match is possible
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
+//#endif
 //#endif
 						return FALSE;
 					}
@@ -1836,8 +2093,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 				else
 				{
 					// no match, so return FALSE
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+//#endif
 //#endif
 					return FALSE;
 				}
@@ -1954,8 +2213,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							{
 								// all the one or more placeholders belong in beforeSpan,
 								// so return oldCount = 0, newCount = 0, and FALSE
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
+//#endif
 //#endif
 								return FALSE;
 							}
@@ -1982,9 +2243,11 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at FIVE"));
 //#endif
+//endif
 									return FALSE; // tell the caller not to try another leftwards widening
 								}
 								else if (IsLeftAssociatedPlaceholder(pRightmostPlaceholder))
@@ -1992,15 +2255,19 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									// it/they are left-associated, so keep it/them with
 									// what precedes it/them, which means that it/they
 									// belong in beforeSpan, and we can't widen any further
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at SIX"));
+//#endif
 //#endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
 								// same as left-associated
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at SEVEN"));
+//#endif
 //#endif
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
@@ -2030,8 +2297,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							else
 							{
 								// no match
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at EIGHT"));
+//#endif
 //#endif
 								return FALSE;
 							}
@@ -2039,8 +2308,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 						else
 						{
 							// not enough words available
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at NINE"));
+//#endif
 //#endif
 							return FALSE;
 						}
@@ -2081,8 +2352,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					oldCount++; // counts the placeholder at oldIndex
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at TEN"));
+//#endif
 //#endif
 					return FALSE; // tell the caller not to try another leftwards widening
 				}
@@ -2091,15 +2364,19 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                     // it/they are left-associated, so keep it/them with
                     // what precedes it/them, which means that it/they
                     // belong in beforeSpan, and we can't widen any further
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at ELEVEN"));
+//#endif
 //#endif
                     return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
 				// same as left-associated
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at TWELVE"));
+//#endif
 //#endif
 				return FALSE;
 			}
@@ -2107,8 +2384,10 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_bNullSourcePhrase)
 
 	} // end of TRUE block for test: if (oldIndex > oldStartAt && newIndex > newStartAt)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Leftwards ONCE: exiting at THE_END (THIRTEEN)"));
+//#endif
 //#endif
 	return FALSE;
 }
@@ -2226,8 +2505,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 	if (oldStartingPos > oldEndAt || newStartingPos > newEndAt)
 	{
 		// we are past the parent's right bound, so can't widen to the right any further
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at ONE"));
+//#endif
 //#endif
 		return FALSE;
 	}
@@ -2238,11 +2519,13 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		pOldSrcPhrase = arrOld.Item(oldIndex);
 		pNewSrcPhrase = arrNew.Item(newIndex);
 
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		if (oldIndex == 42)
 //		{
 //			int break_point = 1;
 //		}
+//#endif
 //#endif
         // The first test should be for the most commonly occurring situation - a
         // non-merged, non-placeholder, non-retranslation CSourcePhrase potential pair;
@@ -2262,8 +2545,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 			{
 				// a non-match means that the right bound for the commonSpan has been
 				// reached
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at TWO -- the single-single mismatch"));
+//#endif
 //#endif
 				return FALSE;
 			}
@@ -2327,8 +2612,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						else
 						{
 							// no match
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+//#endif
 //#endif
 							return FALSE;
 						}
@@ -2336,8 +2623,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					else
 					{
 						// not enough words available, so no match is possible
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at FOUR"));
+//#endif
 //#endif
 						return FALSE;
 					}
@@ -2363,8 +2652,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					else
 					{
 						// didn't match match, so we are at the end of commonSpan
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at FIVE"));
+//#endif
 //#endif
 						return FALSE;
 					}
@@ -2372,8 +2663,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 				else
 				{
 					// not enough words for a match, so return FALSE
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at SIX"));
+//#endif
 //#endif
 					return FALSE;
 				}
@@ -2476,8 +2769,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 								oldCount++; // counts the placeholder at oldIndex
 								oldCount += nExtraCount; // adds the count of the extra ones traversed
 								//newCount is unchanged (still zero)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at SEVEN"));
+//#endif
 //#endif
 								return FALSE;
 							}
@@ -2504,8 +2799,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at EIGHT"));
+//#endif
 //#endif
 									return FALSE; // tell the caller not to try another leftwards widening
 								}
@@ -2515,15 +2812,19 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                                     // what follows it/them, which means that it/they
                                     // belong in at the start of afterSpan, and we can't
                                     // widen commonSpan any further
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at NINE"));
+//#endif
 //#endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
 								// same as right-associated
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at TEN"));
+//#endif
 //#endif
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
@@ -2555,8 +2856,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 							else
 							{
 								// no match
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at ELEVEN"));
+//#endif
 //#endif
 								return FALSE;
 							}
@@ -2564,8 +2867,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						else
 						{
 							// not enough words available
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at TWELVE"));
+//#endif
 //#endif
 							return FALSE;
 						} // end of else block for test: if (newIndex + numWords - 1 <= newEndAt)
@@ -2606,8 +2911,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					oldCount++; // counts the placeholder at oldIndex
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at THIRTEEN"));
+//#endif
 //#endif
 					return FALSE; // tell the caller not to try another leftwards widening
 				}
@@ -2617,15 +2924,19 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                     // what follows it/them, which means that it/they
                     // belong in at the start of afterSpan, and we can't
                     // widen commonSpan any further
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at FOURTEEN"));
+//#endif
 //#endif
 					return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
 				// same as right-associated
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at FIFTEEN"));
+//#endif
 //#endif
 				return FALSE;
 			}
@@ -2633,8 +2944,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_bNullSourcePhrase)
 
 	} // end of TRUE block for test: if (oldIndex < oldEndAt && newIndex < newEndAt)
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Rightwards ONCE: exiting at THE_END (SIXTEEN)"));
+//#endif
 //#endif
 	return FALSE; // we didn't make any matches, so widening must halt
 }
@@ -2693,18 +3006,22 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 		// and return the max one to the caller in pMaxInCommonSubspan, clear the arrays
 		int widthsCount = arrWidths.GetCount();
 		int maxWidth = arrWidths.Item(0); // initialize to composite width of the first
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //		wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0); 
+//#endif
 //#endif
 		int lastIndexForMax = 0; // initialize 
 		int i;
 		for (i = 1; i < widthsCount; i++)
 		{
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //			wxLogDebug(_T("\nComposite WIDTH =  %d  for index value  %d"),arrWidths.Item(i), i);
 //			Subspan* pSub = (Subspan*)arrSubspans.Item(i);
 //			wxLogDebug(_T("Subspan's two spans: OLD  start = %d  end = %d ,  NEW  start = %d  end = %d"),
 //				pSub->oldStartPos, pSub->oldEndPos, pSub->newStartPos, pSub->newEndPos);
+//#endif
 //#endif
 			if (arrWidths.Item(i) > maxWidth)
 			{	
@@ -2715,8 +3032,10 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 				lastIndexForMax = i;
 			}
 		}
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //			wxLogDebug(_T("lastIndexForMax value = %d"), lastIndexForMax); 
+//#endif
 //#endif
 		Subspan* pMaxInCommonSubspan = (Subspan*)arrSubspans.Item(lastIndexForMax);
 		// delete the rest
@@ -2726,6 +3045,11 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			// delete all except the one we are returning to the caller
 			if (i != lastIndexForMax)
 			{
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				countCommonSpanDeletions++;
+#endif
+#endif
 				delete (Subspan*)arrSubspans.Item(i);
 			}
 		}
@@ -3178,9 +3502,11 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 	}
 	newLastIndex = newMatchIndex; // ensure newLastIndex value advances for the caller
 
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 //	wxLogDebug(_T("GetNextMatchup(): word = %s , oldStartFrom = %d , newStartFrom = %d, oldMatchIndex = %d, newMatchIndex = %d "),
 //		word.c_str(), oldStartFrom, newStartFrom, oldMatchIndex, newMatchIndex);
+//#endif
 //#endif
 
 	// get the CSourcePhrase's m_key value - what we do depends on whether it is a single
@@ -3883,6 +4209,11 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 		// create a new commonSpan type of Subspan instance & set up the index values within
 		// pSubspan, and recall that commonSpans are always bClosedEnd = TRUE
 		pSubspan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+	countCommonSpans++;
+#endif
+#endif
 		InitializeSubspan(pSubspan, commonSpan, oldLeftBdryIndex, oldRightBdryIndex, 
 							newLeftBdryIndex, newRightBdryIndex, TRUE); // TRUE is bClosedEnd
 
@@ -4030,7 +4361,11 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return                 nothing
+/// \return                 TRUE if all went well, or even if it didn't - provided the
+///                         caller can work out how to continue; return FALSE if the error
+///                         is of sufficient gravity that the import must be abandoned
+///                         (for errors of this gravity, the returned processed location
+///                         values will be -1 and -1, so check for these)
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
 ///                         placeholders, retranslation, fixedspace conjoinings as 
 ///                         well as minimal CSourcePhrase instances)
@@ -4137,22 +4472,796 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// not have to recreate all the thinking that went into making this import feature work
 /// robustly. 
 ////////////////////////////////////////////////////////////////////////////////////////
-void DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan)
+bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan)
 {
 	wxASSERT(pSubspan->spanType == commonSpan);
 	int oldSpanStart = pSubspan->oldStartPos;
 	int oldSpanEnd = pSubspan->oldEndPos;
 	int newSpanStart = pSubspan->newStartPos;
 	int newSpanEnd = pSubspan->newEndPos;
+	// Our approach is to maintain two 'position' variables, oldIndex (indexing into the
+	// arrOld instances in pSubspan) and newIndex (doing the same job, but for arrNew
+	// instances), and pass these as paramters to the transfer functions. The transfer
+	// functions will also return, in separate parameters of their signatures, the
+	// locations in arrOld and arrNew which were the last CSourcePhrase instance
+	// processed, and our loop will work out from those values what the kick-off values
+	// are for the next iteration. It is expected that oldIndex and newIndex will get out
+	// of sync, since arrOld may have mergers, auto-inserted placeholders, manually placed
+	// placeholdres, fixedspace conjoined pairs, as well as simple singleton CSourcePhrase
+	// instances (i.e. these just store a single word of source text); whereas arrNew will
+	// only have singletons, and possibly fixedspace conjoined pairs. Once either oldIndex
+	// or newIndex gets past the bounding upper index value for the subspan, we halt
+	// processing. We expect that both indices will get to the end together, but if that
+	// doesn't happen, the arrOld or arrNew instances unprocessed will remain so.
+	int oldIndex = oldSpanStart; // pass in
+	int newIndex = newSpanStart; // pass in
+	int oldEndedAt = -1; // pass back arrOld's last processed instance's location in this
+	int newEndedAt = -1; // pass back arrNew's last processed instance's location in this
+	WhatYouAre oldSPtype; // one of the vaues in the enum WhatYouAre for a CSourcePhrase
+						  // instance within the arrOld subpan defined by pSubspan
+	CSourcePhrase* pOldSP = NULL;
+	CSourcePhrase* pNewSP = NULL;
+	bool bOK = TRUE;
+	while (oldIndex <= oldSpanEnd && newIndex <= newSpanEnd)
+	{
+		pOldSP = arrOld.Item(oldIndex);
+		pNewSP = arrNew.Item(newIndex);
+		wxASSERT(pOldSP != NULL);
+		wxASSERT(pNewSP != NULL);
+		oldSPtype = WhatKindAreYou(pOldSP, pNewSP);
+		// the types are, in their defined order:
+		//singleton,
+		//singleton_in_retrans,
+		//singleton_matches_new_conjoined,
+		//merger,
+		//conjoined,
+		//manual_placeholder,
+		//placeholder_in_retrans
+		switch (oldSPtype)
+		{
+		case singleton:
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, 
+									pSubspan, oldEndedAt, newEndedAt);
+			break;
+		case singleton_in_retrans:
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, 
+									pSubspan, oldEndedAt, newEndedAt);
+			break;
+		case merger:
+			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex, 
+								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			break;
+		case singleton_matches_new_conjoined:
+		case conjoined:
+			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, 
+								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			break;
+		case manual_placeholder:
+			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex, 
+								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			break;
+		case placeholder_in_retrans:
+			bOK = TransferToPlaceholderInRetranslation(arrOld, arrNew, oldIndex, 
+								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			break;
+		default: // assume singleton
 
+			break;
+		}
+		if (!bOK)
+		{
+			// check if it is a grave error from which recovery is impossible
+			if (oldEndedAt == -1 && newEndedAt == -1)
+			{
+				// yep, can't recover; most probably a bounds error; a non-localizable
+				// message for the developers should suffice
+				wxString msg;
+				msg = msg.Format(_T(
+"DoUSFMandPunctuationAlterations() failed badly, probably a bounds error. Import will be cancelled.\n oldIndex %d , old subspan %d to %d ; newIndex %d , new subspan %d to %d"),
+				oldIndex, oldSpanStart, oldSpanEnd, newIndex, newSpanStart, newSpanEnd);
+				wxMessageBox(msg,_T("Error: Out of bounds?"), wxICON_ERROR);
+				return FALSE;
+			}
+			// should be able to recover, work out what to do... and continue iterating;
+			// oldSpanEnd and newSpanEnd we'll assume are good, and keep trying
+			oldIndex = oldEndedAt + 1; 
+			newIndex =  newEndedAt + 1;
+		}
+		else
+		{
+			// there were no errors or problems, so work out kick-off locations and iterate
+			oldIndex = oldEndedAt + 1; 
+			newIndex =  newEndedAt + 1;
+		}
+	}
+	return TRUE;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 FALSE if there is no fixedspace conjoining to be handled, also
+///                         returns FALSE if there is an index bounds error; 
+///                         returns TRUE if there a conjoining (ie. one of situations 1 2 
+///                         or 3 below)
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         well as minimal CSourcePhrase instances) We pass in the WHOLE
+///                         array, not just a subrange for the commonSpan
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too) We pass in the WHOLE
+///                         array, not just a subrange for the commonSpan
+/// \param  oldIndex    ->  index in arrOld where we are up to in the scan
+/// \param  newIndex    ->  index in arrNew where we are up to in the scan
+/// \param  oldDoneToIncluding  <-  index in arrOld of the last CSourcePhrase instance
+///                                 processed at the time the function returns; it will
+///                                 point at the previous index to oldIndex if FALSE is
+///                                 returned
+/// \param  newDoneToIncluding  <-  index in arrNew of the last CSourcePhrase instance
+///                                 processed at the time the function returns; it will
+///                                 point at the previous index to newIndex if FALSE is
+///                                 returned
+/// \remarks
+/// There are three possibilities to consider: (1) the arrOld location has no conjoining at
+/// oldIndex, but the arrNew location has one at at newIndex; (2) both arrOld and arrNew
+/// have fixed space conjoinings at oldIndex and newIndex respectively; (3) arrOld has a
+/// conjoining at oldIndex, but arrNew no longer has one at newIndex.
+/// A complication is that we do not permit the number of CSourcePhrase instanes in arrOld
+/// and arrNew to be changed within the import merger process for edited source text. So
+/// we have to do the best we can with situations (1) and (3): what we'll do is just
+/// transfer punctuation and markers to what is in arrOld; for (2) we can instead copy the
+/// adaptations in the one in arrOld to the one in arrNew, make a deep copy of the arrNew
+/// one after doing that, and then replace the arrOld one with the deep copy. (This only
+/// changes what's in arrOld, not the SPList it comes from, but that doesn't matter
+/// because we will delete the latter and the deep copy will indeed get into pMergedList
+/// which replaces it when the import & merge has finished)
+bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+
+	// check indices don't violate pSubspan's  bounds
+	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
+	{
+		// out of range in subspan in arrOld
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	if (newIndex < pSubspan->newStartPos || newIndex > pSubspan->newEndPos)
+	{
+		// out of range in subspan in arrNew
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	CSourcePhrase* pOldSP = arrOld.Item(oldIndex);
+	CSourcePhrase* pNewSP = arrNew.Item(newIndex);
+	// test: is there no  ~ (USFM fixedspace marker) in pOldSP?
+	if (!IsFixedSpaceSymbolWithin(pOldSP))
+	{
+        // it's not present in pOldSP, so either it is situation (1) above, or if pNewSP
+        // has no fixed space, there would be nothing to do and FALSE should be returned
+		if (IsFixedSpaceSymbolWithin(pNewSP))
+		{
+			// it's situation (1) as explained above; so do the member fields data
+			// transfers, for USFMs and punctuations, if any; unfortunately, the user's
+			// addition of a fixedspace to conjoin will be lost - but probably that will
+			// affect next to nobody, conjoinings are rare as hens teeth and the
+			// probability of this exact scenario happening anyway, is small
+			int oldNextIndex = oldIndex + 1;
+			CSourcePhrase* pOldNextSP = arrOld.Item(oldNextIndex); // it's gotta be there
+
+			SPList::Node* pos = pNewSP->m_pSavedWords->GetFirst();
+			SPList::Node* posLast = pNewSP->m_pSavedWords->GetLast();
+			CSourcePhrase* pWordFirstSP = pos->GetData();
+			CSourcePhrase* pWordLastSP = posLast->GetData();
+
+			// handle the arrNew's conjoined CSourcePhrase's embedded CSourcePhrases first;
+			// FALSE is  bool bClearAfterwards
+			TransferPunctsAndMarkersOnly(pWordFirstSP, pOldSP, FALSE);	
+			TransferPunctsAndMarkersOnly(pWordLastSP, pOldNextSP, FALSE);
+
+			// punctuation changes will affect m_srcPhrase and m_targetStr in both pOldSP
+			// and pOldNextSP, so generate the relevant punctuated strings using the m_key
+			// and m_adaption members (both are punctuation-less members) as starting points
+			wxString srcPhrase = pOldSP->m_precPunct;
+			srcPhrase += pOldSP->m_key;
+			srcPhrase += pOldSP->m_follPunct;
+			srcPhrase += pOldSP->GetFollowingOuterPunct();
+			pOldSP->m_srcPhrase = srcPhrase;
+			// do the same for pOldNextSP's m_srcPhrase member
+			srcPhrase = pOldNextSP->m_precPunct;
+			srcPhrase += pOldNextSP->m_key;
+			srcPhrase += pOldNextSP->m_follPunct;
+			srcPhrase += pOldNextSP->GetFollowingOuterPunct();
+			pOldNextSP->m_srcPhrase = srcPhrase;
+			// now do pOldSP's m_targetStr member
+			wxString tgtStr;
+			if (!pOldSP->m_adaption.IsEmpty())
+			{
+				tgtStr = pOldSP->m_precPunct;
+				tgtStr += pOldSP->m_adaption;
+				tgtStr += pOldSP->m_follPunct;
+				tgtStr += pOldSP->GetFollowingOuterPunct();
+				pOldSP->m_targetStr = tgtStr;
+			}
+			else
+			{
+				pOldSP->m_targetStr.Empty();
+			}
+			// finally, the same for pOldNext...
+			if (!pOldNextSP->m_adaption.IsEmpty())
+			{
+				tgtStr = pOldNextSP->m_precPunct;
+				tgtStr += pOldNextSP->m_adaption;
+				tgtStr += pOldNextSP->m_follPunct;
+				tgtStr += pOldNextSP->GetFollowingOuterPunct();
+				pOldNextSP->m_targetStr = tgtStr;
+			}
+			else
+			{
+				pOldNextSP->m_targetStr.Empty();
+			}
+
+			// the fixedspace get's lost, so that's all we can do here, and
+			// get the indices right for where to kick off from in the parent
+			oldDoneToIncluding = oldNextIndex;
+			newDoneToIncluding = newIndex;
+			return TRUE;
+		}
+		else
+		{
+			// no conjoining here, return FALSE, ,and
+			// get the indices right for where to kick off from in the parent
+			oldDoneToIncluding = oldIndex - 1;
+			newDoneToIncluding = newIndex - 1;
+			return FALSE;
+		}
+	}
+	else
+	{
+		// it's either situation (2) or situation (3), because pOldSP is a fixedspace
+		// conjoining
+		if (IsFixedSpaceSymbolWithin(pNewSP))
+		{
+			// it's situation (2) as explained above, so copy the m_adaption contents from pOldSP
+			// to pNewSP, recreate the m_targetStr members using the possibly changed punctuation,
+			// then deep copy pNewSP and replace pOldSp with it
+			pNewSP->m_adaption = pOldSP->m_adaption; // this is <word1>~<word2>, with no punctuation
+
+			// in order to build a pNewSP->m_targetStr with the possibly new punctuation
+			// settings, we need access to the two individual new CSourcePhrase instances
+			SPList::Node* posNew = pNewSP->m_pSavedWords->GetFirst();
+			SPList::Node* posNewLast = pNewSP->m_pSavedWords->GetLast();
+			CSourcePhrase* pNewWordFirst = posNew->GetData();
+			CSourcePhrase* pNewWordLast = posNewLast->GetData();
+
+			// we also need the equivalent instances from pOldSP...
+			SPList::Node* pos = pOldSP->m_pSavedWords->GetFirst();
+			SPList::Node* posLast = pOldSP->m_pSavedWords->GetLast();
+			CSourcePhrase* pWordFirst = pos->GetData();
+			CSourcePhrase* pWordLast = posLast->GetData();
+
+			// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption 
+			pNewWordFirst->m_targetStr = pNewWordFirst->m_precPunct;
+			pNewWordFirst->m_targetStr += pWordFirst->m_adaption;
+			pNewWordFirst->m_targetStr += pNewWordFirst->m_follPunct;
+			pNewWordFirst->m_targetStr += pNewWordFirst->GetFollowingOuterPunct();
+
+			// next, rebuild pNewWordLast->m_targetStr, starting from pWordLast->adaption 
+			pNewWordLast->m_targetStr = pNewWordLast->m_precPunct;
+			pNewWordLast->m_targetStr += pWordLast->m_adaption;
+			pNewWordLast->m_targetStr += pNewWordLast->m_follPunct;
+			pNewWordLast->m_targetStr += pNewWordLast->GetFollowingOuterPunct();
+			
+			// finally, rebuild pNewSP->m_targetStr by concatenating the previous two with ~
+			pNewSP->m_targetStr = pNewWordFirst->m_targetStr + _T("~");
+			pNewSP->m_targetStr += pNewWordLast->m_targetStr;
+
+			// now make a deep copy of pNewSP
+			CSourcePhrase* pNewDeepCopy = new CSourcePhrase(*pNewSP);
+			pNewDeepCopy->DeepCopy();
+			
+			// now replace pOldSP with pNewDeepCopy and delete pOldSP
+			CSourcePhrase** pDetached = arrOld.Detach(oldIndex);
+			wxASSERT(pOldSP == *pDetached);
+			arrOld.Insert(pNewDeepCopy,oldIndex);
+			pDoc->DeleteSingleSrcPhrase(pOldSP,TRUE); // assume there may be a partner
+					// pile, and ask for it to be removed from the document's pile list,
+					// otherwise we'd leak memory here (it's safe, doesn't crash if there
+					// actually is no partner pile in existence)
+			// get the indices right for where to kick off from in the parent
+			oldDoneToIncluding = oldIndex;
+			newDoneToIncluding = newIndex;
+			return TRUE;
+		}
+		else
+		{
+			// it's situation (3) as explained above; unfortunately, the fixedspace will
+			// be retained even though the user's source phrase edit removed it, but at
+			// least we'll get the USFMs and punctuations right
+			int newNextIndex = newIndex + 1;
+			CSourcePhrase* pNewNextSP = arrNew.Item(newNextIndex); // it's gotta be there
+
+			SPList::Node* pos = pOldSP->m_pSavedWords->GetFirst();
+			SPList::Node* posLast = pOldSP->m_pSavedWords->GetLast();
+			CSourcePhrase* pWordFirstSP = pos->GetData();
+			CSourcePhrase* pWordLastSP = posLast->GetData();
+
+			// handle the arrOld's conjoined CSourcePhrase's embedded CSourcePhrases first;
+			// FALSE is  bool bClearAfterwards; after that, handle their parent instance
+			TransferPunctsAndMarkersOnly(pNewSP, pWordFirstSP, FALSE);	
+			TransferPunctsAndMarkersOnly(pNewNextSP, pWordLastSP, FALSE);	
+
+			// now the parent
+			// FALSE, FALSE, FALSE, is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
+			TransferPrecedingMembers(pNewSP, pOldSP, FALSE, FALSE, FALSE); 
+			// FALSE, FALSE, is: bool bFlagsToo, bool bClearAfterwards
+			TransferFollowingMembers(pNewNextSP, pOldSP, FALSE, FALSE);
+
+			// Now we need to rebuild pOldSP->m_srcPhrase, and pOldSP->m_targetStr with
+			// the new punctuation (possibly changed) settings, and also the same members
+			// in the instances stored in pOldSP->m_pSavedWords.
+			// Start by rebuilding pWordFirstSP->m_srcPhrase starting from its m_key member
+			pWordFirstSP->m_srcPhrase = pNewSP->m_precPunct;
+			pWordFirstSP->m_srcPhrase += pNewSP->m_key; // RHS could instead be pWordFirstSP->m_key
+			pWordFirstSP->m_srcPhrase += pNewSP->m_follPunct;
+			pWordFirstSP->m_srcPhrase += pNewSP->GetFollowingOuterPunct();
+			// Next, rebuild pWordLastSP->m_srcPhrase, starting from m_key
+			pWordLastSP->m_srcPhrase = pNewNextSP->m_precPunct;
+			pWordLastSP->m_srcPhrase += pNewNextSP->m_key; // RHS could instead be pWordLastSP->m_key
+			pWordLastSP->m_srcPhrase += pNewNextSP->m_follPunct;
+			pWordLastSP->m_srcPhrase += pNewNextSP->GetFollowingOuterPunct();
+			// now rebuild the parent's m_srcPhrase member
+			pOldSP->m_srcPhrase = pWordFirstSP->m_srcPhrase + _T("~");
+			pOldSP->m_srcPhrase += pWordLastSP->m_srcPhrase;
+			// Next, rebuild pWordFirstSP->m_targetStr from its m_adaption member
+			if (!pWordFirstSP->m_adaption.IsEmpty())
+			{
+				pWordFirstSP->m_targetStr = pNewSP->m_precPunct;
+				pWordFirstSP->m_targetStr += pWordFirstSP->m_adaption;
+				pWordFirstSP->m_targetStr += pNewSP->m_follPunct;
+				pWordFirstSP->m_targetStr += pNewSP->GetFollowingOuterPunct();
+			}
+			else
+			{
+				pWordFirstSP->m_targetStr.Empty();
+			}
+			// Next, rebuild pWordLastSP->m_targetStr from its m_adaption member
+			if (!pWordLastSP->m_adaption.IsEmpty())
+			{
+				pWordLastSP->m_targetStr = pNewNextSP->m_precPunct;
+				pWordLastSP->m_targetStr += pWordLastSP->m_adaption;
+				pWordLastSP->m_targetStr += pNewNextSP->m_follPunct;
+				pWordLastSP->m_targetStr += pNewNextSP->GetFollowingOuterPunct();
+			}
+			else
+			{
+				pWordLastSP->m_targetStr.Empty();
+			}
+			// now do pOldSP's m_targetStr member, creating the conjoining
+			wxString tgtStr;
+			wxString tilde = _T("~");
+			if (!pWordFirstSP->m_targetStr.IsEmpty())
+			{
+				tgtStr = pWordFirstSP->m_targetStr;
+			}
+			tgtStr += tilde;
+			if (!pWordLastSP->m_targetStr.IsEmpty())
+			{
+				tgtStr += pWordLastSP->m_targetStr;
+			}
+			if (tgtStr.Find(tilde) != wxNOT_FOUND && tgtStr.Len() == 1)
+			{
+				// don't accept a conjoining of two empty strings as meaning anything
+				tgtStr.Empty();
+			}
+			pOldSP->m_targetStr = tgtStr;
+
+			// get the indices right for where to kick off from in the parent
+			oldDoneToIncluding = oldIndex;
+			newDoneToIncluding = newNextIndex;
+			return TRUE;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 FALSE immediately if the placeholder is within a retranslation,
+///                         also FALSE is returned if there is a following merger in
+///                         arrOld and the attempt to transfer USFMs and punctuation from
+///                         the relevant part of arrNew fails - and in this case,
+///                         oldDoneToIncluding and newDoneToIncluding will return -1 and -1.
+///                         Otherwise do the processing and return TRUE (for a manually
+///                         placed placeholder) 
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         well as minimal CSourcePhrase instances) We pass in the WHOLE
+///                         array, not just a subrange for the commonSpan
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too) We pass in the WHOLE
+///                         array, not just a subrange for the commonSpan
+/// \param  oldIndex    ->  index in arrOld where the placeholder is (or if the user has
+///                         inserted more than one, where the first one is)
+/// \param  newIndex    ->  the next CSourcePhrase instance in the arrNew array, it can't
+///                         be a placeholder of course, so is the first of what follows 
+///                         where an equivalent one would be if present (placeholders on
+///                         span boundaries will not be included in the in-common span, so
+///                         that means there should be at least one CSourcePhrase following
+///                         the oldIndex location in the in-common subspan in arrOld, and 
+///                         hence at matching one or ones in arrNew, since this is commonSpan
+/// \param  pSubspan    ->  the Subspan instance, it's a commonSpan, which we are doing the
+///                         transfers of USFM and punctuation to the to-be-retained 
+///                         CSourcePhrase instances in this subspan of arrOld
+/// \param  oldDoneToIncluding  <-  index in arrOld of the last post-placeholder which has 
+///                                 been updated within this function (note, if there are
+///                                 consecutive manually placed placeholders, it would be
+///                                 the first CSourcePhrase past the last of those, rather
+///                                 than the one following the one at oldIndex)
+/// \param  newDoneToIncluding  <-  index in arrNew of the last CSourcePhrase involved in
+///                                 updating whatever is the first CSourcePhrase instance
+///                                 past the last placeholder in arrOld updated herein
+/// \remarks
+/// The caller needs the last two parameters, as the kick-off location for scanning
+/// forwards for further associations of instances between arrOld and arrNew starts from
+/// these index values + 1. If the placeholder has right-association, then we need to
+/// update what follows it first, so that we can then apply the data transfers appropriate
+/// for right association - overwriting the relevant members in the placeolder with the
+/// possibly new data for markers and punctuation etc. The reason we pass in the whole
+/// arrOld and arrNew is that we may need to access a CSourcePhrase instance in arrOld and
+/// or arrNew which lies beyond the bounds of the commonSpan itself. Our approach in this
+/// function is to update what's either side of the merger, and then re-establish any left
+/// or right association that we detect.                  
+bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+
+	// check indices don't violate pSubspan's  bounds
+	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
+	{
+		// out of range in subspan in arrOld
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	if (newIndex < pSubspan->newStartPos || newIndex > pSubspan->newEndPos)
+	{
+		// out of range in subspan in arrNew
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+
+	// verify it really is a placeholder and get the index of the first non-placeholder
+	// following it (placeholders within arrOld retranslations are autoinserted, not
+	// user-inserted, so we don't try to do anything with those, because we don't allow a
+	// manually placed placeholder to left-associate to the end of a retranslation where
+	// they'd be if the retranslation was long enough)
+	CSourcePhrase* pPlaceholder = arrOld.Item(oldIndex);
+	int oldLastIndex = arrOld.GetCount() - 1;
+	//int newLastIndex = arrNew.GetCount() - 1;
+	if (!(pPlaceholder->m_bNullSourcePhrase && !pPlaceholder->m_bRetranslation))
+	{
+		// the placeholder is within a retranslation, or it's not a placeholder; so just
+		// treat this as a location where nothing needs to be done, and have the caller
+		// kick-off from it on next iteration (we don't expect control to ever enter this
+		// block)
+		oldDoneToIncluding = oldIndex;
+		newDoneToIncluding = newIndex;
+		return FALSE;
+	}
+	// get the index of the last placeholder if there is a sequence, and the indices of
+	// the CSourcePhrase instances immediately before the first, and immediately after the
+	// last
+	int oldPrevIndex = oldIndex - 1;
+	CSourcePhrase* pPrevSrcPhrase = arrOld.Item(oldPrevIndex); // there should be at least one such
+	int oldFollIndex = oldIndex + 1;
+	CSourcePhrase* pFollSrcPhrase = arrOld.Item(oldFollIndex);
+	while ((pFollSrcPhrase->m_bNullSourcePhrase && !pFollSrcPhrase->m_bRetranslation))
+	{
+		oldFollIndex++;
+		if (oldFollIndex <= oldLastIndex)
+		{
+			pFollSrcPhrase = arrOld.Item(oldFollIndex);
+		}
+		else
+		{
+			oldFollIndex--;
+			break;
+		}
+	}
+	pFollSrcPhrase = arrOld.Item(oldFollIndex);
+	// the CSourcePhrase instance at newIndex may be a fixedspace conjoined pair, so we
+	// have to test for this
+	CSourcePhrase* pSPAtNewLoc = arrNew.Item(newIndex);
+	WhatYouAre follSrcPhraseType = WhatKindAreYou(pFollSrcPhrase, pSPAtNewLoc);
+
+	int oldLastPlaceholder = oldFollIndex - 1;
+	CSourcePhrase* pLastPlaceholder = arrOld.Item(oldLastPlaceholder);
+
+	// store a record of whether the only or first placeholder is left associated
+	bool bIsLeftAssociated = IsLeftAssociatedPlaceholder(pPlaceholder);
+	// store a record of whether the only or last placeholder is right associated
+	bool bIsRightAssociated = IsRightAssociatedPlaceholder(pLastPlaceholder);
+ 
+    // the previous non-placeholder CSourcePhrase will have been updated already, so we can
+    // use it's USFM and punctuation settings - so if bIsLeftAssociated, do the data
+    // transfers and clear the relevant fields on the non-placeholder instance, and rebuild
+    // the m_targetStr member, and then return TRUE
+	if (bIsLeftAssociated)
+	{
+		// TRUE, TRUE is:  bool bFlagsToo, bool bClearAfterwards
+		TransferFollowingMembers(pPrevSrcPhrase, pPlaceholder, TRUE, TRUE);
+
+		wxString tgtStr = pPlaceholder->m_precPunct;
+		tgtStr += pPlaceholder->m_adaption;
+		tgtStr += pPlaceholder->m_follPunct;
+		tgtStr += pPlaceholder->GetFollowingOuterPunct();
+		pPlaceholder->m_targetStr = tgtStr;
+
+		oldDoneToIncluding = oldLastPlaceholder;
+		newDoneToIncluding = newIndex - 1;
+		return TRUE;
+	}
+    // the non-placeholder which follows the only or last placeholder will NOT have been
+    // updated, so we must do it now, but only if bIsRightAssociated is TRUE; if the latter
+    // is FALSE, we've nothing to do and we can return
+	if (!bIsRightAssociated)
+	{
+		// it's not right associated...
+		oldDoneToIncluding = oldLastPlaceholder;
+		newDoneToIncluding = newIndex - 1;
+		return TRUE;
+	}
+	else
+	{
+		// it IS right associated, so we've some work to do to update what is at
+		// oldFollIndex -  it might be just a single-word CSourcePhrase instance, or a
+		// merger, or a retranslation's beginning, or a fixedspace conjoined pair (if a
+		// retranslation beginning, right association isn't allowed, so just leave the
+		// placeholder as is)... so work out what is there and do the relevant processing,
+		// then re-do the right association
+		if (pFollSrcPhrase->m_bBeginRetranslation)
+		{
+			// we can't right associate
+			oldDoneToIncluding = oldLastPlaceholder;
+			newDoneToIncluding = newIndex - 1;
+			return TRUE;
+		}
+		// is it a plain jane single-word CSourcePhrase instance which follows?
+		if (follSrcPhraseType == singleton && pFollSrcPhrase->m_nSrcWords == 1)
+		{
+			// first, update using the arrNew possibly different USFM and markers info
+			bool bDidItOk = TRUE;
+			int nOldTempIndex;
+			int nNewTempIndex;
+			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex, 
+						 pSubspan, nOldTempIndex, nNewTempIndex);
+
+			// get the updated copy of pFollSrcPhrase
+			pFollSrcPhrase = arrOld.Item(oldFollIndex);
+
+            // now do the transfers involved with right-association (this doesn't access
+            // any arrNew stuff, because that kind of info is already built into
+            // pFollSrcPhrase from the call immmediately above), and we now have to
+            // transfer any filtered info, and free trans, preceding punctuation, begin
+            // markers, etc, if present
+            // TRUE, TRUE, TRUE is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
+			TransferPrecedingMembers(pFollSrcPhrase, pLastPlaceholder, TRUE, TRUE, TRUE);
+
+			// finally, rebuild pLastPlaceholder->m_targetStr because the punctuation may
+			// have changed
+			pLastPlaceholder->m_targetStr = pLastPlaceholder->m_precPunct;
+			pLastPlaceholder->m_targetStr += pLastPlaceholder->m_adaption;
+			pLastPlaceholder->m_targetStr += pLastPlaceholder->m_follPunct;
+			pLastPlaceholder->m_targetStr += pLastPlaceholder->GetFollowingOuterPunct();
+
+			// we are done, set the kickoff locations and return TRUE
+			oldDoneToIncluding = nOldTempIndex;
+			newDoneToIncluding = nNewTempIndex;
+			return TRUE;
+		}
+		// is it a merger? update it if so, etc
+		if (follSrcPhraseType == merger && pFollSrcPhrase->m_nSrcWords > 1)
+		{
+			// it is a merger, and not a conjoining with fixed space
+			int numWords = pFollSrcPhrase->m_nSrcWords; 
+			numWords = numWords; // avoid compiler warning in release version
+			int dummyOldLoc;
+			int dummyNewLoc;
+			bool bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldFollIndex, 
+										newIndex, pSubspan, dummyOldLoc, dummyNewLoc);
+			if (!bOK)
+			{
+				// unlikely to fail, but accomodate it just in case -- in this scenario,
+				// we'll just accept the placeholder without having done right-association
+				// data transfers, so that we don't abandon the import process
+				oldDoneToIncluding = oldLastPlaceholder;
+				newDoneToIncluding = newIndex;
+				return FALSE;
+			}
+            // now do the transfers involved with right-association (this doesn't access
+            // any arrNew stuff, because that kind of info is already built into
+            // pFollSrcPhrase from the call immmediately above), and we now have to
+            // transfer any filtered info, and free trans, preceding punctuation, begin
+            // markers, etc, if present
+            // TRUE, TRUE, TRUE is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
+			TransferPrecedingMembers(pFollSrcPhrase, pLastPlaceholder, TRUE, TRUE, TRUE);
+
+			// finally, rebuild pLastPlaceholder->m_targetStr because the punctuation may
+			// have changed
+			pLastPlaceholder->m_targetStr = pLastPlaceholder->m_precPunct;
+			pLastPlaceholder->m_targetStr += pLastPlaceholder->m_adaption;
+			pLastPlaceholder->m_targetStr += pLastPlaceholder->m_follPunct;
+			pLastPlaceholder->m_targetStr += pLastPlaceholder->GetFollowingOuterPunct();
+
+			// we are done, set the kickoff locations and return TRUE
+			oldDoneToIncluding = dummyOldLoc;
+			newDoneToIncluding = dummyNewLoc;
+			wxASSERT(newDoneToIncluding == newIndex + numWords - 1);
+			return TRUE;
+		}
+		// is it a fixedspace conjoining in arrOld, or a singleton in arrOld which matches
+		// up with a newly-formed fixedspace conjoining in arrNew? (shouldn't be the
+		// former, but could be the latter)
+		if (follSrcPhraseType == conjoined || follSrcPhraseType == singleton_matches_new_conjoined)
+		{
+			// if the former, our document model does not permit right association to a
+			// fixedspace conjoined pair, so just leave the placeholder unchanged; but if
+			// the latter, then move the formerly transferred information back to the
+			// arrOld's singleton, so that the caller's next iteration can deal with that
+			// matchup properly
+			if (follSrcPhraseType == conjoined)
+			{
+				// this block almost certainly will never be entered, since right
+				// association to a conjoining is forbidden
+				oldDoneToIncluding = oldLastPlaceholder;
+				newDoneToIncluding = newIndex - 1;
+			}
+			else
+			{
+				// must be the singleton_matches_new_conjoined situation, so move the
+				// transferred info back to pFollSrcPhrase, and clear the members where
+				// data was taken from
+				// TRUE, TRUE, TRUE is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
+				TransferPrecedingMembers(pLastPlaceholder, pFollSrcPhrase, TRUE, TRUE, TRUE);
+
+				oldDoneToIncluding = oldLastPlaceholder;
+				newDoneToIncluding = newIndex - 1;
+			}
+		}
+	} // end of else block for test: if (!bIsRightAssociated), i.e. it IS right-associated
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 FALSE immediately if arrOld or arrNew passed in index values
+///                         are outside the bounds specified by the passed in pSubspan
+///                         Otherwise do the processing and return TRUE (for a manually
+///                         placed placeholder) 
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         well as minimal CSourcePhrase instances) We pass in the WHOLE
+///                         array, not just a subrange for the commonSpan
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too) We pass in the WHOLE
+///                         array, not just a subrange for the commonSpan
+/// \param  oldIndex    ->  index in arrOld where the CSourcePhrase is (it's a singleton)
+/// \param  newIndex    ->  index in arrNew where the matching CSourcePhrase is (it too is
+///                         a singleton)
+/// \param  pSubspan    ->  ptr to the commonSpan Subspan struct which defines the range of
+///                         CSourcePhrase instances in arrOld which are having their
+///                         punctuation and USFM data updated by the matched instances within
+///                         arrNew 
+/// \param  oldDoneToIncluding  <-  index in arrOld of the CSourcePhrase just updated
+/// \param  newDoneToIncluding  <-  index in arrNew of the CSourcePhrase that contributed
+///                                 the data for the updating
+/// \remarks
+/// The caller needs the last two parameters, as the kick-off location for scanning
+/// forwards for further associations of instances between arrOld and arrNew starts from
+/// these index values + 1. This function updates punctuation and SFM or USFM markers from
+/// the information of those types in the associated CSourcePhrase instance in arrNew,
+/// updating to the singleton in arrOld, which is being retained because it is "in common"
+/// with the new source text data and within the commonSpan, pSubspan, being processed                  
+bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+
+	// check indices don't violate pSubspan's  bounds
+	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
+	{
+		// out of range in subspan in arrOld
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	if (newIndex < pSubspan->newStartPos || newIndex > pSubspan->newEndPos)
+	{
+		// out of range in subspan in arrNew
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	// the indices are in range, get the CSourcePhrase instances which are matched
+	CAdapt_ItView* pView = gpApp->GetView();
+	CSourcePhrase* pOldSP = arrOld.Item(oldIndex);
+	CSourcePhrase* pNewSP = arrNew.Item(newIndex);
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("singleton: <old key>  %s , at oldIndex = %d ; <new key>  %s , at newIndex = %d"),
+		pOldSP->m_key.c_str(), oldIndex, pNewSP->m_key.c_str(), newIndex);
+#endif
+#endif
+	wxASSERT(pOldSP->m_key == pNewSP->m_key); // they should be in sync
+
+	// transfer the USFM and punctuation data from the new instance to the old
+	// FALSE is: bool bClearAfterwards
+	oldDoneToIncluding = oldIndex;
+	newDoneToIncluding = newIndex;
+	TransferPunctsAndMarkersOnly(pNewSP, pOldSP, FALSE);
+
+    // the m_srcPhrase value may have changed because of punctuation added, or punctuation
+    // removed, so copy it too; and set the punctuation for m_targetStr as well... use
+	// view's member function MakeTargetStringIncludingPunctuation() for that job; but
+	// don't do it if the pOldSP instance is in a retranslation
+	pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
+	if (!pOldSP->m_bRetranslation)
+	{
+		pView->MakeTargetStringIncludingPunctuation(pOldSP, pOldSP->m_targetStr);
+	}
+	return TRUE;
+}
+
+// This function doesn't actually do any data transfers, it just performs the
+// indices-in-bounds checks, and returns the passed in index values as the kickoff
+// locations to the caller so it can use a systematic syntax for kicking off to the next
+// location. Autoinserted placeholders don't have any correspondence to anything in
+// arrNew, so there's no data to be moved here
+// return TRUE if all's well, FALSE if an index is out of bounds
+bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+	arrOld.GetCount(); // to avoid compiler warning
+	arrNew.GetCount(); // to avoid compiler warning
+
+	// check indices don't violate pSubspan's  bounds
+	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
+	{
+		// out of range in subspan in arrOld
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	if (newIndex < pSubspan->newStartPos || newIndex > pSubspan->newEndPos)
+	{
+		// out of range in subspan in arrNew
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+
+	// return the wanted index values, and TRUE
+	oldDoneToIncluding = oldIndex;
+	newDoneToIncluding = newIndex - 1; // return the pre-advanced index value, since 
+									   // placeholders are not in arrNew
+	return TRUE;
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
 ///                         placeholders, retranslation, fixedspace conjoinings as 
 ///                         well as minimal CSourcePhrase instances)
-/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
 ///                         CSourcePhrase instances, but could also contain fixedspace
 ///                         conjoined instances too)
 /// \param  pSubspan    ->  the Subspan instance which defines either the new CSourcePhrase
@@ -4200,7 +5309,14 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 		// retain the old ones; but the data has to be scanned for changes to punctuation
 		// and SFM structure, and the retained old ones have to receive any alterations
 		// needed from the new CSourcePhrase instances before deep copies are made
-		DoUSFMandPunctuationAlterations(arrOld, arrNew, pSubspan);
+		bool bOK = DoUSFMandPunctuationAlterations(arrOld, arrNew, pSubspan);
+		// we don't expect an error, but if we got a bad one, a non-localizable message
+		// will have been seen already, so just go on and use the material in arrOld's
+		// span with no updates of USFMs or punctuation from the error location onwards
+		if (!bOK)
+		{
+			wxBell(); // do something here though
+		}
 
 		// now make the needed deep copies and store them on pMergedList
 		int index;
@@ -4238,11 +5354,38 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 		}
 	}
 	// delete the Subspan instance
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+	if (pSubspan->spanType == commonSpan)
+	{
+		countCommonSpanDeletions++;
+	}
+	else if (pSubspan->spanType == beforeSpan)
+	{
+		wxString typeStr = _T("beforeSpan");
+		wxLogDebug(_T("                       ** DELETING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos, 
+			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
+		countBeforeSpanDeletions++;
+	}
+	else
+	{
+		wxString typeStr = _T("afterSpan");
+		wxLogDebug(_T("                       ** DELETING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos, 
+			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
+		countAfterSpanDeletions++;
+	}
+#endif
+#endif
 	delete pSubspan;
+	pSubspan = NULL;
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 	// track progress in populating the pMergedList
 //	wxLogDebug(_T("pMergedList progressive count:  %d  ( compare arrOld %d , arrNew %d )"),
 //		pMergedList->GetCount(), arrOld.Count(), arrNew.Count());
+//#endif
 //#endif
 }
 
@@ -4310,6 +5453,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
     // TRUE (the default value) then an afterSpan, if we define one, will not be the
     // rightmost, and the TRUE value must be passed to the afterSpan child Subspan instance
 	bool bClosedEnd = pParentSubspan->bClosedEnd;
+	// the 3 cells of the tuple passed in always start with NULL stored in each
 	//wxASSERT(tuple[0] == NULL);
 	//wxASSERT(tuple[1] == NULL);
 	//wxASSERT(tuple[2] == NULL);
@@ -4319,7 +5463,11 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 		// Subspan we already know is a commonSpan type
 		return FALSE;
 	}
+	// if control gets to here, the parent Subspan instance is either a beforeSpan or an
+	// afterSpan, in either case we need to find it's maximum in-common matched pair of
+	// subspans
 	Subspan* pCommonSubspan = GetMaxInCommonSubspan(arrOld, arrNew, pParentSubspan, limit);
+//#ifdef myLogDebugCalls
 //#ifdef __WXDEBUG__
 /*
 	// get a log display in the Output window to see what we got for the longest in-common
@@ -4404,6 +5552,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 	} // end of else block for test: if (pCommonSubspan)
 */
 //#endif
+//#endif
 
 	if (pCommonSubspan != NULL)
 	{
@@ -4431,12 +5580,17 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 
 		// handle any beforeSpan first....in the InitializeSubspan() calls below, TRUE is
         // bClosedEnd
-		pBeforeSpan = new Subspan;
 		if (parentOldStartAt < pCommonSubspan->oldStartPos)
 		{
 			// the beforeSpan has some content from arrOld, so check the situation in arrNew 
 			if (parentNewStartAt < pCommonSubspan->newStartPos)
 			{
+				pBeforeSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				countBeforeSpans++;
+#endif
+#endif
                 // there is content from both arrOld and arrNew for this pBeforeSpan (that
                 // means there is potentially some old CSourcePhrase instances to be
                 // replaced with ones from the user's edits; we say "potentially" because
@@ -4446,9 +5600,23 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
 						pCommonSubspan->oldStartPos - 1, parentNewStartAt, 
 						pCommonSubspan->newStartPos - 1, TRUE);
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				wxString typeStr = _T("beforeSpan");
+				wxLogDebug(_T("          ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
+					pBeforeSpan->newEndPos, (int)pBeforeSpan->bClosedEnd);
+#endif
+#endif
 			}
 			else
 			{
+				pBeforeSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				countBeforeSpans++;
+#endif
+#endif
                 // There is no content from arrNew to match what is in arrOld here, in that
                 // case, set pBeforeSpan's newStartPos and newEndPos values to -1 so the
                 // caller will know that the arrNew subspan in this pBeforeSpan is empty
@@ -4457,6 +5625,14 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // ignored and nothing from this pBeforeSpan goes into pMergedList)
 				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
 						pCommonSubspan->oldStartPos - 1, -1, -1, TRUE);
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				wxString typeStr = _T("beforeSpan");
+				wxLogDebug(_T("          ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
+					pBeforeSpan->newEndPos, (int)pBeforeSpan->bClosedEnd);
+#endif
+#endif
 			}
 		} // end of TRUE block for test: if (parentOldStartAt < pCommonSubspan->oldStartPos)
 		else
@@ -4464,6 +5640,12 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			// there is no content for pBeforeSpan's subspan in arrOld
 			if (parentNewStartAt < pCommonSubspan->newStartPos)
 			{
+				pBeforeSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				countBeforeSpans++;
+#endif
+#endif
                 // when there is no content for beforeSpan in arrOld, set pBeforeSpan's
                 // oldStartPos and oldEndPos values to -1 so the caller will know this
                 // subspan was empty (this means that the user's editing of the source text
@@ -4471,13 +5653,20 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // they appear in arrNew, so we must add them to pMergedList later)
 				InitializeSubspan(pBeforeSpan, beforeSpan, -1, -1, parentNewStartAt,
 					pCommonSubspan->newStartPos - 1, TRUE);
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+				wxString typeStr = _T("beforeSpan");
+				wxLogDebug(_T("          ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
+					pBeforeSpan->newEndPos, (int)pBeforeSpan->bClosedEnd);
+#endif
+#endif
 			}
 			else
 			{
                 // the pCommonSubspan abutts both the start of the parent subspan in arrOld
                 // and the parent subspan in arrNew -- meaning that beforeSpan is empty, so
                 // in this case delete it and use NULL as it's pointer
-				delete pBeforeSpan;
 				pBeforeSpan = NULL;
 			}
 		} // end of else block for test: if (parentOldStartAt < pCommonSubspan->oldStartPos)
@@ -4493,11 +5682,6 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
         // to the arrOld and arrNew limit indices) -- SetEndIndices() does this right
         // boundary setting job for us
         // TRUE or FALSE in the InitializeSubspan() calls below, is the value of bClosedEnd
-		pAfterSpan = new Subspan;
-		pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value in the
-											 // child pAfterSpan, so that if the parent was
-											 // rightmost, the child pAfterSpan will also
-											 // be rightmost
 		if (bClosedEnd)
 		{
 			// right boundary index limits are to be strictly obeyed...
@@ -4507,6 +5691,15 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				// subspan
 				if (parentNewEndAt > pCommonSubspan->newEndPos)
 				{
+					pAfterSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					countAfterSpans++;
+#endif
+#endif
+					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
+							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							// the child pAfterSpan will also be rightmost
 					// pAfterSpan's subspan in arrNew has some content too - obey the end
 					// limits (TRUE forces that)
 					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
@@ -4515,7 +5708,16 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				}
 				else
 				{
-                    // the end of the preceding commonSpan reaches, in arrNew, to the
+ 					pAfterSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					countAfterSpans++;
+#endif
+#endif
+					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
+							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							// the child pAfterSpan will also be rightmost
+                   // the end of the preceding commonSpan reaches, in arrNew, to the
                     // pParentSubspan's newEndPos value (this means that the user has
                     // earlier edited the old source text at this point by removing some
                     // CSourcePhrase instances, so those in arrOld's subspan have to be
@@ -4532,6 +5734,15 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // CSourcePhrase instances - these will need to be added to pMergedList)
 				if (parentNewEndAt > pCommonSubspan->newEndPos)
 				{
+					pAfterSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					countAfterSpans++;
+#endif
+#endif
+					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
+							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							// the child pAfterSpan will also be rightmost
 					InitializeSubspan(pAfterSpan, afterSpan, -1, -1, 
 								pCommonSubspan->newEndPos + 1, parentNewEndAt, TRUE);
 				}
@@ -4539,7 +5750,6 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				{
 					// the pCommonSubspan has no content from either arrOld nor arrNew
 					// after the commonSpan
-					delete pAfterSpan;
 					pAfterSpan = NULL;
 				}
 			} // end of else block for test: if (parentOldEndAt > pCommonSubspan->oldEndPos)
@@ -4563,13 +5773,8 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			// get appropriate end indices set up
 			if (oldStartAt > oldMaxIndex) 
 			{
-				// the subspan in pCommonSubspan belonging to arrOld must end at
-				// oldMaxIndex, so a special calc is needed here - we can call
-				// SetEndIndices() here so long as when it returns we reset the
-				// oldStartPos and oldEndPos values in pAfterSpan to -1 to indicate that
-				// the arrOld's subspan within pAfterSpan is empty
-				pAfterSpan->oldStartPos = oldStartAt; // invalid, but we'll correct it below
-				pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
+                // the subspan in pCommonSubspan belonging to arrOld must end at
+				// oldMaxIndex, so a special calc is needed here
 				
 				// also check the situation which exists in arrNew...
 				if (newStartAt > newMaxIndex)
@@ -4579,21 +5784,39 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                     // respective arrOld and arrNew ends - hence pAfterSpan is empty & can
                     // be deleted and its pointer set to NULL (for assigning to tuple[2]
                     // below)
-					delete pAfterSpan;
 					pAfterSpan = NULL;
 				}
 				else
 				{
-                    // the subspan in pCommonSubspan belonging to arrNew ends earlier than
+ 					pAfterSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					countAfterSpans++;
+#endif
+#endif
+					pAfterSpan->oldStartPos = oldStartAt; // invalid, but we'll correct it below
+					pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
+				
+					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
+							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							// the child pAfterSpan will also be rightmost
+                   // the subspan in pCommonSubspan belonging to arrNew ends earlier than
                     // the end of arrNew, so there are one or more CSourcePhrase instances
                     // beyond pCommonSubspan->newEndPos which we need to process
 					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
-								pParentSubspan->oldEndPos, pCommonSubspan->newEndPos + 1, 
+								pParentSubspan->oldEndPos, pCommonSubspan->newEndPos + 1,
 								pParentSubspan->newEndPos, FALSE);
                     // override the oldEndPos and newEndPos values in pAfterSpan with more
                     // useful span widths which will promote progress rightwards through
                     // the data
 					SetEndIndices(arrOld, arrNew, pAfterSpan, limit);
+					if (pAfterSpan->oldEndPos == pCommonSubspan->oldEndPos)
+					{
+						// there's nothing in the arrOld subspan within this pAfterSpan,
+						// so indicate that fact
+						pAfterSpan->oldStartPos = -1;
+						pAfterSpan->oldEndPos = -1;
+					}
 				}
 			} // end of TRUE block for test: if (oldStartAt > oldMaxIndex)
 			else
@@ -4601,12 +5824,22 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // the subspan in pCommonSubspan belonging to arrOld ends earlier than the
                 // end of arrOld, so there are one or more CSourcePhrase instances beyond
                 // pCommonSubspan->oldEndPos which we need to process
-				pAfterSpan->oldStartPos = oldStartAt; // valid
-				pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
-
+                
 				// check the situation which exists in arrNew...
 				if (newStartAt > newMaxIndex)
 				{
+					pAfterSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					countAfterSpans++;
+#endif
+#endif
+					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
+							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							// the child pAfterSpan will also be rightmost
+					pAfterSpan->oldStartPos = oldStartAt; // valid
+					pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
+
 					// the subspan in pCommonSubspan belonging to arrNew must end at
 					// newMaxIndex, so a special calc is needed here
 					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
@@ -4622,6 +5855,18 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				}
 				else
 				{
+					pAfterSpan = new Subspan;
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					countAfterSpans++;
+#endif
+#endif
+					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
+							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							// the child pAfterSpan will also be rightmost
+					pAfterSpan->oldStartPos = oldStartAt; // valid
+					pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
+
                     // the subspan in pCommonSubspan belonging to arrNew ends earlier than
                     // the end of arrNew, so there are one or more CSourcePhrase instances
                     // beyond pCommonSubspan->newEndPos which we need to process
@@ -4644,6 +5889,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 	{
 		// NULL was returned, so there is nothing in common; tell that to the caller,
 		// which will then append the parent Subspan's arrNew instances to pMergedList
+		// (the tuple passed in still has each of its 3 cells storing NULL)
 		return FALSE;
 	}
 	return TRUE;
@@ -4658,12 +5904,14 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	SubspanType type;
 	bool bMadeChildTuple = FALSE;
 	bool bIsClosedEnd = TRUE; // default, but can be changed below
-	/*
+/*
+#ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 	wxString allOldSrcWords; // for debugging displays in Output window using
 	wxString allNewSrcWords; // wxLogDebug() calls that are below
 #endif
-	*/
+#endif
+*/
 	for (tupleIndex = 0; tupleIndex < siz; tupleIndex++)
 	{
 		if (tupleIndex == 1) //  the commonSpan (middle of the three)
@@ -4686,6 +5934,32 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				bIsClosedEnd = TRUE;
 				wxASSERT(bIsClosedEnd == pParent->bClosedEnd);
 
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					//SubspanType type = pParent->spanType;
+					if (type == beforeSpan)
+					{
+						wxString typeStr = _T("beforeSpan");
+						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							pParent->newEndPos, (int)pParent->bClosedEnd);
+					}
+					else if (type == commonSpan)
+					{
+						wxString typeStr = _T("commonSpan");
+						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							pParent->newEndPos, (int)pParent->bClosedEnd);
+					}
+					else
+					{
+						wxString typeStr = _T("afterSpan");
+						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							pParent->newEndPos, (int)pParent->bClosedEnd);
+					}
+#endif
+#endif
 				// do the old CSourcePhrase instances' transfers
 				MergeOldAndNew(arrOld, arrNew, pParent, pMergedList);
 			}
@@ -4702,9 +5976,11 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			{
 				continue; // not defined, so skip this Subspan
 			}
-			// the Subspan ptr stored in tuple[tupleIndex] must exist, so process it
+			// the Subspan ptr stored in tuple[tupleIndex] must exist, so process it -
+			// where 'it' is either a beforeSpan or an afterSpan
 			pParent = tuple[tupleIndex];
-			/*				
+/*				
+#ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 			// The GetKeysAsAString_KeepDuplicates() calls are not needed, but useful initially for
 			// debugging purposes -- comment them out later on
@@ -4721,8 +5997,10 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			if (allNewSrcWords.IsEmpty())
 				return;
 #endif
-			*/
-			/*
+#endif
+*/
+/*
+#ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 			type = pParent->spanType;
 			bIsClosedEnd = pParent->bClosedEnd; // only the rightmost afterSpan at
@@ -4747,7 +6025,8 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				wxASSERT(type == afterSpan); // it has to be a beforeSpan
 			}
 #endif
-			*/
+#endif
+*/
 			Subspan* aChildTuple[3]; // an array of three pointer-to-Subspan (the
 									 // SetupChildTuple() call will create the 
 									 // pointers internally and pass them back)
@@ -4764,29 +6043,101 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// recurse to process it
 			if (bMadeChildTuple)
 			{
-				/*
+				
+#ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 				if (pParent != NULL)
 				{
-					wxLogDebug(_T("** Recursing into child tuple from parent: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+					wxLogDebug(_T("***** RECURSING to process TUPLE for Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 						pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, pParent->newEndPos, (int)pParent->bClosedEnd); 
 				}
 #endif
-				*/
+#endif
 				RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, aChildTuple);
+				
+				// on return, if it's a beforeSpan owner, or an afterSpan owner, then it
+				// should be deleted here
+				if (pParent->spanType == beforeSpan)
+				{
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					wxString typeStr = _T("beforeSpan");
+					wxLogDebug(_T("                   ** DELETING (on return)  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+						pParent->newEndPos, (int)pParent->bClosedEnd);
+					countBeforeSpanDeletions++;
+#endif
+#endif
+					delete pParent;
+				}
+				else if (pParent->spanType == afterSpan)
+				{
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					wxString typeStr = _T("afterSpan");
+					wxLogDebug(_T("                   ** DELETING (on return)  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+						pParent->newEndPos, (int)pParent->bClosedEnd);
+					countAfterSpanDeletions++;
+#endif
+#endif
+					delete pParent;
+				}
 			}
 			else
 			{
+				// didn't make a child tuple, so the local variable aChildTuple is 
+				// still [NULL,NULL,NULL]; so we don't recurse, but merge the Subspan
+				// instance that pParent points at
 				if (pParent != NULL)
 				{
-					wxLogDebug(_T("** Merging the parent: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-						pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, pParent->newEndPos, (int)pParent->bClosedEnd); 
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+					SubspanType type = pParent->spanType;
+					if (type == beforeSpan)
+					{
+						wxString typeStr = _T("beforeSpan");
+						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							pParent->newEndPos, (int)pParent->bClosedEnd);
+					}
+					else if (type == commonSpan)
+					{
+						wxString typeStr = _T("commonSpan");
+						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							pParent->newEndPos, (int)pParent->bClosedEnd);
+					}
+					else
+					{
+						wxString typeStr = _T("afterSpan");
+						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							pParent->newEndPos, (int)pParent->bClosedEnd);
+					}
+#endif
+#endif
 				}
 				MergeOldAndNew(arrOld, arrNew, pParent, pMergedList);
 			}
 		} // end of else block for test: if (tupleIndex == 1) i.e. it is 0 or 2
 
 	} // end of for loop: for (tupleIndex = 0; tupleIndex < tupleSize; tupleIndex++)
+
+#ifdef myLogDebugCalls
+#ifdef __WXDEBUG__
+ 	// logDebug the counts for each span type 
+	wxLogDebug(_T("\n TUPLE DONE  *** Count of beforeSpan: %d"),countBeforeSpans);
+	wxLogDebug(_T(" Count of commonSpan: %d"),countCommonSpans);
+	wxLogDebug(_T(" Count of  afterSpan: %d"),countAfterSpans);
+	wxLogDebug(_T("\n             *** Count of beforeSpan deletions: %d"),countBeforeSpanDeletions);
+	wxLogDebug(_T(" Count of commonSpan deletions: %d"),countCommonSpanDeletions);
+	wxLogDebug(_T(" Count of  afterSpan deletions: %d"),countAfterSpanDeletions);
+	wxLogDebug(_T(" UNDELETED AS YET: beforeSpans %d   commonSpans %d   afterSpans %d"),
+		countBeforeSpans - countBeforeSpanDeletions, countCommonSpans - countCommonSpanDeletions,
+		countAfterSpans - countAfterSpanDeletions);
+#endif
+#endif
 }
 
 /// returns                 TRUE for a successful analysis, FALSE if unsuccessful or an
@@ -6318,7 +7669,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 /// Then MergeUpdatedSourceText() can work out in which spans it needs to do a
 /// non-recursive simple transfer of information to pMergedList, or a call of the
 /// MergeUpdatedSrcTextCore() function which does a recursive merge.
-void GetChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
+void CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
 							 wxArrayPtrVoid* pChunkAssociations)
 {
 	int oldCount = pOldChunks->GetCount();
@@ -6511,15 +7862,66 @@ void GetChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks
 
 }
 
-
-
-
-
-
-
-
-
-
+// Return what kind of CSourcePhrase the passed in one is, 
+// returning one of the following values:
+//enum WhatAreYou {
+//	singleton,
+//	singleton_in_retrans,
+//	merger,
+//	conjoined,
+//	manual_placeholder,
+//	placeholder_in_retrans
+//};
+WhatYouAre WhatKindAreYou(CSourcePhrase* pSrcPhrase, CSourcePhrase* pNewSrcPhrase)
+{
+	if (pSrcPhrase->m_nSrcWords > 1)
+	{
+		// either a merger or a conjoining
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			// you are a fixedspace conjoining of a pair of singletons
+			return conjoined;
+		}
+		else
+		{
+			// you are a merger
+			return merger;
+		}
+	}
+	else
+	{
+        // m_nSrcWords = 1, so either you are a retranslation (singleton, or placeholder)
+        // or a manually inserted placeholder, and if none of those, then you must be a
+		// plain jane singleton; but the arrOld singleton may match a newly
+		// edited-into-existance fixedspace conjoining in arrNew, so take care of that
+		// possibility too
+		if (pSrcPhrase->m_bRetranslation)
+		{
+			if (pSrcPhrase->m_bNullSourcePhrase)
+			{
+				// you are an auto-inserted placeholder at the end of a retranslation, in
+				// order to pad out the require length for the extra adaptations needed
+				return placeholder_in_retrans;
+			}
+			else
+			{
+				// you are a plane jane singleton within the retranslation, and not a
+				// placeholder
+				return singleton_in_retrans;
+			}
+		}
+		else if (pSrcPhrase->m_bNullSourcePhrase)
+		{
+			// you are a manually placed placeholder
+			return manual_placeholder;
+		}
+		else if (IsFixedSpaceSymbolWithin(pNewSrcPhrase))
+		{
+			return singleton_matches_new_conjoined;
+		}
+	}
+	return singleton; // it's a singleton to singleton matchup
+}
 
 
 

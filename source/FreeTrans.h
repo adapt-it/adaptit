@@ -31,6 +31,7 @@ class CAdapt_ItCanvas;
 class CAdapt_ItView;
 class CPile;
 class CLayout; // make the "friend class CLayout" declaration work
+class SPArray;
 
 //GDLC 2010-02-12 Definition of FreeTrElement moved to FreeTrans.h
 /// A struct containing the information relevant to writing a subpart of the free
@@ -110,6 +111,16 @@ public:
 	void		InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr); // BEW added 16Sep05
 	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	// end of collecting back translations support
+
+	// support for the Import Edited Free Translation function
+	bool		IsFreeTransInArray(SPArray* pSPArray);
+	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
+	int			FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
+										bool& bFoundSectionStart, bool& bFoundArrayEnd);
+	int			FindNextFreeTransSection(SPArray* pSPArray, int startFrom);
+	int			FindFreeTransSectionLackingStart(SPArray* pSPArray, int startFrom);
+	bool		CheckFreeTransStructure(SPArray* pSPArray, int startsFrom, int& endsAt, int& malformedAt,
+						bool& bHasFlagIsUnset, bool& bLacksEnd, bool& bFoundArrayEnd);
 
 	// Private free translation drawing functions
 private:

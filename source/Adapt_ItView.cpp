@@ -19467,7 +19467,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		if (nHowMany > 0)
 		{
 			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
-
+			
 			// take the pMergedList list, delete the app's m_pSourcePhrases list's contents,
 			// add to m_pSourcePhrases deep copies of the what is in pMergedList list,
 			// and do the stuff below

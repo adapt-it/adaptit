@@ -51,6 +51,7 @@
 #include "Cell.h"
 #include "KB.h"
 #include "Layout.h"
+#include "MergeUpdatedSrc.h"
 #include "FreeTrans.h"
 #include "helpers.h"
 #include "MainFrm.h"
@@ -240,6 +241,475 @@ bool CFreeTrans::ContainsFreeTranslation(CPile* pPile)
 		return TRUE;
 	else
 		return FALSE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return             TRUE if anywhere in the passed in array, a CSourcePhrase
+///                     instance has an indication of a free translation (even if
+///                     it's empty); FALSE otherwise
+/// \param	pSPArray ->	pointer to an SPArray of CSourcePhrase instances, (not necessarily
+///                     formed from m_pSourcePhrases list, but often will be)
+/// \remarks
+/// Used in the Import Edited Source Text... feature, and also when re-loading source text
+/// which has been adapted and the user has edited the source in Paratext, so that it
+/// needs merging with the former adaptation document for that chapter.
+/// This function detects the presence of free translations in the passed in SPArray.
+/////////////////////////////////////////////////////////////////////////////////
+bool CFreeTrans::IsFreeTransInArray(SPArray* pSPArray)
+{
+	int count = pSPArray->GetCount();
+	int index;
+	CSourcePhrase* pSrcPhrase = NULL;
+	for (index = 0; index < count; index++)
+	{
+		pSrcPhrase = pSPArray->Item(index);
+		if (pSrcPhrase->m_bHasFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+		{
+			return TRUE;
+		}
+	}
+	// didn't find the flag value TRUE anywhere, nor free trans text member non-empty
+	return FALSE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return             nothing
+/// \param	pSPArray ->	pointer to an SPArray of CSourcePhrase instances, (not necessarily
+///                     formed from m_pSourcePhrases list, but often will be)
+/// \remarks
+///  Used in the Import Edited Source Text... feature, and also when re-loading source text
+///  which has been adapted and the user has edited the source in Paratext, so that it
+///  needs merging with the former adaptation document for that chapter.
+///  The SetupCurrentFreeTransSection() function in FreeTrans.cpp uses the flag values
+///  m_bHasFreeTrans, m_bStartFreeTrans, m_bEndFreeTrans, to delineate a pre-composed free
+///  translation section, but if the user has edited the source text externally and
+///  reimported it to the document, the imported new CSourcePhrase instances which are the
+///  result of his edit actions won't have any free translation information within them,
+///  and so when they are merged into the old adaptation document they can do the following
+///  destructive things: (i) erase the start of a free translation section, (ii) erase the
+///  end of a free translation section, (iii) erase the middle of a free translation
+///  section (that is, insert CSourcePhrase instances there which have m_bHasFreeTrans set
+///  FALSE). This function scans the inventory of CSourcePhrase instances and erases any
+///  malformed free translations resulting from (i) (ii) or (iii) above. This accomplishes
+///  an import need, a source text edit which replaces some existing source text (in the
+///  import process) invalidates a free translation defined over that location - hence the
+///  free translation should be removed, forcing the user to re-do it with the correct new
+///  meaning, if one is still wanted at that location.
+/////////////////////////////////////////////////////////////////////////////////
+void CFreeTrans::EraseMalformedFreeTransSections(SPArray* pSPArray)
+{
+	CSourcePhrase* pSrcPhrase = NULL;
+	int count = pSPArray->GetCount();
+	int arrayEndIndex = count - 1;
+	int index = 0;
+	int index2 = wxNOT_FOUND;
+	wxString emptyStr = _T("");
+	int anIndex = wxNOT_FOUND;
+	int nEndsAt = wxNOT_FOUND;
+	int malformedAt = wxNOT_FOUND;
+	int nStartAt = index; 
+	bool bHasFreeTransFlagIsUnset = FALSE;
+	bool bLacksEnd = FALSE;
+	bool bFoundArrayEnd = FALSE;
+	bool bWellFormed = TRUE;
+	//	pSrcPhrase = pSPArray->Item(index);
+
+	while (index < count)
+	{
+		nStartAt = FindNextFreeTransSection(pSPArray, index);
+		if (nStartAt == wxNOT_FOUND)
+		{
+            // There are no more instances with m_bStartFreeTrans = TRUE from the index
+            // location up to the end of the array. If there were no free translations in
+            // that span originally, then there is no problem. But if a user edit of the
+            // source text prior to importing the changed source text caused the loss of
+            // the start of a retranslation to happen within that span, we must detect it
+            // and clear the relevant flags up to the end of the array.
+			anIndex = FindFreeTransSectionLackingStart(pSPArray, index);
+			if (anIndex == wxNOT_FOUND)
+			{
+				// nowhere in that span, up to the end of the array, did we find an
+				// instance with m_bHasFreeTrans = TRUE. So just ensure that
+				// m_bEndFreeTrans is FALSE from index to the array end, and return - we
+				// are done
+				int index2;
+				for (index2 = index; index2 < count; index2++)
+				{
+					pSrcPhrase = pSPArray->Item(index2);
+					pSrcPhrase->m_bEndFreeTrans = FALSE;
+				}
+				return;
+			}
+			else
+			{
+                // anIndex must be positive, which means we found a place where the start
+                // of a free translation section has been lost, that is, m_bHasFreeTrans is
+                // TRUE but m_bStartFreeTrans is FALSE. Those facts mean the beginning of
+                // the last free translation was replaced by new CSourcePhrase instances
+                // arising from the user's editing of the source text prior to import back
+                // into Adapt It. We have to therefore clear all three flags right up to
+                // the end of the array. No instance in that span will have any content in
+                // m_freeTrans, but we may as well clear it each time to play safe.
+				for (index2 = index; index2 < count; index2++)
+				{
+					pSrcPhrase = pSPArray->Item(index2);
+					pSrcPhrase->m_bEndFreeTrans = FALSE;
+					pSrcPhrase->m_bStartFreeTrans = FALSE;
+					pSrcPhrase->m_bHasFreeTrans = FALSE;
+					pSrcPhrase->SetFreeTrans(emptyStr);
+				}
+				return;
+			}
+		}
+        // nStartAt returned a positive value, so a CSourcePhrase instance with
+        // m_bStartFreeTrans = TRUE was found above. The next call starts from the same
+        // index value and looks for m_bHasFreeTrans TRUE and m_bStartFreeTrans FALSE. If
+        // such an instance precedes the one found by the FindNextFreeTransSection() call
+        // above, then it is indeed a malformed free translation which we must deal with,
+        // but if it just finds the instance immediately following the one which has
+        // m_bStartFreeTrans TRUE (and m_bHasFreeTrans would also be TRUE), then that is
+        // not an indication of malformation
+		anIndex = FindFreeTransSectionLackingStart(pSPArray, index);
+		if (anIndex != wxNOT_FOUND && anIndex < nStartAt )
+		{
+			// anIndex is positive, and it is earlier than the location at which the next
+			// free translation section starts, so we've a malformation to deal with, and
+			// the malformation is an old free trans section which has lost it's start.
+			// We now where this malformation starts (at anIndex) and where it ends (at
+			// nStartAt - 1), so we just clear all 3 flags for the instances in this span 
+			for (index2 = anIndex; index2 < nStartAt; index2++)
+			{
+				pSrcPhrase = pSPArray->Item(index2);
+				pSrcPhrase->m_bEndFreeTrans = FALSE;
+				pSrcPhrase->m_bStartFreeTrans = FALSE;
+				pSrcPhrase->m_bHasFreeTrans = FALSE;
+				pSrcPhrase->SetFreeTrans(emptyStr);
+			}
+			// set index to the kick-off location for the next search forwards & iterate
+			index = nStartAt;
+		}
+		else
+		{
+            // the nStartAt location is potentially the start of a well-formed free
+            // translation section - so check for well-formedness etc. Since there could be
+            // a malformation before the end or at the end of the free translation section
+            // just located, we must check - and determine from the values passed back how
+            // to fix the document if malformation is detected for this section
+            index = nStartAt;
+			nEndsAt = wxNOT_FOUND;
+			malformedAt = wxNOT_FOUND;
+			bWellFormed = CheckFreeTransStructure(pSPArray, index, nEndsAt, malformedAt,
+								bHasFreeTransFlagIsUnset, bLacksEnd, bFoundArrayEnd);
+			if (bWellFormed)
+			{
+				// no problem with this free translation section, so position index to
+				// point beyond it
+				if (nEndsAt + 1 <= arrayEndIndex)
+				{
+					index = nEndsAt + 1; // iterate
+				}
+				else
+				{
+					return; // we are done
+				}
+			}
+			else
+			{
+				// the free translation section contains or ends with a malformation
+				if (bHasFreeTransFlagIsUnset && bFoundArrayEnd && bLacksEnd)
+				{
+					// this free translation starts, but it doesn't end properly, so the
+					// user's edits have messed with the end - we have to clear this one,
+					// and the flags to the end of the array, & return
+					for (index2 = nStartAt; index2 <= arrayEndIndex; index2++)
+					{
+						pSrcPhrase = pSPArray->Item(index2);
+						pSrcPhrase->m_bEndFreeTrans = FALSE;
+						pSrcPhrase->m_bStartFreeTrans = FALSE;
+						pSrcPhrase->m_bHasFreeTrans = FALSE;
+						pSrcPhrase->SetFreeTrans(emptyStr);
+					}
+					return;
+				}
+				else if (bHasFreeTransFlagIsUnset && !bLacksEnd)
+				{
+					// the malformation is confined within the section, so just clear this
+					// section, nEndsAt will index where the instance with m_bEndFreeTrans
+					// is TRUE
+					for (index2 = nStartAt; index2 <= nEndsAt; index2++)
+					{
+						pSrcPhrase = pSPArray->Item(index2);
+						pSrcPhrase->m_bEndFreeTrans = FALSE;
+						pSrcPhrase->m_bStartFreeTrans = FALSE;
+						pSrcPhrase->m_bHasFreeTrans = FALSE;
+						pSrcPhrase->SetFreeTrans(emptyStr);
+					}
+					index = nEndsAt + 1; // iterate
+				}
+				else if (bLacksEnd)
+				{
+                    // clear, the same as above, but only as far as the endsAt value, then
+                    // iterate after setting index to the new kick-off location
+					for (index2 = nStartAt; index2 <= nEndsAt; index2++)
+					{
+						pSrcPhrase = pSPArray->Item(index2);
+						pSrcPhrase->m_bEndFreeTrans = FALSE;
+						pSrcPhrase->m_bStartFreeTrans = FALSE;
+						pSrcPhrase->m_bHasFreeTrans = FALSE;
+						pSrcPhrase->SetFreeTrans(emptyStr);
+					}
+					index = nEndsAt + 1; // iterate
+				}
+			}
+		} // end of else block for test: if (anIndex != wxNOT_FOUND && anIndex < nStartAt )
+	} // end of loop: while (index < count)
+}
+
+// return wxNOT_FOUND if a section begining with m_bStartFreeTrans set TRUE is not found,
+// otherwise return the index for the location of that particular CSourcePhrase
+int CFreeTrans::FindNextFreeTransSection(SPArray* pSPArray, int startFrom)
+{
+	int index = wxNOT_FOUND;
+	int count = pSPArray->GetCount();
+	for (index = startFrom; index < count; index++)
+	{
+		if ((pSPArray->Item(index))->m_bStartFreeTrans)
+		{
+			return index;
+		}
+	}
+	return wxNOT_FOUND;
+}
+
+// return the index of the CSourcePhrase on which m_bHasRetranslation is set TRUE, but the
+// value of m_bStartFreeTrans is FALSE; otherwise, return wxNOT_FOUND if a valid start of
+// a later free translation section is encountered, or the doc end. The nextStartFreeTransLoc
+// helps us to interpret a wxNOT_FOUND value returned by the function.
+int CFreeTrans::FindFreeTransSectionLackingStart(SPArray* pSPArray, int startFrom)
+{
+	int index = wxNOT_FOUND;
+	int count = pSPArray->GetCount();
+	for (index = startFrom; index < count; index++)
+	{
+		if ((pSPArray->Item(index))->m_bHasFreeTrans && 
+			!(pSPArray->Item(index))->m_bStartFreeTrans)
+		{
+			return index; // returns a +ve value
+		}
+		else if ((pSPArray->Item(index))->m_bStartFreeTrans)
+		{
+			break;
+		}
+	}
+	return wxNOT_FOUND;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return                 TRUE if the section is a well-formed free translation section,
+///                         FALSE if malformed in some way
+/// \param	pSPArray    ->	pointer to an SPArray of CSourcePhrase instances, (not necessarily
+///                         formed from m_pSourcePhrases list, but often will be)
+/// \param  startsFrom  ->  index into pSPArray where to start checking from (typically starting
+///                         at the CSourcePhrase instance which has m_bStartFreeTrans set
+///                         TRUE but it could be from a later index location provided the caller
+///                         is sure that no malformations are at prior index values within the
+///                         section
+/// \param  endsAt      <-  if TRUE is returned, endsAt will have the index of the last instance
+///                         within the (well-formed) section; if FALSE is returned, index
+///                         will be the index of the last CSourcePhrase instance in the
+///                         malformation - that is, the index following endsAt will either
+///                         be the start of a new free translation section, or the index
+///                         of the final CSourcePhrase in the array
+/// \param  malformedAt <-  index of the CSourcePhrase at which a malformation commences - 
+///                         typically the location where an instance with expected
+///                         m_bHasFreeTrans TRUE is found to have the value FALSE for that
+///                         member
+/// \param  bHasFlagIsUnset <-  returns TRUE if a CSourcePhrase within the section has
+///                             its m_bHasFreeTrans member cleared to FALSE (and the first such
+///                             will have it's index assigned to malformedAt)
+/// \param  bLacksEnd       <-  TRUE if a CSourcePhrase instance is encounted in which its
+///                             m_bStartFreeTrans value is TRUE, or the end of the array
+///                             is reached; FALSE if an instance with m_bEndFreeTrans is
+///                             TRUE is encountered before one with m_bStartFreeTrans is
+///                             encountered
+/// \param  bFoundEndOfArray <- TRUE if no new free translation section is encountered before
+///                             the end of the array is reached when looking for the location
+///                             at which a malformation ends
+/// \remarks
+///  Used in the Import Edited Source Text... feature, and also when re-loading source text
+///  which has been adapted and the user has edited the source in Paratext, so that it
+///  needs merging with the former adaptation document for that chapter.
+///  Malformations can be: (i) erased the start of a free translation section, (ii) erased the
+///  end of a free translation section, (iii) erased the middle of a free translation
+///  section (that is, inserted CSourcePhrase instances there which have m_bHasFreeTrans set
+///  FALSE). This function scans the inventory of CSourcePhrase instances within a section
+///  to find and return information about any malformed locations, and returns that
+///  information to the caller so it can decide how to handle the problems. It is a helper
+///  for the EraseMalformedFreeTransSections() function.
+/////////////////////////////////////////////////////////////////////////////////
+bool CFreeTrans::CheckFreeTransStructure(SPArray* pSPArray, int startsFrom, int& endsAt, int& malformedAt,
+						bool& bHasFlagIsUnset, bool& bLacksEnd, bool& bFoundArrayEnd)
+{
+	CSourcePhrase* pSrcPhrase = NULL;
+	int count = pSPArray->GetCount();
+	wxASSERT(count != 0);
+	// initializations
+	malformedAt = wxNOT_FOUND;
+	bHasFlagIsUnset = FALSE;
+	bLacksEnd = FALSE;
+	bFoundArrayEnd = FALSE;
+	int index = startsFrom;
+	pSrcPhrase = pSPArray->Item(index);
+	if (pSrcPhrase->m_bEndFreeTrans)
+	{
+		// ends at the initial search location, so is well-formed
+		endsAt = startsFrom;
+		return TRUE;
+	}
+	int arrayEndIndex = count - 1;
+	// scan forwards so long as the m_bHasFreeTrans flag continues to be TRUE, and the
+	// array end bound is not breached, and neither of the end of the free translation 
+	// (nor the start of a following one is reached)
+	bool bIsFirst = TRUE;
+	while (index < count && !pSrcPhrase->m_bEndFreeTrans && pSrcPhrase->m_bHasFreeTrans)
+	{
+		if (!bIsFirst)
+		{
+			if (pSrcPhrase->m_bStartFreeTrans)
+			{
+				// we've come to the start of a later free translation without
+				// encountering the end of the current one, this indicates malformation,
+				// so exit the loop
+				break;
+			}
+		}
+		else
+		{
+			// on first iteration, set the flag to FALSE for later iterations
+			bIsFirst = FALSE;
+		}
+		index++;
+		if (index > arrayEndIndex)
+		{
+			break;
+		}
+		pSrcPhrase = pSPArray->Item(index);
+	}
+	// determine what halted the forwards movement...
+	// First, did we come to an instance with m_bEndFreeTrans set TRUE - if so, it's a
+	// well-formed section
+	if (pSrcPhrase->m_bEndFreeTrans)
+	{
+		endsAt = index;
+		return TRUE;
+	}
+	// We didn't come to one with m_bEndFreeTrans set TRUE, so did we get all the way to
+	// the end of the array? If so, we've no instance with m_bEndFreeTrans set TRUE, which
+	// means the section is malformed
+	if (index > arrayEndIndex)
+	{
+		endsAt = arrayEndIndex;
+		malformedAt = arrayEndIndex;
+		bFoundArrayEnd = TRUE;
+		bLacksEnd = TRUE;
+		return FALSE;
+	}
+	// Did we instead come to the start of a new free translation section? If so, we
+	// didn't encounter the end of the one we are checking, and so this too is a
+	// malformation (the m_bHasFreeTrans values must have all been TRUE up to and
+	// including the CSourcePhrase immediately prior to the index value on exit from the
+	// loop)
+	if (pSrcPhrase->m_bStartFreeTrans)
+	{
+		endsAt = index - 1;
+		malformedAt = endsAt;
+		bLacksEnd = TRUE;
+		return FALSE;
+	}
+	// Finally, was there an embedded section of new SourcePhrase instances in which they
+	// each have their m_bHasFreeTrans member cleared to FALSE? If so, the structure is
+	// malformed and we'll call another function to try find where things return to
+	// well-formedness - for example, the inserted material may lie wholely within the
+	// free translation section so that a well-defined end-of-section location still
+	// exists, or the insertions may have wiped out the end, or even encroached into one
+	// or more following free translation sections (which would have lost the text in any
+	// m_freeTrans members which were non-empty within that replaced subspan)
+	if (!pSrcPhrase->m_bHasFreeTrans)
+	{
+		malformedAt = index;
+		bHasFlagIsUnset = TRUE;
+		// define booleans to pass in to the function which finds the end of the ruined
+		// section
+		bool bFoundSectionEnd;
+		bool bFoundSectionStart;
+		bool bFoundEndOfArray;
+		int nStartAt = malformedAt; // superflous, but documents what's happening better
+		int anEndIndex = FindEndOfRuinedSection(pSPArray, nStartAt, bFoundSectionEnd,
+										bFoundSectionStart, bFoundEndOfArray);
+		// The first thing to look for is the ruined span of instances being contained
+		// wholely within the original free translation section - the condition for that
+		// is that an instance with m_bEndFreeTrans = TRUE is found before finding one
+		// with m_bStartFreeTrans = TRUE, or before the end of the array is reached
+		if (bFoundSectionEnd)
+		{
+			endsAt = anEndIndex;
+			return FALSE;
+		}
+		// Next, check if we stopped at the start of a later free translation section
+		if (bFoundSectionStart)
+		{
+			endsAt = anEndIndex;
+			bLacksEnd = TRUE;
+			return FALSE;
+		}
+		// Finally, check if we didn't find any further free translation starting
+		// CSourcePhrase instances before coming to the array end
+		if (bFoundEndOfArray)
+		{
+			endsAt = arrayEndIndex; // same as is returned in anEndIndex
+			bLacksEnd = TRUE;
+			bFoundArrayEnd = TRUE;
+		}
+	}
+	return FALSE;
+}
+
+// Returns the index of a CSourcePhrase instance in pSPArray - it's interpretation depends
+// on the values returned by the booleans: if bFoundSectionEnd is TRUE, the return value
+// is the index of the instance with it's m_bEndFreeTrans member set TRUE; if bFoundArrayEnd
+// is TRUE, the return value is the pSPArray->GetCount()-1; if bFoundSectionStart is TRUE,
+// then the return value is the index of the instance IMMEDIATELY BEFORE the instance with
+// it's m_bStartFreeTrans member set TRUE. One of the 3 booleans will return TRUE, and the
+// caller will use the returned integer to clear all the flags, m_bHasFreeTrans,
+// m_bStartFreeTrans, and m_bEndFreeTrans, to FALSE up to and including the returned integer 
+// value.
+int CFreeTrans::FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
+										bool& bFoundSectionStart, bool& bFoundArrayEnd)
+{
+	CSourcePhrase* pSrcPhrase = NULL;
+	bFoundSectionEnd = FALSE;
+	bFoundArrayEnd = FALSE;
+	bFoundSectionStart = FALSE;
+	int count = pSPArray->GetCount();
+	wxASSERT(count != 0);
+	int index;
+	for (index = startFrom; index < count; index++)
+	{
+		pSrcPhrase = pSPArray->Item(index);
+		if (pSrcPhrase->m_bEndFreeTrans)
+		{
+			bFoundSectionEnd = TRUE;
+			return index;
+		}
+		else if (pSrcPhrase->m_bStartFreeTrans)
+		{
+			bFoundSectionStart = TRUE;
+			return index;
+		}
+	}
+	// didn't find a section end or start, and so came to the end of the array
+	bFoundArrayEnd = TRUE;
+	return count - 1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
