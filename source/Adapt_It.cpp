@@ -12295,21 +12295,43 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// fails. We have our own message.
 		wxLogNull logNo;	// eliminates any spurious messages from the system while 
 							// reading read-only folders/files
-		bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(LIB_NAME);
+		wxString secPath,secPath32,secPath64;
+		secPath32 = _T("C:\\Program Files\\Common Files\\SIL") + PathSeparator + LIB_NAME;
+		secPath64 = _T("C:\\Program Files (x86)\\Common Files\\SIL") + PathSeparator + LIB_NAME;
+		if (::wxFileExists(secPath64))
+		{
+			secPath = secPath64;
+		}
+		else if (::wxFileExists(secPath32))
+		{
+			secPath = secPath32;
+		}
+		else
+		{
+			 // SIL Encoding Converters could have been installed in a non-default location, in
+			 // which case Bob E says the wxDynamicLibrary::Load() call below should be able to
+			 // find it because the Encoding Conv installation sets the path to be able to locate
+			 // the dll. If the Load() call still fails, we won't bother the user in that case 
+			 // with the error message.
+			secPath = LIB_NAME;
+		}
+
+		bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(secPath);
 		if (!ecDriverDynamicLibrary.IsLoaded())
 		{
 			// the ECDriver.dll file was not found
 			bECDriverDLLLoaded = FALSE;
-			wxString msg;
-			// This error shouldn't happen with normal install, so it can remain in English
-			msg = msg.Format(_T(
-	"Could not find the %s dynamic library file. SIL Converters will not be available, however the rest of the application will work fine.\n(The next installation you do should fix this problem, because this dll file is included in every installer.)"),
-			LIB_NAME);
-			wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
-		}
-		else
-		{
-			bECDriverDLLLoaded = TRUE;
+			if (!(secPath == LIB_NAME)) // see the comment in the last else block above
+			{
+				// Only show the error message when the ECDriver.dll was found, but the Load()
+				// call above failed
+				wxString msg;
+				// This error shouldn't happen with normal install, so it can remain in English
+				msg = msg.Format(_T(
+		"Could not load the %s dynamic library file. SIL Encoding Converters will not be available, however the rest of Adapt It will work fine.\n(The SIL Encoding Converters that is currently installed is apparently not compatible with Adapt It.)"),
+				LIB_NAME);
+				wxMessageBox(msg,_T("Incompatible version of SIL Encoding Converters"),wxICON_INFORMATION);
+			}
 		}
 	}
 #else
