@@ -17,6 +17,7 @@
 		7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7D527D45124308E30077F9FE /* AI_UserProfiles.xml */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
+		7D98196C139C7002009F4E93 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D98196A139C7002009F4E93 /* md5.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
 		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
 		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
@@ -161,6 +162,8 @@
 		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
 		7D820F871110B941005EDDC9 /* KBEditSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBEditSearch.cpp; path = ../../source/KBEditSearch.cpp; sourceTree = SOURCE_ROOT; };
 		7D820F881110B941005EDDC9 /* KBEditSearch.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KBEditSearch.h; path = ../../source/KBEditSearch.h; sourceTree = SOURCE_ROOT; };
+		7D98196A139C7002009F4E93 /* md5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5.cpp; path = ../../source/md5.cpp; sourceTree = SOURCE_ROOT; };
+		7D98196B139C7002009F4E93 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = ../../source/md5.h; sourceTree = SOURCE_ROOT; };
 		7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_CPLv05.txt; sourceTree = "<group>"; };
 		7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_GPLv2.txt; sourceTree = "<group>"; };
 		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
@@ -419,6 +422,8 @@
 			isa = PBXGroup;
 			children = (
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
+				7D98196A139C7002009F4E93 /* md5.cpp */,
+				7D98196B139C7002009F4E93 /* md5.h */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
 				7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */,
@@ -894,6 +899,7 @@
 				7DB6FC9F135BE3DD006CC95A /* GetSourceTextFromEditor.cpp in Sources */,
 				7DB6FCA2135BE402006CC95A /* SetupEditorCollaboration.cpp in Sources */,
 				C8442B86135FADD300981EB2 /* MergeUpdatedSrc.cpp in Sources */,
+				7D98196C139C7002009F4E93 /* md5.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
