@@ -53,6 +53,7 @@
 #include "RefString.h"
 #include "helpers.h"
 #include "tellenc.h"
+#include "md5.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -1260,19 +1261,27 @@ bool Is_Marker(wxChar *pChar, wxChar *pEnd)
 
 wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 {
-	// Parse the string which is of the form: \v n:nnnn or \c n:nnnn
+	// Parse the string which is of the form: \v n:nnnn:MD5 or \c n:nnnn:MD5 with
+	// an :MD5 suffix; or of the form: \v n:nnnn or \c n:nnnn without the :MD5 suffix.
 	// This function gets the chapter or verse number as a string and works for
 	// either the \c or \v marker.
-	// Since the string is of the form: \v n:nnnn or \c n:nnnn, we cannot use the 
-	// Parse_Number() to get the number itself since, with the :nnnn suffixed to it, 
-	// it does not end in whitespace or CR LF as would a normal verse number, so we 
-	// get the number differently using ordinary wxString methods.
+	// Since the string is of the form: \v n:nnnn:MD5, \c n:nnnn:MD5, (or without :MD5)
+	// we cannot use the Parse_Number() to get the number itself since, with the :nnnn... 
+	// suffixed to it, it does not end in whitespace or CR LF as would a normal verse 
+	// number, so we get the number differently using ordinary wxString methods.
 	wxString numStr = verseStr;
-	int posColon = numStr.Find(_T(':'),TRUE); // TRUE - find from right end
-	wxASSERT(posColon != wxNOT_FOUND);
-	numStr = numStr.Mid(0,posColon);
+	wxASSERT(numStr.Find(_T('\\')) == 0);
+	wxASSERT(numStr.Find(_T('c')) == 1 || numStr.Find(_T('v')) == 1); // it should be a chapter or verse marker
 	int posSpace = numStr.Find(_T(' '));
+	wxASSERT(posSpace != wxNOT_FOUND);
+	// get the number and any following part
 	numStr = numStr.Mid(posSpace);
+	int posColon = numStr.Find(_T(':'));
+	if (posColon != wxNOT_FOUND)
+	{
+		// remove ':' and following part(s)
+		numStr = numStr.Mid(0,posColon);
+	}
 	numStr.Trim(FALSE);
 	numStr.Trim(TRUE);
 	return numStr;
@@ -1282,7 +1291,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 {
 	// process the buffers extracting wxArrayStrings representing the 1:1:nnnn data from the
 	// source and target file buffers
-	// TODO: Modify to also include a unique CRC or SHA value as an additional field so that
+	// TODO: Modify to also include a unique CRC or SHA1 value as an additional field so that
 	// the form of the representation would be 1:1:nnnn:CRC
 	
 	wxArrayString UsfmStructureAndExtentArray;
@@ -1324,6 +1333,8 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 	int charCountMarkersOnly = 0; // includes any white space within and after markers, but not eol chars
 	wxString lastMarker;
 	wxString lastMarkerNumericAugment;
+	wxString stringForMD5Hash;
+	wxString md5Hash;
 	// Scan the buffer and extract the chapter:verse:count information
 	while (ptrSrc < pEnd)
 	{
@@ -1339,6 +1350,8 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 			}
 			else
 			{
+				// its a text char other than sfm marker chars and other than eol chars
+				stringForMD5Hash += *ptrSrc;
 				ptrSrc++;
 				charCount++;
 				charCountSinceLastMarker++;			
@@ -1358,7 +1371,21 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 					usfmDataStr += lastMarkerNumericAugment;
 					usfmDataStr += _T(':');
 					usfmDataStr << charCountSinceLastMarker;
+					if (charCountSinceLastMarker == 0)
+					{
+						// no point in storing an 32 byte MD5 hash when the string is empty (i.e., 
+						// charCountSinceLastMarker is 0).
+						md5Hash = _T('0');
+					}
+					else
+					{
+						// Calc md5Hash here, and below
+						md5Hash = wxMD5::GetMD5(stringForMD5Hash);
+					}
+					usfmDataStr += _T(':');
+					usfmDataStr += md5Hash;
 					charCountSinceLastMarker = 0;
+					stringForMD5Hash.Empty();
 					lastMarker.Empty();
 					UsfmStructureAndExtentArray.Add(usfmDataStr);
 				
@@ -1464,7 +1491,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 		}
 	}
 	
-	// output data for any lastMarker that wan't output in above main while 
+	// output data for any lastMarker that wasn't output in above main while 
 	// loop (at the end of the file)
 	if (!lastMarker.IsEmpty())
 	{
@@ -1474,7 +1501,21 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 		usfmDataStr += lastMarkerNumericAugment;
 		usfmDataStr += _T(':');
 		usfmDataStr << charCountSinceLastMarker;
+		if (charCountSinceLastMarker == 0)
+		{
+			// no point in storing an 32 byte MD5 hash when the string is empty (i.e., 
+			// charCountSinceLastMarker is 0).
+			md5Hash = _T('0');
+		}
+		else
+		{
+			// Calc md5Hash here, and below
+			md5Hash = wxMD5::GetMD5(stringForMD5Hash);
+		}
+		usfmDataStr += _T(':');
+		usfmDataStr += md5Hash;
 		charCountSinceLastMarker = 0;
+		stringForMD5Hash.Empty();
 		lastMarker.Empty();
 		UsfmStructureAndExtentArray.Add(usfmDataStr);
 	

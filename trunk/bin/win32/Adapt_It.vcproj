@@ -112,7 +112,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Debug\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Debug\AI_USFM.xml&quot;"
+				CommandLine="copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Debug\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Debug\AI_USFM.xml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -643,6 +643,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\md5.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\MergeUpdatedSrc.cpp"
 				>
 			</File>
@@ -1073,6 +1077,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\MainFrm.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\md5.h"
 				>
 			</File>
 			<File

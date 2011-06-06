@@ -463,8 +463,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// 3. Scan through the buffers, collecting their usfm markers - simultaneously counting
 	//    the number of characters associated with each marker (0 = empty).
 	// 4. Only the actual marker, plus a : delimiter, plus the character count associated with
-	//    the marker is collected and stored in two wxArrayStrings, one marker (and count) per
-	//    array element.
+	//    the marker plus a : delimiter plus an MD5 checksum is collected and stored in two 
+	//    wxArrayStrings, one marker (and count and MD5 checksum) per array element.
 	// 5. This collection of the usfm structure (and extent) is done for both the source PT 
 	//    book's data and the destination PT book's data.
 	// 6. The two wxArrayString collections will make it an easy matter to compare the 
@@ -479,7 +479,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// 
 	// Each string element of the wxArrayStrings is of the following form:
 	// \mkr:nnnn, where \mkr could be \s, \p, \c 2, \v 23, \v 42-44, etc., followed by
-	// a colon (:), followed by a character count nnnn.
+	// a colon (:), followed by a character count nnnn, followed by either another :0 or
+	// an MD5 checksum.
 	// For example, here are the first 18 elements of a sample wxArraySting:
 	//    \id:50
 	//    \c 1:0
@@ -1191,10 +1192,14 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 			tempStr = TargetTextUsfmStructureAndExtentArray.Item(ct);
 			if (tempStr.Find(chMkr) != wxNOT_FOUND) // \c
 			{
-				// we're pointing at a \c element of a string that is of the form: "\c 1:0"
-				// strip away the preceding \c and the following :0
+				// we're pointing at a \c element of a string that is of the form: "\c 1:0:MD5"
+				// strip away the preceding \c and the following :0:MD5
+				
+				// Account for MD5 hash now at end of tempStr
 				int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
-				tempStr = tempStr.Mid(0,posColon);
+				tempStr = tempStr.Mid(0,posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \c markers)
+				posColon = tempStr.Find(_T(':'),TRUE);
+				tempStr = tempStr.Mid(0,posColon); // get rid of the char count part and preceding colon
 				
 				int posChMkr;
 				posChMkr = tempStr.Find(chMkr); // \c
@@ -1512,6 +1517,8 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 					// now determine if the verse is empty or not
 					int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
 					wxASSERT(posColon != wxNOT_FOUND);
+					tempStr = tempStr.Mid(0,posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \v markers)
+					posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
 					wxString extent;
 					extent = tempStr.Mid(posColon + 1);
 					extent.Trim(FALSE);
