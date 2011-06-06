@@ -43,6 +43,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 
 // to turn on wxLogDebug() calls, uncomment out next line
 //#define myLogDebugCalls
+#define myMilestoneDebugCalls
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -772,12 +773,15 @@ int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxSt
 // Then Clear() can be safely called
 void RemoveAll(SPArray* pSPArray)
 {
+	if (pSPArray->IsEmpty())
+		return;
 	int count = pSPArray->GetCount();
 	int index;
 	for (index = count - 1; index >= 0; index--)
 	{
 		CSourcePhrase** pSP = pSPArray->Detach(index);
 		(*pSP) = NULL;
+		delete (*pSP); // the pointer's storage has to be freed too!
 	}
 	pSPArray->Clear();
 }
@@ -797,22 +801,83 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	int newSPCount = newList.GetCount();
 	if (newSPCount == 0)
 		return;
-	InitializeUsfmMkrs();
 
+	// do the merger of the two arrays
+	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
+
+}
+
+// This is the guts of the recursive merging algorithm - it relies on the limit value
+// being as large as or larger than the biggest group of new CSourcePhrase instances added
+// by the user's editing to any one place in the old (probably exported) source text; if
+// that condition is violated, it will not return all the data. I use a value of 50 for
+// limit, but for potentially large blocks of new material, -1 should be used & be
+// prepared for things to slow down! It's an N squared algorithm.
+void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit)
+{
 	int nStartingSequNum;
-	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the sequence 
-														// numbers correct at the end
+	int oldSPCount = arrOld.GetCount();
+	if (oldSPCount == 0)
+		return;
+	int newSPCount = arrNew.GetCount();
+	if (newSPCount == 0)
+		return;
 
-	wxArrayPtrVoid* pChunksOld = new wxArrayPtrVoid; // remember to delete contents and 
-													 // remove from heap before returning
-	bool bSuccessful_Old =  AnalyseSPArrayChunks(&arrOld, pChunksOld);
+	int defaultLimit = limit; // this is the default miminum value for the limit parameter; 
+			// internally, for big chunks added, a small value is dangerous, so we'll use
+			// bigger values in certain situations so as to be sure we span the material
+			// with the limit value; but for subspans of matched verses, the default value 
+			// will suffice
+	int localLimitValue = defaultLimit; // use this as our variable limit value
 
-	wxArrayPtrVoid* pChunksNew = new wxArrayPtrVoid; // remember to delete contents and 
-													 // remove from heap before returning
-	bool bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew);
+    // Note: we impose a limit on maximum span size, to keep our algorithms from getting
+    // bogged down by having to handle too much data in any one iteration. The limit
+    // parameter specifies what to do.
+    // If limit is -1 then bogging down potential is to be ignored, and we'll always
+    // take the largest span possible. If limit is not explicitly specified in the call,
+    // then default to SPAN_LIMIT (currently set in AdaptitConstants.h to 50 -- big enough
+    // to embrace an average verse's amount of words); if some explicit value is given, use
+	// that or a suitably smaller value if close to an array end. 
+	// 
+    // However, when defining an embedded tuple, the beforeSpan will end at the start of
+    // the commonSpan, the commonSpan will end at the start of the afterSpan, and the
+    // afterSpan must ALWAYS be set to end at the end of oldSPArray for the old data, and
+    // newSPArray for the new data - even if the latter index values are thousands bigger
+    // than SPAN_LIMIT, because recursion will cut up such long spans into shorter Subspan
+    // pieces, until ultimately the whole of both oldSPArray and newSPArray have a cover
+    // defined over them - thereby processing the whole input data (the two arrays) to
+    // define the single merged output array. Recursion processor function proceeds across
+    // a tuple from left to right, processing each Subspan (the central commonSpan is
+    // terminal and never therefore needs to have a child tuple defined for it), and
+    // whenever a child tuple is generated within the beforeSpan or afterSpan, the
+    // RecusiveTupleProcessor() function must be called on that tuple immediately. When the
+    // initial call of the function ultimately finishes, all the data will have been
+    // processed. After the terminal nodes have been processed, the parent deletes the just
+    // finished node - so tuple deletion is involved automatically.
+
+	InitializeUsfmMkrs();
+	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the 
+									// sequence numbers right at the end of the process
+	int initialSequNum = nStartingSequNum;
+	int finalSequNum = -1; // MergeRecursively() sets it from the last in pMergedList
+						   // justs before the function returns
+
+    // Analyse the arrOld and arrNew arrays in order to chunk the data appropriately...
+    // remember to delete these local wxArrayPtrVoid arrays' contents from the heap before
+    // returning, etc
+    bool bSuccessful_Old;
+	bool bSuccessful_New;
+	wxArrayPtrVoid* pChunksOld = new wxArrayPtrVoid;
+	wxArrayPtrVoid* pChunksNew = new wxArrayPtrVoid;
+	bSuccessful_Old =  AnalyseSPArrayChunks(&arrOld, pChunksOld); // analyse arrOld
+	bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew); // analyse arrNew
+
+	SPArray subArrOld; // these will hold subranges of the contents of arrOld
+	SPArray subArrNew; // and arrNew, which we populated based on our analysis of
+					   // the arrOld and arrNew arrays done just above
 
 	// get a wxLogDebug() display of the chunks and their types and ranges
-#ifdef myLogDebugCalls
+#ifdef myMilestoneDebugCalls
 #ifdef __WXDEBUG__
 	wxString unStr = _T("unknownChunkType");
 	wxString biStr = _T("bookInitialChunk");
@@ -893,29 +958,66 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 
 // **** TODO ****
 
+        // we are done with the temporary array's of SfmChunk instances, so remove them
+        // from the heap; there shouldn't be any, but just in case...
+		int iter;
+		int countStructs = pChunksOld->GetCount();
+		if (countStructs > 0)
+		{
+			for (iter = 0; iter < countStructs; iter++)
+			{
+				SfmChunk* pChunk = (SfmChunk*)pChunksOld->Item(iter);
+				delete pChunk;
+			}
+		}
+		delete pChunksOld;
+
+		countStructs = pChunksNew->GetCount();
+		if (countStructs > 0)
+		{
+			for (iter = 0; iter < countStructs; iter++)
+			{
+				SfmChunk* pChunk = (SfmChunk*)pChunksNew->Item(iter);
+				delete pChunk;
+			}
+		}
+		delete pChunksNew;
 
 		return;
 	}
 
-	// when both don't fail, there are SFMs or USFMs in the data, and so we must do a
-	// further analysis to establish the paired association ranges, and define what kind
-	// of data is in them - and for data paired and with content, call
-	// MergeUpdatedSrcTextCore() on each such subrange of paired extents
+	// when both don't fail, there are SFMs or USFMs in the data, and so we must scan
+	// through pChunksOld and pChunksNew, looking for stretches where the milestones are
+	// in sync, and for where there is some sort of dislocation. For the former we call
+	// MergeRecursively() with a small limit value (equal to SPAN_LIMIT, currently 50),
+	// but for the dislocation parts (could be a mismatched gap, mismatched verse range,
+	// etc) we work out the maximum number of words involved and call MergeRecursively()
+	// with a limit value equal to that number of words, just on those paired subspans. We
+	// proceed with this left to right processing until all the inputs are merged - that
+	// is, arrOld and arrNew. 
 	 
 // **** TODO ****
 
-	// do the merger of the two arrays
-	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
 
-	// get the sequence numbers into correct order (we can't assume the passed in SPList
-	// is the whole document, so the first instance may have a sequence number different
-	// than zero)
-	if (!pMergedList->IsEmpty())
-	{
-		gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
-	}
+	// for the present, do the lot...
+	int theOldEndIndex = arrOld.GetCount() - 1;
+	int theNewEndIndex = arrNew.GetCount() - 1;
 
-	// remove the SfmChunk instances from the heap
+	CopySubArray(arrOld, 0, theOldEndIndex, subArrOld);
+	CopySubArray(arrNew, 0, theNewEndIndex, subArrNew);
+
+	initialSequNum = nStartingSequNum;
+	finalSequNum = -1; // MergeRecursively() sets it from the last in pMergedList
+						   // justs before the function returns
+	
+	//MergeRecursively(arrOld, arrNew, pMergedList, localLimitValue, initialSequNum, finalSequNum);
+	MergeRecursively(subArrOld, subArrNew, pMergedList, localLimitValue, initialSequNum, finalSequNum);
+
+	RemoveAll(&subArrOld); // get rid of the copied ptrs for the subrange from arrOld
+	RemoveAll(&subArrNew); // get rid of the copied ptrs for the subrange from arrNew
+
+    
+	// we are done with the temporary array's of SfmChunk instances, so remove them from the heap
 	int iter;
 	int countStructs = pChunksOld->GetCount();
 	if (countStructs > 0)
@@ -940,48 +1042,346 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	delete pChunksNew;
 }
 
-// This is the guts of the recursive merging algorithm - it relies on the limit value
-// being as large as or larger than the biggest group of new CSourcePhrase instances added
-// by the user's editing to any one place in the old (probably exported) source text; if
-// that condition is violated, it will not return all the data. I use a value of 50 for
-// limit, but for potentially large blocks of new material, -1 should be used & be
-// prepared for things to slow down! It's an N squared algorithm.
-void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit)
+/// \return         TRUE if safe matchup is determined (oldMatchedChunk and
+///                 newMatchedChunk values can then be relied upon); FALSE if no matchup
+///                 was able to be made
+/// \param  pOldChunks  ->  array of SfmChunk structs indexing into arrOld, determined by analysis
+/// \param  pNewChunks  ->  array of SfmChunk structs indexing into arrNew, determined by analysis
+/// \param  oldStartChunk   ->  index to the first SfmChunk to be examined when looking
+///                             ahead for a simple verse instance which can be matched to
+///                             one with the same simple verse, within pNewChunks
+/// \param  newStartChunk   ->  index to the first SfmChunk to be examined in pNewChunks,
+///                             for the matchup with one in pOldChunks
+/// \param  oldMatchedChunk  <-  ref to index for the matched SfmChunk pertaining to
+///                             arrOld, -1 if there was no matchup made
+/// \param  newMatchedChunk  <-  ref to index for the matched SfmChunk pertaining to 
+///                             arrNew, -1 if there was no matchup made
+/// If the SfmChunks in pOldChunks at oldStartChunk have verse numbers like 5-6a 6b 7 8 9 ...
+/// and those in pNewChunks at newStartChunk have numbers like 6 7 8-10 11 12 ...
+/// Then the hunt for the closes simple verse matchup would yield 7 for the above data.
+/// At where oldStartChunk points, it may be an SfmChunk after a gap in the verses, or one
+/// which is a range, or a non-simple number like 4b. We don't want to mess with gaps and
+/// non-simple verse references chunks, but just subsume them into a larger chunk which we
+/// can deal with as a whole by taking a larger limit value to pass into
+/// MergeRecursively(). So we assume that arrOld having a simple verse 7 chunk, and arrNew
+/// having also a simple verse 7 chunk, that those chunks are a valid match and therefore
+/// define the end of the stuff we want to subsume into a larger chunk and ignore it's
+/// internal details. Of course, the caller may have halted processing to make this test
+/// call near a chapter end, so we take into account that a chapter may change and
+/// anything else relevant, but the general idea is still the same. (We don't want to do
+/// the 'ultimate convenience' of taking a limit value equal to the total words in the
+/// whole of arrOld or arrNew, as while that would avoid this testing, it would give a
+/// large limit value, and that would in turn result in processing bogging down, as the
+/// merge algorithm is order N squared, N = number of words being considered.)
+/// When setting up the internal arrOldChunkInfos and arrNewChunkInfos, we go from the
+/// starting locations in pOldChunks and pNewChunks, and process ALL SfmChunk instances in
+/// each array up to the end of pOldChunks and pNewChunks. This is the only safe thing to
+/// do, because we can't prescribe that somewhere in the middle of the source text the
+/// user may add a sufficient number of chapters and verses previously not in the source
+/// text that the number of words involved won't exceed any arbitrary presumed-safe
+/// default value.
+bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
+		int oldStartChunk, int newStartChunk, int& oldMatchedChunk, int& newMatchedChunk)
 {
-	int nStartingSequNum;
-	int oldSPCount = arrOld.GetCount();
-	if (oldSPCount == 0)
-		return;
-	int newSPCount = arrNew.GetCount();
-	if (newSPCount == 0)
-		return;
-	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the 
-														// sequence numbers right later
-    // Note: we impose a limit on maximum span size, to keep our algorithms from getting
-    // bogged down by having to handle too much data in any one iteration. The limit
-    // parameter specifies what to do.
-    // If limit is -1 then bogging down potential is to be ignored, and we'll always
-    // take the largest span possible. If limit is not explicitly specified in the call,
-    // then default to SPAN_LIMIT (currently set in AdaptitConstants.h to 50 -- big enough
-    // to embrace an average verse's amount of words); if some explicit value is given, use
-	// that or a suitably smaller value if close to an array end. 
-	// 
-    // However, when defining an embedded tuple, the beforeSpan will end at the start of
-    // the commonSpan, the commonSpan will end at the start of the afterSpan, and the
-    // afterSpan must ALWAYS be set to end at the end of oldSPArray for the old data, and
-    // newSPArray for the new data - even if the latter index values are thousands bigger
-    // than SPAN_LIMIT, because recursion will cut up such long spans into shorter Subspan
-    // pieces, until ultimately the whole of both oldSPArray and newSPArray have a cover
-    // defined over them - thereby processing the whole input data (the two arrays) to
-    // define the single merged output array. Recursion processor function proceeds across
-    // a tuple from left to right, processing each Subspan (the central commonSpan is
-    // terminal and never therefore needs to have a child tuple defined for it), and
-    // whenever a child tuple is generated within the beforeSpan or afterSpan, the
-    // RecusiveTupleProcessor() function must be called on that tuple immediately. When the
-    // initial call of the function ultimately finishes, all the data will have been
-    // processed. After the terminal nodes have been processed, the parent deletes the just
-    // finished node - so tuple deletion is involved automatically.
-    
+	int oldCountOfChunks = pOldChunks->GetCount();
+	int newCountOfChunks = pNewChunks->GetCount();
+	ChunkInfo* pOldChunkInfo = NULL;
+	ChunkInfo* pNewChunkInfo = NULL;
+	wxArrayPtrVoid arrOldChunkInfos;
+	wxArrayPtrVoid arrNewChunkInfos;
+	int oldIndex;
+	for (oldIndex = oldStartChunk; oldIndex < oldCountOfChunks; oldIndex++)
+	{
+		SfmChunk* pOldChunk = (SfmChunk*)pOldChunks->Item(oldIndex);
+		pOldChunkInfo = new ChunkInfo;
+		pOldChunkInfo->type = pOldChunk->type;
+		pOldChunkInfo->verse = pOldChunk->nStartingVerse;
+		pOldChunkInfo->chapter = pOldChunk->nChapter;
+		pOldChunkInfo->indexRef = pOldChunk->startsAt; // indexes into arrOld
+		pOldChunkInfo->bIsComplex = FALSE; // default, but check and make TRUE in required by the
+										   // tests in the following lines
+		if (pOldChunk->nStartingVerse != pOldChunk->nEndingVerse || 
+			pOldChunk->charStartingVerseSuffix != _T('\0') || 
+			pOldChunk->charEndingVerseSuffix != _T('\0'))
+		{
+			pOldChunkInfo->bIsComplex = FALSE;
+		}
+		// now store this struct
+		arrOldChunkInfos.Add(pOldChunkInfo);
+	}
+	// do the same for the arrNew array's subarray
+	int newIndex;
+	for (newIndex = newStartChunk; newIndex < newCountOfChunks; newIndex++)
+	{
+		SfmChunk* pNewChunk = (SfmChunk*)pNewChunks->Item(newIndex);
+		pNewChunkInfo = new ChunkInfo;
+		pNewChunkInfo->type = pNewChunk->type;
+		pNewChunkInfo->verse = pNewChunk->nStartingVerse;
+		pNewChunkInfo->chapter = pNewChunk->nChapter;
+		pNewChunkInfo->indexRef = pNewChunk->startsAt; // indexes into arrNew
+		pNewChunkInfo->bIsComplex = FALSE; // default, but check and make TRUE if required by the
+										   // tests in the following lines
+		if (pNewChunk->nStartingVerse != pNewChunk->nEndingVerse || 
+			pNewChunk->charStartingVerseSuffix != _T('\0') || 
+			pNewChunk->charEndingVerseSuffix != _T('\0'))
+		{
+			pNewChunkInfo->bIsComplex = TRUE;
+		}
+		// now store this struct
+		arrNewChunkInfos.Add(pNewChunkInfo);
+	}
+	// arrOldChunkInfos and arrNewChunkInfos are populated, so check for the closest safe
+	// matchup; oldIndex and newIndex can now be re-used to index into arrOldChunkInfos
+	// and arrNewChunkInfos respectively
+	int countOldInfoStructs = arrOldChunkInfos.GetCount();
+	int countNewInfoStructs = arrNewChunkInfos.GetCount();
+	oldIndex = 0;
+	int oldFoundAt = wxNOT_FOUND;
+	int newFoundAt = wxNOT_FOUND;
+	bool bOldFoundOne = FALSE;
+	bool bNewFoundOne = FALSE;
+	bool bMatched = FALSE;
+	// outer loop, ranges over the SfmChunks pertaining to arrOld
+	do {
+
+		bOldFoundOne = GetNextSimpleVerseChunkInfo(&arrOldChunkInfos, oldIndex, oldFoundAt);
+		if (bOldFoundOne)
+		{
+			// search in the SfmChunks pertaining to arrNew for a matchup
+			bool bGotAMatch = FALSE;
+			do {
+				bNewFoundOne = GetNextSimpleVerseChunkInfo(&arrNewChunkInfos, newIndex, newFoundAt);
+				if (bNewFoundOne)
+				{
+					// we found an SfmChunk from the new material which is a simple-verse chunk,
+					// so check out whether or not we have a matchup
+					ChunkInfo* pOldChunk = (ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt);
+					ChunkInfo* pNewChunk = (ChunkInfo*)arrNewChunkInfos.Item(newFoundAt);
+					// we only call this function on data which is chapter/verse
+					// milestoned, so ensure it
+					wxASSERT(pOldChunk->type != bookInitialChunk && pOldChunk->type != introductionChunk);
+					wxASSERT(pNewChunk->type != bookInitialChunk && pNewChunk->type != introductionChunk);
+
+					// are we beyond the outer loop's reference? If so, no point in looking further
+					if (pNewChunk->chapter > pOldChunk->chapter)
+					{
+						break; // out of inner loop
+					}
+					if (pNewChunk->verse > pOldChunk->verse)
+					{
+						break; // out of inner loop
+					}
+
+					// set bGotAMatch if we achieved a valid matchup
+					if (pNewChunk->chapter == pOldChunk->chapter)
+					{
+						if (pNewChunk->verse == pOldChunk->verse)
+						{
+							// we have a valid matchup
+							bGotAMatch = TRUE;
+						}
+						else
+						{
+							// no matchup
+							break; // out of inner loop
+						}
+					}
+					else
+					{
+						// diff chapters, so can't be a matchup, even if verse numbers match
+						break; // out of inner loop
+					}
+				}
+				else
+				{
+					// we didn't find a new simple-verse chunk in the chunks pertaining to arrNew,
+					// so iterate the outer loop and try again
+					break; // out of inner loop
+				}
+			} while (newIndex < countNewInfoStructs &&  newFoundAt != wxNOT_FOUND);
+
+			// if there was no matchup done, try a later SfmChunk within the old set
+			if (!bGotAMatch)
+			{
+				oldIndex++;
+				newIndex = 0;
+				continue; // outer loop will iterate and inner loop will start over,
+						  // or the outer loop will end and we've not found a match
+			}
+			else
+			{
+				// we got a match
+				newFoundAt = newIndex;
+				bMatched = TRUE;
+				break;
+			}
+		} // end of TRUE block for test: if (bOldFoundOne)
+		else
+		{
+			// there weren't any more in the arrOld array of SfmChunk instances that were
+			// simple-verse ones, so no matchup of same is possible for what's in arrNew 
+			// chunks
+			break;
+		}
+	} while (oldIndex < countOldInfoStructs &&  oldFoundAt != wxNOT_FOUND);
+
+	// delete the ChunkInfo instances from the heap
+	for (oldIndex = 0; oldIndex < countOldInfoStructs; oldIndex++)
+	{
+		ChunkInfo* pInfo = (ChunkInfo*)arrOldChunkInfos.Item(oldIndex);
+		delete pInfo;
+	}
+	for (newIndex = 0; newIndex < countNewInfoStructs; newIndex++)
+	{
+		ChunkInfo* pInfo = (ChunkInfo*)arrNewChunkInfos.Item(newIndex);
+		delete pInfo;
+	}
+	// determine what to tell the caller
+	if (bMatched)
+	{
+		// we got a matchup, so we have a valid halt location to return
+		oldMatchedChunk = oldFoundAt;
+		newMatchedChunk = newFoundAt;
+		return TRUE;
+	}
+	else
+	{
+		// no matchup, return wxNOT_FOUND values
+		oldMatchedChunk = wxNOT_FOUND;
+		newMatchedChunk = wxNOT_FOUND;
+		return FALSE;
+	}
+}
+
+/// \return         TRUE if one or more in-sync matchups are determined (oldEndChunk and
+///                 newEndhunk values can then be relied upon); FALSE if no in-sync matchups
+///                 were able to be made
+/// \param  pOldChunks  ->  array of SfmChunk structs indexing into arrOld, determined by analysis
+/// \param  pNewChunks  ->  array of SfmChunk structs indexing into arrNew, determined by analysis
+/// \param  oldStartChunk   ->  index to the first SfmChunk to be examined when examining
+///                             instances ahead for verse ref data in-sync
+/// \param  newStartChunk   ->  index to the first SfmChunk to be examined in pNewChunks                            
+/// \param  oldEndChunk     <-  ref to index for the last matched in-sync pair of SfmChunk 
+///                             instances prior to which a dislocation in the syncing was
+///                             detected (-1 if no aggregation happened)
+/// \param  newEndChunk     <-  ref to index for the matched last in-sync SfmChunk instance 
+///                             which is in-sync with the one defined by oldEndChunk (-1 if
+///                             no aggregation happened)
+/// This is the function which gathers in-sync chunks into a super-chunk in which the same
+/// chapters and verses are present - paired. That is, if pOldChunks has a chapter 2 verse
+/// 3 chunk and pNewChunks has a chapter 2 verse 3 chunk, and there were pairings up to
+/// that point, then those two chunks are considered paired and the next index values are
+/// tested for pairing -- this pairing to aggregate a super-chunk only halts when either
+/// the end of the arrays is reached, or in-syncness is violated for some reason - for
+/// example, one of the arrays may have a gap in the verse sequence, or a range of verses
+/// like 5-6a might be in one array but a matching range not in the other array, or 8a may
+/// be in one but 8 in the other. We do this because calling MergeRecursively() with a
+/// small limit value is safe provided the pairings are in-sync throughout the super-chunk
+/// (That doesn't mean there are no gaps, it does mean that any gaps that are present have
+/// the same verse ref info preceding the gap in each array, and the same verse ref info
+/// following the gap in each array. For instance if in arrOld there is a gap after 2:6 and
+/// the next chunk starts at 3:2, then in arrNew there would be the same gap - that is,
+/// before its gap 2:6 exists and after its gap 3:2 exists. Nor does it mean there are no
+/// verse ranges; it just means that if one array has a verse range (eg. 4-6a) then the
+/// other array has the same verse range (4-6a) at the expected pairing location.) So long
+/// as the pairings keep in sync, aggregation can continue and should continue.
+/// Note: oldStartChunk and newStartChunk are indices which must point to a valid pairing
+/// established in the caller before entry. Iteration just tests successive potential
+/// pairings using AreSfmChunksWithSameRef() until the latter returns FALSE, and returns
+/// the indices for the last successful pairing in oldEndChunk and newEndChunk
+bool GetMaxInSyncChunksPairing(wxArrayPtrVoid* pOldChunksArray, wxArrayPtrVoid* pNewChunksArray,
+				int oldStartChunk, int newStartChunk, int& oldEndChunk, int& newEndChunk)
+{
+
+
+// *** TODO ***
+
+	return TRUE;
+}
+
+
+// Return TRUE if a ChunkInfo with bIsComplex = FALSE is found, and return in foundAt the
+// index which points to it in pChunkInfos array; if none is found before the end of
+// pChunkInfos is reached, return FALSE (in which case, foundAt will be returned as
+// wxNOT_FOUND). The value passed in, startFrom, should be the first ChunkInfo instance not
+// as yet checked, and it must not be a value which exceeds the bound of pChunkInfos
+bool GetNextSimpleVerseChunkInfo(wxArrayPtrVoid* pChunkInfos, int startFrom, int& foundAt)
+{
+	int count = pChunkInfos->GetCount();
+	wxASSERT(startFrom < count);
+	foundAt = wxNOT_FOUND;
+	int index;
+	for (index = startFrom; index < count; index++)
+	{
+		ChunkInfo* pInfo = (ChunkInfo*)pChunkInfos->Item(index);
+		if(pInfo->type != bookInitialChunk && pInfo->type != introductionChunk && !pInfo->bIsComplex)
+		{
+			foundAt = index;
+			return TRUE;
+		}
+	}
+	// if control reaches here, we didn't find a simple-verse ChunkInfo in the array
+	return FALSE;
+}
+
+// return TRUE if the verse reference (and chapter) information in each chunk is the same,
+// FALSE if not. For example, both have 12-14a, or both have 9, or both have 14b, etc, but
+// dissimilar types also return FALSE regardless of what the verse and chapter info is,
+// for example, one is introductionChunk the other is chapterPlusVerseChunk; or one is
+// subheadinglusVerseChunk and the other is verseChunk, etc
+bool AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk)
+{
+	if (pOldChunk->type != pNewChunk->type)
+		return FALSE;
+	if (pOldChunk->strStartingVerse != pNewChunk->strStartingVerse)
+		return FALSE;
+	else if (pOldChunk->strEndingVerse != pNewChunk->strEndingVerse)
+		return FALSE;
+	else if (pOldChunk->charStartingVerseSuffix != _T('\0') && pNewChunk->charStartingVerseSuffix != _T('\0')
+			&& (pOldChunk->charStartingVerseSuffix != pNewChunk->charStartingVerseSuffix))
+		return FALSE;
+	else if (pOldChunk->charStartingVerseSuffix != _T('\0') && pNewChunk->charStartingVerseSuffix == _T('\0'))
+		return FALSE;
+	else if (pOldChunk->charStartingVerseSuffix == _T('\0') && pNewChunk->charStartingVerseSuffix != _T('\0'))
+		return FALSE;
+	else if (pOldChunk->charEndingVerseSuffix != _T('\0') && pNewChunk->charEndingVerseSuffix != _T('\0')
+			&& (pOldChunk->charEndingVerseSuffix != pNewChunk->charEndingVerseSuffix))
+		return FALSE;
+	else if (pOldChunk->charEndingVerseSuffix != _T('\0') && pNewChunk->charEndingVerseSuffix == _T('\0'))
+		return FALSE;
+	else if (pOldChunk->charEndingVerseSuffix == _T('\0') && pNewChunk->charEndingVerseSuffix != _T('\0'))
+		return FALSE;
+	else
+		return TRUE;
+}
+
+// Count the words in the series of CSourcePhrase instances of pArray represented by the
+// startsAt value in the SfmChunk* pointed at by firstChunk, and the endsAt value in the
+// one pointed at by lastChunk, indexing into the contents of pChunksArray. If there is only one
+// chunk involved, firstChunk and lastChunk will be the same integer value. The code
+// accumulates the values of the m_nSrcWords member of each CSourcePhrase in the range.
+int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, int lastChunk)
+{
+	int count = 0;
+	int chunkCount = pChunksArray->GetCount(); chunkCount = chunkCount; // avoid compiler warning
+	int index = firstChunk;
+	SfmChunk* pChunk = (SfmChunk*)pChunksArray->Item(index);
+	int startAt = pChunk->startsAt;
+	wxASSERT(lastChunk < chunkCount);
+	pChunk = (SfmChunk*)pChunksArray->Item(lastChunk);
+	int endAt = pChunk->endsAt;
+	// repurpose index to iterate over the CSourcePhrase instances in pArray from startAt
+	// to endAt, inclusive
+	for (index = startAt; index <= endAt; index++)
+	{
+		count += pArray->Item(index)->m_nSrcWords;
+	}
+	return count;
+}
+
+void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
+						 int initialSequNum, int& finalSequNum)
+{
 	// set up the top level tuple, beforeSpan and commonSpan will be empty (that is, the
 	// tuple[0] and tuple[1] struct pointers will be NULL. Tuple[3] will have the whole
 	// extent of both oldSPArray and newSPArray.
@@ -993,7 +1393,11 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	bContainsFreeTranslations = pFreeTrans->IsFreeTransInArray(&arrOld); // if TRUE we will
 			// later call a free-translation-malformations-fixing function after the
 			// merger is done, to erase free translations corrupted by CSourcePhrase 
-			// replacements from arrNew
+			// replacements from arrNew 
+
+	// arrOld and arrNew passed in are typically subarray's of longer arrays in the caller
+	int oldSPCount = arrOld.GetCount();
+	int newSPCount = arrNew.GetCount();
 
 	Subspan* tuple[3]; // an array of three pointer-to-Subspan
 	tuple[0] = NULL;
@@ -1011,18 +1415,25 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
     // In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
 	InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
 	// update the end indices to more reasonable values, the above could bog processing down
-	SetEndIndices(arrOld, arrNew, pSubspan, SPAN_LIMIT); // SPAN_LIMIT is currently 50
+	SetEndIndices(arrOld, arrNew, pSubspan, limit); // SPAN_LIMIT is currently 50
 
     // Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
     // call finally returns after being recursively called possibly very many times, the
     // merging is complete
     RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, tuple);
 
+	// Clean up...
+	
 	// Get the CSourcePhrase instances appropriately numbered in the temporary
 	// list which is to be returned to the caller
 	if (!pMergedList->IsEmpty())
 	{
-		gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+		gpApp->GetDocument()->UpdateSequNumbers(initialSequNum, pMergedList);
+
+		// set the finalSequNum value which is to be returned to the caller
+		SPList::Node* posLast = pMergedList->GetLast();
+		CSourcePhrase* pLastSrcPhrase = posLast->GetData();
+		finalSequNum = pLastSrcPhrase->m_nSequNumber;
 
         // Call an adjustment helper function which looks for retranslation spans that were
         // partially truncated (at their beginning and/or at their ending), and removes the
@@ -1032,7 +1443,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
         // back to the last non-placeholder instance
 		EraseAdaptationsFromRetranslationTruncations(pMergedList);
 	}
-	// finally, remove corrupted free translations
+	// clear any corrupted free translations
 	if (bContainsFreeTranslations)
 	{
 		// need to turn pMergedList into an SPArray for the next job, then throw the
@@ -5380,13 +5791,13 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 #endif
 	delete pSubspan;
 	pSubspan = NULL;
-//#ifdef myLogDebugCalls
-//#ifdef __WXDEBUG__
+#ifdef myMilestoneDebugCalls
+#ifdef __WXDEBUG__
 	// track progress in populating the pMergedList
-//	wxLogDebug(_T("pMergedList progressive count:  %d  ( compare arrOld %d , arrNew %d )"),
-//		pMergedList->GetCount(), arrOld.Count(), arrNew.Count());
-//#endif
-//#endif
+	wxLogDebug(_T("pMergedList progressive count:  %d  ( compare arrOld %d , arrNew %d )"),
+		pMergedList->GetCount(), arrOld.Count(), arrNew.Count());
+#endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -7330,6 +7741,25 @@ bool DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt)
 	return FALSE;
 }
 
+// Copies CSourcePhrase pointers from arr to subArray (clears the latter first) from index
+// value fromIndex up to and including toIndex. Both fromIndex and toIndex must lie within
+// the bounds of the passed in arr parameter. When done using the copied pointers, they
+// should not be deleted from the heap since the passed back subArray only uses them
+// temporarily, so use this module's RemoveAll() function (which internally calls Detach())
+// to clean out subArray without removing their objects from the heap.
+void CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray)
+{
+	wxASSERT(fromIndex >= 0 && toIndex < (int)arr.GetCount());
+	subArray.Clear();
+	int index;
+	CSourcePhrase* pSrcPhrase = NULL;
+	for (index = fromIndex; index <= toIndex; index++)
+	{
+		pSrcPhrase = arr.Item(index);
+		subArray.Add(pSrcPhrase);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return                 TRUE if the array could be chunked because markers were present,
 ///                         FALSE if it could not be chunked (that would almost certainly
@@ -7650,11 +8080,13 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
         //     latter could be huge. E.g. if he added a block of verses comprising about
         //     250 words, he should use, say, 260 words as a limit value.
 		
+		// at the moment we just return FALSE, but I'm starting to think that may be enough
 		return FALSE;
 	}
 	return TRUE;
 }
 
+/* deprecated -- changed my mind
 /// \return         nothing
 /// \param      ->  pOldChunks  array of SfmChunk pointers for typed chunks within arrOld
 /// \param      ->  pNewChunks  array of SfmChunk pointers for typed chunks within arrNew
@@ -7833,6 +8265,7 @@ void CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChu
 			lastNewIndex = lastNewIndex;
 		}
 	}
+	
     // Now we are ready for milestoned data. This will be handled in a loop. If the verse
     // milestones match exactly (including ranges, and part verse labels like a, b, c),
     // then we handle as follows: if the types are the same - eg. both are
@@ -7861,12 +8294,13 @@ void CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChu
 
 
 }
-
+*/
 // Return what kind of CSourcePhrase the passed in one is, 
 // returning one of the following values:
 //enum WhatAreYou {
 //	singleton,
 //	singleton_in_retrans,
+//	singleton_matches_new_conjoined,
 //	merger,
 //	conjoined,
 //	manual_placeholder,
