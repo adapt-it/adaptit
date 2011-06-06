@@ -175,88 +175,41 @@ struct SfmChunk {
 	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
 };
 
-// We need an additional enum for the 2 possible data states which the current Adapt It
-// tokenizing parser supports: a gap in the the verses, and SFM or USFM verse structure in
-// which the verses have at least one word of text each. (Our parser does not support the
-// following: SFM or USFM structure in which there are no words following the markers.
-// Data of this type, if presented to the parser, will group all the empty markers
-// together into one long string for storage in a single m_markers member of a
-// CSourcePhrase instance, but that instance won't be created if there is no word anywhere
-// which can be the m_key member of the CSourcePhrase instance - in which case the long
-// string of empty markers is simply lost; but if a word or words occur at a later point,
-// the long list of contentless markers is stored in the CSourcePhrase's m_markers member
-// for the first word. That's not helpful. However, the m_chapterVerse member would have
-// the correct chapter and verse number in the latter situation, for that first word's
-// CSourcePhrase instance. But because the parser doesn't support empty markup, we limit
-// the states we support to the two above, and reject a third which would be: SFM or USFM 
-// structure but the structure has no words in it. So we are supporting only a 2-state model.
-// 
-// Hence the following - we need one each for the 'old' instances and the 'new' instances
-// of CSourcePhrases to be merged. For a 3-state model, that gives 9 possible combinations.
-// For a 2-state model, there are only 4 combinations. Whichever is the case, we need to
-// call MergeUpdatedSrcTextCore() only for one of the total number of allowed combinations;
-// it will be the combination (mkrs_with_content, mkrs_with_content), because all other
-// possibilities will involve wholesale (non-recursive) inserting or removing of
-// CSourcePhrase instances for a span of index values.
-enum WhatsThere {
-	gap, // 'gap' means a discontinuity in the verses, e.g. verses 3 and 4 absent
-	//mkrs_but_no_content, // use this only if we support a 3-state model some day
-	mkrs_with_content
+struct ChunkInfo {
+	int				verse;
+	int				chapter;
+	SfmChunkType	type;
+	bool			bIsComplex; // TRUE if verse num is a range, or something like 6b,
+								// or is a gap in the chapter/verses; set to FALSE if 
+								// just a simple number
+	int				indexRef;
 };
-// Here's the table of combinations and what we would do for each, assuming a 3-state
-// model (which possibly we'll never implement - the parser would need partial rewriting): 
-// (Left applies to arrOld, right applies to arrNew) 'markers' is, here, a shorthand for a
-// CSourcePhrase with one or more SFM or USFM markers in its m_markers member; so when we
-// say, 'replace with the markers' that's just a short way of saying "replace the span of
-// CSourcePhrase instances in which there are markers in their m_markers members" -
-// tokenizing a sfm structure that lacks any words of content will generate CSourcePhrase
-// instances like that; when there is content, however, the instances with markers are
-// separated by instances without, of course.
-// (1) gap , gap : do nothing, the gap remains
-// (2) gap, mkrs_but_no_content : replace the gap with the new (but empty) markers
-// (3) gap, mkrs_with_content : replace the gap with the new instances
-// (4) mkrs_but_no_content , gap : skip, leave the arrOld's contentless instances since
-//                                 they at least have SFM or USFM information, even though
-//                                 m_key members are empty (we don't want to throw away
-//                                 potentially useful information needlessly)
-// (5) mkrs_but_no_content , mkrs_but_no_content : do nothing, no information is added or lost
-// (6) mkrs_but_no_content , mkrs_with_content : replace the contentless instances with the
-//                                 new ones which have content
-// (7) mkrs_with_content , gap : remove the arrOld material, it's unwanted
-// (8) mkrs_with_content , mkrs_but_no_content : replace the content-having instances with the
-//                                 new ones which lack content (we'll assume this new data is
-//                                 deliberately without content words, so will honour the intent)
-// (9) mkrs_with_content , mkrs_with_content : this material requires MergeUpdatedSrcTextCore()
-//                                 be called to merge the new array of instances to the older
-//                                 instances
-//   ****** WE SUPPORT THE FOLLOWING 4-OPTIONS SCHEME, NOT THE ABOVE 9-OPTIONS SCHEME ******
-// Here's the table of combinations, assuming a 2-state model (this is the one which, for
-// the present, we'll be supporting):
-// (1) gap , gap :                             do nothing, the gap in the verses remains
-// (2) gap, mkrs_with_content :                replace the verses gap with arrNew's new CSourcePhrase instances
-// (3) mkrs_with_content , gap :               remove the arrOld material, it's unwanted, leaving a verse range gap
-// (4) mkrs_with_content , mkrs_with_content : this material requires MergeUpdatedSrcTextCore() be called 
-//                                             to merge the new array of instances to the older instances
-// 
-// Analysis of the sets of SfmChunk instances in the two wxArrayPtrVoid arrays has to be
-// done to generate spans of matched data of one type per matchup. Once that is obtained,
-// a loop can scan through the structs involved to do the relevant actions, as in the
-// 4-options list above. A new struct is needed for handling the subspan accretions that are
-// involved in generating the widest possible extents of single or "compatible types" (see below).
-struct ChunkAssociation {
-	SfmChunkType type;
-	WhatsThere oldWhatsThere; // pertains to arrOld data
-	int	oldStartAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrOld
-	int oldEndAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrOld 
-	WhatsThere newWhatsThere; // pertains to arrOld data
-	int	newStartAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrNew
-	int newEndAt; // indexes into the SfmChunk instances in the wxArrayPtrVoid for arrNew
-};
-// "compatible types" are chapterPlusVerseChunk, subheadingPlusVerseChunk, and verseChunk,
-// because these are all milestoned types and each has a single verse reference (or verse
-// range reference) within it. introductionChunk is not compatible with any of these, nor is
-// bookInitialChunk, because the last two are not milestoned - they have no verse info
-// within them.
+
+// Our approach to the analysed range of SfmChunk typess for arrOld and arrNew is to
+// process them after creating the arrays of chunks, matching up the longest possible sets
+// of corresponding simple verses from each array. Whenever we get to a gap, or a range not
+// matched EXACTLY in it's verse and chapter reference information, or a verse number which
+// isn't simple (such as 6b) which is not matched EXACTLY in the other array, then we look
+// ahead (as far as the ends of the arrays of SfmChunk instances) for a safe halt location
+// -- defined as a matchup of simple verse numbers (but same chapter and chunk type of
+// course) that is, just simple verse numbers, like 7 or 12 etc. We try to find these
+// matching values of such numbers as close as possible to the start of such arrays. Then
+// we count the words in that more-complex pairing of old and new CSourcePhrase instances,
+// and call MergeRecursively() with a limit value equal to the larger of the two word
+// counts we got (one each, from arrOld and arrNew) for the more-complex paired subspans --
+// that way we can be sure that the limit value is large enough to be a cover for all the
+// words involed, so that the recursive merge will succeed (and not stop short). For
+// non-complex paired spans, which could be quite long if the user has not edited anything
+// for a large stretch of the source text, we just call MergeRecursively() with a default
+// small limit value, SPAN_LIMIT (currently defined as 50). The idea behind using the large
+// dynamically defined limit value for unmatched gaps, or verse ranges, etc, is so that we
+// compromise some processing time wasted for the convenience of not analysing what
+// actually happens in the more-complex section - the possibilities for the latter are too
+// numberous to bother with. We just instead use a large limit value to be sure that the
+// code's detecting the largest possible in-common span actually finds the largest when
+// starting. Only that makes the processing safe in the context of ranges, gaps, large
+// chunks of inserted source text, and so forth.
+
 // Typical scripture data involves some chapterPlusVerseChunk instances interspersed with
 // lots of verseChunk instances and in the latter there will generally be a few
 // subheadingPlusVerseChunk instances. However, although these are typed differently, the
@@ -268,20 +221,26 @@ struct ChunkAssociation {
 // longer matchup), and the additional condition that for every chapter:verse combination
 // in the legacy instances there is the same chapter:verse combination in the new
 // instances. These two conditions, the lack of discontinuities within, and the presence of
-// matched milestones within, make it safe to call MergeUpdatedSrcTextCore() on that paired
-// extent of subranges of arrOld and arrNew that are involved in the association.
+// matched milestones within, make it safe to call MergeRecursively() on that paired
+// extent of subranges of arrOld and arrNew that are involved in the association with just
+// a small value for limit (such as 50).
 
 bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& nChapter, 
 						wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
 						wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
 bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
+bool	AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk);
 void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
-void	CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
-						wxArrayPtrVoid* pChunkAssociations);
+void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);
+int		CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, int lastChunk);
+//void	CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
+//						wxArrayPtrVoid* pChunkAssociations);  <<---  deprecated
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
 bool	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
+bool	FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, int oldStartChunk, 
+						int newStartChunk, int& oldMatchedChunk, int& newMatchedChunk);
 int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
 wxString FindVerseReference(SPArray* arrP, int startFrom, int endAt);
 bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
@@ -289,6 +248,8 @@ bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Sub
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
 bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetMaxInSyncChunksPairing(wxArrayPtrVoid* pOldChunksArray, wxArrayPtrVoid* pNewChunksArray,
+				int oldStartChunk, int newStartChunk, int& oldEndChunk, int& newEndChunk);
 bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
@@ -305,6 +266,7 @@ bool	GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 					   int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, bool bClosedEnd, 
 					   wxArrayPtrVoid* pCommonSpans, wxArrayInt* pWidthsArray);
 int		GetNextNonemptyMarkers(SPArray* pArray, int& startFrom, bool& bReachedEndOfArray);
+bool	GetNextSimpleVerseChunkInfo(wxArrayPtrVoid* pChunkInfos, int startFrom, int& foundAt);
 int		GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldSrcKeysStr, int limit);
 int		GetWordsInCommon(SPArray& arr, Subspan* pSubspan, wxString& uniqueKeysStr, wxArrayString& strArray,
 						 int limit);
@@ -319,6 +281,8 @@ bool	IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc);
 bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
+void	MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
+						 int initialSequNum, int& finalSequNum);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
 void	MergeUpdatedSrcTextCore(SPArray& oldArray, SPArray& newArray, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,

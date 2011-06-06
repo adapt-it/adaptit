@@ -110,4 +110,4 @@
 // suffice for keeping the algorithm efficient (we don't want to have to check hundreds and
 // hundreds of words) at every iteration)
 #define SPAN_LIMIT 50
-
+//#define MAX_CHUNKS_FOR_SAFETY_CHECK 60 
