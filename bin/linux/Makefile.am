@@ -20,7 +20,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
 	../../source/KBEditSearch.h ../../source/KBPage.h \
 	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
-	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
+	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h ../../source/md5.h \
 	../../source/MergeUpdatedSrc.h ../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h \
 	../../source/NavProtectNewDoc.h ../../source/NoteDlg.h \
 	../../source/Notes.h ../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h \
@@ -92,7 +92,8 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
-	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MergeUpdatedSrc.cpp \
+	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
+	../../source/MergeUpdatedSrc.cpp \
 	../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
