@@ -1289,10 +1289,75 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 
 wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 {
-	// process the buffers extracting wxArrayStrings representing the 1:1:nnnn data from the
-	// source and target file buffers
-	// TODO: Modify to also include a unique CRC or SHA1 value as an additional field so that
-	// the form of the representation would be 1:1:nnnn:CRC
+	// process the buffers extracting wxArrayStrings representing the general usfm structure
+	// from of the sourceFileBuffer (i.e., the source and/or target file buffers)
+	// whm Modified 5Jun11 to also include a unique MD5 checksum as an additional field so that
+	// the form of the representation would be 1:1:nnnn:MD5, where the MD5 is a 32 byte hex
+	// string. The MD5 checksum is used where there are text characters associated with a usfm
+	// marker; when the character count is zero, the MD5 checksum is also 0 in such cases.
+	// Here is an example of what a returned array might look like:
+	//	\id:49:2f17e081efa1f7789bac5d6e500fc3d5
+	//	\mt:6:010d9fd8a87bb248453b361e9d4b3f38
+	//	\c 1:0:0
+	//	\s:16:e9f7476ed5087739a673a236ee810b4c
+	//	\p:0:0
+	//	\v 1:138:ef64c033263f39fdf95b7fe307e2b776
+	//	\v 2:152:ec5330b7cb7df48628facff3e9ce2e25
+	//	\v 3:246:9ebe9d27b30764602c2030ba5d9f4c8a
+	//	\v 4:241:ecc7fb3dfb9b5ffeda9c440db0d856fb
+	//	\v 5:94:aea4ba44f438993ca3f44e2ccf5bdcaf
+	//	\p:0:0
+	//	\v 6:119:639858cb1fc6b009ee55e554cb575352
+	//	\f:322:a810d7d923fbedd4ef3a7120e6c4af93
+	//	\f*:0:0
+	//	\p:0:0
+	//	\v 7:121:e17f476eb16c0589fc3f9cc293f26531
+	//	\v 8:173:4e3a18eb839a4a57024dba5a40e72536
+	//	\p:0:0
+	//	\v 9:124:ad649962feeeb2715faad0cc78274227
+	//	\p:0:0
+	//	\v 10:133:3171aeb32d39e2da92f3d67da9038cf6
+	//	\v 11:262:fca59249fe26ee4881d7fe558b24ea49
+	//	\s:29:3f7fcd20336ae26083574803b7dddf7c
+	//	\p:0:0
+	//	\v 12:143:5f71299ac7c347b7db074e3c327cef7e
+	//	\v 13:211:6df92d40632c1de539fa3eeb7ba2bc0f
+	//	\v 14:157:5383e5a5dcd6976877b4bc82abaf4fee
+	//	\p:0:0
+	//	\v 15:97:47e16e4ae8bfd313deb6d9aef4e33ca7
+	//	\v 16:197:ce14cd0dd77155fa23ae0326bac17bdd
+	//	\v 17:51:b313ee0ee83a10c25309c7059f9f46b3
+	//	\v 18:143:85b88e5d3e841e1eb3b629adf1345e7b
+	//	\v 19:101:2f30dec5b8e3fa7f6a0d433d65a9aa1d
+	//	\p:0:0
+	//	\v 20:64:b0d7a2fc799e6dc9f35a44ce18755529
+	//	\p:0:0
+	//	\v 21:90:e96d4a1637d901d225438517975ad7c8
+	//	\v 22:165:36f37b24e0685939616a04ae7fc3b56d
+	//	\p:0:0
+	//	\v 23:96:53b6c4c5180c462c1c06b257cb7c33f8
+	//	\f:23:317f2a231b8f9bcfd13a66f45f0c8c72
+	//	\fk:19:db64e9160c4329440bed9161411f0354
+	//	\fk*:1:5d0b26628424c6194136ac39aec25e55
+	//	\f*:7:86221a2454f5a28121e44c26d3adf05c
+	//	\v 24-25:192:4fede1302a4a55a4f0973f5957dc4bdd
+	//	\v 26:97:664ca3f0e110efe790a5e6876ffea6fc
+	//	\c 2:0:0
+	//	\s:37:6843aea2433b54de3c2dad45e638aea0
+	//	\p:0:0
+	//	\v 1:19:47a1f2d8786060aece66eb8709f171dc
+	//	\v 2:137:78d2e04d80f7150d8c9a7c123c7bcb80
+	//	\v 3:68:8db3a04ff54277c792e21851d91d93e7
+	//	\v 4:100:9f3cff2884e88ceff63eb8507e3622d2
+	//	\p:0:0
+	//	\v 5:82:8d32aba9d78664e51cbbf8eab29fcdc7
+	// 	\v 6:151:4d6d314459a65318352266d9757567f1
+	//	\v 7:95:73a88b1d087bc4c5ad01dd423f3e45d0
+	//	\v 8:71:aaeb79b24bdd055275e94957c9fc13c2
+	// Note: The first number field after the usfm (delimited by ':') is a character count 
+	// for any text associated with that usfm. The last number field represents the MD5 checksum,
+	// except that only usfm markers that are associated with actual text have the 32 byte MD5
+	// checksums. Other markers, i.e., \c, \p, have 0 in the MD5 checksum field.
 	
 	wxArrayString UsfmStructureAndExtentArray;
 	const wxChar* pBuffer = sourceFileBuffer.GetData();
@@ -1526,6 +1591,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 	//{
 	//	wxLogDebug(UsfmStructureAndExtentArray.Item(ct));
 	//}
+	
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer. 
 	// Thus the Total Count below doesn't include the beginning UTF-16 BOM character, which is also the length
