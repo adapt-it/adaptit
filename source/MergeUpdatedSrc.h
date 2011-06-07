@@ -233,6 +233,7 @@ bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers
 bool	AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk);
 void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
 void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);
+void	CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList);
 int		CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, int lastChunk);
 //void	CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
 //						wxArrayPtrVoid* pChunkAssociations);  <<---  deprecated
@@ -282,7 +283,7 @@ bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLo
 bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
 void	MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
-						 int initialSequNum, int& finalSequNum);
+						 int initialSequNum);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
 void	MergeUpdatedSrcTextCore(SPArray& oldArray, SPArray& newArray, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
