@@ -13374,7 +13374,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// At this point - just before loading any non-English localization catalog, we
 	// populate the m_mapMenuLabelStrToIdint with the English menu label items and 
-	// their menu id int associations.
+	// their menu id int associations. This shouldn't strictly be needed, but is a
+	// precaution in case something goes awry with the localization - there will be
+	// English defaults for menu item labels in the mapping.
 	SetupUnTranslatedMapMenuLabelStrToIdInt(m_mapMenuLabelStrToIdInt);
 
     // NOTE: We determine Adapt It's user interface language here early in OnInit() before
@@ -14804,66 +14806,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
-	// whm added 9Feb11 for Paratext Collaboration support
-	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
-	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
-	// If it exists, it queries the string value associated with the key which will be
-	// the directory where Paratext is installed, i.e., "C:\Program Files\Paratext 7\"
-	// It then checks for the existence of a "Paratext.exe" executable file and a
-	// ParatextShared.dll dynamic library file within that directory. If all checks 
-	// pass, we assume Paratext is installed on the host system.
-	if (ParatextIsInstalled())
-	{
-		m_bParatextIsInstalled = TRUE;
-	}
-
-	// whm added 9Feb11 for Paratext Collaboration support
-	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
-	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
-	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on 
-	// a Windows host system.
-	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
-	// the Windows \ path separator from the end of the string
-	m_ParatextInstallDirPath = GetParatextInstallDirPath();
-	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
-
-	// whm 28Mar11 TESTING BELOW !!!
-	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
-	// loaded by the wxDynamicLibrary::Load() method.
-	/*
-	if (m_bParatextIsInstalled)
-	{
-		// try loading the managed code ParatextShared.dll
-		if (wxGetWinVersion() >= wxWinVersion_5)
-		{
-			// Turn off system message "Failed to load shared library...(error 126: the specified
-			// module could not be found", which pops up in idle time if following .Load() call
-			// fails. We have our own message.
-			wxLogNull logNo;	// eliminates any spurious messages from the system while 
-								// reading read-only folders/files
-			bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
-			if (!ptSharedDynamicLibrary.IsLoaded())
-			{
-				// the ParatextShared.dll file was not found or could not be loaded
-				bParatextSharedDLLLoaded = FALSE;
-				wxString msg;
-				// This error shouldn't happen with normal install, so it can remain in English
-				msg = msg.Format(_T(
-		"Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
-				PT_LIB_NAME);
-				wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
-			}
-			else
-			{
-				bParatextSharedDLLLoaded = TRUE;
-			}
-		}
-		
-	}
-
-	
-	// whm 28Mar11 TESTING ABOVE !!!
-	*/
     
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
@@ -16093,6 +16035,101 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
    
+	// TODO: Here towards the end of OnInit() we need a sanity check to insure that
+	// if m_bCollaboratingWithParatext is TRUE (after the basic config file has been
+	// read in), the Paratext collaboration selection of Paratext Projects indicated 
+	// in the Basic Configuration file are still valid. The definitions stored in the
+	// Basic Config file include the PTProjectForSourceInputs and the 
+	// PTProjectForTargetExports string values. If Paratext itself, or
+	// the needed projects were removed from the user's computer while Adapt It is
+	// set up to collaborate with Paratext, we don't want the user to be locked in
+	// to Paratext collaboration mode, but with no possibility of doing any useful
+	// work. 
+	
+	// whm added 9Feb11 for Paratext Collaboration support
+	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
+	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+	// If it exists, it queries the string value associated with the key which will be
+	// the directory where Paratext is installed, i.e., "C:\Program Files\Paratext 7\"
+	// It then checks for the existence of a "Paratext.exe" executable file and a
+	// ParatextShared.dll dynamic library file within that directory. If all checks 
+	// pass, we assume Paratext is installed on the host system.
+	if (!ParatextIsInstalled())
+	{
+		// Paratext is not installed on this computer.
+		// Check to see if Paratext Collaboration is in effect (according to the 
+		// m_bCollaboratingWithParatext flag being set TRUE by the above reading of 
+		// the basic config file). If it is, we must unilaterally turn Paratext
+		// collaboration OFF, and notify the user to ask the administrator to check
+		// on the user's setup.
+		if (m_bCollaboratingWithParatext == TRUE)
+		{
+			m_bCollaboratingWithParatext = FALSE;
+			wxString msg;
+			msg = _("Your administrator has configured Adapt It to collaborate with Paratext, but Paratext 7 is not installed on this computer. Adapt It will now start in normal mode.\nAsk your administrator to set up Paratext again if you want to adapt texts from Paratext projects.");
+			wxMessageBox(msg,_T("No Paratext installation found on this computer"),wxICON_WARNING);
+			// With m_bCollaboratinWithParatext set now to FALSE, the normal Adapt It Start Working
+			// Wizard will appear after OnInit() finishes below.
+		}
+	}
+	else
+	{
+		// The CGetSourceTextFromEditor class will check to see if there are sufficient 
+		// PT projects for AI-PT work to be able to proceed.
+		m_bParatextIsInstalled = TRUE;
+		// With m_bCollaboratinWithParatext set now to TRUE, the Get "Source Text from 
+		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start 
+		// Working Wizard after OnInit() finishes below.
+	}
+
+	// whm added 9Feb11 for Paratext Collaboration support
+	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
+	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
+	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on 
+	// a Windows host system.
+	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
+	// the Windows \ path separator from the end of the string
+	m_ParatextInstallDirPath = GetParatextInstallDirPath();
+	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
+
+	// whm 28Mar11 TESTING BELOW !!!
+	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
+	// loaded by the wxDynamicLibrary::Load() method.
+	/*
+	if (m_bParatextIsInstalled)
+	{
+		// try loading the managed code ParatextShared.dll
+		if (wxGetWinVersion() >= wxWinVersion_5)
+		{
+			// Turn off system message "Failed to load shared library...(error 126: the specified
+			// module could not be found", which pops up in idle time if following .Load() call
+			// fails. We have our own message.
+			wxLogNull logNo;	// eliminates any spurious messages from the system while 
+								// reading read-only folders/files
+			bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
+			if (!ptSharedDynamicLibrary.IsLoaded())
+			{
+				// the ParatextShared.dll file was not found or could not be loaded
+				bParatextSharedDLLLoaded = FALSE;
+				wxString msg;
+				// This error shouldn't happen with normal install, so it can remain in English
+				msg = msg.Format(_T(
+		"Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
+				PT_LIB_NAME);
+				wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
+			}
+			else
+			{
+				bParatextSharedDLLLoaded = TRUE;
+			}
+		}
+		
+	}
+
+	
+	// whm 28Mar11 TESTING ABOVE !!!
+	*/
+
 	// Next, initialise the help system. We do it here because our m_setupFolder was 
 	// determined above and we now know the path to the setup folder where any help 
 	// file is installed.
