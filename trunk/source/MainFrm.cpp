@@ -2093,6 +2093,7 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
     
 	gpApp->m_pConfig->Write(_T("use_tooltips"), gpApp->m_bUseToolTips);
 	
+	gpApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(oldPath);
 }
@@ -2129,6 +2130,7 @@ _("The current tooltip display time is %d milliseconds which is %d seconds.\nEnt
     
 	gpApp->m_pConfig->Write(_T("time_tooltips_displayed_ms"), gpApp->m_nTooltipDelay);
 	
+	gpApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(oldPath);
 }

@@ -42,6 +42,8 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
+#include <wx/fileconf.h>
+
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 #include "SetupEditorCollaboration.h"
@@ -297,6 +299,24 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	{
 		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK."));
 	}
+
+	// update the values related to PT collaboration in the Adapt_It_WX.ini file
+	{
+	bool bWriteOK = FALSE;
+	wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pApp->m_pConfig->SetPath(_T("/Settings"));
+	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collaboration"), m_pApp->m_bCollaboratingWithParatext);
+	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_proj"), m_pApp->m_PTProjectForSourceInputs);
+	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_proj"), m_pApp->m_PTProjectForTargetExports);
+	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_book_selected"), m_pApp->m_PTBookSelected);
+	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_PTChapterSelected);
+	m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+	// restore the oldPath back to "/Recent_File_List"
+	m_pApp->m_pConfig->SetPath(oldPath);
+	}
+
 
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
