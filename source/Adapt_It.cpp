@@ -7063,6 +7063,7 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 		currLocalizationInfo.curr_fullName.c_str(),
 		currLocalizationInfo.curr_localizationPath.c_str());
 #endif
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 }
@@ -7279,6 +7280,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		m_pConfig->Write(str, keyArray[ctkey]);
 	}
 
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 }
@@ -7408,6 +7410,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		}
 	}
 	
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 }
@@ -11269,6 +11272,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 		}
 	}
 
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
     return currLocInfo; 
@@ -11388,6 +11392,7 @@ bool CAdapt_ItApp::LocalizationFilesExist()
 		m_pConfig->Write(_T("ui_localizationFilesExist"), bLocalizationFilesFound);
 #endif
 	}
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 	return bLocalizationFilesFound;
@@ -16035,16 +16040,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
    
-	// TODO: Here towards the end of OnInit() we need a sanity check to insure that
+	// Here near the end of OnInit() we provide a sanity check to insure that
 	// if m_bCollaboratingWithParatext is TRUE (after the basic config file has been
-	// read in), the Paratext collaboration selection of Paratext Projects indicated 
-	// in the Basic Configuration file are still valid. The definitions stored in the
-	// Basic Config file include the PTProjectForSourceInputs and the 
-	// PTProjectForTargetExports string values. If Paratext itself, or
-	// the needed projects were removed from the user's computer while Adapt It is
-	// set up to collaborate with Paratext, we don't want the user to be locked in
-	// to Paratext collaboration mode, but with no possibility of doing any useful
-	// work. 
+	// read in), the Paratext program is actually installed on the user's computer.
+	// The CGetSourceTextFromEditor class checks that the collaboration selection of 
+	// Paratext Projects indicated in the Basic Configuration file are still valid. 
+	// The definitions stored in the Basic Config file include the 
+	// PTProjectForSourceInputs and the PTProjectForTargetExports string values. 
+	// If Paratext itself, or the needed projects were removed from the user's computer 
+	// while Adapt It is set up to collaborate with Paratext, we don't want the user 
+	// to be locked in to Paratext collaboration mode, with no possibility of doing 
+	// any useful work. 
 	
 	// whm added 9Feb11 for Paratext Collaboration support
 	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
@@ -16065,6 +16071,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		if (m_bCollaboratingWithParatext == TRUE)
 		{
 			m_bCollaboratingWithParatext = FALSE;
+			
+			// update the values related to PT collaboration in the Adapt_It_WX.ini file
+			wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+			bool bWriteOK;
+			m_pConfig->SetPath(_T("/Settings"));
+			wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+				// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+			bWriteOK = m_pConfig->Write(_T("pt_collaboration"), m_bCollaboratingWithParatext);
+			// the string values below can still be kept in the settings file in case PT 7 is
+			// reinstalled and the same projects are used.
+			bWriteOK = m_pConfig->Write(_T("pt_collab_src_proj"), m_PTProjectForSourceInputs);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_proj"), m_PTProjectForTargetExports);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_book_selected"), m_PTBookSelected);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_PTChapterSelected);
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+			// restore the oldPath back to "/Recent_File_List"
+			m_pConfig->SetPath(oldPath);
+			
 			wxString msg;
 			msg = _("Your administrator has configured Adapt It to collaborate with Paratext, but Paratext 7 is not installed on this computer. Adapt It will now start in normal mode.\nAsk your administrator to set up Paratext again if you want to adapt texts from Paratext projects.");
 			wxMessageBox(msg,_T("No Paratext installation found on this computer"),wxICON_WARNING);
@@ -16074,12 +16098,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	else
 	{
-		// The CGetSourceTextFromEditor class will check to see if there are sufficient 
-		// PT projects for AI-PT work to be able to proceed.
-		m_bParatextIsInstalled = TRUE;
-		// With m_bCollaboratinWithParatext set now to TRUE, the Get "Source Text from 
+		;
+		// Paratext is installed.
+		// If m_bParatextIsInstalled is TRUE, the Get "Source Text from 
 		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start 
 		// Working Wizard after OnInit() finishes below.
+		// Note: The CGetSourceTextFromEditor class will check to see if there are 
+		// sufficient PT projects for AI-PT work to be able to proceed.
 	}
 
 	// whm added 9Feb11 for Paratext Collaboration support
@@ -24716,6 +24741,73 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 			return;
 		}
 	}
+
+	// whm added 7Jun11. If Paratext collaboration was ON at the time the user used the SHIFT
+	// key to get the app going again, we would want the values related to Paratext collaboration
+	// that are stored in Adapt_It_WX.ini to be restored since it is likely to be accurate even if 
+	// the basic config file needs to be re-created from scratch (most likely due to errant edits 
+	// done by a user).
+
+	// Read the flag that was last stored in the Adapt_It_WX.ini file and use it.
+	bool bReadOK = FALSE;
+	bool bReadOK2 = FALSE;
+	bool bReadOK3 = FALSE;
+	bool bReadOK4 = FALSE;
+	bool bReadOK5 = FALSE;
+	bool bTempCollabFlag = FALSE;
+	wxString tempPTProjForSrcInputs = _T("");
+	wxString tempPTProjForTgtExports = _T("");
+	wxString tempPTBookSelected = _T("");
+	wxString tempPTChapterSelected = _T("");
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/Settings"));
+	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
+	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempPTProjForSrcInputs);
+	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempPTProjForTgtExports);
+	bReadOK4 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempPTBookSelected);
+	bReadOK5 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempPTChapterSelected);
+	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
+	{
+		m_bCollaboratingWithParatext = bTempCollabFlag;
+		if (bReadOK2 && tempPTProjForSrcInputs != m_PTProjectForSourceInputs)
+		{
+			m_PTProjectForSourceInputs = tempPTProjForSrcInputs;
+		}
+		if (bReadOK3 && tempPTProjForTgtExports != m_PTProjectForTargetExports)
+		{
+			m_PTProjectForTargetExports = tempPTProjForTgtExports;
+		}
+		if (bReadOK4 && tempPTBookSelected != m_PTBookSelected)
+		{
+			m_PTBookSelected = tempPTBookSelected;
+		}
+		if (bReadOK5 && tempPTChapterSelected != m_PTChapterSelected)
+		{
+			m_PTChapterSelected = tempPTChapterSelected;
+		}
+	}
+
+	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
+	// the SHIFT key to get the app going again, we would want the workflow related values
+	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
+	// the basic config file needs to be re-created from scratch (most likely due to errant
+	// edits done by a user).
+	// The basic config file value of concern is m_nWorkflowProfile
+	// update the flag in the Adapt_It_WX.ini file
+	bReadOK = FALSE;
+	int nTempUserProfile = 0;
+	bReadOK = m_pConfig->Read(_T("work_flow_profile"), &nTempUserProfile);
+	if (bReadOK && nTempUserProfile != m_nWorkflowProfile)
+	{
+		m_nWorkflowProfile = nTempUserProfile;
+	}
+	
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+
 }
 
 // the code here is called in two places (OnInit() and SetDefaults()) and so I've pulled

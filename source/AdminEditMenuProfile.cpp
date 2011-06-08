@@ -54,6 +54,7 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/choicdlg.h>
+#include <wx/fileconf.h>
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "AdminEditMenuProfile.h"
@@ -1282,6 +1283,19 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 	{
 		bChangeMadeToProfileSelection = TRUE;
 		m_pApp->m_nWorkflowProfile = tempWorkflowProfile;
+		
+		// whm added 7Jun11
+		// update the flag in the Adapt_It_WX.ini file
+		bool bWriteOK = FALSE;
+		wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+		m_pApp->m_pConfig->SetPath(_T("/Settings"));
+		wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+			// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+		bWriteOK = m_pApp->m_pConfig->Write(_T("work_flow_profile"), m_pApp->m_nWorkflowProfile);
+		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+		// restore the oldPath back to "/Recent_File_List"
+		m_pApp->m_pConfig->SetPath(oldPath);
+		
 	}
 	if (UserProfileDescriptionsHaveChanged() || UserProfileItemsHaveChanged())
 	{
