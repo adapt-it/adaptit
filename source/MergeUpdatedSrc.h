@@ -235,8 +235,6 @@ void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);
 void	CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList);
 int		CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, int lastChunk);
-//void	CreateChunkAssociations(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
-//						wxArrayPtrVoid* pChunkAssociations);  <<---  deprecated
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
 bool	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
