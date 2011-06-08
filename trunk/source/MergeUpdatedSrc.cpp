@@ -767,23 +767,13 @@ int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxSt
 	return wxNOT_FOUND;
 }
 
-// Removes all the CSourcePhrase pointers from pSPArray. Since SPArray is a type of
-// wxObjArray, Remove() would delete the CSourcePhrase pointers from the heap. So instead,
-// Detach() is called on them all, and the pointers thrown away, doing it in reverse order.
-// Then Clear() can be safely called
+// Empties the array without deleting any of the objects pointed at (the ptrs to these are
+// copies anyway, so we don't want their memory freed) The wxWidgets documentation
+// suggests that the pointed at CSourcePhrase instances would be deleted by the Empty()
+// call, but testing reveals it isn't the case.
 void RemoveAll(SPArray* pSPArray)
 {
-	if (pSPArray->IsEmpty())
-		return;
-	int count = pSPArray->GetCount();
-	int index;
-	for (index = count - 1; index >= 0; index--)
-	{
-		CSourcePhrase** pSP = pSPArray->Detach(index);
-		(*pSP) = NULL;
-		delete (*pSP); // the pointer's storage has to be freed too!
-	}
-	pSPArray->Clear();
+	pSPArray->Empty();
 }
 
 void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit)
@@ -804,7 +794,6 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 
 	// do the merger of the two arrays
 	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
-
 }
 
 // This is the guts of the recursive merging algorithm - it relies on the limit value
@@ -1543,7 +1532,9 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
 	// and arrNewChunkInfos respectively
 	int countOldInfoStructs = arrOldChunkInfos.GetCount();
 	int countNewInfoStructs = arrNewChunkInfos.GetCount();
+	// re-use iterators oldIndex and newIndex in the do loops below. Each must start from 0.
 	oldIndex = 0;
+	newIndex = 0; 
 	int oldFoundAt = wxNOT_FOUND;
 	int newFoundAt = wxNOT_FOUND;
 	bool bOldFoundOne = FALSE;
@@ -2938,7 +2929,8 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                 // it's a plain vanilla merger, so get the starting index for it and ensure
                 // that lies within arrNew's bounds, if so we assume then that arrNew may
                 // have a matching word sequence, so we test for the match
-				int newStartIndex = newStartingPos - numWords; // == newIndex - numWords + 1
+				int newStartIndex = newIndex - numWords + 1;
+				wxASSERT(newStartIndex >= 0); // otherwise a bounds error
 				bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newStartIndex);
 				if (bMatched)
 				{
@@ -6240,7 +6232,7 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 #ifdef myMilestoneDebugCalls
 #ifdef __WXDEBUG__
 	// track progress in populating the pMergedList
-	wxLogDebug(_T("pMergedList progressive count:  %d  ( compare arrOld %d , arrNew %d )"),
+	wxLogDebug(_T("pMergedList progressive count:  %d  ( compare arrOld count = %d , arrNew count = %d )"),
 		pMergedList->GetCount(), arrOld.Count(), arrNew.Count());
 #endif
 #endif
@@ -8190,9 +8182,8 @@ bool DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt)
 // Copies CSourcePhrase pointers from arr to subArray (clears the latter first) from index
 // value fromIndex up to and including toIndex. Both fromIndex and toIndex must lie within
 // the bounds of the passed in arr parameter. When done using the copied pointers, they
-// should not be deleted from the heap since the passed back subArray only uses them
-// temporarily, so use this module's RemoveAll() function (which internally calls Detach())
-// to clean out subArray without removing their objects from the heap.
+// should not be deleted from the heap since they are copies only, and so create no new
+// memory chunks.
 void CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray)
 {
 	wxASSERT(fromIndex >= 0 && toIndex < (int)arr.GetCount());
