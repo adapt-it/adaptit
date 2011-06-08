@@ -20224,6 +20224,8 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 /// Working...).
 /// Initiates the Start Working Wizard which has smarts to detect which page of the wizard
 /// should be presented to the user for the current working situation.
+/// whm modified 20Apr11 to use the "Get Source Text from Paratext Project" dialog instead
+/// of running the Start Working Wizard when m_bCollaboratingWithParatext is TRUE
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 {
@@ -20244,6 +20246,41 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 	//    I wanted the wizard to change the page ordering/sequencing. Eventually
 	//    I decided to use the more advanced wxWizardPage class for all the wizard 
 	//    pages.
+
+
+	// whm added 20Apr11 support for Paratext collaboration.
+	// The App's m_bCollaboratingWithParatext flag indicates whether PT collaboration
+	// is currently in effect. When it is, we don't show the typical Start Working 
+	// Wizard, but instead we show the "Get Source Text from Paratext Project" dialog.
+	if (m_bCollaboratingWithParatext)
+	{
+		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
+		if (dlg.ShowModal() == wxID_CANCEL)
+		{
+			// The user explicitly clicked on Cancel from the "Get Source Text 
+			// from Paratext Project" dialog. Set m_bJustLaunched to FALSE so
+			// the MainFrame's OnIdle() handler won't call up the dialog again,
+			// but instead leave the main window blank. After such a Cancel, 
+			// the user can always get the dialog up again by clicking on the 
+			// Open tool bar button, or selecting File | Open or File | Start 
+			// Working...).
+			m_bJustLaunched = FALSE;
+			return TRUE;
+		}
+
+		// whm notes 8Jun11:
+		// Cause the CGetSourceTextFromEditorDlg dialog to keep appearing by setting 
+		// the App's m_bJustLaunched to TRUE here.
+		m_bJustLaunched = TRUE;
+		 
+		// In PT Collaboration mode, the CGetSourceTextFromEditorDlg class above
+		// will insure that a path is set for m_curAdaptionsPath and that it exists.
+		// Hence, we return here without executing the remining code below.
+
+		// Note: we should return TRUE for PT collaboration.
+		return TRUE;
+	}
+	
 
 	// Do we have a valid directory? Probably not if user copied
 	// a project from another user or a different platform.
@@ -20303,33 +20340,6 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				return FALSE;
 			}
 		}
-	}
-
-	// whm added 20Apr11 support for Paratext collaboration.
-	// The App's m_bCollaboratingWithParatext flag indicates whether PT collaboration
-	// is currently in effect. When it is, we don't show the typical Start Working 
-	// Wizard, but instead we show the "Get Source Text from Paratext Project" dialog.
-	if (m_bCollaboratingWithParatext)
-	{
-		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
-		if (dlg.ShowModal() == wxID_CANCEL)
-		{
-			// TODO:
-		}
-
-		// TODO: 
-		// 1. Check to see if an AI project exists yet for the PT projects that are
-		// being used for collaboration. If it already exists, use it. If it doesn't
-		// already exist we must create the project using what we know from the PT
-		// projects' ssf file's xml tags, including creating KB, etc.
-		// 2. When the project exists, we need to do similar things that are done
-		// within the Startup Wizard's pages, i.e., for new documents: loading the
-		// KB, parsing the new input file, etc.; for an existing document, checking
-		// for changes in the document between the PT version and the local AI version,
-		// dealing with any changes, loading the document, etc.
-
-		// Note: we should return TRUE for PT collaboration.
-		return TRUE;
 	}
 
 	CStartWorkingWizard startWorkingWizard(GetMainFrame());
