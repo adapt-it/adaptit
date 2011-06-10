@@ -176,13 +176,14 @@ struct SfmChunk {
 };
 
 struct ChunkInfo {
+	int				associatedSfmChunk; // which SfmChunk spawned the data to be stored herein
 	int				verse;
 	int				chapter;
 	SfmChunkType	type;
 	bool			bIsComplex; // TRUE if verse num is a range, or something like 6b,
 								// or is a gap in the chapter/verses; set to FALSE if 
 								// just a simple number
-	int				indexRef;
+	int				indexRef; // index to CSourcePhrase in arrOld or arrNew
 };
 
 // Our approach to the analysed range of SfmChunk typess for arrOld and arrNew is to

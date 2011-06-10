@@ -19510,6 +19510,24 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 
 			// ditto for the merged list returned from the MergeUpdatedSourceText() call
 			SPList::Node* posMergedList = pMergedList->GetFirst();
+//#define deleteDebug
+#ifdef deleteDebug
+#ifdef __WXDEBUG__
+			int count = pMergedList->GetCount();
+			int counter = 0;
+			while (posMergedList != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = posMergedList->GetData();
+				counter++;
+				wxLogDebug(_T("OnImportEditedSourceText(): Deleting:  %s  for index: %d  of total of %d , pSrcPhrase = %x"),
+					pSrcPhrase->m_key, counter, count, (unsigned int)pSrcPhrase);
+				posMergedList = posMergedList->GetNext();
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
+																// as there are none anyway
+			}
+
+#endif
+#endif
 			while (posMergedList != NULL)
 			{
 				CSourcePhrase* pSrcPhrase = posMergedList->GetData();
