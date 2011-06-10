@@ -10925,7 +10925,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 /// function puts the initial dot if it is not present in the incoming extStr. The bookCode and
 /// extStr are the two manditory parameters that cannot be empty strings.
 //////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetFileNameForCollaborationDoc(wxString collabPrefix, wxString bookCode, 
+wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
 							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr)
 {
 	wxASSERT(!bookCode.IsEmpty());
@@ -12512,10 +12512,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//junk = 1;
 	
 	// Testing the FindBookFileContainingThisReference() function
-	//wxString testStr1 = GetFileNameForCollaborationDoc(_T("Collab"), _T("MAT"), _T("NYNT"), _T("3"), _T("xml"));
-	//wxString testStr2 = GetFileNameForCollaborationDoc(wxEmptyString, _T("GEN"), _T("NYNT"), _T("11"), _T(".xml"));
-	//wxString testStr3 = GetFileNameForCollaborationDoc(wxEmptyString, _T("MAL"), wxEmptyString, wxEmptyString, _T(".xml"));
-	//wxString testStr4 = GetFileNameForCollaborationDoc(_T("Collab"), _T("MAL"), _T("NYNT"), _T("01"), _T("tmp"));
+	//wxString testStr1 = GetFileNameForCollaboration(_T("Collab"), _T("MAT"), _T("NYNT"), _T("3"), _T("xml"));
+	//wxString testStr2 = GetFileNameForCollaboration(wxEmptyString, _T("GEN"), _T("NYNT"), _T("11"), _T(".xml"));
+	//wxString testStr3 = GetFileNameForCollaboration(wxEmptyString, _T("MAL"), wxEmptyString, wxEmptyString, _T(".xml"));
+	//wxString testStr4 = GetFileNameForCollaboration(_T("Collab"), _T("MAL"), _T("NYNT"), _T("01"), _T("tmp"));
 	//int junk;
 	//junk = 1;
 		/*
@@ -20274,7 +20274,8 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		m_bJustLaunched = TRUE;
 		 
 		// In PT Collaboration mode, the CGetSourceTextFromEditorDlg class above
-		// will insure that a path is set for m_curAdaptionsPath and that it exists.
+		// will insure that a path is set for m_curAdaptionsPath and that it exists
+		// even upon a SHIFT-down startup and calling of SetDefaults().
 		// Hence, we return here without executing the remining code below.
 
 		// Note: we should return TRUE for PT collaboration.
@@ -24727,6 +24728,23 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	gSFescapechar = _T('\\');
 
 	m_nCurDelay = 0; // default is no delay (zero ticks)
+
+	// whm note 9Jun11:
+	// TODO: The code block below for re-establishing a custom work folder setup when 
+	// a user does a SHIFT-down startup, works OK when PT collaboration is in effect, 
+	// but I think it can be improved to make a SHIFT-down startup work better. 
+	// I think that adding the storage of critical custom workfolder values in the 
+	// Adapt_It_WX.ini - in particular the m_bLockedCustomWorkFolderPath,
+	// the m_bUseCustomWorkFolderPath, and the m_customWorkFolderPath - would improve
+	// reliability and usability. The values stored in Adapt_It_WX.ini are likely to 
+	// be only stored on a user's machine and won't be transferred to other machines 
+	// if/when an Adapt It project is copied to another machine via a thumbdrive or 
+	// via Pack/Unpack Document operation. Hence, the values stored within 
+	// Adapt_It_WX.ini are more stable for a give user's computing environment. 
+	// If the user needs to do a SHIFT-down startup because of a corruption problem 
+	// in one of the .aic config files or from getting a foreign .aic config file, the 
+	// Adapt_It_WX.ini values would very likely be those that an administrator would 
+	// have wanted to be preserved for that given user's computer.
 
 	if (bAllowCustomLocationCode)
 	{
@@ -33404,15 +33422,18 @@ void CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 {
-#ifndef __WXMSW__
-	// Paratext is not available as a Linux application
-	event.Enable(FALSE);
-#endif
-	if (m_curProjectPath.IsEmpty())
+//#ifndef __WXMSW__
+//	// Paratext is not available as a Linux application
+//	event.Enable(FALSE);
+//#endif
+// whm 10Jun11 note: m_bParatextIsInstalled is a sufficient test to disable the 
+// Setup Paratext Collaboration... menu item on platforms that don't yet
+// have Paratext
+	if (m_bParatextIsInstalled)
 	{
-		event.Enable(FALSE);
+		event.Enable(TRUE);
 	}
-	else if (m_bParatextIsInstalled)
+	else
 	{
 		event.Enable(TRUE);
 	}
@@ -33748,10 +33769,19 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
 	// up as the currently pointed at active work folder
 	wxString strSaveCurrentCustomWorkFolder = m_customWorkFolderPath;
 	bool	 bSaveUsageFlag = m_bUseCustomWorkFolderPath;
+	wxString saveCurWorkingDir;
+
+	saveCurWorkingDir = ::wxGetCwd(); // whm added 10Jun11
+
+	/*
+	// whm changed 10Jun11. I've relocated the CloseProject() below down further in the
+	// function to allow for the user being able to cancel out of the LocateCustomWorkFolder()
+	// function and not have his project and document closed
 
 	// the current project, if one is open, and or and open doc, can't stay open when the
 	// work folder location is changed, so close doc and project
 	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
+	*/
 
 	//wxLogDebug(_T("1  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 
@@ -33849,6 +33879,14 @@ a:			wxString stdDocsDir = _T("");
             // assume a cancel means cancel from the whole attempt, so restore whatever was
             // the earlier work folder location - whether legacy location or a custom
             // location
+            
+			// whm added 10Jun11 to better handlel a Cancel from LocateCustomWorkFolder()
+			// above.
+			// restore custom work folder to saved state
+			m_bUseCustomWorkFolderPath = bSaveUsageFlag;
+			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
+			// restore the saved working dir
+			::wxSetWorkingDirectory(saveCurWorkingDir);
 
 
 			// ** TODO **   call OnLocalWorkFolder() ?? actually it could be one of
@@ -33914,6 +33952,12 @@ a:			wxString stdDocsDir = _T("");
 		m_customWorkFolderPath = workFolderPath;
 	}
 
+	// whm 10Jun11 moved CloseProject() here from above.
+	// the current project, if one is open, and or and open doc, can't stay open when the
+	// work folder location is changed, so close doc and project
+	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
+	
+	
 	//wxLogDebug(_T("7  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 
 	// if the user has made the legacy default location the "custom" one, then revert to
@@ -34354,18 +34398,29 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			int strLength;
 			if(fileLine.Find(szAdaptitPath) != wxNOT_FOUND)
 			{
+				// whm modified 10Jun11 to correct the logic in this block below.
+				// The problem is this: The incoming parameter basePath is set by its calling
+				// code to be based on the App's m_customWorkFolderPath because we are
+				// currently dealing with a customPathsFix. We cannot safely reset the 
+				// incoming basePath to the string value associated with AdaptItPath in 
+				// the basic config file now being read because by design AdaptItPath is 
+				// never going to be anything but the default path. Therefore I've commented
+				// out the three lines below which can result in a garbled path being
+				// assigned to the four critical paths in the else if blocks below.
+				// 
+				// [original comment below:]
 				// we're at a line with "AdaptItPath" in it that we want to adjust; here
 				// we must set basePath to whatever follows the tab character, as that
 				// will be used in the other critical lines as the path to the work folder
 				// and it is not necessarily the same path as in folderPath which was
 				// passed in
-				int offsetToTab = fileLine.Find(tab);
-				wxASSERT(offsetToTab > 0);
-				basePath = fileLine.Mid(offsetToTab + 1); // "AdaptItPath MUST precede the
-														  // other critical paths in the
-														  // basic configuration file or
-														  // our code for setting correct
-														  // paths will break. ***NOTE***
+				//int offsetToTab = fileLine.Find(tab);
+				//wxASSERT(offsetToTab > 0);
+				//basePath = fileLine.Mid(offsetToTab + 1); // "AdaptItPath MUST precede the
+				//										  // other critical paths in the
+				//										  // basic configuration file or
+				//										  // our code for setting correct
+				//										  // paths will break. ***NOTE***
 				basePathLength = basePath.Len();
 				wxASSERT(basePathLength > 0);
 

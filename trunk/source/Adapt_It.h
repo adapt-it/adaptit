@@ -2931,7 +2931,7 @@ public:
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
 	wxString GetParatextInstallDirPath(); // whm added 9Feb11
-	wxString GetFileNameForCollaborationDoc(wxString collabPrefix, wxString bookCode, 
+	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
 							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
 
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
