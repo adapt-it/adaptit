@@ -339,12 +339,13 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		{
 			m_pApp->GetView()->CloseProject();
 		}
-		// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
-		// which, when m_bCollaboratingWithParatext is TRUE, actually calls the "Get
-		// Source Text from Paratext Project" dialog instead of the normal startup
-		// wizard
-		m_pApp->m_bJustLaunched = TRUE;
 	}
+	// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
+	// which, when m_bCollaboratingWithParatext is TRUE, actually calls the "Get
+	// Source Text from Paratext Project" dialog instead of the normal startup
+	// wizard. When not collaborating with Paratext, the usual Start Working
+	// Wizard will appear.
+	m_pApp->m_bJustLaunched = TRUE;
 
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog

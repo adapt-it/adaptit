@@ -575,10 +575,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	
 	wxString sourceTempFileName;
 	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
-	sourceTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, sourceProjShortName, wxEmptyString, _T(".tmp"));
+	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, sourceProjShortName, wxEmptyString, _T(".tmp"));
 	wxString targetTempFileName;
 	targetTempFileName = tempFolder + m_pApp->PathSeparator;
-	targetTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
+	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
 	
 	
 	// Build the command lines for reading the PT projects using rdwrtp7.exe.
@@ -870,10 +870,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
 	wxString sourceTempFileName;
 	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
-	sourceTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, shortProjNameSrc, bareChapterSelectedStr, _T(".tmp"));
+	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjNameSrc, bareChapterSelectedStr, _T(".tmp"));
 	wxString targetTempFileName;
 	targetTempFileName = tempFolder + m_pApp->PathSeparator;
-	targetTempFileName += m_pApp->GetFileNameForCollaborationDoc(_T("Collab"), bookCode, shortProjNameTgt, bareChapterSelectedStr, _T(".tmp"));
+	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjNameTgt, bareChapterSelectedStr, _T(".tmp"));
 	
 	// Build the command lines for reading the PT projects using rdwrtp7.exe.
 	wxString commandLineSrc,commandLineTgt;
@@ -942,6 +942,17 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		return;
 	}
 
+	// whm TODO: after grabbing the chapter source text from the PT project, and before copying it
+	// to the appropriate AI project's "Source Data" folder, we should check the contents of the
+	// Source Data folder to see if that source text chapter has been grabbed previously - i.e., 
+	// which will be the case if it already exists in the AI project's Source Data folder. If it 
+	// already exists, we do quick MD5 checksums on the existing chapter text file in the Source 
+	// Data folder and on the newly grabbed chapter file just grabbed that resides in the .temp 
+	// folder, using GetFileMD5(). Comparing the two MD5 checksums we quickly know if there has 
+	// been any changes since we last opened the AI document for that chapter. If there have been 
+	// changes, we can do a silent automatic merge of the edited source text with the corresponding 
+	// AI document using Bruce's routines in MergeUpdatedSrc.cpp.
+
 	// now read the tmp files into buffers in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn).
 	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
@@ -1002,11 +1013,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// AI project in the user's work folder, so we use that AI project.
 		// 
 		// TODO: 
-		// 1. Grab a fresh copy of the chapter that is selected in the "Select a chapter"
-		//    list box. This text is stored in the sourceChapterBuffer.
-		// 2. Compose an appropriate document name and check if a document by that name
-		//    already exists in the local work folder (or book folder if the project is
-		//    using that mode)
+		// 1. Compose an appropriate document name to be used for the document that will
+		//    contain the chapter grabbed from the PT source project's book.
+		// 2. Check if a document by that name already exists in the local work folder..
 		// 3. If the document does not exist create it by parsing/tokenizing the string 
 		//    now existing in our sourceChapterBuffer, saving it's xml form to disk, and 
 		//    laying the doc out in the main window.
@@ -1014,6 +1023,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    AI document with the incoming one now located in our sourceChapterBuffer, so
 		//    that we end up with the merged one's xml form saved to disk, and the resulting
 		//    document laid out in the main window.
+		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
+		//    Project's Source Data folder (creating the Source Data folder if it doesn't
+		//    already exist).
+		// 6. Check if the chapter text received from the PT target project (now in the
+		//    targetChapterBuffer) has changed from its form in the AI document. If so
+		//    we need to merge the two documents calling up the Conflict Resolution Dialog
+		//    where needed.
+		//    
+		//    TODO: implement the above here
+		 
 	}
 	else
 	{
@@ -1033,7 +1052,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		wxASSERT(pPTInfoSrc != NULL);
 		wxASSERT(pPTInfoTgt != NULL);
 
-		// Notes on what the pPTInfoSrc and pPTInfoTgt structs above contain:
+		// Notes: The pPTInfoSrc and pPTInfoTgt structs above contain the following struct members:
 		//bool bProjectIsNotResource; // AI only includes in m_pArrayOfPTProjects the PT projects where this is TRUE
 		//bool bProjectIsEditable; // AI only allows user to see and select a PT TARGET project where this is TRUE
 		//wxString versification; // AI assumes same versification of Target as used in Source
@@ -1060,7 +1079,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//wxString encoding; // default is _T("65001"); // 65001 is UTF8
 
 		// For building an AI project we can use as initial values the information within the appropriate
-		// fields of the above struct.
+		// field members of the above struct.
 		// 
 		// TODO:
 		// 1. Create an AI project using the information from the PT structs, setting up
@@ -1073,12 +1092,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    book folders during PT collaboration for chapter files, we would need to 
 		//    insure that book folder mode stays turned on when PT collaboration was 
 		//    turned off.
-		// 3. Compose an appropriate document name to be used depending on whether the
-		//    document is to contain a chapter or a whole book. (Do we want to restrict 
-		//    it to chapter only chunks of the target text?)
-		// 4. Create the document by parsing/tokenizing the string now existing in our 
+		// 3. Compose an appropriate document name to be used for the document that will
+		//    contain the chapter grabbed from the PT source project's book.
+		// 4. Copy the just-grabbed chapter source text from the .temp folder over to the
+		//    Project's Source Data folder (creating the Source Data folder if it doesn't
+		//    already exist).
+		// 5. Create the document by parsing/tokenizing the string now existing in our 
 		//    sourceChapterBuffer, saving it's xml form to disk, and laying the doc out in 
 		//    the main window.
+		//    
+		//    TODO: implement the above here
 	}
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
