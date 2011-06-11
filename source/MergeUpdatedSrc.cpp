@@ -43,7 +43,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 
 // to turn on wxLogDebug() calls, uncomment out next line
 //#define myLogDebugCalls
-#define myMilestoneDebugCalls
+//#define myMilestoneDebugCalls
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -101,7 +101,7 @@ void InitializeUsfmMkrs()
 ///                            puntuation stripped off)
 /// \param  limit           -> how many consecutive CSourcePhrase instances to deal with, 
 ///                            to limit the checking so as to apply to just that many
-///                            (default is SPAN_LIMIT, currently set to 50) use -1 if no
+///                            (default is SPAN_LIMIT, currently set to 60) use -1 if no
 ///                            limit is wanted & so all are to be checked. If the
 ///                            array does not have the limit amount of instances, all are
 ///                            checked.
@@ -169,7 +169,7 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 		if (activeSpanCount == 0)
 			return 0;
         // limit the span of CSourcePhrase instances to be checked to the limit value:
-        // possible values passed in are -1, or SPAN_LIMIT (ie. 50), or an explicit
+        // possible values passed in are -1, or SPAN_LIMIT (ie. 60), or an explicit
         // value. If limit is -1 or those remaining from nStartAt onwards is positive
         // but fewer than limit remain from nStartAt onwards, then just use the
         // remainder value instead; if SPAN_LIMIT or an explicit value is passed in,
@@ -308,7 +308,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 			if (activeSpanCount == 0)
 				return 0;
             // limit the span of CSourcePhrase instances to be checked to the limit value:
-            // possible values passed in are -1, or SPAN_LIMIT (ie. 50), or an explicit
+            // possible values passed in are -1, or SPAN_LIMIT (ie. 60), or an explicit
             // value. If limit is -1 or those remaining from nStartAt onwards is positive
             // but fewer than limit remain from nStartAt onwards, then just use the
             // remainder value instead; if SPAN_LIMIT or an explicit value is passed in,
@@ -346,7 +346,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 			if (activeSpanCount == 0)
 				return 0;
             // limit the span of CSourcePhrase instances to be checked to the limit value:
-            // possible values passed in are -1, or SPAN_LIMIT (ie. 50), or an explicit
+            // possible values passed in are -1, or SPAN_LIMIT (ie. 60), or an explicit
             // value. If limit is -1 or those remaining from nStartAt onwards is positive
             // but fewer than limit remain from nStartAt onwards, then just use the
             // remainder value instead; if SPAN_LIMIT or an explicit value is passed in,
@@ -424,7 +424,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 ///                            individual word tokens before storage in strArray                  
 /// \param  limit           -> how many consecutive CSourcePhrase instances to deal with, 
 ///                            to limit the checking so as to apply to just that many
-///                            (default is SPAN_LIMIT, currently set to 50) use -1 if no
+///                            (default is SPAN_LIMIT, currently set to 60) use -1 if no
 ///                            limit is wanted & so all are to be checked. If the
 ///                            array does not have the limit amount of instances, all are
 ///                            checked.
@@ -433,7 +433,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 /// both the old passed in uniqueKeysStr and in the source text keys (with mergers reduced
 /// to the individual words for storage in strArray) - collected from the first (or all)
 /// of the words in arrNew's CSourcePhrase instances -- exactly how many are used depends
-/// on the 4th param, limit, which if absent defaults to SPAN_LIMIT = 50 (CSourcePhrase
+/// on the 4th param, limit, which if absent defaults to SPAN_LIMIT = 60 (CSourcePhrase
 /// instances) - but the whole arr if limit is passed in as -1, or if the arr count is
 /// less than the limit value.
 /// 
@@ -489,7 +489,7 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 		if (activeSpanCount == 0)
 			return 0;
         // limit the span of CSourcePhrase instances to be checked to the limit value:
-        // possible values passed in are -1, or SPAN_LIMIT (ie. 50), or an explicit
+        // possible values passed in are -1, or SPAN_LIMIT (ie. 60), or an explicit
         // value. If limit is -1 or those remaining from nStartAt onwards is positive
         // but fewer than limit remain from nStartAt onwards, then just use the
         // remainder value instead; if SPAN_LIMIT or an explicit value is passed in,
@@ -708,7 +708,7 @@ void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 /// parameter ( so that the caller can check if the phrase occurs in the other array).
 /// We have startFrom and endAt bounds because we want to limit our algorithms to a short
 /// span in which we have a certainty of there being at least one word in common - the
-/// default value of SPAN_LIMIT (set to 50) is suitably large without generating heaps of
+/// default value of SPAN_LIMIT (set to 60) is suitably large without generating heaps of
 /// possibilities which all have to be checked.
 /////////////////////////////////////////////////////////////////////////////////////////////
 int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase)
@@ -799,7 +799,7 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 // This is the guts of the recursive merging algorithm - it relies on the limit value
 // being as large as or larger than the biggest group of new CSourcePhrase instances added
 // by the user's editing to any one place in the old (probably exported) source text; if
-// that condition is violated, it will not return all the data. I use a value of 50 for
+// that condition is violated, it will not return all the data. I use a value of 60 for
 // limit, but for potentially large blocks of new material, -1 should be used & be
 // prepared for things to slow down! It's an N squared algorithm.
 void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit)
@@ -818,13 +818,13 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// with the limit value; but for subspans of matched verses, the default value 
 			// will suffice
 	int dynamicLimit = defaultLimit; // use LHS as our variable limit value, initialize
-									 // to the SPAN_LIMIT value (of 50)
+									 // to the SPAN_LIMIT value (of 60)
     // Note: we impose a limit on maximum span size, to keep our algorithms from getting
     // bogged down by having to handle too much data in any one iteration. The limit
     // parameter specifies what to do.
     // If limit is -1 then bogging down potential is to be ignored, and we'll always
     // take the largest span possible. If limit is not explicitly specified in the call,
-    // then default to SPAN_LIMIT (currently set in AdaptitConstants.h to 50 -- big enough
+    // then default to SPAN_LIMIT (currently set in AdaptitConstants.h to 60 -- big enough
     // to embrace an average verse's amount of words); if some explicit value is given, use
 	// that or a suitably smaller value if close to an array end. 
 	// 
@@ -876,11 +876,13 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	wxString vsStr = _T("verseChunk");
 	int count = pChunksOld->GetCount();
 	int index;
+	int counter = -1;
 	SfmChunk* pChunk = NULL;
 	wxLogDebug(_T("\n\n****  OLD array: SfmChunk instances  ****"));
 	for (index = 0; index < count; index++)
 	{
 		pChunk = (SfmChunk*)pChunksOld->Item(index);
+		counter++;
 		wxString typeStr;
 		switch (pChunk->type)
 		{
@@ -903,15 +905,17 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			typeStr = vsStr;
 			break;
 		}
-		wxLogDebug(_T("type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
-		typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
+		wxLogDebug(_T("  %d  type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
+		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
 	wxLogDebug(_T("\n\n****  NEW array: SfmChunk instances  ****"));
 	count = pChunksNew->GetCount();
+	counter = -1;
 	for (index = 0; index < count; index++)
 	{
 		pChunk = (SfmChunk*)pChunksNew->Item(index);
+		counter++;
 		wxString typeStr;
 		switch (pChunk->type)
 		{
@@ -934,8 +938,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			typeStr = vsStr;
 			break;
 		}
-		wxLogDebug(_T("type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
-		typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
+		wxLogDebug(_T("  %d  type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
+		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
 #endif
@@ -981,7 +985,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	// when both don't fail, there are SFMs or USFMs in the data, and so we must scan
 	// through pChunksOld and pChunksNew, looking for stretches where the milestones are
 	// in sync, and for where there is some sort of dislocation. For the former we call
-	// MergeRecursively() with a small limit value (equal to SPAN_LIMIT, currently 50),
+	// MergeRecursively() with a small limit value (equal to SPAN_LIMIT, currently 60),
 	// but for the dislocation parts (could be a mismatched gap, mismatched verse range,
 	// etc) we work out the maximum number of words involved and call MergeRecursively()
 	// with a limit value equal to that number of words, just on those paired subspans. We
@@ -1100,20 +1104,36 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		int newMaxIndex = countNewChunks - 1;
 		SfmChunk* pEndChunkOld = NULL;
 		SfmChunk* pEndChunkNew = NULL;
+		bool bDisparateSizes = FALSE; // gets set TRUE if a matched pair of chunks differ
+									  // in word counts by more than a factor of 1.5
 		while(oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
 		{
+/*	
+#ifdef myMilestoneDebugCalls
+#ifdef __WXDEBUG__
+		if (oldChunkIndex == 66) // last one for test data's array
+		{
+			int break_here = 1;
+		}
+#endif
+#endif
+*/
 			// we still have chunks that potentially can be matched up to each other
 			pOldChunk = (SfmChunk*)pChunksOld->Item(oldChunkIndex);
 			pNewChunk = (SfmChunk*)pChunksNew->Item(newChunkIndex);
 			bool bRefsSame = AreSfmChunksWithSameRef(pOldChunk, pNewChunk);
 			if (bRefsSame)
 			{
-				// collect successive paired chunks into a superchunk, and process the
-				// superchunk with a single MergeRecursively() call, with limit set to
-				// defaultLimit ( = SPLAN_LIMIT = 50, see AdaptitConstants.h)
-				bool bPairedOK = GetMaxInSyncChunksPairing(pChunksOld, pChunksNew,
-											oldChunkIndex, newChunkIndex, 
-											oldLastChunkIndex, newLastChunkIndex);
+                // Collect successive paired chunks into a superchunk, and process the
+                // superchunk with a single MergeRecursively() call, with limit set to
+                // defaultLimit ( = SPAN_LIMIT = 60, see AdaptitConstants.h); FALSE is
+                // returned if a pairing failure occurs prior to reaching the end of one or
+                // both of the arrays, or a pairing of two chunks is done but the word
+                // counts within those two chunks are disparate; if pairing gets to the end
+                // of one or both arrays, it returns TRUE
+				bool bPairedOK = GetMaxInSyncChunksPairing(arrOld, arrNew, pChunksOld, pChunksNew,
+									oldChunkIndex, newChunkIndex, oldLastChunkIndex, 
+									newLastChunkIndex, bDisparateSizes);
 				if (bPairedOK)
 				{
 					// didn't come to a halting location, so must have reached end or one
@@ -1190,32 +1210,130 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				} // end of TRUE block for test: if (bPairedOK)
 				else
 				{
-					// came to a halt-forcing location, so process the superchunk
+					// Came to a halt-forcing location, so process the superchunk
 					// collected up to that point (oldLastChunkIndex and newLastChunkIndex
 					// are returned pointing at the previous locations - that is, the last
-					// successful pairing before the halt location was found)
-					pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex);
-					pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
+					// successful pairing before the halt location was found). A chunk
+					// pair which have disparate sizes would be unsafe to process with a
+					// small limit value, so we treat such a pair as causing a halt too -
+					// and since such a halt could occur before any aggregation has
+					// happened, we must check for this and only merge the aggregated
+					// material provided there is such material already aggegated. If the
+					// pair are disparate in size, the indices returned point to those
+					// two, rather than to the instances preceding them as for other halt
+					// situations) 
+					bool bDoMyEndTweak = FALSE;
+					if ((bDisparateSizes && (oldChunkIndex < oldLastChunkIndex && newChunkIndex < newLastChunkIndex))
+						|| !bDisparateSizes )
+					{
+						// there is non-empty "successfully paired aggregated material" to process first
+						if (bDisparateSizes)
+						{
+							// the end of the "successfully paired" chunks is the chunks
+							// preceding those which oldLastChunkIndex and
+							// newLastChunkIndex point at (because GetMaxInSyncChunksPairing()
+                            // for a return due to disparate sizes returns not the previous
+                            // indices to the matchup, but the indices of the matchup
+                            // itself, so the 'normal' stuff ends at the previous indices
+                            // to those returned)
+							// The following tweak is a bit of a kludge. If there is a
+							// disparate sized pairing at the end of the arrays, the
+							// exclusion of that pairing can lead to a less than
+							// satisfactory result if the final verses were re-arranged in
+							// their order (yes, I know, who'd ever do that?) but with
+							// this tweak we can include the final pair and get a better
+							// result (more 'good' adaptations get retained)
+							if (oldLastChunkIndex == oldMaxIndex && newLastChunkIndex == newMaxIndex)
+							{
+								bDoMyEndTweak = TRUE;
+							}
+							if (bDoMyEndTweak)
+							{
+								pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex);
+								pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
+							}
+							else
+							{
+								pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex - 1);
+								pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex - 1);
+							}
+						}
+						else
+						{
+							// the end of the "successfully paired" chunks is the chunks
+							// which oldLastChunkIndex and newLastChunkIndex point at
+							pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex);
+							pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
+						}
 
-					CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
-					CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
-                    // MergeRecursively() appends to pMergedList and updates sequ
-                    // numbers, and copies changed punctuation and/or USFMs for
-                    // material "in common", etc; for in-sync milestoned chunk
-                    // pairings, use the (small) default value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum);
-					RemoveAll(&subArrOld);
-					RemoveAll(&subArrNew);
+						CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
+						CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
+						// MergeRecursively() appends to pMergedList and updates sequ
+						// numbers, and copies changed punctuation and/or USFMs for
+						// material "in common", etc; for in-sync milestoned chunk
+						// pairings, use the (small) default value of limit
+						MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum);
+						RemoveAll(&subArrOld);
+						RemoveAll(&subArrNew);
+					}
+					// if bDisparateSizes is TRUE, we have to merge that pair which have
+					// the disparate word count sizes now, using a limit value of -1 to
+					// ensure all the material involved is used for determining the
+					// largest possible 'in-common' span - then augment the loop indices
+					// and iterate
+					if (bDisparateSizes)
+					{
+						// starting and ending chunks are the same one, so use
+						// pEndChunkOld and pEndChunkNew for startsAt and endsAt values
+						pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex);
+						pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
+						CopySubArray(arrOld, pEndChunkOld->startsAt, pEndChunkOld->endsAt, subArrOld);
+						CopySubArray(arrNew, pEndChunkNew->startsAt, pEndChunkNew->endsAt, subArrNew);
+						MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum);
+						RemoveAll(&subArrOld);
+						RemoveAll(&subArrNew);
+						oldChunkIndex = oldLastChunkIndex + 1; 
+						newChunkIndex = newLastChunkIndex + 1;
+						bDisparateSizes = FALSE; // not needed, but harmless
+						if (!bDoMyEndTweak)
+						{
+							continue;
+						}
+						else
+						{
+							break; // out of the loop
+						}
+					}
 
-                    // The pairings are now done, handle the stuff which lies ahead of the
-                    // pairings, that is,the SfmChunks which were not paired, and find the
-                    // closest later matchup of a single-verse pair (if any)
+                    // The successful pairings are now done, and any pair which are
+                    // disparate in size; so here below we handle the stuff which lies
+                    // ahead of the successful pairings, that is,the SfmChunks which were
+                    // not paired, and find the closest later matchup of a single-verse
+                    // pair (if any) -- note, this 'closest safe matchup' attempt may
+                    // return TRUE but also because of a disparately sized pair was found
+                    // which are a simple-verse matched pair (it returns TRUE in such a
+                    // case, but the bDisparateSizes parameter will also be returned as
+                    // TRUE, whereas it would otherwise come back as FALSE)
 					oldChunkIndex = oldLastChunkIndex + 1; // first chunk of the arrOld's messy data
 					newChunkIndex = newLastChunkIndex + 1; // first chunk of the arrNew's messy data
 					int oldMatchedChunk; // for returning closest paired old chunk, or -1 if none
 					int newMatchedChunk; // for returning closest paired new chunk, or -1 if none
-					bool bGotALaterPairing = FindClosestSafeMatchup(pChunksOld, pChunksNew, 
-							oldChunkIndex, newChunkIndex, oldMatchedChunk, newMatchedChunk);
+					bool bGotALaterPairing = FindClosestSafeMatchup(arrOld, arrNew, pChunksOld, 
+												pChunksNew, oldChunkIndex, newChunkIndex, 
+												oldMatchedChunk, newMatchedChunk, bDisparateSizes);
+                    // Note: if bDisparateSizes is returned TRUE, the oldMatchedChunk and
+                    // newMatchedChunk index the pair which have the disparate size, and
+                    // that pair are to be given special treatment here and not used as the
+                    // kick-off locations for the loop iteration - instead, the index
+                    // values one greater than each should be used for kick-off at
+                    // iteration. However, for FALSE returned in bDisparateSizes, the
+                    // indices will still point at the matched pair, but that matched pair
+                    // SHOULDn't be included in the processing of the messy material at the
+                    // halt, because they are to be the later kick-off locations when the
+					// loop iterates. We subsume the disparate sizes = TRUE situation into
+					// the other cases where a dynamicLimit value needs to be worked out,
+					// and we include the disparate sized chunks in the material to be
+					// handled by that recursive merge
 					bool bFinished = FALSE;
 					if (bGotALaterPairing)
 					{
@@ -1232,38 +1350,125 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						// verses, just don't copy anything to pMergedList; and kick-off
 						// for next iteration will be oldMatchedChunk and newMatchedChunk
 						// values. (These comments apply equally to 3 more blocks below.)
+						// Note, check for bDisparateSizes TRUE, and if so, we have to
+						// process that particular pair with a limit value of -1, and the
+						// oldMatchedChunk and newMatchedChunk values are the disparate
+						// sized pair, and won't be used subsequently as the kick-off
+						// location, but rather then next location in each array will be
+						// used for that purpose.)
 						if (oldChunkIndex == oldMatchedChunk && newChunkIndex < newMatchedChunk)
 						{
-							// there are one or more arrNew verses to be inserted, no
-							// recursion is needed
-							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
-								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
-							// update sequence numbers using initialSequNum
-							if (!pMergedList->IsEmpty())
+							if (bDisparateSizes)
 							{
-								// when MergeRecursively() isn't used, we need to force the update;
-								// when it is use, it is done within that function call, on the whole
-								// pMergedList, always using the nStartingSequNum value to start from
-								gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
-							}
-							bFinished = TRUE; // suppresses the MergeRecursively() call below
+                                // the chunk sizes are disparate, so the matchup cannot be
+                                // a subsequent kickoff location; but there are one or more
+                                // arrNew verses to be inserted here, and no recursion is
+                                // needed for that, but recursion is needed for the
+                                // disparate chunks - with a large limit value too
+								CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+									((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
+								// update sequence numbers using initialSequNum
+								if (!pMergedList->IsEmpty())
+								{
+									// when MergeRecursively() isn't used, we need to force the update;
+									// when it is use, it is done within that function call, on the whole
+									// pMergedList, always using the nStartingSequNum value to start from
+									gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+								}
+								// now prepare for the if (!bFinished) code block below
+								int oldCountOfWords = 
+									CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
+								int newCountOfWords = 
+									CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
+								dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
+								// obtain the start and end chunks in arrOld and arrNew for each subspan
+								pOldChunk = (SfmChunk*)pChunksOld->Item(oldMatchedChunk);
+								pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
+								pEndChunkOld = pOldChunk;
+								pEndChunkNew = pNewChunk;
+								bFinished = FALSE; 
+							} // end of TRUE block for test: if (bDisparateSizes)
+							else
+							{
+                                // the chunk sizes are not disparate, so the matchup can be
+                                // a subsequent kickoff location; but there are one or more
+                                // arrNew verses to be inserted here, and no recursion is
+                                // needed
+								CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+									((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
+								// update sequence numbers using initialSequNum
+								if (!pMergedList->IsEmpty())
+								{
+									// when MergeRecursively() isn't used, we need to force the update;
+									// when it is use, it is done within that function call, on the whole
+									// pMergedList, always using the nStartingSequNum value to start from
+									gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+								}
+								bFinished = TRUE; // suppresses the MergeRecursively() call below
+							} // end of else block for test: if (bDisparateSizes)
 						}
 						else if (oldChunkIndex < oldMatchedChunk && newChunkIndex == newMatchedChunk)
 						{
 							// there are one or more arrOld verses to be removed, no
-							// recursion is needed
-							bFinished = TRUE; // suppresses the MergeRecursively() call below
+							// recursion is needed; but if oldMatchedChunk and
+							// newMatchedChunk are disparately sized, we need to do a
+							// merger below with a value for limit which is large - so
+							// check and set up for that if warranted
+							if (bDisparateSizes)
+							{
+								int oldCountOfWords = 
+									CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
+								int newCountOfWords = 
+									CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
+								dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
+								// obtain the start and end chunks in arrOld and arrNew for each subspan
+								pOldChunk = (SfmChunk*)pChunksOld->Item(oldMatchedChunk);
+								pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
+								pEndChunkOld = pOldChunk;
+								pEndChunkNew = pNewChunk;
+								bFinished = FALSE; // redundant, but it documents what's happening
+							}
+							else
+							{
+								// nothing to be done, the old stuff will get deleted
+								bFinished = TRUE; // suppresses the MergeRecursively() call below
+							}
 						}
-						else if (oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk)
+						else if (bDisparateSizes && 
+								(oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk))
+						{							
+                            // we get here if there has as yet been no aggegation of
+                            // successfully paired instances, but the first pairing was of
+                            // a disparately sized pair, -- merging this pair with a small
+                            // limit value would be in danger of leaving some material
+                            // unprocessed - which would cause some data loss or premature
+                            // exit without dealing with all the data; so for this scenario
+                            // we use a limit value of -1 on just the pair of chunks with
+                            // the disparate sizes (other situations were dealt with above)
+							int oldCountOfWords = 
+								CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
+							int newCountOfWords = 
+								CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
+							dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
+							// obtain the start and end chunks in arrOld and arrNew for each subspan
+							pOldChunk = (SfmChunk*)pChunksOld->Item(oldMatchedChunk);
+							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
+							pEndChunkOld = pOldChunk;
+							pEndChunkNew = pNewChunk;
+							bFinished = FALSE;
+						}
+						else if (!bDisparateSizes && 
+								(oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk))
 						{
-							// should be impossible for this to happen, but if it does,
-							// then do nothing except set the indices for normal
-							// advancement from these locations, and iterate
+							// shouldn't happen
 							bFinished = TRUE;
 						}
 						else
 						{
-							// recursion is needed for a merger
+							// recursion is needed for a merger, there aren't any
+							// disparate sized chunks, just a messy section of
+							// non-pairings to deal with -- so get the chunks pointed at &
+							// work count done for setting dynamicLimit
 							int oldCountOfWords = 
 								CountWords(&arrOld, pChunksOld, oldChunkIndex, oldMatchedChunk - 1);
 							int newCountOfWords = 
@@ -1276,13 +1481,15 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMatchedChunk - 1);
 							bFinished = FALSE; 
 						}
-					}
+					} // end of TRUE block for test: if (bGotALaterPairing)
 					else
 					{
-						// got to the end of the arrays without finding a pairing, so
+						// got to the end of the arrays without finding a pairing, (and
+						// this also means that bDisparateSizes was returned FALSE) so
 						// oldMatchedChunk and newMatchedChunk index values are useless
 						// (being wxNOT_FOUND) So use oldMaxIndex and newMaxIndex to
-						// process the end material
+						// process the end material; and no accomodation needs to be made
+						// in the code here for bDisparateSizes
 						int oldCountOfWords = 
 							CountWords(&arrOld, pChunksOld, oldLastChunkIndex + 1, oldMaxIndex);
 						int newCountOfWords = 
@@ -1295,9 +1502,12 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMaxIndex);
 						bFinished = FALSE;
 					} // end of else block for test: if (bGotALaterPairing)
+
+					// do now any processing not done in the blocks above, but prepared
+					// for in those blocks and passing bFinished = FALSE to here
 					if (!bFinished)
 					{
-						// make the subarrays to pass in (this stuff is common to both blocks above)
+						// make the subarrays to pass in
 						CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
 						CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
 						// MergeRecursively() with the word-count-based limit value, which
@@ -1307,9 +1517,24 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						RemoveAll(&subArrOld);
 						RemoveAll(&subArrNew);
 					}
-					// update the iterators & iterate
-					oldChunkIndex = oldMatchedChunk;
-					newChunkIndex = newMatchedChunk;
+					// update the iterators & iterate (the kick-off point depends on
+					// whether bDisparateSizes was TRUE or FALSE; if TRUE, it is one
+					// chunk further along in both chunk arrays)
+					if (bDisparateSizes)
+					{
+						// set the index values for next iteration to be one greater than
+						// otherwise we would, since we've just merged the disparately
+						// sized pair at oldMatchedChunk and newMatchedChunk
+						oldChunkIndex = oldMatchedChunk + 1;
+						newChunkIndex = newMatchedChunk + 1;
+					}
+					else
+					{
+						//normal situation, oldMatchedChunk and newMatchedChunk are to be
+						//the kick-off location for next iteration
+						oldChunkIndex = oldMatchedChunk;
+						newChunkIndex = newMatchedChunk;
+					}
 				} // end of else block for test: if (bPairedOK)
 
 			} // end of TRUE block for test: if (bRefsSame)
@@ -1327,11 +1552,55 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// like the messy locations above, but with different initial conditions -
 				// control comes here with oldChunkIndex and newChunkIndex referencing the
 				// initial chunks for the messy bit, and pOldChunk and pNewChunk are the
-				// SfmChunk pointers for those index values. 
+				// SfmChunk pointers for those index values. The messy bit may end with a
+				// matched pair which are of disparate size, and so we have to take that
+				// possibility into account, as we did above.
+				
+				// first, there may have been a disparately sized pair encountered, so
+				// handle it if so & iterate, otherwise do the code below the next block
+				if (bDisparateSizes)
+				{
+					if (bDisparateSizes)
+					{
+						// starting and ending chunks are the same one, so use
+						// pEndChunkOld and pEndChunkNew for startsAt and endsAt values
+						pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex);
+						pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
+						CopySubArray(arrOld, pEndChunkOld->startsAt, pEndChunkOld->endsAt, subArrOld);
+						CopySubArray(arrNew, pEndChunkNew->startsAt, pEndChunkNew->endsAt, subArrNew);
+						MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum);
+						RemoveAll(&subArrOld);
+						RemoveAll(&subArrNew);
+						// prepare for iteration
+						oldChunkIndex = oldLastChunkIndex + 1; 
+						newChunkIndex = newLastChunkIndex + 1;
+						bDisparateSizes = FALSE; // not needed, but harmless
+						continue;
+					}
+				}
+				// If control gets here, then the reason for AreSfmChunksWithSameRef(pOldChunk, 
+				// pNewChunk) returning FALSE was not because the tested pair were
+				// disparately sized. So look ahead for a safe matchup of simple-verse
+				// pairs - but finding them doesn't get us out of the woods, because they
+				// might be disparately sized too - so modifications in the blocks above
+				// will have to be repeated here too.
 				int oldMatchedChunk; // for returning closest paired old chunk, or -1 if none
 				int newMatchedChunk; // for returning closest paired new chunk, or -1 if none
-				bool bGotALaterPairing = FindClosestSafeMatchup(pChunksOld, pChunksNew, 
-						oldChunkIndex, newChunkIndex, oldMatchedChunk, newMatchedChunk);
+				bool bGotALaterPairing = FindClosestSafeMatchup(arrOld, arrNew, pChunksOld, 
+											pChunksNew, oldChunkIndex, newChunkIndex, 
+											oldMatchedChunk, newMatchedChunk, bDisparateSizes);
+                // Note: if bDisparateSizes is returned TRUE, the oldMatchedChunk and
+                // newMatchedChunk index the pair which have the disparate size, and that
+                // pair are to be given special treatment here and not used as the kick-off
+                // locations for the loop iteration - instead, the index values one greater
+                // than each should be used for kick-off at iteration. However, for FALSE
+                // returned in bDisparateSizes, the indices will still point at the matched
+                // pair, but that matched pair SHOULDn't be included in the processing of
+                // the messy material at the halt, because they are to be the later
+                // kick-off locations when the loop iterates. We subsume the disparate
+                // sizes = TRUE situation into the other cases where a dynamicLimit value
+                // needs to be worked out, and we include the disparate sized chunks in the
+                // material to be handled by that recursive merge
 				bool bFinished = FALSE;
 				if (bGotALaterPairing)
 				{
@@ -1340,37 +1609,125 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// here, instead they will be the kick-off locations for when the
 					// aggretation of pairings takes off again on next iteration of
 					// the loop; & handle special cases (see above)
+					// Note, check for bDisparateSizes TRUE, and if so, we have to
+					// process that particular pair with a limit value of -1, and the
+					// oldMatchedChunk and newMatchedChunk values are the disparate
+					// sized pair, and won't be used subsequently as the kick-off
+					// location, but rather then next location in each array will be
+					// used for that purpose.)
 					if (oldChunkIndex == oldMatchedChunk && newChunkIndex < newMatchedChunk)
 					{
-						// there are one or more arrNew verses to be inserted, no
-						// recursion is needed
-						CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
-							((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
-						// update sequence numbers using initialSequNum
-						if (!pMergedList->IsEmpty())
+						if (bDisparateSizes)
 						{
-							// when MergeRecursively() isn't used, we need to force the update;
-							// when it is use, it is done within that function call, on the whole
-							// pMergedList, always using the nStartingSequNum value to start from
-							gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
-						}
-						bFinished = TRUE; // suppresses the MergeRecursively() call below
+                            // the chunk sizes are disparate, so the matchup cannot be
+                            // a subsequent kickoff location; but there are one or more
+                            // arrNew verses to be inserted here, and no recursion is
+                            // needed for that, but recursion is needed for the
+                            // disparate chunks - with a large limit value too
+							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
+							// update sequence numbers using initialSequNum
+							if (!pMergedList->IsEmpty())
+							{
+								// when MergeRecursively() isn't used, we need to force the update;
+								// when it is use, it is done within that function call, on the whole
+								// pMergedList, always using the nStartingSequNum value to start from
+								gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+							}
+							// now prepare for the if (!bFinished) code block below
+							int oldCountOfWords = 
+								CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
+							int newCountOfWords = 
+								CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
+							dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
+							// obtain the start and end chunks in arrOld and arrNew for each subspan
+							pOldChunk = (SfmChunk*)pChunksOld->Item(oldMatchedChunk);
+							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
+							pEndChunkOld = pOldChunk;
+							pEndChunkNew = pNewChunk;
+							bFinished = FALSE; 
+						} // end of TRUE block for test: if (bDisparateSizes)
+						else
+						{
+                            // the chunk sizes are not disparate, so the matchup can be
+                            // a subsequent kickoff location; but there are one or more
+                            // arrNew verses to be inserted here, and no recursion is
+                            // needed
+							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
+							// update sequence numbers using initialSequNum
+							if (!pMergedList->IsEmpty())
+							{
+								// when MergeRecursively() isn't used, we need to force the update;
+								// when it is use, it is done within that function call, on the whole
+								// pMergedList, always using the nStartingSequNum value to start from
+								gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+							}
+							bFinished = TRUE; // suppresses the MergeRecursively() call below
+						} // end of else block for test: if (bDisparateSizes)
 					}
 					else if (oldChunkIndex < oldMatchedChunk && newChunkIndex == newMatchedChunk)
 					{
 						// there are one or more arrOld verses to be removed, no
-						// recursion is needed
-						bFinished = TRUE; // suppresses the MergeRecursively() call below
+						// recursion is needed; but if oldMatchedChunk and
+						// newMatchedChunk are disparately sized, we need to do a
+						// merger below with a value for limit which is large - so
+						// check and set up for that if warranted
+						if (bDisparateSizes)
+						{
+							int oldCountOfWords = 
+								CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
+							int newCountOfWords = 
+								CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
+							dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
+							// obtain the start and end chunks in arrOld and arrNew for each subspan
+							pOldChunk = (SfmChunk*)pChunksOld->Item(oldMatchedChunk);
+							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
+							pEndChunkOld = pOldChunk;
+							pEndChunkNew = pNewChunk;
+							bFinished = FALSE; // redundant, but it documents what's happening
+						}
+						else
+						{
+							// nothing to be done, the old stuff will get deleted
+							bFinished = TRUE; // suppresses the MergeRecursively() call below
+						}
 					}
-					else if (oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk)
+					else if (bDisparateSizes && 
+							(oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk))
+					{							
+                        // we get here if there has as yet been no aggegation of
+                        // successfully paired instances, but the first pairing was of
+                        // a disparately sized pair, -- merging this pair with a small
+                        // limit value would be in danger of leaving some material
+                        // unprocessed - which would cause some data loss or premature
+                        // exit without dealing with all the data; so for this scenario
+                        // we use a limit value of -1 on just the pair of chunks with
+                        // the disparate sizes (other situations were dealt with above)
+						int oldCountOfWords = 
+							CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
+						int newCountOfWords = 
+							CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
+						dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
+						// obtain the start and end chunks in arrOld and arrNew for each subspan
+						pOldChunk = (SfmChunk*)pChunksOld->Item(oldMatchedChunk);
+						pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
+						pEndChunkOld = pOldChunk;
+						pEndChunkNew = pNewChunk;
+						bFinished = FALSE;
+					}
+					else if (!bDisparateSizes && 
+							(oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk))
 					{
-						// should be impossible for this to happen, but if it does,
-						// then do nothing except set the indices for normal
-						// advancement from these locations, and iterate
+						// shouldn't happen
 						bFinished = TRUE;
 					}
 					else
 					{
+						// recursion is needed for a merger, there aren't any
+						// disparate sized chunks, just a messy section of
+						// non-pairings to deal with -- so get the chunks pointed at &
+						// work count done for setting dynamicLimit
 						int oldCountOfWords = 
 							CountWords(&arrOld, pChunksOld, oldChunkIndex, oldMatchedChunk - 1);
 						int newCountOfWords = 
@@ -1381,15 +1738,17 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						pNewChunk = (SfmChunk*)pChunksNew->Item(newChunkIndex);
 						pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldMatchedChunk - 1);
 						pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMatchedChunk - 1);
-						bFinished = FALSE;
+						bFinished = FALSE; 
 					}
-				}
+				} // end of TRUE block for test: if (bGotALaterPairing)
 				else
 				{
-					// got to the end of the arrays without finding a pairing, so
+					// got to the end of the arrays without finding a pairing, (and
+					// this also means that bDisparateSizes was returned FALSE) so
 					// oldMatchedChunk and newMatchedChunk index values are useless
 					// (being wxNOT_FOUND) So use oldMaxIndex and newMaxIndex to
-					// process the end material, & handle special cases (see above)
+					// process the end material; and no accomodation needs to be made
+					// in the code here for bDisparateSizes
 					int oldCountOfWords = 
 						CountWords(&arrOld, pChunksOld, oldLastChunkIndex + 1, oldMaxIndex);
 					int newCountOfWords = 
@@ -1401,11 +1760,13 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldMaxIndex);
 					pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMaxIndex);
 					bFinished = FALSE;
-
 				} // end of else block for test: if (bGotALaterPairing)
+
+				// do now any processing not done in the blocks above, but prepared
+				// for in those blocks and passing bFinished = FALSE to here
 				if (!bFinished)
 				{
-					// make the subarrays to pass in (this stuff is common to both blocks above)
+					// make the subarrays to pass in
 					CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
 					CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
 					// MergeRecursively() with the word-count-based limit value, which
@@ -1415,12 +1776,51 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					RemoveAll(&subArrOld);
 					RemoveAll(&subArrNew);
 				}
-				// update the iterators & iterate
-				oldChunkIndex = oldMatchedChunk;
-				newChunkIndex = newMatchedChunk;
+				// update the iterators & iterate (the kick-off point depends on
+				// whether bDisparateSizes was TRUE or FALSE; if TRUE, it is one
+				// chunk further along in both chunk arrays)
+				if (bDisparateSizes)
+				{
+					// set the index values for next iteration to be one greater than
+					// otherwise we would, since we've just merged the disparately
+					// sized pair at oldMatchedChunk and newMatchedChunk
+					oldChunkIndex = oldMatchedChunk + 1;
+					newChunkIndex = newMatchedChunk + 1;
+				}
+				else
+				{
+					//normal situation, oldMatchedChunk and newMatchedChunk are to be
+					//the kick-off location for next iteration
+					oldChunkIndex = oldMatchedChunk;
+					newChunkIndex = newMatchedChunk;
+				}
 			} // end of else block for test: if (bRefsSame)
 
 		} // end of loop: while (oldIndex < countOldChunks && newIndex < countNewChunks)
+
+		// Since the above loop can exit with one of the two arrays still with data, we
+		// have to check and do any end-processing here. If arrNew was fully handled, and
+		// arrNew still has some chunks, then the user's edits want those old chunks
+		// removed - so we just don't copy them to pMergedList. The other possibility is
+		// that arrOld was fully processed, and arrNew has more chunks - that means the
+		// user has added new material that he wants included, and so a simple deep copy 
+		// of them to pMergedList would need to be done here.
+		newChunkIndex = newLastChunkIndex + 1; // since newLastChunkIndex was last instance
+											   // copied to pMergeList
+		if (newChunkIndex <= newMaxIndex)
+		{
+			// copy the rest from arrNew to pMergedList
+			CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+				((SfmChunk*)pChunksNew->Item(newMaxIndex))->endsAt, pMergedList);
+			// update sequence numbers using initialSequNum
+			if (!pMergedList->IsEmpty())
+			{
+				// when MergeRecursively() isn't used, we need to force the update;
+				// when it is use, it is done within that function call, on the whole
+				// pMergedList, always using the nStartingSequNum value to start from
+				gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
+			}
+		}
 
 	} // end of TRUE block for test: if (countOldChunks > 0 && countNewChunks > 0)
 	else
@@ -1496,20 +1896,70 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	delete pChunksNew;
 }
 
+// Return TRUE only when one or both of the word counts exceeds SPAN_LIMIT, AND the ratio
+// of max count to min count exceeds 1.5; ratios exceeding 1.5 are safe if the span is
+// small enough to fall within the bounds defined by the default limit = SPAN_LIMIT (this
+// prevents returning TRUE when, say, the new verse is 21 words and the old was 7 - such
+// differences are easily handled in the recursion and safely, provided they fall within
+// the limit value)
+bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, SfmChunk* pNewChunk)
+{
+	wxArrayPtrVoid tempOld;
+	wxArrayPtrVoid tempNew;
+	tempOld.Add(pOldChunk);
+	tempNew.Add(pNewChunk);
+	int oldWordsInChunk = CountWords(&arrOld, &tempOld, 0, 0); // only one SfmChunk is in pTempOld
+	int newWordsInChunk = CountWords(&arrNew, &tempNew, 0, 0); // only one SfmChunk is in pTempNew
+
+	if (oldWordsInChunk <= (int)SPAN_LIMIT && newWordsInChunk <= (INT)SPAN_LIMIT)
+	{
+		return FALSE;
+	}
+	int maxWords = wxMax(oldWordsInChunk,newWordsInChunk);
+	int minWords = wxMin(oldWordsInChunk,newWordsInChunk);
+	// the two constants are defined in AdaptitConstants.h as 3 for numerator and 2 for denominator
+	int second = (int)DISPARATE_SIZES_NUMERATOR * minWords;
+	int first = (int)DISPARATE_SIZES_DENOMINATOR * maxWords;
+	if (first >  second)
+	{
+#ifdef myMilestoneDebugCalls
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("AreSizesDisparate() is TRUE for pOldChunk %s:%s  OLD chunk: [starts,ends] = [ %d , %d ]  NEW chunk: [ %d , %d ] "),
+			pOldChunk->strChapter, pOldChunk->strStartingVerse, pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
+#endif
+#endif
+		return TRUE;
+	}
+	else
+	{
+#ifdef myMilestoneDebugCalls
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("AreSizesDisparate() is FALSE, matched simple-verse chunks: for pOldChunk %s:%s  OLD = [ %d , %d ]  NEW = [ %d , %d ] "),
+			pOldChunk->strChapter, pOldChunk->strStartingVerse, pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
+#endif
+#endif
+		return FALSE;
+	}
+}
+
 /// \return         TRUE if safe matchup is determined (oldMatchedChunk and
 ///                 newMatchedChunk values can then be relied upon); FALSE if no matchup
 ///                 was able to be made
-/// \param  pOldChunks  ->  array of SfmChunk structs indexing into arrOld, determined by analysis
-/// \param  pNewChunks  ->  array of SfmChunk structs indexing into arrNew, determined by analysis
+/// \param  arrOld          ->  nonedited (old) array of CSourcePhrase instances (such as document)
+/// \param  arrNew         ->   edited (new) array of CSourcePhrase instances just imported
+/// \param  pOldChunks      ->  array of SfmChunk structs indexing into arrOld, determined by analysis
+/// \param  pNewChunks      ->  array of SfmChunk structs indexing into arrNew, determined by analysis
 /// \param  oldStartChunk   ->  index to the first SfmChunk to be examined when looking
 ///                             ahead for a simple verse instance which can be matched to
 ///                             one with the same simple verse, within pNewChunks
 /// \param  newStartChunk   ->  index to the first SfmChunk to be examined in pNewChunks,
 ///                             for the matchup with one in pOldChunks
-/// \param  oldMatchedChunk  <-  ref to index for the matched SfmChunk pertaining to
+/// \param  oldMatchedChunk <-  ref to index for the matched SfmChunk pertaining to
 ///                             arrOld, -1 if there was no matchup made
-/// \param  newMatchedChunk  <-  ref to index for the matched SfmChunk pertaining to 
+/// \param  newMatchedChunk <-  ref to index for the matched SfmChunk pertaining to 
 ///                             arrNew, -1 if there was no matchup made
+/// \param  bDisparateSizes <-  ref to boolean, TRUE if a matching pair of chunks differ
+///                             in word counts by more than a factor of 1.5, else FALSE
 /// If the SfmChunks in pOldChunks at oldStartChunk have verse numbers like 5-6a 6b 7 8 9 ...
 /// and those in pNewChunks at newStartChunk have numbers like 6 7 8-10 11 12 ...
 /// Then the hunt for the closes simple verse matchup would yield 7 for the above data.
@@ -1534,8 +1984,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 /// user may add a sufficient number of chapters and verses previously not in the source
 /// text that the number of words involved won't exceed any arbitrary presumed-safe
 /// default value.
-bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, 
-		int oldStartChunk, int newStartChunk, int& oldMatchedChunk, int& newMatchedChunk)
+bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunks, 
+							wxArrayPtrVoid* pNewChunks, int oldStartChunk, int newStartChunk, 
+							int& oldMatchedChunk, int& newMatchedChunk, bool& bDisparateSizes)
 {
 	int oldCountOfChunks = pOldChunks->GetCount();
 	int newCountOfChunks = pNewChunks->GetCount();
@@ -1599,6 +2050,7 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
 	bool bOldFoundOne = FALSE;
 	bool bNewFoundOne = FALSE;
 	bool bMatched = FALSE;
+	bDisparateSizes = FALSE;
 	// outer loop, ranges over the SfmChunks pertaining to arrOld
 	do {
 
@@ -1690,9 +2142,12 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
                 // ChunkInfo::associatedSfmChunk)
 				oldMatchedChunk = ((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->associatedSfmChunk;
 				newMatchedChunk = ((ChunkInfo*)arrNewChunkInfos.Item(newFoundAt))->associatedSfmChunk;
+				SfmChunk* anOldChunkPtr = (SfmChunk*)pOldChunks->Item(oldMatchedChunk);
+				SfmChunk* aNewChunkPtr = (SfmChunk*)pNewChunks->Item(newMatchedChunk);
+				bDisparateSizes = AreSizesDisparate(arrOld, arrNew, anOldChunkPtr, aNewChunkPtr);
 #ifdef myMilestoneDebugCalls
 #ifdef __WXDEBUG__
-				wxLogDebug(_T("FindClosestSafeMatchup() Matched: OLD SfmChunk %d  chap %d verse %d , NEW SfmChunk %d  chap %d verse %d , in arrOld at %d , & in arrNew at %d  bIsComplex %d"),
+				wxLogDebug(_T("FindClosestSafeMatchup() Matched: OLD SfmChunk %d  chap %d verse %d , NEW SfmChunk %d  chap %d verse %d , in arrOld at %d , & in arrNew at %d  bIsComplex %d , bDisparateSizes %d"),
 					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->associatedSfmChunk,
 					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->chapter,
 					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->verse,
@@ -1701,7 +2156,8 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
 					((ChunkInfo*)arrNewChunkInfos.Item(newFoundAt))->verse,
 					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->indexRef,
 					((ChunkInfo*)arrNewChunkInfos.Item(newFoundAt))->indexRef,
-					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->bIsComplex);
+					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->bIsComplex,
+					(int)bDisparateSizes);
 #endif
 #endif
 				break;
@@ -1742,10 +2198,14 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
 }
 
 /// \return         TRUE if one or more in-sync matchups are determined (oldEndChunk and
-///                 newEndhunk values can then be relied upon); FALSE if no in-sync matchups
-///                 were able to be made
-/// \param  pOldChunks  ->  array of SfmChunk structs indexing into arrOld, determined by analysis
-/// \param  pNewChunks  ->  array of SfmChunk structs indexing into arrNew, determined by analysis
+///                 newEndChunk values can then be relied upon); FALSE if no in-sync matchups
+///                 were able to be made, or if their is a valid pairing but the pair are
+///                 disparate in size (word counts comparison -- see the bDisparateSizes
+///                 parameter for more detail)
+/// \param  arrOld          ->  ref to old CSourcePhrase instances array
+/// \param  arrNew          ->  ref to new CSourcePhrase instances array
+/// \param  pOldChunks      ->  array of SfmChunk structs indexing into arrOld, determined by analysis
+/// \param  pNewChunks      ->  array of SfmChunk structs indexing into arrNew, determined by analysis
 /// \param  oldStartChunk   ->  index to the first SfmChunk to be examined when examining
 ///                             instances ahead for verse ref data in-sync
 /// \param  newStartChunk   ->  index to the first SfmChunk to be examined in pNewChunks                            
@@ -1755,6 +2215,11 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
 /// \param  newEndChunk     <-  ref to index for the matched last in-sync SfmChunk instance 
 ///                             which is in-sync with the one defined by oldEndChunk (-1 if
 ///                             no aggregation happened)
+/// \param  bDisparateSizes <-  return FALSE if the 1.5 times the size of the smaller number
+///                             of words is less than or equal to the larger number of
+///                             words; otherwise return TRUE -- the caller in the latter
+///                             case will use a limit value of -1 to process the pair with
+///                             disparate sizes safely
 /// This is the function which gathers in-sync chunks into a super-chunk in which the same
 /// chapters and verses are present - paired. That is, if pOldChunks has a chapter 2 verse
 /// 3 chunk and pNewChunks has a chapter 2 verse 3 chunk, and there were pairings up to
@@ -1777,27 +2242,32 @@ bool FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChun
 /// established in the caller before entry. Iteration just tests successive potential
 /// pairings using AreSfmChunksWithSameRef() until the latter returns FALSE, and returns
 /// the indices for the last successful pairing in oldEndChunk and newEndChunk
-bool GetMaxInSyncChunksPairing(wxArrayPtrVoid* pOldChunksArray, wxArrayPtrVoid* pNewChunksArray,
-				int oldStartChunk, int newStartChunk, int& oldEndChunk, int& newEndChunk)
+bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
+						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
+						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes)
 {
 	int oldIndex = oldStartChunk;
 	int newIndex = newStartChunk;
 	int oldChunkCount = pOldChunksArray->GetCount();
 	int newChunkCount = pNewChunksArray->GetCount();
 	bool bTheyAreTheSameRef = FALSE;
+	bDisparateSizes = FALSE;
 	SfmChunk* pOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);
 	SfmChunk* pNewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);
 	while (oldIndex < oldChunkCount && newIndex < newChunkCount)
 	{
+		bTheyAreTheSameRef = AreSfmChunksWithSameRef(pOldChunk, pNewChunk);
+		/*
 #ifdef myMilestoneDebugCalls
 #ifdef __WXDEBUG__
-//		if (oldIndex == 68) // last one for test data's array
-//		{
-//			int break_here = 1;
-//		}
+		if (oldIndex == 36) // last one for test data's array
+		{
+			int break_here = 1;
+		}
 #endif
 #endif
-		bTheyAreTheSameRef = AreSfmChunksWithSameRef(pOldChunk, pNewChunk);
+		*/
+		bDisparateSizes = AreSizesDisparate(arrOld, arrNew, pOldChunk, pNewChunk);
 		if (!bTheyAreTheSameRef)
 		{
 			// halt the accumulation, the caller needs to merge what we've collected so
@@ -1806,9 +2276,33 @@ bool GetMaxInSyncChunksPairing(wxArrayPtrVoid* pOldChunksArray, wxArrayPtrVoid* 
 			newEndChunk = newIndex - 1; // points to the other part of the last matched pair
 			return FALSE;
 		}
+		else if (bDisparateSizes)
+		{
+			// they are the same reference, but they are disparately sized chunks, we have
+			// to return FALSE if this is the case to force a halt so these can be given
+			// special handling (ie. a limit of -1 used). In this special case, we return
+			// not the previous old and new indices, but the current ones - because the
+			// pair with disparate sizes possibly may be the first pair tested and we
+			// don't want to return index values that assume previous chunks exist
+			oldEndChunk = oldIndex;
+			newEndChunk = newIndex;
+			return FALSE;
+		}
 		else
 		{
-			// the are the same reference, so iterate to test the next pair...
+			// they are the same reference and not disparate in size, so iterate to test
+			// the next pair...
+			
+#ifdef myMilestoneDebugCalls
+#ifdef __WXDEBUG__
+			// log the pair we've just accepted
+			SfmChunk* pAnOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);	
+			SfmChunk* pANewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);	
+			wxLogDebug(_T("GetMaxInSyncChunksPairing() is TRUE, (non-disparate-sized pair): for pOldChunk %s:%s  OLD = [ %d , %d ]  NEW = [ %d , %d ] "),
+				pAnOldChunk->strChapter, pAnOldChunk->strStartingVerse, pAnOldChunk->startsAt, pAnOldChunk->endsAt, pANewChunk->startsAt, pANewChunk->endsAt);
+#endif
+#endif
+
 			oldIndex++;
 			newIndex++;
 			if (oldIndex >= oldChunkCount)
@@ -1954,7 +2448,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
     // In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
 	InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
 	// update the end indices to more reasonable values, the above could bog processing down
-	SetEndIndices(arrOld, arrNew, pSubspan, limit); // SPAN_LIMIT is currently 50
+	SetEndIndices(arrOld, arrNew, pSubspan, limit); // SPAN_LIMIT is currently 60
 
     // Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
     // call finally returns after being recursively called possibly very many times, the
@@ -2321,11 +2815,11 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 // storage of filtered info m_filteredInfo, collected back translations (\bt), and free
 // translations (\free) are transferred also if bAICustomMkrsAlso is TRUE (and the fields
 // cleared after transfer if bClearAfterwards is TRUE), otherwise FALSE leaves them
-// untransferred. 
+// untransferred.
 // This function is used in two main contexts: transfer of information from or to a
 // placeholder to a CSourcePhrase before or after - this is when the bool parameters will
 // all be passed as TRUE; secondly, in the import edited source text feature, to transfer
-// punctuation and markers (but not flags) from the incoming (edited) source text's
+// punctuation and markers (but not most flags) from the incoming (edited) source text's
 // unchanged CSourcePhrase instances to the existing matching CSourcePhrase instances - so
 // as to ensure any user edits of the UFSM structure or punctuation are not missed in the
 // merge process.
@@ -2413,12 +2907,12 @@ void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 }
 
 // Transfers the contents of all punctuation and marker fields in pFrom to pTo, but does
-// not do anything with any of the flags, and optionally can empty the puncts and marker
+// not do anything with any most of of the flags, and optionally can empty the puncts and marker
 // fields data is transferred from, after the data in them has been transferred. Calls
 // TransferPrecedingMembers() and TransferFollowingMembers(). Fields involved are:
 // m_markers, m_endMarkers, m_inlineBindingMarkers, m_inlineBindingEndMarkers, 
 // m_inlineNonbindingMarkers, m_inlineNonbindingEndMarkers; m_precPunct, m_follPunct and
-// m_follOuterPunct
+// m_follOuterPunct. We always, however, transfer m_bVerse and m_inform values.
 // This function is used in one context: in the import edited source text feature, to
 // transfer punctuation and markers (but not flags) from the incoming (edited) source
 // text's lexically unchanged CSourcePhrase instances to the existing matching CSourcePhrase
@@ -2429,6 +2923,8 @@ void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool
 {
 	TransferPrecedingMembers(pFrom, pTo, FALSE, FALSE, bClearAfterwards);
 	TransferFollowingMembers(pFrom, pTo, FALSE, bClearAfterwards);
+	pTo->m_bVerse = pFrom->m_bVerse;
+	pTo->m_inform = pFrom->m_inform;
 }
 
 // Transfers the contents of all punctuation and marker fields in the range of
@@ -4097,7 +4593,7 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 /// next location for a word in arrOld, and the inner loop iterates over all possible
 /// locations at which the same word is located in the section of arrNew being considered
 /// (SPAN_LIMIT number of instances of consecutive CSourcePhrase instances, SPAN_LIMIT
-/// being 50 (currently)), and for each matchup widening is attempted provided that the
+/// being 60 (currently)), and for each matchup widening is attempted provided that the
 /// matchup index values don't lie within an already found Subspan instance.
 /// 
 /// The "width" values we store are the sum of counts of the consecutive CSourcePhrase

@@ -231,6 +231,7 @@ bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 						wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
 bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
+bool	AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, SfmChunk* pNewChunk);
 bool	AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk);
 void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
 void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);
@@ -239,8 +240,9 @@ int		CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, i
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
 bool	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
-bool	FindClosestSafeMatchup(wxArrayPtrVoid* pOldChunks, wxArrayPtrVoid* pNewChunks, int oldStartChunk, 
-						int newStartChunk, int& oldMatchedChunk, int& newMatchedChunk);
+bool	FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunks, 
+							wxArrayPtrVoid* pNewChunks, int oldStartChunk, int newStartChunk, 
+							int& oldMatchedChunk, int& newMatchedChunk, bool& bDisparateSizes);
 int		FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase); 
 wxString FindVerseReference(SPArray* arrP, int startFrom, int endAt);
 bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
@@ -248,8 +250,9 @@ bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Sub
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
 bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
-bool	GetMaxInSyncChunksPairing(wxArrayPtrVoid* pOldChunksArray, wxArrayPtrVoid* pNewChunksArray,
-				int oldStartChunk, int newStartChunk, int& oldEndChunk, int& newEndChunk);
+bool	GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
+						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
+						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes);
 bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);

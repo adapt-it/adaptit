@@ -109,5 +109,7 @@
 // and so a limit small enough to encompass the averge verse size, plus a bit extra, will
 // suffice for keeping the algorithm efficient (we don't want to have to check hundreds and
 // hundreds of words) at every iteration)
-#define SPAN_LIMIT 50
-//#define MAX_CHUNKS_FOR_SAFETY_CHECK 60 
+#define SPAN_LIMIT 60
+#define DISPARATE_SIZES_NUMERATOR 3
+#define DISPARATE_SIZES_DENOMINATOR 2
+
