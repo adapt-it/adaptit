@@ -19537,6 +19537,12 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			}
 			pMergedList->Clear();
 			delete pMergedList; // don't leak memory
+
+			// get the nav text stuff updated
+			int unusedInt = 0;
+			TextType dummyType = verse;
+			bool bPropagationRequired = FALSE;
+			pDoc->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt, dummyType, bPropagationRequired);
 		}
 		else
 		{
