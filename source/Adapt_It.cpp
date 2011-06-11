@@ -20268,11 +20268,6 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			return TRUE;
 		}
 
-		// whm notes 8Jun11:
-		// Cause the CGetSourceTextFromEditorDlg dialog to keep appearing by setting 
-		// the App's m_bJustLaunched to TRUE here.
-		m_bJustLaunched = TRUE;
-		 
 		// In PT Collaboration mode, the CGetSourceTextFromEditorDlg class above
 		// will insure that a path is set for m_curAdaptionsPath and that it exists
 		// even upon a SHIFT-down startup and calling of SetDefaults().
