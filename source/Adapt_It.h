@@ -1664,7 +1664,9 @@ class CAdapt_ItApp : public wxApp
     /// of most of the basic config file settings, but for the sake of compatibility with
     /// the MFC version we only use it to store the following things: (1) the user
     /// interface language of choice, (2) the recent files used list (file history), and
-	/// (3) the Html Help Controller window's size, position, fonts, etc.
+	/// (3) the Html Help Controller window's size, position, fonts, etc. (4) Paratext
+	/// collaboration parameters, and when implemented, also Bibledit collaboration 
+	/// parameters.
 	wxFileConfig* m_pConfig;
 
     /// The application's m_pParser member can be used to process command line arguments.

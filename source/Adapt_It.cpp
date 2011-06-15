@@ -36425,7 +36425,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 				pPTInfo->bProjectIsNotResource = TRUE;
 				pPTInfo->bProjectIsEditable = TRUE;
 
-				// Initialize some variables for fields we are intereste in.
+				// Initialize some variables for fields we are interested in.
 				wxString booksPresentFlags = _T("");
 				wxString ethnologueCode = _T("");
 				wxString fullName = _T("");
