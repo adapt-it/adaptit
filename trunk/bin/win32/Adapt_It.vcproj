@@ -803,10 +803,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Usfm2Oxes.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\UsfmFilterPage.cpp"
 				>
 			</File>
@@ -1237,10 +1233,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\UnpackWarningDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Usfm2Oxes.h"
 				>
 			</File>
 			<File

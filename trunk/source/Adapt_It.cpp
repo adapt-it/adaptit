@@ -166,7 +166,7 @@
 //#include "Uuid_AI.h" // for testing, then comment out
 #include "NavProtectNewDoc.h"
 #include "AdminEditMenuProfile.h"
-#include "Usfm2Oxes.h"
+//#include "Usfm2Oxes.h" // BEW removed 15Jun11 until we support OXES
 #include "CorGuess.h"
 #include "SetupEditorCollaboration.h"
 #include "GetSourceTextFromEditor.h"
@@ -11855,8 +11855,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//int itemLen = ParseMarker(pBuf); // <- testing the one in helpers.cpp, it returns 2, not 3, 
 									 // for *f\ (the reversed \f* marker), so it needs fixing
 
-	m_pUsfm2Oxes = NULL; // BEW added 2Sep10
-	m_bOxesExportInProgress = FALSE;
+	//m_pUsfm2Oxes = NULL; // BEW added 2Sep10 // BEW removed 15Jun11 until we need to support OXES
+	//m_bOxesExportInProgress = FALSE; // BEW removed 15Jun11, same reason
 
 	m_pAI_MenuStructure = (AI_MenuStructure*)NULL; // whm added 8Sep10
 	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
@@ -15215,7 +15215,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 
-// ************************* TEMPORARY FOR 6.0.0 ONLY ****************************************
+	// ************************* TEMPORARY FOR 6.0.0 ONLY <<-- Maybe, BEW removed OXES
+	// support 15Jun15 until such time as LSDev clarify what the future of OXES is, and
+	// until we have another app which needs to support it - TE is dead in the water,
+	// since no longer does the Mara project in Tanzania use it
+	
 	// For OXES -- in 6.0.0 it isn't supported, so remove the menu item temporarily, and
 	// restore it for 6.1.0
 	
@@ -16715,7 +16719,11 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 
 	// add oxes support here, the creator will call an initializing function to have oxes
 	// export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
-	m_pUsfm2Oxes = new Usfm2Oxes(this);
+	// 
+	// BEW temporarily (or permanently?) deprecated 15Jun11, until need for OXES support
+	// is clarified and there is some other app 'out there' that could benefit from AI
+	// supporting an OXES export
+	//m_pUsfm2Oxes = new Usfm2Oxes(this);
 
 	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
 	m_pAdaptationsGuesser = new Guesser;
@@ -16806,8 +16814,8 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pGlossesGuesser != NULL)
 		delete m_pGlossesGuesser;
 
-	// delete the object for support of oxes
-	delete m_pUsfm2Oxes;
+	// delete the object for support of oxes  BEW removed 15Jun11 until OXES support is needed
+	//delete m_pUsfm2Oxes;
 
 	// delete the CNotes object
 	delete m_pNotes;
