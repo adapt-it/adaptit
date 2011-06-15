@@ -45,7 +45,7 @@
 #include "PlaceInternalMarkers.h"
 #include "PlaceRetranslationInternalMarkers.h"
 #include "WaitDlg.h"
-#include "Usfm2Oxes.h"
+//#include "Usfm2Oxes.h" // BEW 15Jun11 removed, until OXES support needed
 #include "Stack.h"
 
 /// This global is defined in Adapt_It.cpp.

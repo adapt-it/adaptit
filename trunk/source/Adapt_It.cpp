@@ -16712,6 +16712,7 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
     // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
     // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
     // whatever is the current value of m_docVersionCurrent. So set the current value:
+    // 
 	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
 
 	m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
