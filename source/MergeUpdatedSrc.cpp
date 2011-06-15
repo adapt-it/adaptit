@@ -1701,7 +1701,8 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 	int oldWordsInChunk = CountWords(&arrOld, &tempOld, 0, 0); // only one SfmChunk is in pTempOld
 	int newWordsInChunk = CountWords(&arrNew, &tempNew, 0, 0); // only one SfmChunk is in pTempNew
 
-	if (oldWordsInChunk <= (int)SPAN_LIMIT && newWordsInChunk <= (INT)SPAN_LIMIT)
+//	if (oldWordsInChunk <= (int)SPAN_LIMIT && newWordsInChunk <= (INT)SPAN_LIMIT) <-(INT) gave problems with GCC 4
+	if (oldWordsInChunk <= (int)SPAN_LIMIT && newWordsInChunk <= (int)SPAN_LIMIT)
 	{
 		return FALSE;
 	}
