@@ -159,6 +159,12 @@ MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as n
 /// for output to a file which the caller will have defined by showing the user a File
 /// Save dialog etc.
 /// This function is based on the view class's DoExportSfmText(), heavily edited
+/// 
+/// BEW deprecated, 15Jun11, until such time as OXES support in AI is needed - and that
+/// depends on there being another app out there that could usefully use an AI OXES
+/// export, TE is dead in the water now since Mara project don't use it, and PT is taking
+/// over as LSDev's focus
+/*
 void DoExportAsOxes(int versionNum)
 {
 	// first determine whether or not the data is unstructured plain text - OXES cannot
@@ -338,7 +344,7 @@ void DoExportAsOxes(int versionNum)
 	f.Close();
 	gpApp->m_bOxesExportInProgress = FALSE;
 }
-
+*/
 wxString RemoveCollectedBacktranslations(wxString& str)
 {
 	wxString out; out.Empty();
@@ -13957,6 +13963,7 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 	// others in that section of text
 	if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote)
 	{
+/* BEW removed 15Jun11, because OXES's status is unclear, so we'll not support it until it is needed
 		if (gpApp->m_bOxesExportInProgress)
 		{
 			// 'numberOfChars' is not the number of characters in the note itself, but
@@ -13975,6 +13982,7 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 			// so that the endOffset in the relevant NoteDetails struct can be set
 			// correctly, and put the word after the colon into its wordsInSpan member
 		}
+*/
 		markersPrefix.Trim();
 		markersPrefix += aSpace + noteMkr;
 		if (noteStr.IsEmpty())
@@ -16716,7 +16724,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					markersPrefix.Trim();
 					markersPrefix += aSpace + noteMkr;
-
+/* BEW 15Jun11, removed OXES support until it is needed somewhere
 					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
 					// word for the note stored here
 					if (gpApp->m_bOxesExportInProgress)
@@ -16737,6 +16745,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 						// so that the endOffset in the relevant NoteDetails struct can be set
 						// correctly, and put the word after the colon into its wordsInSpan member
 					}
+*/
 					markersPrefix += aSpace + noteStr;
 					markersPrefix += noteEndMkr; // don't need space too
 				}
@@ -16986,7 +16995,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					unfilteredStr.Trim();
 					unfilteredStr += aSpace + noteMkr;
-
+/* BEW 15Jun11, removed OXES support until it is needed somewhere
 					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
 					// word for the note stored here
 					if (gpApp->m_bOxesExportInProgress)
@@ -17007,6 +17016,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 						// so that the endOffset in the relevant NoteDetails struct can be set
 						// correctly, and put the word after the colon into its wordsInSpan member
 					}
+*/
 					unfilteredStr += aSpace + noteStr;
 					unfilteredStr += noteEndMkr; // don't need space too
 				}

@@ -196,8 +196,8 @@ class CPlaceholder;
 // forward reference for read-only support
 class ReadOnlyProtection;
 
-// forward reference for Oxes export support
-class Usfm2Oxes;
+// forward reference for Oxes export support BEW removed 15Jun11 until we provide OXES support
+//class Usfm2Oxes;
 
 // forward reference for Guesser support
 class Guesser;
@@ -2749,8 +2749,8 @@ public:
 	wxArrayInt tgtPunctsRemovedArray;
 	wxArrayInt tgtPunctsAddedArray;
 
-	// Oxes export support
-	Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap	
+	// Oxes export support  BEW removed 15Jun11 until we support OXES
+	//Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap	
 
 	AIPrintout* pAIPrintout;
 
@@ -3208,7 +3208,7 @@ public:
     // starts with a special case of a standard USFM target text export with \bt info not
     // included, the TRUE value should be on when that export commences. Turn it off when
     // the exported oxes file is saved to disk.
-	bool m_bOxesExportInProgress;
+	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES
 };
 
 DECLARE_APP(CAdapt_ItApp);
