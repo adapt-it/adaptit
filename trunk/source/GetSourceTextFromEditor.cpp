@@ -128,7 +128,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_TempPTBookSelected = m_pApp->m_PTBookSelected;
 	m_TempPTChapterSelected = m_pApp->m_PTChapterSelected;
 
-	// determine the path and name to rewrtp7.exe
+	// determine the path and name to rdwrtp7.exe
 	// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
 	// insure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
 	// is likely to get released before that happens, and in case some Paratext users haven't
@@ -160,7 +160,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// Until Nathan can show me how (if possible to do it in the actual build), I will
 		// here check to see if these dependencies exist in the Adapt It install folder in
 		// Program Files, and if not copy them there from the Paratext install folder in
-		// Program Files (if the system will let me to it programmatically).
+		// Program Files (if the system will let me do it programmatically).
 		wxString AI_appPath = m_pApp->m_appInstallPathOnly;
 		wxString PT_appPath = m_pApp->m_ParatextInstallDirPath;
 		// Check for any newer versions of the dlls (comparing to previously copied ones) 
@@ -309,7 +309,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		// This error is not likely to happen so use English message
 		wxString str;
-		str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease aask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
+		str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
 		wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR);
 		m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed. AI aborting..."));
 		abort();
@@ -327,14 +327,22 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	if (!bTargetProjFound)
 	{
 		strProjectNotSel += _T("\n   ");
-		strProjectNotSel += _("Choose a project to use for Transferring Translation Texts");
+		//strProjectNotSel += _("Choose a project to use for Transferring Translation Texts");
+        // BEW 16Jun11 changed "Texts" to "Drafts" in line with email discussion where we
+        // agreed to use 'draft' or 'translation draft' instead of 'translation' so as to
+        // avoid criticism for claiming to be a translation app, rather than a drafting app
+		strProjectNotSel += _("Choose a project to use for Transferring Translation Drafts");
 	}
 	
 	if (!bSourceProjFound || !bTargetProjFound)
 	{
 		wxString str;
 		str = str.Format(_("Select Paratext Project(s) by clicking on the drop-down lists at the top of the next dialog.\nYou need to do the following before you can begin working:%s"),strProjectNotSel.c_str());
-		wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_ERROR);
+		//wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_ERROR);
+		// BEW 16Jun11, changed wxICON_ERROR to be a warning icon. I feel the wxICON_ERROR should
+		// only be used for an error serious enough to halt the app because it has become
+		// too unstable for it to continue running safely.
+		wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_WARNING);
 		
 	}
 	else

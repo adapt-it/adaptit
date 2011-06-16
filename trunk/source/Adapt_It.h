@@ -1041,8 +1041,8 @@ struct PT_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration suppo
 	wxString booksPresentFlags; // default is _T("");
 	wxString chapterMarker; // default is _T("c");
 	wxString verseMarker; // default is _T("v");
-	wxString defaultFont; // default is _T("10");
-	wxString defaultFontSize; // default is _T("Arial")
+	wxString defaultFont; // default is _T("Arial")
+	wxString defaultFontSize; // default is _T("10");
 	wxString leftToRight; // default is _T("T");
 	wxString encoding; // default is _T("65001"); // 65001 is UTF8
 };

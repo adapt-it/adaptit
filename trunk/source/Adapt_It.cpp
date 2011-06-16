@@ -15714,7 +15714,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			GetVersionAndModInfoFromProfilesXMLFile(m_userProfileFileWorkFolderPath, 
 				profileVersionStr,applicationCompatibilityStr,adminModifiedStr);
 			wxASSERT(!profileVersionStr.IsEmpty());
+			// NOTE COMMENT BELOW
 			wxASSERT(!applicationCompatibilityStr.IsEmpty());
+			// **** IF THE applicationCompatibilityStr ASSERT TRIPS on launch from the IDE ****
+			// - probable reason is because the AI_UserProfiles.xml file being accessed is
+			// an older version, or, it cannot be found when OnInit() looks for it. 
+            // Go to the adaptit working copy folder, look for the xml folder, and inside
+            // that is the repository's latest AI_Profiles.xml file. Copy it to the
+            // ...\bin\win32 four object file folders for the 4 configurations we support,
+            // and all should be well on next launch
 			wxASSERT(!adminModifiedStr.IsEmpty());
 			
 			if (adminModifiedStr == _T("No"))
