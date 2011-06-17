@@ -5767,6 +5767,11 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case singleton_matches_new_conjoined:
+			// this is the same as for conjoined case, and I should be able to omit it and
+			// fall through to the next, but perhaps g++ compiler doesn't like it
+			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, 
+								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			break;
 		case conjoined:
 			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, 
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
