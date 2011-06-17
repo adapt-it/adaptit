@@ -328,7 +328,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		strProjectNotSel += _T("\n   ");
 		//strProjectNotSel += _("Choose a project to use for Transferring Translation Texts");
-        // BEW 16Jun11 changed "Texts" to "Drafts" in line with email discussion where we
+        // BEW 15Jun11 changed "Texts" to "Drafts" in line with email discussion where we
         // agreed to use 'draft' or 'translation draft' instead of 'translation' so as to
         // avoid criticism for claiming to be a translation app, rather than a drafting app
 		strProjectNotSel += _("Choose a project to use for Transferring Translation Drafts");
@@ -339,7 +339,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		wxString str;
 		str = str.Format(_("Select Paratext Project(s) by clicking on the drop-down lists at the top of the next dialog.\nYou need to do the following before you can begin working:%s"),strProjectNotSel.c_str());
 		//wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_ERROR);
-		// BEW 16Jun11, changed wxICON_ERROR to be a warning icon. I feel the wxICON_ERROR should
+		// BEW 15Jun11, changed wxICON_ERROR to be a warning icon. I feel the wxICON_ERROR should
 		// only be used for an error serious enough to halt the app because it has become
 		// too unstable for it to continue running safely.
 		wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_WARNING);
