@@ -1612,7 +1612,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		// created here anew on the heap. So, we test for non-null pointers, and if
 		// true, then we make sure the in-memory ones are deleted before continuing.
 		// The sequence of operations which exposed this bug were:
-        // 1. User navigation protection was on (5 loadable files in Source Data, four
+        // 1. User navigation protection was on (5 loadable files in __SOURCE_INPUTS, four
         // of which had had docs made from them (though that was irrelevant) and one
         // was there for listed. When the NavProtectNewDoc() handler's dialog shows, I
         // clicked Cancel.

@@ -69,7 +69,7 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Get Source Text from Paratext Project"),
+	: AIModalDialog(parent, -1, _("Get Source Text from %s Project"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -122,11 +122,15 @@ CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	
+	wxString title = this->GetTitle();
+	title = title.Format(title,this->m_collabEditorName.c_str());
+	this->SetTitle(title);
 
-	m_TempPTProjectForSourceInputs = m_pApp->m_PTProjectForSourceInputs;
-	m_TempPTProjectForTargetExports = m_pApp->m_PTProjectForTargetExports;
-	m_TempPTBookSelected = m_pApp->m_PTBookSelected;
-	m_TempPTChapterSelected = m_pApp->m_PTChapterSelected;
+	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
+	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
+	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
+	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 
 	// determine the path and name to rdwrtp7.exe
 	// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
@@ -275,9 +279,9 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	bool bSourceProjFound = FALSE;
 	int nIndex = -1;
-	if (!m_TempPTProjectForSourceInputs.IsEmpty())
+	if (!m_TempCollabProjectForSourceInputs.IsEmpty())
 	{
-		nIndex = pComboSourceProjectName->FindString(m_TempPTProjectForSourceInputs);
+		nIndex = pComboSourceProjectName->FindString(m_TempCollabProjectForSourceInputs);
 		if (nIndex == wxNOT_FOUND)
 		{
 			// did not find the PT project for source inputs that was stored in the config file
@@ -290,9 +294,9 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 	bool bTargetProjFound = FALSE;
-	if (!m_TempPTProjectForTargetExports.IsEmpty())
+	if (!m_TempCollabProjectForTargetExports.IsEmpty())
 	{
-		nIndex = pComboDestinationProjectName->FindString(m_TempPTProjectForTargetExports);
+		nIndex = pComboDestinationProjectName->FindString(m_TempCollabProjectForTargetExports);
 		if (nIndex == wxNOT_FOUND)
 		{
 			// did not find the PT project for target exports that was stored in the config file
@@ -350,9 +354,9 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		LoadBookNamesIntoList();
 
 		// select LastPTBookSelected 
-		if (!m_TempPTBookSelected.IsEmpty())
+		if (!m_TempCollabBookSelected.IsEmpty())
 		{
-			int nSel = pListBoxBookNames->FindString(m_TempPTBookSelected);
+			int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
 			if (nSel != wxNOT_FOUND)
 			{
 				// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
@@ -376,17 +380,17 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject(wxCommandEvent& 
 {
 	int nSel;
 	nSel = pComboSourceProjectName->GetSelection();
-	m_TempPTProjectForSourceInputs = pComboSourceProjectName->GetString(nSel);
+	m_TempCollabProjectForSourceInputs = pComboSourceProjectName->GetString(nSel);
 	// when the selection changes for the Source project we need to reload the
 	// "Select a book" list.
-	LoadBookNamesIntoList(); // uses the m_TempPTProjectForSourceInputs
+	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
 	// Any change in the selection with the source project combo box 
 	// requires that we compare the source and target project's books again, which we
 	// can do by calling the OnLBBookSelected() handler explicitly here.
 	// select LastPTBookSelected 
-	if (!m_TempPTBookSelected.IsEmpty())
+	if (!m_TempCollabBookSelected.IsEmpty())
 	{
-		int nSel = pListBoxBookNames->FindString(m_TempPTBookSelected);
+		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
 		if (nSel != wxNOT_FOUND)
 		{
 			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
@@ -404,18 +408,18 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEv
 	int nSel;
 	wxString selStr;
 	nSel = pComboDestinationProjectName->GetSelection();
-	m_TempPTProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
+	m_TempCollabProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
 	// Any change in the selection with the destination/target project combo box 
 	// requires that we compare the source and target project's books again, which we
 	// can do by calling the OnLBBookSelected() handler explicitly here.
-	LoadBookNamesIntoList(); // uses the m_TempPTProjectForSourceInputs
+	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
 	// Any change in the selection with the source project combo box 
 	// requires that we compare the source and target project's books again, which we
 	// can do by calling the OnLBBookSelected() handler explicitly here.
 	// select LastPTBookSelected 
-	if (!m_TempPTBookSelected.IsEmpty())
+	if (!m_TempCollabBookSelected.IsEmpty())
 	{
-		int nSel = pListBoxBookNames->FindString(m_TempPTBookSelected);
+		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
 		if (nSel != wxNOT_FOUND)
 		{
 			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
@@ -574,10 +578,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	wxString sourceProjShortName;
 	wxString targetProjShortName;
-	wxASSERT(!m_TempPTProjectForSourceInputs.IsEmpty());
-	wxASSERT(!m_TempPTProjectForTargetExports.IsEmpty());
-	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForSourceInputs);
-	targetProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForTargetExports);
+	wxASSERT(!m_TempCollabProjectForSourceInputs.IsEmpty());
+	wxASSERT(!m_TempCollabProjectForTargetExports.IsEmpty());
+	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
+	targetProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
 	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
 	// use our App's
 	
@@ -762,9 +766,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	pStaticSelectAChapter->SetLabel(_("Select a &chapter:")); // put & char at same position as in the string in wxDesigner
 	pStaticSelectAChapter->Refresh();
 
-	if (!m_TempPTChapterSelected.IsEmpty())
+	if (!m_TempCollabChapterSelected.IsEmpty())
 	{
-		int nSel = pListBoxChapterNumberAndStatus->FindString(m_TempPTChapterSelected);
+		int nSel = pListBoxChapterNumberAndStatus->FindString(m_TempCollabChapterSelected);
 		if (nSel != wxNOT_FOUND)
 		{
 			pListBoxChapterNumberAndStatus->SetSelection(nSel);
@@ -783,7 +787,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 	
 	wxASSERT(pListBoxBookNames->GetSelection() != wxNOT_FOUND);
-	m_TempPTBookSelected = pListBoxBookNames->GetStringSelection();
+	m_TempCollabBookSelected = pListBoxBookNames->GetStringSelection();
 	
 	
 }
@@ -797,7 +801,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxCommandEvent& WXUNUSED(e
 	int nSel = pListBoxChapterNumberAndStatus->GetSelection();
 	if (nSel != wxNOT_FOUND)
 	{
-		m_TempPTChapterSelected = pListBoxChapterNumberAndStatus->GetStringSelection();
+		m_TempCollabChapterSelected = pListBoxChapterNumberAndStatus->GetStringSelection();
 		// Update the wxTextCtrl at the bottom of the dialog with more detailed
 		// info about the book and/or chapter that is selected.
 		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
@@ -834,7 +838,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 {
 	// Check that both drop down boxes have selections and that they do not
 	// point to the same PT project.
-	if (m_TempPTProjectForSourceInputs == m_TempPTProjectForTargetExports && m_TempPTProjectForSourceInputs != _("[No Project Selected]"))
+	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
 	{
 		wxString msg, msg1;
 		msg = _("The projects selected for getting source texts and receiving translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
@@ -849,10 +853,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}
 	
 	// save new project selection to the App's variables for writing to config file
-	m_pApp->m_PTProjectForSourceInputs = m_TempPTProjectForSourceInputs;
-	m_pApp->m_PTProjectForTargetExports = m_TempPTProjectForTargetExports;
-	m_pApp->m_PTBookSelected = m_TempPTBookSelected;
-	m_pApp->m_PTChapterSelected = m_TempPTChapterSelected;
+	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
+	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
+	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
+	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
 	wxString bareChapterSelectedStr;
 	int chSel = pListBoxChapterNumberAndStatus->GetSelection();
 	if (chSel != wxNOT_FOUND)
@@ -861,20 +865,20 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}
 	bareChapterSelectedStr.Empty();
 	bareChapterSelectedStr << chSel;
-	wxString derivedChStr = GetBareChFromLBChSelection(m_TempPTChapterSelected);
+	wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
 	wxASSERT(bareChapterSelectedStr == derivedChStr);
 	
 	// Set up (or access any existing) project for the selected book/chapter
 	// How this is handled will depend on whether the book/chapter selected
 	// amounts to an existing AI project or not
 	wxString shortProjNameSrc, shortProjNameTgt;
-	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_PTProjectForSourceInputs);
-	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_PTProjectForTargetExports);
+	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForSourceInputs);
+	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForTargetExports);
 	
 	// Get the latest version of the source and target texts from the PT project. We retrieve
 	// only texts for the selected chapter.
 	wxString tempFolder;
-	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_TempPTBookSelected);;
+	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_TempCollabBookSelected);;
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
 	wxString sourceTempFileName;
 	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
@@ -951,15 +955,19 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}
 
 	// whm TODO: after grabbing the chapter source text from the PT project, and before copying it
-	// to the appropriate AI project's "Source Data" folder, we should check the contents of the
-	// Source Data folder to see if that source text chapter has been grabbed previously - i.e., 
-	// which will be the case if it already exists in the AI project's Source Data folder. If it 
-	// already exists, we do quick MD5 checksums on the existing chapter text file in the Source 
+	// to the appropriate AI project's "__SOURCE_INPUTS" folder, we should check the contents of the
+	// __SOURCE_INPUTS folder to see if that source text chapter has been grabbed previously - i.e., 
+	// which will be the case if it already exists in the AI project's __SOURCE_INPUTS folder. If it 
+	// already exists, we could:
+	// (1) do quick MD5 checksums on the existing chapter text file in the Source 
 	// Data folder and on the newly grabbed chapter file just grabbed that resides in the .temp 
 	// folder, using GetFileMD5(). Comparing the two MD5 checksums we quickly know if there has 
 	// been any changes since we last opened the AI document for that chapter. If there have been 
 	// changes, we can do a silent automatic merge of the edited source text with the corresponding 
-	// AI document using Bruce's routines in MergeUpdatedSrc.cpp.
+	// AI document, or
+	// (2) just always do a merge using Bruce's routines in MergeUpdatedSrc.cpp, regardless of
+	// whether there has been a change in the source text or not. This may be the preferred 
+	// option for chapter-sized text documents.
 
 	// now read the tmp files into buffers in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn).
@@ -1032,7 +1040,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    that we end up with the merged one's xml form saved to disk, and the resulting
 		//    document laid out in the main window.
 		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
-		//    Project's Source Data folder (creating the Source Data folder if it doesn't
+		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it doesn't
 		//    already exist).
 		// 6. Check if the chapter text received from the PT target project (now in the
 		//    targetChapterBuffer) has changed from its form in the AI document. If so
@@ -1040,7 +1048,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    where needed.
 		//    
 		//    TODO: implement the above here
-		 
+		wxString documentName;
+		// Note: we use a stardard Paratext naming for documents, but omit project short name(s)
+		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
 	}
 	else
 	{
@@ -1103,7 +1113,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// 3. Compose an appropriate document name to be used for the document that will
 		//    contain the chapter grabbed from the PT source project's book.
 		// 4. Copy the just-grabbed chapter source text from the .temp folder over to the
-		//    Project's Source Data folder (creating the Source Data folder if it doesn't
+		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it doesn't
 		//    already exist).
 		// 5. Create the document by parsing/tokenizing the string now existing in our 
 		//    sourceChapterBuffer, saving it's xml form to disk, and laying the doc out in 
@@ -1223,7 +1233,7 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 	wxString tempStr;
 	bool bChFound = FALSE;
 	bool bVsFound = FALSE;
-	wxString projShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForTargetExports);
+	wxString projShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
 	PT_Project_Info_Struct* pPTInfo;
 	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
 															// pApp->m_pArrayOfPTProjects
@@ -1347,7 +1357,7 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 	pStaticTextCtrlNote->ChangeValue(_T(""));
 
 	wxString ptProjShortName;
-	ptProjShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForSourceInputs);
+	ptProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
 	int ct, tot;
 	tot = (int)m_pApp->m_pArrayOfPTProjects->GetCount();
 	wxString tempStr;
@@ -1376,7 +1386,7 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 	if (booksPresentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The Paratext project (%s) selected for obtaining source texts contains no books."),m_TempPTProjectForSourceInputs.c_str());
+		msg1 = msg1.Format(_("The Paratext project (%s) selected for obtaining source texts contains no books."),m_TempCollabProjectForSourceInputs.c_str());
 		msg2 = _("Please select the Paratext Project that contains the source texts you will use for adaptation work.");
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_T("No books found"),wxICON_WARNING);
@@ -1444,7 +1454,7 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 	statusStr.Empty();
 	wxString emptyVersesStr;
 	emptyVersesStr.Empty();
-	wxString projShortName = GetShortNameFromLBProjectItem(m_TempPTProjectForTargetExports);
+	wxString projShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
 	PT_Project_Info_Struct* pPTInfo;
 	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
 															// pApp->m_pArrayOfPTProjects

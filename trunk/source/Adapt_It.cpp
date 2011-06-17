@@ -170,6 +170,7 @@
 #include "CorGuess.h"
 #include "SetupEditorCollaboration.h"
 #include "GetSourceTextFromEditor.h"
+#include "AssignLocationsForInputsAndOutputs.h"
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -1535,16 +1536,17 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export &Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
+	// whm commented out 15Jun11 as per Bruce's request. OXES support not implemented until a future date
+	//_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export &Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	//_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	//_T("/PROFILE:"),
+	//_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	//_T("/PROFILE:"),
+	//_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	//_T("/PROFILE:"),
+	//_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	//_T("/PROFILE:"),
+	//_T("/MENU:"),
 	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge &Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -2366,8 +2368,8 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EXPORT_OXES\":subMenuLabel=\"Export &Open XML for Editing Scripture (OXES)...\":subMenuHelp=\"Export the translation text according to the OXES version 1 standard\":subMenuKind=\"wxITEM_NORMAL\":"),
-	_T("/SUB_MENU:"),
+	//_T("SUB_MENU:subMenuID=\"ID_EXPORT_OXES\":subMenuLabel=\"Export &Open XML for Editing Scripture (OXES)...\":subMenuHelp=\"Export the translation text according to the OXES version 1 standard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	//_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_KB\":subMenuLabel=\"Export Knowledge &Base...\":subMenuHelp=\"Export knowledge base in standard format or LIFT format\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -2456,9 +2458,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_MOVE_OR_COPY_FOLDERS_OR_FILES\":subMenuLabel=\"&Move Or Copy Folders Or Files...\\tShift-Ctrl-M\":subMenuHelp=\"Dialog for moving folders or files, or copying them, into a destination folder\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_SOURCE_DATA_FOLDER\":subMenuLabel=\"Open &Source Data Folder...\":subMenuHelp=\"Opens the project's Source Data folder (creating it first if necessary). Protects the user from folder navigation.\":subMenuKind=\"wxITEM_NORMAL\":"),
-	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EXPORT_DATA_FOLDER\":subMenuLabel=\"Open &Export Data Folder...\":subMenuHelp=\"Opens the project's Export Data folder (creating it first if necessary). Protects the user from folder navigation of exports.\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS\":subMenuLabel=\"&Assign Locations For Inputs and Outputs...\":subMenuHelp=\"Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -5325,12 +5325,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
 	EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
 	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
-	EVT_MENU(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnOpenSourceDataFolder)
-	EVT_UPDATE_UI(ID_SOURCE_DATA_FOLDER, CAdapt_ItApp::OnUpdateOpenSourceDataFolder)
-	EVT_MENU(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnAssignTargetExportDataFolder)
-	EVT_UPDATE_UI(ID_EXPORT_DATA_FOLDER, CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder)
-	EVT_MENU(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
-	EVT_UPDATE_UI(ID_SETUP_PARATEXT_COLLABORATION, CAdapt_ItApp::OnUpdateSetupParatextCollaboration)
+	EVT_MENU(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs)
+	EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
+	EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
+	EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
 	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 
@@ -5622,6 +5620,12 @@ wxString szLastGlossesExportPath = _T("LastGlossesTextExportPath");
 /// of the project configuration file. Adapt It stores this path in the App's
 /// m_lastFreeTransExportPath member variable.
 wxString szLastFreeTransExportPath = _T("LastFreeTransExportPath");
+
+/// The label that identifies the following string as the project's
+/// "FoldersProtectedFromNavigation". This value is written in the "ProjectSettings" part
+/// of the project configuration file. Adapt It stores this path in the App's
+/// m_foldersProtectedFromNavigation member variable.
+wxString szFoldersProtectedFromNavigation = _T("FoldersProtectedFromNavigation");
 
 // the following ones relate to view parameters
 
@@ -5922,31 +5926,38 @@ wxString szCollaboratingWithParatext = _T("CollaboratingWithParatext");
 
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
-// "PTProjectForSourceInputs". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
-// m_PTProjectForSourceInputs member variable.
-wxString szPTProjectForSourceInputs = _T("PTProjectForSourceInputs");
+// "CollaboratingWithBibledit". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a boolean in the App's
+// m_bCollaboratingWithBibledit member variable.
+wxString szCollaboratingWithBibledit = _T("CollaboratingWithBibledit");
 
-// whm added 15Apr11 for Paratext collaboration support
+// whm added 15Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "PTProjectForTargetExports". This value is written in the "Settings" part of the basic
+// "CollabProjectForSourceInputs". This value is written in the "Settings" part of the basic
 // configuration file. Adapt It stores this value as a wxString in the App's
-// m_PTProjectForTargetExports member variable.
-wxString szPTProjectForTargetExports = _T("PTProjectForTargetExports");
+// m_CollabProjectForSourceInputs member variable.
+wxString szCollabProjectForSourceInputs = _T("CollabProjectForSourceInputs");
 
-// whm added 27Apr11 for Paratext collaboration support
+// whm added 15Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "PTBookSelected". This value is written in the "Settings" part of the basic
+// "CollabProjectForTargetExports". This value is written in the "Settings" part of the basic
 // configuration file. Adapt It stores this value as a wxString in the App's
-// m_PTBookSelected member variable.
-wxString szPTBookSelected = _T("PTBookSelected");
+// m_CollabProjectForTargetExports member variable.
+wxString szCollabProjectForTargetExports = _T("CollabProjectForTargetExports");
 
-// whm added 27Apr11 for Paratext collaboration support
+// whm added 27Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "PTChapterSelected". This value is written in the "Settings" part of the basic
+// "CollabBookSelected". This value is written in the "Settings" part of the basic
 // configuration file. Adapt It stores this value as a wxString in the App's
-// m_PTChapterSelected member variable.
-wxString szPTChapterSelected = _T("PTChapterSelected");
+// m_CollabBookSelected member variable.
+wxString szCollabBookSelected = _T("CollabBookSelected");
+
+// whm added 27Apr11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
+// "CollabChapterSelected". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_CollabChapterSelected member variable.
+wxString szCollabChapterSelected = _T("CollabChapterSelected");
 
 // window position and size
 
@@ -8411,14 +8422,16 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// Note: The FileHistoryLoad() call is done in OnInit() before the first
 	// call of MakeMenuInitializationsAndPlatformAdjustments.
 
-	// Make adjustments on the Windows platform for when Paratext collaboration is in
-	// effect. We modify the labels for Open... and Save... on the File menu to include
-	// parenthetical explanations as follows:
-	// Open... (Get Source Text From Paratext)
-	// Save... (Transfer Translation To Paratext)
-	// Note: We do not need conditional define here for Windows because m_bCollaboratingWithParatext will
-	// only be TRUE on the platforms that host Paratext, i.e., Windows.
-	if (pFileMenu != NULL && m_bCollaboratingWithParatext)
+	// Make adjustments on the Windows platform for when Paratext or Bibledit 
+	// collaboration is in effect. We modify the labels for Open... and Save... 
+	// on the File menu to include parenthetical explanations as follows:
+	// Open... (Get Source Text From Paratext) or Open... (Get Source Text From Bibledit)
+	// Save... (Transfer Translation To Paratext) or Save... (Transfer Translation To Bibledit)
+	// Note: We do not need conditional define here for Windows because 
+	// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit will
+	// only be TRUE on the platforms that host Paratext, i.e., Windows, or Bibledit,
+	// i.e., Linux or the Mac.
+	if (pFileMenu != NULL && (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit))
 	{
 		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
 		// the new label, otherwise everything that comes after the tab will be displaced to the right side
@@ -8433,7 +8446,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			afterTab = label.AfterFirst(_T('\t'));
 			label = beforeTab;
 			label += _T(' ');
-			label += _("(Get Source Text From Paratext)");
+			if (m_bCollaboratingWithParatext)
+				label += _("(Get Source Text From Paratext)");
+			else 
+				label += _("(Get Source Text From Bibledit)");
 			label += _T('\t');
 			label += afterTab;
 		}
@@ -8448,11 +8464,37 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			afterTab = label.AfterFirst(_T('\t'));
 			label = beforeTab;
 			label += _T(' ');
-			label += _("(Transfer Translation To Paratext)");
+			if (m_bCollaboratingWithParatext)
+				label += _("(Transfer Translation To Paratext)");
+			else
+				label += _("(Transfer Translation To Bibledit)");
 			label += _T('\t');
 			label += afterTab;
 		}
 		pFileMenu->SetLabel(wxID_SAVE, label);
+	}
+	
+	wxMenu* pAdministratorMenu;
+	pAdministratorMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
+	if (pAdministratorMenu != NULL)
+	{
+		wxString label;
+		label = pAdministratorMenu->GetLabel(ID_SETUP_EDITOR_COLLABORATION);
+		wxASSERT(label.Find(_T("%s")) != wxNOT_FOUND);
+		if (m_bBibleditIsInstalled)
+		{
+			label = label.Format(label,_T("Bibledit"));
+		}
+		else if (m_bParatextIsInstalled)
+		{
+			label = label.Format(label,_T("Paratext"));
+		}
+		else
+		{
+			// neither Paratext nor Bibledit is installed, so just put "Paratext" in the label
+			label = label.Format(label,_T("Paratext"));
+		}
+		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 	}
 
 	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
@@ -10813,10 +10855,17 @@ bool CAdapt_ItApp::ParatextIsInstalled()
 		}
 	}
 #endif
-
 	return bPTInstalled;
 }
 
+bool CAdapt_ItApp::BibleditIsInstalled()
+{
+	bool bBEInstalled = FALSE;
+	// TODO: write a Linux/Mac version of this function
+
+	m_bBibleditIsInstalled = bBEInstalled; // set the App's flag
+	return bBEInstalled;
+}
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the Paratext projects directory
 /// \remarks
@@ -10860,6 +10909,24 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 	return path;
 }
 
+wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
+{
+	wxString path;
+	path.Empty();
+	// by inspection of Bibledit-gtk version 4.2.93 (cloned from git nightly build 
+	// and built 13Jun11), the bibledit project folder is located at:
+	// ~/.bibledit/projects and the projects folder contains an xml file called
+	// configuration.1.xml and folders for each project by name of project. We can
+	// get a list of bibledit projects by collecting all the folder names. Each of
+	// the named project folders should have a "data" folder and a configuration.1.xml
+	// file which contains the vital information for AI project setup including
+	// <language>, <versification>, <editable>, <editor-font-default>, <editor-font-name>
+	// which is of the form Sans 14, <right-to-left>, etc.
+
+	return path;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the Paratext installation directory
 /// \remarks
@@ -10901,6 +10968,19 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 #endif
 
 	return path;
+}
+
+wxString CAdapt_ItApp::GetBibleditInstallDirPath()
+{
+	wxString dirPath;
+	// By inspection of my Ubuntu 10.04 system with Bibledit on it, it appears that
+	// it gets installed at /usr/bin/bibledit-gtk where the InstallDirPath() is /usr/bin
+	// and the app name is bibledit-gtk.
+	dirPath = _T("/usr/bin");
+	// TODO: Find a more comprehensive/official way of determining the installed path
+	// of the bibledit binary
+
+	return dirPath;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -11047,6 +11127,14 @@ bool CAdapt_ItApp::ParatextIsRunning()
 
 	return bIsRunning;
 
+}
+
+bool CAdapt_ItApp::BibleditIsRunning()
+{
+	bool bIsRunning = FALSE;
+	//TODO: Implement this for Bibledit !!!
+
+	return bIsRunning;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -12050,7 +12138,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_adaptionsFolder = _("Adaptations");
 	m_lastSourceFileFolder = m_workFolderPath; // don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
-	m_sourceDataFolderPath = _T(""); 
+	m_sourceInputsFolderPath = _T(""); 
+	m_freeTransOutputsFolderPath = _T("");
+	m_freeTransRTFOutputsFolderPath = _T("");
+	m_glossOutputsFolderPath = _T("");
+	m_glossRTFOutputsFolderPath = _T("");
+	m_interlinearRTFOutputsFolderPath = _T("");
+	m_sourceOutputsFolderPath = _T("");
+	m_sourceRTFOutputsFolderPath = _T("");
+	m_targetOutputsFolderPath = _T("");
+	m_targetRTFOutputsFolderPath = _T("");
+	m_kbInputsAndOutputsFolderPath = _T("");
+	m_liftInputsAndOutputsFolderPath = _T("");
+	
 	m_curAdaptionsPath = _T("");
 	m_curKBName = _T("");
 	m_curKBPath = _T("");
@@ -12082,6 +12182,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_retransReportPath = _T("");
 	m_lastGlossesExportPath = _T("");
 	m_lastFreeTransExportPath = _T("");
+	m_foldersProtectedFromNavigation = _T("");
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by 
 							  // use of command-line parameter -xo
@@ -12230,14 +12331,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	
 	// whm added 9Feb11 in support of Paratext collaboration
 	m_bParatextIsInstalled = FALSE;
+	m_bParatextIsInstalled = ParatextIsInstalled();
+	m_bBibleditIsInstalled = FALSE;
+	m_bBibleditIsInstalled = BibleditIsInstalled();
 	m_bParatextIsRunning = FALSE;
 	m_bCollaboratingWithParatext = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
-	m_PTProjectForSourceInputs = _T("");
-	m_PTProjectForTargetExports = _T("");
-	m_PTBookSelected = _T("");
-	m_PTChapterSelected = _T("");
+	m_bCollaboratingWithBibledit = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
+	m_collaborationEditor = _T("");
+	m_CollabProjectForSourceInputs = _T("");
+	m_CollabProjectForTargetExports = _T("");
+	m_CollabBookSelected = _T("");
+	m_CollabChapterSelected = _T("");
 	m_ParatextInstallDirPath.Empty();
 	m_ParatextProjectsDirPath.Empty();
+	m_BibleditProjectsDirPath.Empty();
+	m_BibleditInstallDirPath.Empty();
 	bParatextSharedDLLLoaded = FALSE;
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
@@ -16053,18 +16161,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 												// list from *m_pConfig
    
 	// Here near the end of OnInit() we provide a sanity check to insure that
-	// if m_bCollaboratingWithParatext is TRUE (after the basic config file has been
-	// read in), the Paratext program is actually installed on the user's computer.
+	// if m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit is TRUE 
+	// (after the basic config file has been read in), the Paratext/Bibledit
+	// program is actually installed on the user's computer.
 	// The CGetSourceTextFromEditor class checks that the collaboration selection of 
-	// Paratext Projects indicated in the Basic Configuration file are still valid. 
-	// The definitions stored in the Basic Config file include the 
+	// Paratext/Bibledit Projects indicated in the Basic Configuration file are still 
+	// valid. The definitions stored in the Basic Config file include the 
 	// PTProjectForSourceInputs and the PTProjectForTargetExports string values. 
-	// If Paratext itself, or the needed projects were removed from the user's computer 
-	// while Adapt It is set up to collaborate with Paratext, we don't want the user 
-	// to be locked in to Paratext collaboration mode, with no possibility of doing 
-	// any useful work. 
+	// If Paratext/Bibledit itself, or the needed projects were removed from the 
+	// user's computer while Adapt It is set up to collaborate with Paratext/Bibledit, 
+	// we don't want the user to be locked in to Paratext/Bibledit collaboration mode, 
+	// with no possibility of doing any useful work. 
 	
-	// whm added 9Feb11 for Paratext Collaboration support
+	// whm added 9Feb11 for Paratext/Bibledit Collaboration support
+	// 
 	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
 	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
 	// If it exists, it queries the string value associated with the key which will be
@@ -16072,7 +16182,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// It then checks for the existence of a "Paratext.exe" executable file and a
 	// ParatextShared.dll dynamic library file within that directory. If all checks 
 	// pass, we assume Paratext is installed on the host system.
-	if (!ParatextIsInstalled())
+	if (!m_bParatextIsInstalled)
 	{
 		// Paratext is not installed on this computer.
 		// Check to see if Paratext Collaboration is in effect (according to the 
@@ -16093,11 +16203,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("pt_collaboration"), m_bCollaboratingWithParatext);
 			// the string values below can still be kept in the settings file in case PT 7 is
 			// reinstalled and the same projects are used.
-			bWriteOK = m_pConfig->Write(_T("pt_collab_src_proj"), m_PTProjectForSourceInputs);
-			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_proj"), m_PTProjectForTargetExports);
-			bWriteOK = m_pConfig->Write(_T("pt_collab_book_selected"), m_PTBookSelected);
-			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_PTChapterSelected);
-			m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+			bWriteOK = m_pConfig->Write(_T("pt_collab_src_proj"), m_CollabProjectForSourceInputs); // was m_PTProjectForSourceInputs, etc.
+			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_proj"), m_CollabProjectForTargetExports);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_book_selected"), m_CollabBookSelected);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_CollabChapterSelected);
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
 			
@@ -16110,13 +16220,53 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	else
 	{
-		;
-		// Paratext is installed.
-		// If m_bParatextIsInstalled is TRUE, the Get "Source Text from 
+		// Paratext is installed on this computer.
+		// When m_bParatextIsInstalled is TRUE, the Get "Source Text from 
 		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start 
 		// Working Wizard after OnInit() finishes below.
 		// Note: The CGetSourceTextFromEditor class will check to see if there are 
 		// sufficient PT projects for AI-PT work to be able to proceed.
+	}
+
+	// TODO: !!! Implement the following functions related to Bibledit:
+	//    BibleditIsInstalled() function. Currently it just returns FALSE
+	//    BibleditIsRunning() function. Currently it just returns FALSE
+	// on all platforms !!!
+	if (!BibleditIsInstalled())
+	{
+		// Bibledit is not installed on this computer.
+		// Check to see if Bibledit Collaboration is in effect (according to the 
+		// m_bCollaboratingWithBibledit flag being set TRUE by the above reading of 
+		// the basic config file). If it is, we must unilaterally turn Bibledit
+		// collaboration OFF, and notify the user to ask the administrator to check
+		// on the user's setup.
+		if (m_bCollaboratingWithBibledit == TRUE)
+		{
+			m_bCollaboratingWithBibledit = FALSE;
+			
+			// update the values related to BE collaboration in the Adapt_It_WX.ini file
+			wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+			bool bWriteOK;
+			m_pConfig->SetPath(_T("/Settings"));
+			wxLogNull logNo; // eliminates spurious message from the system
+			bWriteOK = m_pConfig->Write(_T("be_collaboration"), m_bCollaboratingWithBibledit);
+			// the string values below can still be kept in the settings file in case BE is
+			// reinstalled and the same projects are used.
+			bWriteOK = m_pConfig->Write(_T("be_collab_src_proj"), m_CollabProjectForSourceInputs);
+			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_proj"), m_CollabProjectForTargetExports);
+			bWriteOK = m_pConfig->Write(_T("be_collab_book_selected"), m_CollabBookSelected);
+			bWriteOK = m_pConfig->Write(_T("be_collab_chapter_selected"), m_CollabChapterSelected);
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+			// restore the oldPath back to "/Recent_File_List"
+			m_pConfig->SetPath(oldPath);
+			
+			wxString msg;
+			msg = _("Your administrator has configured Adapt It to collaborate with Bibledit, but Bibledit is not installed on this computer. Adapt It will now start in normal mode.\nAsk your administrator to set up Bibledit again if you want to adapt texts from Bibledit projects.");
+			wxMessageBox(msg,_T("No Bibledit installation found on this computer"),wxICON_WARNING);
+			// With m_bCollaboratinWithBibledit set now to FALSE, the normal Adapt It Start Working
+			// Wizard will appear after OnInit() finishes below.
+		}
+
 	}
 
 	// whm added 9Feb11 for Paratext Collaboration support
@@ -16128,6 +16278,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the Windows \ path separator from the end of the string
 	m_ParatextInstallDirPath = GetParatextInstallDirPath();
 	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
+
+	m_BibleditInstallDirPath = GetBibleditInstallDirPath();
+	m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
+
+	if (this->m_bCollaboratingWithBibledit)
+		m_collaborationEditor = _T("Bibledit"); // don't localize
+	else if (this->m_bCollaboratingWithParatext)
+		m_collaborationEditor = _T("Paratext"); // don't localize
+	else
+		m_collaborationEditor = _T("Paratext"); // default editor
 
 	// whm 28Mar11 TESTING BELOW !!!
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
@@ -16586,14 +16746,35 @@ int ii = 1;
 //GetView()->RemovePunctuation(GetDocument(),&testStr,1);
 
 
-m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been created,
-		// has at least one file in it, then the app auto-configures to not show the user
-		// the standard file input dialog when File / New... is clicked, or <New Document>
-		// clicked in the wizard, instead a monocline list of acceptable (ie. loadable)
-		// files (all from the Source Data folder) are shown in a ListBox, and no folder
-		// navigation is possible. Turning on this support can only be done by the
-		// administrator from two of the Administrator menu's commands; this folder is
-		// always a child of the currently open project folder
+	m_sourceInputsFolderName = _T("__SOURCE_INPUTS"); 
+	// whm 12Jun11 added in support of inputs and outputs navigation protection
+	m_freeTransOutputsFolderName = _T("_FREETRANS_OUTPUTS");
+	m_freeTransRTFOutputsFolderName = _T("_FREETRANS_RTF_OUTPUTS");
+	m_glossOutputsFolderName = _T("_GLOSS_OUTPUTS");
+	m_glossRTFOutputsFolderName = _T("_GLOSS_RTF_OUTPUTS");
+	m_interlinearRTFOutputsFolderName = _T("_INTERLINEAR_RTF_OUTPUTS");
+	m_sourceOutputsFolderName = _T("_SOURCE_OUTPUTS");
+	m_sourceRTFOutputsFolderName = _T("_SOURCE_RTF_OUTPUTS");
+	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
+	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
+	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
+	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
+
+	// whm 12Jun11 added in support of inputs and outputs navigation protection
+	// folder navigation protection defaults to FALSE but project config file
+	// value stored in m_foldersProtectedFromNavigation
+	m_bProtectSourceInputsFolder = FALSE;
+	m_bProtectFreeTransOutputsFolder = FALSE;
+	m_bProtectFreeTransRTFOutputsFolder = FALSE;
+	m_bProtectGlossOutputsFolder = FALSE;
+	m_bProtectGlossRTFOutputsFolder = FALSE;
+	m_bProtectInterlinearRTFOutputsFolder = FALSE;
+	m_bProtectSourceOutputsFolder = FALSE;
+	m_bProtectSourceRTFOutputsFolder = FALSE;
+	m_bProtectTargetOutputsFolder = FALSE;
+	m_bProtectTargetRTFOutputsFolder = FALSE;
+	m_bKbInputsAndOutputsFolder = FALSE;
+	m_liftInputsAndOutputsFolder = FALSE;
 
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
@@ -16672,7 +16853,19 @@ m_sourceDataFolderName = _T("Source Data"); // if this folder, once it has been 
 		wxString fullPath;
 		m_curProjectName = m_autoexport_projectname;
 		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
-		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
+		//m_sourceInputsFolderPath = m_curProjectPath + PathSeparator + m_sourceInputsFolderName; 
+		//m_freeTransOutputsFolderPath = m_curProjectPath + PathSeparator + m_freeTransOutputsFolderName;
+		//m_freeTransRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_freeTransRTFOutputsFolderName;
+		//m_glossOutputsFolderPath = m_curProjectPath + PathSeparator + m_glossOutputsFolderName;
+		//m_glossRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_glossRTFOutputsFolderName;
+		//m_interlinearRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_interlinearRTFOutputsFolderName;
+		//m_sourceOutputsFolderPath = m_curProjectPath + PathSeparator + m_sourceOutputsFolderName;
+		//m_sourceRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_sourceRTFOutputsFolderName;
+		//m_targetOutputsFolderPath = m_curProjectPath + PathSeparator + m_targetOutputsFolderName;
+		//m_targetRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
+		//m_kbInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
+		//m_liftInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
+		
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
 		GetDocument()->OnOpenDocument(fullPath);
@@ -17885,10 +18078,9 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 /// \return    TRUE if the directory structure and KBs were created successfully 
 ///             and/or exist, FALSE if an error occurred. 
 /// \remarks
-/// Called from: the Doc's OnOpenDocument(), DoUnpackDocument(), and from
-/// CLanguagesPage::OnWizardPageChanging() when the wizard page is moving forward. Also
-/// called from OnCustomWorkFolderLocation(), when Administrator is pointing the
-/// application at custom work folder locations.
+/// Called from: the App's OnRestoreDefaultWorkFolderLocation(), Doc's OnOpenDocument()
+/// when processing MRU file and m_pKB == NULL, DoUnpackDocument(), and from 
+/// CLanguagesPage::OnWizardPageChanging() when the wizard page is moving forward. 
 /// SetupDirectories() insures that the appropriate directory/folder structure is created
 /// when a new project is started, and that the appropriate directory/folder structure
 /// exists or can be created prior to opening or unpacking a document. It sets up various
@@ -17900,419 +18092,162 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 /// is already set as the working directory. Derivative paths are then based on the
 /// contents of the m_customWorkFolderPath application class member; these are paths such
 /// as m_curProjectPath, m_curAdaptationsPath, m_curOutputPath, etc.
+/// whm revised 12Jun11 to simplify by using a workOrCustomFolderPath which here at the 
+/// beginning is defined as m_workFolderPath when not using a custom work folder, or as 
+/// m_customWorkFolderPath when using a custom work folder. Also added the creation of
+/// the various inputs and outputs folders being used in AI version 6. Previously a
+/// "Source Data" folder might be created as needed, however, with version 6 it has been
+/// renamed to __SOURCE_INPUTS and, along with other folders are created if needed whenever
+/// SetupDirectories() is called.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::SetupDirectories()
 {
-	if(!m_bUseCustomWorkFolderPath)
+	// whm revised 12Jun11 to simplify by using a workOrCustomFolderPath which
+	// here at the beginning is defined as m_workFolderPath when not using a
+	// custom work folder, or as m_customWorkFolderPath when using a custom
+	// work folder. The two versions tended to get out of sync with time due to
+	// changes made to one an not the other.
+	wxString workOrCustomFolderPath;
+	if (!m_bUseCustomWorkFolderPath)
 	{
-		// this is where we have to start setting up the directory structures
-		bool bWorkExists = FALSE;
-		if (::wxFileExists(m_workFolderPath) || ::wxDirExists(m_workFolderPath))
-        // The Docs say ::wxFileExists() "returns TRUE if the file exists. It also returns
-        // TRUE if the file is a directory", however, I've found that the second statement
-        // is false, so, I'm ORing it with ::wxDirExists().
-		{
-			if (::wxDirExists(m_workFolderPath))
-			{
-				// work folder already exists, so don't create it
-				bWorkExists = TRUE;
-			}
-			else
-			{
-                // Work folder does not yet exist, but a file of that name does exist, so
-                // it must be renamed before user can proceed. Abort after a message is
-                // easiest way.
-				wxString str;
-				// IDS_FILENAME_CLASH
-				str = str.Format(_(
-"Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."),
-				m_strNR.c_str());
-				wxMessageBox(str, _T(""), wxICON_ERROR);
-				LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
-				abort();
-				return FALSE;
-			}
-		}
-		else
-		{
-			// Work folder does not yet exist, so create it.
-			bool bOK = ::wxMkdir(m_workFolderPath); //bool bOK = ::CreateDirectory(m_workFolderPath,NULL);
-            // WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777
-            // which makes a directory with full read, write, and execute permissions.
-			if (!bOK)
-			{
-				wxString str;
-				// IDS_CREATE_DIR_FAILED
-				str = str.Format(_(
-"Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\nAdapt It %s is not set up correctly and so must close down."),
-				m_strNR.c_str(),m_strNR.c_str());
-				wxMessageBox(str, _T(""), wxICON_ERROR);
-				LogUserAction(_T("Error creating the \"Adapt It %sWork\" folder in <home user>"));
-				wxASSERT(FALSE);
-				return FALSE;
-			}
-			bWorkExists = TRUE; // it now exists
-		}
-
-        // at this point we have an "Adapt It Work" folder existing in My Documents (If we
-        // loaded a document from the MRU list, m_sourceName and m_targetName are
-        // serialized on the doc, and so we can determine the doc's project folder name
-        // from those now too; and the wxString buffer has been pressed into service in the
-        // serialization code to store and load book mode information on the document, so
-        // that is available now to - all except m_bibleBooksFolderPath which we must
-        // recreate here below a bit)
-        // whm: For localization purposes the " to " and " adaptations" strings should not
-        // be translated, otherwise other localizations would not be able to handle the
-        // unpacking of files created on different localizations.
-		wxString workFolder = m_sourceName + _T(" to ") + m_targetName + _T(" adaptations");
-		m_curProjectName = workFolder;
-		wxASSERT(!m_curProjectName.IsEmpty());
-		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
-		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
-
-		// check to see if this folder already exists
-		bool bLangWorkFolderExists = FALSE;
-		if (::wxFileExists(m_curProjectPath) || ::wxDirExists(m_curProjectPath))
-		{
-			if (::wxDirExists(m_curProjectPath))
-			{
-				// language-specific work folder already exists, so don't create it
-				bLangWorkFolderExists = TRUE;
-				if (!gbViaMostRecentFileList && pStartWorkingWizard == NULL)
-				{
-                    // if we are not in the startup wizard, then to set up same project
-                    // again would likely be an error made by a novice user, thinking he
-                    // was creating a new document, so he should be given this message. But
-                    // the message should be suppressed in the wizard, since the wizard
-                    // allows the user to navigate back to the start of the wizard, so
-                    // having set up a new project, he could navigate back, and then use
-                    // Next> buttons again, and so we would want the use of the existing
-                    // folder to be done silently BEW added 10Jan06; the Unpack Document...
-                    // command calls SetupDirectories() from its handler on the destination
-                    // machine, and if there is a project of the same name already on the
-                    // same machine (eg. as would be the case if an unpack was done of a
-                    // second document file from the same source project) we would not want
-                    // this message to come up each time; nor even once, since the
-                    // destination machine's user expects the project to be automatically
-                    // set up and it would be a nuisance to mention it already exists. The
-                    // m_bUnpacking flag is cleared in the doc class's OnFileUnpackDoc()
-                    // function.
-					// BEW 12Nov09 added m_bAutoExport test to suppress the message when
-					// doing an autoexport from the command line
-					if (!m_bUnpacking && !m_bAutoExport)
-					{
-						wxString str;
-						// IDS_DUP_PROJECT_NAME
-						str = str.Format(_(
-"Warning: a project with the name \"%s\" already exists. Adapt It will therefore use the existing project."),
-						workFolder.c_str());
-                        // use wxMessageDialog rather than wxMessageBox below. For some
-                        // reason the dialog would have a null parent when loading a file
-                        // from MRU, and wxMessageDialog allows us to specify the main
-                        // frame as parent.
-						wxMessageBox(str, _T(""), wxICON_INFORMATION);
-					}
-				}
-			}
-			else
-			{
-				// language-specific Work folder does not yet exist, but a file of
-				// that name does exist, so it must be renamed before
-				// user can proceed. Abort after a message is easiest way.
-				wxString text;
-				// IDS_FILENAME2_CLASH
-				text = text.Format(_(
-"Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."),
-				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str());
-				wxMessageBox(text, _T(""), wxICON_ERROR);
-				LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
-				abort();
-				return FALSE;
-			}
-		}
-		else
-		{
-			// language-specific Work folder does not yet exist, so create it, but only if
-			// the source and target language names are currently defined; if they aren't,
-			// we don't go any further & return TRUE
-			if (!m_sourceName.IsEmpty() && !m_targetName.IsEmpty())
-			{
-				bool bOK = ::wxMkdir(m_curProjectPath); //bool bOK = ::CreateDirectory(m_curProjectPath,NULL);
-				// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
-				// makes a directory with full read, write, and execute permissions.
-				if (!bOK)
-				{
-					wxString str;
-					// IDS_CREATE_DIR2_FAILED
-					str = str.Format(_(
-"Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."),
-					m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
-					wxMessageBox(str, _T(""), wxICON_ERROR);
-					wxASSERT(FALSE);
-					return FALSE;
-				}
-				bLangWorkFolderExists = TRUE; // it now exists
-			}
-			else
-			{
-				// both or one of the names is not defined and so we can't set up a valid
-				// project folder, so don't go any further
-				return TRUE;
-			}
-		}
-
-        // we now have a location in which we can store the adaption project's knowledge
-        // base, and we have to finally create an Adaptations folder here too for the
-        // adapted output. do the Adaptations folder first
-		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
-
-		// check to see if this folder already exists
-		bool bAdaptionsFolderExists = FALSE;
-		if (::wxFileExists(m_curAdaptionsPath) || ::wxDirExists(m_curAdaptionsPath))
-		{
-			if (::wxDirExists(m_curAdaptionsPath))
-			{
-				// Adaptions folder already exists, so don't create it
-				bAdaptionsFolderExists = TRUE;
-			}
-			else
-			{
-                // adaptations folder does not yet exist, but a file of that name does
-                // exist, so it must be renamed before user can proceed. Abort after a
-                // message is easiest way.
-				wxString text;
-				// IDS_ADAPTATIONS_CLASH // MFC error message has "Adaptions" rather than "Adaptations"
-				text = text.Format(_(
-"Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."),
-				m_curProjectName.c_str());
-				wxMessageBox(text, _T(""), wxICON_ERROR);
-				LogUserAction(_T("A file named \"Adaptations\" exists interfering with creating the folder of same name"));
-				abort();
-				return FALSE;
-			}
-		}
-		else
-		{
-			// language-specific Work folder does not yet exist, so create it.
-			bool bOK = ::wxMkdir(m_curAdaptionsPath); //bool bOK = ::CreateDirectory(m_curAdaptionsPath,NULL);
-			// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
-			// makes a directory with full read, write, and execute permissions.
-			if (!bOK)
-			{
-				// IDS_CREATE_DIR3_FAILED // MFC error message has "Adaptions" rather than "Adaptations"
-				wxMessageBox(_(
-"Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."),
-				_T(""), wxICON_ERROR);
-				LogUserAction(_T("Error creating the \"Adaptations\" folder in the project folder"));
-				wxASSERT(FALSE);
-				return FALSE;
-			}
-			bAdaptionsFolderExists = TRUE; // it now exists
-		}
-
-        // we have the desired directory structures. But in case the document was a MRU
-        // list one saved when book mode was on, we must set up the appropriate book folder
-        // path or not, depending on the serialized in information in the document
-        // (SetupDirectories() is called immediately after a MRU document is serialized in,
-        // so the user can have done nothing to muck up the restored book mode settings
-        // which we will use now
-		
-        // BEW added 09Jan06; we also need to do this in case SetupDirectories() was called
-        // on someone else's computer as part of the Unpack Document... command, because it
-        // cannot be certain that that person will already have turned on book mode, but
-        // the person who packed the document may have had it on. In fact, Pack and Unpack
-        // forces us to add code here to check the relevant folders have been created in
-        // the Adaptations folder, and if not, we must first create them and set the
-        // m_pCurrBookNamePair app member.
-		if (m_bBookMode && !m_bDisableBookMode)
-		{
-            // check the book folders are already present, and if not then create them whm
-            // note: AreBookFoldersCreated() has the side effect of changing the current
-            // work directory to the passed in m_curAdaptionsPath.
-			bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptionsPath);
-			if (!bFoldersPresent)
-			{
-				CreateBookFolders(m_curAdaptionsPath,m_pBibleBooks);
-			}
-
-			// set the current folder and its path
-			m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
-			m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator + m_pCurrBookNamePair->dirName;
-		}
-		else
-		{
-			m_bibleBooksFolderPath.Empty();
-			m_pCurrBookNamePair = NULL;
-			if (m_bDisableBookMode)
-				gbAbortMRUOpen = TRUE;
-		}
-		
-		//Now we need to get a KB initialized and stored in the languages-specific folder. 
-		// Ditto for the glossing KB (version 2)
-		// BEW changed 15Aug05
-		SetupKBPathsEtc();
-		if (::wxFileExists(m_curKBPath))
-		{
-			// there is an existing .KB file, so we need to create a CKB instance in
-			// memory, open the .KB file on disk, and fill the memory instance's members
-			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB(FALSE);
-			wxASSERT(m_pKB != NULL);
-			bool bOK = LoadKB();
-			if (bOK)
-			{
-				m_bKBReady = TRUE;
-				LoadGuesser(m_pKB); // whm added 29Oct10
-
-				// now do it for the glossing KB
-				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(m_pGlossingKB != NULL);
-				bOK = LoadGlossingKB();
-				if (bOK)
-				{
-					m_bGlossingKBReady = TRUE;
-					LoadGuesser(m_pGlossingKB); // whm added 29Oct10
-				}
-				else
-				{
-					// IDS_LOAD_GLOSSINGKB_FAILURE
-					wxMessageBox(_(
-"Error: loading the glossing knowledge base failed. The application will now close."),
-					_T(""), wxICON_ERROR);
-					wxASSERT(FALSE);
-					LogUserAction(_T("Error: loading the glossing knowledge base failed"));
-					abort();
-					return FALSE;
-				}
-			}
-			else
-			{
-				// IDS_LOAD_KB_FAILURE
-				wxMessageBox(_(
-"Error: loading a knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR);
-				wxASSERT(FALSE);
-				LogUserAction(_T("Error: loading a knowledge base failed"));
-				abort();
-				return FALSE;
-			}
-		} // end of legacy location's code
-		else
-		{
-            // the KB file does not exist, so make sure there is an initialized CKB
-            // instance on the application ready to receive data, and save it to disk. for
-            // version 2, do the same for the glossing KB
-			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB(FALSE);
-			wxASSERT(m_pKB != NULL);
-
-			// store the language names in it
-			m_pKB->m_sourceLanguageName = m_sourceName;
-			m_pKB->m_targetLanguageName = m_targetName;
-
-			bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
-			if (bOK)
-			{
-				m_bKBReady = TRUE;
-				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
-
-				// now do the same for the glossing KB
-				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(m_pGlossingKB != NULL);
-
-				bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
-				if (bOK)
-				{
-					m_bGlossingKBReady = TRUE;
-					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
-				}
-				else
-				{
-					// IDS_STORE_GLOSSINGKB_FAILURE
-					wxMessageBox(_(
-"Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
-					_T(""), wxICON_ERROR); // something went wrong
-					wxASSERT(FALSE);
-					LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
-					abort();
-					return FALSE;
-				}
-			}
-			else
-			{
-				// IDS_STORE_KB_FAILURE
-				wxMessageBox(_(
-"Error: saving the knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR); // something went wrong
-				wxASSERT(FALSE);
-				LogUserAction(_T("Error: saving the knowledge base failed"));
-				abort();
-				return FALSE;
-			}
-		}
-		return m_bKBReady;
+		workOrCustomFolderPath = m_workFolderPath;
 	}
 	else
 	{
-		// a custom work folder location is in effect - set up for that
-		bool bWorkExists = FALSE;
-		if (::wxDirExists(m_customWorkFolderPath))
+		workOrCustomFolderPath = m_customWorkFolderPath;
+	}
+	
+	// this is where we have to start setting up the directory structures
+	bool bWorkExists = FALSE;
+	if (::wxFileExists(workOrCustomFolderPath) || ::wxDirExists(workOrCustomFolderPath))
+    // The Docs say ::wxFileExists() "returns TRUE if the file exists. It also returns
+    // TRUE if the file is a directory", however, I've found that the second statement
+    // is false, so, I'm ORing it with ::wxDirExists().
+	{
+		if (::wxDirExists(workOrCustomFolderPath))
 		{
-			// work folder already exists, which we know, just set flag
+			// work folder already exists, so don't create it
 			bWorkExists = TRUE;
 		}
 		else
 		{
-            // Custom work folder does not yet exist -- we don't expect this, having
-            // earlier just selected it, so warn and abort (don't localize these error
-            // messages here and below)
+            // Work folder does not yet exist, but a file of that name does exist, so
+            // it must be renamed before user can proceed. Abort after a message is
+            // easiest way.
 			wxString str;
-			str = str.Format(_T("Somehow no 'Adapt It %sWork' folder detected in SetupDirectories(). Aborting now."),
+			// IDS_FILENAME_CLASH
+			str = str.Format(_(
+"Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."),
 			m_strNR.c_str());
 			wxMessageBox(str, _T(""), wxICON_ERROR);
-			LogUserAction(_T("No 'Adapt It Work' folder detected in SetupDirectories()"));
+			LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
 			abort();
 			return FALSE;
 		}
+	}
+	else
+	{
+		// Work folder does not yet exist, so create it.
+		bool bOK = ::wxMkdir(workOrCustomFolderPath); //bool bOK = ::CreateDirectory(workOrCustomFolderPath,NULL);
+        // WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777
+        // which makes a directory with full read, write, and execute permissions.
+		if (!bOK)
+		{
+			wxString str;
+			// IDS_CREATE_DIR_FAILED
+			str = str.Format(_(
+"Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\nAdapt It %s is not set up correctly and so must close down."),
+			m_strNR.c_str(),m_strNR.c_str());
+			wxMessageBox(str, _T(""), wxICON_ERROR);
+			LogUserAction(_T("Error creating the \"Adapt It %sWork\" folder in <home user>"));
+			wxASSERT(FALSE);
+			return FALSE;
+		}
+		bWorkExists = TRUE; // it now exists
+	}
 
-        // at this point we have a work folder existing somewhere. If we
-        // loaded a document from the MRU list, m_sourceName and m_targetName are
-        // stored on the doc, and so we can determine the doc's project folder name
-        // from those now too; and the wxString buffer has been pressed into service in the
-        // serialization code to store and load book mode information on the document, so
-        // that is available now to - all except m_bibleBooksFolderPath which we must
-        // recreate here below a bit)
-        // whm: For localization purposes the " to " and " adaptations" strings should not
-        // be translated, otherwise other localizations would not be able to handle the
-        // unpacking of files created on different localizations.
-		wxString workFolder = m_sourceName + _T(" to ") + m_targetName + _T(" adaptations");
-		m_curProjectName = workFolder;
-		wxASSERT(!m_curProjectName.IsEmpty());
-		m_curProjectPath = m_customWorkFolderPath + PathSeparator + m_curProjectName;
-		m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
-
-		// check to see if this folder already exists
-		bool bLangWorkFolderExists = FALSE;
+    // at this point we have an "Adapt It Work" folder existing in My Documents (If we
+    // loaded a document from the MRU list, m_sourceName and m_targetName are
+    // serialized on the doc, and so we can determine the doc's project folder name
+    // from those now too; and the wxString buffer has been pressed into service in the
+    // serialization code to store and load book mode information on the document, so
+    // that is available now to - all except m_bibleBooksFolderPath which we must
+    // recreate here below a bit)
+    // whm: For localization purposes the " to " and " adaptations" strings should not
+    // be translated, otherwise other localizations would not be able to handle the
+    // unpacking of files created on different localizations.
+	wxString workFolder = m_sourceName + _T(" to ") + m_targetName + _T(" adaptations");
+	m_curProjectName = workFolder;
+	wxASSERT(!m_curProjectName.IsEmpty());
+	m_curProjectPath = workOrCustomFolderPath + PathSeparator + m_curProjectName;
+	
+	// check to see if this folder already exists
+	bool bLangWorkFolderExists = FALSE;
+	if (::wxFileExists(m_curProjectPath) || ::wxDirExists(m_curProjectPath))
+	{
 		if (::wxDirExists(m_curProjectPath))
 		{
 			// language-specific work folder already exists, so don't create it
 			bLangWorkFolderExists = TRUE;
+			if (!gbViaMostRecentFileList && pStartWorkingWizard == NULL)
+			{
+                // if we are not in the startup wizard, then to set up same project
+                // again would likely be an error made by a novice user, thinking he
+                // was creating a new document, so he should be given this message. But
+                // the message should be suppressed in the wizard, since the wizard
+                // allows the user to navigate back to the start of the wizard, so
+                // having set up a new project, he could navigate back, and then use
+                // Next> buttons again, and so we would want the use of the existing
+                // folder to be done silently BEW added 10Jan06; the Unpack Document...
+                // command calls SetupDirectories() from its handler on the destination
+                // machine, and if there is a project of the same name already on the
+                // same machine (eg. as would be the case if an unpack was done of a
+                // second document file from the same source project) we would not want
+                // this message to come up each time; nor even once, since the
+                // destination machine's user expects the project to be automatically
+                // set up and it would be a nuisance to mention it already exists. The
+                // m_bUnpacking flag is cleared in the doc class's OnFileUnpackDoc()
+                // function.
+				// BEW 12Nov09 added m_bAutoExport test to suppress the message when
+				// doing an autoexport from the command line
+				if (!m_bUnpacking && !m_bAutoExport)
+				{
+					wxString str;
+					// IDS_DUP_PROJECT_NAME
+					str = str.Format(_(
+"Warning: a project with the name \"%s\" already exists. Adapt It will therefore use the existing project."),
+					workFolder.c_str());
+                    // use wxMessageDialog rather than wxMessageBox below. For some
+                    // reason the dialog would have a null parent when loading a file
+                    // from MRU, and wxMessageDialog allows us to specify the main
+                    // frame as parent.
+					wxMessageBox(str, _T(""), wxICON_INFORMATION);
+				}
+			}
 		}
 		else
 		{
-			// language-specific Work folder does not yet exist, so create it, but only if
-			// the source and target language names are currently defined; if they aren't,
-			// we don't go any further & return TRUE
-			if (m_sourceName.IsEmpty() || m_targetName.IsEmpty())
-			{
-				// can't set up a valid project folder path, so go no further
-				return TRUE;
-			}
-
-			// language-specific Work folder does not yet exist, so create it, because both
-			// name strings have content
+			// language-specific Work folder does not yet exist, but a file of
+			// that name does exist, so it must be renamed before
+			// user can proceed. Abort after a message is easiest way.
+			wxString text;
+			// IDS_FILENAME2_CLASH
+			text = text.Format(_(
+"Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."),
+			m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str());
+			wxMessageBox(text, _T(""), wxICON_ERROR);
+			LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name"));
+			abort();
+			return FALSE;
+		}
+	}
+	else
+	{
+		// language-specific Work folder does not yet exist, so create it, but only if
+		// the source and target language names are currently defined; if they aren't,
+		// we don't go any further & return TRUE
+		if (!m_sourceName.IsEmpty() && !m_targetName.IsEmpty())
+		{
 			bool bOK = ::wxMkdir(m_curProjectPath);
 			// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
 			// makes a directory with full read, write, and execute permissions.
@@ -18320,24 +18255,32 @@ bool CAdapt_ItApp::SetupDirectories()
 			{
 				wxString str;
 				// IDS_CREATE_DIR2_FAILED
-				str = str.Format(
-				_T("SetupDirectories(): Error trying to create the \"%s to %s adaptations\" folder. Abort now."),
+				str = str.Format(_(
+"Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
-				LogUserAction(_T("SetupDirectories(): Error trying to create the \"... to ... adaptations\" folder"));
-				abort();
+				wxASSERT(FALSE);
 				return FALSE;
 			}
 			bLangWorkFolderExists = TRUE; // it now exists
 		}
+		else
+		{
+			// both or one of the names is not defined and so we can't set up a valid
+			// project folder, so don't go any further
+			return TRUE;
+		}
+	}
 
-        // we now have a location in which we can store the adaption project's knowledge
-        // base, and we have to finally create an Adaptations folder here too for the
-        // adapted output. do the Adaptations folder first
-		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
+    // we now have a location in which we can store the adaption project's knowledge
+    // base, and we have to finally create an Adaptations folder here too for the
+    // adapted output. do the Adaptations folder first
+	m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 
-		// check to see if this folder already exists
-		bool bAdaptionsFolderExists = FALSE;
+	// check to see if this folder already exists
+	bool bAdaptionsFolderExists = FALSE;
+	if (::wxFileExists(m_curAdaptionsPath) || ::wxDirExists(m_curAdaptionsPath))
+	{
 		if (::wxDirExists(m_curAdaptionsPath))
 		{
 			// Adaptions folder already exists, so don't create it
@@ -18345,163 +18288,640 @@ bool CAdapt_ItApp::SetupDirectories()
 		}
 		else
 		{
-			// language-specific Work folder does not yet exist, so create it.
-			bool bOK = ::wxMkdir(m_curAdaptionsPath); //bool bOK = ::CreateDirectory(m_curAdaptionsPath,NULL);
-			// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
-			// makes a directory with full read, write, and execute permissions.
-			if (!bOK)
-			{
-				wxMessageBox(_("SetupDirectories(): error creating the \"Adaptations\" folder. Abort now."),
-				_T(""), wxICON_ERROR);
-				LogUserAction(_T("SetupDirectories(): error creating the \"Adaptations\" folder"));
-				abort();
-				return FALSE;
-			}
-			bAdaptionsFolderExists = TRUE; // it now exists
+            // adaptations folder does not yet exist, but a file of that name does
+            // exist, so it must be renamed before user can proceed. Abort after a
+            // message is easiest way.
+			wxString text;
+			// IDS_ADAPTATIONS_CLASH // MFC error message has "Adaptions" rather than "Adaptations"
+			text = text.Format(_(
+"Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."),
+			m_curProjectName.c_str());
+			wxMessageBox(text, _T(""), wxICON_ERROR);
+			LogUserAction(_T("A file named \"Adaptations\" exists interfering with creating the folder of same name"));
+			abort();
+			return FALSE;
 		}
-
-        // we have the desired directory structures. But in case the document was a MRU
-        // list one saved when book mode was on, we must set up the appropriate book folder
-        // path or not, depending on the information in the document (SetupDirectories() is
-        // called immediately after a MRU document is serialized in, so the user can have
-        // done nothing to muck up the restored book mode settings which we will use now
-		
-        // BEW added 09Jan06; we also need to do this in case SetupDirectories() was called
-        // on someone else's computer as part of the Unpack Document... command, because it
-        // cannot be certain that that person will already have turned on book mode, but
-        // the person who packed the document may have had it on. In fact, Pack and Unpack
-        // forces us to add code here to check the relevant folders have been created in
-        // the Adaptations folder, and if not, we must first create them and set the
-        // m_pCurrBookNamePair app member.
-		if (m_bBookMode && !m_bDisableBookMode)
+	}
+	else
+	{
+		// language-specific Work folder does not yet exist, so create it.
+		bool bOK = ::wxMkdir(m_curAdaptionsPath); //bool bOK = ::CreateDirectory(m_curAdaptionsPath,NULL);
+		// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
+		// makes a directory with full read, write, and execute permissions.
+		if (!bOK)
 		{
-            // check the book folders are already present, and if not then create them whm
-            // note: AreBookFoldersCreated() has the side effect of changing the current
-            // work directory to the passed in m_curAdaptionsPath.
-			bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptionsPath);
-			if (!bFoldersPresent)
-			{
-				CreateBookFolders(m_curAdaptionsPath,m_pBibleBooks);
-			}
-
-			// set the current folder and its path
-			m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
-			m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator + m_pCurrBookNamePair->dirName;
+			// IDS_CREATE_DIR3_FAILED // MFC error message has "Adaptions" rather than "Adaptations"
+			wxMessageBox(_(
+"Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."),
+			_T(""), wxICON_ERROR);
+			LogUserAction(_T("Error creating the \"Adaptations\" folder in the project folder"));
+			wxASSERT(FALSE);
+			return FALSE;
 		}
-		else
-		{
-			m_bibleBooksFolderPath.Empty();
-			m_pCurrBookNamePair = NULL;
-			if (m_bDisableBookMode)
-				gbAbortMRUOpen = TRUE;
-		}
-		
-		//Now we need to get a KB initialized and stored in the languages-specific folder. 
-		// Ditto for the glossing KB (version 2)
-		// BEW changed 15Aug05
-		SetupKBPathsEtc();
-		if (::wxFileExists(m_curKBPath))
-		{
-			// there is an existing .KB file, so we need to create a CKB instance in
-			// memory, open the .KB file on disk, and fill the memory instance's members
-			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB(FALSE);
-			wxASSERT(m_pKB != NULL);
-			bool bOK = LoadKB();
-			if (bOK)
-			{
-				m_bKBReady = TRUE;
-				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
+		bAdaptionsFolderExists = TRUE; // it now exists
+	}
 
-				// now do it for the glossing KB
-				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(m_pGlossingKB != NULL);
-				bOK = LoadGlossingKB();
-				if (bOK)
-				{
-					m_bGlossingKBReady = TRUE;
-					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
-				}
-				else
-				{
-					// IDS_LOAD_GLOSSINGKB_FAILURE
-					wxMessageBox(_(
-"Error: loading the glossing knowledge base failed. The application will now close."),
-					_T(""), wxICON_ERROR);
-					wxASSERT(FALSE);
-					LogUserAction(_T("Error: loading the glossing knowledge base failed"));
-					abort();
-					return FALSE;
-				}
+	// whm 12Jun11 added the following for creating inputs and outputs directories
+	wxString pathCreationErrors = _T("");
+	CreateInputsAndOutputsDirectories(m_curProjectPath, pathCreationErrors);
+	
+	/*
+	if (!::wxDirExists(m_sourceInputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_sourceInputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_sourceInputsFolderName;
 			}
 			else
 			{
-				// IDS_LOAD_KB_FAILURE
-				wxMessageBox(_(
-"Error: loading a knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR);
-				wxASSERT(FALSE);
-				LogUserAction(_T("Error: loading a knowledge base failed"));
-				abort();
-			}
-		}
-		else
-		{
-            // the KB file does not exist, so make sure there is an initialized CKB
-            // instance on the application ready to receive data, and save it to disk. for
-            // version 2, do the same for the glossing KB
-			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB(FALSE);
-			wxASSERT(m_pKB != NULL);
-
-			// store the language names in it
-			m_pKB->m_sourceLanguageName = m_sourceName;
-			m_pKB->m_targetLanguageName = m_targetName;
-
-			bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
-			if (bOK)
-			{
-				m_bKBReady = TRUE;
-				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
-
-				// now do the same for the glossing KB
-				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(m_pGlossingKB != NULL);
-
-				bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
-				if (bOK)
-				{
-					m_bGlossingKBReady = TRUE;
-					// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
-				}
-				else
-				{
-					// IDS_STORE_GLOSSINGKB_FAILURE
-					wxMessageBox(_(
-"Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
-					_T(""), wxICON_ERROR); // something went wrong
-					wxASSERT(FALSE);
-					LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
-					abort();
-					return FALSE;
-				}
-			}
-			else
-			{
-				// IDS_STORE_KB_FAILURE
-				wxMessageBox(_(
-"Error: saving the knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR); // something went wrong
-				wxASSERT(FALSE);
-				LogUserAction(_T("Error: saving the knowledge base failed"));
-				abort();
-				return FALSE;
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_sourceInputsFolderName;
 			}
 		}
 	}
-	return TRUE;
+	if (!::wxDirExists(m_freeTransOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_freeTransOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_freeTransOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_freeTransOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_freeTransRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_freeTransRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_freeTransRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_freeTransRTFOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_glossOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_glossOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_glossOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_glossOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_glossRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_glossRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_glossRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_glossRTFOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_interlinearRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_interlinearRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_interlinearRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_interlinearRTFOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_sourceOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_sourceOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_sourceOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_sourceOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_sourceRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_sourceRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_sourceRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_sourceRTFOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_targetOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_targetOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_targetOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_targetOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_targetRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_targetRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_targetRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_targetRTFOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_kbInputsAndOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_kbInputsAndOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_kbInputsAndOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_kbInputsAndOutputsFolderName;
+			}
+		}
+	}
+	if (!::wxDirExists(m_liftInputsAndOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_liftInputsAndOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_liftInputsAndOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_liftInputsAndOutputsFolderName;
+			}
+		}
+	}
+	*/
+
+	if (!pathCreationErrors.IsEmpty())
+	{
+			wxString str;
+			str = str.Format(_(
+"Sorry, there was an error creating the following folder(s) in your Adapt It %sWork folder.\n%s\nAdapt It is not set up correctly and so must close down."),
+			m_strNR.c_str(),pathCreationErrors.c_str());
+			wxMessageBox(str, _T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			return FALSE;
+	}
+
+    // we have the desired directory structures. But in case the document was a MRU
+    // list one saved when book mode was on, we must set up the appropriate book folder
+    // path or not, depending on the serialized in information in the document
+    // (SetupDirectories() is called immediately after a MRU document is serialized in,
+    // so the user can have done nothing to muck up the restored book mode settings
+    // which we will use now
+	
+    // BEW added 09Jan06; we also need to do this in case SetupDirectories() was called
+    // on someone else's computer as part of the Unpack Document... command, because it
+    // cannot be certain that that person will already have turned on book mode, but
+    // the person who packed the document may have had it on. In fact, Pack and Unpack
+    // forces us to add code here to check the relevant folders have been created in
+    // the Adaptations folder, and if not, we must first create them and set the
+    // m_pCurrBookNamePair app member.
+	if (m_bBookMode && !m_bDisableBookMode)
+	{
+        // check the book folders are already present, and if not then create them whm
+        // note: AreBookFoldersCreated() has the side effect of changing the current
+        // work directory to the passed in m_curAdaptionsPath.
+		bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptionsPath);
+		if (!bFoldersPresent)
+		{
+			CreateBookFolders(m_curAdaptionsPath,m_pBibleBooks);
+		}
+
+		// set the current folder and its path
+		m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
+		m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator + m_pCurrBookNamePair->dirName;
+	}
+	else
+	{
+		m_bibleBooksFolderPath.Empty();
+		m_pCurrBookNamePair = NULL;
+		if (m_bDisableBookMode)
+			gbAbortMRUOpen = TRUE;
+	}
+	
+	//Now we need to get a KB initialized and stored in the languages-specific folder. 
+	// Ditto for the glossing KB (version 2)
+	// BEW changed 15Aug05
+	SetupKBPathsEtc();
+	if (::wxFileExists(m_curKBPath))
+	{
+		// there is an existing .KB file, so we need to create a CKB instance in
+		// memory, open the .KB file on disk, and fill the memory instance's members
+		wxASSERT(m_pKB == NULL);
+		m_pKB = new CKB(FALSE);
+		wxASSERT(m_pKB != NULL);
+		bool bOK = LoadKB();
+		if (bOK)
+		{
+			m_bKBReady = TRUE;
+			LoadGuesser(m_pKB); // whm added 29Oct10
+
+			// now do it for the glossing KB
+			wxASSERT(m_pGlossingKB == NULL);
+			m_pGlossingKB = new CKB(TRUE);
+			wxASSERT(m_pGlossingKB != NULL);
+			bOK = LoadGlossingKB();
+			if (bOK)
+			{
+				m_bGlossingKBReady = TRUE;
+				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+			}
+			else
+			{
+				// IDS_LOAD_GLOSSINGKB_FAILURE
+				wxMessageBox(_(
+"Error: loading the glossing knowledge base failed. The application will now close."),
+				_T(""), wxICON_ERROR);
+				wxASSERT(FALSE);
+				LogUserAction(_T("Error: loading the glossing knowledge base failed"));
+				abort();
+				return FALSE;
+			}
+		}
+		else
+		{
+			// IDS_LOAD_KB_FAILURE
+			wxMessageBox(_(
+"Error: loading a knowledge base failed. The application will now close."),
+			_T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			LogUserAction(_T("Error: loading a knowledge base failed"));
+			abort();
+			return FALSE;
+		}
+	} // end of legacy location's code
+	else
+	{
+        // the KB file does not exist, so make sure there is an initialized CKB
+        // instance on the application ready to receive data, and save it to disk. for
+        // version 2, do the same for the glossing KB
+		wxASSERT(m_pKB == NULL);
+		m_pKB = new CKB(FALSE);
+		wxASSERT(m_pKB != NULL);
+
+		// store the language names in it
+		m_pKB->m_sourceLanguageName = m_sourceName;
+		m_pKB->m_targetLanguageName = m_targetName;
+
+		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+		if (bOK)
+		{
+			m_bKBReady = TRUE;
+			// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
+
+			// now do the same for the glossing KB
+			wxASSERT(m_pGlossingKB == NULL);
+			m_pGlossingKB = new CKB(TRUE);
+			wxASSERT(m_pGlossingKB != NULL);
+
+			bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+			if (bOK)
+			{
+				m_bGlossingKBReady = TRUE;
+				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
+			}
+			else
+			{
+				// IDS_STORE_GLOSSINGKB_FAILURE
+				wxMessageBox(_(
+"Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
+				_T(""), wxICON_ERROR); // something went wrong
+				wxASSERT(FALSE);
+				LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
+				abort();
+				return FALSE;
+			}
+		}
+		else
+		{
+			// IDS_STORE_KB_FAILURE
+			wxMessageBox(_(
+"Error: saving the knowledge base failed. The application will now close."),
+			_T(""), wxICON_ERROR); // something went wrong
+			wxASSERT(FALSE);
+			LogUserAction(_T("Error: saving the knowledge base failed"));
+			abort();
+			return FALSE;
+		}
+	}
+		return m_bKBReady;
+}
+
+
+bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors)
+{
+	bool bCreatedOK = TRUE;
+	m_sourceInputsFolderPath = curProjectPath + PathSeparator + m_sourceInputsFolderName; 
+	m_freeTransOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransOutputsFolderName;
+	m_freeTransRTFOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransRTFOutputsFolderName;
+	m_glossOutputsFolderPath = curProjectPath + PathSeparator + m_glossOutputsFolderName;
+	m_glossRTFOutputsFolderPath = curProjectPath + PathSeparator + m_glossRTFOutputsFolderName;
+	m_interlinearRTFOutputsFolderPath = curProjectPath + PathSeparator + m_interlinearRTFOutputsFolderName;
+	m_sourceOutputsFolderPath = curProjectPath + PathSeparator + m_sourceOutputsFolderName;
+	m_sourceRTFOutputsFolderPath = curProjectPath + PathSeparator + m_sourceRTFOutputsFolderName;
+	m_targetOutputsFolderPath = curProjectPath + PathSeparator + m_targetOutputsFolderName;
+	m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
+	m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
+	m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
+	
+	if (!::wxDirExists(m_sourceInputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_sourceInputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_sourceInputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_sourceInputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_freeTransOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_freeTransOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_freeTransOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_freeTransOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_freeTransRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_freeTransRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_freeTransRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_freeTransRTFOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_glossOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_glossOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_glossOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_glossOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_glossRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_glossRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_glossRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_glossRTFOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_interlinearRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_interlinearRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_interlinearRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_interlinearRTFOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_sourceOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_sourceOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_sourceOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_sourceOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_sourceRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_sourceRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_sourceRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_sourceRTFOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_targetOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_targetOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_targetOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_targetOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_targetRTFOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_targetRTFOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_targetRTFOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_targetRTFOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_kbInputsAndOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_kbInputsAndOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_kbInputsAndOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_kbInputsAndOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	if (!::wxDirExists(m_liftInputsAndOutputsFolderPath))
+	{
+		bool bOK = ::wxMkdir(m_liftInputsAndOutputsFolderPath);
+		if (!bOK)
+		{
+			if (!pathCreationErrors.IsEmpty())
+			{
+				pathCreationErrors += _T("\n   ");
+				pathCreationErrors += m_liftInputsAndOutputsFolderName;
+			}
+			else
+			{
+				pathCreationErrors += _T("   ");
+				pathCreationErrors += m_liftInputsAndOutputsFolderName;
+			}
+			bCreatedOK = FALSE;
+		}
+	}
+	return bCreatedOK;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -20265,19 +20685,22 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 	//    pages.
 
 
-	// whm added 20Apr11 support for Paratext collaboration.
-	// The App's m_bCollaboratingWithParatext flag indicates whether PT collaboration
-	// is currently in effect. When it is, we don't show the typical Start Working 
-	// Wizard, but instead we show the "Get Source Text from Paratext Project" dialog.
-	if (m_bCollaboratingWithParatext)
+	// whm added 20Apr11 support for Paratext/Bibledit collaboration.
+	// The App's m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit
+	// flags indicate whether Paratext collaboration or Bibledit collaboration
+	// is currently in effect. When either is ON, we don't show the typical 
+	// Start Working Wizard, but instead we show the "Get Source Text from 
+	// Paratext/Bibledit Project" dialog.
+	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
 		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
+		dlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
 		if (dlg.ShowModal() == wxID_CANCEL)
 		{
 			// The user explicitly clicked on Cancel from the "Get Source Text 
-			// from Paratext Project" dialog. Set m_bJustLaunched to FALSE so
-			// the MainFrame's OnIdle() handler won't call up the dialog again,
-			// but instead leave the main window blank. After such a Cancel, 
+			// from Paratext/Bibledit Project" dialog. Set m_bJustLaunched to 
+			// FALSE so the MainFrame's OnIdle() handler won't call up the dialog 
+			// again, but instead leave the main window blank. After such a Cancel, 
 			// the user can always get the dialog up again by clicking on the 
 			// Open tool bar button, or selecting File | Open or File | Start 
 			// Working...).
@@ -20285,12 +20708,12 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			return TRUE;
 		}
 
-		// In PT Collaboration mode, the CGetSourceTextFromEditorDlg class above
-		// will insure that a path is set for m_curAdaptionsPath and that it exists
-		// even upon a SHIFT-down startup and calling of SetDefaults().
-		// Hence, we return here without executing the remining code below.
+		// In PT or BE Collaboration mode, the CGetSourceTextFromEditorDlg class 
+		// above will insure that a path is set for m_curAdaptionsPath and that 
+		// it exists even upon a SHIFT-down startup and calling of SetDefaults().
+		// Hence, we return below without executing the remining code below.
 
-		// Note: we should return TRUE for PT collaboration.
+		// Note: we should return TRUE for PT or BE collaboration.
 		return TRUE;
 	}
 	
@@ -22056,7 +22479,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 /// loadability. Those that are are added to the array (it's a sorted array) - and only
 /// these should be shown to the user for document creation purposes. We have to do this
 /// enumeration immediately prior to creation of a new document, because it may happen
-/// that someone (e.g. an administrator) might have changed the contents of the Source Data
+/// that someone (e.g. an administrator) might have changed the contents of the __SOURCE_INPUTS
 /// folder's monocline list of loadable files since the last call of this function -
 /// either to add more loadable files, or even some not loadable.
 /// BEW 15Aug10, removed call of EnumerateDocFiles_ParametizedStore() because the latter
@@ -22191,19 +22614,20 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the "Source Data" folder exists and it has at least one loadable
+/// \return     TRUE if the "__SOURCE_INPUTS" folder exists and it has at least one loadable
 ///             source text file within it; FALSE if there are no loadable files in it, or
 ///             no files at all, or if one of several possible error conditions happens
 /// \remarks
-/// This function tests for existence of a folder named "Source Data" as a child folder of
+/// Called from OnNewDocument().
+/// This function tests for existence of a folder named "__SOURCE_INPUTS" as a child folder of
 /// the current project folder, and if it exists, and provided it also has at least one
 /// file within it which is loadable for adaptation document creation purposes, the
-/// function will return TRUE; if the Source Data folder does not exist, it returns FALSE,
+/// function will return TRUE; if the __SOURCE_INPUTS folder does not exist, it returns FALSE,
 /// it also returns FALSE if it has no files in that folder, or if all the files in that
 /// folder, when tested with the IsLoadableFile() function, return FALSE. The function can
-/// rely on the fact that a valid path to a Source Data folder will have been set up when
+/// rely on the fact that a valid path to a __SOURCE_INPUTS folder will have been set up when
 /// the project was entered, the path will be in the app member string,
-/// m_sourceDataFolderPath. Error conditions do not halt the app, but instead allow
+/// m_sourceInputsFolderPath. Error conditions do not halt the app, but instead allow
 /// processing to continue in the legacy way, with no user navigation protection (that is,
 /// the wxFileDialog is used in the OPEN state, rather than the SAVE state).
 /// 
@@ -22222,20 +22646,32 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 //////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 {
-	wxASSERT(!m_sourceDataFolderPath.IsEmpty());
-	bool bDirExists = ::wxDirExists(m_sourceDataFolderPath);
+	wxASSERT(!m_sourceInputsFolderPath.IsEmpty());
+	bool bDirExists = ::wxDirExists(m_sourceInputsFolderPath);
 	if (!bDirExists)
 	{
 		return FALSE;
 	}
 	else
 	{
-        // enumerate the files in the Source Data directory, don't do any filtering there,
+		// whm added 13Jun11. With version 6.0.0, AI will always create a __SOURCE_INPUTS
+		// folder in a new project. The crucial test for switching ON nav protection now 
+		// is not whether the __SOURCE_INPUTS folder exists, nor whether it has at least
+		// one loadable file, but whether the "Protect from Navigation" checkbox has been
+		// selected by the administrator (or has been unilaterally checked because Paratext
+		// or Bibledit collaboration is ON). The flag for this test now resides in
+		// the the App's m_bProtectSourceInputsFolder variable which is controlled by the
+		// CAssignLocationsForInputsAndOutputs class. If this flag is FALSE at this point
+		// we need to return FALSE from this function.
+		if (!m_bProtectSourceInputsFolder)
+			return FALSE;
+
+        // enumerate the files in the __SOURCE_INPUTS directory, don't do any filtering there,
         // as we want to do it further below since we've special messages below for the
-		// user if we find unloadable files in the Source Data folder; for the current
+		// user if we find unloadable files in the __SOURCE_INPUTS folder; for the current
 		// function it is not necessary to have the enumeration sorted
 		wxArrayString arrFilenames;
-		bool bOkay = EnumerateLoadableSourceTextFiles(arrFilenames,m_sourceDataFolderPath,
+		bool bOkay = EnumerateLoadableSourceTextFiles(arrFilenames,m_sourceInputsFolderPath,
 														doNotFilterOutUnloadableFiles);
 		if (!bOkay)
 		{
@@ -22250,7 +22686,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 			if (arrFilenames.IsEmpty())
 			{
 				wxMessageBox(_(
-"There are no files in the 'Source Data' folder.\nTherefore the user is not protected from folder navigation."),
+"There are no files in the '__SOURCE_INPUTS' folder.\nTherefore the user is not protected from folder navigation."),
 				_("No source text files for document creation"),
 				wxICON_WARNING);
 				return FALSE;
@@ -22268,7 +22704,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 			for (index = 0; index < count; index++)
 			{
 				filename = arrFilenames.Item(index);
-				aPath = m_sourceDataFolderPath + PathSeparator + filename;
+				aPath = m_sourceInputsFolderPath + PathSeparator + filename;
 				wxASSERT(::FileExists(aPath));
 				bool bIsGood = IsLoadableFile(aPath);
 				if (!bIsGood)
@@ -22291,7 +22727,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 			{
 				// warn the user which ones are not loadable for doc creation purposes
 				wxString msg;
-				msg = msg.Format(_("Some of the 'Source Data' folder's files are not suitable for creating an adaptation document.\nThey are: %s"),
+				msg = msg.Format(_("Some of the '__SOURCE_INPUTS' folder's files are not suitable for creating an adaptation document.\nThey are: %s"),
 				unloadables.c_str());
 				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
 			}
@@ -22300,7 +22736,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 				// warn the user that none are loadable for doc creation purposes,
 				// and that navigation protect therefore can't be turned on
 				wxString msg;
-				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the 'Source Data' folder's files are suitable for creating an adaptation document.\nThe unsuitable ones are: %s"),
+				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the '__SOURCE_INPUTS' folder's files are suitable for creating an adaptation document.\nThe unsuitable ones are: %s"),
 				unloadables.c_str());
 				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
 				return FALSE;
@@ -22808,19 +23244,19 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szPTProjectForSourceInputs << tab << m_PTProjectForSourceInputs;
+	data << szCollabProjectForSourceInputs << tab << m_CollabProjectForSourceInputs;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szPTProjectForTargetExports << tab << m_PTProjectForTargetExports;
+	data << szCollabProjectForTargetExports << tab << m_CollabProjectForTargetExports;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szPTBookSelected << tab << m_PTBookSelected;
+	data << szCollabBookSelected << tab << m_CollabBookSelected;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szPTChapterSelected << tab << m_PTChapterSelected;
+	data << szCollabChapterSelected << tab << m_CollabChapterSelected;
 	pf->AddLine(data);
 
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
@@ -23728,7 +24164,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szCurLanguagesPath)
 		{
 			m_curProjectPath = strValue;
-			m_sourceDataFolderPath = m_curProjectPath + PathSeparator + m_sourceDataFolderName; 
+			//m_sourceInputsFolderPath = m_curProjectPath + PathSeparator + m_sourceInputsFolderName; // whm 12Jun11 commented out 
 		}
 		else if (name == szCurAdaptionsPath)
 		{
@@ -24157,21 +24593,21 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bCollaboratingWithParatext = FALSE;
 		}
-		else if (name == szPTProjectForSourceInputs) // whm added 15Apr11
+		else if (name == szCollabProjectForSourceInputs) // whm added 15Apr11
 		{
-			m_PTProjectForSourceInputs = strValue;
+			m_CollabProjectForSourceInputs = strValue;
 		}
-		else if (name == szPTProjectForTargetExports) // whm added 15Apr11
+		else if (name == szCollabProjectForTargetExports) // whm added 15Apr11
 		{
-			m_PTProjectForTargetExports = strValue;
+			m_CollabProjectForTargetExports = strValue;
 		}
-		else if (name == szPTBookSelected)
+		else if (name == szCollabBookSelected)
 		{
-			m_PTBookSelected = strValue;
+			m_CollabBookSelected = strValue;
 		}
-		else if (name == szPTChapterSelected)
+		else if (name == szCollabChapterSelected)
 		{
-			m_PTChapterSelected = strValue;
+			m_CollabChapterSelected = strValue;
 		}
 		else if (name == szHidePunctuation)
 		{
@@ -24795,40 +25231,71 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bool bReadOK4 = FALSE;
 	bool bReadOK5 = FALSE;
 	bool bTempCollabFlag = FALSE;
-	wxString tempPTProjForSrcInputs = _T("");
-	wxString tempPTProjForTgtExports = _T("");
-	wxString tempPTBookSelected = _T("");
-	wxString tempPTChapterSelected = _T("");
+	wxString tempCollabProjForSrcInputs = _T("");
+	wxString tempCollabProjForTgtExports = _T("");
+	wxString tempCollabBookSelected = _T("");
+	wxString tempCollabChapterSelected = _T("");
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
 	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
 		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
-	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempPTProjForSrcInputs);
-	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempPTProjForTgtExports);
-	bReadOK4 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempPTBookSelected);
-	bReadOK5 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempPTChapterSelected);
+	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
+	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
+	bReadOK4 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
+	bReadOK5 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
 	{
 		m_bCollaboratingWithParatext = bTempCollabFlag;
-		if (bReadOK2 && tempPTProjForSrcInputs != m_PTProjectForSourceInputs)
+		if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
 		{
-			m_PTProjectForSourceInputs = tempPTProjForSrcInputs;
+			m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
 		}
-		if (bReadOK3 && tempPTProjForTgtExports != m_PTProjectForTargetExports)
+		if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
 		{
-			m_PTProjectForTargetExports = tempPTProjForTgtExports;
+			m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
 		}
-		if (bReadOK4 && tempPTBookSelected != m_PTBookSelected)
+		if (bReadOK4 && tempCollabBookSelected != m_CollabBookSelected)
 		{
-			m_PTBookSelected = tempPTBookSelected;
+			m_CollabBookSelected = tempCollabBookSelected;
 		}
-		if (bReadOK5 && tempPTChapterSelected != m_PTChapterSelected)
+		if (bReadOK5 && tempCollabChapterSelected != m_CollabChapterSelected)
 		{
-			m_PTChapterSelected = tempPTChapterSelected;
+			m_CollabChapterSelected = tempCollabChapterSelected;
 		}
 	}
 
+	tempCollabProjForSrcInputs = _T("");
+	tempCollabProjForTgtExports = _T("");
+	tempCollabBookSelected = _T("");
+	tempCollabChapterSelected = _T("");
+	bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
+	bReadOK2 = m_pConfig->Read(_T("be_collab_src_proj"), &tempCollabProjForSrcInputs);
+	bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
+	bReadOK4 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
+	bReadOK5 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
+	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
+	{
+		m_bCollaboratingWithBibledit = bTempCollabFlag;
+		if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
+		{
+			m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
+		}
+		if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
+		{
+			m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
+		}
+		if (bReadOK4 && tempCollabBookSelected != m_CollabBookSelected)
+		{
+			m_CollabBookSelected = tempCollabBookSelected;
+		}
+		if (bReadOK5 && tempCollabChapterSelected != m_CollabChapterSelected)
+		{
+			m_CollabChapterSelected = tempCollabChapterSelected;
+		}
+	}
+	
+	
 	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
 	// the SHIFT key to get the app going again, we would want the workflow related values
 	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
@@ -25261,6 +25728,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szLastFreeTransExportPath << tab << m_lastFreeTransExportPath;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
+	pf->AddLine(data);
+
 #ifndef _UNICODE
 	// ANSI
 	wxString s;
@@ -25661,6 +26132,49 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 			{
 				m_lastFreeTransExportPath = strValue;
+			}
+		}
+		else if (name == szFoldersProtectedFromNavigation)
+		{
+			m_foldersProtectedFromNavigation = strValue;
+			// tokenize the folder name elements in m_foldersProtectedFromNavigation
+			// that are delimited by ':' chars
+			wxString tokenStr;
+			wxStringTokenizer tkz(strValue,_T(":"));
+			while (tkz.HasMoreTokens())
+			{
+				// add the tokenStr to fitPartStr if it doesn't make fitPartStr get longer than extentRemaining
+				tokenStr = tkz.GetNextToken();
+				if (tokenStr == m_sourceInputsFolderName)
+					m_bProtectSourceInputsFolder = TRUE;
+				else if (tokenStr == m_freeTransOutputsFolderName)
+					m_bProtectFreeTransOutputsFolder = TRUE;
+				else if (tokenStr == m_freeTransRTFOutputsFolderName)
+					m_bProtectFreeTransRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_glossOutputsFolderName)
+					m_bProtectGlossOutputsFolder = TRUE;
+				else if (tokenStr == m_glossRTFOutputsFolderName)
+					m_bProtectGlossRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_interlinearRTFOutputsFolderName)
+					m_bProtectInterlinearRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_sourceOutputsFolderName)
+					m_bProtectSourceOutputsFolder = TRUE;
+				else if (tokenStr == m_sourceRTFOutputsFolderName)
+					m_bProtectSourceRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_targetOutputsFolderName)
+					m_bProtectTargetOutputsFolder = TRUE;
+				else if (tokenStr == m_targetRTFOutputsFolderName)
+					m_bProtectTargetRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_kbInputsAndOutputsFolderName)
+					m_bKbInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_liftInputsAndOutputsFolderName)
+					m_liftInputsAndOutputsFolder = TRUE;
+				else
+				{
+					;
+					wxASSERT_MSG(FALSE,_T("Unrecognized value in FoldersProtectedFromNavigation setting")); // notify of programming error
+				}
+
 			}
 		}
 
@@ -33333,27 +33847,31 @@ bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& return
 	return bIsValid;
 }
 
-void CAdapt_ItApp::OnUpdateOpenSourceDataFolder(wxUpdateUIEvent& event)
+// whm 12Jun11 added for Assign Locations For Inputs and Outputs... item on Administrator menu
+void CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event)
 {
-	if (m_curProjectPath.IsEmpty())
+	// The "Assign Locations For Inputs And Outputs" item should be enabled except for
+	// when administrator has read-only access
+	if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
 	{
-		event.Enable(FALSE);
+		event.Enable(TRUE);
 	}
 	else
 	{
-		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
-		{
-			event.Enable(TRUE);
-		}
-		else
-		{
-			event.Enable(FALSE);
-		}
+		event.Enable(FALSE);
 	}
 }
 
-void CAdapt_ItApp::OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event))
+// whm 12Jun11 added for Assign Locations For Inputs and Outputs... item on Administrator menu
+void CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event))
 {
+	CAssignLocationsForInputsAndOutputs dlg(GetMainFrame());
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		; // all work is done within the class methods
+	}
+
+	/*
 	if (m_bShowAdministratorMenu)
 	{
 		if (m_bCollaboratingWithParatext)
@@ -33362,34 +33880,34 @@ void CAdapt_ItApp::OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event))
 				_T(""), wxICON_INFORMATION);
 			return;
 		}
-		if (m_sourceDataFolderPath.IsEmpty())
+		if (m_sourceInputsFolderPath.IsEmpty())
 		{
 			// don't expect this to be empty, an English message will do
 			wxBell();
-			wxMessageBox(_T("m_sourceDataFolderPath is still empty, button will be ignored"),
+			wxMessageBox(_T("m_sourceInputsFolderPath is still empty, button will be ignored"),
 				_T("Error"), wxICON_WARNING);
 			return;
 		}
 
-		// first, we must check if the "Source Data" folder actually exists yet - it can be
+		// first, we must check if the "__SOURCE_INPUTS" folder actually exists yet - it can be
 		// created only by this handler's invocation, provided the user responds with a Yes
 		// click when shown the active project it will be created in. (No provision is
-		// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
+		// made in Adapt It for decommissioning the __SOURCE_INPUTS folder, to restore legacy file
 		// input dialog functionality. Someone or the administrator can do that in a file
-		// browser, by renaming, moving or deleting the Source Data folder.
+		// browser, by renaming, moving or deleting the __SOURCE_INPUTS folder.
 		bool bDirExists = TRUE;
-		if (!::wxDirExists(m_sourceDataFolderPath) && !::wxFileExists(m_sourceDataFolderPath))
+		if (!::wxDirExists(m_sourceInputsFolderPath) && !::wxFileExists(m_sourceInputsFolderPath))
 		{
 			// there is no such file or folder, so create the folder, provided the user wants
 			// it in the current project
 			wxString msg;
 			msg = msg.Format(_(
-"The current project is: %s\nDo you want the Source Data folder to be created for this project?"),
+"The current project is: %s\nDo you want the __SOURCE_INPUTS folder to be created for this project?"),
 			gpApp->m_curProjectName.c_str());
-			if( wxMessageBox(msg,_("Verify project for Source Data folder creation"), wxYES_NO) == wxYES )
+			if( wxMessageBox(msg,_("Verify project for __SOURCE_INPUTS folder creation"), wxYES_NO) == wxYES )
 			{
-				// make the  Source Data  folder
-				bDirExists = ::wxMkdir(m_sourceDataFolderPath,0777);
+				// make the  __SOURCE_INPUTS  folder
+				bDirExists = ::wxMkdir(m_sourceInputsFolderPath,0777);
 			}
 			else
 			{
@@ -33411,28 +33929,11 @@ void CAdapt_ItApp::OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event))
 		// Administrator menu is not visible, but just in case, beep
 		wxBell();
 	}
+	
+	*/
 }
 
-void CAdapt_ItApp::OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event)
-{
-	if (m_curProjectPath.IsEmpty())
-	{
-		event.Enable(FALSE);
-	}
-	else
-	{
-		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
-		{
-			event.Enable(TRUE);
-		}
-		else
-		{
-			event.Enable(FALSE);
-		}
-	}
-}
-
-void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
+void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
 {
 //#ifndef __WXMSW__
 //	// Paratext is not available as a Linux application
@@ -33441,7 +33942,7 @@ void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 // whm 10Jun11 note: m_bParatextIsInstalled is a sufficient test to disable the 
 // Setup Paratext Collaboration... menu item on platforms that don't yet
 // have Paratext
-	if (m_bParatextIsInstalled)
+	if (m_bParatextIsInstalled || m_bBibleditIsInstalled)
 	{
 		event.Enable(TRUE);
 	}
@@ -33451,81 +33952,12 @@ void CAdapt_ItApp::OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event)
 	}
 }
 
-void CAdapt_ItApp::OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event))
-{
-	if (m_bShowAdministratorMenu)
-	{
-		if (m_bCollaboratingWithParatext)
-		{
-			wxMessageBox(_("When Paratext Collaboration is ON, this menu option has no effect. Translation Text exports instead go automatically to the relevant Paratext project location."),
-				_T(""), wxICON_INFORMATION);
-			return;
-		}
-		wxMessageBox(_T("The OnAssignTargetExportDataFolder function has not yet been implemented."),_T(""),wxICON_INFORMATION);
-	}
-
-	/*
-	if (m_bShowAdministratorMenu)
-	{
-		if (m_sourceDataFolderPath.IsEmpty())
-		{
-			// don't expect this to be empty, an English message will do
-			wxBell();
-			wxMessageBox(_T("m_sourceDataFolderPath is still empty, button will be ignored"),
-				_T("Error"), wxICON_WARNING);
-			return;
-		}
-
-		// first, we must check if the "Source Data" folder actually exists yet - it can be
-		// created only by this handler's invocation, provided the user responds with a Yes
-		// click when shown the active project it will be created in. (No provision is
-		// made in Adapt It for decommissioning the Source Data folder, to restore legacy file
-		// input dialog functionality. Someone or the administrator can do that in a file
-		// browser, by renaming, moving or deleting the Source Data folder.
-		bool bDirExists = TRUE;
-		if (!::wxDirExists(m_sourceDataFolderPath) && !::wxFileExists(m_sourceDataFolderPath))
-		{
-			// there is no such file or folder, so create the folder, provided the user wants
-			// it in the current project
-			wxString msg;
-			msg = msg.Format(_(
-"The current project is: %s\nDo you want the Source Data folder to be created for this project?"),
-			gpApp->m_curProjectName.c_str());
-			if( wxMessageBox(msg,_("Verify project for Source Data folder creation"), wxYES_NO) == wxYES )
-			{
-				// make the  Source Data  folder
-				bDirExists = ::wxMkdir(m_sourceDataFolderPath,0777);
-			}
-			else
-			{
-				// user saw it was the wrong project and declined to go ahead
-				return;
-			}
-		}
-		wxASSERT(bDirExists);
-
-		if (!m_bAdminMenuRemoved)
-		{
-			wxCommandEvent dummyEvent;
-			OnMoveOrCopyFoldersOrFiles(dummyEvent);
-		}
-	}
-	else
-	{
-		// the update handler should prevent this function being enabled if the
-		// Administrator menu is not visible, but just in case, beep
-		wxBell();
-	}
-	*/
-}
 
 void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMessageBox(_T("The dialog for the Setup Paratext Collaboration menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
 	CSetupEditorCollaboration dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
-		// TODO:
 		// all setup should be done within the CSetupEditorCollaborationDlg class
 	}
 
@@ -36073,13 +36505,10 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 
 void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 {
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	//if (pApp->m_bReadOnlyAccess)
 	if (m_bReadOnlyAccess)
 	{
 		return;
 	}
-	//AdminMoveOrCopy dlg(pApp->GetMainFrame());
 	AdminMoveOrCopy dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -36635,6 +37064,15 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	}
 
 	return tempListOfPTProjects;
+}
+
+wxArrayString CAdapt_ItApp::GetListOfBEProjects()
+{
+	wxArrayString tempArray;
+	tempArray.Clear();
+	// TODO: Bibledit implementation !!!
+	
+	return tempArray;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

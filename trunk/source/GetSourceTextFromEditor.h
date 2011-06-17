@@ -35,10 +35,10 @@ public:
 	wxStaticText* pStaticSelectAChapter;
 	wxButton* pBtnCancel;
 
-	wxString m_TempPTProjectForSourceInputs;
-	wxString m_TempPTProjectForTargetExports;
-	wxString m_TempPTBookSelected;
-	wxString m_TempPTChapterSelected;
+	wxString m_TempCollabProjectForSourceInputs;
+	wxString m_TempCollabProjectForTargetExports;
+	wxString m_TempCollabBookSelected;
+	wxString m_TempCollabChapterSelected;
 	wxString m_bareChapterSelected;
 	wxArrayString projList;
 
@@ -52,6 +52,8 @@ public:
 	wxArrayString TargetChapterUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtp7PathAndFileName;
+	
+	wxString m_collabEditorName;
 
 	wxArrayString m_staticBoxDescriptionArray;
 

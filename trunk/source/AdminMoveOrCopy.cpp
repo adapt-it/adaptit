@@ -271,7 +271,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// initialize for the "Locate...folder" buttons; we default the left side to the
 	// work directory, and display its contents; we default the right side to the
-	// current project's Source Data folder if there is one, if not, then to the current
+	// current project's __SOURCE_INPUTS folder if there is one, if not, then to the current
 	// project folder if there is one, if not the use an empty path
 	if (gpApp->m_bUseCustomWorkFolderPath  && !gpApp->m_customWorkFolderPath.IsEmpty())
 	{
@@ -290,10 +290,10 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// set project folder as default folder for right pane, because it exists
 		m_strRightFolderPath = gpApp->m_curProjectPath;
 		// go the next step if possible
-		if (!gpApp->m_sourceDataFolderPath.IsEmpty() && ::wxDirExists(gpApp->m_sourceDataFolderPath))
+		if (!gpApp->m_sourceInputsFolderPath.IsEmpty() && ::wxDirExists(gpApp->m_sourceInputsFolderPath))
 		{
-			// set Source Data folder as default folder for right pane, because it exists
-			m_strRightFolderPath = gpApp->m_sourceDataFolderPath;
+			// set __SOURCE_INPUTS folder as default folder for right pane, because it exists
+			m_strRightFolderPath = gpApp->m_sourceInputsFolderPath;
 		}
 	}
 	SetupRightList(m_strRightFolderPath);
@@ -1925,7 +1925,7 @@ void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
 {
 	wxString msg;
 	msg = msg.Format(_(
-"One or more files selected for copying to the Source Data folder were not copied.\nThey were: %s"),
+"One or more files selected for copying to the __SOURCE_INPUTS folder were not copied.\nThey were: %s"),
 	strAllInvalids.c_str());
 	wxMessageBox(msg, _("Detected files not suitable for creating adaptation documents"),
 	wxICON_WARNING);
@@ -1936,15 +1936,15 @@ void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
 // copying, and then removing from the source folder the original files which were copied.
 // Copying does not do the removal step. 
 // BEW 15July10, added 5th parameter, bool bToSourceDataFolder (default FALSE), because we
-// want to do file validity checking if we are moving or copying to the Source Data folder,
+// want to do file validity checking if we are moving or copying to the __SOURCE_INPUTS folder,
 // and reject any invalid ones; and also to test for an attempt to Move files to the
-// "Source Data" folder - which we don't allow, and to warn when that happens and exit
+// "__SOURCE_INPUTS" folder - which we don't allow, and to warn when that happens and exit
 // prematurely from the function before anything is done
-// BEW 30July10, this function is not re-entrant when we are copying to the "Source Data"
+// BEW 30July10, this function is not re-entrant when we are copying to the "__SOURCE_INPUTS"
 // folder, even if the administrator selected folders to be copied. The reason for this is
-// that the Source Data folder has to be a monocline list of just files, and so we only
+// that the __SOURCE_INPUTS folder has to be a monocline list of just files, and so we only
 // permit copying files to there. The administrator can, however, manually enter a
-// succession of folders and move their files to the Source Data folder legally.
+// succession of folders and move their files to the __SOURCE_INPUTS folder legally.
 void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
 				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
 				bool bToSourceDataFolder, bool bDoMove)
@@ -1957,23 +1957,23 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 	bool bCopyWasSuccessful = TRUE;
 	arrCopiedOK.Clear();
 
-    // when the "to" folder is the one named "Source Data", do not permit any Move request
+    // when the "to" folder is the one named "__SOURCE_INPUTS", do not permit any Move request
     // - we want to ensure some other app's data only gets copied, not moved
 	if (bDoMove && bToSourceDataFolder)
 	{
 		wxMessageBox(_(
-"Moving files to the Source Data folder is not permitted.\nYou are allowed to copy them to that folder, so use the Copy button instead."),
-		_("Only copy files to Source Data folder"), wxICON_INFORMATION);
+"Moving files to the __SOURCE_INPUTS folder is not permitted.\nYou are allowed to copy them to that folder, so use the Copy button instead."),
+		_("Only copy files to __SOURCE_INPUTS folder"), wxICON_INFORMATION);
 		return;
 	}
 
-	// prepare for the possibility that we are copying to the Source Data folder (when
+	// prepare for the possibility that we are copying to the __SOURCE_INPUTS folder (when
 	// doing that, this function is not re-entrant)
 	bool bInvalidFiles = FALSE;
 	wxString strAllInvalids; // where we build up a space delimited string of filenames
 		// for any files which IsLoadableFile() says is not a suitable file for creating
 		// and Adapt It document from. [Hopefully, if the administrator has done his job
-		// right, he'll not put any such files in the Source Data folder in the first
+		// right, he'll not put any such files in the __SOURCE_INPUTS folder in the first
 		// place, but we can't rule out inappropriate use of a 3rd party app like Win
 		// Explorer, which could move anything there (including folders)]
 
@@ -1989,7 +1989,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 		// loop across all files that were selected
 		do {
             // BEW 15July10, add test for file contents validity (ie. loadable for creating
-            // a document) if the Source Data folder is the place to copy to; construct a
+            // a document) if the __SOURCE_INPUTS folder is the place to copy to; construct a
             // string listing the invalid ones in sequence, set the bInvalidFiles boolean,
             // and after this do loop ends, check the boolean and inform the user of which
             // ones were invalid and so did not get copied
@@ -1999,7 +1999,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 				if (!IsLoadableFile(aPath))
 				{
 					// can't create an adaptation doc from a file of this type, so don't
-					// copy it to the Source Data folder, etc
+					// copy it to the __SOURCE_INPUTS folder, etc
 					bInvalidFiles = TRUE;
 					if (strAllInvalids.IsEmpty())
 					{
@@ -2059,7 +2059,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 		} while (nItemIndex < limitSelectedFiles);
 	}
 
-	// tell the user if some files were not copied to Source Data folder, and which they are
+	// tell the user if some files were not copied to __SOURCE_INPUTS folder, and which they are
 	if (bToSourceDataFolder && bInvalidFiles)
 	{
 		PutUpInvalidsMessage(strAllInvalids);
@@ -2102,29 +2102,29 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 	}  // end block for test: if (bDoMove)
 
 	// now handle any folder selections, these will be recursive calls within the loop
-	// BEW 15July10, added test for supporting Source Data monocline list folder of
+	// BEW 15July10, added test for supporting __SOURCE_INPUTS monocline list folder of
 	// loadable source text files, and a message explaining to the user
 	if (limitSelectedFolders > 0)
 	{
-        // test for right being the folder called Source Data, if so, we don't allow
-        // copying folders & their file contents, as the Source Data contents has to be a
+        // test for right being the folder called __SOURCE_INPUTS, if so, we don't allow
+        // copying folders & their file contents, as the __SOURCE_INPUTS contents has to be a
         // monocline list. So we force the user to instead manualaly open any folder with
         // source files for copying there and then he can select which files to copy.
 		if (bToSourceDataFolder)
 		{
-            // the user has selected one or more folders to copy to Source Data, and this
+            // the user has selected one or more folders to copy to __SOURCE_INPUTS, and this
             // is taboo, so tell him and return (this makes the function reentrant in this
             // circumstance, but only to a depth of one level as the return done here kills
             // subsequent re-entrancy)
 			wxMessageBox(_(
-"You are allowed only to copy files to the Source Data folder.\nThe folders you selected have not been copied.\nInstead, in the left pane, choose a folder and open it, select the files you want to copy, then click Copy."),
-			_("Copy of folders to Source Data folder is not allowed"), wxICON_WARNING);
+"You are allowed only to copy files to the __SOURCE_INPUTS folder.\nThe folders you selected have not been copied.\nInstead, in the left pane, choose a folder and open it, select the files you want to copy, then click Copy."),
+			_("Copy of folders to __SOURCE_INPUTS folder is not allowed"), wxICON_WARNING);
 			return;
 		}
 		else
 		{
 			// there are one or more folders to copy or move, and the folder to copy to is
-			// not the Source Data folder. Do the directory plus files copy in a loop
+			// not the __SOURCE_INPUTS folder. Do the directory plus files copy in a loop
 			size_t indexForLoop;
 			// loop over the selected directory names
 			for (indexForLoop = 0; indexForLoop < limitSelectedFolders; indexForLoop++)
@@ -2356,15 +2356,15 @@ _("Before you click the Copy button, you need to select at least one item from t
 	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
 					  // if there was one, was handled (see CopyAction enum for values)
 
-   // do not allow copying of whole folders if the copy folder is "Source Data" (because
-    // we must have only a flat list of filenames in Source Data); and for a Move request,
-    // with copy folder being the "Source Data", we do not allow anything to be moved, (so
+   // do not allow copying of whole folders if the copy folder is "__SOURCE_INPUTS" (because
+    // we must have only a flat list of filenames in __SOURCE_INPUTS); and for a Move request,
+    // with copy folder being the "__SOURCE_INPUTS", we do not allow anything to be moved, (so
     // as to protect source data files which may belong to a 3rd part app,) we allow only
     // copying. This protocol is implemented with the call to MoveOrCopyFilesAndFolders() -
     // OnBnClickedCopy() and OnBnClickedMove() just pass in the booleans so it can work out
     // what to do and what to tell the administrator
 	bool bCopyingToSourceDataFolder = FALSE;
-	if (pathToDestinationPane == gpApp->m_sourceDataFolderPath)
+	if (pathToDestinationPane == gpApp->m_sourceInputsFolderPath)
 	{
 		bCopyingToSourceDataFolder = TRUE;
 	}
@@ -2507,13 +2507,13 @@ _("No destination folder is defined. (The destination folder is where your selec
 		return;
 	}
 
-    // Do not allow moving of a selected "Source Data" folder. Not only would its contents
+    // Do not allow moving of a selected "__SOURCE_INPUTS" folder. Not only would its contents
     // be inappropriate in some other place (such as a diffent project folder), but the
-    // move would not work right, for as soon as the "Source Data" folder was opened or
+    // move would not work right, for as soon as the "__SOURCE_INPUTS" folder was opened or
     // created at the destination folder, the attempt to move files into it would trip the
     // test against doing this within MoveOrCopyFilesAndFolders() itself, resulting in a
     // warning message and nothing being copied. So it is better to here suppress the move
-    // attempt before the Source Data folder gets moved or created in the other location
+    // attempt before the __SOURCE_INPUTS folder gets moved or created in the other location
 	if (pPaneSelectedFolders->GetCount() > 0)
 	{
 		bool bItsPresent = SelectedFoldersContainSourceDataFolder(pPaneSelectedFolders);
@@ -2521,7 +2521,7 @@ _("No destination folder is defined. (The destination folder is where your selec
 		{
 			// abort the Move
 			wxMessageBox(
-_("Trying to move the 'Source Data' folder is not permitted.\nThe Move operation is cancelled. Nothing has been moved."),
+_("Trying to move the '__SOURCE_INPUTS' folder is not permitted.\nThe Move operation is cancelled. Nothing has been moved."),
 			_("Illegal folder move attempt"),wxICON_WARNING);
 			pPaneSelectedFiles->Clear();
 			pPaneSelectedFolders->Clear();
@@ -2577,20 +2577,20 @@ _("Before you click the Move button, you need to select at least one item from t
 	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
 					  // if there was one, was handled (see CopyAction enum for values)
 
-	// do not allow copying of whole folders if the destination folder is "Source Data"
-	// (because we must have only a flat list of filenames in Source Data); and for a
-	// Move request, with destination folder "Source Data", we do not allow anything to be
+	// do not allow copying of whole folders if the destination folder is "__SOURCE_INPUTS"
+	// (because we must have only a flat list of filenames in __SOURCE_INPUTS); and for a
+	// Move request, with destination folder "__SOURCE_INPUTS", we do not allow anything to be
 	// moved, (so as to protect source data files which may belong to a 3rd part app,) we
 	// allow only copying. This protocol is implemented with the call to
 	// MoveOrCopyFilesAndFolders() - OnBnClickedCopy() and OnBnClickedMove() just pass in
 	// the booleans so it can work out what to do and what to tell the administrator 
 	bool bMovingToSourceDataFolder = FALSE;
-	if (pathToDestinationPane == gpApp->m_sourceDataFolderPath)
+	if (pathToDestinationPane == gpApp->m_sourceInputsFolderPath)
 	{
 		bMovingToSourceDataFolder = TRUE;
 	}
 	// do the move (the function will internally work out if it needs to block a move to
-	// the "Source Data" folder, and exit early with an information message for the user)
+	// the "__SOURCE_INPUTS" folder, and exit early with an information message for the user)
 	if (bMovingToSourceDataFolder)
 	{
         // the 5th param is bool bToSourceDataFolder, which is here set TRUE; last (6th,
