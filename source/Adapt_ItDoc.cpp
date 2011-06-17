@@ -544,11 +544,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 		}
 
 		// BEW addition, 15Aug10, test for user navigation protection feature turned on,
-		// and if so, show the monocline list of files in the Source Data folder only,
+		// and if so, show the monocline list of files in the __SOURCE_INPUTS folder only,
 		// otherwise, show the standard File Open dialog, wxFileDialog, supplied by
 		// wxWidgets which allows the user to navigate the hierarchical file/folder system
 		// BEW 22Aug10, included m_bShowAdministratorMenu in the test, so that we don't
-		// make the administrator have the Source Data folder restriction and
+		// make the administrator have the __SOURCE_INPUTS folder restriction and
 		// navigation-protection feature be forced on him when the Administrator menu is
 		// visible. I've also put a conditional compile here so that when the developer is
 		// debugging, he can choose which behaviour he wants for testing purposes
@@ -579,17 +579,17 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
             // This block encapsulates user file/folder navigation protection, by showing
             // to the user only all, or a subset of, the files in the monocline list of
-            // files in the folder named "Source Data" within the current project's folder.
+            // files in the folder named "__SOURCE_INPUTS" within the current project's folder.
             // All the user can do is either Cancel, or select a single file to be loaded
             // as a new adaptation document, no navigation functionality is provided here
             bUserNavProtectionInForce = TRUE;
 
 			gpApp->m_sortedLoadableFiles.Clear(); // we always recompute the array every
                 // time the user tries to create a new document, because the administrator
-                // may have added new source text files to the 'Source Data' folder since
+                // may have added new source text files to the '__SOURCE_INPUTS' folder since
                 // the time of the last document creation attempt
 			gpApp->EnumerateLoadableSourceTextFiles(gpApp->m_sortedLoadableFiles,
-								gpApp->m_sourceDataFolderPath, filterOutUnloadableFiles);
+								gpApp->m_sourceInputsFolderPath, filterOutUnloadableFiles);
 
 			// now remove any array entries which have their filename title part
 			// clashing with a document filename's title part (and book mode may be
@@ -665,10 +665,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 				delete gpApp->m_pNavProtectDlg;
 				gpApp->m_pNavProtectDlg = NULL;
 
-				// create the path to the selected file (m_sourceDataFolderPath is always
-				// defined when the app enters a project, as a folder "Source Data" which
+				// create the path to the selected file (m_sourceInputsFolderPath is always
+				// defined when the app enters a project, as a folder "__SOURCE_INPUTS" which
 				// is a direct child of the folder m_curProjectPath)
-				pathName = gpApp->m_sourceDataFolderPath + gpApp->PathSeparator + strSelectedFilename;
+				pathName = gpApp->m_sourceInputsFolderPath + gpApp->PathSeparator + strSelectedFilename;
 				wxASSERT(::wxFileExists(pathName));
 
 				// set fileTitle to the selected file's name (including extension, as the
@@ -846,7 +846,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// input source text file used to create the dialog. This inability to change
 			// the filename makes the filename list's bleeding behaviour work reliably as
 			// the user successively creates documents - until when all docs have been
-			// created that can be created from the files in the Source Data folder, the
+			// created that can be created from the files in the __SOURCE_INPUTS folder, the
 			// list will be empty
 			wxString strUserTyped;
 			if (bUserNavProtectionInForce)

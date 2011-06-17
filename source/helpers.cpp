@@ -6810,7 +6810,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 }
 
 // BEW created July2010. Used only in OnBnClickedMove() handler from AdminMoveOrCopy.cpp.
-// Tests if the folder(s) selected by the user include the "Source Data" folder -- the
+// Tests if the folder(s) selected by the user include the "__SOURCE_INPUTS" folder -- the
 // latter contains only a monocline list of loadable (for document creation purposes)
 // files - typically USFM marked up plain text data. If TRUE is returned, the
 // OnBnClickedMove() handler exits without doing any moving, with a warning to the user to
@@ -6823,7 +6823,7 @@ bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders)
 	for (index = 0; index < count; index++)
 	{
 		wxString filename = pFolders->Item(index);
-		if (filename == gpApp->m_sourceDataFolderName)
+		if (filename == gpApp->m_sourceInputsFolderName)
 		{
 			return TRUE;
 		}

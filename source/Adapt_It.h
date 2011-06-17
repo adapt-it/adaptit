@@ -2116,6 +2116,10 @@ public:
 									// a KB to import
 	wxString		m_lastGlossesExportPath; // for export of glosses as text with markup
 	wxString		m_lastFreeTransExportPath; // for export of free translations with markup
+	wxString		m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and 
+													// outputs dirs that are protected from 
+													// navigation. The dir names are delimited
+													// by ':' delimiters
 	// BEW added 16Aug09, to support removing \note,\note*,\free,\free*,\bt from exports
 	// of either the glosses text or free translation text
 	bool			m_bExportingGlossesAsText;
@@ -2308,14 +2312,70 @@ public:
 										// and moved to App class 31July06
 	wxString	m_executingAppPathName;	// whm added to get the path and file 
 										// name of executing app
-	// BEW 14July10, added next two to support Admin menu's Source Data button in the Move
-	// Or Copy Folders Or Files dialog (part of the system for hiding folder navigation
-	// from the user), along with the m_sourceDataFolderPath variable which follows
-	wxString	m_sourceDataFolderName; // in OnInit() we set to "Source Data"
-	wxString	m_sourceDataFolderPath; // always a child of folder that m_curProjectPath
-										// points to; the path is defined where the latter
-										// gets defined (but the folder is not created until
-										// the administrator requests it)
+	// BEW 14July10, Added next two to support hiding folder navigation from the user), along
+	// with the m_sourceInputsFolderPath variable which follows.
+	// whm 12Jun11 modified folder names and added more variables for other inputs and outputs
+	bool		m_bProtectSourceInputsFolder;
+	wxString	m_sourceInputsFolderName; // in OnInit() we set to "__SOURCE_INPUTS"
+	wxString	m_sourceInputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectFreeTransOutputsFolder;
+	wxString	m_freeTransOutputsFolderName; // in OnInit() we set to "_FREETRANS_OUTPUTS"
+	wxString	m_freeTransOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectFreeTransRTFOutputsFolder;
+	wxString	m_freeTransRTFOutputsFolderName; // in OnInit() we set to "_FREETRANS_RTF_OUTPUTS"
+	wxString	m_freeTransRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectGlossOutputsFolder ;
+	wxString	m_glossOutputsFolderName; // in OnInit() we set to "_GLOSS_OUTPUTS"
+	wxString	m_glossOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectGlossRTFOutputsFolder;
+	wxString	m_glossRTFOutputsFolderName; // in OnInit() we set to "_GLOSS_RTF_OUTPUTS"
+	wxString	m_glossRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectInterlinearRTFOutputsFolder;
+	wxString	m_interlinearRTFOutputsFolderName; // in OnInit() we set to "_INTERLINEAR_RTF_OUTPUTS"
+	wxString	m_interlinearRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectSourceOutputsFolder;
+	wxString	m_sourceOutputsFolderName; // in OnInit() we set to "_SOURCE_OUTPUTS"
+	wxString	m_sourceOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectSourceRTFOutputsFolder;
+	wxString	m_sourceRTFOutputsFolderName; // in OnInit() we set to "_SOURCE_RTF_OUTPUTS"
+	wxString	m_sourceRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectTargetOutputsFolder;
+	wxString	m_targetOutputsFolderName; // in OnInit() we set to "_TARGET_OUTPUTS"
+	wxString	m_targetOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectTargetRTFOutputsFolder;
+	wxString	m_targetRTFOutputsFolderName; // in OnInit() we set to "_TARGET_RTF_OUTPUTS"
+	wxString	m_targetRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bKbInputsAndOutputsFolder;
+	wxString	m_kbInputsAndOutputsFolderName; // in OnInit() we set to "_KB_INPUTS_AND_OUTPUTS"
+	wxString	m_kbInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_liftInputsAndOutputsFolder;
+	wxString	m_liftInputsAndOutputsFolderName; // in OnInit() we set to "_LIFT_INPUTS_AND_OUTPUTS"
+	wxString	m_liftInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	
 	wxArrayString m_sortedLoadableFiles; // for use by the NavProtectNewDoc class's dialog
 
 	/// m_appUserConfigDir stores the path (only the path, not path and name) where the
@@ -2546,15 +2606,20 @@ public:
 
 	// whm added 9Feb11 in support of Paratext collaboration
 	bool m_bParatextIsInstalled;
+	bool m_bBibleditIsInstalled;
 	bool m_bParatextIsRunning;
 	bool m_bCollaboratingWithParatext;
-	wxString m_PTProjectForSourceInputs;
-	wxString m_PTProjectForTargetExports;
-	wxString m_PTBookSelected;
-	wxString m_PTChapterSelected;
+	bool m_bCollaboratingWithBibledit;
+	wxString m_collaborationEditor;
+	wxString m_CollabProjectForSourceInputs;
+	wxString m_CollabProjectForTargetExports;
+	wxString m_CollabBookSelected;
+	wxString m_CollabChapterSelected;
 
 	wxString m_ParatextInstallDirPath;
+	wxString m_BibleditInstallDirPath;
 	wxString m_ParatextProjectsDirPath;
+	wxString m_BibleditProjectsDirPath;
 	wxArrayPtrVoid*	m_pArrayOfPTProjects;
 	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
 
@@ -2814,12 +2879,10 @@ public:
 	void OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event);
 	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event));
-	void OnOpenSourceDataFolder(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateOpenSourceDataFolder(wxUpdateUIEvent& event);
-	void OnAssignTargetExportDataFolder(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateAssignTargetExportDataFolder(wxUpdateUIEvent& event);
+	void OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
 	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateSetupParatextCollaboration(wxUpdateUIEvent& event);
+	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
 
@@ -2917,6 +2980,7 @@ public:
 	
 	// whm added 15Apr11 for AI-PT Collaboration
 	wxArrayString GetListOfPTProjects();
+	wxArrayString GetListOfBEProjects();
 	PT_Project_Info_Struct* GetPT_Project_Struct(wxString projShortName);
 	wxString GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
@@ -2930,9 +2994,13 @@ public:
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
 	bool	ParatextIsInstalled(); // whm added 9Feb11
+	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
+	bool	BibleditIsRunning(); // whm added 13Jun11
 	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
+	wxString GetBibleditProjectsDirPath();
 	wxString GetParatextInstallDirPath(); // whm added 9Feb11
+	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
 							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
 
@@ -3051,6 +3119,7 @@ public:
 	void	SetDefaultCaseEquivalences();
 	void	SetPageOrientation(bool bIsPortrait);
 	bool	SetupDirectories();
+	bool	CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors);
 	void	SetupKBPathsEtc();
 	void	SetupMarkerStrings();
 	bool	StoreGlossingKB(bool bAutoBackup);

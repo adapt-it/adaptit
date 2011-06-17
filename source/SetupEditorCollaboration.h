@@ -33,8 +33,9 @@ public:
 	// If user clicks Cancel, these values are ignored and not copied to the
 	// corresponding settings on the App.
 	bool m_bTempCollaboratingWithParatext;
-	wxString m_TempPTProjectForSourceInputs;
-	wxString m_TempPTProjectForTargetExports;
+	bool m_projectSelectionMade;
+	wxString m_TempCollabProjectForSourceInputs;
+	wxString m_TempCollabProjectForTargetExports;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -50,6 +51,7 @@ private:
 	wxTextCtrl* pStaticTextCtrlImportantBottomNote;
 	wxTextCtrl* pStaticTextCtrlSelectedSourceProj;
 	wxTextCtrl* pStaticTextCtrlSelectedTargetProj;
+	wxStaticText* pStaticTextListOfProjects;
 	wxListBox* pListOfProjects;
 	wxRadioBox* pRadioBoxCollabOnOrOff;
 	wxButton* pBtnSelectFmListSourceProj;

@@ -463,6 +463,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AssignLocationsForInputsAndOutputs.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AutoSavingPage.cpp"
 				>
 			</File>
@@ -885,6 +889,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\AIPrintout.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\AssignLocationsForInputsAndOutputs.h"
 				>
 			</File>
 			<File

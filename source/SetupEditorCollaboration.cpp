@@ -88,6 +88,9 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pStaticTextCtrlTopNote != NULL);
 	pStaticTextCtrlTopNote->SetBackgroundColour(sysColorBtnFace);
 
+	pStaticTextListOfProjects = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_LIST_OF_PROJECTS);
+	wxASSERT(pStaticTextListOfProjects != NULL);
+
 	pStaticTextCtrlImportantBottomNote = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_IMPORTANT_BOTTOM_NOTE);
 	wxASSERT(pStaticTextCtrlImportantBottomNote != NULL);
 	pStaticTextCtrlImportantBottomNote->SetBackgroundColour(sysColorBtnFace);
@@ -127,14 +130,42 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	
 	// initialize our dialog temp variables from those held on the App
 	m_bTempCollaboratingWithParatext = m_pApp->m_bCollaboratingWithParatext;
-	m_TempPTProjectForSourceInputs = m_pApp->m_PTProjectForSourceInputs;
-	m_TempPTProjectForTargetExports = m_pApp->m_PTProjectForTargetExports;
+	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
+	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
+
+	m_projectSelectionMade = FALSE;
+
+	// adjust static strings substituting "Paratext" of "Bibledit" depending on
+	// the string value in m_collaborationEditor
+	// Substitute strings in the top edit box
+	wxString text = pStaticTextCtrlTopNote->GetValue(); // text has four %s sequences
+	text = text.Format(text, m_pApp->m_collaborationEditor.c_str(), 
+		m_pApp->m_collaborationEditor.c_str(), m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
+	pStaticTextCtrlTopNote->ChangeValue(text);
+
+	// Substitute strings in the static text above the list box
+	text = pStaticTextListOfProjects->GetLabel();
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pStaticTextListOfProjects->SetLabel(text);
+
+	// Substitute strings in the bottom text box that says "Important:..."
+	text = pStaticTextCtrlImportantBottomNote->GetValue(); // text has 1 %s sequence
+	text = text.Format(text, m_pApp->m_collaborationEditor.c_str()); 
+	pStaticTextCtrlImportantBottomNote->ChangeValue(text);
 
 	if (m_bTempCollaboratingWithParatext)
 		pRadioBoxCollabOnOrOff->SetSelection(0);
 	else
 		pRadioBoxCollabOnOrOff->SetSelection(1);
 	
+	// Substitute strings for the radio box's button labels
+	text = pRadioBoxCollabOnOrOff->GetString(0);
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pRadioBoxCollabOnOrOff->SetString(0,text);
+	text = pRadioBoxCollabOnOrOff->GetString(1);
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pRadioBoxCollabOnOrOff->SetString(1,text);
+
 	// get list of PT projects
 	m_pApp->m_ListOfPTProjects.Clear();
 	m_pApp->m_ListOfPTProjects = m_pApp->GetListOfPTProjects();
@@ -142,7 +173,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	// Check for at least two usable PT projects in list
 	if (m_pApp->m_ListOfPTProjects.GetCount() < 2)
 	{
-		// error: PT is not set up with enought projects for collaboration
+		// error: PT/BE is not set up with enough projects for collaboration
 	}
 	else
 	{
@@ -156,8 +187,8 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 	}
 	// fill in the "Use this project initially ..." read-only edit boxes
-	pStaticTextCtrlSelectedSourceProj->ChangeValue(m_TempPTProjectForSourceInputs);
-	pStaticTextCtrlSelectedTargetProj->ChangeValue(m_TempPTProjectForTargetExports);
+	pStaticTextCtrlSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
+	pStaticTextCtrlSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
 }
 
 // event handling functions
@@ -187,7 +218,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	tot = (int)tempListOfProjects.GetCount();
 	for (ct = 0; ct < tot; ct++)
 	{
-		if (tempListOfProjects.Item(ct) == m_TempPTProjectForSourceInputs)
+		if (tempListOfProjects.Item(ct) == m_TempCollabProjectForSourceInputs)
 		{
 			nPreselectedProjIndex = ct;
 			break;
@@ -204,9 +235,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	{
 		userSelectionStr = ChooseProjectForSourceTextInputs.GetStringSelection();
 		userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
+		m_projectSelectionMade = TRUE;
 	}
 	pStaticTextCtrlSelectedSourceProj->SetLabel(userSelectionStr);
-	m_TempPTProjectForSourceInputs = userSelectionStr;
+	m_TempCollabProjectForSourceInputs = userSelectionStr;
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
@@ -233,7 +265,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	tot = (int)tempListOfProjects.GetCount();
 	for (ct = 0; ct < tot; ct++)
 	{
-		if (tempListOfProjects.Item(ct) == m_TempPTProjectForTargetExports)
+		if (tempListOfProjects.Item(ct) == m_TempCollabProjectForTargetExports)
 		{
 			nPreselectedProjIndex = ct;
 			break;
@@ -249,9 +281,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	{
 		userSelectionStr = ChooseProjectForTargetTextInputs.GetStringSelection();
 		userSelectionInt = ChooseProjectForTargetTextInputs.GetSelection();
+		m_projectSelectionMade = TRUE;
 	}
 	pStaticTextCtrlSelectedTargetProj->SetLabel(userSelectionStr);
-	m_TempPTProjectForTargetExports = userSelectionStr;
+	m_TempCollabProjectForTargetExports = userSelectionStr;
 }
 
 //CSetupEditorCollaboration::OnUpdateDoSomething(wxUpdateUIEvent& event)
@@ -274,7 +307,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	// If the same project is selected, inform the administrator and abort the OK
 	// operation so the administrator can select different projects or abort and
 	// set up the needed projects in Paratext first.
-	if (m_TempPTProjectForSourceInputs == m_TempPTProjectForTargetExports && m_TempPTProjectForSourceInputs != _("[No Project Selected]"))
+	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
 	{
 		wxString msg, msg1;
 		msg = _("The projects selected for getting source texts and receiving translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
@@ -284,39 +317,80 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 	
+
 	// Set the App values for the PT projects to be used for PT collaboration
-	m_pApp->m_PTProjectForSourceInputs = m_TempPTProjectForSourceInputs;
-	m_pApp->m_PTProjectForTargetExports = m_TempPTProjectForTargetExports;
+	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
+	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
 
 	// Get the state of collaboration
 	int nSel;
 	nSel = pRadioBoxCollabOnOrOff->GetSelection();
 	if (nSel == 0)
-		m_pApp->m_bCollaboratingWithParatext = TRUE;
+	{
+		// Collaboration radio button is ON
+		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+			m_pApp->m_bCollaboratingWithBibledit = TRUE;
+		else
+			m_pApp->m_bCollaboratingWithParatext = TRUE;
+	}
 	else if (nSel == 1)
-		m_pApp->m_bCollaboratingWithParatext = FALSE;
+	{
+		// Collaboration radio button is OFF
+		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+			m_pApp->m_bCollaboratingWithBibledit = FALSE;
+		else
+			m_pApp->m_bCollaboratingWithParatext = FALSE;
+		
+		// PT/BE collaboration is OFF, but selection(s) were made using the "Select from List"
+		// button(s). Ask the admin if he really wanted to turn PT/BE collaboration ON or not.
+		if (m_projectSelectionMade && pRadioBoxCollabOnOrOff->GetSelection() == 1)
+		{
+			wxString msg;
+			msg = msg.Format(_("You pre-selected one or both projects, but you did not turn %s collaboration ON. Do you want to turn on %s collaboration now?"),
+				m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
+			int result = wxMessageBox(msg,_("Collaboration is currently turned OFF"),wxYES_NO);
+			if (result == wxYES)
+			{
+				// Admin actually wanted Collaboration ON
+				if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+					m_pApp->m_bCollaboratingWithBibledit = TRUE;
+				else
+					m_pApp->m_bCollaboratingWithParatext = TRUE;
+			}
+		}
+	}
 	else
 	{
-		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK."));
+		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK()."));
 	}
 
-	// update the values related to PT collaboration in the Adapt_It_WX.ini file
-	{
+	// update the values related to PTcollaboration in the Adapt_It_WX.ini file
 	bool bWriteOK = FALSE;
 	wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pApp->m_pConfig->SetPath(_T("/Settings"));
-	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
-		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
-	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collaboration"), m_pApp->m_bCollaboratingWithParatext);
-	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_proj"), m_pApp->m_PTProjectForSourceInputs);
-	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_proj"), m_pApp->m_PTProjectForTargetExports);
-	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_book_selected"), m_pApp->m_PTBookSelected);
-	bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_PTChapterSelected);
-	m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+	if (m_pApp->m_bCollaboratingWithParatext == TRUE)
+	{
+		wxLogNull logNo; // eliminates spurious message from the system
+		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collaboration"), m_pApp->m_bCollaboratingWithParatext);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_book_selected"), m_pApp->m_CollabBookSelected);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
+		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+	}
+	// update the values related to BE collaboration in the Adapt_It_WX.ini file
+	if (m_pApp->m_bCollaboratingWithBibledit == TRUE)
+	{
+		wxLogNull logNo; // eliminates spurious message from the system
+		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collaboration"), m_pApp->m_bCollaboratingWithBibledit);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_book_selected"), m_pApp->m_CollabBookSelected);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
+		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+	}
 	// restore the oldPath back to "/Recent_File_List"
 	m_pApp->m_pConfig->SetPath(oldPath);
-	}
-
 
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{

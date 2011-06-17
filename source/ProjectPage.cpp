@@ -491,8 +491,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator 
 										 + pApp->m_curProjectName;
 			}
-			pApp->m_sourceDataFolderPath = pApp->m_curProjectPath + pApp->PathSeparator + 
-											pApp->m_sourceDataFolderName; 
+			pApp->m_sourceInputsFolderPath = pApp->m_curProjectPath + pApp->PathSeparator + 
+											pApp->m_sourceInputsFolderName; 
 
             // make sure the path to the Adaptations folder is correct (if omitted, it
             // would use the basic config file's "DocumentsFolderPath" line - which could
@@ -623,7 +623,11 @@ _("Sorry, substituting a new empty knowledge base failed. Instead you should now
 			// close the progress dialog
 
 		}
-
-
+		// whm added 12Jun11. Ensure the inputs and outputs directories are created. SetupDirectories() normally
+		// takes care of this for a new project, but we also want existing projects created before version 6 to 
+		// have these directories too.
+		wxString pathCreationErrors = _T("");
+		pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
+		// ignore dealing with any unlikely pathCreationErrors at this point
 	}
 }
