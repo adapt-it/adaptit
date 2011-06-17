@@ -899,33 +899,6 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
-<MENU itemID="ID_EXPORT_OXES"
-	itemType="subMenu"
-	itemText="Export &amp;Open XML for Editing Scripture (OXES)..."
-	itemDescr="Export-Import menu"
-	adminCanChange="1"
-	>
-		<PROFILE userProfile="Novice"
-			itemVisibility="0"
-			factory="0"
-		>
-		</PROFILE>
-		<PROFILE userProfile="Experienced"
-			itemVisibility="0"
-			factory="0"
-		>
-		</PROFILE>
-		<PROFILE userProfile="Skilled"
-			itemVisibility="1"
-			factory="1"
-		>
-		</PROFILE>
-		<PROFILE userProfile="Custom"
-			itemVisibility="1"
-			factory="1"
-		>
-		</PROFILE>
-</MENU>
 <MENU itemID="ID_FILE_EXPORT_KB"
 	itemType="subMenu"
 	itemText="Export Knowledge &amp;Base..."
