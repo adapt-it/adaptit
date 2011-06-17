@@ -1729,8 +1729,8 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 			pOldChunk->strChapter, pOldChunk->strStartingVerse, pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
 #endif
 #endif
-		return FALSE;
 	}
+	return FALSE;
 }
 
 /// \return         TRUE if safe matchup is determined (oldMatchedChunk and
@@ -1975,17 +1975,14 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 		delete pInfo;
 	}
 	// determine what to tell the caller
-	if (bMatched)
-	{
-		return TRUE;
-	}
-	else
+	if (!bMatched)
 	{
 		// no matchup, return wxNOT_FOUND values
 		oldMatchedChunk = wxNOT_FOUND;
 		newMatchedChunk = wxNOT_FOUND;
 		return FALSE;
 	}
+	return TRUE;
 }
 
 /// \return         TRUE if one or more in-sync matchups are determined (oldEndChunk and
@@ -2174,9 +2171,10 @@ bool AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk)
 	else if (pOldChunk->charEndingVerseSuffix != _T('\0') && pNewChunk->charEndingVerseSuffix == _T('\0'))
 		return FALSE;
 	else if (pOldChunk->charEndingVerseSuffix == _T('\0') && pNewChunk->charEndingVerseSuffix != _T('\0'))
+	{
 		return FALSE;
-	else
-		return TRUE;
+	}
+	return TRUE;
 }
 
 // Count the words in the series of CSourcePhrase instances of pArray represented by the
@@ -5767,11 +5765,6 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case singleton_matches_new_conjoined:
-			// this is the same as for conjoined case, and I should be able to omit it and
-			// fall through to the next, but perhaps g++ compiler doesn't like it
-			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, 
-								newIndex, pSubspan, oldEndedAt, newEndedAt);
-			break;
 		case conjoined:
 			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, 
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
@@ -8201,8 +8194,8 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
         // or the start of a (new) subheading: no matter which was the case, the end of the
         // chunk we are delineating is at the previous index value
 		endsAt = --index;
-		return TRUE;
 	} // end of else block for test: if (bIsChapterMkrWithin)
+	return TRUE;
 }
 
 // Check if the start of arr contains material belonging to stuff which is a subheading,
@@ -8433,8 +8426,8 @@ bool GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
         // or subheading - so no matter which was the case, the end of the chunk we are
         // delineating is at the previous index value
 		endsAt = --index;
-		return TRUE;
 	} // end of else block for test: if (bIsChapterMkrWithin)
+	return TRUE;
 }
 
 // Check if the start of arr contains material belonging to stuff which is a (next) verse,
