@@ -65,12 +65,13 @@ PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	Adapt_ItCanvas.$(OBJEXT) Adapt_ItDoc.$(OBJEXT) \
 	Adapt_ItView.$(OBJEXT) Adapt_It_wdr.$(OBJEXT) \
-	AdminMoveOrCopy.$(OBJEXT) AdminEditMenuProfile.$(OBJEXT) \
-	AutoSavingPage.$(OBJEXT) base64.$(OBJEXT) BString.$(OBJEXT) \
-	CCModule.$(OBJEXT) CCTabbedDialog.$(OBJEXT) \
-	CCTableEditDlg.$(OBJEXT) CCTableNameDlg.$(OBJEXT) \
-	CaseEquivPage.$(OBJEXT) Cell.$(OBJEXT) \
-	ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
+	AdminMoveOrCopy.$(OBJEXT) \
+	AssignLocationsForInputsAndOutputs.$(OBJEXT) \
+	AdminEditMenuProfile.$(OBJEXT) AutoSavingPage.$(OBJEXT) \
+	base64.$(OBJEXT) BString.$(OBJEXT) CCModule.$(OBJEXT) \
+	CCTabbedDialog.$(OBJEXT) CCTableEditDlg.$(OBJEXT) \
+	CCTableNameDlg.$(OBJEXT) CaseEquivPage.$(OBJEXT) \
+	Cell.$(OBJEXT) ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
 	ConflictResolutionDlg.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
@@ -105,7 +106,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) Strip.$(OBJEXT) \
 	TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsfmFilterPage.$(OBJEXT) \
-	Usfm2Oxes.$(OBJEXT) UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
+	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
 	ViewFilteredMaterialDlg.$(OBJEXT) ViewPage.$(OBJEXT) \
 	WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) WhichBook.$(OBJEXT) \
@@ -346,6 +347,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
 	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
+	../../source/AssignLocationsForInputsAndOutputs.h \
 	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
 	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
@@ -378,7 +380,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
 	../../source/tellenc.h \
 	../../source/TransformToGlossesDlg.h \
-	../../source/UsfmFilterPage.h ../../source/Usfm2Oxes.h ../../source/UnitsDlg.h \
+	../../source/UsfmFilterPage.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
 	../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h ../../source/WaitDlg.h \
 	../../source/Welcome.h ../../source/WhichBook.h \
@@ -404,6 +406,7 @@ htmlhelp_DATA = adaptit.htb
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
+	../../source/AssignLocationsForInputsAndOutputs.cpp \
 	../../source/AdminEditMenuProfile.cpp ../../source/AutoSavingPage.cpp \
 	../../source/base64.cpp ../../source/BString.cpp ../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
@@ -438,7 +441,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
 	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp \
-	 ../../source/UsfmFilterPage.cpp ../../source/Usfm2Oxes.cpp \
+	 ../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
@@ -545,6 +548,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_It_wdr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AdminEditMenuProfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AdminMoveOrCopy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AssignLocationsForInputsAndOutputs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AutoSavingPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BString.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCModule.Po@am__quote@
@@ -626,7 +630,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnpackWarningDlg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Usfm2Oxes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UsfmFilterPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Uuid_AI.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ViewFilteredMaterialDlg.Po@am__quote@
@@ -760,6 +763,20 @@ AdminMoveOrCopy.obj: ../../source/AdminMoveOrCopy.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AdminMoveOrCopy.cpp' object='AdminMoveOrCopy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AdminMoveOrCopy.obj `if test -f '../../source/AdminMoveOrCopy.cpp'; then $(CYGPATH_W) '../../source/AdminMoveOrCopy.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AdminMoveOrCopy.cpp'; fi`
+
+AssignLocationsForInputsAndOutputs.o: ../../source/AssignLocationsForInputsAndOutputs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AssignLocationsForInputsAndOutputs.o -MD -MP -MF $(DEPDIR)/AssignLocationsForInputsAndOutputs.Tpo -c -o AssignLocationsForInputsAndOutputs.o `test -f '../../source/AssignLocationsForInputsAndOutputs.cpp' || echo '$(srcdir)/'`../../source/AssignLocationsForInputsAndOutputs.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AssignLocationsForInputsAndOutputs.Tpo $(DEPDIR)/AssignLocationsForInputsAndOutputs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AssignLocationsForInputsAndOutputs.cpp' object='AssignLocationsForInputsAndOutputs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AssignLocationsForInputsAndOutputs.o `test -f '../../source/AssignLocationsForInputsAndOutputs.cpp' || echo '$(srcdir)/'`../../source/AssignLocationsForInputsAndOutputs.cpp
+
+AssignLocationsForInputsAndOutputs.obj: ../../source/AssignLocationsForInputsAndOutputs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AssignLocationsForInputsAndOutputs.obj -MD -MP -MF $(DEPDIR)/AssignLocationsForInputsAndOutputs.Tpo -c -o AssignLocationsForInputsAndOutputs.obj `if test -f '../../source/AssignLocationsForInputsAndOutputs.cpp'; then $(CYGPATH_W) '../../source/AssignLocationsForInputsAndOutputs.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AssignLocationsForInputsAndOutputs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AssignLocationsForInputsAndOutputs.Tpo $(DEPDIR)/AssignLocationsForInputsAndOutputs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AssignLocationsForInputsAndOutputs.cpp' object='AssignLocationsForInputsAndOutputs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AssignLocationsForInputsAndOutputs.obj `if test -f '../../source/AssignLocationsForInputsAndOutputs.cpp'; then $(CYGPATH_W) '../../source/AssignLocationsForInputsAndOutputs.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AssignLocationsForInputsAndOutputs.cpp'; fi`
 
 AdminEditMenuProfile.o: ../../source/AdminEditMenuProfile.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AdminEditMenuProfile.o -MD -MP -MF $(DEPDIR)/AdminEditMenuProfile.Tpo -c -o AdminEditMenuProfile.o `test -f '../../source/AdminEditMenuProfile.cpp' || echo '$(srcdir)/'`../../source/AdminEditMenuProfile.cpp
@@ -1922,20 +1939,6 @@ UsfmFilterPage.obj: ../../source/UsfmFilterPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/UsfmFilterPage.cpp' object='UsfmFilterPage.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UsfmFilterPage.obj `if test -f '../../source/UsfmFilterPage.cpp'; then $(CYGPATH_W) '../../source/UsfmFilterPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/UsfmFilterPage.cpp'; fi`
-
-Usfm2Oxes.o: ../../source/Usfm2Oxes.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Usfm2Oxes.o -MD -MP -MF $(DEPDIR)/Usfm2Oxes.Tpo -c -o Usfm2Oxes.o `test -f '../../source/Usfm2Oxes.cpp' || echo '$(srcdir)/'`../../source/Usfm2Oxes.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Usfm2Oxes.Tpo $(DEPDIR)/Usfm2Oxes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Usfm2Oxes.cpp' object='Usfm2Oxes.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Usfm2Oxes.o `test -f '../../source/Usfm2Oxes.cpp' || echo '$(srcdir)/'`../../source/Usfm2Oxes.cpp
-
-Usfm2Oxes.obj: ../../source/Usfm2Oxes.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Usfm2Oxes.obj -MD -MP -MF $(DEPDIR)/Usfm2Oxes.Tpo -c -o Usfm2Oxes.obj `if test -f '../../source/Usfm2Oxes.cpp'; then $(CYGPATH_W) '../../source/Usfm2Oxes.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Usfm2Oxes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Usfm2Oxes.Tpo $(DEPDIR)/Usfm2Oxes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Usfm2Oxes.cpp' object='Usfm2Oxes.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Usfm2Oxes.obj `if test -f '../../source/Usfm2Oxes.cpp'; then $(CYGPATH_W) '../../source/Usfm2Oxes.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Usfm2Oxes.cpp'; fi`
 
 UnitsDlg.o: ../../source/UnitsDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UnitsDlg.o -MD -MP -MF $(DEPDIR)/UnitsDlg.Tpo -c -o UnitsDlg.o `test -f '../../source/UnitsDlg.cpp' || echo '$(srcdir)/'`../../source/UnitsDlg.cpp
