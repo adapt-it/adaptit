@@ -3,6 +3,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
 	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
+	../../source/AssignLocationsForInputsAndOutputs.h \
 	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
 	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
@@ -35,7 +36,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
 	../../source/tellenc.h \
 	../../source/TransformToGlossesDlg.h \
-	../../source/UsfmFilterPage.h ../../source/Usfm2Oxes.h ../../source/UnitsDlg.h \
+	../../source/UsfmFilterPage.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
 	../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h ../../source/WaitDlg.h \
 	../../source/Welcome.h ../../source/WhichBook.h \
@@ -75,6 +76,7 @@ adaptit.htb: ../../hlp
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
+	../../source/AssignLocationsForInputsAndOutputs.cpp \
 	../../source/AdminEditMenuProfile.cpp ../../source/AutoSavingPage.cpp \
 	../../source/base64.cpp ../../source/BString.cpp ../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
@@ -109,7 +111,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
 	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp \
-	 ../../source/UsfmFilterPage.cpp ../../source/Usfm2Oxes.cpp \
+	 ../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
