@@ -42,6 +42,8 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
+#include <wx/fileconf.h>
+
 #include "Adapt_It.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "AdminMoveOrCopy.h"
@@ -256,6 +258,19 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 		foldersProtectedFromNavigation += m_pApp->m_liftInputsAndOutputsFolderName + _T(':');
 
 	m_pApp->m_foldersProtectedFromNavigation = foldersProtectedFromNavigation;
+	
+	// update the value related to m_foldersProtectedFromNavigation in the Adapt_It_WX.ini file
+	bool bWriteOK = FALSE;
+	wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pApp->m_pConfig->SetPath(_T("/Settings"));
+	if (!m_pApp->m_foldersProtectedFromNavigation.IsEmpty())
+	{
+		wxLogNull logNo; // eliminates spurious message from the system
+		bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
+		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+	}
+	// restore the oldPath back to "/Recent_File_List"
+	m_pApp->m_pConfig->SetPath(oldPath);
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }

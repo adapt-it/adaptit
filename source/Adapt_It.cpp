@@ -12348,6 +12348,36 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_BibleditInstallDirPath.Empty();
 	bParatextSharedDLLLoaded = FALSE;
 
+	m_sourceInputsFolderName = _T("__SOURCE_INPUTS"); 
+	// whm 12Jun11 added in support of inputs and outputs navigation protection
+	m_freeTransOutputsFolderName = _T("_FREETRANS_OUTPUTS");
+	m_freeTransRTFOutputsFolderName = _T("_FREETRANS_RTF_OUTPUTS");
+	m_glossOutputsFolderName = _T("_GLOSS_OUTPUTS");
+	m_glossRTFOutputsFolderName = _T("_GLOSS_RTF_OUTPUTS");
+	m_interlinearRTFOutputsFolderName = _T("_INTERLINEAR_RTF_OUTPUTS");
+	m_sourceOutputsFolderName = _T("_SOURCE_OUTPUTS");
+	m_sourceRTFOutputsFolderName = _T("_SOURCE_RTF_OUTPUTS");
+	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
+	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
+	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
+	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
+	
+	// whm 12Jun11 added in support of inputs and outputs navigation protection
+	// folder navigation protection defaults to FALSE but project config file
+	// value stored in m_foldersProtectedFromNavigation
+	m_bProtectSourceInputsFolder = FALSE;
+	m_bProtectFreeTransOutputsFolder = FALSE;
+	m_bProtectFreeTransRTFOutputsFolder = FALSE;
+	m_bProtectGlossOutputsFolder = FALSE;
+	m_bProtectGlossRTFOutputsFolder = FALSE;
+	m_bProtectInterlinearRTFOutputsFolder = FALSE;
+	m_bProtectSourceOutputsFolder = FALSE;
+	m_bProtectSourceRTFOutputsFolder = FALSE;
+	m_bProtectTargetOutputsFolder = FALSE;
+	m_bProtectTargetRTFOutputsFolder = FALSE;
+	m_bKbInputsAndOutputsFolder = FALSE;
+	m_liftInputsAndOutputsFolder = FALSE;
+
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
 	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
@@ -16160,7 +16190,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
 												// list from *m_pConfig
    
-	// Here near the end of OnInit() we provide a sanity check to insure that
+
+	// whm 20Jun11 Notes:
+	// We need to provide a sanity check to insure that certain settings
+	// that were configured by an administrator are still valid on this running of
+	// the application. These sanity checks are for settings an administrator may 
+	// have configured using the Administrator menu, and include the following:
+	//    1. Settings for any active Paratext collaboration.
+	//    2. Settings for any active Bibledit collaboration.
+	
 	// if m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit is TRUE 
 	// (after the basic config file has been read in), the Paratext/Bibledit
 	// program is actually installed on the user's computer.
@@ -16173,7 +16211,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// we don't want the user to be locked in to Paratext/Bibledit collaboration mode, 
 	// with no possibility of doing any useful work. 
 	
-	// whm added 9Feb11 for Paratext/Bibledit Collaboration support
+	// whm added 9Feb11 Sanity Checks for Paratext/Bibledit Collaboration support
 	// 
 	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
 	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
@@ -16288,6 +16326,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_collaborationEditor = _T("Paratext"); // don't localize
 	else
 		m_collaborationEditor = _T("Paratext"); // default editor
+
 
 	// whm 28Mar11 TESTING BELOW !!!
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
@@ -16745,36 +16784,6 @@ int ii = 1;
 //wxString testStr = _T("“ ‘First?;~second’: ”"); // test fixedSpace symbol
 //GetView()->RemovePunctuation(GetDocument(),&testStr,1);
 
-
-	m_sourceInputsFolderName = _T("__SOURCE_INPUTS"); 
-	// whm 12Jun11 added in support of inputs and outputs navigation protection
-	m_freeTransOutputsFolderName = _T("_FREETRANS_OUTPUTS");
-	m_freeTransRTFOutputsFolderName = _T("_FREETRANS_RTF_OUTPUTS");
-	m_glossOutputsFolderName = _T("_GLOSS_OUTPUTS");
-	m_glossRTFOutputsFolderName = _T("_GLOSS_RTF_OUTPUTS");
-	m_interlinearRTFOutputsFolderName = _T("_INTERLINEAR_RTF_OUTPUTS");
-	m_sourceOutputsFolderName = _T("_SOURCE_OUTPUTS");
-	m_sourceRTFOutputsFolderName = _T("_SOURCE_RTF_OUTPUTS");
-	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
-	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
-	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
-	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
-
-	// whm 12Jun11 added in support of inputs and outputs navigation protection
-	// folder navigation protection defaults to FALSE but project config file
-	// value stored in m_foldersProtectedFromNavigation
-	m_bProtectSourceInputsFolder = FALSE;
-	m_bProtectFreeTransOutputsFolder = FALSE;
-	m_bProtectFreeTransRTFOutputsFolder = FALSE;
-	m_bProtectGlossOutputsFolder = FALSE;
-	m_bProtectGlossRTFOutputsFolder = FALSE;
-	m_bProtectInterlinearRTFOutputsFolder = FALSE;
-	m_bProtectSourceOutputsFolder = FALSE;
-	m_bProtectSourceRTFOutputsFolder = FALSE;
-	m_bProtectTargetOutputsFolder = FALSE;
-	m_bProtectTargetRTFOutputsFolder = FALSE;
-	m_bKbInputsAndOutputsFolder = FALSE;
-	m_liftInputsAndOutputsFolder = FALSE;
 
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
@@ -18325,213 +18334,6 @@ bool CAdapt_ItApp::SetupDirectories()
 	wxString pathCreationErrors = _T("");
 	CreateInputsAndOutputsDirectories(m_curProjectPath, pathCreationErrors);
 	
-	/*
-	if (!::wxDirExists(m_sourceInputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_sourceInputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_sourceInputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_sourceInputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_freeTransOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_freeTransOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_freeTransOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_freeTransOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_freeTransRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_freeTransRTFOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_freeTransRTFOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_freeTransRTFOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_glossOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_glossOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_glossOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_glossOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_glossRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_glossRTFOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_glossRTFOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_glossRTFOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_interlinearRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_interlinearRTFOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_interlinearRTFOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_interlinearRTFOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_sourceOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_sourceOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_sourceOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_sourceOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_sourceRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_sourceRTFOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_sourceRTFOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_sourceRTFOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_targetOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_targetOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_targetOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_targetOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_targetRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_targetRTFOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_targetRTFOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_targetRTFOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_kbInputsAndOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_kbInputsAndOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_kbInputsAndOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_kbInputsAndOutputsFolderName;
-			}
-		}
-	}
-	if (!::wxDirExists(m_liftInputsAndOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_liftInputsAndOutputsFolderPath);
-		if (!bOK)
-		{
-			if (!pathCreationErrors.IsEmpty())
-			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_liftInputsAndOutputsFolderName;
-			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_liftInputsAndOutputsFolderName;
-			}
-		}
-	}
-	*/
-
 	if (!pathCreationErrors.IsEmpty())
 	{
 			wxString str;
@@ -18691,234 +18493,238 @@ bool CAdapt_ItApp::SetupDirectories()
 
 bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors)
 {
+	wxASSERT(!curProjectPath.IsEmpty());
 	bool bCreatedOK = TRUE;
-	m_sourceInputsFolderPath = curProjectPath + PathSeparator + m_sourceInputsFolderName; 
-	m_freeTransOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransOutputsFolderName;
-	m_freeTransRTFOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransRTFOutputsFolderName;
-	m_glossOutputsFolderPath = curProjectPath + PathSeparator + m_glossOutputsFolderName;
-	m_glossRTFOutputsFolderPath = curProjectPath + PathSeparator + m_glossRTFOutputsFolderName;
-	m_interlinearRTFOutputsFolderPath = curProjectPath + PathSeparator + m_interlinearRTFOutputsFolderName;
-	m_sourceOutputsFolderPath = curProjectPath + PathSeparator + m_sourceOutputsFolderName;
-	m_sourceRTFOutputsFolderPath = curProjectPath + PathSeparator + m_sourceRTFOutputsFolderName;
-	m_targetOutputsFolderPath = curProjectPath + PathSeparator + m_targetOutputsFolderName;
-	m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
-	m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
-	m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
-	
-	if (!::wxDirExists(m_sourceInputsFolderPath))
+	if (!curProjectPath.IsEmpty())
 	{
-		bool bOK = ::wxMkdir(m_sourceInputsFolderPath);
-		if (!bOK)
+		m_sourceInputsFolderPath = curProjectPath + PathSeparator + m_sourceInputsFolderName; 
+		m_freeTransOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransOutputsFolderName;
+		m_freeTransRTFOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransRTFOutputsFolderName;
+		m_glossOutputsFolderPath = curProjectPath + PathSeparator + m_glossOutputsFolderName;
+		m_glossRTFOutputsFolderPath = curProjectPath + PathSeparator + m_glossRTFOutputsFolderName;
+		m_interlinearRTFOutputsFolderPath = curProjectPath + PathSeparator + m_interlinearRTFOutputsFolderName;
+		m_sourceOutputsFolderPath = curProjectPath + PathSeparator + m_sourceOutputsFolderName;
+		m_sourceRTFOutputsFolderPath = curProjectPath + PathSeparator + m_sourceRTFOutputsFolderName;
+		m_targetOutputsFolderPath = curProjectPath + PathSeparator + m_targetOutputsFolderName;
+		m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
+		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
+		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
+		
+		if (!::wxDirExists(m_sourceInputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_sourceInputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_sourceInputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_sourceInputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_sourceInputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_sourceInputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_freeTransOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_freeTransOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_freeTransOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_freeTransOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_freeTransOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_freeTransOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_freeTransOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_freeTransOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_freeTransRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_freeTransRTFOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_freeTransRTFOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_freeTransRTFOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_freeTransRTFOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_freeTransRTFOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_freeTransRTFOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_freeTransRTFOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_glossOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_glossOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_glossOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_glossOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_glossOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_glossOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_glossOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_glossOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_glossRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_glossRTFOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_glossRTFOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_glossRTFOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_glossRTFOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_glossRTFOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_glossRTFOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_glossRTFOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_interlinearRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_interlinearRTFOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_interlinearRTFOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_interlinearRTFOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_interlinearRTFOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_interlinearRTFOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_interlinearRTFOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_interlinearRTFOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_sourceOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_sourceOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_sourceOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_sourceOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_sourceOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_sourceOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_sourceOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_sourceOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_sourceRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_sourceRTFOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_sourceRTFOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_sourceRTFOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_sourceRTFOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_sourceRTFOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_sourceRTFOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_sourceRTFOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_targetOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_targetOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_targetOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_targetOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_targetOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_targetOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_targetOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_targetOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_targetRTFOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_targetRTFOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_targetRTFOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_targetRTFOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_targetRTFOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_targetRTFOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_targetRTFOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_targetRTFOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_kbInputsAndOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_kbInputsAndOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_kbInputsAndOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_kbInputsAndOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_kbInputsAndOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_kbInputsAndOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_kbInputsAndOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_kbInputsAndOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
-	}
-	if (!::wxDirExists(m_liftInputsAndOutputsFolderPath))
-	{
-		bool bOK = ::wxMkdir(m_liftInputsAndOutputsFolderPath);
-		if (!bOK)
+		if (!::wxDirExists(m_liftInputsAndOutputsFolderPath))
 		{
-			if (!pathCreationErrors.IsEmpty())
+			bool bOK = ::wxMkdir(m_liftInputsAndOutputsFolderPath);
+			if (!bOK)
 			{
-				pathCreationErrors += _T("\n   ");
-				pathCreationErrors += m_liftInputsAndOutputsFolderName;
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_liftInputsAndOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_liftInputsAndOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
 			}
-			else
-			{
-				pathCreationErrors += _T("   ");
-				pathCreationErrors += m_liftInputsAndOutputsFolderName;
-			}
-			bCreatedOK = FALSE;
 		}
 	}
 	return bCreatedOK;
@@ -25218,14 +25024,33 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		}
 	}
 
+	// whm added 20Jun11. If the administrator has selected to use fixed locations for certain inputs
+	// and outputs folders at the time the user held down the SHIFT key to get the app going again, we
+	// would want those fixed location folders to continue to be used which are stored in Adapt_It_WX.ini.
+	// Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
+	// it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
+	// down restart), restore the value stored in Adapt_It_WX.ini.
+	bool bReadOK = FALSE;
+	wxString tempFoldersProtectedFromNavigation;
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/Settings"));
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("folders_protected_from_navigation"), &tempFoldersProtectedFromNavigation);
+	if (bReadOK && tempFoldersProtectedFromNavigation != m_foldersProtectedFromNavigation)
+	{
+		m_foldersProtectedFromNavigation = tempFoldersProtectedFromNavigation;
+	}
+
 	// whm added 7Jun11. If Paratext collaboration was ON at the time the user used the SHIFT
 	// key to get the app going again, we would want the values related to Paratext collaboration
 	// that are stored in Adapt_It_WX.ini to be restored since it is likely to be accurate even if 
 	// the basic config file needs to be re-created from scratch (most likely due to errant edits 
 	// done by a user).
 
-	// Read the flag that was last stored in the Adapt_It_WX.ini file and use it.
-	bool bReadOK = FALSE;
+	// Read the PT related flags that were last stored in the Adapt_It_WX.ini file and restore
+	// them if they differ from what was stored in the corresponding App's values (due to SHIFT-down
+	// restart).
+	bReadOK = FALSE;
 	bool bReadOK2 = FALSE;
 	bool bReadOK3 = FALSE;
 	bool bReadOK4 = FALSE;
@@ -25235,10 +25060,6 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	wxString tempCollabProjForTgtExports = _T("");
 	wxString tempCollabBookSelected = _T("");
 	wxString tempCollabChapterSelected = _T("");
-	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
-	m_pConfig->SetPath(_T("/Settings"));
-	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
-		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
 	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
 	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
@@ -25265,6 +25086,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		}
 	}
 
+	// Read the BE related flags that were last stored in the Adapt_It_WX.ini file and restore
+	// them if they differ from what was stored in the corresponding App's values (due to SHIFT-down
+	// restart).
 	tempCollabProjForSrcInputs = _T("");
 	tempCollabProjForTgtExports = _T("");
 	tempCollabBookSelected = _T("");
@@ -25301,8 +25125,10 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
 	// the basic config file needs to be re-created from scratch (most likely due to errant
 	// edits done by a user).
-	// The basic config file value of concern is m_nWorkflowProfile
-	// update the flag in the Adapt_It_WX.ini file
+	// The basic config file value of concern is m_nWorkflowProfile.
+	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file 
+	// and restore it if it differs from what was stored in the corresponding App's 
+	// m_nWorkflowProfile value (due to SHIFT-down restart).
 	bReadOK = FALSE;
 	int nTempUserProfile = 0;
 	bReadOK = m_pConfig->Read(_T("work_flow_profile"), &nTempUserProfile);
