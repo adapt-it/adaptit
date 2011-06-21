@@ -851,6 +851,20 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return; // don't accept any changes - abort the OnOK() handler
 	}
+
+	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
+	{
+		wxMessageBox(_("Please select a book from the list of books."),_T(""),wxICON_INFORMATION);
+		pListBoxBookNames->SetFocus();
+		return; // don't accept any changes until a book is selected
+	}
+	
+	if (pListBoxChapterNumberAndStatus->GetSelection() == wxNOT_FOUND)
+	{
+		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION);
+		pListBoxChapterNumberAndStatus->SetFocus();
+		return; // don't accept any changes until a book is selected
+	}
 	
 	// save new project selection to the App's variables for writing to config file
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
@@ -1299,12 +1313,17 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 				chNum = wxAtoi(tempStr);
 				if (chNum < 10)
 				{
-					tempStr += _T("  "); // add two spaces for chapter digits < 10
+					tempStr += _T("   "); // add three spaces for chapter digits < 10
+				}
+				else if (chNum < 100)
+				{
+					tempStr += _T("  "); // add two spaces for chapter digits between 10 and 99
 				}
 				else
 				{
-					tempStr += _T(' '); // add one space for chapter digits >= 10
+					tempStr += _T(' '); // add one space for chapter digits 100 and greater
 				}
+
 				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
 				wxString listItemStatusSuffix,listItem;
 				listItemStatusSuffix = statusOfChapter;
@@ -1316,6 +1335,9 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 				chapterArray.Add(listItem);
 				// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
 				wxString emptyVsInfo;
+				// remove padding spaces for the static box description
+				tempStr.Trim(FALSE);
+				tempStr.Trim(TRUE);
 				emptyVsInfo = targetBookFullName + _T(" ") + _("chapter") + _T(" ") + tempStr + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses are empty:") + _T(" ") + nonDraftedVerses;
 				m_staticBoxDescriptionArray.Add(emptyVsInfo ); // return the empty verses string via the nonDraftedVerses ref parameter
 			}
