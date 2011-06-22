@@ -14459,17 +14459,30 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	return source.Len();
 }
 
-// RebuildSourceText_For_Collaboration() is a wrapper for the RebuildSourceText()
-// function. It is to be used when collaborating with Paratext or Bibledit. It calls
-// RebuildSourceText using the CSourcePhrase instances SPList pointer passed in (the
+// RebuildText_For_Collaboration() is a wrapper for the RebuildSourceText(),
+// RebuildTargetText(), RebuildGlossesText() or RebuildFreeTransText() functions. Which is
+// the case is determined by the enum value exportType passed in.
+// It is to be used when collaborating with Paratext or Bibledit. It calls
+// the appropriate Rebuild...Text() function, using the CSourcePhrase instances SPList pointer passed in (the
 // instances may or may not be the m_pSourcePhrases list), and then does filtering and
 // tweaking to get USFM compatible with either of those two edit applications - which
 // means filtering out our custom markers (\free, \note, and \bt or any derivative of the
 // latter) if bFilterCustomMarkers has its default value of TRUE
-wxString RebuildSourceText_For_Collaboration(SPList* pList, bool bFilterCustomMarkers)
+// ExportType enum is defined in KB.h
+// enum ExportType
+// {
+//	sourceTextExport,
+//	targetTextExport,
+//	glossesTextExport,
+//	freeTransTextExport
+// };
+// While the intent is just, at this stage, to get either the source text returned, or the
+// target text returned, it was almost no cost to have the option of the other types
+// (glosses as text, or free translations) as well, so they are supported too.
+wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType, bool bFilterCustomMarkers)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	wxString source; source.Empty();
+	wxString usfmText; usfmText.Empty();
 	wxArrayString arrCustomBareMkrs;
 	wxString mkr = _T("note");
 	arrCustomBareMkrs.Add(mkr);
@@ -14477,19 +14490,35 @@ wxString RebuildSourceText_For_Collaboration(SPList* pList, bool bFilterCustomMa
 	arrCustomBareMkrs.Add(mkr);
 	mkr = _T("bt");
 	arrCustomBareMkrs.Add(mkr);
-	int nTextLength = RebuildSourceText(source, pList);
+	int nTextLength;
+	switch(exportType)
+	{
+	case targetTextExport:
+		nTextLength = RebuildSourceText(usfmText, pList);
+		break;
+	case freeTransTextExport:
+		nTextLength = RebuildFreeTransText(usfmText, pList);
+		break;
+	case glossesTextExport:
+		nTextLength = RebuildGlossesText(usfmText, pList);
+		break;
+	default:
+	case sourceTextExport:
+		nTextLength = RebuildSourceText(usfmText, pList);
+		break;
+	}
 	if (nTextLength > 0)
 	{
 		// filter out unwanted custom markers, if any are present, and their text
 		if (bFilterCustomMarkers)
 		{
-			source = ApplyOutputFilterToText_For_Collaboration(source, arrCustomBareMkrs);
+			usfmText = ApplyOutputFilterToText_For_Collaboration(usfmText, arrCustomBareMkrs);
 		}
 		// format for text oriented output
-		FormatMarkerBufferForOutput(source, sourceTextExport);
-		source = pDoc->RemoveMultipleSpaces(source);
+		FormatMarkerBufferForOutput(usfmText, exportType);
+		usfmText = pDoc->RemoveMultipleSpaces(usfmText);
 	}
-	return source;
+	return usfmText;
 }
 
 // BEW 11Oct10, removed \x from the test, because \x occurs after \v and verse number in
@@ -14568,13 +14597,22 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 // version called FormatMarkerBufferForOutput().
 // BEW created 10Aug09
 // BEW 9Apr10, updated for support of doc version 5 (changes were needed)
-int RebuildGlossesText(wxString& glosses)
+int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 {
 	wxString str; // local wxString in which to build the 'glosses-as-text' substrings
 
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
-	SPList* pList = gpApp->m_pSourcePhrases;
+	SPList* pList = NULL;
+	if (pUseThisList == NULL)
+	{
+		pList = gpApp->m_pSourcePhrases;
+	}
+	else
+	{
+		pList = pUseThisList;
+		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
+	}
 	wxASSERT(pList != NULL);
     SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
@@ -15021,13 +15059,22 @@ int RebuildGlossesText(wxString& glosses)
 // version called FormatMarkerBufferForOutput().
 // BEW created 10Aug09
 // BEW 9Apr10, updated for support of doc version 5 (changes were needed)
-int RebuildFreeTransText(wxString& freeTrans)
+int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 {
 	wxString str; // local wxString in which to build the freeTrans text substrings
 
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
-	SPList* pList = gpApp->m_pSourcePhrases;
+	SPList* pList = NULL;
+	if (pUseThisList == NULL)
+	{
+		pList = gpApp->m_pSourcePhrases;
+	}
+	else
+	{
+		pList = pUseThisList;
+		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
+	}
 	wxASSERT(pList != NULL);
     SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
@@ -15404,9 +15451,18 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 
 // BEW revised 31Oct05
 // BEW 7Apr10, updated for doc version 5 (changes were needed)
-int RebuildTargetText(wxString& target)
+int RebuildTargetText(wxString& target, SPList* pUseThisList)
 {
-	SPList* pList = gpApp->m_pSourcePhrases;
+	SPList* pList = NULL;
+	if (pUseThisList == NULL)
+	{
+		pList = gpApp->m_pSourcePhrases;
+	}
+	else
+	{
+		pList = pUseThisList;
+		gpApp->GetDocument()->UpdateSequNumbers(0, pList);
+	}
 	wxASSERT(pList != NULL);
 
 	wxString aSpace = _T(' ');

@@ -88,10 +88,10 @@ int			ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 
 // below are supporting functions for the above main export functions:
 int			RebuildSourceText(wxString& srcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
-wxString	RebuildSourceText_For_Collaboration(SPList* pList, bool bFilterCustomMarkers = TRUE);
-int			RebuildTargetText(wxString& target);
-int			RebuildGlossesText(wxString& glossText);
-int			RebuildFreeTransText(wxString& freeTransText);
+wxString	RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType, bool bFilterCustomMarkers = TRUE);
+int			RebuildTargetText(wxString& target, SPList* pList = NULL);
+int			RebuildGlossesText(wxString& glossText, SPList* pList = NULL);
+int			RebuildFreeTransText(wxString& freeTransText, SPList* pList = NULL);
 wxString	ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray,
 									wxArrayInt& filterFlagsArray, bool bRTFOutput);
 wxString	ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray);
