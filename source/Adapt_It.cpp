@@ -18115,7 +18115,7 @@ bool CAdapt_ItApp::SetupDirectories()
 	// here at the beginning is defined as m_workFolderPath when not using a
 	// custom work folder, or as m_customWorkFolderPath when using a custom
 	// work folder. The two versions tended to get out of sync with time due to
-	// changes made to one an not the other.
+	// changes made to one and not the other.
 	wxString workOrCustomFolderPath;
 	if (!m_bUseCustomWorkFolderPath)
 	{
@@ -22234,7 +22234,7 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 ///     is the case when transforming adaptations to glosses); so we pass in the storage
 ///     array as the first parameter
 /// 2.  EnumerateDocFiles_ParametizedStore() enumerates all doc files in the folder, there
-///     is no provision for a dialog for the user to select which ones are to kept for use
+///     is no provision for a dialog for the user to select which ones are to be kept for use
 /// 3.  EnumerateDocFiles_ParametizedStore((), on exit, restores the caller's work directory
 ///     to what it was prior to being called
 ////////////////////////////////////////////////////////////////////////////////////////

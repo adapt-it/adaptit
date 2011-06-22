@@ -1236,7 +1236,7 @@ bool Is_Marker(wxChar *pChar, wxChar *pEnd)
 			else
 			{
                 // the sequence \n followed by some nonalphabetic character nor
-                // non-whitespace character is unlikely to be a value SFM or USFM, so
+                // non-whitespace character is unlikely to be a valid SFM or USFM, so
                 // return FALSE here too -- if we later want to make the function more
                 // specific, we can put extra tests here
                 return FALSE;
@@ -1548,13 +1548,13 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 				ptrSrc += itemLen; // point past the white space
 				charCountMarkersOnly += itemLen; // count following white space with markers
 			}
-		}
+		} // end of TRUE block for test: if (ptrSrc < pEnd)
 		else
 		{
 			// ptrSrc is pointing at or past the pEnd
 			break;
 		}
-	}
+	} // end of loop: while (ptrSrc < pEnd)
 	
 	// output data for any lastMarker that wasn't output in above main while 
 	// loop (at the end of the file)
@@ -6048,6 +6048,23 @@ char* StrStrAI(char* super, char* sub)
 	return (char*)NULL;
 }
 */
+
+// tests for whether a passed in bare marker (ie. an SFM or USFM with its backslash stripped
+// off) matches any of the bare markers stored in the passed in arr array
+bool IsBareMarkerInArray(wxString& bareMkr, wxArrayString& arr)
+{
+	int count = arr.GetCount();
+	if (count == 0)
+		return FALSE;
+	int i;
+	for(i = 0; i < count; i++)
+	{
+		wxString s = arr.Item(i);
+		if (bareMkr == s)
+			return TRUE;
+	}
+	return FALSE;
+}
 
 // we do no checks, it's up to the caller to ensure that dest buffer has enough room for
 // byteCount bytes to be copied

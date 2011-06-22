@@ -256,7 +256,7 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 					// filtered information, nor the m_markers member; because this
 					// function is used in FromMergerMakeSstr() which accesses those
 					// members externally to such a call as this
-
+bool	 IsBareMarkerInArray(wxString& bareMkr, wxArrayString& arr);
 bool	 IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);
 bool	 IsNullSrcPhraseInSelection(SPList* pList);

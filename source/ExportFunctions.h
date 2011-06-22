@@ -88,15 +88,15 @@ int			ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 
 // below are supporting functions for the above main export functions:
 int			RebuildSourceText(wxString& srcText, SPList* pList = NULL); // 2nd param for rebuilding from any list
+wxString	RebuildSourceText_For_Collaboration(SPList* pList, bool bFilterCustomMarkers = TRUE);
 int			RebuildTargetText(wxString& target);
 int			RebuildGlossesText(wxString& glossText);
 int			RebuildFreeTransText(wxString& freeTransText);
 wxString	ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray,
 									wxArrayInt& filterFlagsArray, bool bRTFOutput);
-int			CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, 
-											   int nAnchorSequNum);
-SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
-				wxString& Tstr);
+wxString	ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray);
+int			CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, int nAnchorSequNum);
+SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases, wxString& Tstr);
 wxString	RemoveCollectedBacktranslations(wxString& str);
 // the following 6 added, for doc version 5 support, to hide implementation details 
 // for the information storage in CSourcePhrase
