@@ -41,6 +41,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
 #include <wx/tokenzr.h>
+#include <wx/listctrl.h>
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -55,17 +56,9 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_COMBOBOX(ID_COMBO_DESTINATION_PT_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject)
 	EVT_BUTTON(wxID_OK, CGetSourceTextFromEditorDlg::OnOK)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
-	EVT_LISTBOX(ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
-	EVT_LISTBOX_DCLICK(ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
+	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
+	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
 	EVT_RADIOBOX(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, CGetSourceTextFromEditorDlg::OnRadioBoxSelected)
-
-	//EVT_MENU(ID_SOME_MENU_ITEM, CGetSourceTextFromEditorDlg::OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CGetSourceTextFromEditorDlg::OnUpdateDoSomething)
-	//EVT_BUTTON(ID_SOME_BUTTON, CGetSourceTextFromEditorDlg::OnDoSomething)
-	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CGetSourceTextFromEditorDlg::OnDoSomething)
-	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CGetSourceTextFromEditorDlg::DoSomething)
-	//EVT_TEXT(IDC_SOME_EDIT_CTRL, CGetSourceTextFromEditorDlg::OnEnChangeEditSomething)
-	// ... other menu, button or control events
 END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
@@ -98,8 +91,8 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
 	wxASSERT(pListBoxBookNames != NULL);
 
-	pListBoxChapterNumberAndStatus = (wxListBox*)FindWindowById(ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS);
-	wxASSERT(pListBoxChapterNumberAndStatus != NULL);
+	pListCtrlChapterNumberAndStatus = (wxListView*)FindWindowById(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS);
+	wxASSERT(pListCtrlChapterNumberAndStatus != NULL);
 
 	pStaticTextCtrlNote = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NOTE);
 	wxASSERT(pStaticTextCtrlNote != NULL);
@@ -116,12 +109,19 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 {
-	
+	delete pTheFirstColumn;
+	delete pTheSecondColumn;
 }
 
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	
+	// Note: the wxListItem which is the column has to be on the heap, because if made a local
+	// variable then it will go out of scope and be lost from the wxListCtrl before the
+	// latter has a chance to display anything, and then nothing will display in the control
+	pTheFirstColumn = new wxListItem; // deleted in the destructor
+	pTheSecondColumn = new wxListItem; // deleted in the destructor
 	
 	wxString title = this->GetTitle();
 	title = title.Format(title,this->m_collabEditorName.c_str());
@@ -353,12 +353,38 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		LoadBookNamesIntoList();
 
+
+		pTheFirstColumn->SetText(_("Chapter"));
+		pTheFirstColumn->SetImage(-1);
+		pTheFirstColumn->SetAlign(wxLIST_FORMAT_CENTRE);
+		pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
+
+		pTheSecondColumn->SetText(_("Chapter Status"));
+		pTheSecondColumn->SetImage(-1);
+		pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
+
 		// select LastPTBookSelected 
 		if (!m_TempCollabBookSelected.IsEmpty())
 		{
 			int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
 			if (nSel != wxNOT_FOUND)
 			{
+				// get extent for the current book name for sizing first column
+				wxSize sizeOfBookNameAndCh;
+				wxClientDC aDC(this);
+				wxFont tempFont = this->GetFont();
+				aDC.SetFont(tempFont);
+				aDC.GetTextExtent(m_TempCollabBookSelected,&sizeOfBookNameAndCh.x,&sizeOfBookNameAndCh.y);
+				pTheFirstColumn->SetWidth(sizeOfBookNameAndCh.GetX() + 30); // 30 fudge factor
+				
+				int height,widthListCtrl,widthCol1;
+				pListCtrlChapterNumberAndStatus->GetClientSize(&widthListCtrl,&height);
+				widthCol1 = pTheFirstColumn->GetWidth();
+				pTheSecondColumn->SetWidth(widthListCtrl - widthCol1);
+				
+				pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
+				pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
+				
 				// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
 				pListBoxBookNames->SetSelection(nSel);
 				// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
@@ -430,8 +456,6 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEv
 			OnLBBookSelected(evt);
 		}
 	}
-	//wxCommandEvent evt;
-	//OnLBBookSelected(evt);
 }
 
 void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
@@ -454,7 +478,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pComboDestinationProjectName->SetFocus();
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
@@ -662,7 +686,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
@@ -719,7 +743,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
@@ -734,14 +758,15 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
 		//pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 
-	pListBoxChapterNumberAndStatus->Clear();
+	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 	wxArrayString chapterListFromTargetBook;
-	chapterListFromTargetBook = GetChapterListAndVerseStatusFromTargetBook(fullBookName);
+	wxArrayString chapterStatusFromTargetBook;
+	GetChapterListAndVerseStatusFromTargetBook(fullBookName,chapterListFromTargetBook,chapterStatusFromTargetBook);
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
 		wxString msg1,msg2;
@@ -749,30 +774,60 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
-		pListBoxChapterNumberAndStatus->Append(_("No chapters and verses found"));
-		pListBoxChapterNumberAndStatus->Enable(FALSE);
+		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
+		pListCtrlChapterNumberAndStatus->Enable(FALSE);
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
 		//pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
 	else
 	{
-		pListBoxChapterNumberAndStatus->Append(chapterListFromTargetBook);
-		pListBoxChapterNumberAndStatus->Enable(TRUE);
+		// get extent for the current book name for sizing first column
+		wxSize sizeOfBookNameAndCh,sizeOfFirstColHeader;
+		wxClientDC aDC(this);
+		wxFont tempFont = this->GetFont();
+		aDC.SetFont(tempFont);
+		wxString lastCh = chapterListFromTargetBook.Last();
+		aDC.GetTextExtent(lastCh,&sizeOfBookNameAndCh.x,&sizeOfBookNameAndCh.y);
+		aDC.GetTextExtent(pTheFirstColumn->GetText(),&sizeOfFirstColHeader.x,&sizeOfFirstColHeader.y);
+		if (sizeOfBookNameAndCh.GetX() > sizeOfFirstColHeader.GetX())
+			pTheFirstColumn->SetWidth(sizeOfBookNameAndCh.GetX() + 30); // 30 fudge factor
+		else
+			pTheFirstColumn->SetWidth(sizeOfFirstColHeader.GetX() + 30); // 30 fudge factor
+		
+		int height,widthListCtrl,widthCol1;
+		pListCtrlChapterNumberAndStatus->GetClientSize(&widthListCtrl,&height);
+		widthCol1 = pTheFirstColumn->GetWidth();
+		pTheSecondColumn->SetWidth(widthListCtrl - widthCol1);
+		
+		pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
+		pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
+		
+		int totItems = chapterListFromTargetBook.GetCount();
+		wxASSERT(totItems == (int)chapterStatusFromTargetBook.GetCount());
+		int ct;
+		for (ct = 0; ct < totItems; ct++)
+		{
+			long tmp = pListCtrlChapterNumberAndStatus->InsertItem(ct,chapterListFromTargetBook.Item(ct));
+			pListCtrlChapterNumberAndStatus->SetItemData(tmp,ct);
+			pListCtrlChapterNumberAndStatus->SetItem(tmp,1,chapterStatusFromTargetBook.Item(ct));
+		}
+		pListCtrlChapterNumberAndStatus->Enable(TRUE);
+		pListCtrlChapterNumberAndStatus->Show();
 	}
 	pStaticSelectAChapter->SetLabel(_("Select a &chapter:")); // put & char at same position as in the string in wxDesigner
 	pStaticSelectAChapter->Refresh();
 
 	if (!m_TempCollabChapterSelected.IsEmpty())
 	{
-		int nSel = pListBoxChapterNumberAndStatus->FindString(m_TempCollabChapterSelected);
+		int nSel = pListCtrlChapterNumberAndStatus->FindItem(-1,m_TempCollabChapterSelected,TRUE); // TRUE - partial, look for items beginning with m_TempCollabChapterSelected
 		if (nSel != wxNOT_FOUND)
 		{
-			pListBoxChapterNumberAndStatus->SetSelection(nSel);
-			pListBoxChapterNumberAndStatus->SetFocus(); // focus is set on Select a chapter
+			pListCtrlChapterNumberAndStatus->Select(nSel);
+			pListCtrlChapterNumberAndStatus->SetFocus();
 			// Update the wxTextCtrl at the bottom of the dialog with more detailed
 			// info about the book and/or chapter that is selected. 
 			pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
@@ -792,16 +847,19 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	
 }
 
-void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxCommandEvent& WXUNUSED(event))
+void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(event))
 {
 	// This handler is called both for single click and double clicks on an
 	// item in the chapter list box, since a double click is sensed initially
 	// as a single click.
 
-	int nSel = pListBoxChapterNumberAndStatus->GetSelection();
+	//int nSel = pListCtrlChapterNumberAndStatus->GetSelection();
+	int itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+	wxASSERT(itemCt <= 1);
+	long nSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (nSel != wxNOT_FOUND)
 	{
-		m_TempCollabChapterSelected = pListBoxChapterNumberAndStatus->GetStringSelection();
+		m_TempCollabChapterSelected = pListCtrlChapterNumberAndStatus->GetItemText(nSel);
 		// Update the wxTextCtrl at the bottom of the dialog with more detailed
 		// info about the book and/or chapter that is selected.
 		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
@@ -847,7 +905,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		wxMessageBox(msg);
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return; // don't accept any changes - abort the OnOK() handler
 	}
@@ -859,10 +917,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes until a book is selected
 	}
 	
-	if (pListBoxChapterNumberAndStatus->GetSelection() == wxNOT_FOUND)
+	if (pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED) == wxNOT_FOUND)
 	{
 		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION);
-		pListBoxChapterNumberAndStatus->SetFocus();
+		pListCtrlChapterNumberAndStatus->SetFocus();
 		return; // don't accept any changes until a book is selected
 	}
 	
@@ -872,7 +930,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
 	wxString bareChapterSelectedStr;
-	int chSel = pListBoxChapterNumberAndStatus->GetSelection();
+	int chSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (chSel != wxNOT_FOUND)
 	{
 		chSel++; // the chapter number is one greater than the selected lb index
@@ -963,7 +1021,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	}
@@ -1234,13 +1292,15 @@ wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBP
 	return ptProjShortName;
 }
 
-wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName)
+void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, wxArrayString& chapterList, wxArrayString& statusList)
 {
 	// Called from OnLBBookSelected().
 	// Retrieves a wxArrayString of chapters (and their status) from the target 
 	// PT project's TargetTextUsfmStructureAndExtentArray. 
 	wxArrayString chapterArray;
+	wxArrayString statusArray;
 	chapterArray.Clear();
+	statusArray.Clear();
 	m_staticBoxDescriptionArray.Clear();
 	int ct,tot;
 	tot = TargetTextUsfmStructureAndExtentArray.GetCount();
@@ -1279,7 +1339,9 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 	if ((!bChFound && !bVsFound) || (bChFound && !bVsFound))
 	{
 		// The target book has no chapter and verse content to work with
-		return chapterArray; // caller will give warning message
+		chapterList = chapterArray;
+		statusList = statusArray;
+		return; // caller will give warning message
 	}
 
 	wxString statusOfChapter;
@@ -1311,18 +1373,6 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 				tempStr.Trim(TRUE);
 				int chNum;
 				chNum = wxAtoi(tempStr);
-				if (chNum < 10)
-				{
-					tempStr += _T("   "); // add three spaces for chapter digits < 10
-				}
-				else if (chNum < 100)
-				{
-					tempStr += _T("  "); // add two spaces for chapter digits between 10 and 99
-				}
-				else
-				{
-					tempStr += _T(' '); // add one space for chapter digits 100 and greater
-				}
 
 				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
 				wxString listItemStatusSuffix,listItem;
@@ -1330,9 +1380,8 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 				listItem.Empty();
 				listItem = targetBookFullName + _T(" ");
 				listItem += tempStr;
-				listItem += _T(" - ");
-				listItem += listItemStatusSuffix;
 				chapterArray.Add(listItem);
+				statusArray.Add(statusOfChapter);
 				// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
 				wxString emptyVsInfo;
 				// remove padding spaces for the static box description
@@ -1357,25 +1406,24 @@ wxArrayString CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTarge
 		listItemStatusSuffix.Empty();
 		listItem.Empty();
 		listItemStatusSuffix = statusOfChapter;
-		//listItem = targetBookFullName + _T(" ");
-		//listItem += _T("1");
 		listItem += _T(" - ");
 		listItem += listItemStatusSuffix;
-		chapterArray.Add(listItem);
+		chapterArray.Add(_T("   ")); // arbitrary 3 spaces in first column
+		statusArray.Add(listItem);
 		// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
 		wxString chapterDetails;
 		chapterDetails = targetBookFullName + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses are empty:") + _T(" ") + nonDraftedVerses;
 		m_staticBoxDescriptionArray.Add(chapterDetails ); // return the empty verses string via the nonDraftedVerses ref parameter
 	}
-
-	return chapterArray;
+	chapterList = chapterArray; // return array list via reference parameter
+	statusList = statusArray; // return array list via reference parameter
 }
 
 void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 {
 	// clear lists and static text box at bottom of dialog
 	pListBoxBookNames->Clear();
-	pListBoxChapterNumberAndStatus->Clear();
+	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 	pStaticTextCtrlNote->ChangeValue(_T(""));
 
 	wxString ptProjShortName;
@@ -1414,7 +1462,7 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 		wxMessageBox(msg1,_T("No books found"),wxICON_WARNING);
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
-		pListBoxChapterNumberAndStatus->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 	}
 	pListBoxBookNames->Append(booksPresentArray);
@@ -1801,13 +1849,13 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 	if (pRadioBoxWholeBookOrChapter->GetSelection() == 1)
 	{
 		// The user selected "Get Whole Book" disable the "Select a chapter" list and label
-		pListBoxChapterNumberAndStatus->Disable();
+		pListCtrlChapterNumberAndStatus->Disable();
 		pStaticSelectAChapter->Disable();
 	}
 	else
 	{
 		// The user selected "Get Chapter Only"
-		pListBoxChapterNumberAndStatus->Enable(TRUE);
+		pListCtrlChapterNumberAndStatus->Enable(TRUE);
 		pStaticSelectAChapter->Enable(TRUE);
 	}
 }
@@ -1821,6 +1869,20 @@ wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChap
 	if (posHyphen != wxNOT_FOUND)
 	{
 		chStr = lbChapterSelected.Mid(0,posHyphen);
+		chStr.Trim(FALSE);
+		chStr.Trim(TRUE);
+		int posSp = chStr.Find(_T(' '),TRUE); // TRUE - find from right end
+		if (posSp != wxNOT_FOUND)
+		{
+			chStr = chStr.Mid(posSp);
+			chStr.Trim(FALSE);
+			chStr.Trim(TRUE);
+		}
+	}
+	else
+	{
+		// no hyphen in the incoming string
+		chStr = lbChapterSelected;
 		chStr.Trim(FALSE);
 		chStr.Trim(TRUE);
 		int posSp = chStr.Find(_T(' '),TRUE); // TRUE - find from right end

@@ -769,7 +769,7 @@ const int ID_COMBO_DESTINATION_PT_PROJECT_NAME = 581;
 const int ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER = 582;
 const int ID_LISTBOX_BOOK_NAMES = 583;
 const int ID_TEXT_SELECT_A_CHAPTER = 584;
-const int ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS = 585;
+const int ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS = 585;
 const int ID_TEXTCTRL_AS_STATIC_NOTE = 586;
 wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 

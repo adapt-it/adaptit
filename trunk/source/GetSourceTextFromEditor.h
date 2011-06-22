@@ -30,7 +30,9 @@ public:
 	wxComboBox* pComboDestinationProjectName;
 	wxRadioBox* pRadioBoxWholeBookOrChapter;
 	wxListBox* pListBoxBookNames;
-	wxListBox* pListBoxChapterNumberAndStatus;
+	wxListView* pListCtrlChapterNumberAndStatus; // wxListBox* pListCtrlChapterNumberAndStatus;
+	wxListItem* pTheFirstColumn; // has to be on heap
+	wxListItem* pTheSecondColumn; // has to be on heap
 	wxTextCtrl* pStaticTextCtrlNote;
 	wxStaticText* pStaticSelectAChapter;
 	wxButton* pBtnCancel;
@@ -63,7 +65,7 @@ protected:
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event));
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
-	void OnLBChapterSelected(wxCommandEvent& WXUNUSED(event));
+	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
@@ -72,7 +74,7 @@ protected:
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
-	wxArrayString GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName);
+	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, wxArrayString& chapterList, wxArrayString& statusList);
 	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
 									wxString targetBookFullName,wxString& nonDraftedVerses);
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
