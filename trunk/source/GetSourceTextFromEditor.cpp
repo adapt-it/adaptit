@@ -134,7 +134,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// determine the path and name to rdwrtp7.exe
 	// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
-	// insure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
+	// ensure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
 	// is likely to get released before that happens, and in case some Paratext users haven't
 	// upgraded their PT version 7.x to the distribution that has rdwrtp7.exe installed along-side
 	// Paratext.exe, we check for its existence here and use it if it is located in the PT
@@ -148,7 +148,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 	else
 	{
-		// rdwrtp7.exe does not exist in the Paratext installation, so use our in AI's install folder
+		// rdwrtp7.exe does not exist in the Paratext installation, so use our copy in AI's install folder
 		m_rdwrtp7PathAndFileName = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator + _T("rdwrtp7.exe");
 		wxASSERT(::wxFileExists(m_rdwrtp7PathAndFileName));
 		// Note: The rdwrtp7.exe console app has the following dependencies located in the Paratext install 
@@ -235,7 +235,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 
 	// Generally when the "Get Source Text from Paratext Project" dialog is called, we 
-	// can be sure that some checks have been done to insure that Paratext is installed,
+	// can be sure that some checks have been done to ensure that Paratext is installed,
 	// that previously selected PT projects are still valid/exist, and that the administrator 
 	// has switched on AI-PT Collaboration, etc.
 	// But, there is a chance that PT projects could be changed while AI is running and
@@ -592,7 +592,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString bookCode;
 	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
 	
-	// insure that a .temp folder exists in the m_workFolderPath
+	// ensure that a .temp folder exists in the m_workFolderPath
 	wxString tempFolder;
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
 	if (!::wxDirExists(tempFolder))
@@ -623,12 +623,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
 	wxLogDebug(commandLineSrc);
 
-	// Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
-	// when the overloaded version of wxExecute() is used, it uses the the redirection
-	// of the stdio to the arrays, and with that redirection, it doesn't show the 
-	// console process window by default. It is distracting to have the DOS console
-	// window flashing even momentarily, so we will use that overloaded version of 
-	// rdwrtp7.exe.
+    // Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
+    // when the overloaded version of wxExecute() is used, it uses the redirection of the
+    // stdio to the arrays, and with that redirection, it doesn't show the console process
+    // window by default. It is distracting to have the DOS console window flashing even
+    // momentarily, so we will use that overloaded version of rdwrtp7.exe.
 
 	long resultSrc = -1;
 	long resultTgt = -1;
@@ -736,7 +735,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 		wxString msg1,msg2;
 		msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
-		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
+		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
@@ -751,7 +750,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 		wxString msg1,msg2;
 		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
@@ -771,7 +770,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 		wxString msg1,msg2;
 		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and insure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
@@ -872,10 +871,10 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_("Please select a chapter in the list at right."));
 	}
 
-	// TODO: Bruce feels that we should get a fresh copy of the PT target project's chapter
-	// file at this point. I think it would be better to do so in the OnOK() handler than here,
-	// since it is the OnOK() handler that will actually open the chapter text as an AI 
-	// document.
+    // Bruce felt that we should get a fresh copy of the PT target project's chapter file
+    // at this point (but no longer does, BEW 17Jun11). I think it would be better to do so
+    // in the OnOK() handler than here, since it is the OnOK() handler that will actually
+    // open the chapter text as an AI document (Bruce agrees!)
 }
 
 void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event))
@@ -1024,7 +1023,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
-	}
+	} // end of TRUE block for test: if (resultSrc != 0 || resultTgt != 0)
 
 	// whm TODO: after grabbing the chapter source text from the PT project, and before copying it
 	// to the appropriate AI project's "__SOURCE_INPUTS" folder, we should check the contents of the
@@ -1083,7 +1082,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	
 	// Now, determine if the PT source and PT target projects exist together as an existing AI project.
 	// If so we access that project and, if determine if an existing source text exists as an AI
-	// chapter document. If so, and if it differs from the incoming source text chapter, we quitely 
+	// chapter document. If so, and if it differs from the incoming source text chapter, we quietly 
 	// merge the source texts using Bruce's import edited source text routine (no user intervention 
 	// occurs in this case). 
 	// We also compare any incoming target text with any existing target/adapted text in the existing 
@@ -1092,9 +1091,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// 
 	// If the PT source and PT target projects do not yet exist as an existing AI project, we create
 	// the project complete with project config file, empty KB, etc., using the information gleaned
-	// from the PT source and PT target projects (i.e., language names, font choices and sizes, 
+	// from the PT source and PT target projects (i.e. language names, font choices and sizes,...) 
 	bool bPTCollaborationUsingExistingAIProject;
-	bPTCollaborationUsingExistingAIProject = PTProjectsExistAsAIProject(shortProjNameSrc,shortProjNameTgt);
+	// BEW added 21Jun11, provide a storage location for the Adapt It project folder's
+	// name, in the event that we successfully obtain a matchup from the
+	// PTProjectsExistAsAIProject() call below (aiMatchedProjectFolder will be an empty
+	// wxString if the call returns FALSE)
+	wxString aiMatchedProjectFolder;
+	bPTCollaborationUsingExistingAIProject = PTProjectsExistAsAIProject(shortProjNameSrc, 
+							shortProjNameTgt, aiMatchedProjectFolder);
 	if (bPTCollaborationUsingExistingAIProject)
 	{
 		// The Paratext projects selected for source text and target texts have an existing
@@ -1163,8 +1168,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 									   // books are present within the PT project
 		//wxString chapterMarker; // default is _T("c")
 		//wxString verseMarker; // default is _T("v")
-		//wxString defaultFont; // default is _T("10") or whatever is specified in the PT project's ssf file
-		//wxString defaultFontSize; // default is _T("Arial")or whatever is specified in the PT project's ssf file
+		//wxString defaultFont;  // default is _T("Arial")or whatever is specified in the PT project's ssf file
+		//wxString defaultFontSize; // default is _T("10") or whatever is specified in the PT project's ssf file
 		//wxString leftToRight; // default is _T("T") unless "F" is specified in the PT project's ssf file
 		//wxString encoding; // default is _T("65001"); // 65001 is UTF8
 
@@ -1180,7 +1185,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    folder. The user won't know the difference except if the administrator 
 		//    decides at some future time to turn PT collaboration OFF. If we used the 
 		//    book folders during PT collaboration for chapter files, we would need to 
-		//    insure that book folder mode stays turned on when PT collaboration was 
+		//    ensure that book folder mode stays turned on when PT collaboration was 
 		//    turned off.
 		// 3. Compose an appropriate document name to be used for the document that will
 		//    contain the chapter grabbed from the PT source project's book.
@@ -1211,9 +1216,11 @@ bool CGetSourceTextFromEditorDlg::PTProjectIsEditable(wxString projShortName)
 		return FALSE;
 }
 
-bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt)
+bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjNameSrc, 
+									wxString shortProjNameTgt, wxString& aiProjectFolder)
 {
 	bool bIsAIProject = FALSE;
+	aiProjectFolder.Empty(); // BEW added 21Jun11
 
 	PT_Project_Info_Struct* pPTInfoSrc;
 	PT_Project_Info_Struct* pPTInfoTgt;
@@ -1227,7 +1234,7 @@ bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjN
 	wxASSERT(!srcLangStr.IsEmpty());
 	wxString tgtLangStr = pPTInfoTgt->languageName;
 	wxASSERT(!tgtLangStr.IsEmpty());
-	wxString workFolder = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
+	wxString projectFolder = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
 	
 	wxArrayString possibleAdaptions;
 	possibleAdaptions.Clear();
@@ -1243,10 +1250,23 @@ bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjN
 		for (ct = 0; ct < tot; ct++)
 		{
 			wxString tempStr = possibleAdaptions.Item(ct);
-			if (workFolder == tempStr)
+			if (projectFolder == tempStr)
+			{
+				aiProjectFolder = projectFolder; // BEW added 21Jun11 
 				return TRUE;
+			}
 		}
 	}
+
+	// BEW comment 21Jun11, checking for a match based on 2- or 3-letter ethnologue codes
+	// should also be attempted, if the language names don't match -- this will catch
+	// projects where the language name(s) may have a typo, or a local spelling different
+	// from the ethnologue standard name; checking for a names-based match first gives
+	// some protection in the case of similar dialects, but we'd want to treat matched
+	// source and target language codes as indicating a project match, I think. Yes?
+	
+	// *** TODO ***
+
 	return bIsAIProject;
 }
 
@@ -1268,7 +1288,7 @@ bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxSt
 		// There is no ',' that would indicate a gap in the emptyVersesStr
 		bAllVersesAreEmpty = TRUE;
 	}
-	// Just to be sure do another test to insure there is a '-' and only one '-'
+	// Just to be sure do another test to ensure there is a '-' and only one '-'
 	// in the string.
 	if (tempStr.Find('-') != wxNOT_FOUND && tempStr.Find('-',FALSE) == tempStr.Find('-',TRUE))
 	{

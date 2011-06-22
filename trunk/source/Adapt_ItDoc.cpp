@@ -622,7 +622,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxString strSelectedFilename;
 			strSelectedFilename.Empty();
 
-			// BEW 16Aug10, Note: we create the only and only instance of m_pNavProtectDlg here
+			// BEW 16Aug10, Note: we create the one and only instance of m_pNavProtectDlg here
 			// rather than in the app's OnInit() function, because we want the dialog
 			// handler's InitDialog() function called each time the dialog is to be shown using
 			// ShowModal() so that the two buttons will be initialized correctly
@@ -966,10 +966,10 @@ bool CAdapt_ItDoc::OnNewDocument()
             // m_nInputFileLength value)
 			RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
 
-			// whm wx version: moved the following OverwriteUSFMFixedSpaces and
-            // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
-            // if user requires, change USFM fixed spaces (marked by the ~ character) to a space - this does not change the
-            // length of the data in the buffer
+            // whm wx version: moved the following OverwriteUSFMFixedSpaces and
+            // OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText if
+            // user requires, change USFM fixed spaces (marked by the ~ character) to a
+            // space - this does not change the length of the data in the buffer
 			if (gpApp->m_bChangeFixedSpaceToRegularSpace)
 				OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
 

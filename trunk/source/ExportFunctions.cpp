@@ -14459,6 +14459,39 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	return source.Len();
 }
 
+// RebuildSourceText_For_Collaboration() is a wrapper for the RebuildSourceText()
+// function. It is to be used when collaborating with Paratext or Bibledit. It calls
+// RebuildSourceText using the CSourcePhrase instances SPList pointer passed in (the
+// instances may or may not be the m_pSourcePhrases list), and then does filtering and
+// tweaking to get USFM compatible with either of those two edit applications - which
+// means filtering out our custom markers (\free, \note, and \bt or any derivative of the
+// latter) if bFilterCustomMarkers has its default value of TRUE
+wxString RebuildSourceText_For_Collaboration(SPList* pList, bool bFilterCustomMarkers)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	wxString source; source.Empty();
+	wxArrayString arrCustomBareMkrs;
+	wxString mkr = _T("note");
+	arrCustomBareMkrs.Add(mkr);
+	mkr = _T("free");
+	arrCustomBareMkrs.Add(mkr);
+	mkr = _T("bt");
+	arrCustomBareMkrs.Add(mkr);
+	int nTextLength = RebuildSourceText(source, pList);
+	if (nTextLength > 0)
+	{
+		// filter out unwanted custom markers, if any are present, and their text
+		if (bFilterCustomMarkers)
+		{
+			source = ApplyOutputFilterToText_For_Collaboration(source, arrCustomBareMkrs);
+		}
+		// format for text oriented output
+		FormatMarkerBufferForOutput(source, sourceTextExport);
+		source = pDoc->RemoveMultipleSpaces(source);
+	}
+	return source;
+}
+
 // BEW 11Oct10, removed \x from the test, because \x occurs after \v and verse number in
 // USFM documentation, and so there should be a preceding space
 wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
@@ -15797,7 +15830,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 
 			bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
 			// if we encounter an end marker before its beginning form (as might happen if we
-			// are using ApplyOutputFilterToText on an m_markers string, we want to check it
+			// are using ApplyOutputFilterToText on an m_endMarkers string, we want to check it
 			// for filtering in isolated fashion without parsing to find any associated text.
 			if (wholeMarker.Find(_T('*')) != -1 && !bHitMkr)
 			{
@@ -15819,6 +15852,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 					itemLen = pDoc->ParseWhiteSpace(pOld);
 					pOld += itemLen;
 					// don't increment pNew here
+					continue; // BEW added 22June11, control needs to iterate if this block was entered
 				}
 			}
 
@@ -15947,6 +15981,194 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	textStr2.UngetWriteBuf();
 	return textStr2;
 }
+
+// ApplyOutputFilterToText_For_Collaboration takes an input string textStr, scans through
+// its string buffer and builds a new wxString minus certain markers and associated text -
+// these are passed in, minus their initial backslash, in the bareMarkerArray. It then
+// returns the new string. This (simpler) variant of ApplyOutputFilterToText() is designed
+// for use in Paratext or Bibledit collaboration, to ensure removal of unwanted material
+// that Paratext or Bibledit is not going to want to see - this is our custom markers
+// (\free, \note, \bt and any derivatives of the latter).
+// ApplyOutputFilterToText_For_Collaboration() does not rely on or use the filtering
+// mechanisms and structures designed by Bill, it is self-contained, and has no provision
+// for filtering for RTF purposes, but only for (U)SFM output.
+wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray) 
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
+	// Setup input buffer from textStr
+	int nTheLen = textStr.Length();
+	// wx version: pBuffer is read-only so just get pointer to the string's read-only buffer
+	const wxChar* pBuffer = textStr.GetData();
+	wxChar* pBufStart = (wxChar*)pBuffer;		// save start address of Buffer
+	int itemLen = 0;
+	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go
+	wxASSERT(*pEnd == _T('\0')); // insure there is a null at end of Buffer
+	bool bHitMkr = FALSE;
+	bool bIsAMarker = FALSE;
+
+	// Setup copy-to buffer from textStr2.
+	wxString textStr2;
+	wxChar* pBuffer2;
+	wxChar* pEnd2;
+    // This buffer does not have, nor need a null char placed at the end of it. We assume
+    // being the same as pBuffer's size would be sufficient for all cases. Moreover, the
+    // pointer pNew only checks for a null char in the pBuffer, not this one.
+	pBuffer2 = textStr2.GetWriteBuf(nTheLen + 1);
+	pEnd2 = pBuffer2 + nTheLen;
+	*pEnd2 = (wxChar)0;
+	
+	wxString bareMarkerForLookup, bareMarkerInInputArray, wholeMarker;
+	//int nMarkersInArray = bareMarkerArray.GetCount();
+
+	wxChar* pOld = pBufStart;  // source
+	wxChar* pNew = pBuffer2; // destination
+	while (*pOld != (wxChar)0)
+	{
+		bIsAMarker = pDoc->IsMarker(pOld);
+		if (bIsAMarker)
+		{
+			// We're pointing at a marker. Look it up and see if we should skip over it and
+			// its associated text
+			wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+			
+			if (wholeMarker == _T("\\"))
+			{				
+				*pNew++ = *pOld++;
+				
+				// The tests below don't make sense for an isolated non-marker backslash, 
+				// and we shouldn't set bHitMarker to TRUE, so just continue processing at 
+				// the top of the while loop
+				continue;
+			}
+
+			bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
+			// if we encounter an end marker before its beginning form (as might happen if we
+			// are using the function on an m_endMarkers string , we want to check it
+			// for filtering in isolated fashion without parsing to find any associated text.
+			if (wholeMarker.Find(_T('*')) != wxNOT_FOUND && !bHitMkr)
+			{
+				// we hit this end marker before seeing a beginning marker in the input text
+				// if its non-end form it to be filtered we'll parse over it and omit it from
+				// the text, otherwise we'll leave it alone
+				if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
+				{
+					itemLen = pDoc->ParseMarker(pOld);
+					pOld += itemLen;
+					// don't increment pNew here
+					itemLen = pDoc->ParseWhiteSpace(pOld);
+					pOld += itemLen; // and don't increment pNew here
+					continue; // iterate
+				}
+			}
+
+			bHitMkr = TRUE;
+			// for output filter purposes we treat all \bt... initial markers as simple \bt, so
+			// change any \bt... ones to just \bt
+			if (bareMarkerForLookup.Find(_T("bt")) == 0)
+			{
+				bareMarkerForLookup = _T("bt"); // change all \bt... initial ones to just \bt
+			}
+			if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
+			{
+				// This marker needs to be filtered out/skipped over. We have to parse over
+				// the marker and its associated text and any end marker it may have. In the
+				// process we increment pOld but not pNew.
+
+				wxString wholeMkrNoAsteriskSp = _T('\\') + bareMarkerForLookup + _T(' ');
+				// charFormatMkrs is defined and populated near top of Adapt_ItView.cpp
+				if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != wxNOT_FOUND)
+				{
+					// we are filtering one of the character markers that affects font formatting
+					// we don't want to filter out the associated text, only remove the formatting
+					// i.e., by removing the markers and leaving the associated text
+					// parse the initial marker
+					itemLen = pDoc->ParseMarker(pOld);
+					pOld += itemLen;
+					// don't increment pNew here
+					itemLen = pDoc->ParseWhiteSpace(pOld);
+					pOld += itemLen;
+					// don't increment pNew here
+					// parse the associated text until we come to the end marker
+					while (pOld < pEnd && !pDoc->IsCorresEndMarker(wholeMarker, pOld, pEnd))
+					{
+						// just copy whatever we are pointing at and then advance
+						*pNew++ = *pOld++;
+					}
+					if (pOld < pEnd)
+					{
+						// we found a corresponding end marker to we need to parse it too
+						itemLen = pDoc->ParseMarker(pOld);
+						pOld += itemLen;
+						// don't increment pNew here
+
+						// parse remaining whitespace but preserve new lines
+						if (*pOld == _T('\n'))
+						{
+							// just copy the new line and then advance
+							*pNew++ = *pOld++;
+						}
+						else
+						{
+							itemLen = pDoc->ParseWhiteSpace(pOld);
+							pOld += itemLen;
+							// don't increment pNew here
+						}
+					}
+				}
+				else
+				{
+					// we are filtering both marker(s) and associated text
+					itemLen = ParseMarkerAndAnyAssociatedText(pOld, pBufStart, pEnd,
+										bareMarkerForLookup, wholeMarker, FALSE, FALSE);
+					// 1st FALSE above means don't consider this text to be RTF text
+					// 2nd FALSE above means don't include char format markers
+
+					pOld += itemLen; // advance pOld past marker and its associated text
+					// don't increment pNew for the skipped marker
+					// if after parsing the marker we're now pointing at a new line, preserve it
+
+					// parse any remaining white space but preserve new lines
+					// BEW 18Apr2011 -- just preserving newline means that the one and
+					// only space between the endmarker and the following text is also
+					// removed, and if there was not a space before the begin marker, this
+					// makes a bogus coalescence of two words - so we need to retain at
+					// least one space
+					if (*pOld == _T('\n') || *pOld == _T(' '))
+					{
+						// just copy the new line or one space and then advance over it
+						*pNew++ = *pOld++;
+					}
+					//else
+					// remove any additional spaces
+					if (*pOld == _T(' '))
+					{
+						itemLen = pDoc->ParseWhiteSpace(pOld);
+						pOld += itemLen;
+						// don't increment pNew here
+					}
+				}
+			}
+			else
+			{
+				// not filtering
+				// just copy whatever we are pointing at and then advance
+				*pNew++ = *pOld++;
+			}
+		}
+		else
+		{
+			// it's not a marker but text
+			// just copy whatever we are pointing at and then advance
+			*pNew++ = *pOld++;
+		}
+	}
+	*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+
+	textStr2.UngetWriteBuf();
+	return textStr2;
+}
+
 
 // whm added the following to eliminate problems in some legacy functions. The exact format
 // that results of the sfm file should be nearly identical to that produced by the legacy
