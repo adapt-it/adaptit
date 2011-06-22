@@ -8062,10 +8062,9 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxString *strs16 = (wxString*) NULL;
-    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(380,200), 0, strs16, wxLB_SINGLE );
+    wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,200), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
     item16->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
-    item14->Add( item16, 1, wxGROW|wxALL, 5 );
+    item14->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item10->Add( item14, 1, wxGROW|wxALL, 0 );
 
