@@ -20073,10 +20073,11 @@ bool CAdapt_ItApp::IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks)
 /// \return     nothing
 /// \param      pList   <- an array string list that gets filled with project names.
 /// \remarks
-/// Called from: COpenExistingProjectDlg::InitDialog(), and CProjectPage::InitDialog().
+/// Called from: COpenExistingProjectDlg::InitDialog(), and CProjectPage::InitDialog(),
+/// and CAdapt_ItApp::GetEthnologueLangCodePairsForAIProjects().
 /// Gets a list of possible Adapt It projects located on the m_workFolderPath.
-/// BEW modified 9Sep09, so it can access projects or create a new project at a custom
-/// folder location
+/// BEW modified 9Sep09, so it can access projects (?? or create a new project at a custom
+/// folder location ?? surely it can't do that -- BEW 22Jun11)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 {
@@ -26661,6 +26662,143 @@ t:				m_pCurrBookNamePair = NULL;
 	gbNoGlossCaseEquivalents = FALSE; // default
 	if (m_glossLowerCaseChars.IsEmpty() && m_glossUpperCaseChars.IsEmpty())
 		gbNoGlossCaseEquivalents = TRUE; // restore this flag if user cleared source lists
+}
+
+// Gets the source language and target language ethnologue codes from the project
+// configuration file in the folder which is passed in as the absolute path to the project
+// (code taken and tweaked from GetProjectConfiguration(), GetConfigurationFile() and
+// GetProjectSettingsConfiguration() )
+// return TRUE if all went well, FALSE if there was an error along the way
+// Used in Paratext or Bibledit collaboration feature -- see GetSourceTextFromEditor.h & .cpp
+// BEW created 22Jun11
+bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
+																EthnologueCodePair* pCodePair)
+{
+	//bool bReturn = FALSE;
+	wxString configFName = szProjectConfiguration + _T(".aic");
+	//bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
+	wxString fname;
+	fname.Empty();
+	fname << configFName;
+	wxString path;
+	path.Empty();
+	path << projectFolderPath << PathSeparator << fname;
+	wxString data = _T("");
+	wxString name;
+	bool	bIsOK = TRUE;
+	bool	bSuccessful = FALSE;
+	wxString  strValue;
+	wxString dummy;
+	// make the working directory the "Adapt It Work" or "Adapt It Unicode Work" one
+	bIsOK = ::wxSetWorkingDirectory(projectFolderPath);
+	wxTextFile f;
+	// Under wxWidgets, wxTextFile actually reads the entire file into memory at the Open()
+    // call. It is set up so we can treat it as a line oriented text file while in memory,
+    // modifying it, then if not just reading it, we can write it back out to persistent
+	// storage with a single call to Write().
+	// open the config file for reading
+    // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+    // Note: Need to check if file exists, otherwise if Open fails wxWidgets' wxTextFile
+    // conjures up its own error message to that fact which it issues in Idle time just
+    // after it's no longer busy.
+	if (!bIsOK || !::wxFileExists(path))
+	{
+		bSuccessful = FALSE;
+	}
+	else
+	{
+#ifndef _UNICODE
+		// ANSI
+		bSuccessful = f.Open(path); // read ANSI file into memory
+#else
+		// UNICODE
+		bSuccessful = f.Open(path, wxConvUTF8); // read UNICODE file into memory
+#endif
+	}
+	if (!bSuccessful)
+	{
+		// don't give any error message, just return FALSE so that the attempt to match a
+		// project fails and AI will end up creating a new project for working with the
+		// collaboration data from PT or BE
+		return FALSE;
+	}
+	// We need to initialize the wxTextFile file pointer to the beginning of the file
+	// otherwise the GetNextLine() will fail
+	dummy = f.GetFirstLine();
+	// The entire basic config file is now in memory and we can read the information
+	// by scanning its virtual lines. Loop until we come to the first entry we want...
+	do {
+		data = f.GetNextLine();
+		GetValue(data, strValue, name);
+	} while (name != szSourceLanguageCode);
+	// we exit the loop at the line with label _T("SourceLanguageName"), the strValue has
+	// the first code that we want
+	pCodePair->srcLangCode = strValue;
+	// the next line has the target language code, get it
+	data = f.GetNextLine();
+	GetValue(data, strValue, name);
+	wxASSERT(name == szTargetLanguageCode);
+	pCodePair->tgtLangCode = strValue;
+	// the other two members of pCodePair (folderName and path to the folder - that is,
+	// folderName will be at the end of the folderPath string as well) are set in the caller
+	f.Close(); // closes the wxTextFile and frees memory used for it
+	return TRUE;
+}
+
+// Interrogate all the current work folder's project folders, to get the ethnologue
+// language code pairs from each one's project config file, returned an array of
+// EthnologueCodePair structs containing the gleaned information, the structs also return
+// the project's folder name and the absolute path to the project folder.
+// Calls: bool ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
+// EthnologueCodePair* pCodePair); see above
+// Return FALSE if there was an error preventing successful populating of the
+// pCodePairsArray, otherwise return TRUE.
+// We don't use the normal functions for dealing with configuration files, because they
+// would mess with application parameters currently in force, clobbering the integrity of
+// the running app.
+bool CAdapt_ItApp::GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCodePairsArray)
+{
+	wxString workPath;
+	// get the absolute path to "Adapt It Unicode Work" or "Adapt It Work" as the case may be
+	// NOTE: m_bLockedCustomWorkFolderPath == TRUE is included in the test deliberately,
+	// because without it, an (administrator) snooper might be tempted to access someone
+	// else's remote shared Adapt It project and set up a PT or BE collaboration on his
+	// behalf - we want to snip that possibility in the bud!! The snooper won't have this
+	// boolean set TRUE, and so he'll be locked in to only being to collaborate from
+	// what's on his own machine
+	workPath = SetWorkFolderPath_For_Collaboration();
+
+	// create an array to hold the set of project folder names
+	wxArrayString aiProjectNamesArray;
+	// populate the array
+	GetPossibleAdaptionProjects(&aiProjectNamesArray);
+	// In a loop, generate the path to each project folder, create an EthnologueCodePair
+	// struct on the heap, fill its path and folder name members, and call the
+	// ExtractEthnologueLangCodesFromProjConfigFile() function to get and store it's
+	// srcLangCode and tgtLangCode members
+	int count = aiProjectNamesArray.GetCount();
+	wxString projectFolderPath;
+	wxString folderName;
+	EthnologueCodePair* pCodePair = NULL;
+	bool bOK = TRUE;
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		folderName = aiProjectNamesArray.Item(index);
+		projectFolderPath = workPath + PathSeparator + folderName;
+		pCodePair = new EthnologueCodePair;
+		pCodePair->projectFolderName = folderName;
+		pCodePair->projectFolderPath = projectFolderPath;
+		bOK = ExtractEthnologueLangCodesFromProjConfigFile(projectFolderPath, pCodePair);
+		if (!bOK)
+		{
+			// bad luck, never mind, at least we tried
+			pCodePairsArray->Clear();
+			return FALSE;
+		}
+		pCodePairsArray->Add(pCodePair);
+	}
+	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

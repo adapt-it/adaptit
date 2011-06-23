@@ -6080,6 +6080,61 @@ char* strncpy_utf16(char* dest, char* src, size_t byteCount)
 	return dest;
 }
 
+wxString SetWorkFolderPath_For_Collaboration()
+{
+	wxString workPath;
+	// get the absolute path to "Adapt It Unicode Work" or "Adapt It Work" as the case may be
+	// NOTE: m_bLockedCustomWorkFolderPath == TRUE is included in the test deliberately,
+	// because without it, an (administrator) snooper might be tempted to access someone
+	// else's remote shared Adapt It project and set up a PT or BE collaboration on his
+	// behalf - we want to snip that possibility in the bud!! The snooper won't have this
+	// boolean set TRUE, and so he'll be locked in to only being to collaborate from
+	// what's on his own machine
+	if ((gpApp->m_customWorkFolderPath != gpApp->m_workFolderPath) && gpApp->m_bUseCustomWorkFolderPath
+		&& gpApp->m_bLockedCustomWorkFolderPath)
+	{
+		workPath = gpApp->m_customWorkFolderPath;
+	}
+	else
+	{
+		workPath = gpApp->m_workFolderPath;
+	}
+	return workPath;
+}
+
+// Note 1: in the next function, we don't attempt a match test with one of the codes in the
+// iso639-3 codes list, on the grounds that this function will be used for testing in a PT
+// or BE collaboration scenario, and if a code is invalid from one app or the other, the
+// matchup won't happen - so that matchup failure accomplishes the same protection as would
+// be accomplished by including here code to read in the file and check that the value of
+// 'code' plus a tab is found somewhere in the buffer. If we want a validity check for
+// other scenarios - then using code from LanguageCodesDlg.cpp's InitDialog() function
+// could be put in here to do the file input and subsequent code check.
+// Note 2: The iso639-3 list has only 3-letter codes. But IsEthnologueCodeValid() will
+// accept an older 2-letter code (like en for English) as valid too.
+bool IsEthnologueCodeValid(wxString& code)
+{
+	if (code.IsEmpty())
+		return FALSE;
+	int length = code.Len();
+	if (length < 2 || length > 3)
+		return FALSE;
+	wxChar aChar = _T('\0');
+	bool bIsAlphabetic = FALSE;
+	int index;
+	for (index = 0; index < length; index++)
+	{
+		aChar = code.GetChar(0);
+		bIsAlphabetic = IsAnsiLetter(aChar);
+		if (!bIsAlphabetic)
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		enum getNewFileState indicating success or error state when reading the
 ///             file.

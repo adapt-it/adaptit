@@ -70,17 +70,22 @@ protected:
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
 	bool PTProjectIsEditable(wxString projShortName);
-	bool PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, wxString& aiProjectFolder);
+	bool PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, 
+				wxString& aiProjectFolderName, wxString& aiProjectFolderPath);
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
-	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, wxArrayString& chapterList, wxArrayString& statusList);
+	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
+								wxArrayString& chapterList, wxArrayString& statusList);
 	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
-									wxString targetBookFullName,wxString& nonDraftedVerses);
+								wxString targetBookFullName,wxString& nonDraftedVerses);
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
 	void LoadBookNamesIntoList();
-	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,int& nUpperNumber);
+	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,
+								int& nUpperNumber);
 	wxString GetBareChFromLBChSelection(wxString lbChapterSelected);
+	EthnologueCodePair* MatchAIProjectUsingEthnologueCodes(wxString& editorSrcLangCode,
+								wxString& editorTgtLangCode);
 
 private:
 	CAdapt_ItApp* m_pApp;
