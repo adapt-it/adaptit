@@ -358,6 +358,15 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 //void ShowSPandPile(int atSequNum, int whereTis);
 //void ShowInvalidStripRange();
 
+// returns the absolute path to the folder being used as the Adapt It work folder, whether
+// in standard location or in a custom location - but for the custom location only
+// provided it is a "locked" custom location (if not locked, then the path to the standard
+// location is returned, i.e. m_workFolderPath, rather than m_customWorkFolderPath). The
+// "lock" condition ensures that a snooper can't set up a PT or BE collaboration and
+// the remote user not being aware of it.
+wxString SetWorkFolderPath_For_Collaboration();
+bool IsEthnologueCodeValid(wxString& code);
+
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp
 wxMemorySize MacGetFreeMemory(void);

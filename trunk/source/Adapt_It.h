@@ -461,6 +461,14 @@ struct PageOffsets
 	int nLastStrip; // 0-based index of the last strip to appear on the current page
 };
 
+// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
+struct EthnologueCodePair {
+	wxString srcLangCode;
+	wxString tgtLangCode;
+	wxString projectFolderName;
+	wxString projectFolderPath;
+};
+
 /// wxList declaration and partial implementation of the POList class being
 /// a list of pointers to PageOffsets objects
 WX_DECLARE_LIST(PageOffsets, POList); // see list definition macro in .cpp file
@@ -2917,6 +2925,13 @@ protected:
 #endif
 
 public:
+    // a helper in getting ethnologue language codes from an Adapt It project config file,
+    // for use in matching an AI project to a Paratext or Bibledit project pair;
+    // return TRUE if all went well, FALSE if there was an error along the way
+	bool	ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
+				EthnologueCodePair* pCodePair);
+	bool	GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCodePairsArray);
+
 #ifdef __WXDEBUG__
 	// a debugging helper to send contents of UsfmFilterMarkersStr to debug window
 	void	ShowFilterMarkers(int refNum); // refNum is any number I want to pass in, it is shown too

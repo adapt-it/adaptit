@@ -1098,8 +1098,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// PTProjectsExistAsAIProject() call below (aiMatchedProjectFolder will be an empty
 	// wxString if the call returns FALSE)
 	wxString aiMatchedProjectFolder;
+	wxString aiMatchedProjectFolderPath;
 	bPTCollaborationUsingExistingAIProject = PTProjectsExistAsAIProject(shortProjNameSrc, 
-							shortProjNameTgt, aiMatchedProjectFolder);
+						shortProjNameTgt, aiMatchedProjectFolder, aiMatchedProjectFolderPath);
 	if (bPTCollaborationUsingExistingAIProject)
 	{
 		// The Paratext projects selected for source text and target texts have an existing
@@ -1216,11 +1217,122 @@ bool CGetSourceTextFromEditorDlg::PTProjectIsEditable(wxString projShortName)
 		return FALSE;
 }
 
-bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjNameSrc, 
-									wxString shortProjNameTgt, wxString& aiProjectFolder)
+
+EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueCodes(
+							wxString& editorSrcLangCode, wxString& editorTgtLangCode)
 {
-	bool bIsAIProject = FALSE;
-	aiProjectFolder.Empty(); // BEW added 21Jun11
+    // Note, the editorSrcLangCode and editorTgtLangCode have already been checked for
+    // validity in the caller and passed the check, otherwise this function wouldn't be
+    // called
+	EthnologueCodePair* pPossibleProject = (EthnologueCodePair*)NULL;
+	EthnologueCodePair* pMatchedProject = (EthnologueCodePair*)NULL; // we'll return
+										// using this one after having set it below
+	wxArrayPtrVoid codePairs; // to hold an array of EthnologueCodePair struct pointers
+	bool bSuccessful = m_pApp->GetEthnologueLangCodePairsForAIProjects(&codePairs);
+	if (!bSuccessful || codePairs.IsEmpty())
+	{
+		// for either of the above conditions, the count of items in codePairs array will
+		// be zero, so no hheap instances of EthnologueCodePair have to be deleted here 
+		// first
+		return (EthnologueCodePair*)NULL;
+	}
+    // We now have an array of src & tgt ethnologue language code pairs, coupled with the
+    // name and path for the associated Adapt It project folder, for all project folders
+    // (the code pairs are read from each of the projects' AI-ProjectConfiguration.aic file
+    // within each project folder). However, some (legacy) projects may not have any such
+    // codes defined, and so would be returned as empty strings; and some codes may be
+    // invalid or guesses which are not right, etc - so we must do validation checks. We
+    // look for a unique matchup, no matchup or multiple matchups constitute a 'not
+    // successful' matchup attempt
+    wxArrayPtrVoid successfulMatches;
+	int count = codePairs.GetCount();
+	wxASSERT(count != 0);
+	wxString srcEthCode;
+	wxString tgtEthCode;
+	int counter = 0;
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		pPossibleProject = (EthnologueCodePair*)codePairs.Item(index);
+		srcEthCode = pPossibleProject->srcLangCode;
+		tgtEthCode = pPossibleProject->tgtLangCode;
+		if (!IsEthnologueCodeValid(srcEthCode) || !IsEthnologueCodeValid(tgtEthCode))
+		{
+			// no matchup is possible, iterate, and don't bump the counter value
+			continue;
+		}
+		else
+		{
+			// the codes are probably valid ones (if not, it's unlikely the ones coming
+			// from Paratext or Bibledit would be invalid and also be perfect string
+			// matches, so the odds of getting a false positive in the matchup test to be
+			// done in this block are close to zero) Count the positive matches, and store
+			// their EthnologueCodePair struct instances' pointers in an array
+			if (srcEthCode == editorSrcLangCode && tgtEthCode == editorTgtLangCode)
+			{
+				// we have a matchup with an existing Adapt It project folder for the
+				// language pairs being used in both AI and PT, or AI and BE
+				counter++; // count and continue iterating, because there may be more than one match
+				successfulMatches.Add(pPossibleProject);
+			}
+		}
+	} // end of for loop
+	if (counter != 1)
+	{
+		// oops, no matches, or too many matches, so we didn't succeed; delete the heap
+		// objects before returning
+		for (index = 0; index < count; index++)
+		{
+			pPossibleProject = (EthnologueCodePair*)codePairs.Item(index);
+			delete pPossibleProject;
+		}
+		return (EthnologueCodePair*)NULL;;
+	}
+	else
+	{
+		// Success! A unique matchup...
+        // make a copy of the successful EthnologueCodePair which is to be returned, then
+        // delete the original ones and return the successful one
+		pPossibleProject = (EthnologueCodePair*)successfulMatches.Item(0); // the one and only successful match
+		pMatchedProject = new EthnologueCodePair;
+		// copy the values to the new instance we are going to return to the caller
+		pMatchedProject->projectFolderName = pPossibleProject->projectFolderName;
+		pMatchedProject->projectFolderPath = pPossibleProject->projectFolderPath;
+		pMatchedProject->srcLangCode = pPossibleProject->srcLangCode;
+		pMatchedProject->tgtLangCode = pPossibleProject->tgtLangCode;
+		// delete the original ones that are in the codePairs array
+		for (index = 0; index < count; index++)
+		{
+			pPossibleProject = (EthnologueCodePair*)codePairs.Item(index);
+			delete pPossibleProject;
+		}
+	}
+	wxASSERT(pMatchedProject != NULL);
+	return pMatchedProject;
+}
+
+
+// Attempts to find a pre-existing Adapt It project that adapts between the same language
+// pair as is the case for the two Paratext or Bibledit project pairs which have been
+// selected for this current collaboration. It first tries to find a match by building the
+// "XXX to YYY adaptations" folder name using language names gleaned from the Paratext
+// project struct; failing that, and only provided all the required ethnologue codes
+// exist and are valid, it will try make the matchup by pairing the codes in Adapt It's projects with
+// those from the Paratext or Bibledit projects - but only provided there is only one such
+// matchup possible -- if there is any ambiguity, matchup is deemed to be
+// (programmatically) unreliable and so FALSE is returned - in which case Adapt It would
+// set up a brand new Adapt It project for handling the collaboration. The
+// aiProjectFolderName and aiProjectFolderPath parameters return the matched Adapt It
+// project folder's name and absolute path, and both are non-empty only when a valid match
+// has been obtained, otherwise they return empty strings. shortProjNameSrc and
+// shortProjNameTgt are input parameters - the short names for the Paratext or Bibledit
+// projects which are involved in this collaboration.
+bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjNameSrc, 
+									wxString shortProjNameTgt, wxString& aiProjectFolderName,
+									wxString& aiProjectFolderPath)
+{
+	aiProjectFolderName.Empty();
+	aiProjectFolderPath.Empty();
 
 	PT_Project_Info_Struct* pPTInfoSrc;
 	PT_Project_Info_Struct* pPTInfoTgt;
@@ -1234,13 +1346,23 @@ bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjN
 	wxASSERT(!srcLangStr.IsEmpty());
 	wxString tgtLangStr = pPTInfoTgt->languageName;
 	wxASSERT(!tgtLangStr.IsEmpty());
-	wxString projectFolder = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
+	wxString projectFolderName = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
 	
-	wxArrayString possibleAdaptions;
-	possibleAdaptions.Clear();
-	m_pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
+	wxString workPath;
+	// get the absolute path to "Adapt It Unicode Work" or "Adapt It Work" as the case may be
+	// NOTE: m_bLockedCustomWorkFolderPath == TRUE is included in the test deliberately,
+	// because without it, an (administrator) snooper might be tempted to access someone
+	// else's remote shared Adapt It project and set up a PT or BE collaboration on his
+	// behalf - we want to snip that possibility in the bud!! The snooper won't have this
+	// boolean set TRUE, and so he'll be locked in to only being to collaborate from
+	// what's on his own machine
+	workPath = SetWorkFolderPath_For_Collaboration();
+
+	wxArrayString possibleAIProjects;
+	possibleAIProjects.Clear();
+	m_pApp->GetPossibleAdaptionProjects(&possibleAIProjects);
 	int ct, tot;
-	tot = (int)possibleAdaptions.GetCount();
+	tot = (int)possibleAIProjects.GetCount();
 	if (tot == 0)
 	{
 		return FALSE;
@@ -1249,25 +1371,50 @@ bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjN
 	{
 		for (ct = 0; ct < tot; ct++)
 		{
-			wxString tempStr = possibleAdaptions.Item(ct);
-			if (projectFolder == tempStr)
+			wxString tempStr = possibleAIProjects.Item(ct);
+			if (projectFolderName == tempStr)
 			{
-				aiProjectFolder = projectFolder; // BEW added 21Jun11 
+				aiProjectFolderName = projectFolderName; // BEW added 21Jun11
+				aiProjectFolderPath = workPath + m_pApp->PathSeparator + projectFolderName;
 				return TRUE;
 			}
 		}
 	}
 
-	// BEW comment 21Jun11, checking for a match based on 2- or 3-letter ethnologue codes
+	// BEW added 22Jun11, checking for a match based on 2- or 3-letter ethnologue codes
 	// should also be attempted, if the language names don't match -- this will catch
 	// projects where the language name(s) may have a typo, or a local spelling different
 	// from the ethnologue standard name; checking for a names-based match first gives
 	// some protection in the case of similar dialects, but we'd want to treat matched
-	// source and target language codes as indicating a project match, I think. Yes?
-	
-	// *** TODO ***
-
-	return bIsAIProject;
+	// source and target language codes as indicating a project match, I think -- but only
+	// provided such a match is unique, if ambiguous (ie. two or more Adapt It projects
+	// have the same pair of ethnologue codes) then don't guess, instead return FALSE so
+	// that a new independent Adapt It project will get created instead
+	EthnologueCodePair* pMatchedCodePair = NULL;
+	wxString srcLangCode = pPTInfoSrc->ethnologueCode;
+	wxString tgtLangCode = pPTInfoTgt->ethnologueCode;
+	if (!IsEthnologueCodeValid(srcLangCode) || !IsEthnologueCodeValid(tgtLangCode))
+	{
+		return FALSE;
+	}
+	else
+	{
+		// both codes from the PT or BE projects are valid, so try for a match with an
+		// existing Adapt It project
+		pMatchedCodePair = MatchAIProjectUsingEthnologueCodes(srcLangCode, tgtLangCode);
+		if (pMatchedCodePair == NULL)
+		{
+			return FALSE;
+		}
+		else
+		{
+			// we have a successful match to an existing AI project
+			aiProjectFolderName = pMatchedCodePair->projectFolderName;
+			aiProjectFolderPath	= pMatchedCodePair->projectFolderPath;
+			delete pMatchedCodePair;
+		}
+	}
+	return TRUE;
 }
 
 bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
