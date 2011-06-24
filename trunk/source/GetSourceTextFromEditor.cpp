@@ -44,6 +44,10 @@
 #include <wx/listctrl.h>
 
 #include "Adapt_It.h"
+#include "Adapt_ItView.h"
+#include "Adapt_ItDoc.h"
+#include "Pile.h"
+#include "Layout.h"
 #include "helpers.h"
 #include "GetSourceTextFromEditor.h"
 
@@ -1184,16 +1188,51 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// chapter
 
 
-
+// *** TODO ***
 
 			} // end of TRUE block for test: if (::wxFileExists(docPath))
 			else
 			{
 				// it doesn't exist, so we have to tokenize the source text coming from PT
-				// or BE, create the document, save it and lay it out in the view window
+				// or BE, create the document, save it and lay it out in the view window...
+				CAdapt_ItView* pView = m_pApp->GetView();
+				wxASSERT(m_pApp->m_pSourcePhrases->IsEmpty());
+				// parse the input file
+				int nHowMany;
+				SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
+				// in the next call, 0 = initial sequ number value
+				nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0); 
+				// copy the pointers over to the app's m_pSourcePhrases list (the document)
+				if (nHowMany > 0)
+				{
+					SPList::Node* pos = pSourcePhrases->GetFirst();
+					while (pos != NULL)
+					{
+						CSourcePhrase* pSrcPhrase = pos->GetData();
+						m_pApp->m_pSourcePhrases->Append(pSrcPhrase);
+						pos = pos->GetNext();
+					}
+					// now clear the pointers from pSourcePhrases list, but leave their memory
+					// alone, and delete pSourcePhrases list itself
+					pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
+					delete pSourcePhrases;
+					// the single-chapter document is now ready for displaying in the view window
+				}
+				// get the nav text display updated, layout the document and place the
+				// phrase box
+				int unusedInt = 0;
+				TextType dummyType = verse;
+				bool bPropagationRequired = FALSE;
+				m_pApp->GetDocument()->DoMarkerHousekeeping(m_pApp->m_pSourcePhrases, unusedInt, 
+															dummyType, bPropagationRequired);
+				pView->Invalidate();
+				m_pApp->GetLayout()->PlaceBox();
 
 
-
+// *** TODO ***
+		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
+		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it 
+		//    doesn't already exist).
 
 
 			} // end of else block for test: if (::wxFileExists(docPath))
