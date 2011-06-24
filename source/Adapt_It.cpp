@@ -26674,9 +26674,7 @@ t:				m_pCurrBookNamePair = NULL;
 bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
 																EthnologueCodePair* pCodePair)
 {
-	//bool bReturn = FALSE;
 	wxString configFName = szProjectConfiguration + _T(".aic");
-	//bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
 	wxString fname;
 	fname.Empty();
 	fname << configFName;
