@@ -366,6 +366,9 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 // the remote user not being aware of it.
 wxString SetWorkFolderPath_For_Collaboration();
 bool IsEthnologueCodeValid(wxString& code);
+// the next function is created from OnWizardPageChanging() in Projectpage.cpp, and
+// tweaked so as to remove support for the latter's context of a wizard dialog
+bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxString* pProjectFolderPath);
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp

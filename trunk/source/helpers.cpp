@@ -37,7 +37,9 @@
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
+#include "MainFrm.h"
 #include "BString.h"
+#include "WaitDlg.h"
 #include "SplitDialog.h"
 #include "SourcePhrase.h"
 #include "ExportFunctions.h"
@@ -7391,4 +7393,158 @@ wxMemorySize MacGetFreeMemory()
 }
 
 #endif	/* __WXMAC__ */
+
+///////////////// Collaboration //////////////////
+
+// The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
+// tweaked so as to remove support for the latter's context of a wizard dialog; it should
+// be called only after an existing active project has been closed off. It will fail with
+// an assert tripped in the debug version if the app's m_pKB and/or m_pGlossingKB pointers
+// are not NULL on entry. 
+// It activates the AI project specified by the second parameter - the last bit of the
+// pProjectFolderPath has to be a folder with the name form "XXX to YYY adaptations"
+// without a following path separator, which is the standard name form for Adapt It project
+// folders, where XXX and YYY are source and target language names, respectively; and
+// pProjectName has to be that particular name itself. The pProjectFolderPath needs to have
+// been constructed in the caller having taken the possibility of custom or non-custom work
+// folder location into account, before the resulting correct path is passed in here.
+// 
+// Note: calling this function will reset m_curProjectName and m_curProjectPath and
+// m_curAdaptionsPath and m_sourceInputsFolderPath, and other version 6 folder's paths (app
+// variables) without making any checks related to what these variables may happen to be
+// pointing at; this is safe provided any previous active project has been closed.
+// Return TRUE if all went well, FALSE if the hookup was unsuccessful for any reason.
+// Called in OnOK() of GetSourceTextFromEditor.h and .cpp 
+bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxString* pProjectFolderPath)
+{
+	// First ensure the adapting KB isn't active. If it is, assert in the debug build, in the
+	// release build return FALSE without doing any changes to the current project
+	if (pApp->m_pKB != NULL)
+	{
+		// an English message will do here - it's a development error
+		wxMessageBox(_T("HookUpToExistingAIProject() failed. There is an adaptation KB still open."), _T("Error"), wxICON_ERROR);
+		wxASSERT(pApp->m_pKB == NULL);
+		return FALSE;
+	}
+	pApp->m_pKB = NULL;
+
+		wxASSERT(pApp->m_pGlossingKB == NULL);
+	// Ensure the glossing KB isn't active. If it is, assert in the debug build, in the
+	// release build return FALSE
+	if (pApp->m_pGlossingKB != NULL)
+	{
+		// an English message will do here - it's a development error
+		wxMessageBox(_T("HookUpToExistingAIProject() failed. There is a glossing KB still open."), _T("Error"), wxICON_ERROR);
+		wxASSERT(pApp->m_pGlossingKB == NULL);
+		return FALSE;
+	}
+	pApp->m_pGlossingKB = NULL;
+
+	// we are good to go, as far as KBs are concerned -- neither is loaded yet
+
+	// fill out the app's member variables for the paths etc.
+	pApp->m_curProjectName = *pProjectName;
+	pApp->m_curProjectPath = *pProjectFolderPath;
+	pApp->m_sourceInputsFolderPath = pApp->m_curProjectPath + pApp->PathSeparator + 
+									pApp->m_sourceInputsFolderName; 
+    // make sure the path to the Adaptations folder is correct
+	pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator 
+									+ pApp->m_adaptionsFolder;
+	gpApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
+	gpApp->SetupKBPathsEtc(); //  get the project's(adapting, and glossing) KB paths set
+
+	// when not using the wizard, we don't keep track of whether we are choosing an
+	// earlier project or not, nor what the folder was for the last document opened, since
+	// this function may be used to hook up to different projects at each call!
+	pApp->m_bEarlierProjectChosen = FALSE;
+	pApp->m_lastDocPath.Empty();
+
+	// open the two knowledge bases and load their contents;
+	pApp->m_pKB = new CKB(FALSE);
+	wxASSERT(pApp->m_pKB != NULL);
+	{ // this block defines the existence of the wait dialog for loading the regular KB
+	CWaitDlg waitDlg(pApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 8;	// 8 "Please wait while Adapt It loads the KB..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	bool bOK = pApp->LoadKB();
+	if (bOK)
+	{
+		pApp->m_bKBReady = TRUE;
+		pApp->LoadGuesser(pApp->m_pKB); // whm added 20Oct10
+
+		// now do it for the glossing KB
+		pApp->m_pGlossingKB = new CKB(TRUE);
+		wxASSERT(pApp->m_pGlossingKB != NULL);
+		bOK = pApp->LoadGlossingKB();
+		if (bOK)
+		{
+			pApp->m_bGlossingKBReady = TRUE;
+			pApp->LoadGuesser(pApp->m_pGlossingKB); // whm added 20Oct10
+		}
+		else
+		{
+			// failure to load the glossing KB is unlikely, an English message will
+			// suffice  & an assert in debug build, in release build also return FALSE
+			if (pApp->m_pKB != NULL)
+				delete pApp->m_pKB; // delete the adapting one we successfully loaded
+			pApp->m_bKBReady = FALSE;
+			wxMessageBox(_T("HookUpToExistingAIProject(): loading the glossing knowledge base failed"), _T("Error"), wxICON_ERROR);
+			wxASSERT(FALSE);
+			return FALSE;
+		}
+
+		// inform the user if KB backup is currently turned off
+		if (pApp->m_bAutoBackupKB)
+		{
+			// It should not be called when a project is first opened when no 
+			// changes have been made; and since on, no message is required
+			;
+		}
+		else
+		{
+			// show the message only if not a snooper
+			if ( (pApp->m_bUseCustomWorkFolderPath && pApp->m_bLockedCustomWorkFolderPath) 
+				|| !pApp->m_bUseCustomWorkFolderPath)
+			{
+				wxMessageBox(
+_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
+				_T(""), wxICON_INFORMATION);
+			}
+		}
+	}
+	else
+	{
+		// the load of the normal adaptation KB didn't work and the substitute empty KB 
+		// was not created successfully, so delete the adaptation CKB & advise the user 
+		// to Recreate the KB using the menu item for that purpose. Loading of the glossing
+		// KB will not have been attempted if we get here.
+		// This is unlikely to have happened, so a simple English message will suffice &
+		// and assert in the debug build, for release build return FALSE
+		if (pApp->m_pKB != NULL)
+			delete pApp->m_pKB;
+		pApp->m_bKBReady = FALSE;
+		pApp->m_pKB = (CKB*)NULL;
+		wxMessageBox(_T("HookUpToExistingAIProject(): loading the adapting knowledge base failed"), _T("Error"), wxICON_ERROR);
+		wxASSERT(FALSE);
+		return FALSE;
+	}
+	} // end of CWaitDlg scope, closing the progress dialog
+
+    // whm added 12Jun11. Ensure the inputs and outputs directories are created.
+    // SetupDirectories() normally takes care of this for a new project, but we also want
+    // existing projects created before version 6 to have these directories too.
+	wxString pathCreationErrors = _T("");
+	pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
+	// ignore dealing with any unlikely pathCreationErrors at this point
+	
+	return TRUE;
+}
+
+
+
+
 

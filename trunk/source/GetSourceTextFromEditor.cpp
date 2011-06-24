@@ -1106,7 +1106,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// The Paratext projects selected for source text and target texts have an existing
 		// AI project in the user's work folder, so we use that AI project.
 		// 
-		// TODO: 
+		// TODO:
+		// 0. [BEW added: 24Jun11] Check for an open collaboration chapter not yet sent 
+		//    back to PT or BE, and if there is one, do the export, any needed conflict
+		//    resolution, and closure of the collaboration for that chapter - the closure
+		//    should get AI back to a visibly empty view window, just like is the case if
+		//    a document is closed in non-collaboration mode.
 		// 1. Compose an appropriate document name to be used for the document that will
 		//    contain the chapter grabbed from the PT source project's book.
 		// 2. Check if a document by that name already exists in the local work folder..
@@ -1118,18 +1123,95 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    that we end up with the merged one's xml form saved to disk, and the resulting
 		//    document laid out in the main window.
 		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
-		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it doesn't
-		//    already exist).
-		// 6. Check if the chapter text received from the PT target project (now in the
-		//    targetChapterBuffer) has changed from its form in the AI document. If so
-		//    we need to merge the two documents calling up the Conflict Resolution Dialog
-		//    where needed.
+		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it 
+		//    doesn't already exist).
+        // 6. [BILL WROTE:] Check if the chapter text received from the PT target project
+        //    (now in the targetChapterBuffer) has changed from its form in the AI document.
+        //    If so we need to merge the two documents calling up the Conflict Resolution
+        //    Dialog where needed.
+		//    [BEW:] We can't do what Bill wants for 6. The PT text that we get may well
+		//    have been edited, and is different from what we'd get from an USFM export of
+		//    the AI doc's target text, but we can't in any useful way use a text-based 2
+		//    pane conflict resultion dialog for merging -- we don't have any way to merge a
+		//    USFM marked up plain text target language string back into the m_adaption
+		//    and m_targetStr members of the CSourcePhrase instances list from which it
+		//    was once generated. That's an interactive process we've not yet designed or
+		//    implemented, and may never do so. 
+        //    The conflict resolution dialog can only be used at the point that the user
+        //    has signed off on his interlinear edits (done via the AI phrase box) for the
+        //    whole chapter. It's then that the check of the new export of the target text
+        //    get's checked against whatever is the chapter's text currently in Paratext or
+        //    Bibledit - and at that point, any conflicts noted will have to be resolved on
+        //    a per-conflict basis, verse by verse, until all conflicts in the chapter have
+        //    been resolved - at which point the final versions of the verses are sent as
+        //    the single chapter back to the native PT or BE storage in the target PT or BE
+        //    project. 
+        //    The appropriate time that we should grab the PT or BE target project's
+        //    chapter should be as late as possible, just in case the user flips back to
+        //    the running PT or BE editor and changes the target text there some more
+        //    before flipping back to AI to have his work sent back to PT or BE, so that
+        //    there is some hope that what we grab from PT or BE may have been saved to the
+        //    repository before the chapter flows back from AI updated - failure to do the
+        //    mercurial commit would make the AI changes coming back look like a conflict
+        //    resolution to be resolved in PT or BE, and we would like to avoid that, but
+        //    can't do anything to prevent it if the user breaks the rules.
 		//    
 		//    TODO: implement the above here
-		wxString documentName;
-		// Note: we use a stardard Paratext naming for documents, but omit project short name(s)
-		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
-	}
+		
+		// first, get the project hooked up
+		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
+		wxASSERT(!aiMatchedProjectFolderPath.IsEmpty());
+		// do a wizard-less hookup to the matched project
+		bool bSucceeded = HookUpToExistingAIProject(m_pApp, &aiMatchedProjectFolder, 
+													&aiMatchedProjectFolderPath);
+		if (bSucceeded)
+		{
+			// the paths are all set and the adapting and glossing KBs are loaded
+			wxString documentName;
+			// Note: we use a stardard Paratext naming for documents, but omit 
+			// project short name(s)
+			documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
+							bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
+			// create the absolute path to the document we are checking for
+			wxString docPath = aiMatchedProjectFolderPath + m_pApp->PathSeparator
+				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator
+				+ documentName;
+			// check if it exists already
+			if (::wxFileExists(docPath))
+			{
+				// it exists, so we have to merge in the source text coming from PT or BE
+				// into the document we have already from an earlier collaboration on this
+				// chapter
+
+
+
+
+			} // end of TRUE block for test: if (::wxFileExists(docPath))
+			else
+			{
+				// it doesn't exist, so we have to tokenize the source text coming from PT
+				// or BE, create the document, save it and lay it out in the view window
+
+
+
+
+
+			} // end of else block for test: if (::wxFileExists(docPath))
+		} // end of TRUE block for test: if (bSucceeded)
+		else
+		{
+            // A very unexpected failure to hook up -- what should be done here? The KBs
+            // are unloaded, but the app is in limbo - paths are current for a project
+            // which didn't actually get set up, and so isn't actually current. But a
+            // message has been seen (albeit, one for developer only as we don't expect
+            // this error). I guess we just return from OnOK() and give a localizable 2nd
+            // message tell the user to take the Cancel option & retry
+			wxMessageBox(_(
+"Unexpected failure to hook up to the identified pre-existing Adapt It adaptation project.\nYou should Cancel from the current collaboration attempt, then perhaps try again."),
+			_T(""), wxICON_WARNING);
+			return;
+		}
+	} // end of TRUE block for test: if (bPTCollaborationUsingExistingAIProject)
 	else
 	{
 		// The Paratext project selected for source text and target texts do not yet exist
@@ -1181,9 +1263,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// 1. Create an AI project using the information from the PT structs, setting up
 		//    the necessary directories and the appropriately constructed project config 
 		//    file to disk.
-		// 2. We need to decide if we will be using book folder mode automatically for 
-		//    chapter sized documents of if we will dump them all in the "adaptations" 
-		//    folder. The user won't know the difference except if the administrator 
+		// 2. We need to decide if we will be using book folder mode automatically [ <- No!] 
+		//    for chapter sized documents of if we will dump them all in the "adaptations" 
+		//    folder [ <- Yes!]. The user won't know the difference except if the administrator 
 		//    decides at some future time to turn PT collaboration OFF. If we used the 
 		//    book folders during PT collaboration for chapter files, we would need to 
 		//    ensure that book folder mode stays turned on when PT collaboration was 
@@ -1198,7 +1280,24 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    the main window.
 		//    
 		//    TODO: implement the above here
-	}
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	}  // end of else block for test: if (bPTCollaborationUsingExistingAIProject)
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
