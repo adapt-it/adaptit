@@ -19468,9 +19468,8 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		{
 			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
 			
-			// take the pMergedList list, delete the app's m_pSourcePhrases list's contents,
-			// add to m_pSourcePhrases deep copies of the what is in pMergedList list,
-			// and do the stuff below
+            // take the pMergedList list, delete the app's m_pSourcePhrases list's
+            // contents, & move to m_pSourcePhrases the pointers in pMergedList...
  			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
 			while (posCur != NULL)
 			{
@@ -19480,19 +19479,19 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			}
 			// now clear the pointers from the list
 			pApp->m_pSourcePhrases->Clear();
-			
-			// retain pApp->m_pSourcePhrases itself, it's now empty ready for refilling
 			wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
 			SPList::Node* posnew = pMergedList->GetFirst();
 			while (posnew != NULL)
 			{
 				CSourcePhrase* pSrcPhrase = posnew->GetData();
 				posnew = posnew->GetNext();
-       			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
-				pDeepCopy->DeepCopy();
-				pApp->m_pSourcePhrases->Append(pDeepCopy);
+				pApp->m_pSourcePhrases->Append(pSrcPhrase); // ignore the Node* returned
 			}
-			// the deep copies have been appended to m_pSourcePhrases document list
+			// the pointers are now managed by the m_pSourcePhrases document list (and
+			// also by pMergedList, but we'll clear it now)
+			pMergedList->Clear(); // doesn't delete the pointers' memory because
+								  // DeleteContents(TRUE) was not called beforehand
+			delete pMergedList; // don't leak memory
 
             // after the above changes that result in the modifications to m_pSourcePhrases
             // being finished ... delete the temporary new list of CSourcePhrase instances
@@ -19507,36 +19506,6 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			}
 			pSourcePhrases->Clear();
 			delete pSourcePhrases; // don't leak memory
-
-			// ditto for the merged list returned from the MergeUpdatedSourceText() call
-			SPList::Node* posMergedList = pMergedList->GetFirst();
-//#define deleteDebug
-#ifdef deleteDebug
-#ifdef __WXDEBUG__
-			int count = pMergedList->GetCount();
-			int counter = 0;
-			while (posMergedList != NULL)
-			{
-				CSourcePhrase* pSrcPhrase = posMergedList->GetData();
-				counter++;
-				wxLogDebug(_T("OnImportEditedSourceText(): Deleting:  %s  for index: %d  of total of %d , pSrcPhrase = %x"),
-					pSrcPhrase->m_key, counter, count, (unsigned int)pSrcPhrase);
-				posMergedList = posMergedList->GetNext();
-				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
-																// as there are none anyway
-			}
-
-#endif
-#endif
-			while (posMergedList != NULL)
-			{
-				CSourcePhrase* pSrcPhrase = posMergedList->GetData();
-				posMergedList = posMergedList->GetNext();
-				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't delete partner piles, 
-																// as there are none anyway
-			}
-			pMergedList->Clear();
-			delete pMergedList; // don't leak memory
 
 			// get the nav text stuff updated
 			int unusedInt = 0;
