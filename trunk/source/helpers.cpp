@@ -1289,12 +1289,27 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 	return numStr;
 }
 
-wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return	a wxArrayString representing the usfm structure and extent (character count and MD5
+///                         checksum) of the input text buffer
+/// \param	fileBuffer -> a wxString buffer containing the usfm text to analyze
+/// \remarks
+/// Processes the fileBuffer text extracting an wxArrayString representing the 
+/// general usfm structure of the fileBuffer (usually the source or target file).
+/// whm Modified 5Jun11 to also include a unique MD5 checksum as an additional field so that
+/// the form of the representation would be \mkr:nnnn:MD5, where the \mkr field is a usfm
+/// marker (such as \p or \v 3); the second field nnnn is a character count of text 
+/// directly associated with the marker; and the third field MD5 is a 32 byte hex
+/// string, or 0 when no text is associated with the marker, i.e. the MD5 checksum is 
+/// used where there are text characters associated with a usfm marker; when the 
+/// character count is zero, the MD5 checksum is also 0 in such cases.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 {
-	// process the buffers extracting wxArrayStrings representing the general usfm structure
-	// from of the sourceFileBuffer (i.e., the source and/or target file buffers)
+	// process the buffer extracting an wxArrayString representing the general usfm structure
+	// from of the fileBuffer (i.e., the source and/or target file buffers)
 	// whm Modified 5Jun11 to also include a unique MD5 checksum as an additional field so that
-	// the form of the representation would be 1:1:nnnn:MD5, where the MD5 is a 32 byte hex
+	// the form of the representation would be \mkr:1:nnnn:MD5, where the MD5 is a 32 byte hex
 	// string. The MD5 checksum is used where there are text characters associated with a usfm
 	// marker; when the character count is zero, the MD5 checksum is also 0 in such cases.
 	// Here is an example of what a returned array might look like:
@@ -1362,14 +1377,14 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 	// checksums. Other markers, i.e., \c, \p, have 0 in the MD5 checksum field.
 	
 	wxArrayString UsfmStructureAndExtentArray;
-	const wxChar* pBuffer = sourceFileBuffer.GetData();
-	int nBufLen = sourceFileBuffer.Length();
+	const wxChar* pBuffer = fileBuffer.GetData();
+	int nBufLen = fileBuffer.Length();
 	int itemLen = 0;
 	wxChar* ptrSrc = (wxChar*)pBuffer;	// point to the first char (start) of the buffer text
 	wxChar* pEnd = ptrSrc + nBufLen;	// point to one char past the end of the buffer text
 	wxASSERT(*pEnd == '\0');
 
-	// Note: the wxConvUTF8 parameter of the caller's sourceFileBuffer constructor also
+	// Note: the wxConvUTF8 parameter of the caller's fileBuffer constructor also
 	// removes the initial BOM from the string when converting to a wxString
 	// but we'll check here to make sure and skip it if present. Curiously, the string's
 	// buffer after conversion also contains the FEFF UTF-16 BOM as its first char in the
@@ -1597,9 +1612,9 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer. 
 	// Thus the Total Count below doesn't include the beginning UTF-16 BOM character, which is also the length
-	// of the wxString buffer as reported in nBufLen by the sourceFileBuffer.Length() call.
+	// of the wxString buffer as reported in nBufLen by the fileBuffer.Length() call.
 	// Actual size on disk will be 2 characters larger than charCount's final value here because
-	// the file on disk will have the 3-char UTF8 BOM, and the sourceFileBuffer here has the 
+	// the file on disk will have the 3-char UTF8 BOM, and the fileBuffer here has the 
 	// 1-char UTF-16 BOM.
 	int utf16BomLen;
 	if (bufferHasUtf16BOM)
@@ -1611,7 +1626,199 @@ wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer)
 	return UsfmStructureAndExtentArray;
 }
 
+// Gets the initial Usfm marker from a string element of an array produced by 
+// GetUsfmStructureAndExtent(). Assumes the incoming str begins with a back
+// slash char and that a ':' delimits the end of the marker field
+wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str)
+{
+	wxASSERT(str.GetChar(0) == gSFescapechar);
+	int posColon = str.Find(_T(':'),FALSE);
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString tempStr = str.Mid(0,posColon);
+	return tempStr;
+}
 
+wxString GetFinalMD5FromStructExtentString(const wxString str)
+{
+	wxASSERT(str.GetChar(0) == gSFescapechar);
+	int posColon = str.Find(_T(':'),TRUE); // TRUE - find from right end
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString tempStr = str.Mid(posColon+1);
+	return tempStr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return	an enum value of one of the following: noDifferences, usfmOnlyDiffers, textOnlyDiffers,
+///     or usfmAndTextDiffer.
+/// \param	usfmText1	-> a structure and extent wxArrayString created by GetUsfmStructureAndExtent()
+/// \param	usfmText2	-> a second structure and extent wxArrayString created by GetUsfmStructureAndExtent()
+/// \remarks
+/// Compares the two incoming array strings and determines if they have no differences, or if only the 
+/// usfm structure differs (but text parts are the same), or if only the text parts differ (but the 
+/// usfm structure is the same), or if both the usfm structure and the text parts differ. The results of
+/// the comparison are returned to the caller via one of the CompareUsfmTexts enum values.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, const wxArrayString& usfmText2)
+{
+	int countText1 = (int)usfmText1.GetCount();
+	int countText2 = (int)usfmText2.GetCount();
+	bool bTextsHaveDifferentUSFMMarkers = FALSE;
+	bool bTextsHaveDifferentTextParts = FALSE;
+	if (countText2 == countText1)
+	{
+		// the two text arrays have the same number of lines, i.e. the same number of usfm markers
+		// so we can easily compare those markers in this case by scanning through each array
+		// line-by-line and compare their markers, and their MD5 checksums 
+		int ct;
+		for (ct = 0; ct < countText1; ct++)
+		{
+			wxString mkr1 = GetInitialUsfmMarkerFromStructExtentString(usfmText1.Item(ct));
+			wxString mkr2 = GetInitialUsfmMarkerFromStructExtentString(usfmText2.Item(ct));
+			if (mkr1 != mkr2)
+			{
+				bTextsHaveDifferentUSFMMarkers = TRUE;
+			}
+			wxString md5_1 = GetFinalMD5FromStructExtentString(usfmText1.Item(ct));
+			wxString md5_2 = GetFinalMD5FromStructExtentString(usfmText2.Item(ct));
+			if (md5_1 != md5_2)
+			{
+				bTextsHaveDifferentTextParts = TRUE;
+			}
+		}
+	}
+	else
+	{
+		// The array counts differ, which means that at least, the usfm structure 
+		// differs too since each line of the array is defined by the presence of a 
+		// usfm.
+		bTextsHaveDifferentUSFMMarkers = TRUE;
+		// But, what about the Scripture text itself? Although the usfm markers 
+		// differ at least in number, we need to see if the text itself differs 
+		// for those array lines which the two arrays share in common. For 
+		// Scripture texts the parts that are shared in common are represented 
+		// in the structure-and-extent arrays primarily as the lines with \v n 
+		// as their initial marker. We may want to also account for embedded verse
+		// markers such as \f footnotes, \fe endnotes, and other medial markers 
+		// that can occur within the sacred text. We'll focus first on the \v n
+		// lines, and posibly handle footnotes as they are encountered. The MD5
+		// checksum is the most important part to deal with, as comparing them
+		// across corresponding verses will tell us whether there has been a
+		// change in the text between the two versions.
+		
+		// Scan through the texts comparing the MD5 checksums of their \v n
+		// lines
+		int ct1 = 0;
+		int ct2 = 0;
+		// use a while loop here since we may be scanning and comparing different
+		// lines in the arrays - in this block the array counts differ.
+		wxString mkr1;
+		wxString mkr2;
+		while (ct1 < countText1 && ct2 < countText2)
+		{
+			mkr1 = _T("");
+			mkr2 = _T("");
+			if (GetNextVerseLine(usfmText1,ct1))
+			{
+				mkr1 = GetInitialUsfmMarkerFromStructExtentString(usfmText1.Item(ct1));
+				if (GetNextVerseLine(usfmText2,ct2))
+				{
+					mkr2 = GetInitialUsfmMarkerFromStructExtentString(usfmText2.Item(ct2));
+				}
+				if (!mkr2.IsEmpty())
+				{
+					// Check if we are looking at the same verse in both arrays
+					if (mkr1 == mkr2)
+					{
+						// The verse markers are the same - we are looking at the same verse
+						// in both arrays.
+						// Check the MD5 sums associated with the verses for any changes.
+						wxString md5_1 = GetFinalMD5FromStructExtentString(usfmText1.Item(ct1));
+						wxString md5_2 = GetFinalMD5FromStructExtentString(usfmText2.Item(ct2));
+						if (md5_1 == md5_2)
+						{
+							// the verses have not changed, leave the flag at its default of FALSE;
+							;
+						}
+						else
+						{
+							// there has been a change in the texts, so set the flag to TRUE
+							bTextsHaveDifferentTextParts = TRUE;
+						}
+					}
+					else
+					{
+						// the verse markers are different. Perhaps the user edited out a verse
+						// or combined the verses into a bridged verse.
+						// We have no way to deal with checking for text changes in making a 
+						// bridged verse so we will assume there were changes made in such cases.
+						bTextsHaveDifferentTextParts = TRUE;
+						break;
+						
+					}
+				}
+				else
+				{
+					// mkr2 is empty indicating we've prematurely reached the end of verses in
+					// usfmText2. This amounts to a change in both the text and usfm structure.
+					// We've set the flag for change in usfm structure above, so now we set the
+					// bTextsHaveDifferentTextParts flag and break out.
+					bTextsHaveDifferentTextParts = TRUE;
+					break;
+				}
+			}
+			if (mkr1.IsEmpty())
+			{
+				// We've reached the end of verses for usfmText1. It is possible that there 
+				// could be more lines with additional verse(s) in usfmText2 - as in the case 
+				// that a verse bridge was unbridged into individual verses. 
+				if (GetNextVerseLine(usfmText2,ct2))
+				{
+					mkr2 = GetInitialUsfmMarkerFromStructExtentString(usfmText2.Item(ct2));
+				}
+				if (!mkr2.IsEmpty())
+				{
+					// We have no way to deal with checking for text changes in un-making a 
+					// bridged verse so we will assume there were changes made in such cases.
+					bTextsHaveDifferentTextParts = TRUE;
+					break;
+				}
+			}
+			ct1++;
+			ct2++;
+		}
+	}
+
+	if (bTextsHaveDifferentUSFMMarkers && bTextsHaveDifferentTextParts)
+		return usfmAndTextDiffer;
+	if (bTextsHaveDifferentUSFMMarkers)
+		return usfmOnlyDiffers;
+	if (bTextsHaveDifferentTextParts)
+		return textOnlyDiffers;
+	// The only case left is that there are no differences
+	return noDifferences;
+}
+
+// Advances index until usfmText array at that index points to a \v n line.
+// If there are no more \v n lines, then the function returns FALSE. The
+// index is returned to the caller via the index reference parameter.
+bool GetNextVerseLine(const wxArrayString usfmText, int& index)
+{
+	int totLines = (int)usfmText.GetCount();
+	wxString line = usfmText.Item(index);
+	while (index < totLines)
+	{
+		wxString testingStr = usfmText.Item(index);
+		if (usfmText.Item(index).Find(_T("\\v")) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else
+		{
+			index++;
+		}
+	}
+	return FALSE;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with
