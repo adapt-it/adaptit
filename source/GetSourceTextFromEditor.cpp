@@ -729,6 +729,89 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	TargetTextUsfmStructureAndExtentArray.Clear();
 	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
 	
+	/* !!!! whm testing below !!!!
+	// =====================================================================================
+	int testNum;
+	int totTestNum = 4;
+	// get the constant baseline buffer from the test cases which are on my 
+	// local machine at: C:\Users\Bill Martin\Desktop\testing
+	//wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base1.SFM");
+	wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_shorter incl bridged.SFM");
+	wxASSERT(::wxFileExists(basePathAndName));
+	wxFile f_test_base(basePathAndName,wxFile::read);
+	wxFileOffset fileLenBase;
+	fileLenBase = f_test_base.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pBaseLineByteBuf = (char*)malloc(fileLenBase + 1);
+	memset(pBaseLineByteBuf,0,fileLenBase + 1); // fill with nulls
+	f_test_base.Read(pBaseLineByteBuf,fileLenBase);
+	wxASSERT(pBaseLineByteBuf[fileLenBase] == '\0'); // should end in NULL
+	f_test_base.Close();
+	wxString baseWholeBookBuffer = wxString(pBaseLineByteBuf,wxConvUTF8,fileLenBase);
+	free((void*)pBaseLineByteBuf);
+
+	wxArrayString baseLineArray;
+	baseLineArray = GetUsfmStructureAndExtent(baseWholeBookBuffer);
+
+	wxString testPathAndName[7] = {
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_longer no bridged.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test5_change_usfm_text_and_length incl bridged.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test5_change_usfm_text_and_length.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test2_change_text_only.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test1_change_usfm_only.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test3_change_both_usfm_and_text.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test4_no_changes.SFM")
+					};
+	for (testNum = 0; testNum < totTestNum; testNum++)
+	{
+		wxASSERT(::wxFileExists(testPathAndName[testNum]));
+		wxFile f_test_tgt(testPathAndName[testNum],wxFile::read);
+		wxFileOffset fileLenTest;
+		fileLenTest = f_test_tgt.Length();
+		// read the raw byte data into pByteBuf (char buffer on the heap)
+		char* pTestByteBuf = (char*)malloc(fileLenTest + 1);
+		memset(pTestByteBuf,0,fileLenTest + 1); // fill with nulls
+		f_test_tgt.Read(pTestByteBuf,fileLenTest);
+		wxASSERT(pTestByteBuf[fileLenTest] == '\0'); // should end in NULL
+		f_test_tgt.Close();
+		wxString testWholeBookBuffer = wxString(pTestByteBuf,wxConvUTF8,fileLenTest);
+		// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
+		// in ANSI builds so this should work for both ANSI and Unicode data.
+		free((void*)pTestByteBuf);
+		
+		wxArrayString testLineArray;
+		testLineArray = GetUsfmStructureAndExtent(testWholeBookBuffer);
+		CompareUsfmTexts compUsfmTextType;
+		compUsfmTextType = CompareUsfmTextStructureAndExtent(baseLineArray, testLineArray);
+		switch (compUsfmTextType)
+		{
+			 
+		case noDifferences:
+			 {
+				wxLogDebug(_T("compUsfmTextType = noDifferences"));
+				break;
+			 }
+		case usfmOnlyDiffers:
+			{
+				wxLogDebug(_T("compUsfmTextType = usfmOnlyDiffers"));
+				break;
+			}
+		case textOnlyDiffers:
+			{
+				wxLogDebug(_T("compUsfmTextType = textOnlyDiffers"));
+				break;
+			}
+		case usfmAndTextDiffer:
+			{
+				wxLogDebug(_T("compUsfmTextType = usfmAndTextDiffer"));
+				break;
+			}
+		}
+	}
+	// =====================================================================================
+	// !!!! whm testing above !!!!
+	*/ 
+
 	// Note: The sourceWholeBookBuffer and targetWholeBookBuffer will not be completely empty even
 	// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
 	// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
