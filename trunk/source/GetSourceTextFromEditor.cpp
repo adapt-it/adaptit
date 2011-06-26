@@ -1358,7 +1358,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				m_pApp->GetDocument()->Modify(TRUE);
 
 				// try this too... (from DocPage.cpp line 839
-				//CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
+				CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
 				//pFrame->Raise();
 				//if (m_pApp->m_bZoomed)
 				//	pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
@@ -1367,8 +1367,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				//	pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
 				//				| wxFRAME_NO_WINDOW_MENU);
 
-// Nah, none of the above works as yet 
-
+				// Nah, none of the above works as yet 
+				
+				// whm added: In collaboration, we are probably bypassing some of the doc-view
+				// black box functions, so we should add a wxFrame::SetTitle() call as was done
+				// later in DocPage.cpp about line 966
+				pFrame->SetTitle(docTitle + typeName);
 
 				// get the nav text display updated, layout the document and place the
 				// phrase box
