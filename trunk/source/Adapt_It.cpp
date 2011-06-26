@@ -11004,12 +11004,14 @@ wxString CAdapt_ItApp::GetBibleditInstallDirPath()
 /// The incoming extStr can contain an initial dot or be just the extension itself; the 
 /// function puts the initial dot if it is not present in the incoming extStr. The bookCode and
 /// extStr are the two manditory parameters that cannot be empty strings.
+/// BEW 26Jun11, removed assert for non-empty extension, so that the function can also be
+/// used for easily generating a window Title string
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
 							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr)
 {
 	wxASSERT(!bookCode.IsEmpty());
-	wxASSERT(!extStr.IsEmpty());
+	//wxASSERT(!extStr.IsEmpty()); BEW removed 26Jun11
 	wxString nameStr;
 	nameStr.Empty();
 	if (!collabPrefix.IsEmpty())

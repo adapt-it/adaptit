@@ -44,6 +44,7 @@
 #include <wx/listctrl.h>
 
 #include "Adapt_It.h"
+#include "MainFrm.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "Pile.h"
@@ -52,6 +53,9 @@
 #include "GetSourceTextFromEditor.h"
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
+extern bool gbIsGlossing;
+extern bool gbGlossingUsesNavFont;
+extern int gnOldSequNum;
 
 // event handler table
 BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
@@ -1157,6 +1161,35 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// in ANSI builds so this should work for both ANSI and Unicode data.
 	free((void*)pTargetByteBuf);
 
+	// remove any initial UFT16 BOM (it's 0xFF 0xFE), but on a big-endian machine would be
+	// opposite order, so try both; only need do this for the Unicode build
+#ifdef _UNICODE
+	wxChar litEnd = (wxChar)0xFFFE; // even if I get the endian value reversed, since I try
+	wxChar bigEnd = (wxChar)0xFEFF; // both, it doesn't matter
+	//wxString utf16BOM_littleEndian = litEnd;
+	//wxString utf16BOM_bigEndian = litEnd;
+	int offset = sourceChapterBuffer.Find(litEnd);
+	if (offset == 0)
+	{
+		sourceChapterBuffer = sourceChapterBuffer.Mid(1);
+	}
+	offset = sourceChapterBuffer.Find(bigEnd);
+	if (offset == 0)
+	{
+		sourceChapterBuffer = sourceChapterBuffer.Mid(1);
+	}
+	offset = targetChapterBuffer.Find(litEnd);
+	if (offset == 0)
+	{
+		targetChapterBuffer = targetChapterBuffer.Mid(1);
+	}
+	offset = targetChapterBuffer.Find(bigEnd);
+	if (offset == 0)
+	{
+		targetChapterBuffer = targetChapterBuffer.Mid(1);
+	}
+#endif
+
 	SourceChapterUsfmStructureAndExtentArray.Clear();
 	SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
 	TargetChapterUsfmStructureAndExtentArray.Clear();
@@ -1257,12 +1290,19 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			wxString documentName;
 			// Note: we use a stardard Paratext naming for documents, but omit 
 			// project short name(s)
+			wxString docTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
+							bookCode, _T(""), bareChapterSelectedStr, _T(""));
 			documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
 							bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
 			// create the absolute path to the document we are checking for
 			wxString docPath = aiMatchedProjectFolderPath + m_pApp->PathSeparator
 				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator
 				+ documentName;
+			// set the member used for creating the document name for saving to disk
+			m_pApp->m_curOutputFilename = documentName;
+			// make the backup filename too
+			m_pApp->m_curOutputBackupFilename = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
+							bookCode, _T(""), bareChapterSelectedStr, _T(".BAK"));
 			// check if it exists already
 			if (::wxFileExists(docPath))
 			{
@@ -1308,8 +1348,72 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				bool bPropagationRequired = FALSE;
 				m_pApp->GetDocument()->DoMarkerHousekeeping(m_pApp->m_pSourcePhrases, unusedInt, 
 															dummyType, bPropagationRequired);
+				m_pApp->GetDocument()->GetUnknownMarkersFromDoc(m_pApp->gCurrentSfmSet, 
+										&m_pApp->m_unknownMarkers, 
+										&m_pApp->m_filterFlagsUnkMkrs, 
+										m_pApp->m_currentUnknownMarkersStr, 
+										useCurrentUnkMkrFilterStatus);
+
+				// calculate the layout in the view
+				CLayout* pLayout = m_pApp->GetLayout();
+				pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+							// UpdateTextHeights() and calls other relevant setters
+			#ifdef _NEW_LAYOUT
+				bool bIsOK = pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+			#else
+				bool bIsOK = pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+			#endif
+				if (!bIsOK)
+				{
+					// unlikely to fail, so just have something for the developer here
+					wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
+					_T(""), wxICON_STOP);
+					wxASSERT(FALSE);
+					wxExit();
+				}
+
+				// show the initial phraseBox - place it at the first empty target slot
+				m_pApp->m_pActivePile = pLayout->GetPile(0);
+				m_pApp->m_nActiveSequNum = 0;
+
+				// get the title bar, and output path set up right
+				//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
+				//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
+				wxString typeName = _T(" - Adapt It");
+				#ifdef _UNICODE
+				typeName += _T(" Unicode");
+				#endif
+				m_pApp->GetDocument()->SetFilename(m_pApp->m_curOutputPath, TRUE);
+				m_pApp->GetDocument()->SetTitle(docTitle + typeName);
+				//m_pApp->GetMainFrame()->Refresh();
+				//m_pApp->GetMainFrame()->Update();
+				
+				// mark document as modified
+				m_pApp->GetDocument()->Modify(TRUE);
+
+// TODO 
+
+
+
+
+
+				if (gbIsGlossing && gbGlossingUsesNavFont)
+				{
+					m_pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+				}
+				else
+				{
+					m_pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+				}
+
+				// set initial location of the targetBox
+				m_pApp->m_targetPhrase = pView->CopySourceKey(m_pApp->m_pActivePile->GetSrcPhrase(),FALSE);
+				// we must place the box at the first pile
+				m_pApp->m_pTargetBox->m_textColor = m_pApp->m_targetColor;
+				pView->PlacePhraseBox(m_pApp->m_pActivePile->GetCell(1));
 				pView->Invalidate();
-				m_pApp->GetLayout()->PlaceBox();
+				gnOldSequNum = -1; // no previous location exists yet
+
 
 
 // *** TODO ***
