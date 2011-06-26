@@ -1341,6 +1341,35 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					delete pSourcePhrases;
 					// the single-chapter document is now ready for displaying in the view window
 				}
+
+// TODO				// get the title bar, and output path set up right
+				//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
+				//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
+				wxString typeName = _T(" - Adapt It");
+				#ifdef _UNICODE
+				typeName += _T(" Unicode");
+				#endif
+				m_pApp->GetDocument()->SetFilename(m_pApp->m_curOutputPath, TRUE);
+				m_pApp->GetDocument()->SetTitle(docTitle + typeName);
+				//m_pApp->GetMainFrame()->Refresh();
+				//m_pApp->GetMainFrame()->Update();
+				
+				// mark document as modified
+				m_pApp->GetDocument()->Modify(TRUE);
+
+				// try this too... (from DocPage.cpp line 839
+				CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
+				pFrame->Raise();
+				if (m_pApp->m_bZoomed)
+					pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+								| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
+				else
+					pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+								| wxFRAME_NO_WINDOW_MENU);
+
+// Nah, none of the above works as yet 
+
+
 				// get the nav text display updated, layout the document and place the
 				// phrase box
 				int unusedInt = 0;
@@ -1375,26 +1404,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// show the initial phraseBox - place it at the first empty target slot
 				m_pApp->m_pActivePile = pLayout->GetPile(0);
 				m_pApp->m_nActiveSequNum = 0;
-
-				// get the title bar, and output path set up right
-				//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
-				//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
-				wxString typeName = _T(" - Adapt It");
-				#ifdef _UNICODE
-				typeName += _T(" Unicode");
-				#endif
-				m_pApp->GetDocument()->SetFilename(m_pApp->m_curOutputPath, TRUE);
-				m_pApp->GetDocument()->SetTitle(docTitle + typeName);
-				//m_pApp->GetMainFrame()->Refresh();
-				//m_pApp->GetMainFrame()->Update();
-				
-				// mark document as modified
-				m_pApp->GetDocument()->Modify(TRUE);
-
-// TODO 
-
-
-
 
 
 				if (gbIsGlossing && gbGlossingUsesNavFont)
