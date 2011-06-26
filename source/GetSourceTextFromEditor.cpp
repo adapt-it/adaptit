@@ -1358,14 +1358,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				m_pApp->GetDocument()->Modify(TRUE);
 
 				// try this too... (from DocPage.cpp line 839
-				CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
-				pFrame->Raise();
-				if (m_pApp->m_bZoomed)
-					pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
-								| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
-				else
-					pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
-								| wxFRAME_NO_WINDOW_MENU);
+				//CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
+				//pFrame->Raise();
+				//if (m_pApp->m_bZoomed)
+				//	pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+				//				| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
+				//else
+				//	pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+				//				| wxFRAME_NO_WINDOW_MENU);
 
 // Nah, none of the above works as yet 
 
