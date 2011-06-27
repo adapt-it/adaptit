@@ -7847,5 +7847,66 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	gnOldSequNum = -1; // no previous location exists yet
 }
 
+bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath, 
+					wxString&  folderName, wxString& pathCreationErrors, 
+					wxString& newSrc, wxString& fileTitle)
+{
+	// next bit of code taken from app's CreateInputsAndOutputsDirectories()
+	wxASSERT(!projectPath.IsEmpty());
+	bool bCreatedOK = TRUE;
+	if (!projectPath.IsEmpty())
+	{
+		pApp->m_sourceInputsFolderPath = projectPath + pApp->PathSeparator + folderName; 		
+		if (!::wxDirExists(pApp->m_sourceInputsFolderPath))
+		{
+			bool bOK = ::wxMkdir(pApp->m_sourceInputsFolderPath);
+			if (!bOK)
+			{
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += folderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += folderName;
+				}
+				bCreatedOK = FALSE;
+				wxBell(); // a bell will suffice
+				return bCreatedOK;
+			}
+		}
+	}
+	else
+	{
+		wxBell();
+		return FALSE; // path to the project is empty (we don't expect this
+			// so won't even bother to give a message, a bell will do
+	}
+	// create the path to the file
+	wxString filePath = pApp->m_sourceInputsFolderPath + pApp->PathSeparator + fileTitle + _T(".txt");
+	// an earlier version of the file may already be present, if so, just overwrite it
+	wxFFile ff;
+	bool bOK;
+	// NOTE: according to the wxWidgets documentation, both Unicode and non-Unicode builds
+	// should use char, and so the next line should be const char writemode[] = "w";, but
+	// in the Unicode build, this gives a compile error - wide characters are expected
+	const wxChar writemode[] = _T("w");
+	if (ff.Open(filePath, writemode))
+	{
+		// no error  when opening
+		ff.Write(newSrc, wxConvUTF8);
+
+
+		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
+	}
+	else
+	{
+		bCreatedOK = FALSE;
+	}
+	return bCreatedOK;
+}
+
 
 

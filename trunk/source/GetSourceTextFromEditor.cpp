@@ -1249,12 +1249,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// The Paratext projects selected for source text and target texts have an existing
 		// AI project in the user's work folder, so we use that AI project.
 		// 
-		// TODO:
-		// 0. [BEW added: 24Jun11] Check for an open collaboration chapter not yet sent 
-		//    back to PT or BE, and if there is one, do the export, any needed conflict
-		//    resolution, and closure of the collaboration for that chapter - the closure
-		//    should get AI back to a visibly empty view window, just like is the case if
-		//    a document is closed in non-collaboration mode.
 		// 1. Compose an appropriate document name to be used for the document that will
 		//    contain the chapter grabbed from the PT source project's book.
 		// 2. Check if a document by that name already exists in the local work folder..
@@ -1299,7 +1293,32 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         //    resolution to be resolved in PT or BE, and we would like to avoid that, but
         //    can't do anything to prevent it if the user breaks the rules.
 		//    
-		//    TODO: implement the above here
+		// 7. BEW added this note 27Ju11. We have to ALWAYS do a resursive merge of the
+		//    source text obtained from Paratext or Bibledit whenever there is an already
+		//    saved chapter document for that information stored in Adapt It. The reason
+		//    is as follows. Suppose we didn't, and then the following scenario happened.
+		//    The user declined to send the adapted data back to PT or BE; but while he
+		//    has the option to do so or not, our code unilaterally copies the input (new)
+		//    source text which lead to the AI document he claimed to save, to the
+		//    __SOURCE_INPUTS folder. So the source text in AI is not in sync with what
+		//    the source text in the (old) document in AI is. This then becomes a problem
+		//    if he later in AI re-gets that source text (unchanged) from PT or BE. If we tested it
+		//    for differences with what AI is storing for the source text, it would then detect no
+		//    differences - because he's not made any, and if we used the result of that test as grounds for not
+		//    bothering with a recursive merge of the source text to the document, then
+		//    the (old) document would get opened and it would NOT reflect any of the
+		//    changes which the user actually did at some earlier time to that source
+		//    text. We can't let this happen. So either we have to delay moving the new
+		//    source text to the __SOURCE_INPUTS folder until the user has actually saved
+		//    the document rebuilt by merger or the edited source text (which is difficult
+		//    to do and is a cumbersome design), or, and this is far better, we
+		//    unilaterally do a source text merger every time the source text is grabbed
+		//    from PT or BE -- then we can be sure any changes, no matter whether the user
+		//    saved the doc previously or not, will make it into the doc before it is
+		//    displayed in the view window. We therefore use the MD5 checksum tests only
+		//    for determining which message to show the user, but not also for determining
+		//    whether or not to merge source text to the current document when source has
+		//    just been grabbed from PT or BE.
 		
 		// first, get the project hooked up
 		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
@@ -1365,12 +1384,24 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// the single-chapter document is now ready for displaying in the view window
 				}
 				SetupLayoutAndView(m_pApp, docTitle);
-
-// *** TODO ***
-		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
-		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it 
-		//    doesn't already exist).
-
+				// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
+				//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it 
+				//    doesn't already exist). Note, the source text in sourceChapterBuffer
+				//    has had its initial BOM removed. We never store the BOM permanently.
+				//    Internally MoveNewSourceTexxtToSOURCE_INPUTS() will add .txt
+				//    extension to the docTitle string, to form the correct filename for saving
+				wxString pathCreationErrors;
+				bool bMovedOK = MoveNewSourceTextToSOURCE_INPUTS(m_pApp, aiMatchedProjectFolderPath, 
+										m_pApp->m_sourceInputsFolderName, pathCreationErrors, 
+										sourceChapterBuffer, docTitle);
+				// don't expect a failure in this, but if so, tell developer (English
+				// message is all that is needed)
+				if (!bMovedOK)
+				{
+					wxMessageBox(_T(
+"For the developer: MoveNewSourceTextToSOURCE_INPUTS() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move the new source text to a file in __SOURCE_INPUTS.\nThe new source data won't have been saved to disk there."),
+					_T(""), wxICON_WARNING);
+				}
 
 			} // end of else block for test: if (::wxFileExists(docPath))
 		} // end of TRUE block for test: if (bSucceeded)
