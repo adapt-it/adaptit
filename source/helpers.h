@@ -381,6 +381,11 @@ bool IsEthnologueCodeValid(wxString& code);
 // the next function is created from OnWizardPageChanging() in Projectpage.cpp, and
 // tweaked so as to remove support for the latter's context of a wizard dialog
 bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxString* pProjectFolderPath);
+// a module for doing the layout and getting the view ready for the user to start
+// adapting;; it is not limited to being used in a Collaboration scenario
+void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
+
+
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp

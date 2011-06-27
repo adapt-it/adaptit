@@ -990,8 +990,6 @@ void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WX
 
 void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 {
-// TODO        Bill to add any needed un-initializations
-
 	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
@@ -1366,81 +1364,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					delete pSourcePhrases;
 					// the single-chapter document is now ready for displaying in the view window
 				}
-
-				// get the title bar, and output path set up right...
-				//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
-				//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
-				wxString typeName = _T(" - Adapt It");
-				#ifdef _UNICODE
-				typeName += _T(" Unicode");
-				#endif
-				m_pApp->GetDocument()->SetFilename(m_pApp->m_curOutputPath, TRUE);
-				m_pApp->GetDocument()->SetTitle(docTitle + typeName);
-				
-				// mark document as modified
-				m_pApp->GetDocument()->Modify(TRUE);
-
-				// try this too... (from DocPage.cpp line 839)
-				CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
-				// whm added: In collaboration, we are probably bypassing some of the doc-view
-				// black box functions, so we should add a wxFrame::SetTitle() call as was done
-				// later in DocPage.cpp about line 966
-				pFrame->SetTitle(docTitle + typeName);
-
-				// get the nav text display updated, layout the document and place the
-				// phrase box
-				int unusedInt = 0;
-				TextType dummyType = verse;
-				bool bPropagationRequired = FALSE;
-				m_pApp->GetDocument()->DoMarkerHousekeeping(m_pApp->m_pSourcePhrases, unusedInt, 
-															dummyType, bPropagationRequired);
-				m_pApp->GetDocument()->GetUnknownMarkersFromDoc(m_pApp->gCurrentSfmSet, 
-										&m_pApp->m_unknownMarkers, 
-										&m_pApp->m_filterFlagsUnkMkrs, 
-										m_pApp->m_currentUnknownMarkersStr, 
-										useCurrentUnkMkrFilterStatus);
-
-				// calculate the layout in the view
-				CLayout* pLayout = m_pApp->GetLayout();
-				pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
-							// UpdateTextHeights() and calls other relevant setters
-			#ifdef _NEW_LAYOUT
-				bool bIsOK = pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
-			#else
-				bool bIsOK = pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
-			#endif
-				if (!bIsOK)
-				{
-					// unlikely to fail, so just have something for the developer here
-					wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
-					_T(""), wxICON_STOP);
-					wxASSERT(FALSE);
-					wxExit();
-				}
-
-				// show the initial phraseBox - place it at the first empty target slot
-				m_pApp->m_pActivePile = pLayout->GetPile(0);
-				m_pApp->m_nActiveSequNum = 0;
-
-
-				if (gbIsGlossing && gbGlossingUsesNavFont)
-				{
-					m_pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
-				}
-				else
-				{
-					m_pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
-				}
-
-				// set initial location of the targetBox
-				m_pApp->m_targetPhrase = pView->CopySourceKey(m_pApp->m_pActivePile->GetSrcPhrase(),FALSE);
-				// we must place the box at the first pile
-				m_pApp->m_pTargetBox->m_textColor = m_pApp->m_targetColor;
-				pView->PlacePhraseBox(m_pApp->m_pActivePile->GetCell(1));
-				pView->Invalidate();
-				gnOldSequNum = -1; // no previous location exists yet
-
-
+				SetupLayoutAndView(m_pApp, docTitle);
 
 // *** TODO ***
 		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the

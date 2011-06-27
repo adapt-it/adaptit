@@ -18070,8 +18070,6 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 				bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
 			else
 				bReturn = GetConfigurationFile(szAdminProjectConfiguration,projectFolderPath,projectConfigFile);
-			// original code below
-			//bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
 		}
 		else
 		{
