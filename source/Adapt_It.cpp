@@ -11057,8 +11057,11 @@ wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxStri
 	}
 	else
 	{
-		nameStr += _T('.');
-		nameStr += extStr;
+		if (!extStr.IsEmpty()) // BEW added 27Jun11
+		{
+			nameStr += _T('.');
+			nameStr += extStr;
+		}
 	}
 	return nameStr;
 }
