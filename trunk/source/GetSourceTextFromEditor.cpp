@@ -63,6 +63,7 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_COMBOBOX(ID_COMBO_SOURCE_PT_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject)
 	EVT_COMBOBOX(ID_COMBO_DESTINATION_PT_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject)
 	EVT_BUTTON(wxID_OK, CGetSourceTextFromEditorDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CGetSourceTextFromEditorDlg::OnCancel)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
@@ -405,6 +406,15 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// selected book will now be selected. If a book is selected, the "Select a chapter" list
 		// will also be populated and, if any previously selected chaper will now again be 
 		// selected (from actions done within the OnLBBookSelected handler called above).
+		
+		// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
+		wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
+		if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
+		{
+			wxString message = _("Collaborating with ");
+			message += m_pApp->m_collaborationEditor;
+			pStatusBar->SetStatusText(message,0); // use first field 0
+		}
 	}
  }
 
@@ -978,6 +988,23 @@ void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WX
 	EndModal(wxID_OK);
 }
 
+void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
+{
+// TODO        Bill to add any needed un-initializations
+
+	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
+	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
+	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
+	{
+		wxString message;
+		message = message.Format(_("Collaborating with %s: getting source text was Cancelled"), 
+									m_pApp->m_collaborationEditor.c_str());
+		pStatusBar->SetStatusText(message,0); // use first field 0
+	}
+	event.Skip();
+}
+
+
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -1166,8 +1193,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 #ifdef _UNICODE
 	wxChar litEnd = (wxChar)0xFFFE; // even if I get the endian value reversed, since I try
 	wxChar bigEnd = (wxChar)0xFEFF; // both, it doesn't matter
-	//wxString utf16BOM_littleEndian = litEnd;
-	//wxString utf16BOM_bigEndian = litEnd;
 	int offset = sourceChapterBuffer.Find(litEnd);
 	if (offset == 0)
 	{
@@ -1342,7 +1367,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// the single-chapter document is now ready for displaying in the view window
 				}
 
-// TODO				// get the title bar, and output path set up right
+				// get the title bar, and output path set up right...
 				//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
 				//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
 				wxString typeName = _T(" - Adapt It");
@@ -1351,24 +1376,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				#endif
 				m_pApp->GetDocument()->SetFilename(m_pApp->m_curOutputPath, TRUE);
 				m_pApp->GetDocument()->SetTitle(docTitle + typeName);
-				//m_pApp->GetMainFrame()->Refresh();
-				//m_pApp->GetMainFrame()->Update();
 				
 				// mark document as modified
 				m_pApp->GetDocument()->Modify(TRUE);
 
-				// try this too... (from DocPage.cpp line 839
+				// try this too... (from DocPage.cpp line 839)
 				CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
-				//pFrame->Raise();
-				//if (m_pApp->m_bZoomed)
-				//	pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
-				//				| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
-				//else
-				//	pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
-				//				| wxFRAME_NO_WINDOW_MENU);
-
-				// Nah, none of the above works as yet 
-				
 				// whm added: In collaboration, we are probably bypassing some of the doc-view
 				// black box functions, so we should add a wxFrame::SetTitle() call as was done
 				// later in DocPage.cpp about line 966

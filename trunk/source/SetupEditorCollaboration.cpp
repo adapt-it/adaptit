@@ -45,6 +45,7 @@
 #include <wx/fileconf.h>
 
 #include "Adapt_It.h"
+#include "MainFrm.h"
 #include "Adapt_ItView.h"
 #include "SetupEditorCollaboration.h"
 #include "GetSourceTextFromEditor.h"
@@ -421,7 +422,14 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	// Wizard will appear.
 	m_pApp->m_bJustLaunched = TRUE;
 
-
+	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
+	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
+	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
+	{
+		wxString message = _("Collaborating with ");
+		message += m_pApp->m_collaborationEditor;
+		pStatusBar->SetStatusText(message,0); // use first field 0
+	}
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 

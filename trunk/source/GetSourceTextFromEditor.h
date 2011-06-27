@@ -62,6 +62,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event));
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
