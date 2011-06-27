@@ -68,7 +68,9 @@ const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
 
 extern bool gbIsGlossing;
+extern bool gbGlossingUsesNavFont;
 extern bool gbForceUTF8;
+extern int  gnOldSequNum;
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -7659,6 +7661,16 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 									+ pApp->m_adaptionsFolder;
 	gpApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
 	gpApp->SetupKBPathsEtc(); //  get the project's(adapting, and glossing) KB paths set
+	// get the colours from the project config file's settings just read in
+	wxColour sourceColor = pApp->m_sourceColor;
+	wxColour targetColor = pApp->m_targetColor;
+	wxColour navTextColor = gpApp->m_navTextColor;
+	// for debugging
+	//wxString navColorStr = navTextColor.GetAsString(wxC2S_CSS_SYNTAX);
+	// colourData items have to be kept in sync, to avoid crashes if Prefs opened
+	pApp->m_pSrcFontData->SetColour(sourceColor);
+	pApp->m_pTgtFontData->SetColour(targetColor);
+	pApp->m_pNavFontData->SetColour(navTextColor);
 
 	// when not using the wizard, we don't keep track of whether we are choosing an
 	// earlier project or not, nor what the folder was for the last document opened, since
@@ -7751,7 +7763,89 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 	return TRUE;
 }
 
+// SetupLayoutAndView()encapsulates the minimal actions needed after tokenizing
+// a string of source text and having identified the project and set up its paths and KBs,
+// for laying out the CSourcePhrase instances resulting from the tokenization, and
+// displaying the results in the view ready for adapting to take place. Phrase box is put
+// at sequence number 0. Returns nothing.
+// Called in GetSourceTextFromEditor.cpp. (It is not limited to use in collaboration
+// situations.)
+void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
+{
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
+	// get the title bar, and output path set up right...
+	//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
+	//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
+	wxString typeName = _T(" - Adapt It");
+	#ifdef _UNICODE
+	typeName += _T(" Unicode");
+	#endif
+	pDoc->SetFilename(pApp->m_curOutputPath, TRUE);
+	pDoc->SetTitle(docTitle + typeName); // do it also on the frame (see below)
+	
+	// mark document as modified
+	pDoc->Modify(TRUE);
+
+	// do this too... (from DocPage.cpp line 839)
+	CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
+	// whm added: In collaboration, we are probably bypassing some of the doc-view
+	// black box functions, so we should add a wxFrame::SetTitle() call as was done
+	// later in DocPage.cpp about line 966
+	pFrame->SetTitle(docTitle + typeName);
+
+	// get the nav text display updated, layout the document and place the
+	// phrase box
+	int unusedInt = 0;
+	TextType dummyType = verse;
+	bool bPropagationRequired = FALSE;
+	pApp->GetDocument()->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt, 
+												dummyType, bPropagationRequired);
+	pApp->GetDocument()->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet, 
+							&pApp->m_unknownMarkers, 
+							&pApp->m_filterFlagsUnkMkrs, 
+							pApp->m_currentUnknownMarkersStr, 
+							useCurrentUnkMkrFilterStatus);
+
+	// calculate the layout in the view
+	CLayout* pLayout = pApp->GetLayout();
+	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+				// UpdateTextHeights() and calls other relevant setters
+#ifdef _NEW_LAYOUT
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	if (!bIsOK)
+	{
+		// unlikely to fail, so just have something for the developer here
+		wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
+		_T(""), wxICON_STOP);
+		wxASSERT(FALSE);
+		wxExit();
+	}
+
+	// show the initial phraseBox - place it at the first empty target slot
+	pApp->m_pActivePile = pLayout->GetPile(0);
+	pApp->m_nActiveSequNum = 0;
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+	}
+
+	// set initial location of the targetBox
+	pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
+	// we must place the box at the first pile
+	pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+	pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+	pView->Invalidate();
+	gnOldSequNum = -1; // no previous location exists yet
+}
 
 
 
