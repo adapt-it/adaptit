@@ -27205,7 +27205,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 		bSuccessful = f.Write(wxTextFileType_None); // read ANSI file into memory
 #else
 		// UNICODE
-		bSuccessful = f.Write(wxTextFileType_None, wxConvUTF8); // read UNICODE file into memory
+		bSuccessful = f.Write(wxTextFileType_None, wxConvUTF8); // write UNICODE file to disk as UTF8
 #endif
 		bSuccessful = f.Close();
 	}

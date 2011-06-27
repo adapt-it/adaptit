@@ -384,7 +384,12 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 // a module for doing the layout and getting the view ready for the user to start
 // adapting;; it is not limited to being used in a Collaboration scenario
 void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
-
+// move the newSrc string of just-obtained (from PT or BE) source text, currently in the
+// .temp folder, to the __SOURCE_INPUTS folder, creating the latter folder if it doesn't
+// already exist, and storing in a file with filename constructed from fileTitle plus an
+// added .txt extension; if a file of that name already exists there, overwrite it.
+bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath, wxString&  folderName, 
+					wxString& pathCreationErrors, wxString& newSrc, wxString& fileTitle);
 
 
 #ifdef __WXMAC__
