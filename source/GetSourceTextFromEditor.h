@@ -89,6 +89,8 @@ protected:
 								wxString& editorTgtLangCode);
 
 private:
+	bool m_bTextOrPunctsChanged;
+	bool m_bUsfmStructureChanged;
 	CAdapt_ItApp* m_pApp;
 	// class attributes
 	// wxString m_stringVariable;

@@ -990,6 +990,12 @@ void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WX
 
 void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 {
+	pListBoxBookNames->SetSelection(-1); // remove any selection
+	// clear lists and static text box at bottom of dialog
+	pListBoxBookNames->Clear();
+	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+	pStaticTextCtrlNote->ChangeValue(_T(""));
+
 	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
@@ -1155,11 +1161,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// (2) just always do a merge using Bruce's routines in MergeUpdatedSrc.cpp, regardless of
 	// whether there has been a change in the source text or not. This may be the preferred 
 	// option for chapter-sized text documents.
+	// *** We need to always do (2), (1) is dangerous because the user may elect not to
+	// send adaptations back to PT, and that can get the saved source in __SOURCE_INPUTS
+	// out of sync with the source text in the CSourcePhrases of the doc as at an earlier state
 
 	// now read the tmp files into buffers in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn).
 	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
-	// UNICODE BOM of ef bb bf
+	// UNICODE BOM of ef bb bf (we store BOM-less data, but we convert to UTF-16 first,
+	// and remove the utf16 BOM, 0xFF 0xFE, before we store the utf-16 text later below)
 	wxFile f_src(sourceTempFileName,wxFile::read);
 	wxFileOffset fileLenSrc;
 	fileLenSrc = f_src.Length();
@@ -1223,14 +1233,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// At this point the structure of the source text is in SourceChapterUsfmStructureAndExtentArray.
 	// At this point the structure of the target text is in TargetChapterUsfmStructureAndExtentArray.
 	
-	// Now, determine if the PT source and PT target projects exist together as an existing AI project.
-	// If so we access that project and, if determine if an existing source text exists as an AI
-	// chapter document. If so, and if it differs from the incoming source text chapter, we quietly 
-	// merge the source texts using Bruce's import edited source text routine (no user intervention 
-	// occurs in this case). 
-	// We also compare any incoming target text with any existing target/adapted text in the existing 
-	// AI chapter document. If there are differences in the target documents, we will need to merge
-	// them, and show any conflicts to the user for resolution using the conflict resolution dialog.
+    // Now, determine if the PT source and PT target projects exist together as an existing
+    // AI project. If so we access that project and, if determine if an existing source
+    // text exists as an AI chapter document. If so, we quietly merge the source texts
+    // using Bruce's import edited source text routine (no user intervention occurs in this
+    // case).
+    // We also compare any incoming target text with any existing target/adapted text in
+    // the existing AI chapter document. If there are differences in the target documents,
+    // we cannot merge them, but instead, at the time of sending the target text back to PT
+    // or BE, show any conflicts to the user for resolution using the conflict resolution
+    // dialog.
 	// 
 	// If the PT source and PT target projects do not yet exist as an existing AI project, we create
 	// the project complete with project config file, empty KB, etc., using the information gleaned
@@ -1352,6 +1364,24 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// into the document we have already from an earlier collaboration on this
 				// chapter
 
+                // set the private booleans which tell us whether or not the Usfm structure
+                // has changed, and whether or not the text and/or puncts have changed. The
+                // auxilary functions for this are in helpers.cpp
+                // temporary...
+                wxString oldSrcText = GetTextFromFileInFolder(m_pApp, 
+											m_pApp->m_sourceInputsFolderPath, docTitle);
+				m_bTextOrPunctsChanged = IsTextOrPunctsChanged(oldSrcText, sourceChapterBuffer);
+				m_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, sourceChapterBuffer);
+
+
+
+
+
+
+
+
+
+
 
 // *** TODO ***
 
@@ -1384,16 +1414,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// the single-chapter document is now ready for displaying in the view window
 				}
 				SetupLayoutAndView(m_pApp, docTitle);
-				// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
-				//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it 
-				//    doesn't already exist). Note, the source text in sourceChapterBuffer
-				//    has had its initial BOM removed. We never store the BOM permanently.
-				//    Internally MoveNewSourceTexxtToSOURCE_INPUTS() will add .txt
-				//    extension to the docTitle string, to form the correct filename for saving
+                // 5. Copy the just-grabbed chapter source text from the .temp folder over
+                // to the Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS
+                // folder if it doesn't already exist). Note, the source text in
+                // sourceChapterBuffer has had its initial BOM removed. We never store the
+                // BOM permanently. Internally MoveTextToFolderAndSave() will add .txt
+                // extension to the docTitle string, to form the correct filename for
+				// saving. Since the AI project already exists, the
+				// m_sourceInputsFolderName member of the app class will point to an
+				// already created __SOURCE_INPUTS folder in the project folder.
 				wxString pathCreationErrors;
-				bool bMovedOK = MoveNewSourceTextToSOURCE_INPUTS(m_pApp, aiMatchedProjectFolderPath, 
-										m_pApp->m_sourceInputsFolderName, pathCreationErrors, 
-										sourceChapterBuffer, docTitle);
+				bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+										pathCreationErrors, sourceChapterBuffer, docTitle);
 				// don't expect a failure in this, but if so, tell developer (English
 				// message is all that is needed)
 				if (!bMovedOK)
@@ -2369,3 +2401,6 @@ wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChap
 
 	return chStr;
 }
+
+
+
