@@ -159,6 +159,8 @@ wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str);
 wxString GetFinalMD5FromStructExtentString(const wxString str);
 enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, const wxArrayString& usfmText2);
 bool GetNextVerseLine(const wxArrayString usfmText, int& index);
+bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText); // text is usually src
+bool IsUsfmStructureChanged(wxString& oldText, wxString& newText); // text is usually src
 
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
@@ -388,8 +390,9 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
 // .temp folder, to the __SOURCE_INPUTS folder, creating the latter folder if it doesn't
 // already exist, and storing in a file with filename constructed from fileTitle plus an
 // added .txt extension; if a file of that name already exists there, overwrite it.
-bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath, wxString&  folderName, 
-					wxString& pathCreationErrors, wxString& newSrc, wxString& fileTitle);
+bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
+				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle);
+wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 
 
 #ifdef __WXMAC__

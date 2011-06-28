@@ -1800,6 +1800,62 @@ enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usf
 	return noDifferences;
 }
 
+// Use the MD5 checksums approach to compare two text files for differences: the MD5
+// approach can detect differences in the usfm structure, or just in either punctuation or
+// words changes or both (it can't distinguish puncts changes from word changes). This
+// function checks for puncts and/or word changes only.
+// Return TRUE if there are such changes, FALSE if there are none of that kind
+bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText)
+{
+	wxArrayString oldArr;
+	wxArrayString newArr;
+	oldArr = GetUsfmStructureAndExtent(oldText);
+	newArr = GetUsfmStructureAndExtent(newText);
+	enum CompareUsfmTexts value = CompareUsfmTextStructureAndExtent(oldArr, newArr);
+	switch(value)
+	{
+	case noDifferences:
+		return FALSE;
+	case usfmOnlyDiffers:
+		return FALSE;
+	case textOnlyDiffers:
+		return TRUE;
+	case usfmAndTextDiffer:
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
+// Use the MD5 checksums approach to compare two text files for differences: the MD5
+// approach can detect differences in the usfm structure, or just in either punctuation or
+// words changes or both (it can't distinguish puncts changes from word changes). This
+// function checks for usfm changes only.
+// Return TRUE if there are such changes, FALSE if there are none of that kind
+bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
+{
+	wxArrayString oldArr;
+	wxArrayString newArr;
+	oldArr = GetUsfmStructureAndExtent(oldText);
+	newArr = GetUsfmStructureAndExtent(newText);
+	enum CompareUsfmTexts value = CompareUsfmTextStructureAndExtent(oldArr, newArr);
+	switch(value)
+	{
+	case noDifferences:
+		return FALSE;
+	case usfmOnlyDiffers:
+		return TRUE;
+	case textOnlyDiffers:
+		return FALSE;
+	case usfmAndTextDiffer:
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
+
+
 // Advances index until usfmText array at that index points to a \v n line.
 // If there are no more \v n lines, then the function returns FALSE. The
 // index is returned to the caller via the index reference parameter.
@@ -7847,30 +7903,37 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	gnOldSequNum = -1; // no previous location exists yet
 }
 
-bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath, 
-					wxString&  folderName, wxString& pathCreationErrors, 
-					wxString& newSrc, wxString& fileTitle)
+// Saves a wxString, theText, to a file with filename given by fileTitle with .txt added
+// internally, and saves the file in the folder with absolute path folderPath. Any creation
+// errors are passed back in pathCreationErrors. Return TRUE if all went well, else return
+// FALSE. This function can be used to store a text string in any of the set of folders
+// predefined for various kinds of storage in a version 6 or later project folder; and if
+// by chance the folder isn't already created, it will first create it before doing the
+// file save. For the Unicode app, the text is saved converted to UTF8 before saving, for
+// the Regular app, it is saved as a series of single bytes. (The function which goes the
+// other way is called GetTextFromFileInFolder().)
+bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
+				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle)
 {
 	// next bit of code taken from app's CreateInputsAndOutputsDirectories()
-	wxASSERT(!projectPath.IsEmpty());
+	wxASSERT(!folderPath.IsEmpty());
 	bool bCreatedOK = TRUE;
-	if (!projectPath.IsEmpty())
+	if (!folderPath.IsEmpty())
 	{
-		pApp->m_sourceInputsFolderPath = projectPath + pApp->PathSeparator + folderName; 		
-		if (!::wxDirExists(pApp->m_sourceInputsFolderPath))
+		if (!::wxDirExists(folderPath))
 		{
-			bool bOK = ::wxMkdir(pApp->m_sourceInputsFolderPath);
+			bool bOK = ::wxMkdir(folderPath);
 			if (!bOK)
 			{
 				if (!pathCreationErrors.IsEmpty())
 				{
 					pathCreationErrors += _T("\n   ");
-					pathCreationErrors += folderName;
+					pathCreationErrors += folderPath;
 				}
 				else
 				{
 					pathCreationErrors += _T("   ");
-					pathCreationErrors += folderName;
+					pathCreationErrors += folderPath;
 				}
 				bCreatedOK = FALSE;
 				wxBell(); // a bell will suffice
@@ -7885,7 +7948,7 @@ bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath,
 			// so won't even bother to give a message, a bell will do
 	}
 	// create the path to the file
-	wxString filePath = pApp->m_sourceInputsFolderPath + pApp->PathSeparator + fileTitle + _T(".txt");
+	wxString filePath = folderPath + pApp->PathSeparator + fileTitle + _T(".txt");
 	// an earlier version of the file may already be present, if so, just overwrite it
 	wxFFile ff;
 	bool bOK;
@@ -7896,9 +7959,7 @@ bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath,
 	if (ff.Open(filePath, writemode))
 	{
 		// no error  when opening
-		ff.Write(newSrc, wxConvUTF8);
-
-
+		ff.Write(theText, wxConvUTF8);
 		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
 	}
 	else
@@ -7906,6 +7967,45 @@ bool MoveNewSourceTextToSOURCE_INPUTS(CAdapt_ItApp* pApp, wxString& projectPath,
 		bCreatedOK = FALSE;
 	}
 	return bCreatedOK;
+}
+
+// Pass in a fileTitle, that is, filename without a dot or extension, (".txt will be added
+// internally) and it will look for a file of that name in a folder with absolute path
+// folderPath. The file (if using the Unicode app build) will expect the file's data to be
+// UTF8, and it will convert it to UTF16 - no check for UTF8 is done so don't use this on a
+// file which doesn't comply). It will return the UTF16 text if it finds such a file, or an
+// empty string if it cannot find the file or if it failed to open it's file -- in the
+// latter circumstance, since the file failing to be opened is extremely unlikely, we'll
+// not distinguish that error from the lack of a such a file being present.
+wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle)
+{
+	wxString fileName = fileTitle + _T(".txt");
+	wxASSERT(!folderPath.IsEmpty());
+	wxString filePath = folderPath + pApp->PathSeparator + fileName;
+	wxString theText; theText.Empty();
+	bool bFileExists = ::wxFileExists(filePath);
+	if (bFileExists)
+	{
+		wxFFile ff;
+		bool bOK;
+		if (ff.Open(filePath)) // default is read mode "r"
+		{
+			// no error when opening
+			bOK = ff.ReadAll(&theText, wxConvUTF8);
+			if (bOK)
+				ff.Close(); // ignore return value
+			else
+			{
+				theText.Empty();
+				return theText;
+			}
+		}
+		else
+		{
+			return theText;
+		}
+	}
+	return theText;
 }
 
 
