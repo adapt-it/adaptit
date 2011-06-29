@@ -11148,7 +11148,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	//#include <sys/name.h>
 
 	//int pid = 0;
-	char* name = "bibledit-gtk";
+	const char* name = "bibledit-gtk";
 
 	//if((pid = qnx_name_locate(0, name, 0, 0)) == -1)
 	//{
