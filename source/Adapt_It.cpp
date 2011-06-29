@@ -11143,8 +11143,8 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	//TODO: Check this implementation on Linux for Bibledit !!!
 	// The name of the Bibledit application in the Linux system is bibledit-gtk
 	
-	#include <errno.h>
-	#include <unistd.h>
+	//#include <errno.h>
+	#include <libbb.h>
 	//#include <sys/name.h>
 
 	//int pid = 0;
