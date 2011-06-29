@@ -10922,6 +10922,7 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 	// file which contains the vital information for AI project setup including
 	// <language>, <versification>, <editable>, <editor-font-default>, <editor-font-name>
 	// which is of the form Sans 14, <right-to-left>, etc.
+	// TODO: Bibledit implementation
 
 	return path;
 }
@@ -11137,8 +11138,49 @@ bool CAdapt_ItApp::ParatextIsRunning()
 bool CAdapt_ItApp::BibleditIsRunning()
 {
 	bool bIsRunning = FALSE;
-	//TODO: Implement this for Bibledit !!!
+#ifdef __WXGTK__ // only implemented on a Linux host system
+	
+	//TODO: Check this implementation on Linux for Bibledit !!!
+	// The name of the Bibledit application in the Linux system is bibledit-gtk
+	
+	#include <errno.h>
+	#include <sys/name.h>
 
+	int pid = 0;
+	char* name = "bibledit-gtk";
+
+	//if((pid = qnx_name_locate(0, name, 0, 0)) == -1)
+	//{
+	//	wxLogDebug("send %d: qnx_name_locate() failed: [%d] %s\n",
+	//			getpid(), errno, strerror(errno));
+	//	return FALSE;
+	//}
+	//else
+	//{
+	//	return pid != 0;
+	//}
+	
+	pid_t* pidList;
+
+	pidList = find_pid_by_name(name);
+	if (!pidList || *pidList <= 0) 
+	{
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
+
+#endif
+
+#ifdef __WXMAC__
+
+	// TODO: Check this implementation on Mac OS X for Bibledit !!!
+	// 
+	// TODO:
+
+#endif
 	return bIsRunning;
 }
 
@@ -16275,6 +16317,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//    BibleditIsInstalled() function. Currently it just returns FALSE
 	//    BibleditIsRunning() function. Currently it just returns FALSE
 	// on all platforms !!!
+	// 
+	// whm testing below !!!
+#ifdef __WXGTK__
+	if (BibleditIsRunning())
+	{
+		wxMessageBox(_T("Bibledit is running!"));
+	}
+	else
+	{
+		wxMessageBox(_T("Bibledit is not running!"));
+	}
+#endif
+	// whm testing above !!!
+	
 	if (!BibleditIsInstalled())
 	{
 		// Bibledit is not installed on this computer.
