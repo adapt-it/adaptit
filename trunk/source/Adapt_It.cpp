@@ -11144,9 +11144,10 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// The name of the Bibledit application in the Linux system is bibledit-gtk
 	
 	#include <errno.h>
-	#include <sys/name.h>
+	#include <unistd.h>
+	//#include <sys/name.h>
 
-	int pid = 0;
+	//int pid = 0;
 	char* name = "bibledit-gtk";
 
 	//if((pid = qnx_name_locate(0, name, 0, 0)) == -1)
