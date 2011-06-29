@@ -11144,7 +11144,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// The name of the Bibledit application in the Linux system is bibledit-gtk
 	
 	//#include <errno.h>
-	#include <libbb.h>
+	#include <sys/sysctl.h>
 	//#include <sys/name.h>
 
 	//int pid = 0;
@@ -11161,17 +11161,25 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	//	return pid != 0;
 	//}
 	
-	pid_t* pidList;
+	//pid_t* pidList;
 
-	pidList = find_pid_by_name(name);
-	if (!pidList || *pidList <= 0) 
-	{
+	//pidList = find_pid_by_name(name);
+	//if (!pidList || *pidList <= 0) 
+	//{
+	//	return FALSE;
+	//}
+	//else
+	//{
+	//	return TRUE;
+	//}
+
+	int pid = 0;
+	pid = getProcessId(name);
+	if (pid < 0)
 		return FALSE;
-	}
 	else
-	{
 		return TRUE;
-	}
+	
 
 #endif
 
