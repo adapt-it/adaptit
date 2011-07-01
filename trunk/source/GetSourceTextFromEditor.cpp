@@ -3,7 +3,7 @@
 /// \file			GetSourceTextFromEditorDlg.cpp
 /// \author			Bill Martin
 /// \date_created	10 April 2011
-/// \date_revised	10 April 2011
+/// \date_revised	30 June 2011
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CGetSourceTextFromEditorDlg class. 
@@ -60,8 +60,9 @@ extern int gnOldSequNum;
 // event handler table
 BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CGetSourceTextFromEditorDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
-	EVT_COMBOBOX(ID_COMBO_SOURCE_PT_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject)
-	EVT_COMBOBOX(ID_COMBO_DESTINATION_PT_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject)
+	EVT_COMBOBOX(ID_COMBO_SOURCE_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject)
+	EVT_COMBOBOX(ID_COMBO_DESTINATION_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject)
+	EVT_COMBOBOX(ID_COMBO_FREE_TRANS_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject)
 	EVT_BUTTON(wxID_OK, CGetSourceTextFromEditorDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CGetSourceTextFromEditorDlg::OnCancel)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
@@ -88,11 +89,14 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 	
-	pComboSourceProjectName = (wxComboBox*)FindWindowById(ID_COMBO_SOURCE_PT_PROJECT_NAME);
+	pComboSourceProjectName = (wxComboBox*)FindWindowById(ID_COMBO_SOURCE_PROJECT_NAME);
 	wxASSERT(pComboSourceProjectName != NULL);
 
-	pComboDestinationProjectName = (wxComboBox*)FindWindowById(ID_COMBO_DESTINATION_PT_PROJECT_NAME);
+	pComboDestinationProjectName = (wxComboBox*)FindWindowById(ID_COMBO_DESTINATION_PROJECT_NAME);
 	wxASSERT(pComboDestinationProjectName != NULL);
+
+	pComboFreeTransProjectName = (wxComboBox*)FindWindowById(ID_COMBO_FREE_TRANS_PROJECT_NAME);
+	wxASSERT(pComboFreeTransProjectName != NULL);
 
 	pRadioBoxWholeBookOrChapter = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
 	wxASSERT(pRadioBoxWholeBookOrChapter != NULL);
@@ -138,6 +142,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
+	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 
@@ -265,6 +270,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		bTwoOrMorePTProjectsInList = FALSE;
 	}
 
+	// populate the combo boxes with eligible projects
 	int ct;
 	for (ct = 0; ct < (int)projList.GetCount(); ct++)
 	{
@@ -277,6 +283,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		if (PTProjectIsEditable(projShortName))
 		{
 			pComboDestinationProjectName->Append(projList.Item(ct));
+			pComboFreeTransProjectName->Append(projList.Item(ct));
 		}
 	}
 	
@@ -318,6 +325,22 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 
+	bool bFreeTransProjFound = FALSE;
+	if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
+	{
+		nIndex = pComboFreeTransProjectName->FindString(m_TempCollabProjectForFreeTransExports);
+		if (nIndex == wxNOT_FOUND)
+		{
+			// did not find the PT project for target exports that was stored in the config file
+			bFreeTransProjFound = FALSE;
+		}
+		else
+		{
+			bFreeTransProjFound = TRUE;
+			pComboFreeTransProjectName->SetSelection(nIndex);
+		}
+	}
+	
 	if (!bTwoOrMorePTProjectsInList)
 	{
 		// This error is not likely to happen so use English message
@@ -453,6 +476,35 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEv
 	wxString selStr;
 	nSel = pComboDestinationProjectName->GetSelection();
 	m_TempCollabProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
+	// Any change in the selection with the destination/target project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
+	// Any change in the selection with the source project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	// select LastPTBookSelected 
+	if (!m_TempCollabBookSelected.IsEmpty())
+	{
+		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
+		if (nSel != wxNOT_FOUND)
+		{
+			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
+			pListBoxBookNames->SetSelection(nSel);
+			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
+			pListBoxBookNames->SetFocus(); 
+			wxCommandEvent evt;
+			OnLBBookSelected(evt);
+		}
+	}
+}
+
+void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event))
+{
+	int nSel;
+	wxString selStr;
+	nSel = pComboFreeTransProjectName->GetSelection();
+	m_TempCollabProjectForFreeTransExports = pComboFreeTransProjectName->GetString(nSel);
 	// Any change in the selection with the destination/target project combo box 
 	// requires that we compare the source and target project's books again, which we
 	// can do by calling the OnLBBookSelected() handler explicitly here.
@@ -1031,6 +1083,20 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
+	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
+	{
+		wxString msg, msg1;
+		msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
+		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
+		//msg = msg + _T("\n") + msg1;
+		wxMessageBox(msg);
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return; // don't accept any changes - abort the OnOK() handler
+	}
+
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
 	{
 		wxMessageBox(_("Please select a book from the list of books."),_T(""),wxICON_INFORMATION);
@@ -1048,6 +1114,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// save new project selection to the App's variables for writing to config file
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
+	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
 	wxString bareChapterSelectedStr;
@@ -1067,7 +1134,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	wxString shortProjNameSrc, shortProjNameTgt;
 	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForSourceInputs);
 	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForTargetExports);
-	
+	// whm Note: We don't import or merge a free translation text
+
 	// Get the latest version of the source and target texts from the PT project. We retrieve
 	// only texts for the selected chapter.
 	wxString tempFolder;
@@ -1101,7 +1169,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	if (resultSrc != 0 || resultTgt != 0)
 	{
 		// not likely to happen so an English warning will suffice
-		wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+		wxMessageBox(_T("Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
 		wxString temp;
 		temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
 		m_pApp->LogUserAction(temp);

@@ -3,7 +3,7 @@
 /// \file			GetSourceTextFromEditorDlg.h
 /// \author			Bill Martin
 /// \date_created	10 April 2011
-/// \date_revised	10 April 2011
+/// \date_revised	30 June 2011
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CGetSourceTextFromEditorDlg class. 
@@ -28,6 +28,7 @@ public:
 	// other methods
 	wxComboBox* pComboSourceProjectName;
 	wxComboBox* pComboDestinationProjectName;
+	wxComboBox* pComboFreeTransProjectName;
 	wxRadioBox* pRadioBoxWholeBookOrChapter;
 	wxListBox* pListBoxBookNames;
 	wxListView* pListCtrlChapterNumberAndStatus; // wxListBox* pListCtrlChapterNumberAndStatus;
@@ -39,6 +40,7 @@ public:
 
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
+	wxString m_TempCollabProjectForFreeTransExports;
 	wxString m_TempCollabBookSelected;
 	wxString m_TempCollabChapterSelected;
 	wxString m_bareChapterSelected;
@@ -65,6 +67,7 @@ protected:
 	void OnCancel(wxCommandEvent& event);
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event));
+	void OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event));
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));

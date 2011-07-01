@@ -1793,6 +1793,12 @@ retry:	bFileIsRenamed = FALSE;
 		theNewFilename = fileDlg.GetFilename();
 		if (theNewFilename != filename)
 		{
+			// whm added 27Jun11 check for attempt to rename a _Collab... file using the
+			// File | Save As function. Adapt It documents created under Collaboration with
+			// PT or BE should not be renamed, otherwise it may break the internal linkage
+			// of the PT/BE projects and their book files to a given set of AI docs.
+			// TODO:
+			
 			// check for illegal characters in the user's typed new filename (this code
 			// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
 			wxString fn = theNewFilename;
