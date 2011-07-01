@@ -5945,6 +5945,13 @@ wxString szCollabProjectForSourceInputs = _T("CollabProjectForSourceInputs");
 // m_CollabProjectForTargetExports member variable.
 wxString szCollabProjectForTargetExports = _T("CollabProjectForTargetExports");
 
+// whm added 30Jun11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
+// "CollabProjectForFreeTransExports". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_CollabProjectForFreeTransExports member variable.
+wxString szCollabProjectForFreeTransExports = _T("CollabProjectForFreeTransExports");
+
 // whm added 27Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
 // "CollabBookSelected". This value is written in the "Settings" part of the basic
@@ -12400,6 +12407,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_collaborationEditor = _T("");
 	m_CollabProjectForSourceInputs = _T("");
 	m_CollabProjectForTargetExports = _T("");
+	m_CollabProjectForFreeTransExports = _T("");
 	m_CollabBookSelected = _T("");
 	m_CollabChapterSelected = _T("");
 	m_ParatextInstallDirPath.Empty();
@@ -16303,6 +16311,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// reinstalled and the same projects are used.
 			bWriteOK = m_pConfig->Write(_T("pt_collab_src_proj"), m_CollabProjectForSourceInputs); // was m_PTProjectForSourceInputs, etc.
 			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_proj"), m_CollabProjectForTargetExports);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_free_trans_proj"), m_CollabProjectForFreeTransExports);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_book_selected"), m_CollabBookSelected);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_CollabChapterSelected);
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
@@ -16366,6 +16375,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// reinstalled and the same projects are used.
 			bWriteOK = m_pConfig->Write(_T("be_collab_src_proj"), m_CollabProjectForSourceInputs);
 			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_proj"), m_CollabProjectForTargetExports);
+			bWriteOK = m_pConfig->Write(_T("be_collab_free_trans_proj"), m_CollabProjectForFreeTransExports);
 			bWriteOK = m_pConfig->Write(_T("be_collab_book_selected"), m_CollabBookSelected);
 			bWriteOK = m_pConfig->Write(_T("be_collab_chapter_selected"), m_CollabChapterSelected);
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
@@ -23131,6 +23141,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szCollabProjectForFreeTransExports << tab << m_CollabProjectForFreeTransExports;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szCollabBookSelected << tab << m_CollabBookSelected;
 	pf->AddLine(data);
 
@@ -24480,6 +24494,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			m_CollabProjectForTargetExports = strValue;
 		}
+		else if (name == szCollabProjectForFreeTransExports) // whm added 30Jun11
+		{
+			m_CollabProjectForFreeTransExports = strValue;
+		}
 		else if (name == szCollabBookSelected)
 		{
 			m_CollabBookSelected = strValue;
@@ -25128,16 +25146,19 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bool bReadOK3 = FALSE;
 	bool bReadOK4 = FALSE;
 	bool bReadOK5 = FALSE;
+	bool bReadOK6 = FALSE;
 	bool bTempCollabFlag = FALSE;
 	wxString tempCollabProjForSrcInputs = _T("");
 	wxString tempCollabProjForTgtExports = _T("");
+	wxString tempCollabProjForFreeTransExports = _T("");
 	wxString tempCollabBookSelected = _T("");
 	wxString tempCollabChapterSelected = _T("");
 	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
 	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
 	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
-	bReadOK4 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
-	bReadOK5 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
+	bReadOK4 = m_pConfig->Read(_T("pt_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
+	bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
+	bReadOK6 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
 	{
 		m_bCollaboratingWithParatext = bTempCollabFlag;
@@ -25149,11 +25170,15 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		{
 			m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
 		}
-		if (bReadOK4 && tempCollabBookSelected != m_CollabBookSelected)
+		if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
+		{
+			m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
+		}
+		if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
 		{
 			m_CollabBookSelected = tempCollabBookSelected;
 		}
-		if (bReadOK5 && tempCollabChapterSelected != m_CollabChapterSelected)
+		if (bReadOK6 && tempCollabChapterSelected != m_CollabChapterSelected)
 		{
 			m_CollabChapterSelected = tempCollabChapterSelected;
 		}
@@ -25164,13 +25189,15 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// restart).
 	tempCollabProjForSrcInputs = _T("");
 	tempCollabProjForTgtExports = _T("");
+	tempCollabProjForFreeTransExports = _T("");
 	tempCollabBookSelected = _T("");
 	tempCollabChapterSelected = _T("");
 	bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
 	bReadOK2 = m_pConfig->Read(_T("be_collab_src_proj"), &tempCollabProjForSrcInputs);
 	bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
-	bReadOK4 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
-	bReadOK5 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
+	bReadOK4 = m_pConfig->Read(_T("be_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
+	bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
+	bReadOK6 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
 	{
 		m_bCollaboratingWithBibledit = bTempCollabFlag;
@@ -25182,11 +25209,15 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		{
 			m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
 		}
-		if (bReadOK4 && tempCollabBookSelected != m_CollabBookSelected)
+		if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
+		{
+			m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
+		}
+		if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
 		{
 			m_CollabBookSelected = tempCollabBookSelected;
 		}
-		if (bReadOK5 && tempCollabChapterSelected != m_CollabChapterSelected)
+		if (bReadOK6 && tempCollabChapterSelected != m_CollabChapterSelected)
 		{
 			m_CollabChapterSelected = tempCollabChapterSelected;
 		}
@@ -26800,14 +26831,24 @@ bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projec
 	do {
 		data = f.GetNextLine();
 		GetValue(data, strValue, name);
-	} while (name != szSourceLanguageCode);
+	} while (name != szSourceLanguageCode && !f.Eof()); // whm added !f.Eof() condition 30Jun11
 	// we exit the loop at the line with label _T("SourceLanguageName"), the strValue has
 	// the first code that we want
+	// whm modified 30Jun11. Older config files won't have the szSourceLanguageCode or 
+	// soTargetLanguageCode values, therefore we must test for f.Eof() in the do loop 
+	// above, and prevent the calling of f.GetNextLine() below if we are at Eof().
 	pCodePair->srcLangCode = strValue;
 	// the next line has the target language code, get it
-	data = f.GetNextLine();
-	GetValue(data, strValue, name);
-	wxASSERT(name == szTargetLanguageCode);
+	if (!f.Eof())
+	{
+		data = f.GetNextLine();
+		GetValue(data, strValue, name);
+		wxASSERT(name == szTargetLanguageCode);
+	}
+	else
+	{
+		strValue.Empty();
+	}
 	pCodePair->tgtLangCode = strValue;
 	// the other two members of pCodePair (folderName and path to the folder - that is,
 	// folderName will be at the end of the folderPath string as well) are set in the caller

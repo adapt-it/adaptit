@@ -3,7 +3,7 @@
 /// \file			SetupEditorCollaboration.h
 /// \author			Bill Martin
 /// \date_created	8 April 2011
-/// \date_revised	8 April 2011
+/// \date_revised	30 June 2011
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CSetupEditorCollaboration class. 
@@ -36,12 +36,14 @@ public:
 	bool m_projectSelectionMade;
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
+	wxString m_TempCollabProjectForFreeTransExports;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
+	void OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event));
 
 private:
 
@@ -51,11 +53,13 @@ private:
 	wxTextCtrl* pStaticTextCtrlImportantBottomNote;
 	wxTextCtrl* pStaticTextCtrlSelectedSourceProj;
 	wxTextCtrl* pStaticTextCtrlSelectedTargetProj;
+	wxTextCtrl* pStaticTextCtrlSelectedFreeTransProj;
 	wxStaticText* pStaticTextListOfProjects;
 	wxListBox* pListOfProjects;
 	wxRadioBox* pRadioBoxCollabOnOrOff;
 	wxButton* pBtnSelectFmListSourceProj;
 	wxButton* pBtnSelectFmListTargetProj;
+	wxButton* pBtnSelectFmListFreeTransProj;
 
 	// class attributes
 	// wxString m_stringVariable;

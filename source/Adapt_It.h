@@ -2621,6 +2621,7 @@ public:
 	wxString m_collaborationEditor;
 	wxString m_CollabProjectForSourceInputs;
 	wxString m_CollabProjectForTargetExports;
+	wxString m_CollabProjectForFreeTransExports;
 	wxString m_CollabBookSelected;
 	wxString m_CollabChapterSelected;
 

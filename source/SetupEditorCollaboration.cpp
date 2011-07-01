@@ -3,7 +3,7 @@
 /// \file			SetupEditorCollaboration.cpp
 /// \author			Bill Martin
 /// \date_created	8 April 2011
-/// \date_revised	8 April 2011
+/// \date_revised	30 June 2011
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CSetupEditorCollaboration class. 
@@ -55,6 +55,7 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_INIT_DIALOG(CSetupEditorCollaboration::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListSourceProj)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListTargetProj)
+	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj)
 	EVT_BUTTON(wxID_OK, CSetupEditorCollaboration::OnOK)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnDoSomething)
 	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnUpdateDoSomething)
@@ -104,10 +105,14 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pStaticTextCtrlSelectedTargetProj != NULL);
 	pStaticTextCtrlSelectedTargetProj->SetBackgroundColour(sysColorBtnFace);
 
-	pListOfProjects = (wxListBox*)FindWindowById(IDC_LIST_OF_PT_PROJECTS);
+	pStaticTextCtrlSelectedFreeTransProj = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_SELECTED_FREE_TRANS_PROJ);
+	wxASSERT(pStaticTextCtrlSelectedFreeTransProj != NULL);
+	pStaticTextCtrlSelectedFreeTransProj->SetBackgroundColour(sysColorBtnFace);
+
+	pListOfProjects = (wxListBox*)FindWindowById(IDC_LIST_OF_COLLAB_PROJECTS);
 	wxASSERT(pListOfProjects != NULL);
 
-	pRadioBoxCollabOnOrOff = (wxRadioBox*)FindWindowById(ID_RADIOBOX_PT_COLLABORATION_ON_OFF);
+	pRadioBoxCollabOnOrOff = (wxRadioBox*)FindWindowById(ID_RADIOBOX_COLLABORATION_ON_OFF);
 	wxASSERT(pRadioBoxCollabOnOrOff != NULL);
 
 	pBtnSelectFmListSourceProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ);
@@ -115,6 +120,9 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 
 	pBtnSelectFmListTargetProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ);
 	wxASSERT(pBtnSelectFmListTargetProj != NULL);
+
+	pBtnSelectFmListFreeTransProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ);
+	wxASSERT(pBtnSelectFmListFreeTransProj != NULL);
 
 
 	// other attribute initializations
@@ -133,6 +141,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_bTempCollaboratingWithParatext = m_pApp->m_bCollaboratingWithParatext;
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
+	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 
 	m_projectSelectionMade = FALSE;
 
@@ -190,6 +199,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	// fill in the "Use this project initially ..." read-only edit boxes
 	pStaticTextCtrlSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pStaticTextCtrlSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
+	pStaticTextCtrlSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
 }
 
 // event handling functions
@@ -288,6 +298,52 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	m_TempCollabProjectForTargetExports = userSelectionStr;
 }
 
+void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
+{
+	// Note: For free trans project, we must insure that the Paratext project is writeable
+	// TODO: remove from list any that are not writeable
+	
+	// use a temporary array list
+	wxArrayString tempListOfProjects;
+	tempListOfProjects.Add(_("[No Project Selected]"));
+	int ct;
+	int tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		// load the rest of the projects into the temp array list
+		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+	}
+	wxString msg;
+	msg = _("Choose a default project the user will see initially for free translation text exports");
+	wxSingleChoiceDialog ChooseProjectForFreeTransTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
+	// preselect the project that was last selected if any
+	int nPreselectedProjIndex = -1;
+	// check to see if one was previously selected in the temp array list
+	tot = (int)tempListOfProjects.GetCount();
+	for (ct = 0; ct < tot; ct++)
+	{
+		if (tempListOfProjects.Item(ct) == m_TempCollabProjectForFreeTransExports)
+		{
+			nPreselectedProjIndex = ct;
+			break;
+		}
+	}
+	if (nPreselectedProjIndex != -1)
+	{
+		ChooseProjectForFreeTransTextInputs.SetSelection(nPreselectedProjIndex);
+	}
+	int userSelectionInt;
+	wxString userSelectionStr;
+	if (ChooseProjectForFreeTransTextInputs.ShowModal() == wxID_OK)
+	{
+		userSelectionStr = ChooseProjectForFreeTransTextInputs.GetStringSelection();
+		userSelectionInt = ChooseProjectForFreeTransTextInputs.GetSelection();
+		m_projectSelectionMade = TRUE;
+	}
+	pStaticTextCtrlSelectedFreeTransProj->SetLabel(userSelectionStr);
+	m_TempCollabProjectForFreeTransExports = userSelectionStr;
+}
+
 //CSetupEditorCollaboration::OnUpdateDoSomething(wxUpdateUIEvent& event)
 //{
 //	if (SomeCondition == TRUE)
@@ -318,10 +374,21 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 	
+	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
+	{
+		wxString msg, msg1;
+		msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
+		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
+		//msg = msg + _T("\n") + msg1;
+		wxMessageBox(msg);
+		return; // don't accept any changes - abort the OnOK() handler
+	}
+	
 
 	// Set the App values for the PT projects to be used for PT collaboration
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
+	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
 
 	// Get the state of collaboration
 	int nSel;
@@ -375,6 +442,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collaboration"), m_pApp->m_bCollaboratingWithParatext);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_free_trans_proj"), m_pApp->m_CollabProjectForFreeTransExports);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_book_selected"), m_pApp->m_CollabBookSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
@@ -386,6 +454,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collaboration"), m_pApp->m_bCollaboratingWithBibledit);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
+		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_free_trans_proj"), m_pApp->m_CollabProjectForFreeTransExports);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_book_selected"), m_pApp->m_CollabBookSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
