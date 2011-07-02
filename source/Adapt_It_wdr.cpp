@@ -7943,7 +7943,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for getting &source texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Get &source texts from this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -7956,7 +7956,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     item15->SetToolTip( _("Click this button to select a default project to put in the box at left") );
     item11->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for receiving &translation texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Transfer &translation drafts to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -7969,7 +7969,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     item18->SetToolTip( _("Click this button to select a default project to put in the box at left") );
     item11->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Use this project initially for receiving f&ree translation texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Transfer &free translations to this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item11->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
