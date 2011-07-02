@@ -8008,5 +8008,51 @@ wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxStri
 	return theText;
 }
 
+// Pass in the absolute path to the file, which should be UTF-8. The function opens and
+// reads the file into a temporary byte buffer internally which is destroyed when the
+// function exits. Internally just before exit the byte buffer is used to create a UTF-16
+// text, converting the UTF-8 to UTF-16 in the process. In the Unicode build, if there is
+// an initial UTF8 byte order mark (BOM), it gets converted to the UTF-16 BOM. Code at the
+// end of the function then tests for the presence of the UTF-16 BOM, and removes it from
+// the wxString before the latter is returned to the caller by value The function is used,
+// so far, in GetSourceTextFromEditor.cpp, in the OnOK() function. Code initially created
+// by Bill Martin, BEW pulled it out into this utility function on 3Jul11, & adding the BOM
+// removal code.
+// Initially created for reading a chapter of text from a file containing the UTF-8 text,
+// but there is nothing which limits this function to just a chapter of data, nor does it
+// test for any USFM markup - it's generic.
+wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
+{
+	wxFile f_txt(absPath,wxFile::read);
+	wxFileOffset fileLenTxt;
+	fileLenTxt= f_txt.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pTextByteBuf = (char*)malloc(fileLenTxt + 1);
+	memset(pTextByteBuf,0,fileLenTxt + 1); // fill with nulls
+	f_txt.Read(pTextByteBuf,fileLenTxt);
+	wxASSERT(pTextByteBuf[fileLenTxt] == '\0'); // should end in NULL
+	f_txt.Close();
+	wxString textBuffer = wxString(pTextByteBuf,wxConvUTF8,fileLenTxt);
+	free((void*)pTextByteBuf);
+	// Now we have to check for textBuffer having an initial UTF-16 BOM, and if so, remove
+	// it. No such test nor removal is needed for an ANSI/ASCII build.
 
+	// remove any initial UFT16 BOM (it's 0xFF 0xFE), but on a big-endian machine would be
+	// opposite order, so try both
+#ifdef _UNICODE
+	wxChar litEnd = (wxChar)0xFFFE; // even if I get the endian value reversed, since I try
+	wxChar bigEnd = (wxChar)0xFEFF; // both, it doesn't matter
+	int offset = textBuffer.Find(litEnd);
+	if (offset == 0)
+	{
+		textBuffer = textBuffer.Mid(1);
+	}
+	offset = textBuffer.Find(bigEnd);
+	if (offset == 0)
+	{
+		textBuffer = textBuffer.Mid(1);
+	}
+#endif
+	return textBuffer;
+}
 

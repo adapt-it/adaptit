@@ -26904,6 +26904,13 @@ bool CAdapt_ItApp::GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCode
 		if (!bOK)
 		{
 			// bad luck, never mind, at least we tried
+			int count2 = pCodePairsArray->GetCount();
+			int index2;
+			for(index2 = 0; index2 < count2; index2++)
+			{
+				EthnologueCodePair* pCP = (EthnologueCodePair*)pCodePairsArray->Item(index2);
+				delete pCP;
+			}
 			pCodePairsArray->Clear();
 			return FALSE;
 		}

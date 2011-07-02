@@ -393,6 +393,7 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
 bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
 				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle);
 wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
+wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
 
 
 #ifdef __WXMAC__

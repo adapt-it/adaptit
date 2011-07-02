@@ -1072,7 +1072,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
 	{
 		wxString msg, msg1;
-		msg = _("The projects selected for getting source texts and receiving translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
+		msg = _("The projects selected for getting source texts from, and for transferring translation drafts to, cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving the translation drafts.");
 		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
 		//msg = msg + _T("\n") + msg1;
 		wxMessageBox(msg);
@@ -1086,7 +1086,21 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
 	{
 		wxString msg, msg1;
-		msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
+		msg = _("The projects selected for getting source texts from, and for transferring free translations to, cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translations.");
+		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
+		//msg = msg + _T("\n") + msg1;
+		wxMessageBox(msg);
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return; // don't accept any changes - abort the OnOK() handler
+	}
+
+	if (m_TempCollabProjectForTargetExports == m_TempCollabProjectForFreeTransExports && m_TempCollabProjectForFreeTransExports != _("[No Project Selected]"))
+	{
+		wxString msg, msg1;
+		msg = _("The projects selected for transferring the drafted translations to, and transferring the free translations to, cannot be the same.\nPlease select one project for receiving the translation drafts, and a different project for receiving free translations.");
 		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
 		//msg = msg + _T("\n") + msg1;
 		wxMessageBox(msg);
@@ -1134,7 +1148,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	wxString shortProjNameSrc, shortProjNameTgt;
 	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForSourceInputs);
 	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForTargetExports);
-	// whm Note: We don't import or merge a free translation text
+	// whm Note: We don't import or merge a free translation text; BEW added 4Jul11, but
+	// we do need to get it so as to be able to compare it later with any changes to the
+	// free translation (if, of course, there is one defined in the document) - so that
+	// the conflict resolution dialog can operate in this situation as it would for
+	// conflicts in the target text
 
 	// Get the latest version of the source and target texts from the PT project. We retrieve
 	// only texts for the selected chapter.
@@ -1238,58 +1256,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
 	// UNICODE BOM of ef bb bf (we store BOM-less data, but we convert to UTF-16 first,
 	// and remove the utf16 BOM, 0xFF 0xFE, before we store the utf-16 text later below)
-	wxFile f_src(sourceTempFileName,wxFile::read);
-	wxFileOffset fileLenSrc;
-	fileLenSrc = f_src.Length();
-	// read the raw byte data into pByteBuf (char buffer on the heap)
-	char* pSourceByteBuf = (char*)malloc(fileLenSrc + 1);
-	memset(pSourceByteBuf,0,fileLenSrc + 1); // fill with nulls
-	f_src.Read(pSourceByteBuf,fileLenSrc);
-	wxASSERT(pSourceByteBuf[fileLenSrc] == '\0'); // should end in NULL
-	f_src.Close();
-	sourceChapterBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
-	free((void*)pSourceByteBuf);
+	
+	// sourceTempFileName is actually an absolute path to the file, not just a name
+	// string, ditto for targetTempFileName
+	sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
+	targetChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName);
 
-	wxFile f_tgt(targetTempFileName,wxFile::read);
-	wxFileOffset fileLenTgt;
-	fileLenTgt = f_tgt.Length();
-	// read the raw byte data into pByteBuf (char buffer on the heap)
-	char* pTargetByteBuf = (char*)malloc(fileLenTgt + 1);
-	memset(pTargetByteBuf,0,fileLenTgt + 1); // fill with nulls
-	f_tgt.Read(pTargetByteBuf,fileLenTgt);
-	wxASSERT(pTargetByteBuf[fileLenTgt] == '\0'); // should end in NULL
-	f_tgt.Close();
-	targetChapterBuffer = wxString(pTargetByteBuf,wxConvUTF8,fileLenTgt);
-	// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
-	// in ANSI builds so this should work for both ANSI and Unicode data.
-	free((void*)pTargetByteBuf);
-
-	// remove any initial UFT16 BOM (it's 0xFF 0xFE), but on a big-endian machine would be
-	// opposite order, so try both; only need do this for the Unicode build
-#ifdef _UNICODE
-	wxChar litEnd = (wxChar)0xFFFE; // even if I get the endian value reversed, since I try
-	wxChar bigEnd = (wxChar)0xFEFF; // both, it doesn't matter
-	int offset = sourceChapterBuffer.Find(litEnd);
-	if (offset == 0)
-	{
-		sourceChapterBuffer = sourceChapterBuffer.Mid(1);
-	}
-	offset = sourceChapterBuffer.Find(bigEnd);
-	if (offset == 0)
-	{
-		sourceChapterBuffer = sourceChapterBuffer.Mid(1);
-	}
-	offset = targetChapterBuffer.Find(litEnd);
-	if (offset == 0)
-	{
-		targetChapterBuffer = targetChapterBuffer.Mid(1);
-	}
-	offset = targetChapterBuffer.Find(bigEnd);
-	if (offset == 0)
-	{
-		targetChapterBuffer = targetChapterBuffer.Mid(1);
-	}
-#endif
 
 	SourceChapterUsfmStructureAndExtentArray.Clear();
 	SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
@@ -1638,8 +1610,15 @@ EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueC
 	if (!bSuccessful || codePairs.IsEmpty())
 	{
 		// for either of the above conditions, the count of items in codePairs array will
-		// be zero, so no hheap instances of EthnologueCodePair have to be deleted here 
-		// first
+		// be zero, so no heap instances of EthnologueCodePair have to be deleted here 
+		// first -- but then again, safety lies in being conservative...
+		int count2 = codePairs.GetCount();
+		int index2;
+		for(index2 = 0; index2 < count2; index2++)
+		{
+			EthnologueCodePair* pCP = (EthnologueCodePair*)codePairs.Item(index2);
+			delete pCP;
+		}
 		return (EthnologueCodePair*)NULL;
 	}
     // We now have an array of src & tgt ethnologue language code pairs, coupled with the
@@ -1798,7 +1777,15 @@ bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjN
 	// that a new independent Adapt It project will get created instead
 	EthnologueCodePair* pMatchedCodePair = NULL;
 	wxString srcLangCode = pPTInfoSrc->ethnologueCode;
+	if (srcLangCode.IsEmpty())
+	{
+		return FALSE; 
+	}
 	wxString tgtLangCode = pPTInfoTgt->ethnologueCode;
+	if (tgtLangCode.IsEmpty())
+	{
+		return FALSE; 
+	}
 	if (!IsEthnologueCodeValid(srcLangCode) || !IsEthnologueCodeValid(tgtLangCode))
 	{
 		return FALSE;
