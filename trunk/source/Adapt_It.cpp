@@ -8433,7 +8433,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// collaboration is in effect. We modify the labels for Open... and Save... 
 	// on the File menu to include parenthetical explanations as follows:
 	// Open... (Get Source Text From Paratext) or Open... (Get Source Text From Bibledit)
-	// Save... (Transfer Translation To Paratext) or Save... (Transfer Translation To Bibledit)
+	// Save... (Transfer Translation Draft To Paratext) or Save... (Transfer Translation Draft To Bibledit)
 	// Note: We do not need conditional define here for Windows because 
 	// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit will
 	// only be TRUE on the platforms that host Paratext, i.e., Windows, or Bibledit,
@@ -8472,9 +8472,9 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			label = beforeTab;
 			label += _T(' ');
 			if (m_bCollaboratingWithParatext)
-				label += _("(Transfer Translation To Paratext)");
+				label += _("(Transfer Translation Draft To Paratext)");
 			else
-				label += _("(Transfer Translation To Bibledit)");
+				label += _("(Transfer Translation Draft To Bibledit)");
 			label += _T('\t');
 			label += afterTab;
 		}
@@ -8487,19 +8487,21 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	{
 		wxString label;
 		label = pAdministratorMenu->GetLabel(ID_SETUP_EDITOR_COLLABORATION);
-		wxASSERT(label.Find(_T("%s")) != wxNOT_FOUND);
-		if (m_bBibleditIsInstalled)
+		if (label.Find(_T("%s")) != wxNOT_FOUND)
 		{
-			label = label.Format(label,_T("Bibledit"));
-		}
-		else if (m_bParatextIsInstalled)
-		{
-			label = label.Format(label,_T("Paratext"));
-		}
-		else
-		{
-			// neither Paratext nor Bibledit is installed, so just put "Paratext" in the label
-			label = label.Format(label,_T("Paratext"));
+			if (m_bBibleditIsInstalled)
+			{
+				label = label.Format(label,_T("Bibledit"));
+			}
+			else if (m_bParatextIsInstalled)
+			{
+				label = label.Format(label,_T("Paratext"));
+			}
+			else
+			{
+				// neither Paratext nor Bibledit is installed, so just put "Paratext" in the label
+				label = label.Format(label,_T("Paratext"));
+			}
 		}
 		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 	}
