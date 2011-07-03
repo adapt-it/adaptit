@@ -467,6 +467,11 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		// Configure the menu interface for collaboration. The menu interface changes have
 		// to be done in such a way that they are compatible with the user profile changes to the
 		// user interface.
+		
+		// whm added 3Jul11 Need to call MakeMenuInitializationsAndPlatformAdjustments() here to 
+		// immediately append the parenthetical info to the File > Open... and Fiel > Save menu 
+		// labels.
+		m_pApp->MakeMenuInitializationsAndPlatformAdjustments();
 		// Some menu changes will override any user profile allowed menu items:
 		// 
 		// TODO: disable Book Folder Mode menu items
