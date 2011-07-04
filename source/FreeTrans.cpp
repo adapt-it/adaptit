@@ -271,6 +271,24 @@ bool CFreeTrans::IsFreeTransInArray(SPArray* pSPArray)
 	// didn't find the flag value TRUE anywhere, nor free trans text member non-empty
 	return FALSE;
 }
+// use this one only while we continue using SPList in the app, later I'll refactor to
+// only use SPArray, which is much easier to use
+bool CFreeTrans::IsFreeTransInList(SPList* pSPList)
+{
+	CSourcePhrase* pSrcPhrase = NULL;
+	SPList::Node* pos = pSPList->GetFirst();
+	while (pos != NULL)
+	{
+		pSrcPhrase = pos->GetData();
+		if (pSrcPhrase->m_bHasFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+		{
+			return TRUE;
+		}
+		pos = pos->GetNext();
+	}
+	// didn't find the flag value TRUE anywhere, nor free trans text member non-empty
+	return FALSE;
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing

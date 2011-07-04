@@ -2618,6 +2618,11 @@ public:
 	bool m_bParatextIsRunning;
 	bool m_bCollaboratingWithParatext;
 	bool m_bCollaboratingWithBibledit;
+	// BEW 2Jul11, added next three booleans
+	bool m_bCollaborationExpectsFreeTrans;
+	bool m_bCollaborationDocHasFreeTrans;
+	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be 
+												  // later restored in File / Close
 	wxString m_collaborationEditor;
 	wxString m_CollabProjectForSourceInputs;
 	wxString m_CollabProjectForTargetExports;

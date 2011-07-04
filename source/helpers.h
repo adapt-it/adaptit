@@ -394,7 +394,8 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle);
 wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
-
+bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
+					   bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp

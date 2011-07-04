@@ -2627,6 +2627,15 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		return;
 	}
 
+	// when collaborating on a doc is finished, restore the Copy Source flag value to what
+	// it was before it was automatically turned off
+	if (pApp->m_bSaveCopySourceFlag_For_Collaboration)
+	{
+		pApp->m_bCopySource = FALSE;
+		pApp->GetView()->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
+		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
+	}
+
 	// ensure no selection remains, in case the layout is destroyed later and the app
 	// tries to do a RemoveSelection() call on a non-existent layout
 	gpApp->GetView()->RemoveSelection();
