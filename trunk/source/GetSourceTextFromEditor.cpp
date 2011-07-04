@@ -1065,6 +1065,14 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
+// Note: because the user is not limited from changing to a different language in PT or
+// BE, the next "get" of source text might map to a different AI project, so closure of a
+// chapter-document or book-document must also unload the adapting and glossing KBs, and
+// set their m_pKB and m_pGlossingKB pointers to NULL. The appropriate places for this
+// would, I think, be in the handler for File / Close, and in the view's member function
+// ClobberDocument(). Each "get" of a chapter or book from the external editor should set
+// up the mapping to the appropriate AI project, if there is one, each time - and load the
+// KBs for it.
 void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event) 
 {
 	// Check that both drop down boxes have selections and that they do not
@@ -1512,9 +1520,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// into the document we have already from an earlier collaboration on this
 				// chapter
 				
-				// ensure there is no document currently open
-				pView->ClobberDocument();
-
                 // set the private booleans which tell us whether or not the Usfm structure
                 // has changed, and whether or not the text and/or puncts have changed. The
                 // auxilary functions for this are in helpers.cpp
