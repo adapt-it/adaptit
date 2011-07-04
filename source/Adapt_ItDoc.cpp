@@ -2636,6 +2636,20 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
 	}
 
+	// Remove KBs from the heap, when colloborating with an external editor
+	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
+	{
+		// closure of the collaboration document should clobber the KBs as well, just in
+		// case the user switches to a different language in PT for the next "get" - so we
+		// set up for each document making no assumptions about staying within a certain
+		// AI project each time - each setup is independent of what was setup last time
+		// (we always create and delete these as a pair, so one test would suffice)
+		if(pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
+		{
+			UnloadKBs(pApp); // also sets m_pKB and m_pGlossingKB each to NULL
+		}
+	}
+
 	// ensure no selection remains, in case the layout is destroyed later and the app
 	// tries to do a RemoveSelection() call on a non-existent layout
 	gpApp->GetView()->RemoveSelection();

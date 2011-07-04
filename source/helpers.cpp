@@ -7688,7 +7688,11 @@ wxMemorySize MacGetFreeMemory()
 // Called in OnOK() of GetSourceTextFromEditor.h and .cpp 
 bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxString* pProjectFolderPath)
 {
-	// First ensure the adapting KB isn't active. If it is, assert in the debug build, in the
+	// ensure there is no document currently open (it also calls UnloadKBs() & sets their
+	// pointers to NULL)
+	pApp->GetView()->ClobberDocument();
+	
+	// ensure the adapting KB isn't active. If it is, assert in the debug build, in the
 	// release build return FALSE without doing any changes to the current project
 	if (pApp->m_pKB != NULL)
 	{
@@ -8368,5 +8372,19 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	return TRUE;
 }
 
-
+void UnloadKBs(CAdapt_ItApp* pApp)
+{
+	if (pApp->m_pKB != NULL)
+	{
+		delete pApp->m_pKB;
+		pApp->m_bKBReady = FALSE;
+		pApp->m_pKB = (CKB*)NULL;
+	}
+	if (pApp->m_pGlossingKB != NULL)
+	{
+		delete pApp->m_pGlossingKB;
+		pApp->m_bGlossingKBReady = FALSE;
+		pApp->m_pGlossingKB = (CKB*)NULL;
+	}
+}
 
