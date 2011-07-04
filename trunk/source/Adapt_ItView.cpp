@@ -12536,6 +12536,15 @@ void CAdapt_ItView::ClobberDocument()
 	wxASSERT(pDoc != NULL);
 	CLayout* pLayout = GetLayout();
 
+	// when collaborating on a doc is finished, restore the Copy Source flag value to what
+	// it was before it was automatically turned off
+	if (pApp->m_bSaveCopySourceFlag_For_Collaboration)
+	{
+		pApp->m_bCopySource = FALSE;
+		pApp->GetView()->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
+		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
+	}
+
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
     // lists, because each document, on opening it, it must start with a truly empty
     // EditRecord; and on doc closure and app closure, it likewise must be cleaned out
@@ -19375,7 +19384,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItView* pView = pApp->GetView();
 
 	// choose a spanlimit int value, (a restricted range of CSourcePhrase instances), use
-	// the AdaptitConstant.h value SPAN_LIMIT, set currently to 50. This should be large
+	// the AdaptitConstant.h value SPAN_LIMIT, set currently to 60. This should be large
 	// enough to guarantee some "in common" text which wasn't user-edited, within a span
 	// of that size.
 	int nSpanLimit = SPAN_LIMIT;	
@@ -19407,20 +19416,6 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 
 	wxString pathName;
 	pathName = fileDlg.GetPath(); // gets directory and filename
-
-	/*
-	wxFile f;
-	//wxLogNull logno; // prevent unwanted system messages
-	// (until wxLogNull goes out of scope, ALL log messages are suppressed - be warned)
-
-	if( !f.Open( pathName, wxFile::read))
-	{
-		wxMessageBox(_("Unable to open edited source text file for opening and importing. Nothing will be done."),
-	  _T(""), wxICON_WARNING);
-		return;
-	}
-	wxFileOffset length = f.Length();
-	*/
 
 	// copied from OnNewDocument() -- better, failsafe code with file contents checking;
 	// but using a local pBuffer pointer instead of the m_pBuffer in the application class
@@ -27819,3 +27814,13 @@ void CAdapt_ItView::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	pDC->SetLayoutDirection(wxLayout_LeftToRight); // need this???
 #endif
 }
+
+// toggles the app's m_pCopySource flag's value, and makes the View menu's Copy Source be
+// ticked or unticked as the case may be (it's public, as OnCopySource() is protected)
+void CAdapt_ItView::ToggleCopySource()
+{
+	wxCommandEvent dummy;
+	OnCopySource(dummy);
+}
+
+

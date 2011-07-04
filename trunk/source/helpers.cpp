@@ -40,6 +40,7 @@
 #include "MainFrm.h"
 #include "BString.h"
 #include "WaitDlg.h"
+#include "XML.h"
 #include "SplitDialog.h"
 #include "SourcePhrase.h"
 #include "ExportFunctions.h"
@@ -71,6 +72,11 @@ extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 extern bool gbForceUTF8;
 extern int  gnOldSequNum;
+extern int  gnBeginInsertionsSequNum;
+extern int  gnEndInsertionsSequNum;
+extern bool gbTryingMRUOpen;
+extern bool gbConsistencyCheckCurrent;
+
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -7823,7 +7829,8 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 // a string of source text and having identified the project and set up its paths and KBs,
 // for laying out the CSourcePhrase instances resulting from the tokenization, and
 // displaying the results in the view ready for adapting to take place. Phrase box is put
-// at sequence number 0. Returns nothing.
+// at sequence number 0. Returns nothing. Assumes that app's m_curOutputPath has already
+// been set correctly.
 // Called in GetSourceTextFromEditor.cpp. (It is not limited to use in collaboration
 // situations.)
 void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
@@ -7832,8 +7839,6 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
 	// get the title bar, and output path set up right...
-	//wxString extensionlessName; // a dummy to collect the returned string, we ignore it
-	//m_pApp->GetDocument()->SetDocumentWindowTitle(m_pApp->m_curOutputFilename, extensionlessName);
 	wxString typeName = _T(" - Adapt It");
 	#ifdef _UNICODE
 	typeName += _T(" Unicode");
@@ -8055,4 +8060,313 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
 #endif
 	return textBuffer;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return                 TRUE if all went well, TRUE (yes, TRUE) even if there
+///                         was an error -- see the Note below for why
+/// \param pApp         ->  ptr to the running instance of the application
+/// \param pathToDoc    ->  ref to absolute path to the existing document file
+/// \param newSrcText   ->  ref to (possibly newly edited) source text for this doc
+/// \param bDoMerger    ->  TRUE if a recursive merger of newSrcText is to be done,
+///                         FALSE if not (in which case newSrcText can be empty) 
+/// \param bDoLayout    ->  TRUE if RecalcLayout() and placement of phrase box etc
+///                         is wanted, FALSE if just app's m_pSourcePhrases is to
+///                         be calculated with no layout done
+/// \remarks
+/// This function provides the minimum for opening an existing document pointed at 
+/// by the parameter pathToDoc. It optionally can, prior to laying out etc, merge
+/// recursively using MergeUpdatedSrcText() the passed in newSrcText -- the latter
+/// may have been edited externally to Adapt It (for example, in Paratext or Bibledit)
+/// and so requires the recursive merger be done. The merger is only done provided
+/// bDoMerger is TRUE.
+/// The app's m_pSourcePhrases list must be empty on entry, otherwise an assert trips
+/// in the debug version, or FALSE is returned without anything being done (in the
+/// release version). Book mode should be OFF on entry, and this function does not support
+/// it's use. The KBs must be loaded already, for the current project in which this
+/// document resides.
+/// If the bDoMerger flag is TRUE, then after the merge is done, the function will try to
+/// find the sequence number of the first adaptable "hole" in the document, and locate
+/// the phrase box there (and Copy Source in view menu should have been turned off too,
+/// otherwise a possibly bogus copy would be in the phrase box and the user may not notice
+/// it is bogus); otherwise it will use 0 as the active sequence number.
+/// Used in GetSourceTextFromEditor.cpp in OnOK().
+/// Note: never return FALSE, it messes with the wxWidgets implementation of the doc/view 
+/// framework, so just always return TRUE even if there was an error
+/// Created BEW 3Jul11
+////////////////////////////////////////////////////////////////////////////////
+bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
+		 bool bDoMerger, bool bDoLayout, bool bCopySourceWanted)
+{
+	wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+	int nActiveSequNum = 0; // default
+	if (!pApp->m_pSourcePhrases->IsEmpty())
+	{
+		wxBell();
+		return TRUE;
+	}
+	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+	bool bBookMode;
+	bBookMode = pApp->m_bBookMode;
+	wxASSERT(!bBookMode);
+	if (bBookMode)
+	{
+		wxBell();
+		return TRUE;
+	}
+	wxASSERT(!gbTryingMRUOpen); // must not be trying to open from MRU list
+	wxASSERT(!gbConsistencyCheckCurrent); // must not be doing a consistency check
+	wxASSERT(pApp->m_pKB != NULL); // KBs must be loaded
+	// set the path for saving
+	pApp->m_curOutputPath = pathToDoc;
+
+	// much of the code below is from OnOpenDocument() in Adapt_ItDoc.cpp, and
+	// much of the rest is from MergeUpdatedSrc.cpp and SetupLayoutAndView()
+	// here in helpers.cpp
+	wxString extensionlessName; extensionlessName.Empty();
+	wxString thePath = pathToDoc;
+	wxString extension = thePath.Right(4);
+	extension.MakeLower();
+	wxASSERT(extension[0] == _T('.')); // check it really is an extension
+	bool bWasXMLReadIn = TRUE;
+
+	// get the filename
+	wxString fname = pathToDoc;
+	fname = MakeReverse(fname);
+	int curPos = fname.Find(pApp->PathSeparator);
+	if (curPos != -1)
+	{
+		fname = fname.Left(curPos);
+	}
+	fname = MakeReverse(fname);
+	int length = fname.Len();
+	extensionlessName = fname.Left(length - 4);
+
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CAdapt_ItView* pView = pApp->GetView();
+
+	if (extension == _T(".xml"))
+	{
+		// we have to input an xml document
+		wxString thePath = pathToDoc;
+		wxFileName fn(thePath);
+		wxString fullFileName;
+		fullFileName = fn.GetFullName();
+		bool bReadOK = ReadDoc_XML(thePath, pDoc); // defined in XML.cpp
+		if (!bReadOK)
+		{
+			wxString s;
+				// allow the user to continue
+				s = _(
+"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
+				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
+			return TRUE; // return TRUE to allow the user another go at it
+		}
+		// app's m_pSourcePhrases list has been populated with CSourcePhrase instances
+	}
+	// exit here if we only wanted m_pSourcePhrases populated and no recursive merger done
+	if (!bDoLayout && !bDoMerger)
+	{
+		return TRUE;
+	}
+
+	if (bDoMerger)
+	{
+		// first task is to tokenize the (possibly edited) source text just obtained from
+		// PT or BE
+
+        // choose a spanlimit int value, (a restricted range of CSourcePhrase instances),
+        // use the AdaptitConstant.h value SPAN_LIMIT, set currently to 60. This should be
+        // large enough to guarantee some "in common" text which wasn't user-edited, within
+        // a span of that size.
+		int nSpanLimit = SPAN_LIMIT;	
+
+		// get an input buffer for the new source text & set its content (not really
+		// necessary but it allows the copied code below to be used unmodified)
+		wxString buffer; buffer.Empty();
+		wxString* pBuffer = &buffer;
+		buffer += newSrcText; // NOTE: I used += here deliberately, earlier I used =
+							// instead, but wxWidgets did not use operator=() properly
+							// and it created a buffer full of unknown char symbols
+							// and no final null! Weird. But += works fine.
+		// The code below is copied from CAdapt_ItView::OnImportEditedSourceText(),
+		// comments have been removed to save space, the original code is fully commented
+		// so anything not clear can be looked up there
+		ChangeParatextPrivatesToCustomMarkers(*pBuffer);
+		if (pApp->m_bChangeFixedSpaceToRegularSpace)
+			pDoc->OverwriteUSFMFixedSpaces(pBuffer);
+		pDoc->OverwriteUSFMDiscretionaryLineBreaks(pBuffer);
+#ifndef __WXMSW__
+#ifndef _UNICODE
+		// whm added 12Apr2007
+		OverwriteSmartQuotesWithRegularQuotes(pBuffer);
+#endif
+#endif
+		// parse the new source text data into a list of CSourcePhrase instances
+		int nHowMany;
+		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
+		nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
+		SPList* pMergedList = new SPList; // store the results of the merging here
+		if (nHowMany > 0)
+		{
+			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
+            // take the pMergedList list, delete the app's m_pSourcePhrases list's
+            // contents, & move to m_pSourcePhrases the pointers in pMergedList...
+ 			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
+			while (posCur != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = posCur->GetData();
+				posCur = posCur->GetNext();
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // also delete partner piles
+						// (strictly speaking not necessary since there shouldn't be
+						// any yet, but no harm in allowing the attempts)
+			}
+			// now clear the pointers from the list
+			pApp->m_pSourcePhrases->Clear();
+			wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+			SPList::Node* posnew = pMergedList->GetFirst();
+			while (posnew != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = posnew->GetData();
+				posnew = posnew->GetNext();
+				pApp->m_pSourcePhrases->Append(pSrcPhrase); // ignore the Node* returned
+			}
+			// the pointers are now managed by the m_pSourcePhrases document list (and
+			// also by pMergedList, but we'll clear the latter now)
+			pMergedList->Clear(); // doesn't delete the pointers' memory because
+								  // DeleteContents(TRUE) was not called beforehand
+			delete pMergedList; // don't leak memory
+			SPList::Node* pos = pSourcePhrases->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = pos->GetData();
+				pos = pos->GetNext();
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
+			}
+			pSourcePhrases->Clear();
+			delete pSourcePhrases; // don't leak memory
+		} // end of TRUE block for test: if (nHowMany > 0)
+	} // end of TRUE block for test: if (bDoMerger)
+
+	// exit here if we only wanted m_pSourcePhrases populated with the merged new source
+	// text 
+	if (!bDoLayout)
+	{
+		return TRUE;
+	}
+	// get the layout built, view window set up, phrase box placed etc, if wanted
+	if (bDoLayout)
+	{
+		// update the window title
+		wxString typeName = _T(" - Adapt It");
+		#ifdef _UNICODE
+		typeName += _T(" Unicode");
+		#endif
+		pDoc->SetFilename(pApp->m_curOutputPath, TRUE);
+		pDoc->SetTitle(extensionlessName + typeName); // do it also on the frame (see below)
+		
+		// mark document as modified
+		pDoc->Modify(TRUE);
+
+		// do this too... (from DocPage.cpp line 839)
+		CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
+		// we should add a wxFrame::SetTitle() call as was done
+		// later in DocPage.cpp about line 966
+		pFrame->SetTitle(extensionlessName + typeName);
+		//pDoc->SetDocumentWindowTitle(fname, extensionlessName);
+
+		// get the backup filename and path produced
+		wxFileName fn(pathToDoc);
+		wxString filenameStr = fn.GetFullName();
+		if (bWasXMLReadIn)
+		{
+			// it was an *.xml file the user opened
+			pApp->m_curOutputFilename = filenameStr;
+
+			// construct the backup's filename
+			filenameStr = MakeReverse(filenameStr);
+			filenameStr.Remove(0,4); //filenameStr.Delete(0,4); // remove "lmx."
+			filenameStr = MakeReverse(filenameStr);
+			filenameStr += _T(".BAK");
+		}
+		pApp->m_curOutputBackupFilename = filenameStr;
+		// I haven't defined the backup doc's path, but I don't think I need to, having
+		// the filename set correctly should be enough, and other code will get the backup
+		// doc file saved in the right place automatically
+
+		// get the nav text display updated, layout the document and place the
+		// phrase box
+		int unusedInt = 0;
+		TextType dummyType = verse;
+		bool bPropagationRequired = FALSE;
+		pDoc->DoMarkerHousekeeping(pApp->m_pSourcePhrases, unusedInt, 
+									dummyType, bPropagationRequired);
+		pDoc->GetUnknownMarkersFromDoc(pApp->gCurrentSfmSet, 
+								&pApp->m_unknownMarkers, 
+								&pApp->m_filterFlagsUnkMkrs, 
+								pApp->m_currentUnknownMarkersStr, 
+								useCurrentUnkMkrFilterStatus);
+
+		// calculate the layout in the view
+		CLayout* pLayout = pApp->GetLayout();
+		pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+					// UpdateTextHeights() and calls other relevant setters
+#ifdef _NEW_LAYOUT
+		bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+		bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+		if (!bIsOK)
+		{
+			// unlikely to fail, so just have something for the developer here
+			wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OpenDocWithMerger()"),
+			_T(""), wxICON_STOP);
+			wxASSERT(FALSE);
+			wxExit();
+		}
+
+		// show the initial phraseBox - place it at nActiveSequNum
+		pApp->m_pActivePile = pLayout->GetPile(nActiveSequNum);
+		pApp->m_nActiveSequNum = nActiveSequNum; // currently is 0
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+		}
+		else
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+		}
+
+		// set initial location of the targetBox
+		CPile* pPile = pApp->m_pActivePile;
+		pPile = pView->GetNextEmptyPile(pPile);
+		if (pPile == NULL)
+		{
+			pApp->m_pActivePile = pLayout->GetPile(nActiveSequNum); // put it back at 0
+		}
+		else
+		{
+			pApp->m_pActivePile = pPile;
+			pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+		}
+		// if Copy Source wanted, and it is actually turned on, then copy the source text
+		// to the active location's box, but otherwise leave the phrase box empty
+		if (bCopySourceWanted && pApp->m_bCopySource)
+		{
+			pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
+		}
+		else
+		{
+			pApp->m_targetPhrase.Empty();
+		}
+		// we must place the box at the active pile's location
+		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+		pView->Invalidate();
+		gnOldSequNum = -1; // no previous location exists yet
+	}
+	return TRUE;
+}
+
+
 

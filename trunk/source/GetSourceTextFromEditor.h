@@ -48,12 +48,16 @@ public:
 
 	wxString sourceWholeBookBuffer;
 	wxString targetWholeBookBuffer;
+	wxString freeTransWholeBookBuffer;
 	wxString sourceChapterBuffer;
 	wxString targetChapterBuffer;
+	wxString freeTransChapterBuffer;
 	wxArrayString SourceTextUsfmStructureAndExtentArray;
 	wxArrayString TargetTextUsfmStructureAndExtentArray;
+	wxArrayString FreeTransTextUsfmStructureAndExtentArray;
 	wxArrayString SourceChapterUsfmStructureAndExtentArray;
 	wxArrayString TargetChapterUsfmStructureAndExtentArray;
+	wxArrayString FreeTransChapterUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtp7PathAndFileName;
 	

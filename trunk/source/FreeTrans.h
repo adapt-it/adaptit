@@ -114,6 +114,7 @@ public:
 
 	// support for the Import Edited Free Translation function
 	bool		IsFreeTransInArray(SPArray* pSPArray);
+	bool		IsFreeTransInList(SPList* pSPList); // remove later when I make it all SPArray
 	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
 	int			FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
 										bool& bFoundSectionStart, bool& bFoundArrayEnd);

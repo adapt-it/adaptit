@@ -16334,8 +16334,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start 
 		// Working Wizard after OnInit() finishes below.
 		// Note: The CGetSourceTextFromEditor class will check to see if there are 
-		// sufficient PT projects for AI-PT work to be able to proceed.
+		// sufficient PT proj
+		// 
+		// ects for AI-PT work to be able to proceed.
 	}
+    // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
+    // a PT or BE collaboration project is set up with a project nominated for receiving
+	// free translations; the second is set if the Adapt It document in a collaboration
+	// session has one or more free translations within it
+	m_bCollaborationExpectsFreeTrans = FALSE;
+	m_bCollaborationDocHasFreeTrans = FALSE;
+	m_bSaveCopySourceFlag_For_Collaboration = FALSE;
 
 	// TODO: !!! Implement the following functions related to Bibledit:
 	//    BibleditIsInstalled() function. Currently it just returns FALSE

@@ -344,6 +344,7 @@ public: // edb 05 March 2010 - need this public in order to call it from CRetran
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
 	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
 									 bool bDoRecalcLayoutInternally);
+	void		ToggleCopySource();
 protected:
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
