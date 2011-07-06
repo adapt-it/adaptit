@@ -11205,6 +11205,8 @@ bool CAdapt_ItApp::ParatextIsRunning()
 bool CAdapt_ItApp::BibleditIsRunning()
 {
 	bool bIsRunning = FALSE;
+
+	/*
 #ifdef __WXGTK__ // only implemented on a Linux host system
 	
 	//TODO: Check this implementation on Linux for Bibledit !!!
@@ -11253,6 +11255,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	
 
 #endif
+	*/
 
 #ifdef __WXMAC__
 
