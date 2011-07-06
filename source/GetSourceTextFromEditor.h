@@ -29,21 +29,27 @@ public:
 	wxComboBox* pComboSourceProjectName;
 	wxComboBox* pComboDestinationProjectName;
 	wxComboBox* pComboFreeTransProjectName;
-	wxRadioBox* pRadioBoxWholeBookOrChapter;
+	wxRadioBox* pRadioBoxChapterOnly;
 	wxListBox* pListBoxBookNames;
 	wxListView* pListCtrlChapterNumberAndStatus; // wxListBox* pListCtrlChapterNumberAndStatus;
 	wxListItem* pTheFirstColumn; // has to be on heap
 	wxListItem* pTheSecondColumn; // has to be on heap
 	wxTextCtrl* pStaticTextCtrlNote;
 	wxStaticText* pStaticSelectAChapter;
+	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnCancel;
 
+	// The following m_Temp... variables are used while the dialog is active until
+	// the user clicks on OK. In the OnOK() handler the Apps persistent values are
+	// assigned according to these m_Temp... variables. Hence, if the "Cancel" button
+	// is clicked, no changes are made to the App's persistent values.
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
 	wxString m_TempCollabBookSelected;
 	wxString m_TempCollabChapterSelected;
 	wxString m_bareChapterSelected;
+	bool m_bTempCollaborationExpectsFreeTrans; // whm added 6Jul11
 	wxArrayString projList;
 
 	wxString sourceWholeBookBuffer;
@@ -69,6 +75,7 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
+	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event));

@@ -65,6 +65,7 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_COMBOBOX(ID_COMBO_FREE_TRANS_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject)
 	EVT_BUTTON(wxID_OK, CGetSourceTextFromEditorDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CGetSourceTextFromEditorDlg::OnCancel)
+	EVT_BUTTON(ID_BUTTON_NO_FREE_TRANS, CGetSourceTextFromEditorDlg::OnNoFreeTrans)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
@@ -98,8 +99,8 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pComboFreeTransProjectName = (wxComboBox*)FindWindowById(ID_COMBO_FREE_TRANS_PROJECT_NAME);
 	wxASSERT(pComboFreeTransProjectName != NULL);
 
-	pRadioBoxWholeBookOrChapter = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
-	wxASSERT(pRadioBoxWholeBookOrChapter != NULL);
+	pRadioBoxChapterOnly = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
+	wxASSERT(pRadioBoxChapterOnly != NULL);
 
 	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
 	wxASSERT(pListBoxBookNames != NULL);
@@ -116,6 +117,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 	pBtnCancel = (wxButton*)FindWindowById(wxID_CANCEL);
 	wxASSERT(pBtnCancel != NULL);
+
+	pBtnNoFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_NO_FREE_TRANS);
+	wxASSERT(pBtnNoFreeTrans != NULL);
 
 	// other attribute initializations
 }
@@ -145,6 +149,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
+	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
 
 	// determine the path and name to rdwrtp7.exe
 	// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
@@ -287,11 +292,9 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 	
-	pRadioBoxWholeBookOrChapter->SetSelection(0);
-
 	// Current version 6.0 does not allow selecting texts by whole book,
-	// so disable the "Get Whole Book" selection of the wxRadioBox.
-	pRadioBoxWholeBookOrChapter->Enable(1,FALSE);
+	// so the only possible selection is 0.
+	pRadioBoxChapterOnly->SetSelection(0);
 
 	bool bSourceProjFound = FALSE;
 	int nIndex = -1;
@@ -505,27 +508,12 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEven
 	wxString selStr;
 	nSel = pComboFreeTransProjectName->GetSelection();
 	m_TempCollabProjectForFreeTransExports = pComboFreeTransProjectName->GetString(nSel);
-	// Any change in the selection with the destination/target project combo box 
-	// requires that we compare the source and target project's books again, which we
-	// can do by calling the OnLBBookSelected() handler explicitly here.
-	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
-	// Any change in the selection with the source project combo box 
-	// requires that we compare the source and target project's books again, which we
-	// can do by calling the OnLBBookSelected() handler explicitly here.
-	// select LastPTBookSelected 
-	if (!m_TempCollabBookSelected.IsEmpty())
-	{
-		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
-		if (nSel != wxNOT_FOUND)
-		{
-			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
-			pListBoxBookNames->SetSelection(nSel);
-			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
-			pListBoxBookNames->SetFocus(); 
-			wxCommandEvent evt;
-			OnLBBookSelected(evt);
-		}
-	}
+	m_bTempCollaborationExpectsFreeTrans = TRUE;
+	pBtnNoFreeTrans->Enable(TRUE);
+
+	// For free trans selection we don't need to refresh book names
+	// nor call OnLBBookSelected() here as is needed when the combobox
+	// selections for source and/or target project changes.
 }
 
 void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
@@ -1060,6 +1048,15 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 	event.Skip();
 }
 
+void CGetSourceTextFromEditorDlg::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
+{
+	// Clear the pComboFreeTransProjectName selection, empty the temp variable and
+	// disable the button
+	pComboFreeTransProjectName->SetSelection(-1); // -1 removes the selection entirely
+	pBtnNoFreeTrans->Disable();
+	m_TempCollabProjectForFreeTransExports.Empty();
+	m_bTempCollaborationExpectsFreeTrans = FALSE;
+}
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
@@ -1091,7 +1088,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
-	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
+	if (m_bTempCollaborationExpectsFreeTrans && m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports)
 	{
 		wxString msg, msg1;
 		msg = _("The projects selected for getting source texts from, and for transferring free translations to, cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translations.");
@@ -1139,10 +1136,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
-	if (m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
-	{
-		m_pApp->m_bCollaborationExpectsFreeTrans = TRUE;
-	}
+	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
 	wxString bareChapterSelectedStr;
@@ -2558,18 +2552,8 @@ wxString CGetSourceTextFromEditorDlg::AbbreviateColonSeparatedVerses(const wxStr
 
 void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event))
 {
-	if (pRadioBoxWholeBookOrChapter->GetSelection() == 1)
-	{
-		// The user selected "Get Whole Book" disable the "Select a chapter" list and label
-		pListCtrlChapterNumberAndStatus->Disable();
-		pStaticSelectAChapter->Disable();
-	}
-	else
-	{
-		// The user selected "Get Chapter Only"
-		pListCtrlChapterNumberAndStatus->Enable(TRUE);
-		pStaticSelectAChapter->Enable(TRUE);
-	}
+	// Keep the button selected - the only choice is "Get Chapter Only"
+	pRadioBoxChapterOnly->SetSelection(0);
 }
 
 wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)

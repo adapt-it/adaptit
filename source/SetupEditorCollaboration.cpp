@@ -142,6 +142,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
+	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
 
 	m_projectSelectionMade = FALSE;
 
@@ -342,6 +343,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	}
 	pStaticTextCtrlSelectedFreeTransProj->SetLabel(userSelectionStr);
 	m_TempCollabProjectForFreeTransExports = userSelectionStr;
+	m_bTempCollaborationExpectsFreeTrans = TRUE;
 }
 
 //CSetupEditorCollaboration::OnUpdateDoSomething(wxUpdateUIEvent& event)
@@ -374,7 +376,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 	
-	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
+	if (m_bTempCollaborationExpectsFreeTrans && m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports)
 	{
 		wxString msg, msg1;
 		msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
@@ -389,6 +391,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
+	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 
 	// Get the state of collaboration
 	int nSel;
@@ -476,10 +479,6 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		// to be done in such a way that they are compatible with the user profile changes to the
 		// user interface.
 		
-		// whm added 3Jul11 Need to call MakeMenuInitializationsAndPlatformAdjustments() here to 
-		// immediately append the parenthetical info to the File > Open... and Fiel > Save menu 
-		// labels.
-		m_pApp->MakeMenuInitializationsAndPlatformAdjustments();
 		// Some menu changes will override any user profile allowed menu items:
 		// 
 		// TODO: disable Book Folder Mode menu items
@@ -497,6 +496,12 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			m_pApp->GetView()->CloseProject();
 		}
 	}
+
+	// whm added 3Jul11 Need to call MakeMenuInitializationsAndPlatformAdjustments() here to 
+	// immediately add/remove the parenthetical info to the File > Open... and File > Save menu 
+	// labels.
+	m_pApp->MakeMenuInitializationsAndPlatformAdjustments();
+	
 	// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
 	// which, when m_bCollaboratingWithParatext is TRUE, actually calls the "Get
 	// Source Text from Paratext Project" dialog instead of the normal startup
