@@ -8438,25 +8438,55 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit will
 	// only be TRUE on the platforms that host Paratext, i.e., Windows, or Bibledit,
 	// i.e., Linux or the Mac.
-	if (pFileMenu != NULL && (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit))
+	if (pFileMenu != NULL)
 	{
 		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
 		// the new label, otherwise everything that comes after the tab will be displaced to the right side
 		// of the File menu (right aligned).
 		wxString label,beforeTab,afterTab;
+		wxString parentheticalText;
+
 		int posTabOpen;
 		label = pFileMenu->GetLabel(wxID_OPEN);
 		posTabOpen = label.Find(_T('\t'));
 		if (posTabOpen != wxNOT_FOUND)
 		{
+			parentheticalText.Empty();
+			if (m_bCollaboratingWithParatext)
+			{
+				parentheticalText = _T(' ');
+				parentheticalText += _("(Get Source Text From Paratext)");
+			}
+			else if (m_bCollaboratingWithBibledit)
+			{
+				parentheticalText = _T(' ');
+				parentheticalText += _("(Get Source Text From Bibledit)");
+			}
 			beforeTab = label.BeforeFirst(_T('\t'));
 			afterTab = label.AfterFirst(_T('\t'));
 			label = beforeTab;
-			label += _T(' ');
-			if (m_bCollaboratingWithParatext)
-				label += _("(Get Source Text From Paratext)");
-			else 
-				label += _("(Get Source Text From Bibledit)");
+			if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+			{
+				label += parentheticalText;
+			}
+			else
+			{
+				// No collaboration in effect, so remove any parenthetical text from menu
+				int posParentheticalText1 = 0;
+				int posParentheticalText2 = 0;
+				posParentheticalText1 = label.Find(_("(Get Source Text From Paratext)"));
+				posParentheticalText2 = label.Find(_("(Get Source Text From Bibledit)"));
+				if (posParentheticalText1 != wxNOT_FOUND)
+				{
+					label.Remove(posParentheticalText1);
+				}
+				if (posParentheticalText2 != wxNOT_FOUND)
+				{
+					label.Remove(posParentheticalText2);
+				}
+			}
+			label.Trim(TRUE);
+			label.Trim(FALSE);
 			label += _T('\t');
 			label += afterTab;
 		}
@@ -8467,14 +8497,42 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		posTabSave = label.Find(_T('\t'));
 		if (posTabSave != wxNOT_FOUND)
 		{
+			parentheticalText.Empty();
+			if (m_bCollaboratingWithParatext)
+			{
+				parentheticalText = _T(' ');
+				parentheticalText += _("(Transfer Translation Draft To Paratext)");
+			}
+			else if (m_bCollaboratingWithBibledit)
+			{
+				parentheticalText = _T(' ');
+				parentheticalText += _("(Transfer Translation Draft To Bibledit)");
+			}
 			beforeTab = label.BeforeFirst(_T('\t'));
 			afterTab = label.AfterFirst(_T('\t'));
 			label = beforeTab;
-			label += _T(' ');
-			if (m_bCollaboratingWithParatext)
-				label += _("(Transfer Translation Draft To Paratext)");
+			if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+			{
+				label += parentheticalText;
+			}
 			else
-				label += _("(Transfer Translation Draft To Bibledit)");
+			{
+				// No collaboration in effect, so remove any parenthetical text from menu
+				int posParentheticalText1 = 0;
+				int posParentheticalText2 = 0;
+				posParentheticalText1 = label.Find(_("(Transfer Translation Draft To Paratext)"));
+				posParentheticalText2 = label.Find(_("(Transfer Translation Draft To Bibledit)"));
+				if (posParentheticalText1 != wxNOT_FOUND)
+				{
+					label.Remove(posParentheticalText1);
+				}
+				if (posParentheticalText2 != wxNOT_FOUND)
+				{
+					label.Remove(posParentheticalText2);
+				}
+			}
+			label.Trim(TRUE);
+			label.Trim(FALSE);
 			label += _T('\t');
 			label += afterTab;
 		}

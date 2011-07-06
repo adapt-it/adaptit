@@ -37,6 +37,7 @@ public:
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
+	bool m_bTempCollaborationExpectsFreeTrans;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
