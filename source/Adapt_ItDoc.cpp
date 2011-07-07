@@ -16298,9 +16298,16 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 /// Tools menu if a document is open, unless the app is in Free Translation Mode.
 /// BEW modified 13Nov09, don't allow user with read-only access to cause document
 /// change of this kind on the remote user's machine
+/// whm added 7Jul11 Don't allow splitting of documents when collaborating with an external
+/// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -16337,9 +16344,16 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 /// disables the command.
 /// BEW added 13Nov09, don't allow local user with read-only access to a remote project
 /// folder to make document changes of this kind on the remote machine
+/// whm added 7Jul11 Don't allow joining of documents when collaborating with an external
+/// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -16374,9 +16388,16 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 /// it disables the command.
 /// BEW added 13Nov09, don't allow local user with read-only access to a remote project
 /// folder to make document changes of this kind on the remote machine
+/// whm added 7Jul11 Don't allow moving of documents when collaborating with an external
+/// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
