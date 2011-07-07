@@ -994,7 +994,8 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 	// as a single click.
 
 	//int nSel = pListCtrlChapterNumberAndStatus->GetSelection();
-	int itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+	int itemCt;
+	itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
 	wxASSERT(itemCt <= 1);
 	long nSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (nSel != wxNOT_FOUND)
@@ -1397,16 +1398,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// If the PT source and PT target projects do not yet exist as an existing AI project, we create
 	// the project complete with project config file, empty KB, etc., using the information gleaned
 	// from the PT source and PT target projects (i.e. language names, font choices and sizes,...) 
-	bool bPTCollaborationUsingExistingAIProject;
+	bool bCollaborationUsingExistingAIProject;
 	// BEW added 21Jun11, provide a storage location for the Adapt It project folder's
 	// name, in the event that we successfully obtain a matchup from the
-	// PTProjectsExistAsAIProject() call below (aiMatchedProjectFolder will be an empty
+	// CollabProjectsExistAsAIProject() call below (aiMatchedProjectFolder will be an empty
 	// wxString if the call returns FALSE)
 	wxString aiMatchedProjectFolder;
 	wxString aiMatchedProjectFolderPath;
-	bPTCollaborationUsingExistingAIProject = PTProjectsExistAsAIProject(shortProjNameSrc, 
+	bCollaborationUsingExistingAIProject = CollabProjectsExistAsAIProject(shortProjNameSrc, 
 						shortProjNameTgt, aiMatchedProjectFolder, aiMatchedProjectFolderPath);
-	if (bPTCollaborationUsingExistingAIProject)
+	if (bCollaborationUsingExistingAIProject)
 	{
 		// The Paratext projects selected for source text and target texts have an existing
 		// AI project in the user's work folder, so we use that AI project.
@@ -1636,7 +1637,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			_T(""), wxICON_WARNING);
 			return;
 		}
-	} // end of TRUE block for test: if (bPTCollaborationUsingExistingAIProject)
+	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
 	else
 	{
 		// The Paratext project selected for source text and target texts do not yet exist
@@ -1722,7 +1723,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 
 
-	}  // end of else block for test: if (bPTCollaborationUsingExistingAIProject)
+	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -1858,7 +1859,7 @@ EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueC
 // has been obtained, otherwise they return empty strings. shortProjNameSrc and
 // shortProjNameTgt are input parameters - the short names for the Paratext or Bibledit
 // projects which are involved in this collaboration.
-bool CGetSourceTextFromEditorDlg::PTProjectsExistAsAIProject(wxString shortProjNameSrc, 
+bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortProjNameSrc, 
 									wxString shortProjNameTgt, wxString& aiProjectFolderName,
 									wxString& aiProjectFolderPath)
 {
