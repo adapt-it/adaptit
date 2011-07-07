@@ -85,7 +85,7 @@ protected:
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
 	bool PTProjectIsEditable(wxString projShortName);
-	bool PTProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, 
+	bool CollabProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, 
 				wxString& aiProjectFolderName, wxString& aiProjectFolderPath);
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
