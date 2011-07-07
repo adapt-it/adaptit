@@ -29873,9 +29873,16 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 /// this handler returns immediately. Otherwise, if the appropriate KB is in a ready state
 /// and Book Mode is enabled, the "Change Folder..." menu item on the File menu is enabled,
 /// otherwise it is disabled.
+/// whm modified 6Jul11 to prevent changing to book folder mode when collaborating with
+/// Paratext or Bibledit.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 {
+	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -30020,9 +30027,16 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 /// BEW added 13Nov09, don't allow local user with read-only access to a remote project
 /// folder to make document or folder changes of this kind on the remote machine
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
+/// whm modified 6Jul11 to prevent switching to book folder mode when collaborating with
+/// Paratext or Bibledit.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event) 
 {
+	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
