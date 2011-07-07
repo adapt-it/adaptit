@@ -1797,7 +1797,14 @@ retry:	bFileIsRenamed = FALSE;
 			// File | Save As function. Adapt It documents created under Collaboration with
 			// PT or BE should not be renamed, otherwise it may break the internal linkage
 			// of the PT/BE projects and their book files to a given set of AI docs.
-			// TODO:
+			if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+			{
+				wxString msg;
+				msg = _("Adapt It documents cannot be renamed when collaborating with Paratext or Bibledit.");
+				wxMessageBox(msg,_("Cannot Change The Document's Filename"),wxICON_WARNING);
+				theNewFilename.Empty();
+				goto retry;
+			}
 			
 			// check for illegal characters in the user's typed new filename (this code
 			// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
