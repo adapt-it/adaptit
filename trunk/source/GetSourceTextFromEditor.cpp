@@ -1133,6 +1133,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	CAdapt_ItView* pView = m_pApp->GetView();
 
+	// check the KBa are clobbered, if not so, do so
+	UnloadKBs(m_pApp);
+
 	// save new project selection to the App's variables for writing to config file
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
@@ -1347,10 +1350,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	// At this point the source text chapter text resides in the sourceChapterBuffer wxString buffer.
 	// At this point the target text chapter text resides in the targetChapterBuffer wxString buffer.
-	// At this point the target text chapter text resides in the targetChapterBuffer wxString buffer.
+	// At this point the free translation chapter text resides in the freeTransChapterBuffer wxString buffer.
+	// 
+	// At this point the structure of the source text is in SourceChapterUsfmStructureAndExtentArray.
 	// At this point the structure of the target text is in TargetChapterUsfmStructureAndExtentArray.
 	// And if free translations are to be transferred and there was one in PT or BE...
-	// At this point the structure of the free translation text is in FreeTransChapterUsfmStructureAndExtentArray.
 	// At this point the structure of the free translation text is in FreeTransChapterUsfmStructureAndExtentArray.
 	
     // this next block, which saves the free trans in _FREETRANS_OUTPUTS, is as far as we
@@ -1483,7 +1487,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    whether or not to merge source text to the current document when source has
 		//    just been grabbed from PT or BE.
 		
-		// first, get the project hooked up
+		// first, get the project hooked up, if there is indeed one pre-existing for the
+		// given language pair; if not, we create a new project
 		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
 		wxASSERT(!aiMatchedProjectFolderPath.IsEmpty());
 		// do a wizard-less hookup to the matched project
@@ -1508,7 +1513,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			// make the backup filename too
 			m_pApp->m_curOutputBackupFilename = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
 							bookCode, _T(""), bareChapterSelectedStr, _T(".BAK"));
-			// check if it exists already
+
+			// disallow Book mode, and prevent user from turning it on
+			m_pApp->m_bBookMode = FALSE;
+			m_pApp->m_pCurrBookNamePair = NULL;
+			m_pApp->m_nBookIndex = -1;
+			m_pApp->m_bDisableBookMode = TRUE;
+			wxASSERT(m_pApp->m_bDisableBookMode);
+	
+			// check if document exists already
 			if (::wxFileExists(docPath))
 			{
 				// it exists, so we have to merge in the source text coming from PT or BE
@@ -1685,43 +1698,99 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// For building an AI project we can use as initial values the information within the appropriate
 		// field members of the above struct.
 		// 
-		// TODO:
+		// Code below does the following things:
 		// 1. Create an AI project using the information from the PT structs, setting up
 		//    the necessary directories and the appropriately constructed project config 
 		//    file to disk.
 		// 2. We need to decide if we will be using book folder mode automatically [ <- No!] 
 		//    for chapter sized documents of if we will dump them all in the "adaptations" 
-		//    folder [ <- Yes!]. The user won't know the difference except if the administrator 
-		//    decides at some future time to turn PT collaboration OFF. If we used the 
-		//    book folders during PT collaboration for chapter files, we would need to 
-		//    ensure that book folder mode stays turned on when PT collaboration was 
-		//    turned off.
+        //    folder [ <- Yes!]. The user won't know the difference except if the
+        //    administrator decides at some future time to turn PT collaboration OFF. If we
+        //    used the book folders during PT collaboration for chapter files, we would
+        //    need to ensure that book folder mode stays turned on when PT collaboration
+        //    was turned off.
 		// 3. Compose an appropriate document name to be used for the document that will
 		//    contain the chapter grabbed from the PT source project's book.
-		// 4. Copy the just-grabbed chapter source text from the .temp folder over to the
-		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it doesn't
-		//    already exist).
-		// 5. Create the document by parsing/tokenizing the string now existing in our 
+		// 4. Create the document by parsing/tokenizing the string now existing in our 
 		//    sourceChapterBuffer, saving it's xml form to disk, and laying the doc out in 
 		//    the main window.
-		//    
-		//    TODO: implement the above here
+		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
+        //    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it
+        //    doesn't already exist).
 		
+		// Step 1 & 2
+		bool bDisableBookMode = TRUE;
+		bool bProjOK = CreateNewAIProject(m_pApp, pPTInfoSrc->languageName, 
+									pPTInfoTgt->languageName, pPTInfoSrc->ethnologueCode, 
+									pPTInfoTgt->ethnologueCode, bDisableBookMode);
+		if (!bProjOK)
+		{
+			// this is a fatal error (but it shouldn't ever happen), we let the dialog
+			// continue to run, but tell the user that the app is probably unstable now
+			// and he should get rid of any folders created in the attempt, shut down,
+			// relaunch, and try again
+			wxString message;
+			message = message.Format(_("Fatal error: attempting to create an Adapt It project for supporting collaboration with an external editor failed.\nThe application is not in a state suitable for you to continue working. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s\nThen relaunch, and try again."),
+				m_pApp->m_curProjectPath.c_str());
+			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR);
+			{
+				return;
+			}
+		}
+		// Step 3. (code copied from above)
+		wxString documentName;
+		// Note: we use a stardard Paratext naming for documents, but omit 
+		// project short name(s)
+		wxString docTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
+						bookCode, _T(""), bareChapterSelectedStr, _T(""));
+		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
+						bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
+		// create the absolute path to the document we are checking for
+		wxString docPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator
+			+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator + documentName;
+		// set the member used for creating the document name for saving to disk
+		m_pApp->m_curOutputFilename = documentName;
+		// make the backup filename too
+		m_pApp->m_curOutputBackupFilename = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
+						bookCode, _T(""), bareChapterSelectedStr, _T(".BAK"));
+		// Step 4. (code copied from above)
+		wxASSERT(m_pApp->m_pSourcePhrases->IsEmpty());
+		// parse the input file
+		int nHowMany;
+		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
+		// in the next call, 0 = initial sequ number value
+		nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0); 
+		// copy the pointers over to the app's m_pSourcePhrases list (the document)
+		if (nHowMany > 0)
+		{
+			SPList::Node* pos = pSourcePhrases->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = pos->GetData();
+				m_pApp->m_pSourcePhrases->Append(pSrcPhrase);
+				pos = pos->GetNext();
+			}
+			// now clear the pointers from pSourcePhrases list, but leave their memory
+			// alone, and delete pSourcePhrases list itself
+			pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
+			delete pSourcePhrases;
+			// the single-chapter document is now ready for displaying in the view window
+		}
 
+		SetupLayoutAndView(m_pApp, docTitle);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // Step 5. (code copied from above)
+		wxString pathCreationErrors;
+		bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+								pathCreationErrors, sourceChapterBuffer, docTitle);
+		// don't expect a failure in this, but if so, tell developer (English
+		// message is all that is needed)
+		if (!bMovedOK)
+		{
+			wxMessageBox(_T(
+"For the developer: MoveNewSourceTextToSOURCE_INPUTS() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move the new source text to a file in __SOURCE_INPUTS.\nThe new source data won't have been saved to disk there."),
+			_T(""), wxICON_WARNING);
+		}
 
 	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
 

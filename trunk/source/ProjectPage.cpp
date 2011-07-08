@@ -424,7 +424,10 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	// the glossing KB
 	// whm - this removal of any existing the KBs structures in memory should be done at this
 	// point whether the projectPage is moving forward or backwards.
-	UnloadKBs(pApp);
+	if (pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
+	{
+		UnloadKBs(pApp);
+	}
 	/*
 	if (pApp->m_pKB != NULL)
 	{

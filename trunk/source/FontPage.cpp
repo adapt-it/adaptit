@@ -914,6 +914,12 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			gpApp->m_bKBReady = FALSE;
 			gpApp->m_pKB = (CKB*)NULL;
 		}
+		if (gpApp->m_pGlossingKB != NULL)
+		{
+			delete gpApp->m_pGlossingKB;
+			gpApp->m_bGlossingKBReady = FALSE;
+			gpApp->m_pGlossingKB = (CKB*)NULL;
+		}
 	}
 }
 

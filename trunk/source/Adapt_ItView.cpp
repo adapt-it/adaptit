@@ -5609,13 +5609,19 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 
 	// then delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
-	pDoc->EraseKB(pApp->m_pKB);
-	pApp->m_bKBReady = FALSE;
-	pApp->m_pKB = (CKB*)NULL; // done in EraseKB too
+	if (pApp->m_pKB != NULL)
+	{
+		pDoc->EraseKB(pApp->m_pKB);
+		pApp->m_bKBReady = FALSE;
+		pApp->m_pKB = (CKB*)NULL; // done in EraseKB too
+	}
 	// now the glossing KB and flags
-	pDoc->EraseKB(pApp->m_pGlossingKB);
-	pApp->m_bGlossingKBReady = FALSE;
-	pApp->m_pGlossingKB = (CKB*)NULL; // done in EraseKB too
+	if (pApp->m_pGlossingKB != NULL)
+	{
+		pDoc->EraseKB(pApp->m_pGlossingKB);
+		pApp->m_bGlossingKBReady = FALSE;
+		pApp->m_pGlossingKB = (CKB*)NULL; // done in EraseKB too
+	}
 
 	// BEW added 22Jan10, clear the KB search string arrays 
 	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
@@ -20038,8 +20044,10 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 	}
 
 	// whm added 25May11 We disable the Edit Source Text... menu command when collaborating
-	// with Paratext - it is Paratext where the source text should be edited.
-	if (pApp->m_bCollaboratingWithParatext)
+	// with Paratext or Bibledit - it is in the external editor where the source text should be
+	// edited - otherwise source text can get out of sync with what is in the external
+	// editor, since we don't transfer source text back to PT or BE
+	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
 	{
 		event.Enable(FALSE);
 		return;
