@@ -60,6 +60,7 @@
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
+extern wxString szProjectConfiguration;
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
@@ -7703,9 +7704,9 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	}
 	pApp->m_pKB = NULL;
 
-		wxASSERT(pApp->m_pGlossingKB == NULL);
 	// Ensure the glossing KB isn't active. If it is, assert in the debug build, in the
 	// release build return FALSE
+	wxASSERT(pApp->m_pGlossingKB == NULL);
 	if (pApp->m_pGlossingKB != NULL)
 	{
 		// an English message will do here - it's a development error
@@ -7725,12 +7726,12 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
     // make sure the path to the Adaptations folder is correct
 	pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator 
 									+ pApp->m_adaptionsFolder;
-	gpApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
-	gpApp->SetupKBPathsEtc(); //  get the project's(adapting, and glossing) KB paths set
+	pApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
+	pApp->SetupKBPathsEtc(); //  get the project's(adapting, and glossing) KB paths set
 	// get the colours from the project config file's settings just read in
 	wxColour sourceColor = pApp->m_sourceColor;
 	wxColour targetColor = pApp->m_targetColor;
-	wxColour navTextColor = gpApp->m_navTextColor;
+	wxColour navTextColor = pApp->m_navTextColor;
 	// for debugging
 	//wxString navColorStr = navTextColor.GetAsString(wxC2S_CSS_SYNTAX);
 	// colourData items have to be kept in sync, to avoid crashes if Prefs opened
@@ -7775,7 +7776,11 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 			// failure to load the glossing KB is unlikely, an English message will
 			// suffice  & an assert in debug build, in release build also return FALSE
 			if (pApp->m_pKB != NULL)
-				delete pApp->m_pKB; // delete the adapting one we successfully loaded
+			{
+				// delete the adapting one we successfully loaded
+				pApp->GetDocument()->EraseKB(pApp->m_pKB); // calls delete
+				pApp->m_pKB = NULL; //
+			}
 			pApp->m_bKBReady = FALSE;
 			wxMessageBox(_T("HookUpToExistingAIProject(): loading the glossing knowledge base failed"), _T("Error"), wxICON_ERROR);
 			wxASSERT(FALSE);
@@ -7810,7 +7815,10 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 		// This is unlikely to have happened, so a simple English message will suffice &
 		// and assert in the debug build, for release build return FALSE
 		if (pApp->m_pKB != NULL)
-			delete pApp->m_pKB;
+		{
+			pApp->GetDocument()->EraseKB(pApp->m_pKB); // calls delete
+			pApp->m_pKB = NULL;
+		}
 		pApp->m_bKBReady = FALSE;
 		pApp->m_pKB = (CKB*)NULL;
 		wxMessageBox(_T("HookUpToExistingAIProject(): loading the adapting knowledge base failed"), _T("Error"), wxICON_ERROR);
@@ -8376,15 +8384,135 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 {
 	if (pApp->m_pKB != NULL)
 	{
-		delete pApp->m_pKB;
+		pApp->GetDocument()->EraseKB(pApp->m_pKB); // calls delete on CKB pointer
 		pApp->m_bKBReady = FALSE;
 		pApp->m_pKB = (CKB*)NULL;
 	}
 	if (pApp->m_pGlossingKB != NULL)
 	{
-		delete pApp->m_pGlossingKB;
+		pApp->GetDocument()->EraseKB(pApp->m_pGlossingKB); // calls delete on CKB pointer
 		pApp->m_bGlossingKBReady = FALSE;
 		pApp->m_pGlossingKB = (CKB*)NULL;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return                       TRUE if all went well, FALSE if project could
+///                               not be created
+/// \param pApp               ->  ptr to the running instance of the application
+/// \param srcLangName        ->  the language name for source text to be used for
+///                               creating the project folder name
+/// \param tgtLangName        ->  the language name for target text to be used for
+///                               creating the project folder name
+/// \param srcEthnologueCode  ->  3-letter unique language code from iso639-3,
+///                               (for PT or BE collaboration, only pass a value if
+///                               the external editor has the right code) 
+/// \param tgtEthnologueCode  ->  3-letter unique language code from iso639-3,
+///                               (for PT or BE collaboration, only pass a value if
+///                               the external editor has the right code)
+/// \param bDisableBookMode   ->  TRUE to make it be disabled (sets m_bDisableBookMode)
+///                               FALSE to allow it to be user-turn-on-able (for 
+///                               collaboration with an external editor, it should be
+///                               kept off - hence disabled)
+/// \remarks
+/// A minimalist utility function (suitable for use when collaborating with Paratext or
+/// Bibledit) for creating a new Adapt It project, from a pair of language names plus a
+/// pointer to the application class's instance. It pulls out bits and pieces of the
+/// ProjectPage.cpp and LanguagesPage.cpp wizard page classes - from their
+/// OnWizardPageChanging() functions. It does not try to replicate the wizard, that is, no
+/// GUI interface is shown to the user. Instead, where the wizard would ask the user for
+/// some manual setup steps, this function takes takes whatever was the currently open
+/// project' settings (or app defaults if no project is open). So it takes over it's font
+/// settings, colours, etc. It only forms the minimal necessary set of new parameters -
+/// mostly paths, the project name, the KB names, their paths, and sets up the set of child
+/// folders for various kinds of data storage, such as __SOURCE_INPUTS, etc; and creates
+/// empty adapting and glossing KBs and opens them ready for work. Setting of the status
+/// bar message is not done here, because what is put there depends on when this function
+/// is used, and so that should be done externally once this function returns.
+/// It also writes the new project's settings out to the project configuration file just
+/// before returning to the caller.
+/// Created BEW 5Jul11
+////////////////////////////////////////////////////////////////////////////////
+bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgtLangName,
+						wxString& srcEthnologueCode, wxString& tgtEthnologueCode,
+						bool bDisableBookMode)
+{
+	// ensure there is no document currently open (it also calls UnloadKBs() & sets their
+	// pointers to NULL) -- note, if the doc is dirty, too bad, recent changes will be lost
+	pApp->GetView()->ClobberDocument();
+
+    // ensure app does not try to restore last saved doc and active location (these two
+    // lines pertain to wizard use, so not relevant here, but just in case I've forgotten
+    // something it is good protection to have them)
+	pApp->m_bEarlierProjectChosen = FALSE;
+	pApp->nLastActiveSequNum = 0;
+
+	// set default character case equivalences for a new project
+	pApp->SetDefaultCaseEquivalences();
+
+    // A new project will not yet have a project config file, so set the new project's
+    // filter markers list to be equal to the current value for pApp->gCurrentFilterMarkers
+	pApp->gProjectFilterMarkersForConfig = pApp->gCurrentFilterMarkers;
+	// the above ends material plagiarized from ProjectPage.cpp, what follows comes from
+	// LanguagesPage.cpp, & tweaked somewhat
+
+	// If the ethnologue codes are passed in (from PT or BE - both are unlikely at this
+	// point in time), then store them in Adapt It's app members for this purpose; but we
+	// won't force their use (for collaboration mode it's pointless, since PT and BE don't
+	// require them yet); also, set the language names for source and target from what was
+	// passed in (typically, coming from PT's or BE's language names)
+	pApp->m_sourceName = srcLangName;
+	pApp->m_targetName = tgtLangName;
+	pApp->m_sourceLanguageCode = srcEthnologueCode; // likely to be empty string
+	pApp->m_targetLanguageCode = tgtEthnologueCode; // likely to be empty string
+
+	// ensure Bible book folder mode is off and disabled - if disabling is wanted (need to
+	// do this before SetupDirectories() is called)
+	if (bDisableBookMode)
+	{
+		pApp->m_bBookMode = FALSE;
+		pApp->m_pCurrBookNamePair = NULL;
+		pApp->m_nBookIndex = -1;
+		pApp->m_bDisableBookMode = TRUE;
+		wxASSERT(pApp->m_bDisableBookMode);
+	}
+
+    // Build the Adapt It project's name, and store it in m_curProjectName, and the path to
+    // the folder in m_curProjectPath, and all the auxiliary folders for various kinds of
+    // data storage, and the other critical paths, m_adaptationsFolder, etc. The
+    // SetupDirectories() function does all this, and it takes account of the current value
+    // for m_bUseCustomWorkFolderPath so that the setup is done in the custom location
+    // (m_customWorkFolderPath) if the latter is TRUE, otherwise done in m_workFolderPath's
+    // folder if FALSE.
+	pApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
+
+	// Now setup the KB paths and get the KBs loaded
+	wxASSERT(!pApp->m_curProjectPath.IsEmpty());
+
+	wxColour sourceColor = pApp->m_sourceColor;
+	wxColour targetColor = pApp->m_targetColor;
+	wxColour navTextColor = pApp->m_navTextColor;
+	// for debugging
+	//wxString navColorStr = navTextColor.GetAsString(wxC2S_CSS_SYNTAX);
+	// colourData items have to be kept in sync, to avoid crashes if Prefs opened
+	pApp->m_pSrcFontData->SetColour(sourceColor);
+	pApp->m_pTgtFontData->SetColour(targetColor);
+	pApp->m_pNavFontData->SetColour(navTextColor);
+
+	// if we need to do more, the facenames etc can be obtained from the 3 structs Bill
+	// defined for storing the font information as sent out to the config files, these are
+	// SrcFInfo, TgtFInfo and NavFInfo, and are defined as global structs at start of
+	// Adapt_It.cpp file
+    // Clobbering the old project doesn't do anything to their contents, and so the old
+    // project's font settings are available there (need extern defns to be added to
+    // helpers.cpp first), and if necessary can be grabbed here and used (if some setting
+    // somehow got mucked up)
+
+	// save the config file for the newly made project
+	bool bOK = pApp->WriteConfigurationFile(szProjectConfiguration, 
+							pApp->m_curProjectPath, projectConfigFile);
+	bOK = bOK; // ignore errors (shouldn't fail anyway), 
+			   // and avoid compiler warning
+	return TRUE;
 }
 

@@ -397,6 +397,9 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
 bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
 					   bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
 void UnloadKBs(CAdapt_ItApp* pApp);
+bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgtLangName,
+						wxString& srcEthnologueCode, wxString& tgtEthnologueCode,
+						bool bDisableBookMode);
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp

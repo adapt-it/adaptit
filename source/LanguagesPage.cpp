@@ -47,6 +47,7 @@
 
 #include "Adapt_It.h"
 #include "KB.h"
+#include "helpers.h"
 #include "Adapt_ItView.h"
 #include "DocPage.h"
 #include "ProjectPage.h"
@@ -343,6 +344,11 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		// after having used Next> (which would have created a stub knowledge base), we would have
 		// the m_pKB member still non-null, so SetupDirectories() would fail. Hence if so, delete the
 		// stub from memory & reset member of null, so the call will not fail.
+		if (pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
+		{
+			UnloadKBs(pApp);
+		}
+		/*
 		if (gpApp->m_pKB != NULL)
 		{
 			// we have moved back, so clear the stub etc.
@@ -355,6 +361,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 			delete gpApp->m_pGlossingKB;
 			gpApp->m_pGlossingKB = (CKB*)NULL;
 		}
+		*/
 		bool bDirectoriesOK;
 		bDirectoriesOK = gpApp->SetupDirectories(); 
 		// SetupDirectories does not set the CWD but does set m_curAdaptionsPath
