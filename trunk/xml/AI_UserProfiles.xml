@@ -1198,7 +1198,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS"
 	itemType="subMenu"
-	itemText="Remove Filtered Free Translations"
+	itemText="Remove Free Translations"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1252,7 +1252,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS"
 	itemType="subMenu"
-	itemText="Remove Filtered Back Translations"
+	itemText="Remove Back Translations"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>

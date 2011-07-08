@@ -8219,14 +8219,14 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Location for source text inputs (SFM or Unstructured plain text):"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item7 = new wxFlexGridSizer( 2, 0, 5 );
+    wxFlexGridSizer *item7 = new wxFlexGridSizer( 2, 3, 4 );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, wxT("__SOURCE_INPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    item9->Add( 25, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item9->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxCheckBox *item10 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_INPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -8247,61 +8247,61 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Locations for specific types of outputs:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxFlexGridSizer *item14 = new wxFlexGridSizer( 2, 0, 0 );
+    wxFlexGridSizer *item14 = new wxFlexGridSizer( 2, 3, 4 );
 
     wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, wxT("_FREETRANS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item16 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_FREETRANS_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, wxT("_FREETRANS_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item18 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_FREETRANS_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, wxT("_GLOSS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item20 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_GLOSS_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, wxT("_GLOSS_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item22 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_GLOSS_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, wxT("_INTERLINEAR_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item24 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_INTERLINEAR_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, wxT("_SOURCE_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, wxT("_SOURCE_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item28 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, wxT("_TARGET_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, wxT("_TARGET_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item32 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -8311,19 +8311,19 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Locations where both inputs and outputs use the same folder:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 0, 0 );
+    wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 3, 4 );
 
     wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, wxT("_KB_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item35->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item37 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, wxT("_LIFT_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item35->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item35->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item35, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -8352,7 +8352,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     item45->SetDefault();
     item43->Add( item45, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -8474,10 +8474,10 @@ wxMenuBar *AIMenuBarFunc()
     item6->Append( ID_ADVANCED_FREE_TRANSLATION_MODE, _("Free Translation Mode"), _("Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, _("Use Target Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing target text"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, _("Use Gloss Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing gloss text"), wxITEM_CHECK );
-    item6->Append( ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, _("Remove Filtered Free Translations"), _("Removes all the filtered free translations in the document") );
+    item6->Append( ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, _("Remove Free Translations"), _("Removes all the filtered free translations in the document") );
     item6->AppendSeparator();
     item6->Append( ID_ADVANCED_COLLECT_BACKTRANSLATIONS, _("Collect Back Translations..."), _("Collect adaptations, or glosses, and store them with a back translation marker as filtered material") );
-    item6->Append( ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, _("Remove Filtered Back Translations"), _("Deletes all the filtered back translations in the document") );
+    item6->Append( ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, _("Remove Back Translations"), _("Deletes all the filtered back translations in the document") );
     item6->AppendSeparator();
     item6->Append( ID_ADVANCED_USETRANSLITERATIONMODE, _("Use Transliteration Mode"), _("Select this item to use SIL Converters in transliteration mode"), wxITEM_CHECK );
     item6->AppendSeparator();
