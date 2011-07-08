@@ -1657,7 +1657,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Free Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Free Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -1677,7 +1677,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Filtered Back Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":itemType=\"subMenu\":itemText=\"Remove Back Translations\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
@@ -2400,13 +2400,13 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Gloss Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing gloss text\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":subMenuLabel=\"Remove Filtered Free Translations\":subMenuHelp=\"Removes all the filtered free translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":subMenuLabel=\"Remove Free Translations\":subMenuHelp=\"Removes all the filtered free translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":subMenuLabel=\"Collect Back Translations...\":subMenuHelp=\"Collect adaptations, or glosses, and store them with a back translation marker as filtered material\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":subMenuLabel=\"Remove Filtered Back Translations\":subMenuHelp=\"Deletes all the filtered back translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":subMenuLabel=\"Remove Back Translations\":subMenuHelp=\"Deletes all the filtered back translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -4092,7 +4092,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		bOpenedOK = textFile.Open(fullFilePath);
 		if (!bOpenedOK)
 		{
-			wxString msg = _("Unable to open the AI_UserProfiles.xml file at the following path:\n   %s\nChanges to user workflow profiles will not be saved.\nInsure that the AI_UserProfiles.xml file is not open in another program, then try again.");
+			wxString msg = _("Unable to open the AI_UserProfiles.xml file at the following path:\n   %s\nChanges to user workflow profiles will not be saved.\nEnsure that the AI_UserProfiles.xml file is not open in another program, then try again.");
 			msg = msg.Format(msg,fullFilePath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_WARNING);
 			return FALSE;
@@ -10927,9 +10927,37 @@ bool CAdapt_ItApp::ParatextIsInstalled()
 
 bool CAdapt_ItApp::BibleditIsInstalled()
 {
-	bool bBEInstalled = FALSE;
-	// TODO: write a Linux/Mac version of this function
+	bool bBEInstalled;
+	bBEInstalled = FALSE;
+	wxString pathToExecutable;
+	pathToExecutable.Empty();
+#ifdef __WXGTK__
+	pathToExecutable = _T("/usr/bin/bibledit-gtk");
+	if (::wxFileExists(pathToExecutable))
+		bBEInstalled = TRUE;
+	// TODO: write code to determine the version of bibledit-gtk that is
+	// installed on Linux. It must be at least version 4.2.93 to respond 
+	// to the command-line usage implemented by Teus as of version 4.2.93.
+#endif
+#ifdef __WXMAC__
+	pathToExecutable = _T("/opt/local/bin/bibledit-gtk");
+	if (::wxFileExists(pathToExecutable))
+		bBEInstalled = TRUE;
+	if (!bBEInstalled)
+	{
+		// try alternate name on Mac
+		pathToExecutable = _T("/opt/local/bin/bibledit");
+		if (::wxFileExists(pathToExecutable))
+			bBEInstalled = TRUE;
+	}
+	// TODO: write code to determine the version of bibledit-gtk that is
+	// installed on the Mac. It must be at least version 4.2.93 to respond 
+	// to the command-line usage implemented by Teus as of version 4.2.93.
+#endif
 
+
+	// TODO: write a Mac version of this function
+	
 	m_bBibleditIsInstalled = bBEInstalled; // set the App's flag
 	return bBEInstalled;
 }
@@ -11206,64 +11234,47 @@ bool CAdapt_ItApp::BibleditIsRunning()
 {
 	bool bIsRunning = FALSE;
 
-	/*
-#ifdef __WXGTK__ // only implemented on a Linux host system
+#ifndef __WXMSW__ // for the non-Windows systems, i.e., Linux and Mac
 	
-	//TODO: Check this implementation on Linux for Bibledit !!!
 	// The name of the Bibledit application in the Linux system is bibledit-gtk
-	
-	//#include <errno.h>
-	#include <sys/param.h>
-	#include <sys/user.h>
-	#include <sys/sysctl.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-	//#include <sys/name.h>
-
-	//int pid = 0;
-	const char* name = "bibledit-gtk";
-
-	//if((pid = qnx_name_locate(0, name, 0, 0)) == -1)
-	//{
-	//	wxLogDebug("send %d: qnx_name_locate() failed: [%d] %s\n",
-	//			getpid(), errno, strerror(errno));
-	//	return FALSE;
-	//}
-	//else
-	//{
-	//	return pid != 0;
-	//}
-	
-	//pid_t* pidList;
-
-	//pidList = find_pid_by_name(name);
-	//if (!pidList || *pidList <= 0) 
-	//{
-	//	return FALSE;
-	//}
-	//else
-	//{
-	//	return TRUE;
-	//}
-
-	int pid = 0;
-	pid = getProcessId(name);
-	if (pid < 0)
-		return FALSE;
-	else
-		return TRUE;
-	
+	long result = -1;
+	wxString commandLine;
+	commandLine = _T("ps -C bibledit-gtk -o pid="); // outputs the pid in outputMsg if bibledit-gtk is running, nothing otherwise
+	wxArrayString outputMsg, errorsMsg;
+	wxString outputStr;
+	// Use the wxExecute() override that takes the two wxStringArray parameters. This
+	// also redirects the output and suppresses the dos console window during execution.
+	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+#ifdef __WXDEBUG__
+	int testCt;
+	for (testCt = 0; testCt < (int)outputMsg.GetCount(); testCt++)
+	{
+		outputStr += _T("\nOutput: ");
+		outputStr += outputMsg.Item(testCt);
+	}
+	for (testCt = 0; testCt < (int)errorsMsg.GetCount(); testCt++)
+	{
+		outputStr += _T("\nErrors: ");
+		outputStr += errorsMsg.Item(testCt);
+	}
+	wxLogDebug(outputStr);
+#endif
+	if (outputMsg.GetCount() > 0)
+	{
+		wxString str = outputMsg.Item(0);
+		bool bIsNumber = TRUE;
+		int ct;
+		for (ct = 0; ct < (int)str.Length(); ct++)
+		{
+			if (!wxIsdigit(str.GetChar(ct)))
+				bIsNumber = FALSE;
+		}
+		if (bIsNumber)
+			bIsRunning = TRUE;
+	}
 
 #endif
-	*/
 
-#ifdef __WXMAC__
-
-	// TODO: Check this implementation on Mac OS X for Bibledit !!!
-	// 
-	// TODO:
-
-#endif
 	return bIsRunning;
 }
 
@@ -31967,7 +31978,7 @@ CSourcePhrase *CAdapt_ItApp::GetCurrentSourcePhrase()
 /// \param      sp   -> a pointer to a source phrase to jump to
 /// \remarks
 /// Called from: CSplitDialog::GoToNextChapter_Interactive().
-/// Insures that gbIsDocumentSplittingDialogActive is TRUE, then calls the View's Jump()
+/// Ensures that gbIsDocumentSplittingDialogActive is TRUE, then calls the View's Jump()
 /// method to jump to the source phrase at sp. Then sets the global back to FALSE. The
 /// purpose of the global is so that "the Jump() call will not copy the source text into
 /// the phrasebox if the box lands at a hitherto unadapted (or unglossed) location -- so if
@@ -36998,7 +37009,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	{
 		// the str variable contains the found .ssf file (case is ignored
 		// so it will find .ssf as well as .SSF files).
-		wxLogDebug(_T("Found file: %s"),str.c_str());
+		//wxLogDebug(_T("Found file: %s"),str.c_str());
 		
 		// open the .ssf file and glean the necessary information to
 		// determine if the project is a potential collaboration project
