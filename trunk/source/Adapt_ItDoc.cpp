@@ -3295,7 +3295,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 		curPos = 0;
 		int fieldNum = 0;
 
-		// Insure that first token is _T("@#@#");
+		// Ensure that first token is _T("@#@#");
 		wxASSERT(buffer.Find(_T("@#@#:")) == 0);
 
 		wxStringTokenizer tkz(buffer, _T(":"), wxTOKEN_RET_EMPTY_ALL );
@@ -18122,7 +18122,7 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 ///                                    of some other filename string (eg. a renamed one)
 /// \remarks
 /// Called from: the Doc's BackupDocument() and DoFileSave().
-/// Insures that the m_curOutputBackupFilename ends with ".BAK". The wx version does
+/// Ensures that the m_curOutputBackupFilename ends with ".BAK". The wx version does
 /// not handle the legacy .adt binary file types/extensions. 
 /// BEW 30Apr10, removed second param (the m_bSaveAsXML flag)
 ///////////////////////////////////////////////////////////////////////////////
@@ -18318,9 +18318,16 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// BEW 25Nov09, to allow pack doc but to use the m_bReadOnlyAccess flag to suppress
 /// doing a project config file write and a doc save, but instead to just take the project
 /// config file and doc files as they currently are on disk in order to do the pack
+/// whm added 7Jul11 Don't allow packing of documents when collaborating with an external
+/// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -18348,9 +18355,16 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 /// If Vertical Editing is in progress it disables the Unpack Document..." command on the File 
 /// menu, otherwise it enables the item as long as glossing mode is turned off.
 /// BEW modified 13Nov09, if read-only access to project folder, don't permit unpack doc
+/// whm added 7Jul11 Don't allow unpacking of documents when collaborating with an external
+/// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);

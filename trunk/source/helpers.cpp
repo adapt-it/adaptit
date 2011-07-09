@@ -2382,7 +2382,7 @@ short DecimalToBinary(unsigned long decimalValue, char binaryValue[32])
 /// \param      pListBox  -> pointer to a wxListBox, wxComboBox, or wxCheckListBox
 /// \remarks
 /// Called from: all dialog classes which have a wxListBox, wxComboBox or wxCheckListBox.
-/// Insures that the list/combo box is valid, has at least one item and that at least one item in
+/// Ensures that the list/combo box is valid, has at least one item and that at least one item in
 /// the list is selected. Returns FALSE if the list/combo box is NULL, or if the box doesn't have
 /// any items in it, or if it can't select an item for some reason.
 /// Note: When using ListBoxPassesSanityCheck() the pListBox parameter passed in needs to be
@@ -2527,6 +2527,8 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 ///             fileName003.txt etc.
 /// \param      baseFilePathAndName  -> path and file name of the base file to "increment" such
 ///                                     as fileName.txt
+/// \param      UniqueFileIncrementMethod  -> an enum that can be incrementViaNextAvailableNumber
+///                                         or incrementViaDate_TimeStamp
 /// \param	    digitWidth	->	the depth of the incrementing: fileName2.txt had digitWidth of 1,
 ///                             fileName02.txt has digitWidth of 2, fileName002.txt had digitWidth
 ///                             of 3, etc
@@ -2542,7 +2544,8 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 /// If suffix is not a null string, the function adds the suffix to the end of the name followed by an 
 /// ascending set of digits at the end of the name before retaining any existing extension.
 ////////////////////////////////////////////////////////////////////////////////////////////
-wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWidth, wxString suffix)
+wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueFileIncrementMethod,
+									  bool bAlwaysModify, int digitWidth, wxString suffix)
 {
 	wxString PathSeparator = wxFileName::GetPathSeparator();
 	wxFileName fn(baseFilePathAndName);
@@ -2551,27 +2554,21 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWid
 	wxString fileTitleAndExtension = fn.GetFullName(); // file title and extension
 	wxString fileExtensionOnly = fn.GetExt(); // file extension only
 	bool bExists = ::wxFileExists(baseFilePathAndName);
-	wxString backupName;
-	if (bExists)
+	wxString uniqueName;
+	if (bExists || bAlwaysModify)
 	{
-		wxString backupName0,backupName1,backupName2;
-		backupName0 = fileTitleOnly;
-		backupName1 = backupName0 + suffix;
-		int inc = 1;
-		wxString incStr;
-		incStr.Empty();
-		incStr << inc;
-		int strLen = incStr.Length();
-		while (strLen < digitWidth)
+		if (incrementViaDate_TimeStamp)
 		{
-			incStr = _T("0") + incStr; // prefix with zeros
-			strLen = incStr.Length();
+			wxString incStr;
+			incStr = GetDateTimeNow(adaptItDT);
+			incStr.Replace(_T(":"),_T("_"),TRUE); // TRUE - replace all
+			incStr.Replace(_T("-"),_T("_"),TRUE); // TRUE - replace all
+			uniqueName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
 		}
-		backupName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
-		
-		while (::wxFileExists(backupName))
+		else // for incrementViaNextAvailableNumber
 		{
-			inc++;
+			int inc = 1;
+			wxString incStr;
 			incStr.Empty();
 			incStr << inc;
 			int strLen = incStr.Length();
@@ -2580,14 +2577,30 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWid
 				incStr = _T("0") + incStr; // prefix with zeros
 				strLen = incStr.Length();
 			}
-			backupName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
+			uniqueName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
+			
+			while (::wxFileExists(uniqueName))
+			{
+				inc++;
+				incStr.Empty();
+				incStr << inc;
+				int strLen = incStr.Length();
+				while (strLen < digitWidth)
+				{
+					incStr = _T("0") + incStr; // prefix with zeros
+					strLen = incStr.Length();
+				}
+				uniqueName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
+			}
 		}
 	}
 	else
 	{
-		backupName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + _T(".") + fileExtensionOnly;;
+		// the incoming baseFilePathAndName was already unique in the destination folder, so do not
+		// change the filename by adding a suffix or incStr.
+		uniqueName = folderPathOnly + PathSeparator + fileTitleOnly + _T(".") + fileExtensionOnly;;
 	}
-	return backupName;
+	return uniqueName;
 }
 
 

@@ -216,7 +216,7 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		pButtonOutputCVRange->Enable(FALSE);
 	}
 
-	// Insure that the arrays used as extern variables are empty before export
+	// Ensure that the arrays used as extern variables are empty before export
 	// operations.
 	m_exportBareMarkers.Clear();
 	m_exportMarkerAndDescriptions.Clear();

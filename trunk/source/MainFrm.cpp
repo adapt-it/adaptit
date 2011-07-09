@@ -3359,7 +3359,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// adaptations updating is required
-	// Insure that we have a valid pointer to the m_pVertEditBar member
+	// Ensure that we have a valid pointer to the m_pVertEditBar member
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -4050,7 +4050,7 @@ cancel:		;
 void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// glosses updating is potentially required
-	// Insure that we have a valid pointer to the m_pVertEditBar member
+	// Ensure that we have a valid pointer to the m_pVertEditBar member
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -4698,7 +4698,7 @@ cancel:		;
 void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// free translations updating is potentially required
-	// Insure that we have a valid pointer to the m_pVertEditBar member
+	// Ensure that we have a valid pointer to the m_pVertEditBar member
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
