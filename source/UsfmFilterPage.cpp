@@ -518,7 +518,7 @@ void CUsfmFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 	// box updated). If lbProcess == ReloadAndUpdateFromFactoryList the process does the 
 	// same, but uses the filter settings of the factory's filter marker list.
 
-	// Insure that the arrays are empty before loading them.
+	// Ensure that the arrays are empty before loading them.
 	pSfmMarkerAndDescriptionsDoc->Clear();
 	pFilterFlagsDoc->Clear();
 	pFilterFlagsDocBeforeEdit->Clear();
@@ -686,7 +686,7 @@ void CUsfmFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 	// filtering status of each marker so that only those that are listed
 	// in the gProjectFilterMarkersForConfig string are checked for filtering.
 
-	// Insure that the arrays are empty before loading them.
+	// Ensure that the arrays are empty before loading them.
 	pSfmMarkerAndDescriptionsProj->Clear();
 	pFilterFlagsProj->Clear();
 	pFilterFlagsProjBeforeEdit->Clear();

@@ -153,6 +153,28 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 		pProtectTargetOutputs->SetValue(TRUE);
 		pProtectTargetOutputs->SetLabel(_("Using Paratext's project folder"));
 		pProtectTargetOutputs->Disable();
+		if (!m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
+		{
+			pProtectFreeTransOutputs->SetValue(TRUE);
+			pProtectFreeTransOutputs->SetLabel(_("Using Paratext's project folder"));
+			pProtectFreeTransOutputs->Disable();
+		}
+	}
+	if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		pBtnPreLoadSourceTexts->Disable();
+		pProtectSourceInputs->SetValue(TRUE);
+		pProtectSourceInputs->SetLabel(_("Using Bibledit's project folder"));
+		pProtectSourceInputs->Disable();
+		pProtectTargetOutputs->SetValue(TRUE);
+		pProtectTargetOutputs->SetLabel(_("Using Bibledit's project folder"));
+		pProtectTargetOutputs->Disable();
+		if (!m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
+		{
+			pProtectFreeTransOutputs->SetValue(TRUE);
+			pProtectFreeTransOutputs->SetLabel(_("Using Bibledit's project folder"));
+			pProtectFreeTransOutputs->Disable();
+		}
 	}
 
 	if ((m_pApp->ParatextIsInstalled() && !m_pApp->m_bCollaboratingWithParatext)

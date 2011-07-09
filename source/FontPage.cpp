@@ -821,7 +821,7 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		gpApp->m_pTargetFont->SetWeight(fontPgCommon.tempTargetFontWeight);
 		gpApp->m_pNavTextFont->SetWeight(fontPgCommon.tempNavTextFontWeight);
 		
-		// Insure that the colors for the 3 main fonts and the
+		// Ensure that the colors for the 3 main fonts and the
 		// colors for the 3 buttons at bottom of dialog get stored
 		// store the App's copy of the font colors
 		gpApp->m_sourceColor = fontPgCommon.tempSourceColor;
@@ -1144,7 +1144,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pNavTextFont->SetWeight(fontPgCommon.tempNavTextFontWeight);
 
-	// Insure that the colors for the 3 main fonts and the
+	// Ensure that the colors for the 3 main fonts and the
 	// colors for the 4 buttons at bottom of dialog get stored
 	// store the App's copy of the font colors
 	gpApp->m_sourceColor = fontPgCommon.tempSourceColor;

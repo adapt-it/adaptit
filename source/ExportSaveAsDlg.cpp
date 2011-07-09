@@ -129,7 +129,7 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	wxASSERT(pStaticTitle != NULL);
 	pStaticTitle->SetLabel(m_StaticTitle);
 
-	// Insure that the arrays used as extern variables are empty before export
+	// Ensure that the arrays used as extern variables are empty before export
 	// operations.
 	m_exportBareMarkers.Clear();
 	m_exportMarkerAndDescriptions.Clear();

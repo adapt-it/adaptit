@@ -64,6 +64,12 @@ enum CompareUsfmTexts
 	usfmAndTextDiffer
 };
 
+enum UniqueFileIncrementMethod
+{
+	incrementViaNextAvailableNumber,
+	incrementViaDate_TimeStamp
+};
+
 ////////////////////////////////////////////
 //  helper functions
 
@@ -193,7 +199,8 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox);
 
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum);
 
-wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, int digitWidth, wxString suffix);
+wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueFileIncrementMethod,
+									  bool bAlwaysModify, int digitWidth, wxString suffix);
 
 // end of whm's additions
  

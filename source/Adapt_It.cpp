@@ -3468,7 +3468,7 @@ bool CAdapt_ItApp::BackupExistingUserProfilesFileInWorkFolder(wxString AIuserPro
 	if (bExists)
 	{
 		wxString backupName;
-		backupName = GetUniqueIncrementedFileName(AIuserProfilesWorkFolderPath,2,_T("_Old_"));
+		backupName = GetUniqueIncrementedFileName(AIuserProfilesWorkFolderPath,incrementViaNextAvailableNumber,FALSE,2,_T("_Old_"));
 		// We should now have a backup name that does not yet exist as a file in the work folder.
 		// Now copy the existing AI_UserProfiles.xml to the backupName (backupName is full path + filename).
 		bool bCopiedOK;
@@ -10954,9 +10954,6 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 	// installed on the Mac. It must be at least version 4.2.93 to respond 
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
-
-
-	// TODO: write a Mac version of this function
 	
 	m_bBibleditIsInstalled = bBEInstalled; // set the App's flag
 	return bBEInstalled;
@@ -12151,7 +12148,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//for (junkCt = 0; junkCt < 300; junkCt++)
 	//{
 	//	wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Junk\\TestFile.txt");
-	//	wxString newFile = GetUniqueIncrementedFileName(testPath,2,_T("_Old_"));
+	//	wxString newFile = GetUniqueIncrementedFileName(testPath,incrementViaNextAvailableNumber,2,_T("_Old_"));
 	//	::wxCopyFile(testPath,newFile);
 	//}
 	// end test of GetUniqueIncrementedFileName

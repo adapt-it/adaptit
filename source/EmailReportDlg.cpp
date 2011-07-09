@@ -834,7 +834,7 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 	{
 		if (!bReplaceExistingReport)
 		{
-			reportPathAndName = GetUniqueIncrementedFileName(reportPathAndName,2,_T("")); 
+			reportPathAndName = GetUniqueIncrementedFileName(reportPathAndName,incrementViaNextAvailableNumber,FALSE,2,_T("")); 
 			// save the file using the reportPathAndName which is now guaranteed to be a unique name
 		}
 		bReportBuiltOK = BuildEmailReportXMLFile(reportPathAndName,bReplaceExistingReport);

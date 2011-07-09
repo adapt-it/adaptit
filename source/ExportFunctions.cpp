@@ -397,6 +397,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename;
 	bool bOK = TRUE;
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	int len = 0;
 	CExportSaveAsDlg sadlg(gpApp->GetMainFrame());
 	sadlg.Centre();
@@ -408,21 +409,35 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	// app's m_lastExportPath member, or m_lastSrcExportPath if doing source export,
 	// or m_lastGlossesExportPath for glosses, or m_lastFreeTransExportPath for free
 	// translations 
+	exportFilename = gpApp->m_curOutputFilename;
 	switch (exportType)
 	{
 	case sourceTextExport:
 		// we are exporting the source text, get a default filename, set directory
-		exportFilename = _("new source text.txt"); // BEW 8Aug09 made it localizable
+		exportFilename.Replace(_T("_Collab"),_T("_Source_Text"));
 		len = exportFilename.Length();
-		if (gpApp->m_lastSrcExportPath.IsEmpty())
+
+		// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+		if (gpApp->m_bProtectSourceOutputsFolder)
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			// Navigation protection in effect - limit source text exports to
+			// be saved in the _SOURCE_OUTPUTS folder which is always a child folder
+			// of the folder that m_curProjectPath points to.
+			bOK = ::wxSetWorkingDirectory(gpApp->m_sourceOutputsFolderPath);
 		}
 		else
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_lastSrcExportPath);
-			if(!bOK)
-				::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			if (gpApp->m_lastSrcExportPath.IsEmpty())
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
+			else
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastSrcExportPath);
+				if(!bOK)
+					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
 		}
 		//IDS_EXPORT_SRC
 		s = _("Export Source Text");
@@ -430,17 +445,30 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		break;
 	case glossesTextExport:
 		// we are exporting the glosses text, get a default filename, set directory
-		exportFilename = _("glosses as text.txt"); // it should be localizable
+		exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
 		len = exportFilename.Length();
-		if (gpApp->m_lastGlossesExportPath.IsEmpty())
+
+		// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+		if (gpApp->m_bProtectGlossOutputsFolder)
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			// Navigation protection in effect - limit gloss text exports to
+			// be saved in the _GLOSS_OUTPUTS folder which is always a child folder
+			// of the folder that m_curProjectPath points to.
+			bOK = ::wxSetWorkingDirectory(gpApp->m_glossOutputsFolderPath);
 		}
 		else
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_lastGlossesExportPath);
-			if(!bOK)
-				::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			if (gpApp->m_lastGlossesExportPath.IsEmpty())
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
+			else
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastGlossesExportPath);
+				if(!bOK)
+					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
 		}
 		s = _("Export Glosses As Text");
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
@@ -448,36 +476,70 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		break;
 	case freeTransTextExport:
 		// we are exporting the free translation text, get a default filename, set directory
-		exportFilename = _("free translation text.txt"); // it should be localizable
+		exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
 		len = exportFilename.Length();
-		if (gpApp->m_lastFreeTransExportPath.IsEmpty())
+		
+		// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+		if (gpApp->m_bProtectFreeTransOutputsFolder)
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			// Navigation protection in effect - limit free translation exports to
+			// be saved in the _FREETRANS_OUTPUTS folder which is always a child folder
+			// of the folder that m_curProjectPath points to.
+			bOK = ::wxSetWorkingDirectory(gpApp->m_freeTransOutputsFolderPath);
 		}
 		else
-		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_lastFreeTransExportPath);
-			if(!bOK)
-				::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+		{	
+			// No navigation protection in effect - use the legacy storage methods
+			if (gpApp->m_lastFreeTransExportPath.IsEmpty())
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
+			else
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastFreeTransExportPath);
+				if(!bOK)
+					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
 		}
+		
 		s = _("Export Free Translation Text");
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
 									// "Export Glosses As Text"
 		break;
 	default:
 	case targetTextExport:
-		// we are exporting the target text, get a default file name, set directory
-		exportFilename = gpApp->m_curOutputFilename;
+		// We are exporting the target text, get a default file name, set directory
+		// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
+		// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
+		// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
+		// produced exports within the _TARGET_OUTPUTS folder from those generated automatically
+		// by our collaboration code, we adjust the exportFilename having a "_Collab..." prefix
+		// so that it will have "_Export..." prefix instead.
+		exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
 		len = exportFilename.Length();
-		if (gpApp->m_lastExportPath.IsEmpty())
+
+		// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+		if (gpApp->m_bProtectTargetOutputsFolder)
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			// Navigation protection in effect - limit target text exports to
+			// be saved in the _TARGET_OUTPUTS folder which is always a child folder
+			// of the folder that m_curProjectPath points to.
+			bOK = ::wxSetWorkingDirectory(gpApp->m_targetOutputsFolderPath);
 		}
 		else
 		{
-			bOK = ::wxSetWorkingDirectory(gpApp->m_lastExportPath);
-			if(!bOK)
-				::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			if (gpApp->m_lastExportPath.IsEmpty())
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
+			else
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastExportPath);
+				if(!bOK)
+					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			}
 		}
 		// IDS_EXPORT_TGT
 		s = _("Export Translation (Target) Text");
@@ -540,6 +602,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	}
 	else // we want SFM output
 	{
+		// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
+		// is set for protected navigation
 		switch (exportType)
 		{
 		case sourceTextExport:
@@ -586,19 +650,51 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 	}
 
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Filename For Export"),
-		defaultDir,	// empty string causes it to use the current working directory (set above)
-		exportFilename,	// default filename
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); 
-			// wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown	fileDlg.Centre();
-			// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
-
-	if (fileDlg.ShowModal() != wxID_OK)
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
+	wxString exportPath;
+	wxString uniqueFilenameAndPath;
+	if (!bBypassFileDialog_ProtectedNavigation)
 	{
-		return; // user cancelled file dialog so return to what user was doing previously
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Filename For Export"),
+			defaultDir,	// empty string causes it to use the current working directory (set above)
+			exportFilename,	// default filename
+			filter,
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); 
+				// wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown	fileDlg.Centre();
+				// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			return; // user cancelled file dialog so return to what user was doing previously
+		}
+		exportPath = fileDlg.GetPath();	
+	}
+	else
+	{
+		// Set the exportPath for the appropriate outputs folder
+		switch (exportType)
+		{
+		case sourceTextExport:
+			exportPath = gpApp->m_sourceOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			break;
+		case glossesTextExport:
+			exportPath = gpApp->m_glossOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			break;
+		case freeTransTextExport:
+			exportPath = gpApp->m_freeTransOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			break;
+		case targetTextExport:
+			exportPath = gpApp->m_targetOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			break;
+		}
+		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
+		// appropriate outputs folder.
+		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+		// Use the unique path for exportPath
+		exportPath = uniqueFilenameAndPath;
 	}
 
 	wxLogNull logNo; // avoid spurious messages from the system
@@ -607,7 +703,11 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
     // m_lastGlossesExportPath or m_lastFreeTransExportPath, or in the case of rtf output,
     // m_rtfExportPath
 	//MFC's GetPathName() and wxFileDialog.GetPath() both get whole dir + file name.
-	wxString exportPath = fileDlg.GetPath();
+
+	// whm 7Jul11 note: We'll allow the saving of the m_last... paths even when navigation
+	// protection is in force - the effect will be that the fixed outputs folders would
+	// continue to be used after protection is turned off - unless specified otherwise by
+	// the user entering a different path subsequently using the wxFileDialog.
 	wxFileName fn(exportPath);
 	wxString name = fn.GetFullName();
 	wxString ext = fn.GetExt();
@@ -796,23 +896,39 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 	if( !f.Open( exportPath, wxFile::write))
 	{
-		if (exportType == targetTextExport)
+		wxString msg;
+		switch (exportType)
 		{
-			#ifdef __WXDEBUG__
-			wxLogDebug(_T("Unable to open export target text file\n"));
-			#endif
-			wxString msg;
-			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
-		}
-		else
-		{
+		case sourceTextExport:
 			#ifdef __WXDEBUG__
 			wxLogDebug(_T("Unable to open export source text file\n"));
 			#endif
-			wxString msg;
 			msg = msg.Format(_("Unable to open the file for exporting the source text with path:\n%s"),exportPath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			break;
+		case glossesTextExport:
+			#ifdef __WXDEBUG__
+			wxLogDebug(_T("Unable to open export glosses text file\n"));
+			#endif
+			msg = msg.Format(_("Unable to open the file for exporting the glosses text with path:\n%s"),exportPath.c_str());
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+
+			break;
+		case freeTransTextExport:
+			#ifdef __WXDEBUG__
+			wxLogDebug(_T("Unable to open export free translation text file\n"));
+			#endif
+			msg = msg.Format(_("Unable to open the file for exporting the free translation text with path:\n%s"),exportPath.c_str());
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			break;
+		default:
+		case targetTextExport:
+			#ifdef __WXDEBUG__
+			wxLogDebug(_T("Unable to open export target text file\n"));
+			#endif
+			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),exportPath.c_str());
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			break;
 		}
 		return;
 	}
@@ -835,7 +951,6 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		f.Write(target);
 		break;
 	}
-
 
 	#else // Unicode
 	switch (exportType)
@@ -907,9 +1022,26 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		break;
 	}
-
-
 	#endif // for _UNICODE
+	
+	if (bBypassFileDialog_ProtectedNavigation)
+	{
+		// whm 7Jul11 Note:
+		// For protected navigation situations AI determines the actual
+		// filename that is used for the export, and the export itself is
+		// automatically saved in the appropriate outputs folder. Since the
+		// user has no opportunity to provide a file name nor navigate to
+		// a random path, we should inform the user at this point of the 
+		// successful completion of the export, and indicate the file name 
+		// that was used and its outputs folder name and location.
+		wxFileName fn(uniqueFilenameAndPath);
+		wxString fileNameAndExtOnly = fn.GetFullName();
+
+		wxString msg;
+		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
+		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	}
+
 	f.Close();
 }
 
@@ -2210,7 +2342,7 @@ void DoExportInterlinearRTF()
 	// but use the CExportInterlinearDlg's explicit setting.
 	//bUsePortrait = (gpApp->GetPageOrientation()== 1); // this is not needed
 	
-	// Do sanity check: Insure that the MaxRowWidth never ends up negative which might happen if the
+	// Do sanity check: Ensure that the MaxRowWidth never ends up negative which might happen if the
 	// m_pageWidth were to be zero when DoExportInterlinearRTF(). This situation would probably signal
 	// a problem with the page setup values.
 	if (gpApp->m_pageWidth == 0)
@@ -4892,7 +5024,7 @@ a:
 				int cellCount;
 				if (bInclFreeTransRow)
 				{
-					// Insure that any Free Tranlsation row gets assigned the same overall width as
+					// Ensure that any Free Tranlsation row gets assigned the same overall width as
 					// the other rows above in the table.
 					cellCount = cellxNListFree.GetCount();
 					if (cellCount == 0)
@@ -4938,7 +5070,7 @@ a:
 
 				if (bInclBackTransRow)
 				{
-					// Insure that any Back Tranlsation row gets assigned the same overall width as
+					// Ensure that any Back Tranlsation row gets assigned the same overall width as
 					// the other rows above in the table.
 					cellCount = cellxNListBT.GetCount();
 					if (cellCount == 0)
@@ -5562,7 +5694,7 @@ a:
 							// The FreeTransFitsInRowStr we output below, but the
 							// FreeTransSpillOverStr will output first in the free trans row
 							// of the next table that is created.
-							// Insure dC is selected for the pRtfFreeFnt text font.
+							// Ensure dC is selected for the pRtfFreeFnt text font.
 							dC.SetFont(*pRtfFreeFnt); // whm 8Nov07 corrected to use rtfFreeFnt
 							DivideTextForExtentRemaining(dC, extentRemaining, strAtFree,
 								FreeTransFitsInRowStr, FreeTransSpillOverStr);
@@ -5717,7 +5849,7 @@ a:
 							// The BackTransFitsInRowStr we output below, but the
 							// BackTransSpillOverStr will output first in the free trans row
 							// of the next table that is created.
-							// Insure dC is selected for the pRtfBtFnt font.
+							// Ensure dC is selected for the pRtfBtFnt font.
 							dC.SetFont(*pRtfBtFnt); // whm 8Nov07 corrected to use pRtfBtFnt
 							DivideTextForExtentRemaining(dC, extentRemaining, strAtBT,
 								BackTransFitsInRowStr, BackTransSpillOverStr);
@@ -8915,7 +9047,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					//	// processed elsewhere if it is still FALSE.
 					//	bLastCellTagOutput = TRUE;
 
-					//	// Insure table related int vars are correctly set in case a subsequent table
+					//	// Ensure table related int vars are correctly set in case a subsequent table
 					//	// is encountered
 					//	nCurrentRowIndex = 0;
 					//	nLastRowIndex = 0;
@@ -9413,7 +9545,7 @@ d: // exit point for if ptr == pEnd
 	//	// processed elsewhere if it is still FALSE.
 	//	bLastCellTagOutput = TRUE;
 
-	//	// Insure table related int vars are correctly set in case a subsequent table
+	//	// Ensure table related int vars are correctly set in case a subsequent table
 	//	// is encountered
 	//	nCurrentRowIndex = 0;
 	//	nLastRowIndex = 0;
