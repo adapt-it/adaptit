@@ -261,7 +261,7 @@ WX_DEFINE_LIST(MainMenuItemList);
 /// 0xBF in UTF-8 encoding.
 #define nBOMLen 3
 
-/// Length of the byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in in
+/// Length of the byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
 /// UTF-16 encoding.
 #define nU16BOMLen 2
 
