@@ -398,7 +398,8 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
 // already exist, and storing in a file with filename constructed from fileTitle plus an
 // added .txt extension; if a file of that name already exists there, overwrite it.
 bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
-				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle);
+				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
+				bool bAddBOM = FALSE);
 wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
 bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 

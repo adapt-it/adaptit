@@ -7933,17 +7933,22 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	gnOldSequNum = -1; // no previous location exists yet
 }
 
-// Saves a wxString, theText, to a file with filename given by fileTitle with .txt added
-// internally, and saves the file in the folder with absolute path folderPath. Any creation
-// errors are passed back in pathCreationErrors. Return TRUE if all went well, else return
-// FALSE. This function can be used to store a text string in any of the set of folders
-// predefined for various kinds of storage in a version 6 or later project folder; and if
-// by chance the folder isn't already created, it will first create it before doing the
-// file save. For the Unicode app, the text is saved converted to UTF8 before saving, for
-// the Regular app, it is saved as a series of single bytes. (The function which goes the
-// other way is called GetTextFromFileInFolder().)
+// Saves a wxString, theText (which in the Unicode build should be UTF16 text, and in the
+// non-Unicode build, ANSI or ASCII or UTF-8 text), to a file with filename given by
+// fileTitle with .txt added internally, and saves the file in the folder with absolute
+// path folderPath. Any creation errors are passed back in pathCreationErrors. Return TRUE
+// if all went well, else return FALSE. This function can be used to store a text string in
+// any of the set of folders predefined for various kinds of storage in a version 6 or
+// later project folder; and if by chance the folder isn't already created, it will first
+// create it before doing the file save. For the Unicode app, the text is saved converted
+// to UTF8 before saving, for the Regular app, it is saved as a series of single bytes.
+// The bAddBOM input param is default FALSE, to have a uft16 BOM (0xFFFE)inserted (but
+// only if the build is a unicode one, supply TRUE explicitly. A check is made that it is
+// not already present, and it is added if absent, not added if already present.)
+// (The function which goes the other way is called GetTextFromFileInFolder().)
 bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
-				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle)
+				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
+				bool bAddBOM)
 {
 	// next bit of code taken from app's CreateInputsAndOutputsDirectories()
 	wxASSERT(!folderPath.IsEmpty());
@@ -7977,6 +7982,24 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 		return FALSE; // path to the project is empty (we don't expect this
 			// so won't even bother to give a message, a bell will do
 	}
+#ifdef _UNICODE
+	bool bBOM_PRESENT = FALSE;
+	wxUint32 littleENDIANutf16BOM = 0xFFFE;
+	// next line gives us the UTF16 BOM on a machine of either endianness
+	wxChar utf16BOM = (wxChar)wxUINT32_SWAP_ON_BE(littleENDIANutf16BOM);
+	wxChar firstChar = theText.GetChar(0);
+	if (firstChar == utf16BOM)
+	{
+		bBOM_PRESENT = TRUE;
+	}
+	if (!bBOM_PRESENT && bAddBOM)
+	{
+		wxString theBOM = utf16BOM;
+		theText = theBOM + theText;
+	}
+#else
+	bAddBOM = bAddBOM; // to prevent compiler warning
+#endif
 	// create the path to the file
 	wxString filePath = folderPath + pApp->PathSeparator + fileTitle + _T(".txt");
 	// an earlier version of the file may already be present, if so, just overwrite it
