@@ -8552,3 +8552,49 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 	return TRUE;
 }
 
+// change extension on the filename or path to extn (extn may, or may not, have an initial
+// period) Does nothing if there is no extension of form ".extension" already present at
+// the end of the string, where extension is 0 or more characters in length; return the 
+// resulting string
+// Note: double extensions can be passed in, no check is made that there is only one
+// period 
+wxString ChangeFilenameExtensionTo(wxString filenameOrPath, wxString& extn)
+{
+	int offset = wxNOT_FOUND;
+	wxString period = _T(".");
+	wxString reversed = MakeReverse(filenameOrPath);
+	offset = reversed.Find(period);
+	if (offset == wxNOT_FOUND)
+	{
+		// no extension present, so return the filename or path unchanged
+		return filenameOrPath;
+	}
+	else
+	{
+		reversed = reversed.Mid(offset + 1); // remove inital (reversed) extension and period
+		filenameOrPath = MakeReverse(reversed);
+	}
+	// extension is now removed from the string's end
+	offset = extn.Find(period);
+	if (offset == wxNOT_FOUND)
+	{
+		// the filename or file path extension passed in has no period
+		filenameOrPath += period;
+		filenameOrPath += extn;
+		return filenameOrPath;
+	}
+	else if (offset == 0)
+	{
+		// append it, as is
+		filenameOrPath += extn;
+		return filenameOrPath;
+	}
+	else
+	{
+		// the period is within the extn string, so add a period at start
+		filenameOrPath += period;
+		filenameOrPath += extn;
+	}
+	return filenameOrPath;
+}
+

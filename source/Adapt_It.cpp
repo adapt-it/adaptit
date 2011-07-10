@@ -37859,3 +37859,59 @@ wxArrayString CAdapt_ItApp::GetBooksArrayFromPTFlags(wxString bookFlagsStr)
 
 	return booksArray;
 }
+
+// BEW 10Jul11, for collaborating with external editor...
+
+//setters
+void CAdapt_ItApp::StoreSourceChapter_PreEdit(wxString s)
+{
+	m_sourceChapterBuffer_PreEdit = s;
+}
+void CAdapt_ItApp::StoreTargetChapter_PreEdit(wxString s)
+{
+	m_targetChapterBuffer_PreEdit = s;
+}
+void CAdapt_ItApp::StoreFreeTransChapter_PreEdit(wxString s)
+{
+	m_freeTransChapterBuffer_PreEdit = s;
+}
+void CAdapt_ItApp::StoreSourceWholeBook_PreEdit(wxString s)
+{
+	m_sourceWholeBookBuffer_PreEdit = s;
+}
+void CAdapt_ItApp::StoreTargetWholeBook_PreEdit(wxString s)
+{
+	m_targetWholeBookBuffer_PreEdit = s;
+}
+void CAdapt_ItApp::StoreFreeTransWholeBook_PreEdit(wxString s)
+{
+	m_freeTransWholeBookBuffer_PreEdit = s;
+}
+// getters
+wxString CAdapt_ItApp::GetStoredSourceChapter_PreEdit()
+{
+	return m_sourceChapterBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredTargetChapter_PreEdit()
+{
+	return m_targetChapterBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredFreeTransChapter_PreEdit()
+{
+	return m_freeTransChapterBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredSourceWholeBook_PreEdit()
+{
+	return m_sourceWholeBookBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredTargetWholeBook_PreEdit()
+{
+	return m_targetWholeBookBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
+{
+	return m_freeTransWholeBookBuffer_PreEdit;
+}
+
+
+
