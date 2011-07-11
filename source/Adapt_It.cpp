@@ -12120,6 +12120,58 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfPTProjects = new wxArrayPtrVoid;
 	
+	/*
+	// test of ChangeFilenameExtensionTo() and ChangeFilenameExtension2() function
+	const int NUMTEST = 16;
+	wxString test[NUMTEST] = 
+	{
+	 _T(".hiddenFile"), // hidden filename (Unix) without extension
+	 _T("periodAtEnd."), // filename ending with dot - empty extension
+	 _T("file.has.multiple.ext"), // filename with multiple dots and extension
+	 _T(".hiddenfile.has.multiple.ext"), // hidden filename (Unix) with multiple dots and extension
+	 _T("file..doubleDotExt"), // filename with double dots (one is extension)
+	 _T("..hiddenFileDoubleDotExt"), // hidden filename (Unix) with file beginning with dot (extension?)
+	 _T("FileDoubleDotExtAtEnd.."), // filename ending with double dots (empty extension)
+	 _T("C:\\.hiddenFile"),
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\..\\xml\\AI_UserProfiles.xml"), // path+filename path redirection to valid file
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\AI_UserProfiles.xml"), // path+filename file doesn't exist on path
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\xxx\\AI_UserProfiles.xml"), // path+filename invalid path
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\..\\..\\ai_codefixes\\source\\xml\\AI_UserProfiles.xml"), // path+filename path redirection to valid path
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\..\\"), // path only redirected to parent
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\..\\docs\\Doxyfile"), // path redirected to docs folder with valid filename (no extension)
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\.svn"), // path to .svn folder no final \ on folder and no filename
+	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\.svn\\prop-base\\Adapt_It.wdr.svn-base") // path+filename to valid file multiple dots (pseudo extension)
+	};
+	
+	wxString testArray1[NUMTEST];
+	wxString testArray2[NUMTEST];
+	wxLogDebug(_T("\nChangeFilenameExtensionTo() results:"));
+	for (int indx = 0; indx < NUMTEST; indx++)
+	{
+		wxString temp1,temp2;
+		temp1 = test[indx];
+		testArray1[indx] = ChangeFilenameExtensionTo(temp1,_T("NewExt"));
+		wxLogDebug(_T("   %d. File path/name was %s, now it is %s"),indx,temp1.c_str(),testArray1[indx].c_str());
+	}
+	wxLogDebug(_T("\nChangeFilenameExtension2() results:"));
+	for (int indx = 0; indx < NUMTEST; indx++)
+	{
+		wxString temp1,temp2;
+		temp1 = test[indx];
+		testArray2[indx] = ChangeFilenameExtension2(temp1,_T(".NewExt"));
+		wxLogDebug(_T("   %d. File path/name was %s, now it is %s"),indx,temp1.c_str(),testArray2[indx].c_str());
+	}
+	for (int indx = 0; indx < NUMTEST; indx++)
+	{
+		if (testArray1[indx] != testArray2[indx])
+		{
+			wxLogDebug(_T("\nDifferences found:"));
+			wxLogDebug(_T("   %d. ChangeFilenameExtensionTo(): %s"),indx,testArray1[indx].c_str());
+			wxLogDebug(_T("   %d. ChangeFilenameExtension2() : %s"),indx,testArray2[indx].c_str());
+		}
+	}
+	*/
+
 	// test wxProcess functions
 	//unsigned long tempPID = ::wxGetProcessId(); 
 	//bool bPIDExists;
@@ -12288,6 +12340,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_targetRTFOutputsFolderPath = _T("");
 	m_kbInputsAndOutputsFolderPath = _T("");
 	m_liftInputsAndOutputsFolderPath = _T("");
+	m_packedInputsAndOutputsFolderPath = _T("");
 	
 	m_curAdaptionsPath = _T("");
 	m_curKBName = _T("");
@@ -12500,6 +12553,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
+	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_AND_OUTPUTS");
 	
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	// folder navigation protection defaults to FALSE but project config file
@@ -12514,8 +12568,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bProtectSourceRTFOutputsFolder = FALSE;
 	m_bProtectTargetOutputsFolder = FALSE;
 	m_bProtectTargetRTFOutputsFolder = FALSE;
-	m_bKbInputsAndOutputsFolder = FALSE;
-	m_liftInputsAndOutputsFolder = FALSE;
+	m_bProtectKbInputsAndOutputsFolder = FALSE;
+	m_bProtectLiftInputsAndOutputsFolder = FALSE;
+	m_bProtectPackedInputsAndOutputsFolder = FALSE;
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
@@ -17038,6 +17093,7 @@ int ii = 1;
 		//m_targetRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		//m_kbInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		//m_liftInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
+		//m_packedInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 		
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
@@ -18671,6 +18727,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
+		m_packedInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_packedInputsAndOutputsFolderName;
 		
 		if (!::wxDirExists(m_sourceInputsFolderPath))
 		{
@@ -18884,6 +18941,24 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				{
 					pathCreationErrors += _T("   ");
 					pathCreationErrors += m_liftInputsAndOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
+			}
+		}
+		if (!::wxDirExists(m_packedInputsAndOutputsFolderPath))
+		{
+			bool bOK = ::wxMkdir(m_packedInputsAndOutputsFolderPath);
+			if (!bOK)
+			{
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_packedInputsAndOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_packedInputsAndOutputsFolderName;
 				}
 				bCreatedOK = FALSE;
 			}
@@ -26176,9 +26251,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				else if (tokenStr == m_targetRTFOutputsFolderName)
 					m_bProtectTargetRTFOutputsFolder = TRUE;
 				else if (tokenStr == m_kbInputsAndOutputsFolderName)
-					m_bKbInputsAndOutputsFolder = TRUE;
+					m_bProtectKbInputsAndOutputsFolder = TRUE;
 				else if (tokenStr == m_liftInputsAndOutputsFolderName)
-					m_liftInputsAndOutputsFolder = TRUE;
+					m_bProtectLiftInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_packedInputsAndOutputsFolderName)
+					m_bProtectPackedInputsAndOutputsFolder = TRUE;
 				else
 				{
 					;

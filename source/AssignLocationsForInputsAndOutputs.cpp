@@ -110,6 +110,8 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxASSERT(pProtectKBInputsAndOutputs != NULL);
 	pProtectLIFTInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS);
 	wxASSERT(pProtectLIFTInputsAndOutputs != NULL);
+	pProtectPackedInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_PACKED_INPUTS_AND_OUTPUTS);
+	wxASSERT(pProtectPackedInputsAndOutputs != NULL);
 
 	pBtnPreLoadSourceTexts = (wxButton*)FindWindowById(ID_BUTTON_PRE_LOAD_SOURCE_TEXTS);
 	wxASSERT(pBtnPreLoadSourceTexts != NULL);
@@ -139,8 +141,9 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	pProtectSourceRTFOutputs->SetValue(m_pApp->m_bProtectSourceRTFOutputsFolder);
 	pProtectTargetOutputs->SetValue(m_pApp->m_bProtectTargetOutputsFolder);
 	pProtectTargetRTFOutputs->SetValue(m_pApp->m_bProtectTargetRTFOutputsFolder);
-	pProtectKBInputsAndOutputs->SetValue(m_pApp->m_bKbInputsAndOutputsFolder);
-	pProtectLIFTInputsAndOutputs->SetValue(m_pApp->m_liftInputsAndOutputsFolder);
+	pProtectKBInputsAndOutputs->SetValue(m_pApp->m_bProtectKbInputsAndOutputsFolder);
+	pProtectLIFTInputsAndOutputs->SetValue(m_pApp->m_bProtectLiftInputsAndOutputsFolder);
+	pProtectPackedInputsAndOutputs->SetValue(m_pApp->m_bProtectPackedInputsAndOutputsFolder);
 
 	// If Paratext/Bibledit collaboration is ON, disable the "Pre-Load Source Texts" button
 	// and change "Protect..." labels for __SOURCE_INPUTS and _TARGET_OUTPUTS
@@ -219,6 +222,7 @@ void CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes(wxCommandEvent& 
 	pProtectTargetRTFOutputs->SetValue(TRUE);
 	pProtectKBInputsAndOutputs->SetValue(TRUE);
 	pProtectLIFTInputsAndOutputs->SetValue(TRUE);
+	pProtectPackedInputsAndOutputs->SetValue(TRUE);
 }
 
 void CAssignLocationsForInputsAndOutputs::OnPreLoadSourceTexts(wxCommandEvent& WXUNUSED(event))
@@ -272,12 +276,15 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	m_pApp->m_bProtectTargetRTFOutputsFolder = pProtectTargetRTFOutputs->GetValue();
 	if (m_pApp->m_bProtectTargetRTFOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_targetRTFOutputsFolderName + _T(':');
-	m_pApp->m_bKbInputsAndOutputsFolder = pProtectKBInputsAndOutputs->GetValue();
-	if (m_pApp->m_bKbInputsAndOutputsFolder)
+	m_pApp->m_bProtectKbInputsAndOutputsFolder = pProtectKBInputsAndOutputs->GetValue();
+	if (m_pApp->m_bProtectKbInputsAndOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_kbInputsAndOutputsFolderName + _T(':');
-	m_pApp->m_liftInputsAndOutputsFolder = pProtectLIFTInputsAndOutputs->GetValue();
-	if (m_pApp->m_liftInputsAndOutputsFolder)
+	m_pApp->m_bProtectLiftInputsAndOutputsFolder = pProtectLIFTInputsAndOutputs->GetValue();
+	if (m_pApp->m_bProtectLiftInputsAndOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_liftInputsAndOutputsFolderName + _T(':');
+	m_pApp->m_bProtectPackedInputsAndOutputsFolder = pProtectPackedInputsAndOutputs->GetValue();
+	if (m_pApp->m_bProtectPackedInputsAndOutputsFolder)
+		foldersProtectedFromNavigation += m_pApp->m_packedInputsAndOutputsFolderName + _T(':');
 
 	m_pApp->m_foldersProtectedFromNavigation = foldersProtectedFromNavigation;
 	

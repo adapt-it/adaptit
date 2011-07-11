@@ -360,9 +360,20 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 // if the dialog is modeless.
 void CSetupEditorCollaboration::OnOK(wxCommandEvent& event) 
 {
-	// The OnOK() handler first checks to insure that the project selected for source
-	// text inputs is different from the project selected for target text exports, unless
-	// both are [No Project Selected].
+	// Check to see if book folder mode is activated. If so, warn the administrator that it
+	// will be turned OFF if s/he continues setting up AI for collaboration with Paratext/Bibledit.
+	if (m_pApp->m_bBookMode)
+	{
+		wxString msg;
+		msg = msg.Format(_("Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled. If you later turn collaboration OFF, you will need to turn book folder mode on again if that is desired.\n\nDo you want to continue setting up Adapt It for collaboration with %s?"),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
+		if (wxMessageBox(msg,_T(""),wxYES_NO | wxICON_INFORMATION) == wxNO)
+		{
+			return;
+		}
+	}
+	// Check to insure that the project selected for source text inputs is different 
+	// from the project selected for target text exports, unless both are [No Project 
+	// Selected].
 	// If the same project is selected, inform the administrator and abort the OK
 	// operation so the administrator can select different projects or abort and
 	// set up the needed projects in Paratext first.
@@ -385,7 +396,8 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		wxMessageBox(msg);
 		return; // don't accept any changes - abort the OnOK() handler
 	}
-	
+
+	// whm Note: Put code that aborts the OnOK() handler above
 
 	// Set the App values for the PT projects to be used for PT collaboration
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
@@ -446,10 +458,6 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_free_trans_proj"), m_pApp->m_CollabProjectForFreeTransExports);
-		if (m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
-		{
-			m_pApp->m_bCollaborationExpectsFreeTrans = TRUE;
-		}
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_book_selected"), m_pApp->m_CollabBookSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
@@ -462,10 +470,6 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_free_trans_proj"), m_pApp->m_CollabProjectForFreeTransExports);
-		if (m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
-		{
-			m_pApp->m_bCollaborationExpectsFreeTrans = TRUE;
-		}
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_book_selected"), m_pApp->m_CollabBookSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
@@ -473,28 +477,38 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	// restore the oldPath back to "/Recent_File_List"
 	m_pApp->m_pConfig->SetPath(oldPath);
 
-	if (m_pApp->m_bCollaboratingWithParatext)
+	// Configure the menu interface for collaboration. The menu interface changes have
+	// to be done in such a way that they are compatible with the user profile changes to the
+	// user interface.
+	// Some menu changes may need to override any user profile allowed menu items:
+	
+	if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
 	{
-		// Configure the menu interface for collaboration. The menu interface changes have
-		// to be done in such a way that they are compatible with the user profile changes to the
-		// user interface.
-		
-		// Some menu changes will override any user profile allowed menu items:
-		// 
-		// TODO: disable Book Folder Mode menu items
-		// TODO: disable other menu items?
-		
-		// Other menu changes may involve adding tests within the menu item handler
-		// such as a test within the File's "UnPack Document..." command to prevent 
-		// the unpacking of documents that are not pertinent to the Paratext projects
-		//
-		// 
-		// Close any open project and/or document if any are open
-		CAdapt_ItView* pView = m_pApp->GetView();
-		if (pView != NULL)
-		{
-			m_pApp->GetView()->CloseProject();
-		}
+	// disallow Book mode, and prevent user from turning it on
+	m_pApp->m_bBookMode = FALSE;
+	m_pApp->m_pCurrBookNamePair = NULL;
+	m_pApp->m_nBookIndex = -1;
+	m_pApp->m_bDisableBookMode = TRUE;
+	wxASSERT(m_pApp->m_bDisableBookMode);
+	}
+	else
+	{
+		// all collaboration was turned OFF, so allow book folder mode to be changed 
+		// if desired
+		m_pApp->m_bDisableBookMode = FALSE;
+	}
+	
+	// Disabling of other menu items is done below in MakeMenuInitializationsAndPlatformAdjustments().
+	
+	// Other menu changes may involve adding tests within the menu item handler
+	// such as a test within the File's "UnPack Document..." command to prevent 
+	// the unpacking of documents that are not pertinent to the Paratext projects
+
+	// Close any open project and/or document if any are open
+	CAdapt_ItView* pView = m_pApp->GetView();
+	if (pView != NULL)
+	{
+		m_pApp->GetView()->CloseProject();
 	}
 
 	// whm added 3Jul11 Need to call MakeMenuInitializationsAndPlatformAdjustments() here to 

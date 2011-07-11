@@ -43,6 +43,7 @@ public:
 	wxCheckBox* pProtectTargetRTFOutputs;
 	wxCheckBox* pProtectKBInputsAndOutputs;
 	wxCheckBox* pProtectLIFTInputsAndOutputs;
+	wxCheckBox* pProtectPackedInputsAndOutputs;
 
 	wxButton* pBtnPreLoadSourceTexts;
 	wxButton* pSelectAllCheckBoxes;
