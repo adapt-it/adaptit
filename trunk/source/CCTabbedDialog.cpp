@@ -90,7 +90,7 @@ CCCTabbedDialog::CCCTabbedDialog(wxWindow* parent) // dialog constructor
 	// paths to cc tables & their names
 	wxString		m_tableName[4];
 	wxString		m_tableFolderPath[4];
-	wxString		m_defaultTablePath;
+	wxString		m_lastCcTablePath;
 */
 	int ct;
 	for (ct = 0; ct < 4; ct++)
@@ -179,14 +179,15 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	// larger than normal (12 point) font size which generally makes it extend beyond the right end of the
 	// edit box often hiding the actual name of the cct table file. The result is that the user has 
 	// to use the supplied horizontal scroll bar to see the name of the most important part of the path. 
-	// TODO: consider changing this to use the 9 point default dialog font.
-	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL,
-								NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
-	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL, 
-								NULL, NULL, gpApp->m_pDlgTgtFont);
-	#endif
+	// whm 11Jul11 commented out the following call, so the m_pEditfolderPath will use the 9 point default 
+	// dialog font.
+	//#ifdef _RTL_FLAGS
+	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL,
+	//							NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
+	//#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL, 
+	//							NULL, NULL, gpApp->m_pDlgTgtFont);
+	//#endif
 
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSelectedTableName, NULL,
@@ -203,17 +204,17 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	// wxString        m_tblName[4];                   wxString m_tblName[4];
 	// wxString        m_tableFolderPath[4];           wxString m_folderPath[4];
 	// bool            m_bTablesLoaded;                        n/a
-	// wxString        m_defaultTablePath;                     n/a
+	// wxString        m_lastCcTablePath;                     n/a
 
 	m_pListBox->Clear();
 
     // MFC Note: negotiate to get the best possible initial folder path - if a table has been found
     // previously, then that table's folder path would be better than the initial one supplied on launch
-    // of the property sheet (and will be obtainable from the app's m_defaultTablePath variable which is
+    // of the property sheet (and will be obtainable from the app's m_lastCcTablePath variable which is
     // updated in each Browse... button handler).
     // 
     // whm Note: On subsequent invocations of the property sheet MFC's OnInitDialog() always sets the
-    // current local m_folderPath to the m_defaultTablePath on the App. That is OK if the user only ever
+    // current local m_folderPath to the m_lastCcTablePath on the App. That is OK if the user only ever
     // uses one .cct table on one path. But, I don't think this is desirable if the user loads two or
     // more .cct tables in different Table tabs - one or more coming from different "browsed to" paths.
     // For an initial invocation of the property sheet the "Folder path" edit box will show any
@@ -230,8 +231,8 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
     // array variables on the App. In the CCTabbedDialog's constructor, the wx version assigns the four
     // local m_folderPath variables the path values that reside in the four m_tableFolderPath variables
     // on the App.
-	//if (gpApp->m_defaultTablePath != m_folderPath[m_nCurPage] && !gpApp->m_defaultTablePath.IsEmpty())
-	//	m_folderPath[m_nCurPage] = gpApp->m_defaultTablePath;
+	//if (gpApp->m_lastCcTablePath != m_folderPath[m_nCurPage] && !gpApp->m_lastCcTablePath.IsEmpty())
+	//	m_folderPath[m_nCurPage] = gpApp->m_lastCcTablePath;
 	
     // whm modified 20Mar08. If the m_folderPath is still empty, there is no point in continuing with
     // the following initializations, and displaying the error message from within GetPossibleCCTables()
@@ -591,8 +592,8 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		bool bOK;
 		bOK = ::wxSetWorkingDirectory(m_folderPath[m_nCurPage]);
 
-		// update the app's m_defaultTablePath variable
-		pApp->m_defaultTablePath = m_folderPath[m_nCurPage];
+		// update the app's m_lastCcTablePath variable
+		pApp->m_lastCcTablePath = m_folderPath[m_nCurPage];
 
 		LoadDataForPage(m_nCurPage);
 		ShowUsageOfListBoxItems();
@@ -761,7 +762,7 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 
 		// go with the full path specification
 		m_folderPath[m_nCurPage] = gpApp->m_curProjectPath; // this is where we will create it
-		gpApp->m_defaultTablePath = m_folderPath[m_nCurPage]; // set the default Table path to the same place too
+		gpApp->m_lastCcTablePath = m_folderPath[m_nCurPage]; // set the default Table path to the same place too
 		wxString path = m_folderPath[m_nCurPage] + gpApp->PathSeparator + m_tblName[m_nCurPage]; // this defines the file we wish to create
 
 		wxFile f;
