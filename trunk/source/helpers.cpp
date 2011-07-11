@@ -8598,24 +8598,24 @@ wxString ChangeFilenameExtensionTo(wxString filenameOrPath, wxString extn)
 	return filenameOrPath;
 }
 
-// This function uses wxFileName methods to change any legitimate file extension
-// in filenameOrPath to the value in extn. The incoming extn value may, or may not, 
-// have an initial period - the function strips out any initial period before using
-// the wxFileName methods. Path normalization takes place if needed. Accounts for
-// platform differences (initial dot meaning hidden files in Linux/Mac). 
-// Note: Double extensions can be passed in. This function makes adjustments for 
-// the fact that, if filenameOrPath does not contain a path (but just a filename) 
-// we cannot use the wxFileName::GetPath() and wxFileName::GetFullPath() methods, 
-// because both return a path to the executing program's path rather than an empty 
-// string.
 ////////////////////////////////////////////////////////////////////////////////
-/// \return                       TRUE if all went well, FALSE if project could
-///                               not be created
-/// \param pApp               ->  ptr to the running instance of the application
-/// \param srcLangName        ->  the language name for source text to be used for
-///                               creating the project folder name
+/// \return                   a wxString representing the file name or path 
+///                                with the changed extension
+/// \param filenameOrPath     ->  the filename or filename+path to be changed
+/// \param extn               ->  the new extension to be used
 /// \remarks
 /// 
+/// Called from:
+/// This function uses wxFileName methods to change any legitimate file extension
+/// in filenameOrPath to the value in extn. The incoming extn value may, or may not, 
+/// have an initial period - the function strips out any initial period before using
+/// the wxFileName methods. Path normalization takes place if needed. Accounts for
+/// platform differences (initial dot meaning hidden files in Linux/Mac). 
+/// Note: Double extensions can be passed in. This function makes adjustments for 
+/// the fact that, if filenameOrPath does not contain a path (but just a filename) 
+/// we cannot use the wxFileName::GetPath() and wxFileName::GetFullPath() methods, 
+/// because both return a path to the executing program's path rather than an empty 
+/// string.
 ////////////////////////////////////////////////////////////////////////////////
 wxString ChangeFilenameExtension2(wxString filenameOrPath, wxString extn)
 {
