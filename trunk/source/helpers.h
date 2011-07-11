@@ -409,7 +409,9 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 						wxString& srcEthnologueCode, wxString& tgtEthnologueCode,
 						bool bDisableBookMode);
 // change extension on the filename or path to extn, return the resulting string
-wxString ChangeFilenameExtensionTo(wxString filenameOrPath, wxString& extn); 
+wxString ChangeFilenameExtensionTo(wxString filenameOrPath, wxString extn); 
+// whm suggested function to accomplish the intent of the one above
+wxString ChangeFilenameExtension2(wxString filenameOrPath, wxString extn); 
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp
