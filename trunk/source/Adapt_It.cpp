@@ -5584,41 +5584,41 @@ wxString szCurKBBackupPath = _T("KBBackupPath");
 /// The label that identifies the following string as the project's
 /// "LastNewDocumentFolder". This value is written in the "BasicSettings" part of the
 /// basic configuration file. Adapt It stores this path in the App's
-/// m_lastSourceFileFolder member variable.
+/// m_lastSourceInputPath member variable.
 wxString szLastSourceFileFolder = _T("LastNewDocumentFolder");
 
 /// The label that identifies the following string as the project's
 /// "LastSourceTextExportPath". This value is written in the "BasicSettings" part of the
-/// basic configuration file. Adapt It stores this path in the App's m_lastSrcExportPath
+/// basic configuration file. Adapt It stores this path in the App's m_lastSourceOutputPath
 /// member variable.
 wxString szLastSourceExportPath = _T("LastSourceTextExportPath");
 
 /// The label that identifies the following string as the project's "KB_ExportPath". This
 /// value is written in the "BasicSettings" part of the basic configuration file. Adapt
-/// It stores this path in the App's m_kbExportPath member variable.
-wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_kbExportPath
+/// It stores this path in the App's m_lastKbOutputPath member variable.
+wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_lastKbOutputPath
 
 /// The label that identifies the following string as the project's
 /// "RetranslationReportPath". This value is written in the "BasicSettings" part of the
-/// basic configuration file. Adapt It stores this path in the App's m_retransReportPath
+/// basic configuration file. Adapt It stores this path in the App's m_lastRetransReportPath
 /// member variable.
 wxString szRetranslationReportPath = _T("RetranslationReportPath");
 
 /// The label that identifies the following string as the project's "RTFExportPath". This
 /// value is written in the "BasicSettings" part of the basic configuration file. Adapt
-/// It stores this path in the App's m_rtfExportPath member variable.
+/// It stores this path in the App's m_lastRtfOutputPath member variable.
 wxString szRTFExportPath = _T("RTFExportPath");
 
 /// The label that identifies the following string as the project's
 /// "LastGlossesExportPath". This value is written in the "ProjectSettings" part of the
 /// project configuration file. Adapt It stores this path in the App's
-/// m_lastGlossesExportPath member variable.
+/// m_lastGlossesOutputPath member variable.
 wxString szLastGlossesExportPath = _T("LastGlossesTextExportPath");
 
 /// The label that identifies the following string as the project's
 /// "LastFreeTranslationsExportPath". This value is written in the "ProjectSettings" part
 /// of the project configuration file. Adapt It stores this path in the App's
-/// m_lastFreeTransExportPath member variable.
+/// m_lastFreeTransOutputPath member variable.
 wxString szLastFreeTransExportPath = _T("LastFreeTransExportPath");
 
 /// The label that identifies the following string as the project's
@@ -5889,7 +5889,7 @@ wxString szNavTextColor = _T("ColorOfNavigationText");
 
 /// The label that identifies the following string as the application's
 /// "DefaultCCTablePath". This value is written in the "Settings" part of the basic
-/// configuration file. Adapt It stores this path in the App's m_defaultTablePath member
+/// configuration file. Adapt It stores this path in the App's m_lastCcTablePath member
 /// variable.
 wxString szDefaultTablePath = _T("DefaultCCTablePath");
 
@@ -6008,7 +6008,7 @@ wxString szZoomed = _T("IsMainWindowMaximized");
 
 /// The label that identifies the following string as the application's "LastExportPath".
 /// This value is written in the "Settings" part of the basic configuration file. Adapt It
-/// stores this path in the App's m_lastExportPath member variable.
+/// stores this path in the App's m_lastTargetOutputPath member variable.
 wxString szLastExportPath = _T("LastExportPath");
 
 // The label that identifies the following string as the application's
@@ -12326,7 +12326,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// TODO: check the Unpack process when unpacking a packed file coming from 
 	// a different localization.
 	m_adaptionsFolder = _("Adaptations");
-	m_lastSourceFileFolder = m_workFolderPath; // don't do alternative custom loc'n here
+	m_lastSourceInputPath = m_workFolderPath; // don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
 	m_sourceInputsFolderPath = _T(""); 
 	m_freeTransOutputsFolderPath = _T("");
@@ -12355,7 +12355,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pConsistentChanger[2] = (CConsistentChanger*)NULL; // " " "
 	m_pConsistentChanger[3] = (CConsistentChanger*)NULL; // " " "
 
-	m_defaultTablePath = _T("");
+	m_lastCcTablePath = _T("");
 	m_tableName[0] = _T("");
 	m_tableName[1] = _T("");
 	m_tableName[2] = _T("");
@@ -12365,14 +12365,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_tableFolderPath[2] = _T("");
 	m_tableFolderPath[3] = _T("");
 
-	m_lastExportPath = _T("");
+	m_lastTargetOutputPath = _T("");
 	m_lastDocPath = _T(""); // config file will set this
-	m_lastSrcExportPath = _T("");
-	m_kbExportPath = _T("");
-	m_rtfExportPath = _T("");
-	m_retransReportPath = _T("");
-	m_lastGlossesExportPath = _T("");
-	m_lastFreeTransExportPath = _T("");
+	m_lastSourceOutputPath = _T("");
+	m_lastKbOutputPath = _T("");
+	m_lastRtfOutputPath = _T("");
+	m_lastRetransReportPath = _T("");
+	m_lastGlossesOutputPath = _T("");
+	m_lastFreeTransOutputPath = _T("");
 	m_foldersProtectedFromNavigation = _T("");
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by 
@@ -12554,6 +12554,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
 	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_AND_OUTPUTS");
+	m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_AND_OUTPUTS");
+	m_reportsLogsOutputsFolderName = _T("_REPORTS_LOGS");
 	
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	// folder navigation protection defaults to FALSE but project config file
@@ -12571,6 +12573,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bProtectKbInputsAndOutputsFolder = FALSE;
 	m_bProtectLiftInputsAndOutputsFolder = FALSE;
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
+	m_bProtectCCTableInputsAndOutputsFolder = FALSE;
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
@@ -15383,10 +15386,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		SetPageOrientation(m_bIsPortraitOrientation);
 		
 		// initialize default path for cc tables
-		m_tableFolderPath[0] = m_defaultTablePath;
-		m_tableFolderPath[1] = m_defaultTablePath;
-		m_tableFolderPath[2] = m_defaultTablePath;
-		m_tableFolderPath[3] = m_defaultTablePath;
+		m_tableFolderPath[0] = m_lastCcTablePath;
+		m_tableFolderPath[1] = m_lastCcTablePath;
+		m_tableFolderPath[2] = m_lastCcTablePath;
+		m_tableFolderPath[3] = m_lastCcTablePath;
 
         // whm added 14Apr09. The basic config file contains position and size information
         // for the main frame and that information has now been read from the config file,
@@ -18728,6 +18731,8 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 		m_packedInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_packedInputsAndOutputsFolderName;
+		m_ccTableInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
+		m_reportsLogsOutputsFolderPath = curProjectPath + PathSeparator + m_reportsLogsOutputsFolderName;
 		
 		if (!::wxDirExists(m_sourceInputsFolderPath))
 		{
@@ -18959,6 +18964,42 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				{
 					pathCreationErrors += _T("   ");
 					pathCreationErrors += m_packedInputsAndOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
+			}
+		}
+		if (!::wxDirExists(m_ccTableInputsAndOutputsFolderPath))
+		{
+			bool bOK = ::wxMkdir(m_ccTableInputsAndOutputsFolderPath);
+			if (!bOK)
+			{
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_ccTableInputsAndOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_ccTableInputsAndOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
+			}
+		}
+		if (!::wxDirExists(m_reportsLogsOutputsFolderPath))
+		{
+			bool bOK = ::wxMkdir(m_reportsLogsOutputsFolderPath);
+			if (!bOK)
+			{
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_reportsLogsOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_reportsLogsOutputsFolderName;
 				}
 				bCreatedOK = FALSE;
 			}
@@ -20738,6 +20779,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
 		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
+		dlg.Center();
 		dlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
 		if (dlg.ShowModal() == wxID_CANCEL)
 		{
@@ -23154,11 +23196,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastSourceFileFolder << tab << m_lastSourceFileFolder;
+	data << szLastSourceFileFolder << tab << m_lastSourceInputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastExportPath << tab << m_lastExportPath;
+	data << szLastExportPath << tab << m_lastTargetOutputPath;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -23171,7 +23217,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
 	// now for the view stuff
 	data.Empty();
-	data << szDefaultTablePath << tab << m_defaultTablePath;
+	data << szDefaultTablePath << tab << m_lastCcTablePath;
 	pf->AddLine(data);
 
 #ifndef _UNICODE
@@ -23525,19 +23571,19 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 #endif // _UNICODE
 	
 	data.Empty();
-	data << szLastSourceExportPath << tab << m_lastSrcExportPath;
+	data << szLastSourceExportPath << tab << m_lastSourceOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKBExportPath << tab << m_kbExportPath;
+	data << szKBExportPath << tab << m_lastKbOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szRetranslationReportPath << tab << m_retransReportPath;
+	data << szRetranslationReportPath << tab << m_lastRetransReportPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szRTFExportPath << tab << m_rtfExportPath;
+	data << szRTFExportPath << tab << m_lastRtfOutputPath;
 	pf->AddLine(data);
 
 	if (m_bSuppressTargetHighlighting)
@@ -24236,11 +24282,60 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szLastSourceFileFolder)
 		{
-			m_lastSourceFileFolder = strValue;
+			m_lastSourceInputPath = strValue;
 		}
 		else if (name == szLastExportPath)
 		{
-			m_lastExportPath = strValue;
+			m_lastTargetOutputPath = strValue;
+		}
+		else if (name == szFoldersProtectedFromNavigation)
+		{
+			m_foldersProtectedFromNavigation = strValue;
+			// tokenize the folder name elements in m_foldersProtectedFromNavigation
+			// that are delimited by ':' chars
+			wxString tokenStr;
+			wxStringTokenizer tkz(strValue,_T(":"));
+			while (tkz.HasMoreTokens())
+			{
+				// add the tokenStr to fitPartStr if it doesn't make fitPartStr get longer than extentRemaining
+				tokenStr = tkz.GetNextToken();
+				if (tokenStr == m_sourceInputsFolderName)
+					m_bProtectSourceInputsFolder = TRUE;
+				else if (tokenStr == m_freeTransOutputsFolderName)
+					m_bProtectFreeTransOutputsFolder = TRUE;
+				else if (tokenStr == m_freeTransRTFOutputsFolderName)
+					m_bProtectFreeTransRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_glossOutputsFolderName)
+					m_bProtectGlossOutputsFolder = TRUE;
+				else if (tokenStr == m_glossRTFOutputsFolderName)
+					m_bProtectGlossRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_interlinearRTFOutputsFolderName)
+					m_bProtectInterlinearRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_sourceOutputsFolderName)
+					m_bProtectSourceOutputsFolder = TRUE;
+				else if (tokenStr == m_sourceRTFOutputsFolderName)
+					m_bProtectSourceRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_targetOutputsFolderName)
+					m_bProtectTargetOutputsFolder = TRUE;
+				else if (tokenStr == m_targetRTFOutputsFolderName)
+					m_bProtectTargetRTFOutputsFolder = TRUE;
+				else if (tokenStr == m_kbInputsAndOutputsFolderName)
+					m_bProtectKbInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_liftInputsAndOutputsFolderName)
+					m_bProtectLiftInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_packedInputsAndOutputsFolderName)
+					m_bProtectPackedInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
+					m_bProtectCCTableInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_reportsLogsOutputsFolderName)
+					m_bProtectReportsLogsOutputsFolder = TRUE;
+				else
+				{
+					;
+					wxASSERT_MSG(FALSE,_T("Unrecognized value in FoldersProtectedFromNavigation setting")); // notify of programming error
+				}
+
+			}
 		}
 		else if (name == szAdministratorPassword)
 		{
@@ -24255,7 +24350,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szDefaultTablePath)
 		{
-			m_defaultTablePath = strValue; // can be empty
+			m_lastCcTablePath = strValue; // can be empty
 		}
         // From version 2.3.0, we don't write out m_punctuation[0] and m_punctuation[1] and
         // m_punctWordBuilding[0] and [1] are no longer used, so we retain the reads here
@@ -25062,19 +25157,19 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		// added for v2.0.1 and onwards
 		else if (name == szLastSourceExportPath)
 		{
-			m_lastSrcExportPath = strValue;
+			m_lastSourceOutputPath = strValue;
 		}
 		else if (name == szKBExportPath)
 		{
-			m_kbExportPath = strValue;
+			m_lastKbOutputPath = strValue;
 		}
 		else if (name == szRetranslationReportPath)
 		{
-			m_retransReportPath = strValue;
+			m_lastRetransReportPath = strValue;
 		}
 		else if (name == szRTFExportPath)
 		{
-			m_rtfExportPath = strValue;
+			m_lastRtfOutputPath = strValue;
 		}
 
 		// added for v1.4.1 and onwards
@@ -25793,24 +25888,24 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
 	// now for the view stuff
 	data.Empty();
-	data << szDefaultTablePath << tab << m_defaultTablePath;
+	data << szDefaultTablePath << tab << m_lastCcTablePath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastExportPath << tab << m_lastExportPath;
+	data << szLastExportPath << tab << m_lastTargetOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastSourceFileFolder << tab << m_lastSourceFileFolder;
+	data << szLastSourceFileFolder << tab << m_lastSourceInputPath;
 	pf->AddLine(data);
 
 	// paths for exports
 	data.Empty();
-	data << szLastGlossesExportPath << tab << m_lastGlossesExportPath;
+	data << szLastGlossesExportPath << tab << m_lastGlossesOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastFreeTransExportPath << tab << m_lastFreeTransExportPath;
+	data << szLastFreeTransExportPath << tab << m_lastFreeTransOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -26158,11 +26253,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szDefaultTablePath)
 		{
-			m_defaultTablePath = strValue; // can be empty
+			m_lastCcTablePath = strValue; // can be empty
 		}
 		else if (name == szLastExportPath)
 		{
-            // BEW added 16Oct05, so we can have a 'fixed' m_lastExportPath too... compare
+            // BEW added 16Oct05, so we can have a 'fixed' m_lastTargetOutputPath too... compare
             // the initial part of the path with what is in the initial part of the path as
             // a result of the MakeForeignBasicConfigFileSafe() call being done before
             // using the basic config file -- if a basic config file from someone else was
@@ -26170,12 +26265,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             // safe, and a copied project file from another user does not get made safe so
             // we could be about to replace a good path with an invalid one so we'll
             // compare the part of the paths up to the "Adapt It" part of the work folder
-            // name, and if different we'll use the one already in m_lastExportPath
+            // name, and if different we'll use the one already in m_lastTargetOutputPath
 			wxString workfolder = PathSeparator + _T("Adapt It");
 			int nFound1 = strValue.Find(workfolder);
 			wxString leftStrFromProjectConfigFile = strValue.Left(nFound1);
-			int nFound2 = m_lastExportPath.Find(workfolder);
-			wxString leftStrFromBasicConfigFile = m_lastExportPath.Left(nFound2);
+			int nFound2 = m_lastTargetOutputPath.Find(workfolder);
+			wxString leftStrFromBasicConfigFile = m_lastTargetOutputPath.Left(nFound2);
 			if (leftStrFromProjectConfigFile != leftStrFromBasicConfigFile)
 			{
                 // they are different substrings, so we can assume that the ...\<profile
@@ -26186,25 +26281,25 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 			{
                 // identical, so we can safely use the project config file's strValue to
-                // overwrite what is already in m_lastExportPath as a result of reading the
+                // overwrite what is already in m_lastTargetOutputPath as a result of reading the
                 // basic config file earlier
-				m_lastExportPath = strValue;
+				m_lastTargetOutputPath = strValue;
 			}
 		}
 		else if (name == szLastSourceFileFolder)
 		{
-			m_lastSourceFileFolder = strValue;
+			m_lastSourceInputPath = strValue;
 		}
 		else if (name == szLastGlossesExportPath)
 		{
 			if (bForeignConfigFile)
 			{
 				// probably an unsafe path, so default it to current project folder
-				m_lastGlossesExportPath = m_curProjectPath;
+				m_lastGlossesOutputPath = m_curProjectPath;
 			}
 			else
 			{
-				m_lastGlossesExportPath = strValue;
+				m_lastGlossesOutputPath = strValue;
 			}
 		}
 		else if (name == szLastFreeTransExportPath)
@@ -26212,11 +26307,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if (bForeignConfigFile)
 			{
 				// probably an unsafe path, so default it to current project folder
-				m_lastFreeTransExportPath = m_curProjectPath;
+				m_lastFreeTransOutputPath = m_curProjectPath;
 			}
 			else
 			{
-				m_lastFreeTransExportPath = strValue;
+				m_lastFreeTransOutputPath = strValue;
 			}
 		}
 		else if (name == szFoldersProtectedFromNavigation)
@@ -26256,6 +26351,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 					m_bProtectLiftInputsAndOutputsFolder = TRUE;
 				else if (tokenStr == m_packedInputsAndOutputsFolderName)
 					m_bProtectPackedInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
+					m_bProtectCCTableInputsAndOutputsFolder = TRUE;
+				else if (tokenStr == m_reportsLogsOutputsFolderName)
+					m_bProtectReportsLogsOutputsFolder = TRUE;
 				else
 				{
 					;
@@ -34119,6 +34218,7 @@ void CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& e
 void CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event))
 {
 	CAssignLocationsForInputsAndOutputs dlg(GetMainFrame());
+	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		; // all work is done within the class methods
@@ -34238,6 +34338,7 @@ void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))
 {
 	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
+	editMenuDlg.Center();
 	if (editMenuDlg.ShowModal() == wxID_OK)
 	{
 		if (editMenuDlg.bChangesMadeToProfileItems 
@@ -36763,6 +36864,7 @@ void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 	AdminMoveOrCopy dlg(GetMainFrame());
+	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		;
@@ -36808,6 +36910,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	//CPhraseBox* pBox;
 	//CAdapt_ItView* pView;
 	//GetBasePointers(pDoc,pView,pBox); // this is 'safe' when no doc is open
+	
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 
 	// get a pointer to either the glossing KB or the adaptation one
 	CKB* pKB;
@@ -36821,29 +36925,42 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
     // "<Project Name>" one if no previous export path was defined, else make it the stored
     // last export path for the kb
 	bool bOK = TRUE;
-	if (m_kbExportPath.IsEmpty())
-		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
-	else
-		bOK = ::wxSetWorkingDirectory(m_kbExportPath);
-
-	// the above may have failed, so if so use m_curProjectPath as the folder
-	// so we can proceed to the file dialog safely
-	if (!bOK)
+	
+	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+	if (this->m_bProtectKbInputsAndOutputsFolder)
 	{
-		m_kbExportPath = m_curProjectPath;
-		bOK = ::wxSetWorkingDirectory(m_kbExportPath); // this should work, since
-												// m_curProjectPath can hardly be wrong!
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		// Navigation protection in effect - limit source text exports to
+		// be saved in the _KB_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// of the folder that m_curProjectPath points to.
+		bOK = ::wxSetWorkingDirectory(this->m_kbInputsAndOutputsFolderPath);
+	}
+	else
+	{
+		if (m_lastKbOutputPath.IsEmpty())
+			bOK = ::wxSetWorkingDirectory(m_curProjectPath);
+		else
+			bOK = ::wxSetWorkingDirectory(m_lastKbOutputPath);
+		
+		// the above may have failed, so if so use m_curProjectPath as the folder
+		// so we can proceed to the file dialog safely
 		if (!bOK)
 		{
-			bOK = ::wxSetWorkingDirectory(m_kbExportPath = _T("C:"));
+			m_lastKbOutputPath = m_curProjectPath;
+			bOK = ::wxSetWorkingDirectory(m_lastKbOutputPath); // this should work, since
+													// m_curProjectPath can hardly be wrong!
 			if (!bOK)
 			{
-				// we should never get a failure for the above, 
-				// so just an English message will do
-				wxMessageBox(_T(
-				"OnFileExportKb() failed, the export has been aborted"),
-				_T(""),wxICON_WARNING);
-				return;
+				bOK = ::wxSetWorkingDirectory(m_lastKbOutputPath = _T("C:"));
+				if (!bOK)
+				{
+					// we should never get a failure for the above, 
+					// so just an English message will do
+					wxMessageBox(_T(
+					"OnFileExportKb() failed, the export has been aborted"),
+					_T(""),wxICON_WARNING);
+					return;
+				}
 			}
 		}
 	}
@@ -36856,10 +36973,12 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
     // m_curProjectName without " adaptations" part
 	wxString dictFilename;
 	dictFilename = m_curProjectName;
-	dictFilename = MakeReverse(dictFilename);
-	int offset = dictFilename.Find(_T(" "));
-	dictFilename = dictFilename.Mid(offset); // remove "adaptations" or Tok Pisin equivalent
-	dictFilename = MakeReverse(dictFilename);
+	// whm modified 11Jul11 to use wxString::Find(x, TRUE) where TRUE - find from right end of string
+	// rather than 2x use of MakeReverse() function.
+	//dictFilename = MakeReverse(dictFilename);
+	int offset = dictFilename.Find(_T(' '),TRUE); // TRUE - find from right end
+	dictFilename = dictFilename.Mid(0,offset); // remove "adaptations" or Tok Pisin equivalent
+	//dictFilename = MakeReverse(dictFilename);
 	// The base dictFilename is now in the form of "x to y"
 
 	wxString glossStr;
@@ -36884,64 +37003,119 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	dictFilename = dictFilename + _T("%s");
 	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .txt 
 													// as the default export extension
+	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
+	// is set for protected navigation
 	wxString defaultDir;
-	if (m_kbExportPath.IsEmpty())
+	if (m_lastKbOutputPath.IsEmpty())
 	{
 		defaultDir = m_curProjectPath;
 	}
 	else
 	{
-		defaultDir = m_kbExportPath;
+		defaultDir = m_lastKbOutputPath;
 	}
 
-	// get a file dialog
-	wxString filter;
-	filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"); 
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Filename For KB Export"),
-		defaultDir,	// empty string causes it to use the current working directory (set above)
-		dictFilename,	// default filename
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
-	fileDlg.Centre();
-
-	// make the dialog visible
-	if (fileDlg.ShowModal() != wxID_OK)
-		return; // user cancelled
-
-	// update m_kbExportPath
-	wxString exportPath = fileDlg.GetPath();
-	wxString name = fileDlg.GetFilename();
-	int nameLen = name.Length();
-	int pathLen = exportPath.Length();
-	wxASSERT(nameLen > 0 && pathLen > 0);
-	m_kbExportPath = exportPath.Left(pathLen - nameLen - 1);
-
-	// get the user's desired path and file name
-	wxString dicPath = fileDlg.GetPath(); 
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
+	wxString exportPath;
+	wxString uniqueFilenameAndPath;
 	int filterIndex;
-	filterIndex = fileDlg.GetFilterIndex();
-	// NOTE: If you decide to change the default Export type you must make sure that 
-	// the KBExportSaveAsType enum ordering (in Adapt_It.h) has the same enum values 
-	// as the filterIndex value returned here by GetFilterIndex() !!!
-
-	if (filterIndex == KBExportSaveAsSFM_TXT)
+	if (!bBypassFileDialog_ProtectedNavigation)
 	{
-        // in SFM exports, add the " dictionary records" suffix to the base name of the
-        // export file, if the user has not already made that part of the name.
-		wxString path, fname, ext;
-		wxFileName::SplitPath(dicPath, &path, &fname, &ext);
-		if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+		// get a file dialog
+		wxString filter;
+		filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"); 
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Filename For KB Export"),
+			defaultDir,	// empty string causes it to use the current working directory (set above)
+			dictFilename,	// default filename
+			filter,
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+			// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+			// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+		fileDlg.Centre();
+
+		// make the dialog visible
+		if (fileDlg.ShowModal() != wxID_OK)
+			return; // user cancelled
+
+		wxString exportPath = fileDlg.GetPath();
+		wxString name = fileDlg.GetFilename();
+		int nameLen = name.Length();
+		int pathLen = exportPath.Length();
+		wxASSERT(nameLen > 0 && pathLen > 0);
+		// update m_lastKbOutputPath
+		m_lastKbOutputPath = exportPath.Left(pathLen - nameLen - 1);
+		
+		// get the user's desired path and file name
+		exportPath = fileDlg.GetPath(); 
+		filterIndex;
+		filterIndex = fileDlg.GetFilterIndex();
+		// NOTE: If you decide to change the default Export type you must make sure that 
+		// the KBExportSaveAsType enum ordering (in Adapt_It.h) has the same enum values 
+		// as the filterIndex value returned here by GetFilterIndex() !!!
+		if (filterIndex == KBExportSaveAsSFM_TXT)
 		{
-			dicPath = path + PathSeparator + fname + _T(" ") + 
-						_("dictionary records") + _T(".") + ext;
+			// in SFM exports, add the " dictionary records" suffix to the base name of the
+			// export file, if the user has not already made that part of the name.
+			wxString path, fname, ext;
+			wxFileName::SplitPath(exportPath, &path, &fname, &ext);
+			if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+			{
+				exportPath = path + PathSeparator + fname + _T(" ") + 
+							_("dictionary records") + _T(".") + ext;
+			}
 		}
 	}
+	else
+	{
+		// While nav protection is ON, the user doesn't see a wxFileDialog where the
+		// Save As Type dropdown box is an option. So, we have to ask the user directly 
+		// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
+		// filterIndex according to the user's response.
+		wxString choices[2];
+		choices[0] = _("1. Export the Knowledge Base in Standard Format (\\x and \\ge).");
+		choices[1] = _("2. Export the Knowledge Base in LIFT Format.");
+		wxString message = _("Choose Type of Knowledge Base Export (select 1 or 2), or Cancel (to abort the export)");
+		wxString myCaption = _("Export the Knowledge Base as SFM or LIFT dictionary records");
+		int returnValue = wxGetSingleChoiceIndex(
+			message,myCaption,2,choices,GetMainFrame(),-1,-1,TRUE,350,80);
+		if (returnValue == -1)
+			return; // user pressed Cancel
+		else
+		{
+			filterIndex = returnValue;
+			wxASSERT(filterIndex == 0 || filterIndex == 1);
+		}
+		exportPath = gpApp->m_kbInputsAndOutputsFolderPath + gpApp->PathSeparator + dictFilename;
+		wxString path, fname, ext;
+		wxFileName::SplitPath(exportPath, &path, &fname, &ext);
+		if (filterIndex == KBExportSaveAsSFM_TXT)
+		{
+			// in SFM exports, add the " dictionary records" suffix to the base name of the
+			// export file, if the user has not already made that part of the name.
+			if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+			{
+				exportPath = path + PathSeparator + fname + _T(" ") + 
+							_("dictionary records") + _T(".") + ext;
+			}
+		}
+		else if (filterIndex == KBExportSaveAsLIFT_XML)
+		{
+			exportPath = path + PathSeparator + fname + _T(" ") + 
+						_("dictionary records") + _T(".lift");
+		}
+		
+		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
+		// appropriate outputs folder.
+		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+		// Use the unique path for exportPath
+		exportPath = uniqueFilenameAndPath;
+	}
+
 	wxFile f;
-	if( !f.Open( dicPath, wxFile::write))
+	if( !f.Open(exportPath, wxFile::write))
 	{
 		wxMessageBox(_("Unable to open knowledge base export file."),
 		_T(""), wxICON_WARNING);
@@ -36962,6 +37136,24 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	// close the file
 	f.Close();
+	
+	if (bBypassFileDialog_ProtectedNavigation)
+	{
+		// whm 7Jul11 Note:
+		// For protected navigation situations AI determines the actual
+		// filename that is used for the export, and the export itself is
+		// automatically saved in the appropriate outputs folder. Since the
+		// user has no opportunity to provide a file name nor navigate to
+		// a random path, we should inform the user at this point of the 
+		// successful completion of the export, and indicate the file name 
+		// that was used and its outputs folder name and location.
+		wxFileName fn(uniqueFilenameAndPath);
+		wxString fileNameAndExtOnly = fn.GetFullName();
+
+		wxString msg;
+		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
+		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	}
 }
 
 #ifdef __WXDEBUG__

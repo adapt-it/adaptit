@@ -8214,7 +8214,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Location for source text inputs (SFM or Unstructured plain text):"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8222,14 +8222,14 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxFlexGridSizer *item7 = new wxFlexGridSizer( 2, 3, 4 );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, wxT("__SOURCE_INPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
     item9->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxCheckBox *item10 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_INPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -8245,7 +8245,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     item4->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Locations for specific types of outputs:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item4->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxFlexGridSizer *item14 = new wxFlexGridSizer( 2, 3, 4 );
 
@@ -8303,62 +8303,74 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxCheckBox *item32 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, wxT("_REPORTS_LOGS"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxCheckBox *item34 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_REPORTS_LOGS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
     item4->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticLine *item33 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item4->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item35 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item4->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Locations where both inputs and outputs use the same folder:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Locations where both inputs and outputs use the same folder:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 3, 4 );
+    wxFlexGridSizer *item37 = new wxFlexGridSizer( 2, 3, 4 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, wxT("_KB_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, wxT("_KB_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item37 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, wxT("_LIFT_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, wxT("_LIFT_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("_PACKED_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("_PACKED_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_PACKED_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item43 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_PACKED_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item35, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("_CCTABLE_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticLine *item42 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item4->Add( item42, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item45 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_CCTABLE_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item43 = new wxBoxSizer( wxHORIZONTAL );
+    item4->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item43->Add( 170, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticLine *item46 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item4->Add( item46, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item44 = new wxButton( parent, ID_BUTTON_SELECT_ALL_CHECKBOXES, _("Select All Check Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item43->Add( item44, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item47 = new wxBoxSizer( wxHORIZONTAL );
 
-    item4->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item47->Add( 150, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item48 = new wxButton( parent, ID_BUTTON_SELECT_ALL_CHECKBOXES, _("Protect All (Check All Boxes)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item4->Add( item47, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item45 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item49 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item46 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item45->Add( item46, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item50 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item49->Add( item50, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item45->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item49->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item47 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item47->SetDefault();
-    item45->Add( item47, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item51 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item51->SetDefault();
+    item49->Add( item51, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item49, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 

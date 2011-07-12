@@ -19330,54 +19330,106 @@ void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	bool bOK;
+
 	wxString message;
-	message = _(
-	"Extend the knowledge base by importing SFM or LIFT dictionary records");
+	message = _("Choose Type of Knowledge Base Import (select 1 or 2), or Cancel (to abort the inport)");
 	wxString filter;
 	filter = _(
 	"SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||");
 	wxString importFilename = _T(""); // empty string
 	wxString defaultDir;
-	if (pApp->m_kbExportPath.IsEmpty())
+	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
+	// is set for protected navigation
+	if (pApp->m_lastKbOutputPath.IsEmpty())
 	{
 		defaultDir = pApp->m_curProjectPath;
 	}
 	else
 	{
-		defaultDir = pApp->m_kbExportPath;
+		defaultDir = pApp->m_lastKbOutputPath;
 	}
 
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		message,
-		defaultDir,	// empty string causes it to use the 
-					// current working directory (set above)
-		importFilename,	// default filename
-		filter,
-		wxFD_OPEN); 
-		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-		// GDLC wxOPEN deprecated in 2.8
-	fileDlg.Centre();
+	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+	if (pApp->m_bProtectKbInputsAndOutputsFolder)
+	{
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		// Navigation protection in effect - limit source text exports to
+		// be saved in the _KB_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// of the folder that m_curProjectPath points to.
+		bOK = ::wxSetWorkingDirectory(pApp->m_kbInputsAndOutputsFolderPath);
+	}
+	else
+	{
+		if (pApp->m_lastKbOutputPath.IsEmpty())
+			bOK = ::wxSetWorkingDirectory(pApp->m_curProjectPath);
+		else
+			bOK = ::wxSetWorkingDirectory(pApp->m_lastKbOutputPath);
+	}
 
-	// open as modal dialog
-	if (fileDlg.ShowModal() != wxID_OK)
-		return; // user cancelled
-
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
+	wxString exportPath;
+	wxString uniqueFilenameAndPath;
 	wxString pathName;
-	pathName = fileDlg.GetPath();
+	int filterIndex = 0;
+	if (!bBypassFileDialog_ProtectedNavigation)
+	{
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			message,
+			defaultDir,	// empty string causes it to use the 
+						// current working directory (set above)
+			importFilename,	// default filename
+			filter,
+			wxFD_OPEN); 
+			// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+			// GDLC wxOPEN deprecated in 2.8
+		fileDlg.Centre();
 
-	// update m_kbExportPath
-	wxString importPath = fileDlg.GetPath();
-	wxString name = fileDlg.GetFilename();
-	int nameLen = name.Length();
-	int pathLen = importPath.Length();
-	wxASSERT(nameLen > 0 && pathLen > 0);
-	pApp->m_kbExportPath = importPath.Left(pathLen - nameLen - 1);
-	int filterIndex;
-	filterIndex = fileDlg.GetFilterIndex();
-	// NOTE: If you decide to change the default Import type you must make sure that 
-	// the KBImportFileOfType enum ordering (in Adapt_It.h) has the same enum values 
-	// as the filterIndex value returned here by GetFilterIndex() !!!
+		// open as modal dialog
+		if (fileDlg.ShowModal() != wxID_OK)
+			return; // user cancelled
+
+		pathName = fileDlg.GetPath();
+
+		// update m_lastKbOutputPath
+		wxString importPath = fileDlg.GetPath();
+		wxString name = fileDlg.GetFilename();
+		int nameLen = name.Length();
+		int pathLen = importPath.Length();
+		wxASSERT(nameLen > 0 && pathLen > 0);
+		pApp->m_lastKbOutputPath = importPath.Left(pathLen - nameLen - 1);
+		int filterIndex;
+		filterIndex = fileDlg.GetFilterIndex();
+		
+		// NOTE: If you decide to change the default Import type you must make sure that 
+		// the KBImportFileOfType enum ordering (in Adapt_It.h) has the same enum values 
+		// as the filterIndex value returned here by GetFilterIndex() !!!
+	}
+	else
+	{
+		// While nav protection is ON, the user doesn't see a wxFileDialog where the
+		// Save As Type dropdown box is an option. So, we have to ask the user directly 
+		// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
+		// filterIndex according to the user's response.
+		wxString choices[2];
+		choices[0] = _("1. Import standard format records (\\x and \\ge) into the Knowledge Base.");
+		choices[1] = _("2. Import LIFT records into the Knowledge Base.");
+		wxString myCaption = _("Extend the knowledge base by importing SFM or LIFT dictionary records");
+		//wxString message = _("Select from the type of KB import, then click OK. The Cancel button will abort the import.");
+		int returnValue = wxGetSingleChoiceIndex(
+			message,myCaption,2,choices,pApp->GetMainFrame(),-1,-1,TRUE,350,80);
+		if (returnValue == -1)
+			return; // user pressed Cancel
+		else
+		{
+			filterIndex = returnValue;
+			wxASSERT(filterIndex == 0 || filterIndex == 1);
+		}
+	}
 
 	if (filterIndex == KBImportFileOfLIFT_XML)
 	{
@@ -19701,6 +19753,11 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);

@@ -3679,7 +3679,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		name = reportFilename; // use for the document name in the report
 		reportFilename += _(" report.txt"); // make it a *.txt file type // localization?
 	}
-	else
+	 else
 	{
 		// construct a general default filename, and "name" will be defined in
 		// DoRetranslationReport()
@@ -3687,13 +3687,13 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		name.Empty();
 	}
 	// set the default folder to be shown in the dialog 
-	if (m_pApp->m_retransReportPath.IsEmpty())
+	if (m_pApp->m_lastRetransReportPath.IsEmpty())
 	{
 		defaultDir = m_pApp->m_curProjectPath;
 	}
 	else
 	{
-		defaultDir = m_pApp->m_retransReportPath;
+		defaultDir = m_pApp->m_lastRetransReportPath;
 	}
 	
 	// get a file dialog
@@ -3724,13 +3724,13 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		return; // user cancelled
 	}
 	
-	// update m_retransReportPath
+	// update m_lastRetransReportPath
 	wxString exportPath = fileDlg.GetPath();
 	wxString fname = fileDlg.GetFilename(); 
 	int nameLen = fname.Length();
 	int pathLen = exportPath.Length();
 	wxASSERT(nameLen > 0 && pathLen > 0);
-	m_pApp->m_retransReportPath = exportPath.Left(pathLen - nameLen - 1);
+	m_pApp->m_lastRetransReportPath = exportPath.Left(pathLen - nameLen - 1);
 	
 	// get the user's desired path
 	wxString reportPath = fileDlg.GetPath();
