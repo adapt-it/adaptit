@@ -220,20 +220,20 @@ void DoExportAsOxes(int versionNum)
 	int len = 0;
 
 	// make the working directory the "<Project Name>" one, unless there is a path in
-	// app's m_lastExportPath member 
+	// app's m_lastTargetOutputPath member 
 	
 	// get a default file name - copy the current one for the adaptation document itself
 	exportFilename = gpApp->m_curOutputFilename;
 	len = exportFilename.Length();
 	
 	// set the working directory
-	if (gpApp->m_lastExportPath.IsEmpty())
+	if (gpApp->m_lastTargetOutputPath.IsEmpty())
 	{
 		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 	}
 	else
 	{
-		bOK = ::wxSetWorkingDirectory(gpApp->m_lastExportPath);
+		bOK = ::wxSetWorkingDirectory(gpApp->m_lastTargetOutputPath);
 		if(!bOK)
 			::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 	}
@@ -247,15 +247,15 @@ void DoExportAsOxes(int versionNum)
 	filter = _("Exported OXES Documents (*.oxes)|*.oxes||"); 
 
     // set the default folder to be shown in the dialog, for OXES make it
-    // m_lastExportPath which is the same as for target text
+    // m_lastTargetOutputPath which is the same as for target text
 	wxString defaultDir;
-	if (gpApp->m_lastExportPath.IsEmpty())
+	if (gpApp->m_lastTargetOutputPath.IsEmpty())
 	{
 		defaultDir = gpApp->m_curProjectPath;
 	}
 	else
 	{
-		defaultDir = gpApp->m_lastExportPath;
+		defaultDir = gpApp->m_lastTargetOutputPath;
 	}
 	// MainFrame is parent window for file dialog
 	wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
@@ -276,7 +276,7 @@ void DoExportAsOxes(int versionNum)
 	// we are committed to the task...
 	gpApp->m_bOxesExportInProgress = TRUE;
 
-    // get the user's desired path, & update m_lastExportPath
+    // get the user's desired path, & update m_lastTargetOutputPath
 	wxString exportPath = fileDlg.GetPath();
 	wxFileName fn(exportPath);
 	wxString name = fn.GetFullName();
@@ -285,7 +285,7 @@ void DoExportAsOxes(int versionNum)
 	int pathLen = exportPath.Length();
 	wxASSERT(nameLen > 0 && pathLen > 0);
 
-	gpApp->m_lastExportPath = exportPath.Left(pathLen - nameLen - 1);
+	gpApp->m_lastTargetOutputPath = exportPath.Left(pathLen - nameLen - 1);
 
 	// get the wxString which is the target text data -- as an export
 	wxString target;	// a buffer built from pSrcPhrase->m_targetStr strings
@@ -406,8 +406,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 								// Glosses or Free Translation text
 
 	// make the working directory the "<Project Name>" one, unless there is a path in
-	// app's m_lastExportPath member, or m_lastSrcExportPath if doing source export,
-	// or m_lastGlossesExportPath for glosses, or m_lastFreeTransExportPath for free
+	// app's m_lastTargetOutputPath member, or m_lastSourceOutputPath if doing source export,
+	// or m_lastGlossesOutputPath for glosses, or m_lastFreeTransOutputPath for free
 	// translations 
 	exportFilename = gpApp->m_curOutputFilename;
 	switch (exportType)
@@ -428,13 +428,13 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			if (gpApp->m_lastSrcExportPath.IsEmpty())
+			if (gpApp->m_lastSourceOutputPath.IsEmpty())
 			{
 				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
 			else
 			{
-				bOK = ::wxSetWorkingDirectory(gpApp->m_lastSrcExportPath);
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastSourceOutputPath);
 				if(!bOK)
 					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
@@ -459,13 +459,13 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			if (gpApp->m_lastGlossesExportPath.IsEmpty())
+			if (gpApp->m_lastGlossesOutputPath.IsEmpty())
 			{
 				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
 			else
 			{
-				bOK = ::wxSetWorkingDirectory(gpApp->m_lastGlossesExportPath);
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastGlossesOutputPath);
 				if(!bOK)
 					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
@@ -491,13 +491,13 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		else
 		{	
 			// No navigation protection in effect - use the legacy storage methods
-			if (gpApp->m_lastFreeTransExportPath.IsEmpty())
+			if (gpApp->m_lastFreeTransOutputPath.IsEmpty())
 			{
 				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
 			else
 			{
-				bOK = ::wxSetWorkingDirectory(gpApp->m_lastFreeTransExportPath);
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastFreeTransOutputPath);
 				if(!bOK)
 					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
@@ -530,13 +530,13 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			if (gpApp->m_lastExportPath.IsEmpty())
+			if (gpApp->m_lastTargetOutputPath.IsEmpty())
 			{
 				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
 			else
 			{
-				bOK = ::wxSetWorkingDirectory(gpApp->m_lastExportPath);
+				bOK = ::wxSetWorkingDirectory(gpApp->m_lastTargetOutputPath);
 				if(!bOK)
 					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 			}
@@ -585,19 +585,19 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	}
 
     // set the default folder to be shown in the dialog. For RTF output we show the
-    // m_rtfExportPath path, since we want all rtf output to go, potentially, to the same
+    // m_lastRtfOutputPath path, since we want all rtf output to go, potentially, to the same
     // place; and for other export types, each potentially has its own export path, such as
-    // m_lastExportPath for target text
+    // m_lastTargetOutputPath for target text
 	wxString defaultDir;
 	if (bRTFOutput)
 	{
-		if (gpApp->m_rtfExportPath.IsEmpty())
+		if (gpApp->m_lastRtfOutputPath.IsEmpty())
 		{
 			defaultDir = gpApp->m_curProjectPath;
 		}
 		else
 		{
-			defaultDir = gpApp->m_rtfExportPath;
+			defaultDir = gpApp->m_lastRtfOutputPath;
 		}
 	}
 	else // we want SFM output
@@ -607,44 +607,44 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		switch (exportType)
 		{
 		case sourceTextExport:
-			if (gpApp->m_lastSrcExportPath.IsEmpty())
+			if (gpApp->m_lastSourceOutputPath.IsEmpty())
 			{
 				defaultDir = gpApp->m_curProjectPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastSrcExportPath;
+				defaultDir = gpApp->m_lastSourceOutputPath;
 			}
 			break;
 		case glossesTextExport:
-			if (gpApp->m_lastGlossesExportPath.IsEmpty())
+			if (gpApp->m_lastGlossesOutputPath.IsEmpty())
 			{
 				defaultDir = gpApp->m_curProjectPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastGlossesExportPath;
+				defaultDir = gpApp->m_lastGlossesOutputPath;
 			}
 			break;
 		case freeTransTextExport:
-			if (gpApp->m_lastFreeTransExportPath.IsEmpty())
+			if (gpApp->m_lastFreeTransOutputPath.IsEmpty())
 			{
 				defaultDir = gpApp->m_curProjectPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastFreeTransExportPath;
+				defaultDir = gpApp->m_lastFreeTransOutputPath;
 			}
 			break;
 		default:
 		case targetTextExport:
-			if (gpApp->m_lastExportPath.IsEmpty())
+			if (gpApp->m_lastTargetOutputPath.IsEmpty())
 			{
 				defaultDir = gpApp->m_curProjectPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastExportPath;
+				defaultDir = gpApp->m_lastTargetOutputPath;
 			}
 			break;
 		}
@@ -678,16 +678,28 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		switch (exportType)
 		{
 		case sourceTextExport:
-			exportPath = gpApp->m_sourceOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			if (!bRTFOutput)
+				exportPath = gpApp->m_sourceOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			else
+				exportPath = gpApp->m_sourceRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			break;
 		case glossesTextExport:
-			exportPath = gpApp->m_glossOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			if (!bRTFOutput)
+				exportPath = gpApp->m_glossOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			else
+				exportPath = gpApp->m_glossRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			break;
 		case freeTransTextExport:
-			exportPath = gpApp->m_freeTransOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			if (!bRTFOutput)
+				exportPath = gpApp->m_freeTransOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			else
+				exportPath = gpApp->m_freeTransRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			break;
 		case targetTextExport:
-			exportPath = gpApp->m_targetOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			if (!bRTFOutput)
+				exportPath = gpApp->m_targetOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+			else
+				exportPath = gpApp->m_targetRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			break;
 		}
 		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
@@ -699,9 +711,9 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 	wxLogNull logNo; // avoid spurious messages from the system
 
-    // get the user's desired path, & update m_lastExportPath or m_lastSrcExportPath or
-    // m_lastGlossesExportPath or m_lastFreeTransExportPath, or in the case of rtf output,
-    // m_rtfExportPath
+    // get the user's desired path, & update m_lastTargetOutputPath or m_lastSourceOutputPath or
+    // m_lastGlossesOutputPath or m_lastFreeTransOutputPath, or in the case of rtf output,
+    // m_lastRtfOutputPath
 	//MFC's GetPathName() and wxFileDialog.GetPath() both get whole dir + file name.
 
 	// whm 7Jul11 note: We'll allow the saving of the m_last... paths even when navigation
@@ -715,23 +727,23 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	int pathLen = exportPath.Length();
 	wxASSERT(nameLen > 0 && pathLen > 0);
 	if (bRTFOutput)
-		gpApp->m_rtfExportPath = exportPath.Left(pathLen - nameLen - 1);
+		gpApp->m_lastRtfOutputPath = exportPath.Left(pathLen - nameLen - 1);
 	else
 	{
 		switch (exportType)
 		{
 		case sourceTextExport:
-			gpApp->m_lastSrcExportPath = exportPath.Left(pathLen - nameLen - 1);
+			gpApp->m_lastSourceOutputPath = exportPath.Left(pathLen - nameLen - 1);
 			break;
 		case glossesTextExport:
-			gpApp->m_lastGlossesExportPath = exportPath.Left(pathLen - nameLen - 1);
+			gpApp->m_lastGlossesOutputPath = exportPath.Left(pathLen - nameLen - 1);
 			break;
 		case freeTransTextExport:
-			gpApp->m_lastFreeTransExportPath = exportPath.Left(pathLen - nameLen - 1);
+			gpApp->m_lastFreeTransOutputPath = exportPath.Left(pathLen - nameLen - 1);
 			break;
 		default:
 		case targetTextExport:
-			gpApp->m_lastExportPath = exportPath.Left(pathLen - nameLen - 1);
+			gpApp->m_lastTargetOutputPath = exportPath.Left(pathLen - nameLen - 1);
 			break;
 		}
 	}
@@ -796,7 +808,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		if (bRTFOutput)
 		{
 			DoExportTextToRTF(sourceTextExport, exportPath, name, source);
-			return;
+			//return; // whm modified 11Jul11. Return below after wxMessageBox
 		}
 		else
 		{
@@ -820,7 +832,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		if (bRTFOutput)
 		{
 			DoExportTextToRTF(glossesTextExport, exportPath, name, glosses);
-			return;
+			//return; // whm modified 11Jul11. Return below after wxMessageBox
 		}
 		else
 		{
@@ -844,7 +856,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		if (bRTFOutput)
 		{
 			DoExportTextToRTF(freeTransTextExport, exportPath, name, freeTrans);
-			return;
+			//return; // whm modified 11Jul11. Return below after wxMessageBox
 		}
 		else
 		{
@@ -879,7 +891,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		{
 			DoExportTextToRTF(targetTextExport, exportPath, name, target);	// When targetTextExport function processes
 																	// Target, otherwise Source
-			return;
+			//return; // whm modified 11Jul11. Return below after wxMessageBox
 		}
 		else
 		{
@@ -887,6 +899,27 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 														   // \z... markers for Paratext
 		}
 		break;
+	}
+	if (bRTFOutput)
+	{
+		if (bBypassFileDialog_ProtectedNavigation)
+		{
+			// whm 7Jul11 Note:
+			// For protected navigation situations AI determines the actual
+			// filename that is used for the export, and the export itself is
+			// automatically saved in the appropriate outputs folder. Since the
+			// user has no opportunity to provide a file name nor navigate to
+			// a random path, we should inform the user at this point of the 
+			// successful completion of the export, and indicate the file name 
+			// that was used and its outputs folder name and location.
+			wxFileName fn(uniqueFilenameAndPath);
+			wxString fileNameAndExtOnly = fn.GetFullName();
+
+			wxString msg;
+			msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
+			wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+		}
+		return; // this ends RTF output
 	}
 
 
@@ -1153,6 +1186,8 @@ void DoExportInterlinearRTF()
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename = gpApp->m_curOutputFilename;
 
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	
 	// establish pointer to the list of Source Phrases,
 	// so we can scan them and access them
 	SPList* pList = gpApp->m_pSourcePhrases;
@@ -1160,19 +1195,31 @@ void DoExportInterlinearRTF()
 
 
 	// make the working directory the "<Project Name>" one, unless there is a path in
-	// app's m_lastExportPath member
+	// app's m_lastTargetOutputPath member
 	bool bOK;
-	if (gpApp->m_rtfExportPath.IsEmpty())
+	
+	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+	if (gpApp->m_bProtectInterlinearRTFOutputsFolder)
 	{
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		// Navigation protection in effect - limit source text exports to
+		// be saved in the _INTERLINEAR_RTF_OUTPUTS folder which is always a child folder
+		// of the folder that m_curProjectPath points to.
+		bOK = ::wxSetWorkingDirectory(gpApp->m_interlinearRTFOutputsFolderPath);
 	}
 	else
 	{
-		bOK = ::wxSetWorkingDirectory(gpApp->m_rtfExportPath);
-		if(!bOK)
-			::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+		if (gpApp->m_lastRtfOutputPath.IsEmpty())
+		{
+			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+		}
+		else
+		{
+			bOK = ::wxSetWorkingDirectory(gpApp->m_lastRtfOutputPath);
+			if(!bOK)
+				::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+		}
 	}
-
 	// determine whether or not the data was unstructured plain text
 	gbIsUnstructuredData = pView->IsUnstructuredData(pList);
 
@@ -1381,39 +1428,55 @@ void DoExportInterlinearRTF()
 	// set the default folder to be shown in the dialog (::SetWorkingDirectory does not
 	// do it)
 	wxString defaultDir;
-	if (gpApp->m_rtfExportPath.IsEmpty())
+	if (gpApp->m_lastRtfOutputPath.IsEmpty())
 	{
 		defaultDir = gpApp->m_curProjectPath;
 	}
 	else
 	{
-		defaultDir = gpApp->m_rtfExportPath;
+		defaultDir = gpApp->m_lastRtfOutputPath;
 	}
 
-	// get a file dialog
-	wxString filter;
-	filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Filename For Exported Interlinear Document"),
-		defaultDir,
-		exportFilename,
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY 
-					// deprecated in 2.6 - the checkbox is never shown
-					// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
-	fileDlg.Centre();
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
+	wxString exportPath;
+	wxString uniqueFilenameAndPath;
+	if (!bBypassFileDialog_ProtectedNavigation)
+	{
+		// get a file dialog
+		wxString filter;
+		filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Filename For Exported Interlinear Document"),
+			defaultDir,
+			exportFilename,
+			filter,
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY 
+						// deprecated in 2.6 - the checkbox is never shown
+						// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+		fileDlg.Centre();
 
-	if (fileDlg.ShowModal() != wxID_OK)
-		return; // user cancelled
+		if (fileDlg.ShowModal() != wxID_OK)
+			return; // user cancelled
 
-	// get the user's desired path, & update m_lastExportPath
-	wxString exportPath = fileDlg.GetPath();
-	wxString name = fileDlg.GetFilename();
-	int nameLen = name.Length();
-	int pathLen = exportPath.Length();
-	wxASSERT(nameLen > 0 && pathLen > 0);
-	gpApp->m_rtfExportPath = exportPath.Left(pathLen - nameLen - 1);
+		// get the user's desired path, & update m_lastTargetOutputPath
+		exportPath = fileDlg.GetPath();
+		wxString name = fileDlg.GetFilename();
+		int nameLen = name.Length();
+		int pathLen = exportPath.Length();
+		wxASSERT(nameLen > 0 && pathLen > 0);
+		gpApp->m_lastRtfOutputPath = exportPath.Left(pathLen - nameLen - 1);
+	}
+	else
+	{
+		exportPath = gpApp->m_interlinearRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
+		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
+		// appropriate outputs folder.
+		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+		// Use the unique path for exportPath
+		exportPath = uniqueFilenameAndPath;
+	}
 
 	wxFile f;
 
@@ -6240,6 +6303,24 @@ b:						// b: is exit point to write the last columns of data
 		// or Final Matter to output
 		// IDS_NO_OUTPUT_FOUND
 		wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION);
+	}
+	
+	if (bBypassFileDialog_ProtectedNavigation)
+	{
+		// whm 7Jul11 Note:
+		// For protected navigation situations AI determines the actual
+		// filename that is used for the export, and the export itself is
+		// automatically saved in the appropriate outputs folder. Since the
+		// user has no opportunity to provide a file name nor navigate to
+		// a random path, we should inform the user at this point of the 
+		// successful completion of the export, and indicate the file name 
+		// that was used and its outputs folder name and location.
+		wxFileName fn(uniqueFilenameAndPath);
+		wxString fileNameAndExtOnly = fn.GetFullName();
+
+		wxString msg;
+		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
+		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
 	}
 
 	// BEW changed next line 24Jun05 since this doc parameter can't change once the doc is created

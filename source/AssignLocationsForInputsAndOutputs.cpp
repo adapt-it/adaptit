@@ -112,6 +112,10 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxASSERT(pProtectLIFTInputsAndOutputs != NULL);
 	pProtectPackedInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_PACKED_INPUTS_AND_OUTPUTS);
 	wxASSERT(pProtectPackedInputsAndOutputs != NULL);
+	pProtectCCTableInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_CCTABLE_INPUTS_AND_OUTPUTS);
+	wxASSERT(pProtectCCTableInputsAndOutputs != NULL);
+	pProtectReportsLogsOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_REPORTS_LOGS);
+	wxASSERT(pProtectReportsLogsOutputs != NULL);
 
 	pBtnPreLoadSourceTexts = (wxButton*)FindWindowById(ID_BUTTON_PRE_LOAD_SOURCE_TEXTS);
 	wxASSERT(pBtnPreLoadSourceTexts != NULL);
@@ -144,6 +148,8 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	pProtectKBInputsAndOutputs->SetValue(m_pApp->m_bProtectKbInputsAndOutputsFolder);
 	pProtectLIFTInputsAndOutputs->SetValue(m_pApp->m_bProtectLiftInputsAndOutputsFolder);
 	pProtectPackedInputsAndOutputs->SetValue(m_pApp->m_bProtectPackedInputsAndOutputsFolder);
+	pProtectCCTableInputsAndOutputs->SetValue(m_pApp->m_bProtectCCTableInputsAndOutputsFolder);
+	pProtectReportsLogsOutputs->SetValue(m_pApp->m_bProtectReportsLogsOutputsFolder);
 
 	// If Paratext/Bibledit collaboration is ON, disable the "Pre-Load Source Texts" button
 	// and change "Protect..." labels for __SOURCE_INPUTS and _TARGET_OUTPUTS
@@ -223,6 +229,8 @@ void CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes(wxCommandEvent& 
 	pProtectKBInputsAndOutputs->SetValue(TRUE);
 	pProtectLIFTInputsAndOutputs->SetValue(TRUE);
 	pProtectPackedInputsAndOutputs->SetValue(TRUE);
+	pProtectCCTableInputsAndOutputs->SetValue(TRUE);
+	pProtectReportsLogsOutputs->SetValue(TRUE);
 }
 
 void CAssignLocationsForInputsAndOutputs::OnPreLoadSourceTexts(wxCommandEvent& WXUNUSED(event))
@@ -285,6 +293,12 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	m_pApp->m_bProtectPackedInputsAndOutputsFolder = pProtectPackedInputsAndOutputs->GetValue();
 	if (m_pApp->m_bProtectPackedInputsAndOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_packedInputsAndOutputsFolderName + _T(':');
+	m_pApp->m_bProtectCCTableInputsAndOutputsFolder = pProtectCCTableInputsAndOutputs->GetValue();
+	if (m_pApp->m_bProtectCCTableInputsAndOutputsFolder)
+		foldersProtectedFromNavigation += m_pApp->m_ccTableInputsAndOutputsFolderName + _T(':');
+	m_pApp->m_bProtectReportsLogsOutputsFolder = pProtectReportsLogsOutputs->GetValue();
+	if (m_pApp->m_bProtectReportsLogsOutputsFolder)
+		foldersProtectedFromNavigation += m_pApp->m_reportsLogsOutputsFolderName + _T(':');
 
 	m_pApp->m_foldersProtectedFromNavigation = foldersProtectedFromNavigation;
 	

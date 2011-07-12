@@ -2106,28 +2106,41 @@ public:
 	// paths to cc tables & their names
 	wxString		m_tableName[4];
 	wxString		m_tableFolderPath[4];
-	wxString		m_defaultTablePath;
+	
+	// whm 11Jul11 Note: The following path values are used mainly when navigation protection for
+	// the specific types of exports is NOT in effect. These values are saved in the indicated config 
+	// file(s). When navigation protection is in effect for the specific outputs, we use 
+	// the special (upper case) folders that are automatically used and manditory, but generally these
+	// values also record the last...Path that was used, so that if navigation protection is turned off
+	// for a given input/export type, the values here will still (at least initially) point to the 
+	// folder that was being used when nav protection was on.
 
-	// default path to export folder
-	wxString		m_lastExportPath;
-	// last document path
-	wxString		m_lastDocPath; // for config files
-	// the next four were added for version 2.0.1, so that each type of export
-	// could have its own remembered folder location; and to allow m_lastExportPath
-	// to be used ONLY for export of the target text
-	// BEW added 7Aug09 to support unique folder locations for export of glosses and free
-	// translations 
-	wxString		m_lastSrcExportPath; // for export of the source text
-	wxString		m_retransReportPath; // for retranslation reports
-	wxString		m_rtfExportPath; // for all RTF documents exported
-	wxString		m_kbExportPath; // for export of a KB, and place to look for 
-									// a KB to import
-	wxString		m_lastGlossesExportPath; // for export of glosses as text with markup
-	wxString		m_lastFreeTransExportPath; // for export of free translations with markup
-	wxString		m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and 
-													// outputs dirs that are protected from 
-													// navigation. The dir names are delimited
-													// by ':' delimiters
+	// TODO: whm Note: There is inconsistency in where the following are stored. Some (m_lastSourceInputPath,
+	// m_lastTargetOutputPath, m_lastCcTablePath) are currently stored in both the basic and project config
+	// files. Two others (m_lastGlossesOutputPath and m_lastFreeTransOutputPath) are stored only in the 
+	// project config file. The remainder (m_lastRetransReportPath, m_lastDocPath, m_lastSourceOutputPath,
+	// m_lastRtfOutputPath, and m_lastKbOutputPath) are stored only in the basic config file.
+	// The m_lastSourceInputPath value first two are stored
+	// in both the basic and project config files. The next 5 are stored in the basic config file only.
+	// The last two are stored in the project config file only.
+	wxString	m_lastSourceInputPath;	// for last source text input path (saved in basic & project config files)
+	wxString	m_lastCcTablePath; // for last cc table path (saved in basic & project config files)
+	
+	wxString	m_lastRetransReportPath; // for last retranslation reports path (saved in basic config file)
+	wxString	m_lastDocPath; // for last adaptation document path (saved in basic config file)
+	wxString	m_lastTargetOutputPath; // for last target text export path (saved in basic & project config files)
+	wxString	m_lastSourceOutputPath; // for last source text export path (saved in basic config file) 
+	wxString	m_lastRtfOutputPath; // for last RTF documents export path (saved in basic config file)
+	wxString	m_lastKbOutputPath; // for last KB export/import path (saved in basic config file)
+	wxString	m_lastGlossesOutputPath; // for last glosses as text export path (saved in project config file)
+	wxString	m_lastFreeTransOutputPath; // for last free translations export path (saved in project config file)
+	
+	wxString	m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and 
+												// outputs dirs that are protected from 
+												// navigation. The dir names are delimited
+												// by ':' delimiters within this string which
+												// is saved in the project config file
+	
 	// BEW added 16Aug09, to support removing \note,\note*,\free,\free*,\bt from exports
 	// of either the glosses text or free translation text
 	bool			m_bExportingGlossesAsText;
@@ -2313,8 +2326,6 @@ public:
 				// "<SourceLanguageName> to <TargetLanguageName> Adaptations"
 	wxString	m_curProjectPath;	// "C:\My Documents\Adapt It Work\<Project Name>"
 	wxString	m_curAdaptionsPath;	// "C:\My Documents\Adapt It Work\<Project Name>\Adaptations"
-	wxString	m_lastSourceFileFolder;	// path to the folder from which last 
-                // source text file was taken; used for config file read and write
 
 	wxString	m_setupFolder;			// whm renamed m_setupFolder to this 
 										// and moved to App class 31July06
@@ -2387,6 +2398,17 @@ public:
 	bool		m_bProtectPackedInputsAndOutputsFolder;
 	wxString	m_packedInputsAndOutputsFolderName; // in OnInit() we set to "_PACKED_INPUTS_AND_OUTPUTS"
 	wxString	m_packedInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	
+	bool		m_bProtectCCTableInputsAndOutputsFolder;
+	wxString	m_ccTableInputsAndOutputsFolderName; // in OnInit() we set to "_CCTABLE_INPUTS_AND_OUTPUTS"
+	wxString	m_ccTableInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined 
+	bool		m_bProtectReportsLogsOutputsFolder;
+	wxString	m_reportsLogsOutputsFolderName; // in OnInit() we set to "_REPORTS_LOGS"
+	wxString	m_reportsLogsOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
 	

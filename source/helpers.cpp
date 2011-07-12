@@ -6491,7 +6491,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	//    which is used by the caller to tokenize and build the in-memory
 	//    data structures used by the View to present the data to the user.
 	//    It also remembers where the input file came from by storing its
-	//    path in m_lastSourceFileFolder.
+	//    path in m_lastSourceInputPath.
 	wxUint32 byteCount = 0;
 	bool bShorten = FALSE;
 	char CR = 0;

@@ -180,7 +180,8 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	// edit box often hiding the actual name of the cct table file. The result is that the user has 
 	// to use the supplied horizontal scroll bar to see the name of the most important part of the path. 
 	// whm 11Jul11 commented out the following call, so the m_pEditfolderPath will use the 9 point default 
-	// dialog font.
+	// dialog font. Previously the font was too big to fit in the multiline edit control. Paths don't need
+	// special font treatment.
 	//#ifdef _RTL_FLAGS
 	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL,
 	//							NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);

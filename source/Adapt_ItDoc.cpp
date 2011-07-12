@@ -429,17 +429,17 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// ensure that the current work folder is the project one for default
 	wxString dirPath = pApp->m_workFolderPath;
 	bool bOK;
-	if (pApp->m_lastSourceFileFolder.IsEmpty())
+	if (pApp->m_lastSourceInputPath.IsEmpty())
 		bOK = ::wxSetWorkingDirectory(dirPath);
 	else
-		bOK = ::wxSetWorkingDirectory(pApp->m_lastSourceFileFolder);
+		bOK = ::wxSetWorkingDirectory(pApp->m_lastSourceInputPath);
 
 	// the above may have failed, so if so use m_workFolderPath as the folder, 
 	// or even the C: drive top level, so we can proceed to the file dialog safely
 	// whm Note: TODO: The following block needs to be made cross-platform friendly
 	if (!bOK)
 	{
-		pApp->m_lastSourceFileFolder = dirPath;
+		pApp->m_lastSourceInputPath = dirPath;
 		bOK = ::wxSetWorkingDirectory(dirPath); // this should work, since m_workFolderPath can hardly 
 												// be wrong!
 		if (!bOK)
@@ -534,13 +534,13 @@ bool CAdapt_ItDoc::OnNewDocument()
         // The following wxFileDialog part was originally in GetNewFile(), but moved here
         // 19Jun09 to consolidate file error message processing.
 		wxString defaultDir;
-		if (gpApp->m_lastSourceFileFolder.IsEmpty())
+		if (gpApp->m_lastSourceInputPath.IsEmpty())
 		{
 			defaultDir = gpApp->m_workFolderPath;
 		}
 		else
 		{
-			defaultDir = gpApp->m_lastSourceFileFolder;
+			defaultDir = gpApp->m_lastSourceInputPath;
 		}
 
 		// BEW addition, 15Aug10, test for user navigation protection feature turned on,
@@ -685,7 +685,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxFileDialog fileDlg(
 				(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 				_("Input Text File For Adaptation"),
-				defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
+				defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceInputPath)
 				_T(""),		// default filename
 				filter,
 			wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
@@ -747,7 +747,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// wxFileDialog.GetPath() returns the full path with directory and filename. We
 			// only want the path part, so we also call ::wxPathOnly() on the full path to
 			// get only the directory part.
-			gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
+			gpApp->m_lastSourceInputPath = ::wxPathOnly(tempSelectedFullPath);
 	
             // Check if it has an \id line. If it does, get the 3-letter book code. If
             // a valid code is present, check that it is a match for the currently
@@ -1132,7 +1132,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxString strMessage;
 			strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
 			wxMessageBox(strMessage,_T(""), wxICON_ERROR);
-			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
 			break;
 		}
 		case getNewFile_error_opening_binary:
@@ -1161,7 +1161,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			strMessage2 += _T("\n");
 			strMessage2 += strMessage;
 			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
 			break;
 		}
 		case getNewFile_error_ansi_CRLF_not_in_sequence:
@@ -1196,7 +1196,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			strMessage2 += _T("\n");
 			strMessage2 += strMessage;
 			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-			gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
 			break;
 		}
 		}// end of switch()

@@ -741,9 +741,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		wxString dirPath = pApp->m_workFolderPath;
 
 		// if we have a value for the last doc folder's path, use that instead
-		if (!pApp->m_lastSourceFileFolder.IsEmpty())
+		if (!pApp->m_lastSourceInputPath.IsEmpty())
 		{
-			dirPath = pApp->m_lastSourceFileFolder;
+			dirPath = pApp->m_lastSourceInputPath;
 		}
 
 		bool bOK = ::wxSetWorkingDirectory(dirPath);

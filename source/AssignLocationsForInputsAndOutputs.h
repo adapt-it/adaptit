@@ -44,6 +44,8 @@ public:
 	wxCheckBox* pProtectKBInputsAndOutputs;
 	wxCheckBox* pProtectLIFTInputsAndOutputs;
 	wxCheckBox* pProtectPackedInputsAndOutputs;
+	wxCheckBox* pProtectCCTableInputsAndOutputs;
+	wxCheckBox* pProtectReportsLogsOutputs;
 
 	wxButton* pBtnPreLoadSourceTexts;
 	wxButton* pSelectAllCheckBoxes;
