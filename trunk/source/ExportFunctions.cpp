@@ -702,7 +702,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 				exportPath = gpApp->m_targetRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			break;
 		}
-		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
+		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
 		// appropriate outputs folder.
 		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
 		// Use the unique path for exportPath
@@ -1471,7 +1471,7 @@ void DoExportInterlinearRTF()
 	else
 	{
 		exportPath = gpApp->m_interlinearRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
-		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
+		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
 		// appropriate outputs folder.
 		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
 		// Use the unique path for exportPath

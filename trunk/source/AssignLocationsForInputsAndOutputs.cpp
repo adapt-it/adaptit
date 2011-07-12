@@ -114,7 +114,7 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxASSERT(pProtectPackedInputsAndOutputs != NULL);
 	pProtectCCTableInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_CCTABLE_INPUTS_AND_OUTPUTS);
 	wxASSERT(pProtectCCTableInputsAndOutputs != NULL);
-	pProtectReportsLogsOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_REPORTS_LOGS);
+	pProtectReportsLogsOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_REPORTS_OUTPUTS);
 	wxASSERT(pProtectReportsLogsOutputs != NULL);
 
 	pBtnPreLoadSourceTexts = (wxButton*)FindWindowById(ID_BUTTON_PRE_LOAD_SOURCE_TEXTS);
@@ -149,7 +149,7 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	pProtectLIFTInputsAndOutputs->SetValue(m_pApp->m_bProtectLiftInputsAndOutputsFolder);
 	pProtectPackedInputsAndOutputs->SetValue(m_pApp->m_bProtectPackedInputsAndOutputsFolder);
 	pProtectCCTableInputsAndOutputs->SetValue(m_pApp->m_bProtectCCTableInputsAndOutputsFolder);
-	pProtectReportsLogsOutputs->SetValue(m_pApp->m_bProtectReportsLogsOutputsFolder);
+	pProtectReportsLogsOutputs->SetValue(m_pApp->m_bProtectReportsOutputsFolder);
 
 	// If Paratext/Bibledit collaboration is ON, disable the "Pre-Load Source Texts" button
 	// and change "Protect..." labels for __SOURCE_INPUTS and _TARGET_OUTPUTS
@@ -296,9 +296,9 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	m_pApp->m_bProtectCCTableInputsAndOutputsFolder = pProtectCCTableInputsAndOutputs->GetValue();
 	if (m_pApp->m_bProtectCCTableInputsAndOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_ccTableInputsAndOutputsFolderName + _T(':');
-	m_pApp->m_bProtectReportsLogsOutputsFolder = pProtectReportsLogsOutputs->GetValue();
-	if (m_pApp->m_bProtectReportsLogsOutputsFolder)
-		foldersProtectedFromNavigation += m_pApp->m_reportsLogsOutputsFolderName + _T(':');
+	m_pApp->m_bProtectReportsOutputsFolder = pProtectReportsLogsOutputs->GetValue();
+	if (m_pApp->m_bProtectReportsOutputsFolder)
+		foldersProtectedFromNavigation += m_pApp->m_reportsOutputsFolderName + _T(':');
 
 	m_pApp->m_foldersProtectedFromNavigation = foldersProtectedFromNavigation;
 	

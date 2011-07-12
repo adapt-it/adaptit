@@ -755,6 +755,14 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		wxString nameSuffix = _T("");
 		wxString nameUsed = _T("");
 		bSavedOK = DoSaveReportAsXmlFile(bPromptForMissingData,nameSuffix,nameUsed);
+		if (!bSavedOK)
+		{
+			wxString path,msg;
+			path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
+			msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			return;
+		}
 	}
 	else
 	{
@@ -763,9 +771,20 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		wxString nameSuffix = _T("Sent");
 		wxString nameUsed = _T("");
 		bSavedOK = DoSaveReportAsXmlFile(bPromptForMissingData,nameSuffix,nameUsed);
-		wxString msg1;
-		msg1 = msg1.Format(_("Your email was sent to the Adapt It developers.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
-		wxMessageBox(msg1,_T(""),wxICON_INFORMATION);
+		if (!bSavedOK)
+		{
+			wxString path,msg;
+			path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
+			msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			return;
+		}
+		else
+		{
+			wxString msg1;
+			msg1 = msg1.Format(_("Your email was sent to the Adapt It developers.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
+			wxMessageBox(msg1,_T(""),wxICON_INFORMATION);
+		}
 	}
 
 	EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -785,6 +804,13 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 {
 	if (PromptForSaveChanges && !bMinimumFieldsHaveData())
 		return TRUE;
+
+	// whm 12Jul11 Note. For email Problem and Feedback reports we always save 
+	// those in the special _REPORTS_LOGS folder regardless of whether navigation
+	// protection is in effect. The nav protection for _REPORTS_LOGS only really
+	// applies to Retranslation Reports. Other types of reports/logs including
+	// this dialog's email reports go to the special folder regardless of the 
+	// protection setting for _REPORTS_LOGS in AssignLocationsForInputsAndOutputs.
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString reportPathAndName;
@@ -807,16 +833,27 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 	}
 	else
 	{
-		reportPathAndName = pApp->m_emailReportFolderPathOnly; // no PathSeparator or filename at end of path
+		// whm 12Jul11 note: Email problem and feedback reports and usage logs are 
+		// stored in the App's m_workFolderPath (or m_customWorkFolderPath if 
+		// appropriate). They cannot be stored in a project path because email 
+		// reports and logs can be generated from AI without there being a project
+		// open (i.e., whenever the user clicks Cancel from the wizard or Collab 
+		// dialog, then accesses the Report a Problem... or Give Feedback... on the 
+		// Help menu). 
+		// Ensure that the _LOGS_EMAIL_REPORTS folder exists
+		bool bOK = TRUE;
+		if (!::wxDirExists(pApp->m_logsEmailReportsFolderPath))
+			bOK = ::wxMkdir(pApp->m_logsEmailReportsFolderPath);
+		if (!bOK)
+		{
+			return FALSE; // caller can notify user
+		}
+		// 
+		reportPathAndName = pApp->m_logsEmailReportsFolderPath; // no PathSeparator or filename at end of path
 		reportPathAndName += pApp->PathSeparator + _T("AI_Report") + rptType + nameSuffix + _T(".xml");
 	}
 	
-	// Compose xml report and write it to reportPathAndName or uniqueReportName
-	// if reportPathAndName doesn't already exist the uniqueReportName returned by 
-	// GetUniqueIncrementedFileName() below will be of the form AI_ReportProblem.xml or
-	// AI_ReportFeedback.xml. If reportPathAndName already exists the function below
-	// will return the file name at the end of the path in the form of AI_ReportProblem01.xml
-	// or AI_ReportFeedback01.xml.
+	// Compose xml report and write it to reportPathAndName
 	bool bReportBuiltOK = TRUE;
 	bool bReplaceExistingReport = bCurrentEmailReportWasLoadedFromFile;
 	// if it is a sent report don't replace any existing one
@@ -824,21 +861,13 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 	{
 		bReplaceExistingReport = FALSE;
 	}
-	if (!wxFileExists(reportPathAndName))
+	if (!bReplaceExistingReport)
 	{
-		// save the file as reportPathAndName
-		bReportBuiltOK = BuildEmailReportXMLFile(reportPathAndName,bReplaceExistingReport);
-		
+		reportPathAndName = GetUniqueIncrementedFileName(reportPathAndName,incrementViaDate_TimeStamp,TRUE,2,_T("_")); 
+		// save the file using the reportPathAndName which is now guaranteed to be a unique name
 	}
-	else
-	{
-		if (!bReplaceExistingReport)
-		{
-			reportPathAndName = GetUniqueIncrementedFileName(reportPathAndName,incrementViaNextAvailableNumber,FALSE,2,_T("")); 
-			// save the file using the reportPathAndName which is now guaranteed to be a unique name
-		}
-		bReportBuiltOK = BuildEmailReportXMLFile(reportPathAndName,bReplaceExistingReport);
-	}
+	bReportBuiltOK = BuildEmailReportXMLFile(reportPathAndName,bReplaceExistingReport);
+
 	nameUsed = reportPathAndName; // return the actual name used to caller via nameUsed reference parameter
 	wxString msg;
 	if (!bReportBuiltOK)
@@ -865,9 +894,9 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	// Adapt It saves email reports in the current work folder (which may be a custom work folder) at
-	// the path m_emailReportFolderPathOnly. Get an array of the report file names that match the
-	// reportType.
+	// Adapt It saves email reports in a special _LOGS_EMAIL_REPORTS folder in the current 
+	// work folder (which may be a custom work folder) at the path m_logsEmailReportsFolderPath. 
+	// Get an array of the report file names that match the reportType.
 	// 
 	// Prompt to save any changes before loading another report
 	int response = wxYES;
@@ -882,13 +911,22 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 			wxString nameSuffix = _T("");
 			wxString nameUsed = _T("");
 			bSavedOK = DoSaveReportAsXmlFile(bPromptForMissingData,nameSuffix,nameUsed);
+			if (!bSavedOK)
+			{
+				wxString path,msg;
+				path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
+				msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
+				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				// return; 
+				// allow the Load operation to continue 
+			}
 		}
 	}
 	wxArrayString reportsArray;
 	reportsArray.Clear();
 	wxString fileNameStr;
 	wxString rptType;
-	wxDir dir(pApp->m_emailReportFolderPathOnly);
+	wxDir dir(pApp->m_logsEmailReportsFolderPath);
 	if (dir.IsOpened())
 	{
 		if (reportType == Report_a_problem)
@@ -926,7 +964,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 		userSelectionStr = ChooseEmailReportToLoad.GetStringSelection();
 		userSelectionInt = ChooseEmailReportToLoad.GetSelection();
 		bool bReadOK;
-		wxString pathAndName = pApp->m_emailReportFolderPathOnly + pApp->PathSeparator + userSelectionStr;
+		wxString pathAndName = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + userSelectionStr;
 		bReadOK = ReadEMAIL_REPORT_XML(pathAndName);
 		if (bReadOK)
 		{
@@ -966,13 +1004,14 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 				// If the log doesn't exist, notify the user
 			}
 			bCurrentEmailReportWasLoadedFromFile = TRUE;
-			LoadedFilePathAndName = pApp->m_emailReportFolderPathOnly + pApp->PathSeparator + userSelectionStr;
+			LoadedFilePathAndName = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + userSelectionStr;
 		}
 	}
 }
 
 void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	// Check for changes before closing, and allow user to save changes before closing
 	int response = wxYES;
 	if (bSubjectHasUnsavedChanges || bYouEmailAddrHasUnsavedChanges 
@@ -986,6 +1025,15 @@ void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 			wxString nameSuffix = _T("");
 			wxString nameUsed = _T("");
 			bSavedOK = DoSaveReportAsXmlFile(bPromptForMissingData,nameSuffix,nameUsed);
+			if (!bSavedOK)
+			{
+				wxString path,msg;
+				path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
+				msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
+				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				// return;
+				// allow the dialog to close via the EndModal() call below
+			}
 		}
 	}
 	EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
