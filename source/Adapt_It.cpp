@@ -12314,7 +12314,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bLockedCustomWorkFolderPath = FALSE;
 
 	m_userProfileFileWorkFolderPath = _T(""); // whm added 7Sep10
-	m_emailReportFolderPathOnly = _T(""); // whm added 8Nov10
+	m_logsEmailReportsFolderPath = _T("");
 	m_usageLogFilePathAndName = _T(""); // whm added 8Nov10
 	m_userLogFile = (wxFile*)NULL; // whm added 12Nov10
 	m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
@@ -12555,8 +12555,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
 	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_AND_OUTPUTS");
 	m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_AND_OUTPUTS");
-	m_reportsLogsOutputsFolderName = _T("_REPORTS_LOGS");
+	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	
+	// whm added 12Jul11 The following special folder name and its path need to be defined after 
+	// EnsureWorkFolderIsPresent() and DealWithThePossibilityOfACustomWorkFolderLocation() calls 
+	// are made above.
+	m_logsEmailReportsFolderName = _T("_LOGS_EMAIL_REPORTS"); // located in m_workFolderPath or m_customWorkFolderPath
+
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	// folder navigation protection defaults to FALSE but project config file
 	// value stored in m_foldersProtectedFromNavigation
@@ -15745,6 +15750,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// we must supply a default if nothing was returned
 		strUserID = _T("unknownUser");
 	}
+
 	if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
 	{
 		#ifdef Output_Default_Style_Strings
@@ -15753,8 +15759,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		AIstyleFileWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
 		AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
-		AIemailReportFolderPathOnly = m_customWorkFolderPath;
-		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+		if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName))
+			::wxMkdir(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName);
+		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+		AIemailReportFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
 		AIpackedDocumentFolderPathOnly = m_customWorkFolderPath;
 	}
 	else
@@ -15765,13 +15773,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		AIstyleFileWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_USFM.xml");
 		#endif
 		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
-		AIemailReportFolderPathOnly = m_workFolderPath;
-		AIusageLogFolderPath = m_workFolderPath + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+		if (!::wxDirExists(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName))
+			::wxMkdir(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName);
+		AIusageLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
+		AIemailReportFolderPathOnly = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
 		AIpackedDocumentFolderPathOnly = m_workFolderPath;
 	}
 
 	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
-	m_emailReportFolderPathOnly = AIemailReportFolderPathOnly; // whm added 8Nov10
+	m_logsEmailReportsFolderPath = AIemailReportFolderPathOnly;
 	m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
 	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
 	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
@@ -18732,7 +18742,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 		m_packedInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_packedInputsAndOutputsFolderName;
 		m_ccTableInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
-		m_reportsLogsOutputsFolderPath = curProjectPath + PathSeparator + m_reportsLogsOutputsFolderName;
+		m_reportsOutputsFolderPath = curProjectPath + PathSeparator + m_reportsOutputsFolderName;
 		
 		if (!::wxDirExists(m_sourceInputsFolderPath))
 		{
@@ -18986,20 +18996,20 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				bCreatedOK = FALSE;
 			}
 		}
-		if (!::wxDirExists(m_reportsLogsOutputsFolderPath))
+		if (!::wxDirExists(m_reportsOutputsFolderPath))
 		{
-			bool bOK = ::wxMkdir(m_reportsLogsOutputsFolderPath);
+			bool bOK = ::wxMkdir(m_reportsOutputsFolderPath);
 			if (!bOK)
 			{
 				if (!pathCreationErrors.IsEmpty())
 				{
 					pathCreationErrors += _T("\n   ");
-					pathCreationErrors += m_reportsLogsOutputsFolderName;
+					pathCreationErrors += m_reportsOutputsFolderName;
 				}
 				else
 				{
 					pathCreationErrors += _T("   ");
-					pathCreationErrors += m_reportsLogsOutputsFolderName;
+					pathCreationErrors += m_reportsOutputsFolderName;
 				}
 				bCreatedOK = FALSE;
 			}
@@ -24327,12 +24337,20 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 					m_bProtectPackedInputsAndOutputsFolder = TRUE;
 				else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
 					m_bProtectCCTableInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_reportsLogsOutputsFolderName)
-					m_bProtectReportsLogsOutputsFolder = TRUE;
+				else if (tokenStr == m_reportsOutputsFolderName)
+					m_bProtectReportsOutputsFolder = TRUE;
 				else
 				{
-					;
-					wxASSERT_MSG(FALSE,_T("Unrecognized value in FoldersProtectedFromNavigation setting")); // notify of programming error
+					wxString msg;
+					wxString removeStr = tokenStr + _T(':');
+					msg = msg.Format(_T("Unrecognized value (%s) in FoldersProtectedFromNavigation setting in basic config file."),tokenStr.c_str());
+					wxLogDebug(msg);
+					// Remove the bad value from m_foldersProtectedFromNavigation. This should
+					// not normally happen for users, but might happen in development if folder
+					// names are changed.
+					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) != wxNOT_FOUND);
+					m_foldersProtectedFromNavigation.Replace(removeStr,_T(""));
+					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) == wxNOT_FOUND);
 				}
 
 			}
@@ -26353,12 +26371,20 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 					m_bProtectPackedInputsAndOutputsFolder = TRUE;
 				else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
 					m_bProtectCCTableInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_reportsLogsOutputsFolderName)
-					m_bProtectReportsLogsOutputsFolder = TRUE;
+				else if (tokenStr == m_reportsOutputsFolderName)
+					m_bProtectReportsOutputsFolder = TRUE;
 				else
 				{
-					;
-					wxASSERT_MSG(FALSE,_T("Unrecognized value in FoldersProtectedFromNavigation setting")); // notify of programming error
+					wxString msg;
+					wxString removeStr = tokenStr + _T(':');
+					msg = msg.Format(_T("Unrecognized value (%s) in FoldersProtectedFromNavigation setting in project config file."),tokenStr.c_str());
+					wxLogDebug(msg);
+					// Remove the bad value from m_foldersProtectedFromNavigation. This should
+					// not normally happen for users, but might happen in development if folder
+					// names are changed.
+					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) != wxNOT_FOUND);
+					m_foldersProtectedFromNavigation.Replace(removeStr,_T(""));
+					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) == wxNOT_FOUND);
 				}
 
 			}
@@ -37107,7 +37133,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 						_("dictionary records") + _T(".lift");
 		}
 		
-		// Ensure that exportFilename is unique so we don't overwrite any existing ones in the
+		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
 		// appropriate outputs folder.
 		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
 		// Use the unique path for exportPath

@@ -3627,6 +3627,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = m_pApp->GetDocument()->GetCurrentDirectory();
 	
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
@@ -3644,28 +3646,49 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	
 	m_pApp->m_acceptedFilesList.Clear();
 	int answer;
-	
+
     // only put up the message box if a document is open (and the update handler also
     // disables the command if glossing is on)
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
 	{
-		// IDS_RETRANS_REPORT_ADVICE
-		answer = wxMessageBox(_(
-"The retranslation report will be based on this open document only.\nTo get a report based on many or all documents,\nclose the document and select this command again.\nDo you want a report only for this document?"),
-		_T(""),wxYES_NO);
-		if (!(answer == wxYES))
+		wxString msg = _("The retranslation report will be based on this open document only.");
+		if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
 		{
-			// a "Yes" answer is a choice for reporting only for the current document,
-			// a "No" answer exits to allow the user to close the document and then
-			// the report can be chosen again and it will do all documents
-			return;
+			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		}
+		else
+		{
+			msg += _T("\n");
+			msg += _("To get a report based on many or all documents,\nclose the document and select this command again.\nDo you want a report only for this document?");
+			answer = wxMessageBox(msg,_T(""),wxYES_NO);
+			if (!(answer == wxYES))
+			{
+				// a "Yes" answer is a choice for reporting only for the current document,
+				// a "No" answer exits to allow the user to close the document and then
+				// the report can be chosen again and it will do all documents
+				return;
+			}
 		}
 	}
 	
 	// can proceed, so get output filename and put up file dialog
 	// make the working directory the "<Project Name>" one
 	bool bOK;
-	bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath); // ignore failures
+	
+	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+	if (m_pApp->m_bProtectKbInputsAndOutputsFolder)
+	{
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		// Navigation protection in effect - limit source text exports to
+		// be saved in the _KB_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// of the folder that m_curProjectPath points to.
+		bOK = ::wxSetWorkingDirectory(m_pApp->m_reportsOutputsFolderPath);
+	}
+	else
+	{
+		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath); // ignore failures
+	}
+	
 	int len;
 	wxString reportFilename,defaultDir;
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
@@ -3686,6 +3709,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		reportFilename = _("retranslation report.txt"); // localization?
 		name.Empty();
 	}
+	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
+	// is set for protected navigation
 	// set the default folder to be shown in the dialog 
 	if (m_pApp->m_lastRetransReportPath.IsEmpty())
 	{
@@ -3696,44 +3721,57 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		defaultDir = m_pApp->m_lastRetransReportPath;
 	}
 	
-	// get a file dialog
-	wxString filter;
-	filter = _("Adapt It Reports (*.txt)|*.txt||"); //IDS_REPORT_FILTER
-	wxFileDialog fileDlg(
-						 (wxWindow*)m_pApp->GetMainFrame(), // MainFrame is parent window for file dialog
-						 _("Filename For Retranslation Report"),
-						 defaultDir,
-						 reportFilename,
-						 filter,
-						 wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-	// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-	// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
-	fileDlg.Centre();
-	
-	if (fileDlg.ShowModal() != wxID_OK)
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
+	wxString reportPath;
+	wxString uniqueFilenameAndPath;
+	if (!bBypassFileDialog_ProtectedNavigation)
 	{
-		int length = m_pApp->m_targetPhrase.Length();
-		m_pApp->m_nStartChar = length;
-		m_pApp->m_nEndChar = length;
-		m_pApp->m_pTargetBox->SetSelection(length,length);
-		m_pApp->m_pTargetBox->SetFocus();
-        // whm added 05Jan07 to restore the former current working directory for safety
-        // sake to what it was on entry, since there was a wxSetWorkingDirectory call made
-        // above
-		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-		return; // user cancelled
+		// get a file dialog
+		wxString filter;
+		filter = _("Adapt It Reports (*.txt)|*.txt||"); //IDS_REPORT_FILTER
+		wxFileDialog fileDlg(
+							 (wxWindow*)m_pApp->GetMainFrame(), // MainFrame is parent window for file dialog
+							 _("Filename For Retranslation Report"),
+							 defaultDir,
+							 reportFilename,
+							 filter,
+							 wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+		fileDlg.Centre();
+		
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			int length = m_pApp->m_targetPhrase.Length();
+			m_pApp->m_nStartChar = length;
+			m_pApp->m_nEndChar = length;
+			m_pApp->m_pTargetBox->SetSelection(length,length);
+			m_pApp->m_pTargetBox->SetFocus();
+			// whm added 05Jan07 to restore the former current working directory for safety
+			// sake to what it was on entry, since there was a wxSetWorkingDirectory call made
+			// above
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			return; // user cancelled
+		}
+		
+		// update m_lastRetransReportPath
+		reportPath = fileDlg.GetPath();
+		wxString fname = fileDlg.GetFilename(); 
+		int nameLen = fname.Length();
+		int pathLen = reportPath.Length();
+		wxASSERT(nameLen > 0 && pathLen > 0);
+		m_pApp->m_lastRetransReportPath = reportPath.Left(pathLen - nameLen - 1);
 	}
-	
-	// update m_lastRetransReportPath
-	wxString exportPath = fileDlg.GetPath();
-	wxString fname = fileDlg.GetFilename(); 
-	int nameLen = fname.Length();
-	int pathLen = exportPath.Length();
-	wxASSERT(nameLen > 0 && pathLen > 0);
-	m_pApp->m_lastRetransReportPath = exportPath.Left(pathLen - nameLen - 1);
-	
-	// get the user's desired path
-	wxString reportPath = fileDlg.GetPath();
+	else
+	{
+		reportPath = m_pApp->m_reportsOutputsFolderPath + m_pApp->PathSeparator + reportFilename;
+		// Ensure that reportPath is unique so we don't overwrite any existing ones in the
+		// appropriate outputs folder.
+		uniqueFilenameAndPath = GetUniqueIncrementedFileName(reportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+		// Use the unique path for reportPath
+		reportPath = uniqueFilenameAndPath;
+	}
 	
 	wxLogNull logNo; // avoid spurious messages from the system
 
@@ -3997,6 +4035,24 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// BEW added 05Jan07 to restore the former current working directory
 	// to what it was on entry
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	
+	if (bBypassFileDialog_ProtectedNavigation)
+	{
+		// whm 7Jul11 Note:
+		// For protected navigation situations AI determines the actual
+		// filename that is used for the export, and the export itself is
+		// automatically saved in the appropriate outputs folder. Since the
+		// user has no opportunity to provide a file name nor navigate to
+		// a random path, we should inform the user at this point of the 
+		// successful completion of the export, and indicate the file name 
+		// that was used and its outputs folder name and location.
+		wxFileName fn(uniqueFilenameAndPath);
+		wxString fileNameAndExtOnly = fn.GetFullName();
+
+		wxString msg;
+		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
+		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////

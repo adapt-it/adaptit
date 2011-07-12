@@ -8303,10 +8303,10 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxCheckBox *item32 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, wxT("_REPORTS_LOGS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, wxT("_REPORTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item34 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_REPORTS_LOGS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item34 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_REPORTS_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );

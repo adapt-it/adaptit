@@ -2302,7 +2302,7 @@ public:
 									// been made persistent, else FALSE
 	
 	wxString	m_userProfileFileWorkFolderPath; // whm added 7Sep10
-	wxString	m_emailReportFolderPathOnly; // whm added 8Nov10
+
 	wxString	m_usageLogFilePathAndName; // whm added 8Nov10
 	wxFile*		m_userLogFile; // whm added 12Nov10 the wxFile descriptor used with m_usageLogFilePathAndName
 	wxString	m_packedDocumentFilePathOnly; // whm added 8Nov10
@@ -2406,11 +2406,15 @@ public:
 	wxString	m_ccTableInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
-	bool		m_bProtectReportsLogsOutputsFolder;
-	wxString	m_reportsLogsOutputsFolderName; // in OnInit() we set to "_REPORTS_LOGS"
-	wxString	m_reportsLogsOutputsFolderPath; // always a child of folder that m_curProjectPath
+	bool		m_bProtectReportsOutputsFolder;
+	wxString	m_reportsOutputsFolderName; // in OnInit() we set to "_REPORTS_OUTPUTS"
+	wxString	m_reportsOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
+
+	wxString	m_logsEmailReportsFolderName; // in OnInit() we set to "_LOGS_EMAIL_REPORTS"
+	wxString	m_logsEmailReportsFolderPath; // Not in the nav protection scheme - what goes here
+										// alwaiys goes here regardless of nav protection
 	
 	wxArrayString m_sortedLoadableFiles; // for use by the NavProtectNewDoc class's dialog
 
