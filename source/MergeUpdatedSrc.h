@@ -186,7 +186,7 @@ struct ChunkInfo {
 	int				indexRef; // index to CSourcePhrase in arrOld or arrNew
 };
 
-// Our approach to the analysed range of SfmChunk typess for arrOld and arrNew is to
+// Our approach to the analysed range of SfmChunk types for arrOld and arrNew is to
 // process them after creating the arrays of chunks, matching up the longest possible sets
 // of corresponding simple verses from each array. Whenever we get to a gap, or a range not
 // matched EXACTLY in it's verse and chapter reference information, or a verse number which

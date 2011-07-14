@@ -14647,6 +14647,16 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
 
 			source.Trim();
+
+            // BEW added 13Jul1 next 3 lines: support Paratext usfm-only contentless
+            // chapters or books - the legacy code would output \v 1 followed by newline,
+            // but Paratext has \v 1 followed by space, then the newline - so test for
+            // m_key empty, and if so, add a space to str here and don't trim it off below
+			if (pSrcPhrase->m_key.IsEmpty())
+			{
+				str += aSpace;
+			}
+
 			// if we return ']' bracket, we don't want a preceding space
 			if (str[0] == _T(']'))
 			{
@@ -15775,50 +15785,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		}
 	}// end of while (pos != NULL)
 
-	int textLen = targetstr.Length(); // get the length before we change fwdslash to newlines
-	target = targetstr; // return all the text in one long CString
+	int textLen = targetstr.Length();
+	target = targetstr; // return all the text in one long wxString
 	return textLen;
-
-	/* we don't do this forward slash insertion any more
-
-	// insertion of newlines cannot be done safely more than once using CString function calls,
-	// since the counts are clobbered because CString ignores any already present; so we have
-	// to do it by brute force using the CString's buffer instead. It does it on unstructured
-	// data too, which might have "/\p " instances in it.
-	// wx version note: Since we require a read-only buffer we use GetData which just returns
-	// a const wxChar* to the data in the string.
-	const wxChar* pBuffer = targetstr.GetData();
-	wxChar* pBufStart = (wxChar*)pBuffer;
-	wxChar* pEnd;
-	pEnd = pBufStart + textLen; // whm added
-	wxASSERT(*pEnd == _T('\0'));
-	wxChar* ptr = pBufStart;
-	wxChar* auxPtr = ptr;
-	do {
-		if (*ptr == gSFescapechar && ptr - pBufStart != 0)
-		{
-			// we have found a sfm escape character (default is backslash) and we are
-			// not at the start of the source text data, so if it has a preceding
-			// forward slash, replace that with a newline
-			auxPtr = ptr;
-			if (auxPtr > pBufStart)
-		{
-				// look at the preceding character, provided we are not at the start
-				--auxPtr;
-				if (*auxPtr == fwdslash)
-					*auxPtr = newline; // replace it when it's a forward slash character
-		}
-			ptr++; // advance past the gSFescapechar
-				}
-				else
-			ptr++; // advance to next character
-	} while (*ptr != (wxChar)0);
-
-	target = targetstr; // return all the text in one long CString
-
-	// update length
-	return textLen = target.Length();
-	*/
 }// end of RebuildTargetText
 
 /* BEW 13Dec10: remove these commented out functions later, if no use for them by the time 6.0.0 is ready to ship
@@ -16449,7 +16418,19 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 {
 	// remove any whitespace from the beginning of the string, and end
 	text = text.Trim(FALSE);
-	text = text.Trim();
+	// BEW 13Jul11, wrapped the text.Trim() line in a test - when we have a doc parsed
+	// from contentless USFM from Paratext, the last bit of text will be "...\v 13 " if
+	// verse 13 happens to be the last verse parsed when forming the doc. We don't want
+	// that last space trimmed off for such data, because we want exports to preserve it.
+	// We don't have access to CSourcePhrase instances here, so just refrain from the
+	// Trim() when exporting source text, as this is the situation we are supporting for
+	// PT contentless USFM data. (we could be more clever, and test for the text ending in
+	// a \v or \vn followed by space and digits or letters then space - but all that is a
+	// lot for something that matters little, so I won't bother)
+	if (expType != sourceTextExport)
+	{
+		text = text.Trim();
+	}
 
 	// FormatMarkerBufferForOutput assumes the complete text to be output as a text file is
 	// present in str. It adds end-of-line characters before all standard format markers except
@@ -16636,6 +16617,13 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
                     // the file. We will always add eol unless the marker's attribute is
 					// inLine; but if a [ precedes the marker, we'll tuck the marker up
 					// against the [  and put the eol char(s) preceding the [ bracket
+					// BEW 13Jul11: add code to check for "\v<sp>number<sp>" preceding the
+					// pOld pointer, and set a flag if so, because we'll keep the final
+					// space in such a circumstance - it's likely an export for Paratext
+					// or Bibledit contentless usfm markup where we want the verse number
+					// to be followed by a space (handle \vn similarly)
+					bool bKeepLineFinalSpace = FALSE;
+					bKeepLineFinalSpace = KeepSpaceBeforeEOLforVerseMkr(pOld);
 					if (!IsInLineMarker)
 					{
 						if (*(pOld - 1) == _T('['))
@@ -16664,9 +16652,17 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 							// won't be any spaces dangling at ends of lines preceding the
 							// newly inserted eol char(s). I'll remove any spaces that managed
 							// to creep in, as they are not needed.
-							while (*(pNew-1) == _T(' '))
+							// BEW 13Jul11, wrapped it with a test for FALSE for the
+							// bKeepLineFinalSpace which is set or cleared above; the idea
+							// is that \v<space>versenum<space> keeps the final space and
+							// eol is added after it - to support Paratext empty USFM
+							// markup chapter or book files, exports thereof
+							if (!bKeepLineFinalSpace)
 							{
-								--pNew;
+								while (*(pNew-1) == _T(' '))
+								{
+									--pNew;
+								}
 							}
 							// now add the eol char(s) to the new buffer, lenEolStr is 2 for
 							// windows, 1 for mac or linux

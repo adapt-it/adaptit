@@ -1326,13 +1326,17 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// and remove the utf16 BOM, 0xFF 0xFE, before we store the utf-16 text later below)
 	
 	// sourceTempFileName is actually an absolute path to the file, not just a name
-	// string, ditto for targetTempFileName
+	// string, ditto for targetTempFileName etc. Also, store the texts (these are pre-edit)
+	// in the private app member strings m_sourceChapterBuffer_PreEdit, etc
 	sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
+	m_pApp->StoreSourceChapter_PreEdit(sourceChapterBuffer);
 	targetChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName);
+	m_pApp->StoreTargetChapter_PreEdit(targetChapterBuffer);
 	if (m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
 		// this might return an empty string
 		freeTransChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(freeTransTempFileName);
+		m_pApp->StoreFreeTransChapter_PreEdit(freeTransChapterBuffer);
 	}
 
 	SourceChapterUsfmStructureAndExtentArray.Clear();

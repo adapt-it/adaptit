@@ -499,6 +499,14 @@ enum ConfigFileType
     projectConfigFile
 };
 
+/// An enum for selecting which kind of text to generate in order to send it back to the external
+/// editor (PT or BE), whether target text, or a free translation
+enum SendBackTextType
+{
+	makeTargetText = 1,
+	makeFreeTransText
+};
+
 // whm NOTE 21Sep10: Moved this TopLevelMenu enum to become a private member of the
 // App because its enumerations should not be accessed directly, but only through
 // the GetTopLevelMenuName(TopLevelMenu topLevelMenu) function. We may decide at
@@ -3042,6 +3050,10 @@ public:
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
+	// BEW added 11July, to get changes to the adaptation and free translation back to the
+	// respective PT or BE projects
+	wxString MakePostEditTextForExternalEditor(wxString* pPreEditText, SPList* pDocList, 
+					wxString* pLatestTextFromEditor, enum SendBackTextType makeTextType);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
