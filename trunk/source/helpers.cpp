@@ -7504,6 +7504,64 @@ SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhra
 }
 */
 
+// BEW created, 13Jul11, in support of Paratext contentless USFM marked up chapter or book
+// files. To allow space to be retained at the end of the empty \v number line.
+// Used in: FormatMarkerBufferForOutput(wxString& text, enum ExportType expType) see the
+// ExportFunctions.cpp file
+bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
+{
+	// the previous character must be a space
+	if (*(pChar - 1) != _T(' '))
+	{
+		return FALSE;
+	}
+	wxChar* pCh = pChar - 1;
+	// then the previous alphanumeric ones are to be jumped until the next space is
+	// encountered but return FALSE if a newline or backslash is found first; and don't go
+	// back more than 5 more characters - if no space by then, return FALSE
+	bool bFoundSpace = FALSE;
+	int i;
+	pCh = pCh - 1; // point at next previous one
+	for (i = 0; i < 5; i++)
+	{
+		if (IsAnsiLetterOrDigit(*pCh))
+		{
+			// back over it
+			pCh = pCh - 1;
+		}
+		else if (*pCh == _T('\\') || *pCh == _T('\n'))
+		{
+			return FALSE;
+		}
+		else if (*pCh == _T(' '))
+		{
+			// found a space
+			bFoundSpace = TRUE;
+			break;
+		}
+		else
+		{
+			// don't expect anything else, if we get it, must not be what we want so
+			// return FALSE
+			return FALSE;
+		}
+	}
+	if (!bFoundSpace)
+	{
+		// didn't succeed in finding expected USFM structure
+		return FALSE;
+	}
+	// if control reaches here, we must be pointing at a found space
+	// we succeed if the previous two chars are \v or previous 3 are \vn
+	// so check for these
+	if ( (*(pCh - 1) == _T('v') && *(pCh - 2) == _T('\\')) || 
+		 (*(pCh - 1) == _T('n') && *(pCh - 2) == _T('v') && *(pCh - 3) == _T('\\')))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 // a handy check for whether or not the wxChar which ptr points at is ~ or [ or ]
 // BEW created 25Jan11, used in FindParseHaltLocation() of doc class
 bool IsFixedSpaceOrBracket(wxChar* ptr)
@@ -8552,51 +8610,6 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 	return TRUE;
 }
 
-// change extension on the filename or path to extn (extn may, or may not, have an initial
-// period) Does nothing if there is no extension of form ".extension" already present at
-// the end of the string, where extension is 0 or more characters in length; return the 
-// resulting string
-// Note: double extensions can be passed in, no check is made that there is only one
-// period 
-wxString ChangeFilenameExtensionTo(wxString filenameOrPath, wxString extn)
-{
-	int offset = wxNOT_FOUND;
-	wxString period = _T(".");
-	wxString reversed = MakeReverse(filenameOrPath);
-	offset = reversed.Find(period);
-	if (offset == wxNOT_FOUND)
-	{
-		// no extension present, so return the filename or path unchanged
-		return filenameOrPath;
-	}
-	else
-	{
-		reversed = reversed.Mid(offset + 1); // remove inital (reversed) extension and period
-		filenameOrPath = MakeReverse(reversed);
-	}
-	// extension is now removed from the string's end
-	offset = extn.Find(period);
-	if (offset == wxNOT_FOUND)
-	{
-		// the filename or file path extension passed in has no period
-		filenameOrPath += period;
-		filenameOrPath += extn;
-		return filenameOrPath;
-	}
-	else if (offset == 0)
-	{
-		// append it, as is
-		filenameOrPath += extn;
-		return filenameOrPath;
-	}
-	else
-	{
-		// the period is within the extn string, so add a period at start
-		filenameOrPath += period;
-		filenameOrPath += extn;
-	}
-	return filenameOrPath;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \return                   a wxString representing the file name or path 

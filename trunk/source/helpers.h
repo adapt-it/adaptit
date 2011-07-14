@@ -408,10 +408,9 @@ void UnloadKBs(CAdapt_ItApp* pApp);
 bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgtLangName,
 						wxString& srcEthnologueCode, wxString& tgtEthnologueCode,
 						bool bDisableBookMode);
-// change extension on the filename or path to extn, return the resulting string
-wxString ChangeFilenameExtensionTo(wxString filenameOrPath, wxString extn); 
 // whm suggested function to accomplish the intent of the one above
-wxString ChangeFilenameExtension2(wxString filenameOrPath, wxString extn); 
+wxString ChangeFilenameExtension2(wxString filenameOrPath, wxString extn);
+bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar); //BEW added 13Jun11
 
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp

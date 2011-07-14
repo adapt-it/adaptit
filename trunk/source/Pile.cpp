@@ -104,6 +104,13 @@
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
+// uncomment out the following line for display of last pile's m_chapVerse string, and
+// length of string -- the length can be bogus (eg 20 when it should be 3, resulting the
+// display of bogus buffer overrun characters for the navtext above the last pile when it
+// is a verse with empty content but USFM markup - as can be got from Paratext) A kluge in
+// DrawNavTextInfoAndIcons() fixes the problem.
+//#define _SHOW_CHAP_VERSE
+
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called PileList.
 WX_DEFINE_LIST(PileList);
@@ -407,6 +414,11 @@ int CPile::CalcPileWidth()
 			pileWidth = extent.x;
 		}
 	}
+	// BEW added next two lines, 14Jul11, supposedly they aren't necessary, but if
+	// m_srcPhrase and m_targetStr and m_gloss are each empty, pileWidth somehow ends up
+	// with a value of 0, and so this fixes that
+	if (pileWidth < 40)
+		pileWidth = 40;
 	return pileWidth;
 }
 
@@ -763,6 +775,59 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			if (m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter)
 			{
 				str = m_pSrcPhrase->m_chapterVerse;
+
+                // spurious bug: pogus wxString buffer overrun chars (anything for 20 to 60
+                // or so) shown after nav text m:n of final pile's CSourcePhrase's
+                // m_chapVerse text, that is, for the last CSourcePhrase instance in the
+                // doc which happens to be composed of contentless USFM markup from
+                // Paratext - I've never had this wxString overrun before, and it appears
+                // to be a wx error, not one of ours; the error doesn't happen if the file
+                // is saved and then reloaded - all is drawn properly in that case)
+                
+				// the following kludge works, so make it permanent code
+				PileList* pPileList = m_pLayout->GetPileList();
+				PileList::Node* pos = pPileList->GetLast();
+				CPile* pLastPile = pos->GetData();
+				if (this == pLastPile)
+				{
+                    // chop off the bogus chars but only when the pile is the last one --
+                    // my test data has "2:7" for last CSourcePhrase instance's m_chapVerse
+                    // member, so shorten unilaterally to 3 chars; if it works, later do
+                    // general code
+					//if (str.Len() > 3)
+					//{
+					//	str = str.Left(3);
+					//}
+					wxString firstBit;
+					int offset = str.Find(_T(":"));
+					if (offset != wxNOT_FOUND)
+					{
+						firstBit = str.Left(offset + 1);
+						str = str.Mid(offset + 1);
+						int index = 0;
+						// test for digits, letters like a, b, or c, hyphen, comma or
+						// period - these are most likely the chars which will be in
+						// bridged verse or part verse if the verse isn't a simple one or
+						// more digits string; anything else, exit the loop
+						while(IsAnsiLetterOrDigit(str[index]) || str[index] == _T('-') || 
+							str[index] == _T(',') || str[index] == _T('.'))
+						{
+							firstBit += str[index];
+							index++;
+						}
+						str = firstBit;
+					}
+				}
+
+#ifdef _SHOW_CHAP_VERSE
+#ifdef __WXDEBUG__
+				// the wxString Len() value counts the bogus extra characters if they are
+				// "there", so the wxLogDebug will display the error if the kludge above
+				// is commented out
+				wxLogDebug(_T("Draw Navtext: str set by m_chapterVerse = %s , sn = %d  , str Length: %d"), 
+					str.c_str(), m_pSrcPhrase->m_nSequNumber, str.Len());
+#endif
+#endif
 			}
 
             // now append anything which is in the m_inform member; there may not have been
