@@ -3676,11 +3676,11 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	bool bOK;
 	
 	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
-	if (m_pApp->m_bProtectKbInputsAndOutputsFolder)
+	if (m_pApp->m_bProtectReportsOutputsFolder)
 	{
 		bBypassFileDialog_ProtectedNavigation = TRUE;
 		// Navigation protection in effect - limit source text exports to
-		// be saved in the _KB_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// be saved in the _REPORTS_OUTPUTS folder which is always a child folder
 		// of the folder that m_curProjectPath points to.
 		bOK = ::wxSetWorkingDirectory(m_pApp->m_reportsOutputsFolderPath);
 	}

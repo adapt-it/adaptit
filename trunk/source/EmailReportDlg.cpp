@@ -197,6 +197,10 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 	
 	pButtonSendNow = (wxButton*)FindWindowById(ID_BUTTON_SEND_NOW);
 	wxASSERT(pButtonSendNow != NULL);
+
+	// This dialog does not have the equivalent of an OK and Cancel button, hence
+	// we don't call ReverseOkCancelButtonsForMac(this) here.
+
 }
 
 CEmailReportDlg::~CEmailReportDlg() // destructor
@@ -1229,7 +1233,7 @@ bool CEmailReportDlg::BuildEmailReportXMLFile(wxString filePathAndName, bool bRe
 				// clicked the "Attach a packed document" button and created one.
 				if (!packedDocumentFileName.IsEmpty())
 				{
-					tempStr = pApp->m_packedDocumentFilePathOnly + pApp->PathSeparator + packedDocumentFileName;
+					tempStr = pApp->m_packedInputsAndOutputsFolderPath + pApp->PathSeparator + packedDocumentFileName;
 				}
 				composeXmlStr += _T("=\"") + tempStr + _T("\"");
 				textFile.AddLine(composeXmlStr);

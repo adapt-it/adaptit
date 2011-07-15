@@ -12318,7 +12318,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_logsEmailReportsFolderPath = _T("");
 	m_usageLogFilePathAndName = _T(""); // whm added 8Nov10
 	m_userLogFile = (wxFile*)NULL; // whm added 12Nov10
-	m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
+	//m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
+	//m_ccTableFilePathOnly = _T(""); // whm added 14Jul11
 
 	// The following use the _T() macro as they shouldn't be translated/localized
 	m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"),m_strNR.c_str());
@@ -12554,14 +12555,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
-	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_AND_OUTPUTS");
-	m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_AND_OUTPUTS");
 	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	
-	// whm added 12Jul11 The following special folder name and its path need to be defined after 
+	// whm added 12Jul11 The following special folder names. Their paths need to be defined after 
 	// EnsureWorkFolderIsPresent() and DealWithThePossibilityOfACustomWorkFolderLocation() calls 
 	// are made above.
 	m_logsEmailReportsFolderName = _T("_LOGS_EMAIL_REPORTS"); // located in m_workFolderPath or m_customWorkFolderPath
+	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_AND_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
+	m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_AND_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
 
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	// folder navigation protection defaults to FALSE but project config file
@@ -15745,6 +15746,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString AIemailReportFolderPathOnly;
 	wxString AIusageLogFolderPath;
 	wxString AIpackedDocumentFolderPathOnly;
+	wxString AIccTableFolderPathOnly;
 	wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
 	if (strUserID.IsEmpty())
 	{
@@ -15762,9 +15764,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		AIuserProfilesWorkFolderPath = m_customWorkFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 		if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName))
 			::wxMkdir(m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName);
+		if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName))
+			::wxMkdir(m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName);
+		if (!::wxDirExists(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
+			::wxMkdir(m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
 		AIusageLogFolderPath = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
 		AIemailReportFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
-		AIpackedDocumentFolderPathOnly = m_customWorkFolderPath;
+		AIpackedDocumentFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
+		AIccTableFolderPathOnly = m_customWorkFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
 	}
 	else
 	{
@@ -15776,15 +15783,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		AIuserProfilesWorkFolderPath = m_workFolderPath + PathSeparator + _T("AI_UserProfiles.xml");
 		if (!::wxDirExists(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName))
 			::wxMkdir(m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName);
+		if (!::wxDirExists(m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName))
+			::wxMkdir(m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName);
+		if (!::wxDirExists(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName))
+			::wxMkdir(m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName);
 		AIusageLogFolderPath = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName + PathSeparator + _T("UsageLog_") + strUserID + _T(".txt");
 		AIemailReportFolderPathOnly = m_workFolderPath + PathSeparator + m_logsEmailReportsFolderName; // AI email reports use the same path as the usage logs
-		AIpackedDocumentFolderPathOnly = m_workFolderPath;
+		AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
+		AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
 	}
 
 	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
+	
 	m_logsEmailReportsFolderPath = AIemailReportFolderPathOnly;
-	m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
+	m_packedInputsAndOutputsFolderPath = AIpackedDocumentFolderPathOnly; //m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
 	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
+	m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
+	
 	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
 	// Does AI_USFM.xml exist in the work folder
@@ -17107,7 +17122,6 @@ int ii = 1;
 		//m_targetRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		//m_kbInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		//m_liftInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
-		//m_packedInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 		
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
@@ -18741,8 +18755,10 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
-		m_packedInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_packedInputsAndOutputsFolderName;
-		m_ccTableInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
+		// Note: the m_packedInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not 
+		// curProjectPath (see OnInit()).
+		// Note: the m_ccTableInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not
+		// curProjectPath (see OnInit()).
 		m_reportsOutputsFolderPath = curProjectPath + PathSeparator + m_reportsOutputsFolderName;
 		
 		if (!::wxDirExists(m_sourceInputsFolderPath))
@@ -18961,6 +18977,8 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				bCreatedOK = FALSE;
 			}
 		}
+		// OnInit() creates the _PACKED_INPUTS_OUTPUTS, but we can check that 
+		// it is created here
 		if (!::wxDirExists(m_packedInputsAndOutputsFolderPath))
 		{
 			bool bOK = ::wxMkdir(m_packedInputsAndOutputsFolderPath);
@@ -18979,6 +18997,8 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				bCreatedOK = FALSE;
 			}
 		}
+		// OnInit() creates the _CCTABLE_INPUTS_OUTPUTS, but we can check that 
+		// it is created here
 		if (!::wxDirExists(m_ccTableInputsAndOutputsFolderPath))
 		{
 			bool bOK = ::wxMkdir(m_ccTableInputsAndOutputsFolderPath);
@@ -21755,7 +21775,8 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 	// define and load one or more consistent change tables
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-    // The wxWidgets version handles consistent changes directly via our CCModule which
+	
+	// The wxWidgets version handles consistent changes directly via our CCModule which
     // incapsulates the CC functionality of the old cc32.dll dynamic library within the
     // Adapt It executable, without having to resort to calling any external dynamic
     // library file. This approach has a number of advantages including not having to

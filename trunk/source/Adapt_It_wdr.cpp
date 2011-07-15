@@ -5202,10 +5202,10 @@ wxSizer *CCTableNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item1 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC, _("Type the filename (omit the extention) for the consistent changes table. Adapt it will automatically append a .cct extension; and the file will be created in the project folder."), wxDefaultPosition, wxSize(320,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item1 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC, wxT(""), wxDefaultPosition, wxSize(520,100), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_TBLNAME, wxT(""), wxDefaultPosition, wxSize(400,30), 0 );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_TBLNAME, wxT(""), wxDefaultPosition, wxSize(400,30), wxTE_MULTILINE );
     item0->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
@@ -8206,7 +8206,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_INFO, _("Note: Adapt It creates the following folders for each project. If you check the box labeled \"Protect from Navigation\" the user will not be allowed to navigate away from the named folder when obtaining inputs into Adapt It or when exporting texts from Adapt It, but must use the pre-defined folder."), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_INFO, _("Note: Adapt It creates the following folders. Most are created within project folders. If you check the box labeled \"Protect from Navigation\" the user will not be allowed to navigate away from the named folder when obtaining inputs into Adapt It or when exporting texts from Adapt It, but must use the pre-defined folder."), wxDefaultPosition, wxSize(400,80), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
