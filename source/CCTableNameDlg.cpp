@@ -83,6 +83,23 @@ void CCCTableNameDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	//InitDialog() is not virtual, no call needed to a base class
 	m_tableName = _T("");
 
+	wxString helpString;
+	helpString = _("Type the filename (omit the extention) for the consistent changes table. Adapt it will automatically append a .cct extension; and the file will be created in the following folder:\n\n%s");
+	// whm 14Jul11 Note: The App's m_ccTableInputsAndOutputsFolderPath may be an empty string if no project is
+	// active (can be the case since the Tools > Load Consistent Changes... menu item is enabled even when
+	// no project is active. When no project is active we simply use the m_lastCcTablePath location for
+	// saving newly created cc table files.
+	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
+	{
+		helpString = helpString.Format(helpString,gpApp->m_ccTableInputsAndOutputsFolderPath.c_str());
+	}
+	else
+	{
+		helpString = helpString.Format(helpString,gpApp->m_lastCcTablePath.c_str());
+	}
+	wxLogDebug(helpString);
+	m_pEditCtrlAsStatic->ChangeValue(helpString);
+
 	// make the font show user's desired point size in the dialog
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditTableName, NULL,

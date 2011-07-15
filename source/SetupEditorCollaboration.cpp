@@ -124,7 +124,8 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pBtnSelectFmListFreeTransProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ);
 	wxASSERT(pBtnSelectFmListFreeTransProj != NULL);
 
-
+	bool bOK;
+	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	// other attribute initializations
 }
 

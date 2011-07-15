@@ -121,6 +121,8 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pBtnNoFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_NO_FREE_TRANS);
 	wxASSERT(pBtnNoFreeTrans != NULL);
 
+	bool bOK;
+	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	// other attribute initializations
 }
 
@@ -1046,6 +1048,12 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 									m_pApp->m_collaborationEditor.c_str());
 		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
+		
+	// whm 14Jul11 Note: When the user clicks Cancel at this dialog, no project has
+	// been designated as active, therefore we should do what the wizard does in 
+	// similar circumstances - empty the m_curProjectPath.
+	m_pApp->m_curProjectPath.Empty();
+	
 	event.Skip();
 }
 

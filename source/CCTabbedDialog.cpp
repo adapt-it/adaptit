@@ -3,7 +3,7 @@
 /// \file			CCTabbedDialog.cpp
 /// \author			Bill Martin
 /// \date_created	19 June 2007
-/// \date_revised	14 April 2008
+/// \date_revised	14 July 2011
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CCCTabbedDialog class. 
@@ -35,8 +35,10 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/filesys.h> // for wxFileName
 #include <wx/dir.h> // for wxDir
+#include <wx/choicdlg.h> // for wxGetSingleChoiceIndex
 
 #include "Adapt_It.h"
+#include "helpers.h"
 #include "CCTabbedDialog.h"
 #include "CCTableEditDlg.h"
 #include "CCTableNameDlg.h"
@@ -238,6 +240,48 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
     // whm modified 20Mar08. If the m_folderPath is still empty, there is no point in continuing with
     // the following initializations, and displaying the error message from within GetPossibleCCTables()
     // below.
+    // whm modified 14Jul11. It could be that the App's m_folderPath[] array has out-of-date path
+    // information - due to the version 6 addition of the _CCTABLE_INPUTS_OUTPUTS cc table folder, or
+    // other reasons. If nav protection is in effect, we should check this possibility here and force
+    // the use of the nav protected folder as appropriate.
+	bool bOK;
+	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
+	{
+		// Nav Protection is ON for the _CCTABLE_INPUTS_OUTPUTS folder. Ensure that the path
+		// now stored in m_folderPath[m_nCurPage] agrees.
+		// use the nav protected folder _CCTABLE_INPUTS_OUTPUTS
+		bOK = ::wxSetWorkingDirectory(gpApp->m_ccTableInputsAndOutputsFolderPath);
+		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
+	}
+	else
+	{
+		// Navigation protection is OFF or a project is not open (or the App's
+		// m_ccTableInputsAndOutputsFolderPath is empty).
+		if (gpApp->m_curProjectPath.IsEmpty())
+		{
+			// No project is open, so store the file in the current work folder or custom work folder
+			// as appropriate.
+			if ((gpApp->m_customWorkFolderPath != gpApp->m_workFolderPath) && gpApp->m_bUseCustomWorkFolderPath)
+			{
+				// we're using a custom work folder
+				bOK = ::wxSetWorkingDirectory(gpApp->m_customWorkFolderPath);
+				m_folderPath[m_nCurPage] = gpApp->m_customWorkFolderPath; // this is where we will create it
+			}
+			else
+			{
+				// we're using the normal work folder location
+				bOK = ::wxSetWorkingDirectory(gpApp->m_workFolderPath);
+				m_folderPath[m_nCurPage] = gpApp->m_workFolderPath; // this is where we will create it
+			}
+		}
+		else
+		{
+			// a project is open, so use the m_curProjectPath for storage
+			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+			m_folderPath[m_nCurPage] = gpApp->m_curProjectPath; // this is where we will create it
+		}
+	}
+
 	if (!m_folderPath[m_nCurPage].IsEmpty())
 	{
 		// generate a CStringList of all the possible *.cct table filenames
@@ -553,41 +597,140 @@ bool CCCTabbedDialog::IsSelectedInCurrentTable(wxString cctFile)
 
 void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event)) 
 {
+	// whm 14Jul11 modified. If this CCCTabbedDialog is summoned without 
+	// a project being open (as can happen if Cancel is pressed at the 
+	// wizard/collab dialog), browsing will be directed depending on any
+	// whether a project is open and whether nav protection in effect 
+	// for the App's m_ccTableInputsAndOutputsFolderPath. If nav protection 
+	// is ON for _CCTABLE_INPUTS_OUTPUTS, that folder is the one that any 
+	// contained cc tables are shown for selection. Otherwise we look for
+	// cc table files located in m_curProjectPath when a project is open,
+	// or we look in either the m_workFolderPath or m_customWorkFolderPath
+	// as appropriate.
 	CAdapt_ItApp* pApp = &wxGetApp();
+	
+	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+	wxString strSaveCurrentDirectoryFullPath = ::wxGetCwd();
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	bool bOK;
+	if (pApp->m_bProtectCCTableInputsAndOutputsFolder)
+	{
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		// Navigation protection in effect - limit source text exports to
+		// be saved in the _CCTABLE_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// of the folder that m_curProjectPath points to.
+		bOK = ::wxSetWorkingDirectory(pApp->m_ccTableInputsAndOutputsFolderPath);
+	}
+	else
+	{
+		if (gpApp->m_curProjectPath.IsEmpty())
+		{
+			// no project is open, so store the file in the current work folder or custom work folder
+			// as appropriate
+			if ((gpApp->m_customWorkFolderPath != gpApp->m_workFolderPath) && gpApp->m_bUseCustomWorkFolderPath)
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_customWorkFolderPath);
+			}
+			else
+			{
+				bOK = ::wxSetWorkingDirectory(gpApp->m_workFolderPath);
+			}
+		}
+		else
+		{
+			// a project is open, so use the m_curProjectPath for storage
+			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
+		}
+	}
 
 	wxString defaultDir;
-	defaultDir = pApp->m_curProjectPath; 
-	wxString filter;
-	filter = _("Consistent Changes Tables (*.cct)|*.cct||"); //IDS_CCT_FILTER
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Locate The Consistent Change Table"),
-		defaultDir,
-		_T(""), // file name is null string
-		filter,
-		wxFD_OPEN);	// a "File Open" dialog
-					// GDLC wxOPEN deprecated in 2.8
-	fileDlg.Centre();
-
-	// open as modal dialog
-	int returnValue = fileDlg.ShowModal();
-	if (returnValue == wxID_CANCEL)
+	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
+	// is set for protected navigation
+	// set the default folder to be shown in the dialog 
+	if (pApp->m_lastCcTablePath.IsEmpty())
 	{
-		; // do nothing if user cancelled
+		defaultDir = pApp->m_curProjectPath;
 	}
-	else // must be IDOK
+	else
 	{
-		wxString pathName;
-		pathName = fileDlg.GetPath();
-		m_tblName[m_nCurPage] = fileDlg.GetFilename(); // this has just the file name
+		defaultDir = pApp->m_lastCcTablePath;
+	}
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
+	wxString ccTableFilename = _("ccTable");
+	wxString tablePath;
+	wxString uniqueFilenameAndPath;
+	if (!bBypassFileDialog_ProtectedNavigation)
+	{
+		wxString filter;
+		filter = _("Consistent Changes Tables (*.cct)|*.cct||"); //IDS_CCT_FILTER
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Locate The Consistent Change Table"),
+			defaultDir,
+			ccTableFilename,
+			filter,
+			wxFD_OPEN);	// a "File Open" dialog
+						// GDLC wxOPEN deprecated in 2.8
+		fileDlg.Centre();
 
-		wxFileName fn(pathName);
-		m_folderPath[m_nCurPage] = fn.GetPath(wxPATH_GET_VOLUME,wxPATH_NATIVE);	// wxPATH_GET_VOLUME and wxPATH_NATIVE
-																	// are the default flags.
-																	// GetPath() returns the path part 
-																	// without name or extension. 
-																	// The default is to get the path 
-																	// without a separator at the end.
+		// open as modal dialog
+		int returnValue = fileDlg.ShowModal();
+		if (returnValue == wxID_CANCEL)
+		{
+			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			return; // user cancelled
+		}
+		else // must be wxID_OK
+		{
+			m_tblName[m_nCurPage] = fileDlg.GetFilename(); // this has just the file name
+			m_folderPath[m_nCurPage] = fileDlg.GetPath(); // GetPath() returns the path part 
+														  // without name or extension. 
+														  // The default is to get the path 
+														  // without a separator at the end.
+			
+			// make that folder the current default
+			bool bOK;
+			bOK = ::wxSetWorkingDirectory(m_folderPath[m_nCurPage]);
+
+			// update the app's m_lastCcTablePath variable
+			pApp->m_lastCcTablePath = m_folderPath[m_nCurPage];
+
+			LoadDataForPage(m_nCurPage);
+			ShowUsageOfListBoxItems();
+			UpdateButtons();
+			m_pListBox->SetFocus();
+		}
+	}
+	else
+	{	
+		// CC table folder is protected
+		wxArrayString ccTableFilesIncludingPaths,ccTableFilesNamesOnly;
+		// get an array list of .cct files
+		tablePath = pApp->m_ccTableInputsAndOutputsFolderPath;
+		wxDir::GetAllFiles(tablePath,&ccTableFilesIncludingPaths,_T("*.cct"),wxDIR_FILES);
+		int totFiles = (int)ccTableFilesIncludingPaths.GetCount();
+		if (totFiles > 0)
+		{
+			int ct;
+			for (ct = 0; ct < totFiles; ct++)
+			{
+				wxFileName fn(ccTableFilesIncludingPaths.Item(ct));
+				wxString fNameOnly = fn.GetFullName();
+				ccTableFilesNamesOnly.Add(fNameOnly);
+			}
+		}
+		wxString message = _("Choose a Consistent Changes table from the following list:\n(from the location: %s):");
+		message = message.Format(message,tablePath.c_str());
+		wxString myCaption = _("");
+		int returnValue = wxGetSingleChoiceIndex(message,myCaption,
+			ccTableFilesNamesOnly,(wxWindow*)pApp->GetMainFrame(),-1,-1,true,250,100);
+		if (returnValue == -1)
+			return; // user pressed Cancel or OK with nothing selected (list empty)
+		//tablePath = pApp->m_ccTableInputsAndOutputsFolderPath;
+
+		m_tblName[m_nCurPage] = ccTableFilesNamesOnly.Item(returnValue); // this has just the file name
+		m_folderPath[m_nCurPage] = tablePath;
 		
 		// make that folder the current default
 		bool bOK;
@@ -600,63 +743,6 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		ShowUsageOfListBoxItems();
 		UpdateButtons();
 		m_pListBox->SetFocus();
-
-		/*
-		// remove any existing filenames in the list
-		m_pListBox->Clear();
-
-		// fill the list box with any *.cct filenames in the folder
-		wxArrayString possibleTables; 
-		GetPossibleCCTables(&possibleTables);
-
-		// fill the list box with the c table filename strings
-		int aCt;
-
-		for (aCt = 0; aCt < (int)possibleTables.GetCount(); aCt++)
-		{
-			wxString str = possibleTables.Item(aCt);
-			m_pListBox->Append(str);
-		}
-
-		// hilight the current one if possible, but if none is current then highlight
-		// the first in the list
-		if (m_tblName[m_nCurPage].IsEmpty())
-		{
-			if (m_pListBox->GetCount() > 0)
-			{
-				m_pListBox->SetSelection(0);
-				m_nPrevSelection = 0;
-			}
-		}
-		else
-		{
-			int nReturned = m_pListBox->FindString(m_tblName[m_nCurPage]);
-			if (nReturned != -1)
-			{
-				// we found m_tblName in m_pListBox, so select it
-				m_pListBox->SetSelection(nReturned);
-				m_nPrevSelection = nReturned;
-			}
-			else
-			{
-				// we didn't find m_tblName in m_pListBox, so select the first item provided GetCount() > 0
-				if (m_pListBox->GetCount() > 0)
-				{
-					m_pListBox->SetSelection(0);
-					m_nPrevSelection = 0;
-				}
-			}
-		}
-		// whm added the following (see InitDialog)
-		if (m_pListBox->GetSelection() != -1)
-		{
-			OnSelchangeListCctables(event);
-		}
-		//show the new page data
-		ShowUsageOfListBoxItems();
-		UpdateButtons();
-		m_pListBox->SetFocus();
-		*/
 	}
 }
 
@@ -748,6 +834,16 @@ void CCCTabbedDialog::OnButtonEditCct(wxCommandEvent& WXUNUSED(event))
 
 void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event)) 
 {
+	// whm 14Jul11 modified. The creation of a cc table is somewhat of a
+	// technical task and not likely to be done by novice users. Moreover
+	// the tabbed dialog does not utilize a wxFileDialog, but makes use of
+	// the CCCTableNameDlg instead for getting the name of a cc table file
+	// to create. Hence whenever nav protection is in force for cc table
+	// storage, this routine utilizes the _CCTABLE_INPUTS_OUTPUTS which is
+	// a child folder of the m_workFolderPath or m_customWorkFolderPath as 
+	// appropriate. The folder is located there because the CCCTabbedDialog 
+	// can be summoned without a project being open (as can happen of Cancel 
+	// is pressed at the wizard/collab dialog).
 	CCCTableNameDlg nameDlg((wxWindow*)gpApp->GetMainFrame());
 	if (nameDlg.ShowModal() == wxID_OK)
 	{
@@ -755,14 +851,17 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		m_tblName[m_nCurPage] = nameDlg.m_tableName;
 		m_tblName[m_nCurPage] += _T(".cct"); // append .cct extension
 
-		// get the project diretory, and make it the working directory (use later to fill list box)
-		if (gpApp->m_curProjectPath.IsEmpty())
-			return; // unlikely, but we better be safe
 		bool bOK;
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
+		// Always use the special _CCTABLE_INPUTS_AND_OUTPUTS folder.
+		//bBypassFileDialog_ProtectedNavigation = TRUE; // not  used here
+		// Navigation protection in effect - limit source text exports to
+		// be saved in the _CCTABLE_INPUTS_AND_OUTPUTS folder which is always 
+		// a child folder of the m_workFolderPath or m_customWorkFolderPath as 
+		// appropriate.
+		bOK = ::wxSetWorkingDirectory(gpApp->m_ccTableInputsAndOutputsFolderPath);
+		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath; // this is where we will create it
 
 		// go with the full path specification
-		m_folderPath[m_nCurPage] = gpApp->m_curProjectPath; // this is where we will create it
 		gpApp->m_lastCcTablePath = m_folderPath[m_nCurPage]; // set the default Table path to the same place too
 		wxString path = m_folderPath[m_nCurPage] + gpApp->PathSeparator + m_tblName[m_nCurPage]; // this defines the file we wish to create
 

@@ -51,6 +51,7 @@
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 #include <wx/busyinfo.h>
+#include <wx/dir.h> // for wxDir
 
 #if !defined(__APPLE__)
 #include <malloc.h>
@@ -14803,6 +14804,9 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 /// Called from: the Doc's OnFilePackDocument() and EmailReportDlg::OnBtnAttachPackedDoc.
 /// Assembles the raw contents that go into an Adapt It Packed Document into the packByteStr
 /// which is a CBString byte buffer. 
+/// whm 14Jul11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
+/// folder. Note: The Pack Document... and the Unpack Document... commands are not available 
+/// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog)
 {
@@ -15081,47 +15085,72 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
     // zipping and unzipping .aip files produced by the MFC version or the WX version.
 
 	// make a suitable default output filename for the packed data
-	wxString exportFilename = gpApp->m_curOutputFilename;
-	int len = exportFilename.Length();
-	exportFilename.Remove(len-3,3); // remove the xml extension
-	exportFilename += _T("aip"); // make it a *.aip file type
+	// whm 14Jul11 modified. When _PACKED_INPUTS_OUTPUTS is nav protected, we
+	// use an automatically generated unique date/time stamped file name based
+	// on the m_curOutputFilename, and we don't invoke the wxFileDialog.
+	wxString exportFilename;
 	wxString exportPath;
+	wxString uniqueFilenameAndPath;
 	wxString defaultDir;
-	defaultDir = gpApp->m_curProjectPath;
-	if (bInvokeFileDialog)
+	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
 	{
-		wxString filter;
-
-		// get a file Save As dialog for Source Text Output
-		filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
-
-		wxFileDialog fileDlg(
-			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-			_("Filename For Packed Document"),
-			defaultDir,
-			exportFilename,
-			filter,
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
-			// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
-		fileDlg.Centre();
-
-		// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
-		// do it) Probably the project folder would be best.
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
-
-		if (fileDlg.ShowModal() != wxID_OK)
-		{
-			// user cancelled file dialog so return to what user was doing previously, because
-			// this means he doesn't want the Pack Document... command to go ahead
-			return FALSE; 
-		}
-
-		// get the user's desired path
-		exportPath = fileDlg.GetPath();
+		exportPath = gpApp->m_packedInputsAndOutputsFolderPath;
+		defaultDir = gpApp->m_packedInputsAndOutputsFolderPath;
 	}
 	else
 	{
+		exportPath = gpApp->m_curProjectPath;
+		defaultDir = gpApp->m_curProjectPath;
+	}
+	exportFilename = gpApp->m_curOutputFilename;
+	int len = exportFilename.Length();
+	exportFilename.Remove(len-3,3); // remove the xml extension
+	exportFilename += _T("aip"); // make it a *.aip file type
+	if (bInvokeFileDialog)
+	{
+		if (!gpApp->m_bProtectPackedInputsAndOutputsFolder)
+		{
+			wxString filter;
+			// get a file Save As dialog for Source Text Output
+			filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
+			wxFileDialog fileDlg(
+				(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+				_("Filename For Packed Document"),
+				defaultDir,
+				exportFilename,
+				filter,
+				wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+				// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
+				// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
+			fileDlg.Centre();
+
+			// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
+			// do it) Probably the project folder would be best.
+			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
+
+			if (fileDlg.ShowModal() != wxID_OK)
+			{
+				// user cancelled file dialog so return to what user was doing previously, because
+				// this means he doesn't want the Pack Document... command to go ahead
+				return FALSE; 
+			}
+
+			// get the user's desired path
+			exportPath = fileDlg.GetPath();
+		}
+		else
+		{
+			exportPath = exportPath + gpApp->PathSeparator + exportFilename;
+			// Ensure that exportPath is unique so we don't overwrite any existing ones in the
+			// appropriate outputs folder.
+			uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_packed_")); // TRUE - always modify
+			// Use the unique path for exportPath
+			exportPath = uniqueFilenameAndPath;
+		}
+	}
+	else
+	{
+		// not invoking the wxFileDialog, but getting packed doc for Email report.
 		exportPath = defaultDir + gpApp->PathSeparator + exportFilename;
 	}
 
@@ -15162,7 +15191,22 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	} 
 
 	exportPathUsed = exportPath;
-    return TRUE;
+	
+	// whm 14Jul11 added message 
+	if (bInvokeFileDialog)
+	{
+		// Except for when preparing packed documents to attach to email reports 
+		// (bInvokeFileDialog will be FALSE) we inform the user at this point of 
+		// the successful completion of the export, and indicate the file name 
+		// that was used and its outputs folder name and location.
+		wxFileName fn(exportPath);
+		wxString fileNameAndExtOnly = fn.GetFullName();
+
+		wxString msg;
+		msg = msg.Format(_("The packed document file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
+		wxMessageBox(msg,_("Packing of document successful"),wxICON_INFORMATION);
+	}
+   return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18408,8 +18452,9 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// BEW 25Nov09, to allow pack doc but to use the m_bReadOnlyAccess flag to suppress
 /// doing a project config file write and a doc save, but instead to just take the project
 /// config file and doc files as they currently are on disk in order to do the pack
-/// whm added 7Jul11 Don't allow packing of documents when collaborating with an external
-/// editor such as Paratext or Bibledit.
+/// whm 14Jul11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
+/// folder. Note: The Pack Document... and the Unpack Document... commands are not available 
+/// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
@@ -18517,109 +18562,139 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 /// The .aip files pack with the Unicode version of Adapt It cannot be unpacked with the regular
 /// version of Adapt It, nor vice versa.
 /// BEW 12Apr10, no changes needed for support of doc version 5
+/// whm 14Jul11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
+/// folder.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 {
 	// OnFileUnpackDoc is the handler for the Unpack Document... command on the File menu. 
 	// first, get the file and load it into a CBString
-	wxString message;
-	message = _("Load And Unpack The Compressed Document"); //IDS_UNPACK_DOC_TITLE
-	wxString filter;
-	wxString defaultDir;
-	defaultDir = gpApp->m_curProjectPath; 
-	filter = _("Packed Documents (*.aip)|*.aip||"); //IDS_PACKED_DOC_EXTENSION
-
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		message,
-		defaultDir,
-		_T(""), // file name is null string
-		filter,
-		wxFD_OPEN); 
-		// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
-		// GDLC wxOPEN weredeprecated in 2.8
-	fileDlg.Centre();
-
-	wxLogNull logNo; // avoid spurious messages from the system
-
-	// open as modal dialog
-	int returnValue = fileDlg.ShowModal();
-	if (returnValue == wxID_CANCEL)
+	wxString packedDocPath;
+	if (!gpApp->m_bProtectPackedInputsAndOutputsFolder)
 	{
-		return; // user Cancelled, or closed the dialog box
-	}
-	else // must be wxID_OK
-	{
-		wxString pathName;
-		pathName = fileDlg.GetPath();
+		wxString message;
+		message = _("Load And Unpack The Compressed Document"); //IDS_UNPACK_DOC_TITLE
+		wxString filter;
+		wxString defaultDir;
+		defaultDir = gpApp->m_curProjectPath; 
+		filter = _("Packed Documents (*.aip)|*.aip||"); //IDS_PACKED_DOC_EXTENSION
 
-        // whm Note: Since the "file" variable is created below and passed to
-        // DoUnpackDocument and the DoUnpackDocument expects the file to already be
-        // decompressed, we need decompress the file here before calling DoUnpackDocument.
-        // We uncompress the packed file from the .aip compressed archive. It will have the
-        // extension .aiz. We call DoUnpackDocument() on the .aiz file, then delete the
-        // .aiz file which is of no usefulness after the unpacking and loading of the
-        // document into Adapt It; we also would not want it hanging around for the user to
-        // try to unpack it again which would fail because the routine would try to
-        // uncompress an already uncompressed file and fail.
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			message,
+			defaultDir,
+			_T(""), // file name is null string
+			filter,
+			wxFD_OPEN); 
+			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
+			// GDLC wxOPEN weredeprecated in 2.8
+		fileDlg.Centre();
 
-        // The wxWidgets version no longer needs the services of the separate freeware
-        // unzip.h and unzip.cpp libraries.
-        // whm 22Sep06 modified the following to use wxWidgets' own built-in zip filters
-        // which act on i/o streams.
-        // TODO: This could be simplified further by streaming the .aip file via
-        // wxZipInputStream to a wxMemoryInputStream, rather than to an external
-        // intermediate .aiz file, thus reducing complexity and the need to manipulate
-        // (create, delete, rename) the external files.
-		wxZipEntry* pEntry;
-		// first we create a simple output stream using the zipped .aic file (pathName)
-		wxFFileInputStream zippedfile(pathName);
-        // then we construct a zip stream on top of this one; the zip stream works as a
-        // "filter" unzipping the stream from pathName
-		wxZipInputStream zipStream(zippedfile);
-		wxString unzipFileName;
-		pEntry = zipStream.GetNextEntry(); // gets the one and only zip entry in the 
-										   // .aip file
-		unzipFileName = pEntry->GetName(); // access the meta-data
-        // construct the path to the .aiz file so that is goes temporarily in the project
-        // folder this .aiz file is erased below after DoUnPackDocument is called on it
-		pathName = gpApp->m_workFolderPath + gpApp->PathSeparator + unzipFileName;
-		// get a buffered output stream
-		wxFFileOutputStream outFile(pathName);
-		// write out the filtered (unzipped) stream to the .aiz file
-		outFile.Write(zipStream); // this form writes from zipStream to outFile until a 
-								  // stream "error" (i.e., end of file)
-		delete pEntry; // example in wx book shows the zip entry data being deleted
-		outFile.Close();
+		wxLogNull logNo; // avoid spurious messages from the system
 
-		// get a CFile and do the unpack
-		wxFile file;
-		// In the wx version we need to explicitly call Open on the file to proceed.
-		if (!file.Open(pathName,wxFile::read))
+		// open as modal dialog
+		int returnValue = fileDlg.ShowModal();
+		if (returnValue == wxID_CANCEL)
 		{
-			wxString msg;
-			msg = msg.Format(_(
+			return; // user Cancelled, or closed the dialog box
+		}
+	
+		packedDocPath = fileDlg.GetPath();
+	}
+	else
+	{
+		// Packed Doc folder is protected
+		wxArrayString packedDocFilesIncludingPaths,packedDocFilesNamesOnly;
+		// get an array list of .cct files
+		packedDocPath = gpApp->m_packedInputsAndOutputsFolderPath;
+		wxDir::GetAllFiles(packedDocPath,&packedDocFilesIncludingPaths,_T("*.aip"),wxDIR_FILES);
+		int totFiles = (int)packedDocFilesIncludingPaths.GetCount();
+		if (totFiles > 0)
+		{
+			int ct;
+			for (ct = 0; ct < totFiles; ct++)
+			{
+				wxFileName fn(packedDocFilesIncludingPaths.Item(ct));
+				wxString fNameOnly = fn.GetFullName();
+				packedDocFilesNamesOnly.Add(fNameOnly);
+			}
+		}
+		wxString message = _("Choose a Packed Document from the following list:\n(from the location: %s):");
+		message = message.Format(message,packedDocPath.c_str());
+		wxString myCaption = _("");
+		int returnValue = wxGetSingleChoiceIndex(message,myCaption,
+			packedDocFilesNamesOnly,(wxWindow*)gpApp->GetMainFrame(),-1,-1,true,250,100);
+		if (returnValue == -1)
+			return; // user pressed Cancel or OK with nothing selected (list empty)
+		packedDocPath = packedDocPath + gpApp->PathSeparator + packedDocFilesNamesOnly.Item(returnValue); // this has just the file name
+	}
+    // whm Note: Since the "file" variable is created below and passed to
+    // DoUnpackDocument and the DoUnpackDocument expects the file to already be
+    // decompressed, we need decompress the file here before calling DoUnpackDocument.
+    // We uncompress the packed file from the .aip compressed archive. It will have the
+    // extension .aiz. We call DoUnpackDocument() on the .aiz file, then delete the
+    // .aiz file which is of no usefulness after the unpacking and loading of the
+    // document into Adapt It; we also would not want it hanging around for the user to
+    // try to unpack it again which would fail because the routine would try to
+    // uncompress an already uncompressed file and fail.
+
+    // The wxWidgets version no longer needs the services of the separate freeware
+    // unzip.h and unzip.cpp libraries.
+    // whm 22Sep06 modified the following to use wxWidgets' own built-in zip filters
+    // which act on i/o streams.
+    // TODO: This could be simplified further by streaming the .aip file via
+    // wxZipInputStream to a wxMemoryInputStream, rather than to an external
+    // intermediate .aiz file, thus reducing complexity and the need to manipulate
+    // (create, delete, rename) the external files.
+	wxZipEntry* pEntry;
+	// first we create a simple output stream using the zipped .aic file (pathName)
+	wxFFileInputStream zippedfile(packedDocPath);
+    // then we construct a zip stream on top of this one; the zip stream works as a
+    // "filter" unzipping the stream from pathName
+	wxZipInputStream zipStream(zippedfile);
+	wxString unzipFileName;
+	pEntry = zipStream.GetNextEntry(); // gets the one and only zip entry in the 
+									   // .aip file
+	unzipFileName = pEntry->GetName(); // access the meta-data
+    // construct the path to the .aiz file so that it goes temporarily in the project
+    // folder this .aiz file is erased below after DoUnPackDocument is called on it
+	packedDocPath = gpApp->m_workFolderPath + gpApp->PathSeparator + unzipFileName;
+	// get a buffered output stream
+	wxFFileOutputStream outFile(packedDocPath);
+	// write out the filtered (unzipped) stream to the .aiz file
+	outFile.Write(zipStream); // this form writes from zipStream to outFile until a 
+							  // stream "error" (i.e., end of file)
+	delete pEntry; // example in wx book shows the zip entry data being deleted
+	outFile.Close();
+
+	// get a CFile and do the unpack
+	wxFile file;
+	// In the wx version we need to explicitly call Open on the file to proceed.
+	if (!file.Open(packedDocPath,wxFile::read))
+	{
+		wxString msg;
+		msg = msg.Format(_(
 "Error uncompressing; cannot open the file: %s\n Make sure the file is not being used by another application and try again."),
-			pathName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
-			return;
-		}
-		if (!DoUnpackDocument(&file))//whm changed this to return bool for better error recovery
-			return; // DoUnpackDocument issues its own error messages if it encounters an error
-
-		// lastly remove the .aiz temporary file that was used to unpack from
-		// leaving the compressed .aip in the work folder
-		if (!::wxRemoveFile(pathName))
-		{
-			// if there was an error, we just get no unpack done, but app can continue; and
-			// since we expect no error here, we will use an English message
-			wxString strMessage;
-			strMessage = strMessage.Format(_("Error removing %s after unpack document command."),
-			pathName.c_str());
-			wxMessageBox(strMessage,_T(""), wxICON_EXCLAMATION);
-			return;
-		}
+		packedDocPath.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		return;
 	}
+	if (!DoUnpackDocument(&file))//whm changed this to return bool for better error recovery
+		return; // DoUnpackDocument issues its own error messages if it encounters an error
+
+	// lastly remove the .aiz temporary file that was used to unpack from
+	// leaving the compressed .aip in the work folder
+	if (!::wxRemoveFile(packedDocPath))
+	{
+		// if there was an error, we just get no unpack done, but app can continue; and
+		// since we expect no error here, we will use an English message
+		wxString strMessage;
+		strMessage = strMessage.Format(_("Error removing %s after unpack document command."),
+		packedDocPath.c_str());
+		wxMessageBox(strMessage,_T(""), wxICON_EXCLAMATION);
+		return;
+	}
+	
 	return;
 }
 

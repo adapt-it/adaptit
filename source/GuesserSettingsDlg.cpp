@@ -94,17 +94,9 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	pPanelGuessColorDisplay = (wxPanel*)FindWindowById(ID_PANEL_GUESS_COLOR_DISPLAY);
 	wxASSERT(pPanelGuessColorDisplay != NULL);
 
-	//wxTextCtrl* pEdit;
-	//pEdit = (wxTextCtrl*)FindWindowById(IDC_TEXTCONTROL);
-	//pEdit->SetValidator(wxGenericValidator(&m_stringVariable));
-	//pEdit->SetBackgroundColour(sysColorBtnFace);
-
-	// sample radio button control initialization below:
-	//wxRadioButton* pRadioB;
-	//pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_BUTTON);
-	//pRadioB->SetValue(TRUE);
-	//pRadioB->SetValidator(wxGenericValidator(&m_bVariable));
-
+	CAdapt_ItApp* pApp = &wxGetApp();
+	bool bOK;
+	bOK = pApp->ReverseOkCancelButtonsForMac(this);
 	// other attribute initializations
 }
 

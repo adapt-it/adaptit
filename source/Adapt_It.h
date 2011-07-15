@@ -72,13 +72,13 @@ class NavProtectNewDoc; // for user navigation protection feature
 // Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
 // Adapt_It.rc file after sensing that it was changed by the external program. 
 //
-// next version will be 6.0.0, no date fixed yet, so temporarily use 20th Sept 2010 
+// next version will be 6.0.0, temporarily use 14th August 2011 
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 0
 #define VERSION_BUILD_PART 0
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 7
-#define VERSION_DATE_MONTH 4
+#define VERSION_DATE_DAY 14
+#define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2011
 
 // whm added 20Oct10 for user profiles support
@@ -2313,7 +2313,8 @@ public:
 
 	wxString	m_usageLogFilePathAndName; // whm added 8Nov10
 	wxFile*		m_userLogFile; // whm added 12Nov10 the wxFile descriptor used with m_usageLogFilePathAndName
-	wxString	m_packedDocumentFilePathOnly; // whm added 8Nov10
+	//wxString	m_packedDocumentFilePathOnly; // whm added 8Nov10
+	//wxString	m_ccTableFilePathOnly; // whm added 14Jul11
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
@@ -2402,13 +2403,11 @@ public:
 	wxString	m_liftInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
-	
 	bool		m_bProtectPackedInputsAndOutputsFolder;
 	wxString	m_packedInputsAndOutputsFolderName; // in OnInit() we set to "_PACKED_INPUTS_AND_OUTPUTS"
-	wxString	m_packedInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
-										// points to; the path is defined where m_curProjectPath
-										// gets defined 
-	
+	wxString	m_packedInputsAndOutputsFolderPath; // always a child of folder that m_workFolderPath
+										// or m_customWorkFolderPath poins to; the path is defined in
+										// OnInit()
 	bool		m_bProtectCCTableInputsAndOutputsFolder;
 	wxString	m_ccTableInputsAndOutputsFolderName; // in OnInit() we set to "_CCTABLE_INPUTS_AND_OUTPUTS"
 	wxString	m_ccTableInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
@@ -2423,6 +2422,7 @@ public:
 	wxString	m_logsEmailReportsFolderName; // in OnInit() we set to "_LOGS_EMAIL_REPORTS"
 	wxString	m_logsEmailReportsFolderPath; // Not in the nav protection scheme - what goes here
 										// alwaiys goes here regardless of nav protection
+	
 	
 	wxArrayString m_sortedLoadableFiles; // for use by the NavProtectNewDoc class's dialog
 
