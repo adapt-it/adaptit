@@ -982,6 +982,13 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		// retrieving the lines from storage in memory, using GetLine(ct).
 		int lineCount = file.GetLineCount();
 
+		// whm added 15Jul11 counts for report at end of import
+		int nLexItemsProcessed = 0;
+		int nAdaptationsProcessed = 0;
+		int nAdaptationsAdded = 0;
+		int nAdaptationsUnchanged = 0;
+		int nDelItems = 0;
+		
 		int ct;
 		int nWordCount;
 		MapKeyStringToTgtUnit* pMap; // pointer to the map to use for a given entry
@@ -995,6 +1002,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			// is the line a m_key member?
 			if (IsMember(line,keyMarker,nOffset) || nOffset >= 0)
 			{
+				nLexItemsProcessed++;
 				// it is a valid key
 				// default the pMap pointer to the first map in this KB
 				pMap = m_pMap[0];
@@ -1055,6 +1063,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			{
 				if (IsMember(line,adaptionMarker,nOffset) || nOffset >= 0)
 				{
+					nAdaptationsProcessed++;
                     // an 'adaptation' member (for a glossingKB, this is actually a gloss,
                     // but we use this adaptation name for both here) exists for this key,
                     // so get the KB updated with this association provided a valid key was
@@ -1079,6 +1088,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
                             // given key, so fill out the pRefStr and store pTU in the map
                             // set the pointer to the owning CTargetUnit, and add it to the
                             // m_translations member
+                            nAdaptationsAdded++;
 							pTU = new CTargetUnit;
 							pRefStr = new CRefString; // default constructor doesn't set 
 										// CRefStringMetadata members, we will do them
@@ -1117,9 +1127,10 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 							adaption.Trim();
 							adaption.Trim(FALSE);
 							CRefString* pRefStr = GetRefString(pTU,adaption); // returns
-									// NULL if there was no maatching CRefString instance
+									// NULL if there was no matching CRefString instance
 							if (pRefStr == NULL)
 							{
+								nAdaptationsAdded++;
                                 // this particular adaptation or gloss is not yet in the
                                 // map's CTargetUnit instance, so put create a CRefString
                                 // (and CRefStringMetatdata), and add to the pTU's list
@@ -1145,6 +1156,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 							}
 							else
 							{
+								nAdaptationsUnchanged++;
                                 // this particular adaptation or gloss is in the map's
                                 // CTargetUnit pointer already, so we should ignore it; to
                                 // do that we just need to set pRefStr to NULL, so that
@@ -1170,6 +1182,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 						// process any metadata lines
 						if (IsMember(line,delflag,nOffset) || nOffset >= 0)
 						{
+							nDelItems++;
 							// this marker, if present, will always have either "0" or "1"
 							// as its content
 							wxString delStr;
@@ -1297,7 +1310,11 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			} // end of else block for test that line has a \lx marker
 		} // end of loop over all lines
 		file.Close();
-	}
+		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Processed %d");
+		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems);
+		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
+
+	} // end importing from an SFM text file
 
 	// process the last line here ??? (FALSE is bool bDoPartnerPileDeletionAlso)
 	//m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);

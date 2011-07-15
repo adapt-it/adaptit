@@ -19429,6 +19429,39 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 			filterIndex = returnValue;
 			wxASSERT(filterIndex == 0 || filterIndex == 1);
 		}
+		// get list of files of the filterIndex type
+		
+		wxString extStr;
+		if (filterIndex == 0)
+			extStr = _T("*.txt");
+		else if (filterIndex == 1)
+			extStr = _T("*.lift");
+		wxArrayString kbImportFilesIncludingPaths,kbImportFilesNamesOnly;
+		// get an array list of .cct files
+		pathName = pApp->m_kbInputsAndOutputsFolderPath;
+		wxDir::GetAllFiles(pathName,&kbImportFilesIncludingPaths,extStr,wxDIR_FILES);
+		int totFiles = (int)kbImportFilesIncludingPaths.GetCount();
+		if (totFiles > 0)
+		{
+			int ct;
+			for (ct = 0; ct < totFiles; ct++)
+			{
+				wxFileName fn(kbImportFilesIncludingPaths.Item(ct));
+				wxString fNameOnly = fn.GetFullName();
+				kbImportFilesNamesOnly.Add(fNameOnly);
+			}
+		}
+		wxString message = _("Choose a file from the following list:\n(from the location: %s):");
+		message = message.Format(message,pathName.c_str());
+		if (filterIndex == 0)
+			myCaption = _("Import KB Records from SFM File");
+		else if (filterIndex == 1)
+			myCaption = _("Import KB Records from LIFT File");
+		returnValue = wxGetSingleChoiceIndex(message,myCaption,
+			kbImportFilesNamesOnly,(wxWindow*)pApp->GetMainFrame(),-1,-1,true,250,100);
+		if (returnValue == -1)
+			return; // user pressed Cancel or OK with nothing selected (list empty)
+		pathName = pathName + pApp->PathSeparator + kbImportFilesNamesOnly.Item(returnValue); // this has just the file name
 	}
 
 	if (filterIndex == KBImportFileOfLIFT_XML)

@@ -185,6 +185,13 @@ static int divIndex = -1;
 static int divCount = 0;
 static int totalCount = 0;
 
+// whm added 15Jul11 counts for report at end of kb import
+static int nLexItemsProcessed = 0;
+static int nAdaptationsProcessed = 0;
+static int nAdaptationsAdded = 0;
+static int nAdaptationsUnchanged = 0;
+
+
 // this group of tags are for the AI_USFM.xml file
 const char usfmsupport[] = "USFMsupport";
 const char sfm[] = "SFM";
@@ -4951,6 +4958,7 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else if (tag == xml_sense)
 	{
+		nAdaptationsProcessed++;
         // Note: we accept only a <text> tag which is in a definition or gloss, either of
         // which is embedded in a sense. But there can be many other <text> elements in a
         // <sense>, but at deeper levels of nesting than <gloss> or <definition>. The
@@ -5061,6 +5069,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
 				if (pRefStr_In_TU == NULL)
 				{
+					nAdaptationsAdded++;
 					// this particular adaptation or gloss is not yet in the map's CTargetUnit
 					// instance, so put it in there and have the map manage the CRefString
 					// instance's pointer, but the gpTU instance we created earlier in the
@@ -5104,6 +5113,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				}
 				else
 				{
+					nAdaptationsUnchanged++;
 					// this particular adaptation or gloss is in the map's CTargetUnit pointer
 					// already, so we can ignore it. We must delete both the gpRefStr (and
 					// its owned CRefStringMetadata instance), and also delete the gpTU we
@@ -5198,6 +5208,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 	{
 		if (pStack->MyParentsAre(3, xml_form, xml_lexical_unit, xml_entry) )
 		{
+			nLexItemsProcessed++;
 			// this is tag stores a lexeme, which to Adapt It will become a KB adaptation or
 			// gloss, depending on whether we are importing an adaptingKB or a glossingKB
 			ReplaceEntities(pcdata);
@@ -5338,6 +5349,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
 				if (pRefStr_In_TU == NULL)
 				{
+					nAdaptationsAdded++;
 					// this particular adaptation or gloss is not yet in the map's CTargetUnit
 					// instance, so put it in there and have the map manage the CRefString
 					// instance's pointer, but the gpTU instance we created earlier in the
@@ -6482,6 +6494,11 @@ bool ReadKB_XML(wxString& path, CKB* pKB)
 
 bool ReadLIFT_XML(wxString& path, CKB* pKB)
 {
+	nLexItemsProcessed = 0;
+	nAdaptationsProcessed = 0;
+	nAdaptationsAdded = 0;
+	nAdaptationsUnchanged = 0;
+	
 	wxASSERT(pKB);
 	gpKB = pKB; // set the global gpKB used by the callback functions
 	// clear some important globals used in the parse
@@ -6490,6 +6507,12 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB)
 	gpRefStr = NULL;
 	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);
+	if (bXMLok)
+	{
+		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d");
+		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged);
+		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
+	}
 	return bXMLok;
 }	
 
