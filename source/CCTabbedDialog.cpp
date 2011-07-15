@@ -722,7 +722,7 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		}
 		wxString message = _("Choose a Consistent Changes table from the following list:\n(from the location: %s):");
 		message = message.Format(message,tablePath.c_str());
-		wxString myCaption = _("");
+		wxString myCaption = _T("");
 		int returnValue = wxGetSingleChoiceIndex(message,myCaption,
 			ccTableFilesNamesOnly,(wxWindow*)pApp->GetMainFrame(),-1,-1,true,250,100);
 		if (returnValue == -1)

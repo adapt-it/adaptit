@@ -18621,7 +18621,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		}
 		wxString message = _("Choose a Packed Document from the following list:\n(from the location: %s):");
 		message = message.Format(message,packedDocPath.c_str());
-		wxString myCaption = _("");
+		wxString myCaption = _T("");
 		int returnValue = wxGetSingleChoiceIndex(message,myCaption,
 			packedDocFilesNamesOnly,(wxWindow*)gpApp->GetMainFrame(),-1,-1,true,250,100);
 		if (returnValue == -1)
