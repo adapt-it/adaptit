@@ -48,6 +48,7 @@
 #include <wx/txtstrm.h> // for wxTextInputStream
 #include <wx/zipstrm.h> // for wxZipInputStream & wxZipOutputStream
 #include <wx/mstream.h> // for wxMemoryInputStream
+#include <wx/tooltip.h> // for wxToolTip
 
 // libcurl includes:
 #include <curl/curl.h>
@@ -220,6 +221,9 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	bSendersNameHasUnsavedChanges = FALSE;
 	bCurrentEmailReportWasLoadedFromFile = FALSE;
 	LoadedFilePathAndName = _T("");
+	saveAttachDocLabel= pButtonAttachAPackedDoc->GetLabel();
+	pBtnAttachTooltip = pButtonAttachAPackedDoc->GetToolTip();
+	saveAttachDocTooltip = pBtnAttachTooltip->GetTip();
 
 	if (!::wxFileExists(pApp->m_usageLogFilePathAndName))
 	{
@@ -1055,6 +1059,18 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 	
+	if (bPackedDocToBeAttached)
+	{
+		// user wants to remove the attached document
+		bPackedDocToBeAttached = FALSE;
+		pButtonAttachAPackedDoc->SetLabel(saveAttachDocLabel);
+		pBtnAttachTooltip->SetTip(saveAttachDocTooltip);
+		pButtonAttachAPackedDoc->SetToolTip(pBtnAttachTooltip);
+		pButtonAttachAPackedDoc->Enable();
+		pButtonAttachAPackedDoc->Refresh();
+		return;
+	}
+
 	// Get the raw data used for packing a document in preparation for attaching it to the email report
     // DoPackDocument() below is what is used in the Doc's OnFilePackDocument()
 	//CBString* packByteStr;
@@ -1083,6 +1099,9 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 		free((void*)pByteBuf);
 	}
 	bPackedDocToBeAttached = TRUE;
+	pButtonAttachAPackedDoc->SetLabel(_("Remove attached document")); // whm added 16Jul11
+	pBtnAttachTooltip->SetTip(_("Click to detach the packed adaptation document from this email"));
+	pButtonAttachAPackedDoc->SetToolTip(pBtnAttachTooltip);
 }
 
 void CEmailReportDlg::OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event))
