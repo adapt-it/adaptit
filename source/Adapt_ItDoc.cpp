@@ -15106,52 +15106,45 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	int len = exportFilename.Length();
 	exportFilename.Remove(len-3,3); // remove the xml extension
 	exportFilename += _T("aip"); // make it a *.aip file type
-	if (bInvokeFileDialog)
+
+	if (!gpApp->m_bProtectPackedInputsAndOutputsFolder)
 	{
-		if (!gpApp->m_bProtectPackedInputsAndOutputsFolder)
+		wxString filter;
+		// get a file Save As dialog for Source Text Output
+		filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Filename For Packed Document"),
+			defaultDir,
+			exportFilename,
+			filter,
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
+			// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
+		fileDlg.Centre();
+
+		// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
+		// do it) Probably the project folder would be best.
+		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
+
+		if (fileDlg.ShowModal() != wxID_OK)
 		{
-			wxString filter;
-			// get a file Save As dialog for Source Text Output
-			filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
-			wxFileDialog fileDlg(
-				(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-				_("Filename For Packed Document"),
-				defaultDir,
-				exportFilename,
-				filter,
-				wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
-				// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
-				// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
-			fileDlg.Centre();
-
-			// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
-			// do it) Probably the project folder would be best.
-			bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
-
-			if (fileDlg.ShowModal() != wxID_OK)
-			{
-				// user cancelled file dialog so return to what user was doing previously, because
-				// this means he doesn't want the Pack Document... command to go ahead
-				return FALSE; 
-			}
-
-			// get the user's desired path
-			exportPath = fileDlg.GetPath();
+			// user cancelled file dialog so return to what user was doing previously, because
+			// this means he doesn't want the Pack Document... command to go ahead
+			return FALSE; 
 		}
-		else
-		{
-			exportPath = exportPath + gpApp->PathSeparator + exportFilename;
-			// Ensure that exportPath is unique so we don't overwrite any existing ones in the
-			// appropriate outputs folder.
-			uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_packed_")); // TRUE - always modify
-			// Use the unique path for exportPath
-			exportPath = uniqueFilenameAndPath;
-		}
+
+		// get the user's desired path
+		exportPath = fileDlg.GetPath();
 	}
 	else
 	{
-		// not invoking the wxFileDialog, but getting packed doc for Email report.
-		exportPath = defaultDir + gpApp->PathSeparator + exportFilename;
+		exportPath = exportPath + gpApp->PathSeparator + exportFilename;
+		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
+		// appropriate outputs folder.
+		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_packed_")); // TRUE - always modify
+		// Use the unique path for exportPath
+		exportPath = uniqueFilenameAndPath;
 	}
 
 	// get the length of the total byte string in packByteStr (exclude the null byte)
