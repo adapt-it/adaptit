@@ -8319,13 +8319,13 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
 
     wxFlexGridSizer *item37 = new wxFlexGridSizer( 2, 3, 4 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, wxT("_KB_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, wxT("_KB_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, wxT("_LIFT_INPUTS_AND_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, wxT("_LIFT_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );

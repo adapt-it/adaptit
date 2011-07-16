@@ -2394,12 +2394,12 @@ public:
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
 	bool		m_bProtectKbInputsAndOutputsFolder;
-	wxString	m_kbInputsAndOutputsFolderName; // in OnInit() we set to "_KB_INPUTS_AND_OUTPUTS"
+	wxString	m_kbInputsAndOutputsFolderName; // in OnInit() we set to "_KB_INPUTS_OUTPUTS"
 	wxString	m_kbInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
 	bool		m_bProtectLiftInputsAndOutputsFolder;
-	wxString	m_liftInputsAndOutputsFolderName; // in OnInit() we set to "_LIFT_INPUTS_AND_OUTPUTS"
+	wxString	m_liftInputsAndOutputsFolderName; // in OnInit() we set to "_LIFT_INPUTS_OUTPUTS"
 	wxString	m_liftInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
