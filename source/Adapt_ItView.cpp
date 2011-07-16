@@ -19357,7 +19357,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	{
 		bBypassFileDialog_ProtectedNavigation = TRUE;
 		// Navigation protection in effect - limit source text exports to
-		// be saved in the _KB_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// be saved in the _KB_INPUTS_OUTPUTS folder which is always a child folder
 		// of the folder that m_curProjectPath points to.
 		bOK = ::wxSetWorkingDirectory(pApp->m_kbInputsAndOutputsFolderPath);
 	}

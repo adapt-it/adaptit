@@ -12553,8 +12553,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_sourceRTFOutputsFolderName = _T("_SOURCE_RTF_OUTPUTS");
 	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
 	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
-	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_AND_OUTPUTS");
-	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_AND_OUTPUTS");
+	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_OUTPUTS");
+	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_OUTPUTS");
 	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	
 	// whm added 12Jul11 The following special folder names. Their paths need to be defined after 
@@ -36979,7 +36979,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	{
 		bBypassFileDialog_ProtectedNavigation = TRUE;
 		// Navigation protection in effect - limit source text exports to
-		// be saved in the _KB_INPUTS_AND_OUTPUTS folder which is always a child folder
+		// be saved in the _KB_INPUTS_OUTPUTS folder which is always a child folder
 		// of the folder that m_curProjectPath points to.
 		bOK = ::wxSetWorkingDirectory(this->m_kbInputsAndOutputsFolderPath);
 	}
