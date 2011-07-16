@@ -57,6 +57,9 @@ public:
 	wxString saveSubjectSummary;
 	wxString saveMyEmailAddress;
 	wxString saveSendersName;
+	wxString saveAttachDocLabel;
+	wxToolTip* pBtnAttachTooltip;
+	wxString saveAttachDocTooltip;
 	wxString packedDocInBase64;
 	wxString userLogInBase64;
 	CBString userLogInASCII;
