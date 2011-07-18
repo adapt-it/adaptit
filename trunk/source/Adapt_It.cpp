@@ -11004,8 +11004,6 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 
 wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 {
-	wxString path;
-	path.Empty();
 	// by inspection of Bibledit-gtk version 4.2.93 (cloned from git nightly build 
 	// and built 13Jun11), the bibledit project folder is located at:
 	// ~/.bibledit/projects and the projects folder contains an xml file called
@@ -11015,8 +11013,14 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 	// file which contains the vital information for AI project setup including
 	// <language>, <versification>, <editable>, <editor-font-default>, <editor-font-name>
 	// which is of the form Sans 14, <right-to-left>, etc.
-	// TODO: Bibledit implementation
-
+	wxString path;
+	path.Empty();
+	// On Linux systems the wxStandardPaths::GetDocumentsDir() method gets
+	// the user's ~/ folder where the .bibledit folder is located. We augment
+	// that path by pointing to its projects subdirectory, i.e., ~/.bibledit/projects.
+	// Get the "documents" directory for the current system/platform. 
+	wxStandardPaths stdPaths;
+	path = stdPaths.GetDocumentsDir() + PathSeparator + _T(".bibledit") + PathSeparator + _T("projects");
 	return path;
 }
 
@@ -12119,7 +12123,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pRemovedMenuItemArray = new wxArrayPtrVoid;
 
 	// whm added 26Apr11 for AI-PT Collaboration support
-	m_pArrayOfPTProjects = new wxArrayPtrVoid;
+	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 	
 	/*
 	// test of ChangeFilenameExtensionTo() and ChangeFilenameExtension2() function
@@ -16505,16 +16509,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// on all platforms !!!
 	// 
 	// whm testing below !!!
-#ifdef __WXGTK__
-	if (BibleditIsRunning())
-	{
-		wxMessageBox(_T("Bibledit is running!"));
-	}
-	else
-	{
-		wxMessageBox(_T("Bibledit is not running!"));
-	}
-#endif
+
+	//wxArrayString testBEProjects;
+	//testBEProjects = GetListOfBEProjects();
+//#ifdef __WXGTK__
+//	if (BibleditIsRunning())
+//	{
+//		wxMessageBox(_T("Bibledit is running!"));
+//	}
+//	else
+//	{
+//		wxMessageBox(_T("Bibledit is not running!"));
+//	}
+//#endif
 	// whm testing above !!!
 	
 	if (!BibleditIsInstalled())
@@ -17520,21 +17527,21 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pRemovedMenuItemArray;
 	}
 
-	aTot = m_pArrayOfPTProjects->GetCount();
+	aTot = m_pArrayOfCollabProjects->GetCount();
 	if (aTot == 0L)
 	{
-		delete m_pArrayOfPTProjects;
+		delete m_pArrayOfCollabProjects;
 	}
 	else
 	{
 		int aIndex;
 		for (aIndex = 0; aIndex < aTot; aIndex++)
 		{
-			PT_Project_Info_Struct* pArrayItem = (PT_Project_Info_Struct*)(*m_pArrayOfPTProjects)[aIndex];
+			Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
 			delete pArrayItem;
 		}
-		m_pArrayOfPTProjects->Clear();
-		delete m_pArrayOfPTProjects;
+		m_pArrayOfCollabProjects->Clear();
+		delete m_pArrayOfCollabProjects;
 	}
 
 	// whm: before deleting our CConsistentChanger objects, we need to
@@ -37260,8 +37267,8 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// .ssf files extracting from the xml the various properties described 
 /// for the given PT project.
 /// 
-/// As a side effect, this function populates the App's m_pArrayOfPTProjects 
-/// array of pointers to PT_Project_Info_Struct structs stored on the heap. 
+/// As a side effect, this function populates the App's m_pArrayOfCollabProjects 
+/// array of pointers to Collab_Project_Info_Struct structs stored on the heap. 
 /// In the returned wxArrayString, each string element contains identifying 
 /// fields structured as follows:
 /// "shortName : fullName : languageName : ethnologueCode"
@@ -37277,16 +37284,16 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	wxArrayString tempListOfPTProjects;
 	tempListOfPTProjects.Clear();
 	// deallocate any memory for items currently in list on heap 
-	int aTot = (int)m_pArrayOfPTProjects->GetCount();
+	int aTot = (int)m_pArrayOfCollabProjects->GetCount();
 	if (aTot > 0)
 	{
 		int aIndex;
 		for (aIndex = 0; aIndex < aTot; aIndex++)
 		{
-			PT_Project_Info_Struct* pArrayItem = (PT_Project_Info_Struct*)(*m_pArrayOfPTProjects)[aIndex];
+			Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
 			delete pArrayItem;
 		}
-		m_pArrayOfPTProjects->Clear();
+		m_pArrayOfCollabProjects->Clear();
 	}
 	wxString PT_ProjectsDirPath;
 	PT_ProjectsDirPath = GetParatextProjectsDirPath();
@@ -37338,7 +37345,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 				// The ssf file is now in memory and accessible line-by-line using wxTextFile
 				// methods.
 				
-				PT_Project_Info_Struct* pPTInfo = new PT_Project_Info_Struct;
+				Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
 				pPTInfo->booksPresentFlags = _T("");
 				pPTInfo->ethnologueCode = _T("");
 				pPTInfo->fullName = _T("");
@@ -37387,104 +37394,104 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					endTagName = _T("</BooksPresent>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						booksPresentFlags = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->booksPresentFlags = booksPresentFlags;
 					}
 
 					tagName = _T("<EthnologueCode>");
 					endTagName = _T("</EthnologueCode>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						ethnologueCode = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->ethnologueCode = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						ethnologueCode = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->ethnologueCode = ethnologueCode;
 					}
 
 					tagName = _T("<FullName>");
 					endTagName = _T("</FullName>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						fullName = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->fullName = fullName;
 					}
 
 					tagName = _T("<Language>");
 					endTagName = _T("</Language>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						languageName = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->languageName = languageName;
 					}
 
 					tagName = _T("<Directory>");
 					endTagName = _T("</Directory>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						projectDir = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->projectDir = projectDir;
 					}
 
 					tagName = _T("<Name>");
 					endTagName = _T("</Name>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						shortName = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->shortName = shortName;
 					}
 
 					tagName = _T("<Versification>");
 					endTagName = _T("</Versification>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						versification = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->versification = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						versification = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->versification = versification;
 					}
 
 					tagName = _T("<ChapterMarker>");
 					endTagName = _T("</ChapterMarker>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						chapterMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->chapterMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						chapterMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->chapterMarker = chapterMarker;
 					}
 
 					tagName = _T("<VerseMarker>");
 					endTagName = _T("</VerseMarker>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						verseMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->verseMarker = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						verseMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->verseMarker = verseMarker;
 					}
 
 					tagName = _T("<DefaultFont>");
 					endTagName = _T("</DefaultFont>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						defaultFont = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->defaultFont  = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						defaultFont = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->defaultFont  = defaultFont;
 					}
 
 					tagName = _T("<DefaultFontSize>");
 					endTagName = _T("</DefaultFontSize>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						defaultFontSize = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->defaultFontSize = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						defaultFontSize = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->defaultFontSize = defaultFontSize;
 					}
 
 					tagName = _T("<LeftToRight>");
 					endTagName = _T("</LeftToRight>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						leftToRight = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->leftToRight = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						leftToRight = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->leftToRight = leftToRight;
 					}
 
 					tagName = _T("<Encoding>");
 					endTagName = _T("</Encoding>");
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
-						encoding = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						pPTInfo->encoding = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						encoding = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						pPTInfo->encoding = encoding;
 					}
 
 					tagName = _T("<ResourceText>");
@@ -37492,7 +37499,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
 						wxString temp;
-						temp = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
 						// Note: non-Resource projects often don't have the "<ResourceText>"
 						// tag at all, therefore we set bProjectIsNotResource to TRUE as its
 						// default, unless <ResourceText>T</ResourceText> is present.
@@ -37508,7 +37515,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
 						wxString temp;
-						temp = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
 						if (temp == _T("T"))
 						{
 							bProjectIsEditable = TRUE;
@@ -37543,7 +37550,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 						storageStr += _T(" : ") + ethnologueCode;
 					}
 					tempListOfPTProjects.Add(storageStr);
-					m_pArrayOfPTProjects->Add(pPTInfo);
+					m_pArrayOfCollabProjects->Add(pPTInfo);
 				}
 				else
 				{
@@ -37561,38 +37568,401 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 
 wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 {
-	wxArrayString tempArray;
-	tempArray.Clear();
-	// TODO: Bibledit implementation !!!
+	wxArrayString tempListOfBEProjects;
+	tempListOfBEProjects.Clear();
+	// deallocate any memory for items currently in list on heap 
+	int aTot = (int)m_pArrayOfCollabProjects->GetCount();
+	if (aTot > 0)
+	{
+		int aIndex;
+		for (aIndex = 0; aIndex < aTot; aIndex++)
+		{
+			Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
+			delete pArrayItem;
+		}
+		m_pArrayOfCollabProjects->Clear();
+	}
+	wxString BE_ProjectsDirPath;
+	BE_ProjectsDirPath = GetBibleditProjectsDirPath();
+	// Note: BE_ProjectsDirPath will NOT end with a backslash (in contrast to GetParatextProjectsDirPath).
+	// Within the BE_ProjectsDirPath folder, the Bibledit projects are represented by
+	// individual folders. Hence, we can get an inventory of Bibledit project names
+	// by collecting the names of all subdirectories in this BE_ProjectsDirPath.
 	
-	return tempArray;
+	wxDir finder;
+	bool bOK = (::wxSetWorkingDirectory(BE_ProjectsDirPath) && 
+								finder.Open(BE_ProjectsDirPath)); 
+								// wxDir must call .Open() before enumerating files!
+	if (!bOK)
+	{
+		// TODO: error
+	}
+	
+	wxString str;
+	bool bWorking = finder.GetFirst(&str,_T(""),wxDIR_DIRS);
+	while (bWorking)
+	{
+	
+		bWorking = finder.GetNext(&str);
+		tempListOfBEProjects.Add(str);
+	}
+		
+		
+		// Now get information from the configuration.1.xml file(s) in each project folder
+		// to use in filling out the Collab_Project_Info_Struct structs stored on the heap.
+		int nTotNumProjects = (int)tempListOfBEProjects.GetCount();
+
+		if (nTotNumProjects > 0)
+		{
+			// Open the configuration.1.xml file in each project folder and glean the 
+			// necessary information populating the Collab_Project_Info_Struct fields
+			// for the given project.
+			int projCt;
+			for (projCt = 0; projCt < nTotNumProjects; projCt++)
+			{
+				wxString projConfigFilePath;
+				wxString projName = tempListOfBEProjects.Item(projCt);
+				wxString projPath = BE_ProjectsDirPath + PathSeparator + projName;
+				projConfigFilePath = projPath + PathSeparator + _T("configuration.1.xml");
+				wxTextFile f;
+				bool bFileExists = wxFileExists(projConfigFilePath);
+				if (bFileExists)
+				{
+					bool bOpenedOK;
+					bOpenedOK = f.Open(projConfigFilePath);
+					if (bOpenedOK)
+					{
+						// The ssf file is now in memory and accessible line-by-line using wxTextFile
+						// methods.
+						
+						Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
+						pPTInfo->booksPresentFlags = _T(""); // computed for BE
+						pPTInfo->ethnologueCode = _T(""); // not used by BE
+						pPTInfo->fullName = _T(""); // same as project folder name in BE
+						pPTInfo->languageName = _T(""); // not well-defined in BE - we use project folder name
+						pPTInfo->projectDir = _T(""); // ~/.bibledit/projects/<projName>
+						pPTInfo->shortName = _T(""); // not used by BE
+						pPTInfo->versification = _T(""); // differs from PT classification but we don't really use it
+						pPTInfo->chapterMarker = _T("c"); // default is c; BE doesn't define it
+						pPTInfo->verseMarker = _T("v"); // default is v; BE doesn't define it
+						pPTInfo->defaultFont = _T("Sans"); // default is Sans; BE combines name and size together
+						pPTInfo->defaultFontSize = _T("10"); // default is 10
+						pPTInfo->leftToRight = _T("1"); // default is 1 (BE uses right-to-left logic)
+						pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
+						pPTInfo->bProjectIsNotResource = TRUE;
+						pPTInfo->bProjectIsEditable = TRUE;
+
+						// Initialize some variables for fields we are interested in.
+						wxString booksPresentFlags = _T(""); // computed for BE
+						wxString ethnologueCode = _T(""); // not used by BE
+						wxString fullName = _T(""); // same as project folder name in BE
+						wxString languageName = _T(""); // not well-defined in BE - we use project folder name
+						wxString projectDir = _T(""); // ~/.bibledit/projects/<projName>
+						wxString shortName = _T(""); // not used by BE
+						wxString versification = _T(""); // differs from PT classification but we don't really use it
+						wxString chapterMarker = _T("c"); // default is c; BE doesn't define it
+						wxString verseMarker = _T("v"); // default is v; BE doesn't define it
+						wxString defaultFont = _T("Sans"); // use Sans for Linux; BE combines name and size together
+						wxString defaultFontSize = _T("10"); // default is 10
+						wxString leftToRight = _T("1"); // Bibledit uses "0" or "1" rather than "F" or "T"
+						wxString encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
+						bool bProjectIsNotResource = TRUE;
+						bool bProjectIsEditable = TRUE;
+
+						wxString lineStr;
+						
+						// The Bibledit configuration files do not have an xml field that
+						// is parallel to the Paratext xml tag <BooksPresent>...</BooksPresent>.
+						// Instead, we must scan the BE project's "data" directory and collect
+						// the folder names within that directory. There will be a folder for
+						// each Bible book name the project has data for.
+						booksPresentFlags = GetBibleditBooksPresentFlagsStr(projPath);
+						// The full name in Paratext is equivalent of the projName in Bibledit
+						// i.e., the name of the folder we are currentlyscanning.
+						fullName = projName;
+						// whm Note: Bibledit's configuration1.1.xml file has a <language>...</language> tag
+						// but it doesn't currently represent the actual name of the language of a project,
+						// because Bibledit's drop down list for Language in its project dialog only allows
+						// for selecting a small number (about 16) languages. Hence, for Bibledit we
+						// have to assume that the languageName is the same as the projName
+						languageName = projName; 
+						// I don't thing the projectDir is used anywhere, but we will set it to point to
+						// the top-level folder of the Bibledit project (note project texts are located
+						// deeper down within subfolders of this path).
+						projectDir = projPath;
+
+						// scan through all lines of file setting field values as we go
+						for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
+						{
+							//wxLogDebug(_T("%s"),lineStr.c_str());
+							// collect data fields for filling in PTProject structs.
+							lineStr.Trim(FALSE);
+							lineStr.Trim(TRUE);
+							wxString tagName;
+							wxString endTagName;
+
+							//tagName = _T("<BooksPresent>");
+							//endTagName = _T("</BooksPresent>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+							//	pPTInfo->booksPresentFlags = booksPresentFlags;
+							//}
+
+							//tagName = _T("<EthnologueCode>");
+							//endTagName = _T("</EthnologueCode>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	ethnologueCode = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							//	pPTInfo->ethnologueCode = ethnologueCode;
+							//}
+
+							//tagName = _T("<FullName>");
+							//endTagName = _T("</FullName>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+							//	pPTInfo->fullName = fullName;
+							//}
+
+							//tagName = _T("<Language>");
+							//endTagName = _T("</Language>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+							//	pPTInfo->languageName = languageName;
+							//}
+
+							//tagName = _T("<Directory>");
+							//endTagName = _T("</Directory>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+							//	pPTInfo->projectDir = projectDir;
+							//}
+
+							//tagName = _T("<Name>");
+							//endTagName = _T("</Name>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+							//	pPTInfo->shortName = shortName;
+							//}
+
+							// whm Note: PT used a <Versification> tag, Bibledit uses a <versification> tag
+							// [different capitalization in the tag], and nests the actual value within a 
+							// deeper <value>...</value> tag.
+							tagName = _T("<versification>");
+							endTagName = _T("</versification>");
+							if (lineStr.Find(tagName) != wxNOT_FOUND)
+							{
+								versification = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+								pPTInfo->versification = versification;
+							}
+
+							//tagName = _T("<ChapterMarker>");
+							//endTagName = _T("</ChapterMarker>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	chapterMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							//	pPTInfo->chapterMarker = chapterMarker;
+							//}
+
+							//tagName = _T("<VerseMarker>");
+							//endTagName = _T("</VerseMarker>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	verseMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							//	pPTInfo->verseMarker = verseMarker;
+							//}
+
+							tagName = _T("<editor-font-name>");
+							endTagName = _T("</editor-font-name>");
+							if (lineStr.Find(tagName) != wxNOT_FOUND)
+							{
+								wxString tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+								// whm Note: Bibledit's font name and size are combined in the same text 
+								// string as for example "Sans 14", therefore we will get both defaultFont
+								// and defaultFontSize here.
+								wxString fontName;
+								wxString fontSize;
+								int posSp = tempStr.Find(_T(' '),TRUE); // TRUE - Find from right end
+								if (posSp != wxNOT_FOUND) 
+								{
+									fontSize = tempStr.Mid(posSp);
+									fontSize.Trim(TRUE);
+									fontSize.Trim(FALSE);
+									fontName = tempStr.Mid(0,posSp);
+									fontName.Trim(TRUE);
+									fontName.Trim(FALSE);
+								}
+								
+								defaultFont = fontName;
+								pPTInfo->defaultFont  = fontName;
+								defaultFontSize = fontSize;
+								pPTInfo->defaultFontSize = fontSize;
+							}
+
+							//tagName = _T("<DefaultFontSize>");
+							//endTagName = _T("</DefaultFontSize>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	defaultFontSize = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							//	pPTInfo->defaultFontSize = defaultFontSize;
+							//}
+
+							// PT uses <LeftToRight> with values of T or F, but BE uses <right-to-left> with
+							// values of 0 or 1
+							tagName = _T("<right-to-left>");
+							endTagName = _T("</right-to-left>");
+							if (lineStr.Find(tagName) != wxNOT_FOUND)
+							{
+								wxString tempStr;
+								tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName); // will be 0 or 1
+								// reverse the value for the structs' "leftToRight" value
+								if (tempStr == _T("0"))
+									leftToRight = _T("T");
+								else if (tempStr == _T("1"))
+									leftToRight = _T("F");
+								pPTInfo->leftToRight = leftToRight;
+							}
+
+							//tagName = _T("<Encoding>");
+							//endTagName = _T("</Encoding>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	encoding = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							//	pPTInfo->encoding = encoding;
+							//}
+
+							// whm Note: Bibledit'd resources are kept in a separate "resources" folder
+							// which is a sibling of "projects" within the .bibledit top level folder
+							//tagName = _T("<ResourceText>");
+							//endTagName = _T("</ResourceText>");
+							//if (lineStr.Find(tagName) != wxNOT_FOUND)
+							//{
+							//	wxString temp;
+							//	temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							//	// Note: non-Resource projects often don't have the "<ResourceText>"
+							//	// tag at all, therefore we set bProjectIsNotResource to TRUE as its
+							//	// default, unless <ResourceText>T</ResourceText> is present.
+							//	if (temp == _T("T"))
+							//	{
+							//		bProjectIsNotResource = FALSE;
+							//		pPTInfo->bProjectIsNotResource = FALSE;
+							//	}
+							//}
+
+							// whm Note: PT uses <Editable> and </Editable> tags with 'T' and 'F' values
+							// whereas BE uses <editable> and </editable> tags with a further nested
+							// <value> and </value> tags containing '0' and '1' values
+							tagName = _T("<editable>");
+							endTagName = _T("</editable>");
+							if (lineStr.Find(tagName) != wxNOT_FOUND)
+							{
+								wxString temp;
+								temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+								if (temp == _T("1"))
+								{
+									bProjectIsEditable = TRUE;
+								}
+								else if (temp == _T("0"))
+								{
+									bProjectIsEditable = FALSE;
+								}
+								pPTInfo->bProjectIsEditable = bProjectIsEditable;
+							}
+
+						}
+						wxString storageStr;
+						// We do not allow collaboration with resource projects or
+						// projects that have no short name, since the short name is
+						// the basic PT name for the project (and the folder it is
+						// contained in).
+						if (bProjectIsNotResource && !shortName.IsEmpty())
+						{
+							storageStr = shortName;
+							if (!fullName.IsEmpty())
+							{
+								storageStr += _T(" : ") + fullName;
+							}
+							if (!languageName.IsEmpty())
+							{
+								storageStr += _T(" : ") + languageName;
+							}
+							if (!ethnologueCode.IsEmpty())
+							{
+								storageStr += _T(" : ") + ethnologueCode;
+							}
+							tempListOfBEProjects.Add(storageStr);
+							m_pArrayOfCollabProjects->Add(pPTInfo);
+						}
+						else
+						{
+							delete pPTInfo; // it's not a valid PT project we can use
+						}
+						f.Close();
+					}
+				}
+			}
+	}
+
+	return tempListOfBEProjects;
+}
+
+wxString CAdapt_ItApp::GetBibleditBooksPresentFlagsStr(wxString projPath)
+{
+	// We collect directory names within Bibledit's data folder within the
+	// incoming parameter's projPath. Hence, we want to look in the following
+	// Linux path:
+	// ~/.bibledit/projects/data/
+	wxString pathToScan = projPath + PathSeparator + _T("data");
+	wxString dirNameStr;
+	// Note: the AllBookNames[] array has 123 elements
+	wxString nameFlagsStr = _T("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+	wxArrayString bookNames;
+	wxDir finder;
+	if (finder.Open(pathToScan))
+	{
+		bool bWorking = finder.GetFirst(&dirNameStr,_T(""),wxDIR_DIRS);
+		while (bWorking)
+		{
+			bookNames.Add(dirNameStr);
+			int nIndxOfBook;
+			nIndxOfBook = GetBookFlagIndexFromFullBookName(dirNameStr);
+			wxASSERT(nIndxOfBook != wxNOT_FOUND);
+			nameFlagsStr.SetChar(nIndxOfBook,_T('1'));
+			bWorking = finder.GetNext(&dirNameStr);
+		}
+	}
+	return nameFlagsStr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a pointer to a PT_Project_Info_Struct struct on the heap
-/// \param      projShortName -> the PT project's short name which is unique
+/// \return		a pointer to a Collab_Project_Info_Struct struct on the heap
+/// \param      projShortName -> the PT/BE project's short name which is unique
 ///                             and is used for the PT project's ssf file 
-///                             as well as the project folder where PT stores
+///                             and/or the PT or BE project folder where PT/BE stores
 ///                             the project's documents
 /// \remarks
 /// Called from: various places in the CGetSourceTextFromEditorDlg's
 /// class methods. 
-/// Examines the App's m_pArrayOfPTProjects and finds the item that points
-/// to the struct containing the given PT project which is uniquely identified 
+/// Examines the App's m_pArrayOfCollabProjects and finds the item that points
+/// to the struct containing the given PT/BE project which is uniquely identified 
 /// by projShortName.
 ///////////////////////////////////////////////////////////////////////////////
-PT_Project_Info_Struct* CAdapt_ItApp::GetPT_Project_Struct(wxString projShortName)
+Collab_Project_Info_Struct* CAdapt_ItApp::GetCollab_Project_Struct(wxString projShortName)
 {
-	PT_Project_Info_Struct* pPT_Proj;
+	Collab_Project_Info_Struct* pCollab_Proj;
 	int ct, tot;
-	tot = (int)m_pArrayOfPTProjects->GetCount();
+	tot = (int)m_pArrayOfCollabProjects->GetCount();
 	for (ct = 0; ct < tot; ct++)
 	{
-		pPT_Proj = (PT_Project_Info_Struct*)m_pArrayOfPTProjects->Item(ct);
-		if (pPT_Proj->shortName == projShortName)
+		pCollab_Proj = (Collab_Project_Info_Struct*)m_pArrayOfCollabProjects->Item(ct);
+		if (pCollab_Proj->shortName == projShortName)
 		{
 			// we found it so return the pointer to it
-			return pPT_Proj;
+			return pCollab_Proj;
 		}
 	}
 	// if we get here we did not find the project so return NULL
@@ -37602,31 +37972,59 @@ PT_Project_Info_Struct* CAdapt_ItApp::GetPT_Project_Struct(wxString projShortNam
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the string value between beginTag and
 ///             an endTag of within an xml-formatted line of text (lineStr).
-/// \param      lineStr -> the string containing the beginTag and endTag
-/// \param      beginTag -> the xml tag after which we copy the text
-/// \param      endTag -> the xml tag before which we end copying text
+/// \param      lineStr -> the string containing the beginTag and possible endTag
+/// \param      beginTag -> the xml tag after which we copy non-tag the text
+/// \param      endTag -> the xml tag before which we stop copying non-tag text
 /// \remarks
-/// Called from: GetListOfPTProjects().
+/// Called from: GetListOfPTProjects() and GetListOfBEProjects().
 /// A convenience function to extract the PCDATA text between an xml begin tag 
 /// and its end tag, i.e., <tag> text </tag>. The caller has determined that 
-/// beginTag is located within the lineStr. Assumes that the endTag is also on
-/// the same line. This function is used in parsing the xml Paratext ssf project 
-/// description files in which begin and end tags are located on a single line
-/// in the file. The ssf file resides in memory as a wxTextFile.
+/// beginTag is located within the lineStr. The endTag can also be on the same 
+/// line (as in PT) or on a subsequent line (as in BE where the text string to
+/// be copied is within a deeper nested <value>... </value> set of tags. 
+/// This function is used in parsing the xml Paratext ssf project description 
+/// files and/or Bibledit configuration.1.xml files. The file being read resides 
+/// in memory as a wxTextFile.
 ///////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag)
+wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, wxString beginTag, wxString endTag)
 {
 	wxString tempStr;
 	tempStr.Empty();
 	int nTagPos;
+	lineStr.Trim(TRUE);
+	lineStr.Trim(FALSE);
 	nTagPos = lineStr.Find(beginTag);
 	if (nTagPos == 0)
 	{
-		// the <FullName> tag begins the line
+		// the tag begins the line
 		int nEndTagPos;
 		nEndTagPos = lineStr.Find(endTag);
-		wxASSERT(nEndTagPos != wxNOT_FOUND && nEndTagPos > nTagPos); // it should have an end tag
-		tempStr = lineStr.Mid(beginTag.Length(),nEndTagPos - beginTag.Length());
+		if (nEndTagPos == wxNOT_FOUND)
+		{
+			// we are dealing with a Bibledit configuration.1.xml file which is structured like this:
+			// <tag> <=== we are currently pointing at this line
+			//  <value>PCDATA</value>  <=== we want the PCDATA value between <value> and </value> on next line
+			// <endtag>
+			// Hence, we will use the wxTextFile::GetLine() function to 
+			int nCurLine = f->GetCurrentLine();
+			wxString valueLine;
+			valueLine = f->GetLine(nCurLine + 1); // doesn't change wxTextFile's internal pointer
+			valueLine.Trim(TRUE);
+			valueLine.Trim(FALSE);
+			wxString valueBeginTag = _T("<value>");
+			wxString valueEndTag = _T("</value>");
+			int posValueBeginTag = valueLine.Find(valueBeginTag);
+			int posValueEndTag = valueLine.Find(valueEndTag);
+			wxASSERT(posValueBeginTag != wxNOT_FOUND && posValueEndTag != wxNOT_FOUND && posValueEndTag > posValueBeginTag);
+			tempStr = valueLine.Mid(valueBeginTag.Length(), posValueEndTag - valueBeginTag.Length());
+		}
+		else
+		{
+			// This is the Paratext case which is structured like this:
+			// <tag>PCDATA</endtag>
+			// and doesn't have a nested <value>...</value> set of tags
+			tempStr = lineStr.Mid(beginTag.Length(),nEndTagPos - beginTag.Length());
+		}
 	}
 	return tempStr;
 }
@@ -37661,6 +38059,18 @@ wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 		}
 	}
 	return bookCode;
+}
+
+int CAdapt_ItApp::GetBookFlagIndexFromFullBookName(wxString fullBookName)
+{
+	int ct;
+	// Note: the AllBookNames[] array as used in Paratext has 123 elements
+	for (ct = 0; ct < 123; ct++)
+	{
+		if (fullBookName == AllBookNames[ct])
+			return ct;
+	}
+	return wxNOT_FOUND; // -1
 }
 
 ///////////////////////////////////////////////////////////////////////////////

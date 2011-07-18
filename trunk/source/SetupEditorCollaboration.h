@@ -33,6 +33,7 @@ public:
 	// If user clicks Cancel, these values are ignored and not copied to the
 	// corresponding settings on the App.
 	bool m_bTempCollaboratingWithParatext;
+	bool m_bTempCollaboratingWithBibledit;
 	bool m_projectSelectionMade;
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;

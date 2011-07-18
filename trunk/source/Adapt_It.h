@@ -1040,7 +1040,7 @@ struct UserProfileItem
 	wxArrayString usedFactoryValues;
 };
 
-struct PT_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration support
+struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration support
 {
 	// Note: Paratext .ssf files also have some tag fields that provide file naming
 	// structure, i.e., <FileNameForm>, <FileNamePostPart>, <FileNamePrePart>. Since
@@ -2674,8 +2674,9 @@ public:
 	wxString m_BibleditInstallDirPath;
 	wxString m_ParatextProjectsDirPath;
 	wxString m_BibleditProjectsDirPath;
-	wxArrayPtrVoid*	m_pArrayOfPTProjects;
+	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
+	wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
@@ -3042,9 +3043,11 @@ public:
 	// whm added 15Apr11 for AI-PT Collaboration
 	wxArrayString GetListOfPTProjects();
 	wxArrayString GetListOfBEProjects();
-	PT_Project_Info_Struct* GetPT_Project_Struct(wxString projShortName);
-	wxString GetStringBetweenXMLTags(wxString lineStr, wxString beginTag, wxString endTag);
+	wxString GetBibleditBooksPresentFlagsStr(wxString projPath);
+	Collab_Project_Info_Struct* GetCollab_Project_Struct(wxString projShortName);
+	wxString GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
+	int GetBookFlagIndexFromFullBookName(wxString fullBookName);
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);

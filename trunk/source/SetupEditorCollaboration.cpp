@@ -140,6 +140,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	
 	// initialize our dialog temp variables from those held on the App
 	m_bTempCollaboratingWithParatext = m_pApp->m_bCollaboratingWithParatext;
+	m_bTempCollaboratingWithBibledit = m_pApp->m_bCollaboratingWithBibledit;
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
@@ -147,7 +148,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 	m_projectSelectionMade = FALSE;
 
-	// adjust static strings substituting "Paratext" of "Bibledit" depending on
+	// adjust static strings substituting "Paratext" or "Bibledit" depending on
 	// the string value in m_collaborationEditor
 	// Substitute strings in the top edit box
 	wxString text = pStaticTextCtrlTopNote->GetValue(); // text has four %s sequences
@@ -165,7 +166,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = text.Format(text, m_pApp->m_collaborationEditor.c_str()); 
 	pStaticTextCtrlImportantBottomNote->ChangeValue(text);
 
-	if (m_bTempCollaboratingWithParatext)
+	if (m_bTempCollaboratingWithParatext || m_bTempCollaboratingWithBibledit)
 		pRadioBoxCollabOnOrOff->SetSelection(0);
 	else
 		pRadioBoxCollabOnOrOff->SetSelection(1);
@@ -178,22 +179,40 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pRadioBoxCollabOnOrOff->SetString(1,text);
 
-	// get list of PT projects
-	m_pApp->m_ListOfPTProjects.Clear();
-	m_pApp->m_ListOfPTProjects = m_pApp->GetListOfPTProjects();
+	int nProjectCount = 0;
+	// get list of PT/BE projects
+	if (m_bTempCollaboratingWithParatext)
+	{
+		m_pApp->m_ListOfPTProjects.Clear();
+		m_pApp->m_ListOfPTProjects = m_pApp->GetListOfPTProjects();
+		nProjectCount = (int)m_pApp->m_ListOfPTProjects.GetCount();
+	}
+	else if (m_bTempCollaboratingWithBibledit)
+	{
+		m_pApp->m_ListOfBEProjects.Clear();
+		m_pApp->m_ListOfBEProjects = m_pApp->GetListOfBEProjects();
+		nProjectCount = (int)m_pApp->m_ListOfBEProjects.GetCount();
+	}
 
 	// Check for at least two usable PT projects in list
-	if (m_pApp->m_ListOfPTProjects.GetCount() < 2)
+	if (nProjectCount < 2)
 	{
 		// error: PT/BE is not set up with enough projects for collaboration
 	}
 	else
 	{
 		int i;
-		for (i = 0; i < (int)m_pApp->m_ListOfPTProjects.GetCount(); i++)
+		for (i = 0; i < nProjectCount; i++)
 		{
 			wxString tempStr;
-			tempStr = m_pApp->m_ListOfPTProjects.Item(i);
+			if (m_bTempCollaboratingWithParatext)
+			{
+				tempStr = m_pApp->m_ListOfPTProjects.Item(i);
+			}
+			else if (m_bTempCollaboratingWithBibledit)
+			{
+				tempStr = m_pApp->m_ListOfBEProjects.Item(i);
+			}
 			pListOfProjects->Append(tempStr);
 		}
 

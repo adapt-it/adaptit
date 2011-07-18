@@ -66,6 +66,7 @@ public:
 	wxArrayString FreeTransChapterUsfmStructureAndExtentArray;
 
 	wxString m_rdwrtp7PathAndFileName;
+	wxString m_bibledit_gtkPathAndFileName;
 	
 	wxString m_collabEditorName;
 
@@ -84,7 +85,7 @@ protected:
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
-	bool PTProjectIsEditable(wxString projShortName);
+	bool CollabProjectIsEditable(wxString projShortName);
 	bool CollabProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, 
 				wxString& aiProjectFolderName, wxString& aiProjectFolderPath);
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
