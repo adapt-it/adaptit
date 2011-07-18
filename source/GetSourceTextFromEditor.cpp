@@ -153,128 +153,145 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
 
-	// determine the path and name to rdwrtp7.exe
-	// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
-	// ensure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
-	// is likely to get released before that happens, and in case some Paratext users haven't
-	// upgraded their PT version 7.x to the distribution that has rdwrtp7.exe installed along-side
-	// Paratext.exe, we check for its existence here and use it if it is located in the PT
-	// installation folder. If not present, we use our own copy in AI's m_appInstallPathOnly 
-	// location (and copy the other dll files if necessary)
-
-	if (::wxFileExists(m_pApp->m_ParatextInstallDirPath + m_pApp->PathSeparator + _T("rdwrtp7.exe")))
+	if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
-		// rdwrtp7.exe exists in the Paratext installation so use it
-		m_rdwrtp7PathAndFileName = m_pApp->m_ParatextInstallDirPath + m_pApp->PathSeparator + _T("rdwrtp7.exe");
+		// determine the path and name to rdwrtp7.exe
+		// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
+		// ensure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
+		// is likely to get released before that happens, and in case some Paratext users haven't
+		// upgraded their PT version 7.x to the distribution that has rdwrtp7.exe installed along-side
+		// Paratext.exe, we check for its existence here and use it if it is located in the PT
+		// installation folder. If not present, we use our own copy in AI's m_appInstallPathOnly 
+		// location (and copy the other dll files if necessary)
+
+		if (::wxFileExists(m_pApp->m_ParatextInstallDirPath + m_pApp->PathSeparator + _T("rdwrtp7.exe")))
+		{
+			// rdwrtp7.exe exists in the Paratext installation so use it
+			m_rdwrtp7PathAndFileName = m_pApp->m_ParatextInstallDirPath + m_pApp->PathSeparator + _T("rdwrtp7.exe");
+		}
+		else
+		{
+			// rdwrtp7.exe does not exist in the Paratext installation, so use our copy in AI's install folder
+			m_rdwrtp7PathAndFileName = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator + _T("rdwrtp7.exe");
+			wxASSERT(::wxFileExists(m_rdwrtp7PathAndFileName));
+			// Note: The rdwrtp7.exe console app has the following dependencies located in the Paratext install 
+			// folder (C:\Program Files\Paratext\):
+			//    a. ParatextShared.dll
+			//    b. ICSharpCode.SharpZipLib.dll
+			//    c. Interop.XceedZipLib.dll
+			//    d. NetLoc.dll
+			//    e. Utilities.dll
+			// I've not been able to get the build of rdwrtp7.exe to reference these by setting
+			// either using: References > Add References... in Solution Explorer or the rdwrtp7
+			// > Properties > Reference Paths to the "c:\Program Files\Paratext\" folder.
+			// Until Nathan can show me how (if possible to do it in the actual build), I will
+			// here check to see if these dependencies exist in the Adapt It install folder in
+			// Program Files, and if not copy them there from the Paratext install folder in
+			// Program Files (if the system will let me do it programmatically).
+			wxString AI_appPath = m_pApp->m_appInstallPathOnly;
+			wxString PT_appPath = m_pApp->m_ParatextInstallDirPath;
+			// Check for any newer versions of the dlls (comparing to previously copied ones) 
+			// and copy the newer ones if older ones were previously copied
+			wxString fileName = _T("ParatextShared.dll");
+			wxString ai_Path;
+			wxString pt_Path;
+			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+			if (!::wxFileExists(ai_Path))
+			{
+				::wxCopyFile(pt_Path,ai_Path);
+			}
+			else
+			{
+				if (FileHasNewerModTime(pt_Path,ai_Path))
+					::wxCopyFile(PT_appPath,ai_Path);
+			}
+			fileName = _T("ICSharpCode.SharpZipLib.dll");
+			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+			if (!::wxFileExists(ai_Path))
+			{
+				::wxCopyFile(pt_Path,ai_Path);
+			}
+			else
+			{
+				if (FileHasNewerModTime(pt_Path,ai_Path))
+					::wxCopyFile(pt_Path,ai_Path);
+			}
+			fileName = _T("Interop.XceedZipLib.dll");
+			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+			if (!::wxFileExists(ai_Path))
+			{
+				::wxCopyFile(pt_Path,ai_Path);
+			}
+			else
+			{
+				if (FileHasNewerModTime(pt_Path,ai_Path))
+					::wxCopyFile(pt_Path,ai_Path);
+			}
+			fileName = _T("NetLoc.dll");
+			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+			if (!::wxFileExists(ai_Path))
+			{
+				::wxCopyFile(pt_Path,ai_Path);
+			}
+			else
+			{
+				if (FileHasNewerModTime(pt_Path,ai_Path))
+					::wxCopyFile(pt_Path,ai_Path);
+			}
+			fileName = _T("Utilities.dll");
+			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
+			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
+			if (!::wxFileExists(ai_Path))
+			{
+				::wxCopyFile(pt_Path,ai_Path);
+			}
+			else
+			{
+				if (FileHasNewerModTime(pt_Path,ai_Path))
+					::wxCopyFile(pt_Path,ai_Path);
+			}
+		}
 	}
 	else
 	{
-		// rdwrtp7.exe does not exist in the Paratext installation, so use our copy in AI's install folder
-		m_rdwrtp7PathAndFileName = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator + _T("rdwrtp7.exe");
-		wxASSERT(::wxFileExists(m_rdwrtp7PathAndFileName));
-		// Note: The rdwrtp7.exe console app has the following dependencies located in the Paratext install 
-		// folder (C:\Program Files\Paratext\):
-		//    a. ParatextShared.dll
-		//    b. ICSharpCode.SharpZipLib.dll
-		//    c. Interop.XceedZipLib.dll
-		//    d. NetLoc.dll
-		//    e. Utilities.dll
-		// I've not been able to get the build of rdwrtp7.exe to reference these by setting
-		// either using: References > Add References... in Solution Explorer or the rdwrtp7
-		// > Properties > Reference Paths to the "c:\Program Files\Paratext\" folder.
-		// Until Nathan can show me how (if possible to do it in the actual build), I will
-		// here check to see if these dependencies exist in the Adapt It install folder in
-		// Program Files, and if not copy them there from the Paratext install folder in
-		// Program Files (if the system will let me do it programmatically).
-		wxString AI_appPath = m_pApp->m_appInstallPathOnly;
-		wxString PT_appPath = m_pApp->m_ParatextInstallDirPath;
-		// Check for any newer versions of the dlls (comparing to previously copied ones) 
-		// and copy the newer ones if older ones were previously copied
-		wxString fileName = _T("ParatextShared.dll");
-		wxString ai_Path;
-		wxString pt_Path;
-		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
+		if (::wxFileExists(m_pApp->m_BibleditInstallDirPath + m_pApp->PathSeparator + _T("bibledit-gtk")))
 		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(PT_appPath,ai_Path);
-		}
-		fileName = _T("ICSharpCode.SharpZipLib.dll");
-		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("Interop.XceedZipLib.dll");
-		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("NetLoc.dll");
-		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("Utilities.dll");
-		ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
+			// bibledit-gtk exists on the machine so use it
+			m_bibledit_gtkPathAndFileName = m_pApp->m_BibleditInstallDirPath + m_pApp->PathSeparator + _T("bibledit-gtk");
 		}
 	}
 
-
-	// Generally when the "Get Source Text from Paratext Project" dialog is called, we 
-	// can be sure that some checks have been done to ensure that Paratext is installed,
-	// that previously selected PT projects are still valid/exist, and that the administrator 
-	// has switched on AI-PT Collaboration, etc.
-	// But, there is a chance that PT projects could be changed while AI is running and
+	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
+	// can be sure that some checks have been done to ensure that Paratext/Bibledit is installed,
+	// that previously selected PT/BE projects are still valid/exist, and that the administrator 
+	// has switched on AI-PT/BE Collaboration, etc.
+	// But, there is a chance that PT/BE projects could be changed while AI is running and
 	// if so, AI would be unaware of such changes.
-	wxASSERT(m_pApp->m_bCollaboratingWithParatext);
+	wxASSERT(m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit);
 	projList.Clear();
-	projList = m_pApp->GetListOfPTProjects();
-	bool bTwoOrMorePTProjectsInList = TRUE;
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		projList = m_pApp->GetListOfPTProjects();
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		projList = m_pApp->GetListOfBEProjects();
+	}
+	bool bTwoOrMoreProjectsInList = TRUE;
 	int nProjCount;
 	nProjCount = (int)projList.GetCount();
 	if (nProjCount < 2)
 	{
-		// Less than two PT projects are defined. For AI-PT collaboration to be possible 
-		// at least two PT projects must be defined - one for source text inputs and 
+		// Less than two PT/BE projects are defined. For AI-PT/BE collaboration to be possible 
+		// at least two PT/BE projects must be defined - one for source text inputs and 
 		// another for target exports.
-		// Notify the user that Adapt It - Paratext collaboration cannot proceed 
-		// until the administrator sets up the necessary projects within Paratext
-		bTwoOrMorePTProjectsInList = FALSE;
+		// Notify the user that Adapt It - Paratext/Bibledit collaboration cannot proceed 
+		// until the administrator sets up the necessary projects within Paratext/Bibledit.
+		bTwoOrMoreProjectsInList = FALSE;
 	}
 
 	// populate the combo boxes with eligible projects
@@ -287,7 +304,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		pComboSourceProjectName->Append(projList.Item(ct));
 		// We must restrict the list of potential destination projects to those
 		// which have the <Editable>T</Editable> attribute
-		if (PTProjectIsEditable(projShortName))
+		if (CollabProjectIsEditable(projShortName))
 		{
 			pComboDestinationProjectName->Append(projList.Item(ct));
 			pComboFreeTransProjectName->Append(projList.Item(ct));
@@ -346,13 +363,22 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 	
-	if (!bTwoOrMorePTProjectsInList)
+	if (!bTwoOrMoreProjectsInList)
 	{
 		// This error is not likely to happen so use English message
 		wxString str;
-		str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
-		wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR);
-		m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed. AI aborting..."));
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
+			wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR);
+			m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed. AI aborting..."));
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.\nAdapt It will now abort...");
+			wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR);
+			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed. AI aborting..."));
+		}
 		abort();
 		return;
 	}
@@ -378,12 +404,12 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	if (!bSourceProjFound || !bTargetProjFound)
 	{
 		wxString str;
-		str = str.Format(_("Select Paratext Project(s) by clicking on the drop-down lists at the top of the next dialog.\nYou need to do the following before you can begin working:%s"),strProjectNotSel.c_str());
+		str = str.Format(_("Select %s Project(s) by clicking on the drop-down lists at the top of the next dialog.\nYou need to do the following before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
 		//wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_ERROR);
 		// BEW 15Jun11, changed wxICON_ERROR to be a warning icon. I feel the wxICON_ERROR should
 		// only be used for an error serious enough to halt the app because it has become
 		// too unstable for it to continue running safely.
-		wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_WARNING);
+		wxMessageBox(str, _("Select projects that Adapt It will use"), wxICON_WARNING);
 		
 	}
 	else
@@ -532,7 +558,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 
 		wxString msg;
-		msg = _("The Paratext projects selected for obtaining source texts, and for transferring translation texts cannot be the same. Use the drop down list boxes to select different projects.");
+		msg = _("The %s projects selected for obtaining source texts, and for transferring translation texts cannot be the same. Use the drop down list boxes to select different projects.");
+		msg = msg.Format(msg,m_collabEditorName.c_str());
 		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
 		// most likely the target drop down list would need to be changed so set focus to it before returning
 		pComboDestinationProjectName->SetFocus();
@@ -544,8 +571,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 
 	// Since the wxExecute() and file read operations take a few seconds, change the "Select a chapter:"
-	// static text above the right list box to read: "Please wait while I query Paratext..."
-	pStaticSelectAChapter->SetLabel(_("Please wait while I query Paratext..."));
+	// static text above the right list box to read: "Please wait while I query Paratext/Bibledit..."
+	wxString waitMsg = _("Please wait while I query %s...");
+	waitMsg = waitMsg.Format(waitMsg,m_collabEditorName.c_str());
+	pStaticSelectAChapter->SetLabel(waitMsg);
 	
 	int nSel;
 	wxString fullBookName;
@@ -679,8 +708,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	
 	// Build the command lines for reading the PT projects using rdwrtp7.exe.
 	wxString commandLineSrc,commandLineTgt;
-	commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-	commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
 	wxLogDebug(commandLineSrc);
 
     // Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
@@ -704,9 +741,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (resultSrc != 0 || resultTgt != 0)
 	{
 		// not likely to happen so an English warning will suffice
-		wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+		if (m_pApp->m_bCollaboratingWithParatext)
+			wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+			wxMessageBox(_T("Could not read data from the Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+
 		wxString temp;
-		temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		if (m_pApp->m_bCollaboratingWithParatext)
+			temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+			temp = temp.Format(_T("BE Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
 		m_pApp->LogUserAction(temp);
 		wxLogDebug(temp);
 		int ct;
@@ -877,8 +921,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (SourceTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
-		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),sourceProjShortName.c_str());
+		}
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
@@ -892,8 +944,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
@@ -912,8 +972,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-		msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
 		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
@@ -1203,11 +1271,26 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// Build the command lines for reading the PT projects using rdwrtp7.exe.
 	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
 	commandLineFreeTrans.Empty();
-	commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-	commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
 	if (m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
-		commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			commandLineFreeTrans = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+		}
 	}
 	wxLogDebug(commandLineSrc);
 
@@ -1235,7 +1318,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// not likely to happen so an English warning will suffice
 		wxMessageBox(_T("Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
 		wxString temp;
-		temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
 		m_pApp->LogUserAction(temp);
 		wxLogDebug(temp);
 		int ct;
@@ -1284,7 +1367,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// not likely to happen so an English warning will suffice
 		wxMessageBox(_T("Could not read free translation data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
 		wxString temp;
-		temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultFreeTrans = %d"),resultFreeTrans);
+		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultFreeTrans = %d"),resultFreeTrans);
 		m_pApp->LogUserAction(temp);
 		wxLogDebug(temp);
 		int ct;
@@ -1665,24 +1748,24 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
 	else
 	{
-		// The Paratext project selected for source text and target texts do not yet exist
+		// The Paratext/Bibledit project selected for source text and target texts do not yet exist
 		// as a previously created AI project in the user's work folder, so we need to 
-		// create the AI project using information contained in the PT_Project_Info_Struct structs
+		// create the AI project using information contained in the Collab_Project_Info_Struct structs
 		// that are populated dynamically in InitDialog() which calls the App's 
-		// GetListOfPTProjects().
+		// GetListOfPTProjects() or GetListOfBEprojects.
 		
-		// Get the PT_Project_Info_Struct structs for the source and target PT projects
-		PT_Project_Info_Struct* pPTInfoSrc;
-		PT_Project_Info_Struct* pPTInfoTgt;
-		pPTInfoSrc = m_pApp->GetPT_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
-																	// pApp->m_pArrayOfPTProjects
-		pPTInfoTgt = m_pApp->GetPT_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
-																	// pApp->m_pArrayOfPTProjects
+		// Get the Collab_Project_Info_Struct structs for the source and target PT projects
+		Collab_Project_Info_Struct* pPTInfoSrc;
+		Collab_Project_Info_Struct* pPTInfoTgt;
+		pPTInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
+																	// pApp->m_pArrayOfCollabProjects
+		pPTInfoTgt = m_pApp->GetCollab_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
+																	// pApp->m_pArrayOfCollabProjects
 		wxASSERT(pPTInfoSrc != NULL);
 		wxASSERT(pPTInfoTgt != NULL);
 
 		// Notes: The pPTInfoSrc and pPTInfoTgt structs above contain the following struct members:
-		//bool bProjectIsNotResource; // AI only includes in m_pArrayOfPTProjects the PT projects where this is TRUE
+		//bool bProjectIsNotResource; // AI only includes in m_pArrayOfCollabProjects the PT projects where this is TRUE
 		//bool bProjectIsEditable; // AI only allows user to see and select a PT TARGET project where this is TRUE
 		//wxString versification; // AI assumes same versification of Target as used in Source
 		//wxString fullName; // This is 2nd field seen in "Get Source Texts from this project:" drop down
@@ -1809,15 +1892,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
-bool CGetSourceTextFromEditorDlg::PTProjectIsEditable(wxString projShortName)
+bool CGetSourceTextFromEditorDlg::CollabProjectIsEditable(wxString projShortName)
 {
 	// check whether the projListItem has the <Editable>T</Editable> attribute which
 	// we can just query our pPTInfo->bProjectIsEditable attribute for the project 
 	// to see if it is TRUE or FALSE.
-	PT_Project_Info_Struct* pPTInfo;
-	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
-															// pApp->m_pArrayOfPTProjects
-	if (pPTInfo != NULL && pPTInfo->bProjectIsEditable)
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	if (pCollabInfo != NULL && pCollabInfo->bProjectIsEditable)
 		return TRUE;
 	else
 		return FALSE;
@@ -1947,17 +2030,17 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortP
 	aiProjectFolderName.Empty();
 	aiProjectFolderPath.Empty();
 
-	PT_Project_Info_Struct* pPTInfoSrc;
-	PT_Project_Info_Struct* pPTInfoTgt;
-	pPTInfoSrc = m_pApp->GetPT_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
-																// pApp->m_pArrayOfPTProjects
-	pPTInfoTgt = m_pApp->GetPT_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
-																// pApp->m_pArrayOfPTProjects
-	wxASSERT(pPTInfoSrc != NULL);
-	wxASSERT(pPTInfoTgt != NULL);
-	wxString srcLangStr = pPTInfoSrc->languageName;
+	Collab_Project_Info_Struct* pCollabInfoSrc;
+	Collab_Project_Info_Struct* pCollabInfoTgt;
+	pCollabInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
+																// pApp->m_pArrayOfCollabProjects
+	pCollabInfoTgt = m_pApp->GetCollab_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
+																// pApp->m_pArrayOfCollabProjects
+	wxASSERT(pCollabInfoSrc != NULL);
+	wxASSERT(pCollabInfoTgt != NULL);
+	wxString srcLangStr = pCollabInfoSrc->languageName;
 	wxASSERT(!srcLangStr.IsEmpty());
-	wxString tgtLangStr = pPTInfoTgt->languageName;
+	wxString tgtLangStr = pCollabInfoTgt->languageName;
 	wxASSERT(!tgtLangStr.IsEmpty());
 	wxString projectFolderName = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
 	
@@ -2004,12 +2087,12 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortP
 	// have the same pair of ethnologue codes) then don't guess, instead return FALSE so
 	// that a new independent Adapt It project will get created instead
 	EthnologueCodePair* pMatchedCodePair = NULL;
-	wxString srcLangCode = pPTInfoSrc->ethnologueCode;
+	wxString srcLangCode = pCollabInfoSrc->ethnologueCode;
 	if (srcLangCode.IsEmpty())
 	{
 		return FALSE; 
 	}
-	wxString tgtLangCode = pPTInfoTgt->ethnologueCode;
+	wxString tgtLangCode = pCollabInfoTgt->ethnologueCode;
 	if (tgtLangCode.IsEmpty())
 	{
 		return FALSE; 
@@ -2070,21 +2153,21 @@ bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxSt
 
 wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBProjItem)
 {
-	wxString ptProjShortName;
-	ptProjShortName.Empty();
+	wxString collabProjShortName;
+	collabProjShortName.Empty();
 	int posColon;
 	posColon = LBProjItem.Find(_T(':'));
-	ptProjShortName = LBProjItem.Mid(0,posColon);
-	ptProjShortName.Trim(FALSE);
-	ptProjShortName.Trim(TRUE);
-	return ptProjShortName;
+	collabProjShortName = LBProjItem.Mid(0,posColon);
+	collabProjShortName.Trim(FALSE);
+	collabProjShortName.Trim(TRUE);
+	return collabProjShortName;
 }
 
 void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, wxArrayString& chapterList, wxArrayString& statusList)
 {
 	// Called from OnLBBookSelected().
 	// Retrieves a wxArrayString of chapters (and their status) from the target 
-	// PT project's TargetTextUsfmStructureAndExtentArray. 
+	// PT/BE project's TargetTextUsfmStructureAndExtentArray. 
 	wxArrayString chapterArray;
 	wxArrayString statusArray;
 	chapterArray.Clear();
@@ -2096,16 +2179,16 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 	bool bChFound = FALSE;
 	bool bVsFound = FALSE;
 	wxString projShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
-	PT_Project_Info_Struct* pPTInfo;
-	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
-															// pApp->m_pArrayOfPTProjects
-	wxASSERT(pPTInfo != NULL);
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	wxASSERT(pCollabInfo != NULL);
 	wxString chMkr;
 	wxString vsMkr;
-	if (pPTInfo != NULL)
+	if (pCollabInfo != NULL)
 	{
-		chMkr = _T("\\") + pPTInfo->chapterMarker;
-		vsMkr = _T("\\") + pPTInfo->verseMarker;
+		chMkr = _T("\\") + pCollabInfo->chapterMarker;
+		vsMkr = _T("\\") + pCollabInfo->verseMarker;
 	}
 	else
 	{
@@ -2214,19 +2297,19 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 	pStaticTextCtrlNote->ChangeValue(_T(""));
 
-	wxString ptProjShortName;
-	ptProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
+	wxString collabProjShortName;
+	collabProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
 	int ct, tot;
-	tot = (int)m_pApp->m_pArrayOfPTProjects->GetCount();
+	tot = (int)m_pApp->m_pArrayOfCollabProjects->GetCount();
 	wxString tempStr;
-	PT_Project_Info_Struct* pArrayItem;
-	pArrayItem = (PT_Project_Info_Struct*)NULL;
+	Collab_Project_Info_Struct* pArrayItem;
+	pArrayItem = (Collab_Project_Info_Struct*)NULL;
 	bool bFound = FALSE;
 	for (ct = 0; ct < tot; ct++)
 	{
-		pArrayItem = (PT_Project_Info_Struct*)(*m_pApp->m_pArrayOfPTProjects)[ct];
+		pArrayItem = (Collab_Project_Info_Struct*)(*m_pApp->m_pArrayOfCollabProjects)[ct];
 		tempStr = pArrayItem->shortName;
-		if (tempStr == ptProjShortName)
+		if (tempStr == collabProjShortName)
 		{
 			bFound = TRUE;
 			break;
@@ -2244,8 +2327,16 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 	if (booksPresentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		msg1 = msg1.Format(_("The Paratext project (%s) selected for obtaining source texts contains no books."),m_TempCollabProjectForSourceInputs.c_str());
-		msg2 = _("Please select the Paratext Project that contains the source texts you will use for adaptation work.");
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The Paratext project (%s) selected for obtaining source texts contains no books."),m_TempCollabProjectForSourceInputs.c_str());
+			msg2 = _("Please select the Paratext Project that contains the source texts you will use for adaptation work.");
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The Bibledit project (%s) selected for obtaining source texts contains no books."),m_TempCollabProjectForSourceInputs.c_str());
+			msg2 = _("Please select the Bibledit Project that contains the source texts you will use for adaptation work.");
+		}
 		msg1 = msg1 + _T(' ') + msg2;
 		wxMessageBox(msg1,_T("No books found"),wxICON_WARNING);
 		// clear lists and static text box at bottom of dialog
@@ -2313,16 +2404,16 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 	wxString emptyVersesStr;
 	emptyVersesStr.Empty();
 	wxString projShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
-	PT_Project_Info_Struct* pPTInfo;
-	pPTInfo = m_pApp->GetPT_Project_Struct(projShortName);  // gets pointer to the struct from the 
-															// pApp->m_pArrayOfPTProjects
-	wxASSERT(pPTInfo != NULL);
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	wxASSERT(pCollabInfo != NULL);
 	wxString chMkr;
 	wxString vsMkr;
-	if (pPTInfo != NULL)
+	if (pCollabInfo != NULL)
 	{
-		chMkr = _T("\\") + pPTInfo->chapterMarker;
-		vsMkr = _T("\\") + pPTInfo->verseMarker;
+		chMkr = _T("\\") + pCollabInfo->chapterMarker;
+		vsMkr = _T("\\") + pCollabInfo->verseMarker;
 	}
 	else
 	{
