@@ -401,6 +401,7 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 				wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
 				bool bAddBOM = FALSE);
 wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
+wxString GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
 bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
 					   bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);

@@ -4172,7 +4172,7 @@ void DoExportInterlinearRTF()
 			wxChar* pBuffStart = (wxChar*)pBuffer;		// save start address of Buffer
 			//wxChar* ptr = pBuffStart;	//unused		// point to start of text
 			wxChar* pEnd = pBuffStart + nTheLen;// bound past which we must not go
-			wxASSERT(*pEnd == (wxChar)0); // insure there is a null at end of Buffer
+			wxASSERT(*pEnd == (wxChar)0); // ensure there is a null at end of Buffer
 			// Setup copy-to buffer textStr2. It needs to be twice the size of input buffer since
 			// we will be adding a backslash for every control char we find
 			wxString textStr2;
@@ -4718,7 +4718,7 @@ void DoExportInterlinearRTF()
 		// The pSrcPhrase member m_inform may contain an embedded backslash in cases where
 		// the input text parsing routine did not recognize a marker. In such cases the NavStr
 		// at this point may contain something like "?\vref?" where the \vref marker was not
-		// recognized. We need to insure that the backslash is escaped in these cases.
+		// recognized. We need to ensure that the backslash is escaped in these cases.
 		NavStr = EscapeAnyEmbeddedRTFControlChars(NavStr);
 		
 		if (bHasNoteMarker)
@@ -4742,7 +4742,7 @@ void DoExportInterlinearRTF()
 			
 			// The assocNoteMarkerText string may also contain embedded backslash or curly brace
 			// characters inserted within AI Notes or embedded within back or free translation etc.
-			// We need to insure that the backslash is escaped in these cases also.
+			// We need to ensure that the backslash is escaped in these cases also.
 			assocNoteMarkerText = EscapeAnyEmbeddedRTFControlChars(assocNoteMarkerText);
 
 			assocNoteMarkerText = _T(' ') + assocNoteMarkerText + _T(' ');
@@ -4861,7 +4861,7 @@ void DoExportInterlinearRTF()
 			
 			// The assocFreeMarkerText string may also contain embedded backslash or curly brace
 			// characters inserted within AI Notes or embedded within back or free translation etc.
-			// We need to insure that the backslash is escaped in these cases also.
+			// We need to ensure that the backslash is escaped in these cases also.
 			assocFreeMarkerText = EscapeAnyEmbeddedRTFControlChars(assocFreeMarkerText);
 
 			assocFreeMarkerText = _T(' ') + assocFreeMarkerText + _T(' ');
@@ -4920,7 +4920,7 @@ void DoExportInterlinearRTF()
 			
 			// The assocBTMarkerText string may also contain embedded backslash or curly brace
 			// characters inserted within AI Notes or embedded within back or free translation etc.
-			// We need to insure that the backslash is escaped in these cases also.
+			// We need to ensure that the backslash is escaped in these cases also.
 			assocBTMarkerText = EscapeAnyEmbeddedRTFControlChars(assocBTMarkerText);
 
 			assocBTMarkerText = _T(' ') + assocBTMarkerText + _T(' ');
@@ -5093,7 +5093,7 @@ a:
 					if (cellCount == 0)
 					{
 						// There are no cells in cellxNListFree, so just add one to
-						// insure the Free Trans row ends at same width as the other rows above.
+						// ensure the Free Trans row ends at same width as the other rows above.
 						cellxNListFree.Add(CellxNum); //cellxNListFree.AddTail(CellxNum);
 						// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 						// the Append call below; wxList::DeleteContents(true) then deletes the list's client
@@ -5139,7 +5139,7 @@ a:
 					if (cellCount == 0)
 					{
 						// There are no cells in cellxNListBT, so just add one to
-						// insure the Back Trans row ends at same width as the other rows above.
+						// ensure the Back Trans row ends at same width as the other rows above.
 						cellxNListBT.Add(CellxNum);
 						// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 						// the Append call below; wxList::DeleteContents(true) then deletes the list's client
@@ -6255,7 +6255,7 @@ b:						// b: is exit point to write the last columns of data
 	progDlg.Destroy();
 
 	// we must call DeleteContents(TRUE) on the lists in order to free the wxString data
-	// put on the heap. It should be done here at the end of DoExportInterlinearRTF to insure
+	// put on the heap. It should be done here at the end of DoExportInterlinearRTF to ensure
 	// that all memory used by the lists is freed.
 	srcList.DeleteContents(TRUE);			// empty list of source strings
 	srcList.Clear();
@@ -7205,7 +7205,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	wxChar* ptr = (wxChar*)pBuffer;			// point to start of text
 	wxChar* pBufStart = ptr;		// save start address of Buffer
 	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go // corrected with ++nTheLen commented out
-	wxASSERT(*pEnd == _T('\0')); // insure there is a null at end of Buffer
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
 	wxString workbuff;				// a small working buffer in which to build a string - unused
 	int strLen;
 	strLen = ClearBuffer();		// clear the View's working buffer & set length of its string to zero
@@ -8213,7 +8213,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				//    1. Once we've encountered the first \tr marker, scan ahead in the Buffer and
 				//       determine the text extents for all columns of data and determine the best
 				//       assignment of cell widths (extents) to assign to the table columns. During
-				//       this scan we can insure that the table is well formed.
+				//       this scan we can ensure that the table is well formed.
 				//    2. During the scan of the Buffer we also count the number of \tr markers
 				//       existing in the current table, and use that count to know when we are at the
 				//       last row and need to add the \lastrow tag.
@@ -8340,7 +8340,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				//			wxChar cellN[34];
 				//			_itot(nCurrentRowIndex,rowN,10);
 				//			MiscRTF = _T("\\par \\pard\\plain");	// add \par to beginnning of the prefix stuff
-				//													// to insure prev text doesn't end up in 1st
+				//													// to ensure prev text doesn't end up in 1st
 				//													// table cell
 				//			MiscRTF += _T("\\trowd \\irow");
 				//			MiscRTF += rowN;
@@ -9138,7 +9138,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					//	// tables as real Word tables.
 					//	//nLastColIndex = 0;
 
-					//	// Also we should insure other table related flags are correctly set in case a
+					//	// Also we should ensure other table related flags are correctly set in case a
 					//	// subsequent table is encountered
 					//	bAtFirstTableRow = TRUE;
 					//	bAtFirstCellInRow = TRUE;
@@ -9433,7 +9433,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			// backslash of an escaped character, VernacText resolves to an empty string and 
 			// itemLen from subsequent parsing functions is always set to zero resulting in 
 			// ptr not advancing through the remainder of the destination text. We need to: 
-			// (1) parse through any escaped \\, \{, or \} sequences, and (2) insure that, if
+			// (1) parse through any escaped \\, \{, or \} sequences, and (2) ensure that, if
 			// VernacText resolves to an empty string (for any other unanticipated reason), the
 			// current while loop can continue advancing through the destination string.
 			if (VernacText.IsEmpty())
@@ -9636,7 +9636,7 @@ d: // exit point for if ptr == pEnd
 	//	// tables as real Word tables.
 	//	//nLastColIndex = 0;
 
-	//	// Also we should insure other table related flags are correctly set in case a
+	//	// Also we should ensure other table related flags are correctly set in case a
 	//	// subsequent table is encountered
 	//	bAtFirstTableRow = TRUE;
 	//	bAtFirstCellInRow = TRUE;
@@ -10165,7 +10165,7 @@ bool ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString
 	wxChar* fnptr = (wxChar*)pfnBuffer;			// point to start of text
 	wxChar* pfnBuffStart = fnptr;		// save start address of Buffer // this should now be correct
 	wxChar* pfnEnd = pfnBuffStart + fnLen;	// bound past which we must not go
-	wxASSERT(*pfnEnd == _T('\0')); // insure there is a null at end of Buffer
+	wxASSERT(*pfnEnd == _T('\0')); // ensure there is a null at end of Buffer
 	wxString fnWholeMkr;
 	wxString fnBareMkr;
 	wxString fnLastMkr;
@@ -10192,7 +10192,7 @@ bool ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString
 								// footnote processing.
 	bool callerIsVernacular = FALSE;
 	wxString callerStr;
-	int nOpeningBraces = 0; // to insure we have the same number at the end of the parsing
+	int nOpeningBraces = 0; // to ensure we have the same number at the end of the parsing
 	int nClosingBraces = 0; // " " "
 
 	if (gpApp->gCurrentSfmSet != PngOnly)
@@ -11077,7 +11077,7 @@ void AddAnyStylenameColon(wxString& tempStr, USFMAnalysis* pSfm)
 		wxASSERT(FALSE); // Something's wrong with xml attribute !!!
 		return;
 	}
-	// insure there is a space on tempStr before adding styleName
+	// ensure there is a space on tempStr before adding styleName
 	if (tempStr.Length() > 0 && tempStr[tempStr.Length() -1] != _T(' '))
 	{
 		tempStr += _T(' ');
@@ -11487,7 +11487,7 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 	wxChar* pBufStart = (wxChar*)pBuffer;		// save start address of Buffer
 	wxChar* pEnd;
 	pEnd = pBufStart + nTheLen;// bound past which we must not go
-	wxASSERT(*pEnd == _T('\0')); // insure there is a null at end of Buffer
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
 
 	// Setup copy-to buffer textStr2. It needs to be twice the size of input buffer since
 	// we will be adding a backslash for every control char we find
@@ -12327,7 +12327,7 @@ void DetermineRTFDestinationMarkerFlagsFromBuffer(wxString& textStr,
 	wxChar* pBufStart = (wxChar*)pBuffer;		// save start address of Buffer
 	int itemLen = 0;
 	wxChar* pEnd = pBufStart + nTheLen;	// bound past which we must not go
-	wxASSERT(*pEnd == _T('\0')); 		// insure there is a null at end of Buffer
+	wxASSERT(*pEnd == _T('\0')); 		// ensure there is a null at end of Buffer
 	bool bIsAMarker = FALSE;
 	wxString bareMarkerForLookup, wholeMarker;
 	wxChar* pOld = pBufStart;  // source
@@ -13790,7 +13790,7 @@ void AddAnyFontSizeColor(wxString& tempStr, USFMAnalysis* pSfm, wxString colorTb
 	}
 	if ((pSfm->fontSize != 0 || pSfm->color != 0) && tempStr.Length() > 0 && tempStr[tempStr.Length() -1] != _T(' '))
 	{
-		// insure that a space comes after any font size and/or color
+		// ensure that a space comes after any font size and/or color
 		tempStr << _T(' ');
 	}
 	// with tempSdef up to this point we can create the style definition Sdef string parameter
@@ -13834,7 +13834,7 @@ void AddAnyBasedonNext(wxString& tempStr, USFMAnalysis* pSfm)
 									// name with its actual Sdef array index value (as a string)
 		tempStr += _T(']'); // this will be removed by SortAndResolveStyleIndexRefs()
 	}
-	// insure that a space after comes after any basedOn and/or nextStyle
+	// ensure that a space after comes after any basedOn and/or nextStyle
 	if ((!pSfm->basedOn.IsEmpty() || !pSfm->nextStyle.IsEmpty()) && tempStr.Length() > 0 && tempStr[tempStr.Length() -1] != _T(' '))
 	{
 		tempStr += _T(' ');
@@ -15979,7 +15979,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	wxChar* pBufStart = (wxChar*)pBuffer;		// save start address of Buffer
 	int itemLen = 0;
 	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go
-	wxASSERT(*pEnd == _T('\0')); // insure there is a null at end of Buffer
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
 	bool bHitMkr = FALSE;
 	bool bIsAMarker = FALSE;
 
@@ -16241,7 +16241,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 	wxChar* pBufStart = (wxChar*)pBuffer;		// save start address of Buffer
 	int itemLen = 0;
 	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go
-	wxASSERT(*pEnd == _T('\0')); // insure there is a null at end of Buffer
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
 	bool bHitMkr = FALSE;
 	bool bIsAMarker = FALSE;
 

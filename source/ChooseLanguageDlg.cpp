@@ -127,7 +127,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	pEditLocalizationPath->SetValue(pathToLocalizationFolders);
 	
 	// Determine if the data stored in m_pConfig indicates that a user_defined_language_n was last used
-	// or not. If so, insure that the language was added to the current m_pLocale.
+	// or not. If so, ensure that the language was added to the current m_pLocale.
 	if (gpApp->currLocalizationInfo.curr_UI_Language > wxLANGUAGE_USER_DEFINED)
 	{
 		m_bCurrentLanguageUserDefined = TRUE;
@@ -375,7 +375,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// Here we insert the default (English) as the first item in the list (position 0) using the
 	// wxListBox::Insert() method. 
 	// whm: Check to see if the current system default language is NOT English. If that is the
-	// case we need to insure that en English is also a valid selection in the listbox. We also need
+	// case we need to ensure that en English is also a valid selection in the listbox. We also need
 	// to remove any "default" language if there is no actual localization for it on the local machine.
 	// A user whose computer was set to Dutch as its default system language, could not select English
 	// because it was not offered as a choice, and selecting Dutch would not work either since although
@@ -494,7 +494,7 @@ void CChooseLanguageDlg::OnBrowseForPath(wxCommandEvent& WXUNUSED(event))
 	{
 		selectedPath = dirDlg.GetPath();
 
-		// Check to insure that localization folder(s)/file(s) exist at the chosen path
+		// Check to ensure that localization folder(s)/file(s) exist at the chosen path
 		if (gpApp->PathHas_mo_LocalizationFile(selectedPath,_T(""))) // _T("") for param 2 means that any named subfolder is OK
 		{
 			gpApp->currLocalizationInfo.curr_localizationPath = selectedPath;
@@ -592,7 +592,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 	// The user has clicked OK so we need to handle some special cases:
 	// 1. the list choice was marked " [NOT AVAILABLE IN CURRENT LOCALE]" or, // removed 1.
 	// 2. the list choise was marked " [Contains Unknown or New Localization]".
-	// After handling the special cases above, we can insure that the global
+	// After handling the special cases above, we can ensure that the global
 	// currLocalizationInfo struct's members are filled appropriately for the
 	// user's chosen language, and that m_pConfig is updated by calling
 	// SaveCurrentUILanguageInfoToConfig().

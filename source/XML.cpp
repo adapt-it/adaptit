@@ -280,7 +280,7 @@ const char justifiedStr[] = "justified"; // added for version 3
 // These defaults would be used when the AI_USFM.xml file is not available.
 // These little conditionally compiled routines greatly simplify the creation
 // of these hard coded strings, and can be re-produced any time a change in
-// default attributes is deemed necessary, helping to insure that the program's
+// default attributes is deemed necessary, helping to ensure that the program's
 // hard coded defaults are the same as the AI_USFM.xml file distributed with
 // the program.
 static wxString usfmUnixDataStr = _T("");
@@ -2780,7 +2780,7 @@ bool AtSFMEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// always do a loopup first, and only add a marker if it doesn't already
 		// exist in the given map.
 		// whm Note 11Jul05: Below we do NOT use the LookupSFM routine because Lookup here
-		// is done to insure we don't get duplicate entries in the USFMAnalysis maps. 
+		// is done to ensure we don't get duplicate entries in the USFMAnalysis maps. 
 		// Compare code below to code in the App's SetupDefaultStylesMap
 		MapSfmToUSFMAnalysisStruct::iterator iter;
 		if (gpUsfmAnalysis->usfm)

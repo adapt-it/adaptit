@@ -306,7 +306,7 @@ void CUsfmFilterPageCommon::DoInit()
 	TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
 #endif
 
-	pUsfmFilterPageSizer->Layout(); // only needed here to insure the layout of the help text in read-only edit is ok
+	pUsfmFilterPageSizer->Layout(); // only needed here to ensure the layout of the help text in read-only edit is ok
 }
 
 void CUsfmFilterPageCommon::AddUnknownMarkersToDocArrays()
@@ -969,7 +969,7 @@ void CUsfmFilterPageCommon::DoLbnSelchangeListSfmsDoc()
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBoxSFMsDoc))
 		return;
 
-	// With the removal of the legacy buttons, all that is needed is to insure we have a valid selection
+	// With the removal of the legacy buttons, all that is needed is to ensure we have a valid selection
 	// If we get here we know there is at least one item in the list. 
 	int nSel;
 	nSel = pListBoxSFMsDoc->GetSelection();
@@ -999,7 +999,7 @@ void CUsfmFilterPageCommon::DoCheckListBoxToggleDoc(wxCommandEvent& event)
 	// so I've implemented that design solution in LoadActiveSFMListBox().
 	int nItem = event.GetInt(); // get the index of the list box item whose box has changed
 	//wxString itemString = pListBoxSFMsDoc->GetString(nItem);
-	pListBoxSFMsDoc->SetSelection(nItem); // insure that the selection highlights the line having the clicked box
+	pListBoxSFMsDoc->SetSelection(nItem); // ensure that the selection highlights the line having the clicked box
 
 	DoBoxClickedIncludeOrFilterOutDoc(nItem);
 }
@@ -1021,7 +1021,7 @@ void CUsfmFilterPageCommon::DoCheckListBoxToggleProj(wxCommandEvent& event)
 	// A naive user would probably be less confused with solution 1 (don't list any invalid markers),
 	// so I've implemented that design solution in LoadActiveSFMListBox().
 	int nItem = event.GetInt();
-	pListBoxSFMsProj->SetSelection(nItem); // insure that the selection highlights the line having the clicked box
+	pListBoxSFMsProj->SetSelection(nItem); // ensure that the selection highlights the line having the clicked box
 
 	DoBoxClickedIncludeOrFilterOutProj(nItem);
 }
@@ -1070,7 +1070,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 	// extract the whole marker part
 	checkStr = checkStr.Mid(0,checkStr.Find(_T(' ')));
 	
-	// insure that the flag stored in the flags array reflects the new visible state of the 
+	// ensure that the flag stored in the flags array reflects the new visible state of the 
 	// checkbox
 	if (pListBoxSFMsDoc->IsChecked(curSel))
 	{
@@ -1184,7 +1184,7 @@ void CUsfmFilterPageCommon::DoLbnSelchangeListSfmsProj()
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBoxSFMsProj))
 		return;
 
-	// With the removal of the buttons, all that is needed is to insure we have a valid selection
+	// With the removal of the buttons, all that is needed is to ensure we have a valid selection
 	// If we get here we know there is at least one item in the list. 
 	int nSel;
 	nSel = pListBoxSFMsProj->GetSelection();
@@ -1239,7 +1239,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutProj(int lbItemIndex)
 	// extract the whole marker part
 	checkStr = checkStr.Mid(0,checkStr.Find(_T(' ')));
 	
-	// insure that the flag stored in the flags array reflects the new visible state of the 
+	// ensure that the flag stored in the flags array reflects the new visible state of the 
 	// checkbox
 	if (pListBoxSFMsProj->IsChecked(curSel))
 	{
@@ -3425,7 +3425,7 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	usfm_filterPgCommon.bSFMsetChanged = FALSE; // supplied for param list, used by filterPage to see if sfm set was changed
 	// Note: DoUsfmSetChanges below updates the global sfm set and the global filter marker strings
 	// for any changes the user has made in document and/or project settings. It also will set the 
-	// usfm_filterPgCommon's bSFMsetChanged flag to true if there was a set change which will insure that
+	// usfm_filterPgCommon's bSFMsetChanged flag to true if there was a set change which will ensure that
 	// the filterPage's OnOK handler calls DoUsfmFilterChanges() with NoReparse parameter.
 	gpApp->DoUsfmSetChanges(&usfm_filterPgCommon, usfm_filterPgCommon.bSFMsetChanged, DoReparse); // DoReparse for edit prefs
 
@@ -3537,7 +3537,7 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	TRACE1("   m_currentUnknownMarkersStr = %s\n", pDoc->m_currentUnknownMarkersStr);
 #endif
 
-	// whm added 27Jun05. After any doc rebuild is finished, we need to insure that the 
+	// whm added 27Jun05. After any doc rebuild is finished, we need to ensure that the 
 	// unknown marker arrays and m_currentUnknownMarkerStr are up to date from what is 
 	// now the situation in the Doc. Use preserveUnkMkrFilterStatusInDoc to cause
 	// GetUnknownMarkersFromDoc to preserve the filter state of an unknown

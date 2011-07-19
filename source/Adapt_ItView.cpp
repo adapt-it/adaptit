@@ -1297,7 +1297,7 @@ void CAdapt_ItView::OnInitialUpdate()
 #ifdef _RTL_FLAGS
 	// Note: The wx version starts with the Layout menu and removes it in the App's OnInit()
 	
-	// call AdjustAlignmentMenu to insure that the Layout menu items text is set correctly
+	// call AdjustAlignmentMenu to ensure that the Layout menu items text is set correctly
 	AdjustAlignmentMenu(gbRTLLayout, gbLTRLayout);
 #endif // for _RTL_FLAGS
 
@@ -4133,7 +4133,7 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 				{
 					sfm.Trim(TRUE); // trim right end
 					sfm.Trim(FALSE); // trim left end
-						sfm += _T(' '); // insure the sfm is followed by a space 
+						sfm += _T(' '); // ensure the sfm is followed by a space 
                                         // for unique find in our wrap strings.
 					// If only one of the sfms within m_markers is a wrap 
 					// marker, we should return TRUE.
@@ -4775,7 +4775,7 @@ void CAdapt_ItView::GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPo
 					{
 						sfm.Trim(TRUE); // trim right end
 						sfm.Trim(FALSE); // trim left end
-							sfm += _T(' '); // insure the sfm is followed by a space for unique find in
+							sfm += _T(' '); // ensure the sfm is followed by a space for unique find in
 											// our wrap strings.
 						// If only one of the sfms within m_markers is a wrap marker, we should return TRUE.
 						switch (pApp->gCurrentSfmSet)
@@ -5851,7 +5851,7 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 				sfm = sfm.Left(endMkrPos);
 			sfm.Trim(FALSE); // trim left end
 			sfm.Trim(TRUE); // trim right end
-			sfm += _T(' '); // insure the sfm is followed by a space for unique find in
+			sfm += _T(' '); // ensure the sfm is followed by a space for unique find in
 							// our wrap strings.
 			// If only one of the sfms within markerStr is a wrap marker, we should return TRUE.
 			switch (pApp->gCurrentSfmSet)
@@ -6644,7 +6644,7 @@ void CAdapt_ItView::GetMarkerArrayFromString(wxArrayString* pStrArr, const wxStr
 		// insert in the array
 		// whm Note: wxArrayInt doesn't have MFC's SetAtGrow() method, but we can 
 		// accomplish the same thing. We can use the ::SetCount() method of wxArray to 
-		// insure the array has at least anArrayIndex + 1 elements, then assign locIndex 
+		// ensure the array has at least anArrayIndex + 1 elements, then assign locIndex 
 		// to element anArrayIndex. We only call SetCount() if the array is too small. 
 		if (index+1 > (int)pStrArr->GetCount())
 			pStrArr->SetCount(index+1); // any added elements to the array are assigned 
@@ -11375,7 +11375,7 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	// In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle
 	// from the view menu merely shows or hides the composeBar. In MFC version the
 	// compose bar is recreated each time it becomes visible. Hence, I'll add the
-	// condition check to insure the text control in the composeBar IsShown()
+	// condition check to ensure the text control in the composeBar IsShown()
 	if (pWnd == pEdit && pEdit->IsShown())
 	{
 		pEdit->Copy(); // copy to the clipboard using wxTextCtrl's built in function
@@ -11498,7 +11498,7 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
     // In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle from
     // the view menu merely shows or hides the composeBar. In MFC version the compose bar
     // is recreated each time it becomes visible. Hence, I'll add the condition check to
-    // insure the text control in the composeBar IsShown()
+    // ensure the text control in the composeBar IsShown()
 	if (pWnd == pEdit && pEdit->IsShown())
 	{
 		// paste from the clipboard using wxTextCtrl's built in function (CF_TEXT format
@@ -11554,7 +11554,7 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 	// In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle
 	// from the view menu merely shows or hides the composeBar. In MFC version the
 	// compose bar is recreated each time it becomes visible. Hence, I'll add the
-	// condition check to insure the text control in the composeBar IsShown()
+	// condition check to ensure the text control in the composeBar IsShown()
 	if (pFocusWnd == pEdit && pEdit->IsShown())
 		bComposeWnd = TRUE;
 
@@ -11599,7 +11599,7 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
     // In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle from
     // the view menu merely shows or hides the composeBar. In MFC version the compose bar
     // is recreated each time it becomes visible. Hence, I'll add the condition check to
-    // insure the text control in the composeBar IsShown()
+    // ensure the text control in the composeBar IsShown()
 	if (pWnd == pEdit && pEdit->IsShown())
 		pEdit->Cut(); // cut to the clipboard using wxTextCtrl's built in function
 					  // (CF_TEXT format)
@@ -11963,7 +11963,7 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 	// whm added pEnd and null char below
 	wxChar* pEnd;
 	pEnd = (wxChar*)pbuffer + nInLength -1; // -1 to compensate for += 1 increment on nInLength above
-	wxASSERT(*pEnd == _T('\0')); // insure there's a null at end of buffer
+	wxASSERT(*pEnd == _T('\0')); // ensure there's a null at end of buffer
 
 	// populate the first of the buffers
 	wxStrcpy(byteBuff[nIn],pbuffer);

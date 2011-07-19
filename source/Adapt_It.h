@@ -90,6 +90,11 @@ class NavProtectNewDoc; // for user navigation protection feature
                       // tweaked where necessary to update after user editing -- our final
                       // design requires this #define be set
 
+// Use 0 to use Bibledit's command-line interface to fetch text and write text from/to its project data files.
+// Use 1 to fetch text and write text directly from/to Bibledit's project data files (not using command-line
+// interface.
+#define _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT 1
+
 // uncomment to turn on wxLogDebug tracking of gnBeginInsertionsSequNum & gnEndInsertionsSequNum
 //#define Highlighting_Bug
 
@@ -3000,7 +3005,7 @@ public:
 	bool	ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
 	bool	NewProjectItemIsVisibleInThisProfile(const int nProfile);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
-	wxArrayString GetBooksArrayFromPTFlags(wxString bookFlagsStr);
+	wxArrayString GetBooksArrayFromBookFlagsString(wxString bookFlagsStr);
 	wxString RemoveMenuLabelDecorations(wxString menuLabel);
 	wxString GetMenuItemKindAsString(wxItemKind itemKind);
 	wxItemKind GetMenuItemKindFromString(wxString itemKindStr);
@@ -3051,6 +3056,7 @@ public:
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
+	bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 	// BEW added 11July, to get changes to the adaptation and free translation back to the

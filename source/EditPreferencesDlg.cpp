@@ -362,7 +362,7 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	m_bDismissDialog = TRUE;
 
 	// Initialize each page of the notebook; each page's InitDialog() is not called when
-	// the page is created in CEditPreferencesDlg's CreateControls() method, so we insure
+	// the page is created in CEditPreferencesDlg's CreateControls() method, so we ensure
 	// they get called here in CEditPreferencesDlg's own InitDialog() method.
 	// whm 5Oct10 note: Under user profiles, even when certain tab pages are not added
 	// to the wxNotebook, they still exist and some (in particular the usfmPage and the
@@ -430,7 +430,7 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 
 void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 {
-	// Check to insure the font facenames aren't blank.
+	// Check to ensure the font facenames aren't blank.
 	// On Windows, at least, the font dialog won't return
 	// any name other than one that is actually selected
 	// from the font list in the dialog. This seems to be

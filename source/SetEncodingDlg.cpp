@@ -399,7 +399,7 @@ void CSetEncodingDlg::OnListEncodingsChanged(wxCommandEvent& WXUNUSED(event))
 	nSel = pPossibleEncodings->GetSelection();
 	if (nSel == wxNOT_FOUND)
 	{
-		// user must have removed the current listbox item's selection, we should insure
+		// user must have removed the current listbox item's selection, we should ensure
 		// that in the Linux/GTK version this can't happen; select the current item again
 		nSel = nCurrListSelEncoding;
 		pPossibleEncodings->SetSelection(nSel);
@@ -458,7 +458,7 @@ void CSetEncodingDlg::OnListFacenamesChanged(wxCommandEvent& WXUNUSED(event))
 	nSel = pPossibleFacenames->GetSelection();
 	if (nSel == wxNOT_FOUND)
 	{
-		// user may have removed the current listbox item's selection, we should insure
+		// user may have removed the current listbox item's selection, we should ensure
 		// that in the Linux/GTK version this can't happen; select the current item again
 		// if possible using the previous selection
 		if (nSelCount > nCurrListSelFaceName)

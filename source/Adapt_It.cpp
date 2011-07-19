@@ -370,7 +370,7 @@ wxString gSpacelessTgtPunctuation;
 /// button has been pressed (otherwise it wipes out the action of the button)
 bool gbSuppressSetup;
 
-/// whm added 13Apr07, a flag to insure that the warning about hacked character data being
+/// whm added 13Apr07, a flag to ensure that the warning about hacked character data being
 /// detected is only issued once - upon first detection of such data in config files and/or
 /// data files.
 bool gbHackedDataCharWarningGiven = FALSE;
@@ -2213,7 +2213,7 @@ const wxString defaultMenuStructure[] =
 	// short cut ALT+key letters; the subMenuHelp should be the same as what is in wxDesigner; and the
 	// subMenuKind should accurately indicate whether the menu item is wxITEM_NORMAL, wxITEM_CHECK
 	// or wxITEM_SEPARATOR. Cut and paste of strings from the AIMenuBarFunc() in Adapt_It_wdr.cpp helps
-	// insure exact copy - but Note: quote marks here need to be escaped with a backslash!
+	// ensure exact copy - but Note: quote marks here need to be escaped with a backslash!
 	// 
 	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
 	// stored in the m_pAI_MenuStructure struct on the heap with those that are used in the 
@@ -5548,7 +5548,7 @@ wxString szTargetLanguageCode = _T("TargetLanguageCode");
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
-/// validating this path to insure its validity on the local machine, Adapt It stores this
+/// validating this path to ensure its validity on the local machine, Adapt It stores this
 /// path in the App's m_workFolderPath member variable.
 wxString szAdaptitPath = _T("AdaptItPath"); 
 
@@ -7682,7 +7682,7 @@ void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 /// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
 /// and sets the visibility of the interface's menus based on the information 
 /// stored in AI_UserProfiles.xml. It also reads the App's m_pAI_MenuStructure member and 
-/// uses it to insure Adapt It's menu structure is restored to a uniform state when 
+/// uses it to ensure Adapt It's menu structure is restored to a uniform state when 
 /// changing the user profile or reverting to the "None" default profile.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
@@ -7797,7 +7797,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 							// menu item to remain ticked in a persistent manner by turning it ticking it "ON", 
 							// then hiding the See Glossing menu item in the current profile, because the 
 							// "See Glossing" setting is not persistent - it reverts back to being "OFF" each 
-							// time the app starts up. Hence, we can insure Glossing is disabled here along with
+							// time the app starts up. Hence, we can ensure Glossing is disabled here along with
 							// the removal of the "See Glosses" Advanced menu item in this profile.
 							gbEnableGlossing = FALSE;
 							gbIsGlossing = FALSE; // this must be FALSE if gbEnableGlossing is FALSE
@@ -8140,7 +8140,7 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
 				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
 				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
-				// time the app starts up. Hence, we can insure Glossing is turned off here.
+				// time the app starts up. Hence, we can ensure Glossing is turned off here.
 				gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
 			}
 			if (itemLabel == _("Delay"))
@@ -8765,7 +8765,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
 		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 
-    // insure that the Use Tooltips menu item in the Help menu is checked or unchecked
+    // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
     // according to the current value of m_bUseToolTips
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
 		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
@@ -8816,7 +8816,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	// attempts to change or localize the names of the profiles/tabs.
 	
 	bool bVersionsDiffer = FALSE;
-	// we need to insure that the app's version (6.x.x) and the app's profile version (1.x)
+	// we need to ensure that the app's version (6.x.x) and the app's profile version (1.x)
 	// agree with the data in the unix-like default strings (here it is in pTempUserProfiles).
 	wxString appVerOfRunningApp = GetAppVersionOfRunningAppAsString();
 	wxString profVerOfRunningApp = GetProfileVersionOfRunningAppAsString();
@@ -8937,7 +8937,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 			pAppItem = posApp->GetData();
 			if (pTempItem->itemID != pAppItem->itemID)
 			{
-				// The itemID is the most crucial/unique identifier so insure they match and are in 
+				// The itemID is the most crucial/unique identifier so ensure they match and are in 
 				// the same order.
 				wxString tempStr = pTempItem->itemID;
 				wxString appStr = pAppItem->itemID;
@@ -8949,7 +8949,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 
 			if (pTempItem->itemIDint != pAppItem->itemIDint)
 			{
-				// The itemIDint is also a crucial/unique identifier so insure they match and are in 
+				// The itemIDint is also a crucial/unique identifier so ensure they match and are in 
 				// the same order.
 				wxLogDebug(_T("The itemID strings differ for %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
 					pAppItem->itemText.c_str(),pTempItem->itemIDint,pAppItem->itemIDint);
@@ -10533,7 +10533,7 @@ int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemT
 /// This function is called last after updating the wxTextFile with all other changes made 
 /// to the user workflow profiles. Here we update the adminModified="" line in the wxTextFile 
 /// to adminModified="Yes" if the data in the file differs from the factory data (determined
-/// by calling CommonItemsInProfilesDiffer), otherwise we we insure that the line reads 
+/// by calling CommonItemsInProfilesDiffer), otherwise we we ensure that the line reads 
 /// adminModified="No". Note: Working from the factory data as a baseline allows for the 
 /// possibility that a AI_UserProfiles.xml file that was previously modified resulting in the 
 /// line becoming adminModified="Yes", could now be modified again resulting in the line becoming 
@@ -11553,7 +11553,7 @@ bool CAdapt_ItApp::LocalizationFilesExist()
         // The key was is the registry/hidden settings file, so check if localization files
         // actually exist at the specified location, and for the ui_language_code (used as
         // subdir name). Since ui_language_path exists, there should also be a
-        // ui_language_code value that we can use to insure that the specific localization
+        // ui_language_code value that we can use to ensure that the specific localization
         // subfolder named actually exists.
 		wxString shortNameStr;
 		shortNameStr.Empty();
@@ -15252,6 +15252,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		return FALSE;
 	}
 
+	// Bibledit testing below
+	/*
+	wxString beProjPath = GetBibleditProjectsDirPath();
+	wxString shortProjName = _T("Tok Pisin"); // In BE the short and long project names are the same
+	beProjPath += PathSeparator + shortProjName;
+	//wxString testBuffer;
+	wxString tempFolder;
+	wxString tempFilePathName;
+	int chNum = -1;
+	wxString chNumStr;
+	if (chNum == -1)
+		chNumStr = _T("");
+	else
+		chNumStr << chNum;
+	wxString bookName = _T("Matthew");
+	wxString bookCode = this->GetBookCodeFromBookName(bookName);
+	tempFolder = m_workFolderPath + PathSeparator + _T(".temp");
+	tempFilePathName = tempFolder + PathSeparator + GetFileNameForCollaboration(_T("_Collab"), bookCode, 
+							shortProjName, chNumStr, _T(".tmp"));
+	bool bWriteOK;
+	wxArrayString errors;
+	bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPath, bookName, chNum, tempFilePathName, errors);
+	*/
+	// Bibledit testing above
+
 	m_backgroundMode = wxSOLID;	// whm added 6July2006 Set to wxSOLID here in App's
                 // OnInit because wxDC's SetTextBackground uses by default background mode
                 // of wxTRANSPARENT which doesn't show up on screen regardless of what
@@ -15410,7 +15435,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // 
         // The wndBotRight and wndTopLeft coordinate points determined by the above call to
         // the wxGetClientDisplayRect() function are used in
-        // GetBasicSettingsConfiguration() to insure that the m_ptViewTopLeft.x and
+        // GetBasicSettingsConfiguration() to ensure that the m_ptViewTopLeft.x and
         // m_ptViewTopLeft.y and m_szView.x and m_szView.y values are within range of the
         // current desktop. If the read-in values were not within range they were adjusted
         // to fall within the coordinates of the current desktop. Therefore, these values
@@ -15433,7 +15458,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Adapt It to simply initiate a call to the App's OnFileNew() method in order to
     // create a doc/view as a stand-in at program startup. We can do the same in the wx
     // version by also calling the App's OnFileNew() method. This will provide for a Doc
-    // and View for the opening canvas on the Main Frame. This Doc and View insure there
+    // and View for the opening canvas on the Main Frame. This Doc and View ensure there
     // are valid pDoc and pView pointers obtainable by routines like OnFilePageSetup()
     // which need access to them when no user selectable Doc and View are loaded, such as
     // when the user cancels at the opening wizard or closes the document or project.
@@ -16419,7 +16444,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
    
 
 	// whm 20Jun11 Notes:
-	// We need to provide a sanity check to insure that certain settings
+	// We need to provide a sanity check to ensure that certain settings
 	// that were configured by an administrator are still valid on this running of
 	// the application. These sanity checks are for settings an administrator may 
 	// have configured using the Administrator menu, and include the following:
@@ -18154,7 +18179,7 @@ void CAdapt_ItApp::InitializePunctuation()
         // For Windows, we can support curly quotes like MFC does in the ANSI version. When
         // first converted to wxWidgets, GTK's text control was failing when use SetValue()
         // with any of these upper ascii values in the punctuation string. A partial
-        // solution was to insure that SetEncoding(wxFONTENCODING_CP1252) was called on the
+        // solution was to ensure that SetEncoding(wxFONTENCODING_CP1252) was called on the
         // fonts involved. Note: SetEncoding() is an "undocumented" method of wxFont. The
         // documented SetDefaultEncoding() did not seem to work. Also setting the encoding
         // to wxFONTENCODING_ISO8859_1 did not work (it eliminated the "Failed to set text
@@ -18297,7 +18322,7 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	bool bReturn = FALSE;
 	if (!wxGetKeyState(WXK_SHIFT))
 	{
-		// whm added 9Mar10 to insure that a "foreign" project config file has been cloned, 
+		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned, 
 		// renamed, and modified to have the appropriate (or compatible) fonts for the project.
 		// MakeForeignProjectConfigFileSafe() also deals with any font mismatches before  
 		// the appropriate GetConfigurationFile() is called below.
@@ -20157,12 +20182,12 @@ bool CAdapt_ItApp::IsAdaptitProjectDirectory(wxString title)
 /// CJoinDialog::InitialiseLists(), CListDocumentsInOtherFolderDialog::InitDialog(),
 /// CMoveDialog::UpdateFileList(), and CSplitDialog::ListFiles().
 /// Fills the array string pList with the file names having .xml extension in dirPath.
-/// Note: The caller should insure that dirPath exists before calling this function
+/// Note: The caller should ensure that dirPath exists before calling this function
 /// since it does not have a graceful way to return if dirPath is bad. 
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString dirPath)
 {
-	// whm - The caller should insure that dirPath exists before calling this function
+	// whm - The caller should ensure that dirPath exists before calling this function
 	// since it does not have a graceful way to return if dirPath is bad. See CDocPage.
 	wxDir finder;//CFileFind finder;
 
@@ -20833,7 +20858,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		}
 
 		// In PT or BE Collaboration mode, the CGetSourceTextFromEditorDlg class 
-		// above will insure that a path is set for m_curAdaptionsPath and that 
+		// above will ensure that a path is set for m_curAdaptionsPath and that 
 		// it exists even upon a SHIFT-down startup and calling of SetDefaults().
 		// Hence, we return below without executing the remining code below.
 
@@ -24425,7 +24450,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// For Windows, ensure curly quotes are supported in ANSI version.
             // When first converted to wxWidgets, GTK's text control was failing when use
             // SetValue() with any of these upper ascii values in the punctuation string. A
-            // partial solution was to insure that SetEncoding(wxFONTENCODING_CP1252) was
+            // partial solution was to ensure that SetEncoding(wxFONTENCODING_CP1252) was
             // called on the fonts involved. Note: SetEncoding() is an "undocumented"
             // method of wxFont. The documented SetDefaultEncoding() did not seem to work.
             // Also setting the encoding to wxFONTENCODING_ISO8859_1 did not work (it
@@ -26444,7 +26469,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			// For Windows, ensure curly quotes are supported in ANSI version.
             // When first converted to wxWidgets, GTK's text control was failing when use
             // SetValue() with any of these upper ascii values in the punctuation string. A
-            // partial solution was to insure that SetEncoding(wxFONTENCODING_CP1252) was
+            // partial solution was to ensure that SetEncoding(wxFONTENCODING_CP1252) was
             // called on the fonts involved. Note: SetEncoding() is an "undocumented"
             // method of wxFont. The documented SetDefaultEncoding() did not seem to work.
             // Also setting the encoding to wxFONTENCODING_ISO8859_1 did not work (it
@@ -26938,7 +26963,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				if (m_nBookIndex == -1)
 					goto t;
 
-				// whm added 30Nov07 check to insure the m_nBookIndex is not out of
+				// whm added 30Nov07 check to ensure the m_nBookIndex is not out of
 				// range for the number of Bible books in m_pBibleBooks. If it is out
 				// of range (i.e., user changed to a custom books.xml or edited the
 				// project config file's BookIndexValue to an erroneous value), turn
@@ -27307,7 +27332,7 @@ void CAdapt_ItApp::OnUpdateTransferTransToPT(wxUpdateUIEvent& event)
 /// Called from: the App's GetBasicSettingsConfiguration(), GetProjectSettingsConfiguration(),
 /// and from CPunctCorrespPageCommon::GetPunctuationSets().
 /// Parses the source and target language punctuations characters from the PUNCTPAIR or
-/// TWOPUNCTPAIR structs and stores them in separate strings. Also checks to insure that
+/// TWOPUNCTPAIR structs and stores them in separate strings. Also checks to ensure that
 /// '<' and '>' angle brackets are used as punctuation characters rather than word building
 /// characters.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -27887,7 +27912,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
         // has the "AutoCapitalizationFlag" setting in the project config file. In the wx
         // version the value for the new "SourceHasUpperCaseAndLowerCase" setting should
         // always be set to TRUE if the AutoCapitalizationFlag was set to TRUE when reading
-        // a legacy project config file. So we will insure that is the case here. If this
+        // a legacy project config file. So we will ensure that is the case here. If this
         // consistency check is not done, the two global flags can get out of sync, and
         // under some circumstances the wx application may give a spurious error message
         // when it saves values from the Case page (in OnOK) in Preferences after reading a
@@ -28577,7 +28602,7 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
     // will allow it). Update 23Dec08 - Patrick subsequently said he was mistaken and found
     // that he was actually running the v. 3.6.4 legacy version, but that the wx version
     // 4.0.4 was OK. So there is likely no need for the following Enable... calls, but they
-    // don't hurt anything and might help insure that those parts of the Page Setup dialog
+    // don't hurt anything and might help ensure that those parts of the Page Setup dialog
     // actually work in some situations, so I'll leave them here in the code.
 	pPgSetupDlgData->EnableMargins(TRUE);
 	pPgSetupDlgData->EnableOrientation(TRUE);
@@ -28687,7 +28712,7 @@ void CAdapt_ItApp::SetPageOrientation(bool bIsPortrait)
 			pPrintData->SetOrientation(wxPORTRAIT);
 		else
 			pPrintData->SetOrientation(wxLANDSCAPE);
-		// insure that the pPgSetupDlgData gets any pPrintData change
+		// ensure that the pPgSetupDlgData gets any pPrintData change
 		//(*pPgSetupDlgData) = (*pPrintData); // NO!!, Doing this resets the default pPgSetupDlgData!
 	}
 }
@@ -32365,7 +32390,7 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 /// CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and 
 /// SplitIntoChapters_Interactive().
 /// Updates sequence numbers and the various indices including: m_curIndex, m_beginIndex,
-/// m_endIndex, m_lowerIndex, and m_upperIndex to insure they are within proper ranges.
+/// m_endIndex, m_lowerIndex, and m_upperIndex to ensure they are within proper ranges.
 /// Calls the View's Jump() on the current source phrase to effect any desired screen
 /// update.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -38183,6 +38208,153 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 	return bookCode;
 }
 
+bool CAdapt_ItApp::CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
+{
+	// construct the path to the Bibledit chapter data files
+	wxString pathToBookFolder;
+	wxString dataFolder = _T("data");
+	pathToBookFolder = projectPath + PathSeparator + dataFolder + PathSeparator + bookName;
+	wxString dataBuffer = _T("");
+	bool bGetWholeBook = FALSE;
+	if (chapterNumber == -1)
+	{
+		// get the whole book
+		bGetWholeBook = TRUE;
+	}
+	wxFile* pTempFile;
+	// We need to ensure it doesn't exist because we are concatenating in the pTempFile->Write() call below and
+	// we want to start afresh in the file.
+	if (::wxFileExists(tempFilePathName))
+	{
+		bool bRemoved = FALSE;
+		bRemoved = ::wxRemoveFile(tempFilePathName); 
+		if (!bRemoved)
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("Unable to remove existing temporary file at:\n%s");
+			msg = msg.Format(msg,tempFilePathName.c_str());
+			errors.Add(msg);
+			return FALSE;
+		}
+	}
+	pTempFile = new wxFile(tempFilePathName,wxFile::write_append); // just append new data to end of the temp file;
+	if (pTempFile == NULL)
+	{
+		// Not likely to happen, so an English message will suffice.
+		wxString msg = _T("Unable to create temporary file at:\n%s");
+		msg = msg.Format(msg,tempFilePathName.c_str());
+		errors.Add(msg);
+		// no need to delete pTempFile here
+		return FALSE;
+	}
+	if (bGetWholeBook)
+	{
+		// Get the whole book for bookName. We read the data file contents located within 
+		// each chapter folder, and concatenate them into a single string buffer
+		wxArrayString chNumArray;
+		wxDir finder(pathToBookFolder);
+		if (finder.Open(pathToBookFolder))
+		{
+			wxString str = _T("");
+			bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_DIRS); // only get directories
+			while (bWorking)
+			{
+				// str should be in the form of numbers "0", "1", "2" ... for as many chapters as are
+				// contained in the book.
+				// whm Note: The folders representing chapter numbers won't necessarily be traversed
+				// in numerical order, therefore we must put the numbers into an array and sort the
+				// array, before we concatenate the text chapters into a whole book
+				if (str.Length() == 1)
+					str = _T("00") + str;
+				else if (str.Length() == 2)
+					str = _T("0") + str;
+				chNumArray.Add(str);
+				bWorking = finder.GetNext(&str);
+			}
+			// now sort the array.
+			chNumArray.Sort();
+			int ct;
+			for (ct = 0; ct < (int)chNumArray.GetCount(); ct++)
+			{
+				wxString chNumStr;
+				chNumStr.Empty();
+				chNumStr << chNumArray.Item(ct);
+				while (chNumStr.GetChar(0) == _T('0') && chNumStr.Length() > 1)
+					chNumStr.Remove(0,1);
+				wxString pathToChapterDataFolder = pathToBookFolder + PathSeparator + chNumStr + PathSeparator + dataFolder;
+				bool bOK;
+				if (!::wxFileExists(pathToChapterDataFolder))
+				{
+					// Not likely to happen, so an English message will suffice.
+					wxString msg = _T("A Bibledit data folder was not found at:\n%s");
+					msg = msg.Format(msg,pathToChapterDataFolder.c_str());
+					errors.Add(msg);
+					delete pTempFile;
+					pTempFile = (wxFile*)NULL;
+					return FALSE;
+				}
+				dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
+				bOK = pTempFile->Write(dataBuffer);
+				if (!bOK)
+				{
+					// Not likely to happen, so an English message will suffice.
+					wxString msg = _T("Unable to write to temporary file at:\n%s");
+					msg = msg.Format(msg,tempFilePathName.c_str());
+					errors.Add(msg);
+					delete pTempFile;
+					pTempFile = (wxFile*)NULL;
+					return FALSE;
+				}
+			}
+
+		}
+		else
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("Unable to open book directory at:\n%s");
+			msg = msg.Format(msg,pathToBookFolder.c_str());
+			errors.Add(msg);
+			delete pTempFile;
+			pTempFile = (wxFile*)NULL;
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Get only a chapter. This amounts to reading the data file content of the given
+		// chapter folder
+		wxString chNumStr = _T("");
+		chNumStr << chapterNumber;
+		wxString pathToChapterDataFolder = pathToBookFolder + PathSeparator + chNumStr + PathSeparator + dataFolder;
+		bool bOK;
+		if (!::wxFileExists(pathToChapterDataFolder))
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("A Bibledit data folder was not found at:\n%s");
+			msg = msg.Format(msg,pathToChapterDataFolder.c_str());
+			errors.Add(msg);
+			delete pTempFile;
+			pTempFile = (wxFile*)NULL;
+			return FALSE;
+		}
+		dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
+		bOK = pTempFile->Write(dataBuffer);
+		if (!bOK)
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("Unable to write to temporary file at:\n%s");
+			msg = msg.Format(msg,tempFilePathName.c_str());
+			errors.Add(msg);
+			delete pTempFile;
+			pTempFile = (wxFile*)NULL;
+			return FALSE;
+		}
+	}
+	delete pTempFile;
+	pTempFile = (wxFile*)NULL;
+	return TRUE;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the book path and name which contains
 ///             the scripture reference
@@ -38563,17 +38735,17 @@ wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxArrayString representing the Scripture books that are "present"
-///             in a given Paratext project
+///             in a given Paratext/Bibledit project
 /// \param      bookFlagsStr -> a string of 123 chars composed of '1' or '0' characters
 /// \remarks
 /// Called from: CGetSourceTextFromEditorDlg::LoadBookNamesIntoList().
-/// Used to get an array of the book names that are present in a Paratext project
-/// according to the bookFlagsStr, a string composed of 123 characters in which a
-/// 1 indicates the book is present and 0 indicates the book is not present. The
-/// index into the bookFlagsStr is parallel to the array of Scripture books called
-/// AllBookNames held on the App. 
+/// Used to get an array of the book names that are present in a Paratext/Bibledit
+/// project according to the bookFlagsStr, a string composed of 123 characters in 
+/// which a 1 indicates the book is present and 0 indicates the book is not present. 
+/// The index into the bookFlagsStr is parallel to the array of Scripture books 
+/// called AllBookNames held on the App. 
 ///////////////////////////////////////////////////////////////////////////////
-wxArrayString CAdapt_ItApp::GetBooksArrayFromPTFlags(wxString bookFlagsStr)
+wxArrayString CAdapt_ItApp::GetBooksArrayFromBookFlagsString(wxString bookFlagsStr)
 {
 	wxArrayString booksArray;
 	int ct,strLen;

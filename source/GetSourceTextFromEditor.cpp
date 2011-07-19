@@ -730,14 +730,45 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	long resultTgt = -1;
     wxArrayString outputSrc, errorsSrc;
 	wxArrayString outputTgt, errorsTgt;
-	// Use the wxExecute() override that takes the two wxStringArray parameters. This
-	// also redirects the output and suppresses the dos console window during execution.
-	resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
-	if (resultSrc == 0)
+	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
+	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+	// from/to its project data files.
+	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+	// files (not using command-line interface.
+	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
 	{
-		resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
+		// Use the wxExecute() override that takes the two wxStringArray parameters. This
+		// also redirects the output and suppresses the dos console window during execution.
+		resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
+		if (resultSrc == 0)
+		{
+			resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
 
+		}
 	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
+		wxString beProjPathSrc, beProjPathTgt;
+		beProjPathSrc = beProjPath + m_pApp->PathSeparator + sourceProjShortName;
+		beProjPathTgt = beProjPath + m_pApp->PathSeparator + targetProjShortName;
+		int chNum = -1; // for Bibledit to get whole book
+		bool bWriteOK;
+		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNum, sourceTempFileName, errorsSrc);
+		if (bWriteOK)
+			resultSrc = 0; // 0 means same as wxExecute() success
+		else // bWriteOK was FALSE
+			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		if (resultSrc == 0)
+		{
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNum, targetTempFileName, errorsTgt);
+			if (bWriteOK)
+				resultTgt = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultTgt = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		}
+	}
+
 	if (resultSrc != 0 || resultTgt != 0)
 	{
 		// not likely to happen so an English warning will suffice
@@ -750,7 +781,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		if (m_pApp->m_bCollaboratingWithParatext)
 			temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
 		else if (m_pApp->m_bCollaboratingWithBibledit)
-			temp = temp.Format(_T("BE Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+			temp = temp.Format(_T("BE Collaboration operation returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
 		m_pApp->LogUserAction(temp);
 		wxLogDebug(temp);
 		int ct;
@@ -1268,7 +1299,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 							shortProjNameFreeTrans, bareChapterSelectedStr, _T(".tmp"));
 	}
 	
-	// Build the command lines for reading the PT projects using rdwrtp7.exe.
+	// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-gtk.
 	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
 	commandLineFreeTrans.Empty();
 	if (m_pApp->m_bCollaboratingWithParatext)
@@ -1300,18 +1331,66 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
     wxArrayString outputSrc, errorsSrc;
 	wxArrayString outputTgt, errorsTgt;
 	wxArrayString outputFreeTrans, errorsFreeTrans;
-	// Use the wxExecute() override that takes the two wxStringArray parameters. This
-	// also redirects the output and suppresses the dos console window during execution.
-	resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
-	if (resultSrc == 0)
+	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
+	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+	// from/to its project data files.
+	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+	// files (not using command-line interface.
+	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
 	{
-		resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
+		// Use the wxExecute() override that takes the two wxStringArray parameters. This
+		// also redirects the output and suppresses the dos console window during execution.
+		resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
+		if (resultSrc == 0)
+		{
+			resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
 
+		}
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
+		wxString beProjPathSrc, beProjPathTgt;
+		beProjPathSrc = beProjPath + m_pApp->PathSeparator + shortProjNameSrc;
+		beProjPathTgt = beProjPath + m_pApp->PathSeparator + shortProjNameTgt;
+		int chNum = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
+		bool bWriteOK;
+		wxString fullBookName = m_TempCollabBookSelected;
+		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNum, sourceTempFileName, errorsSrc);
+		if (bWriteOK)
+			resultSrc = 0; // 0 means same as wxExecute() success
+		else // bWriteOK was FALSE
+			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		if (resultSrc == 0)
+		{
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNum, targetTempFileName, errorsTgt);
+			if (bWriteOK)
+				resultTgt = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultTgt = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		}
 	}
 	// get any free translation too, if the expectation is to support it
 	if (m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
-		resultFreeTrans = ::wxExecute(commandLineFreeTrans,outputFreeTrans,errorsFreeTrans);
+		if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
+		{
+			resultFreeTrans = ::wxExecute(commandLineFreeTrans,outputFreeTrans,errorsFreeTrans);
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
+			wxString beProjPathFreeTrans;
+			beProjPathFreeTrans = beProjPath + m_pApp->PathSeparator + shortProjNameFreeTrans;
+			int chNum = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
+			bool bWriteOK;
+			wxString fullBookName = m_TempCollabBookSelected;
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathFreeTrans, fullBookName, chNum, freeTransTempFileName, errorsFreeTrans);
+			if (bWriteOK)
+				resultFreeTrans = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultFreeTrans = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		}
 	}
 	if (resultSrc != 0 || resultTgt != 0)
 	{
@@ -2153,6 +2232,7 @@ bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxSt
 
 wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBProjItem)
 {
+	// the short name is the first field in the LBProjItem string
 	wxString collabProjShortName;
 	collabProjShortName.Empty();
 	int posColon;
@@ -2323,7 +2403,7 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 		booksStr = pArrayItem->booksPresentFlags;
 	}
 	wxArrayString booksPresentArray;
-	booksPresentArray = m_pApp->GetBooksArrayFromPTFlags(booksStr);
+	booksPresentArray = m_pApp->GetBooksArrayFromBookFlagsString(booksStr);
 	if (booksPresentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;

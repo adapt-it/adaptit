@@ -471,7 +471,7 @@ void CPrintOptionsDlg::OnCancel(wxCommandEvent& event)
 /// \remarks
 /// Called when focus shifts to a different element or control in the dialog. This handler only detects
 /// when focus comes to the edit box controls (i.e., the user clicks in an edit box). It functions to
-/// insure that the radio button associated with the edit box is selected (assumes that if the user is
+/// ensure that the radio button associated with the edit box is selected (assumes that if the user is
 /// entering data into an edit box, the user wants to also select the associated radio button).
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnSetfocus(wxFocusEvent& event) 
@@ -753,7 +753,7 @@ void CPrintOptionsDlg::OnCheckIncludeFollowingHeading(wxCommandEvent& WXUNUSED(e
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Pages range, so insure that the Pages radio button is selected if not already
+	// user has chamged a Pages range, so ensure that the Pages radio button is selected if not already
 	if (pRadioPages->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -787,7 +787,7 @@ void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesTo(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Pages range, so insure that the Pages radio button is selected if not already
+	// user has chamged a Pages range, so ensure that the Pages radio button is selected if not already
 	if (pRadioPages->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -821,7 +821,7 @@ void CPrintOptionsDlg::OnEditPagesTo(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditChapterFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -855,7 +855,7 @@ void CPrintOptionsDlg::OnEditChapterFrom(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditVerseFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -889,7 +889,7 @@ void CPrintOptionsDlg::OnEditVerseFrom(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditChapterTo(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -923,7 +923,7 @@ void CPrintOptionsDlg::OnEditChapterTo(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditVerseTo(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);

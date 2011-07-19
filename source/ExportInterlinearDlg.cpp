@@ -307,7 +307,7 @@ void CExportInterlinearDlg::OnBnClickedButtonRtfExportFilterOptions(wxCommandEve
 		// ExportSaveAsDlg, that way a user can cancel the secondary dialog
 		// and go back to check his settings afterwards.
 		// User cancelled, and so no export options were changed.
-		// So, insure that all the flags in m_exportFilterFlags are set 
+		// So, ensure that all the flags in m_exportFilterFlags are set 
 		// back to their default values in m_exportFilterFlagsBeforeEdit,
 		// which will signal to the caller that no changes were made.
 		//m_exportFilterFlags.Copy(m_exportFilterFlagsBeforeEdit);

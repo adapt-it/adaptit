@@ -835,7 +835,7 @@ void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfil
 		{
 			for (count = 0; count < totPNamesFrom - totPNamesTo; count++)
 			{
-				// insure the pToUserProfiles->definedProfileNames has the same number of array elements
+				// ensure the pToUserProfiles->definedProfileNames has the same number of array elements
 				pToUserProfiles->definedProfileNames.Add(_T("")); // the added string elements will get copied below
 			}
 		}
@@ -854,7 +854,7 @@ void CAdminEditMenuProfile::CopyUserProfiles(const UserProfiles* pFromUserProfil
 		{
 			for (count = 0; count < totPNamesFrom - totPNamesTo; count ++)
 			{
-				// insure the pToUserProfiles->descriptionProfileTexts has the same number of array elements
+				// ensure the pToUserProfiles->descriptionProfileTexts has the same number of array elements
 				pToUserProfiles->descriptionProfileTexts.Add(_T("")); // the added string elements will get copied below
 			}
 		}

@@ -77,7 +77,7 @@ public:
 	// the compiler will initialize the MapKeyStringToTgtUnit, before TUList.
 	// TODO: Implement the commented out copy constructor, change the ordering of the class members
 	// in the declaration below, putting TUList* m_pTargetUnits before the MapKeyStringToTgtUnit* m_pMap[10]
-	// line to insure that it gets initialized first. See if it works properly in the wxWidgets
+	// line to ensure that it gets initialized first. See if it works properly in the wxWidgets
 	// version and avoids the same problem Bruce encountered in the MFC version. cf similar notes
 	// for CTargetUnit.
 

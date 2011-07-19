@@ -214,7 +214,7 @@ void CCaseEquivPageCommon::DoInit()
 		// Initialize the box as unchecked
 		wxCheckBox* pChkBox1 = (wxCheckBox*)FindWindowById(ID_CHECK_SOURCE_USES_CAPS);
 		pChkBox1->SetValue(FALSE);
-		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so insure
+		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so ensure
 		// that gbAutoCaps is FALSE here (in case user monkeyed with config file
 		// and changed gbAutoCaps to TRUE while gbSrcHasUcAndLc was false).
 		gbAutoCaps = FALSE;
@@ -421,7 +421,7 @@ void CCaseEquivPageCommon::DoBnCheckedSrcHasCaps() // added by whm 11Aug04
 		wxCheckBox* pChkBox1 = (wxCheckBox*)FindWindowById(ID_CHECK_SOURCE_USES_CAPS);
 		pChkBox1->SetValue(FALSE);
 		gbSrcHasUcAndLc = FALSE;
-		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so insure
+		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so ensure
 		// that gbAutoCaps is FALSE here (in case user monkeyed with config file
 		// and changed gbAutoCaps to TRUE while gbSrcHasUcAndLc was false).
 		gbAutoCaps = FALSE;

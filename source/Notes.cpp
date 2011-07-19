@@ -1799,7 +1799,7 @@ _("Some temporarily removed Notes could not be restored to the document due to l
                                 // resulted in incorrect ordering of source phrases, so we
                                 // use array[] = assignment notation instead. Bruce's note
                                 // indicates that it is going to "insert at the array's
-                                // end", so to be safe we insure that the array has at
+                                // end", so to be safe we ensure that the array has at
                                 // least nNumInUnsqueezedArray elements by calling
                                 // SetCount()
 								if (nNumUnsqueezedLocations + 1 > 
@@ -1871,7 +1871,7 @@ _("Some temporarily removed Notes could not be restored to the document due to l
                             // array before the existing item n. This resulted in incorrect
                             // ordering of source phrases, so we use array[] = assignment
                             // notation instead. Bruce's note indicates that it is going to
-                            // "insert at the array's end", so to be safe we insure that
+                            // "insert at the array's end", so to be safe we ensure that
                             // the array has at least nNumInUnsqueezedArray elements by
                             // calling SetCount()
 							if (nNumUnsqueezedLocations + 1 > 
@@ -2096,7 +2096,7 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 			//locationsArr.SetAtGrow(anArrayIndex,locIndex);
             // whm Note: wxArrayInt doesn't have MFC's SetAtGrow() method, but we can
             // accomplish the same thing. We can use the ::SetCount() method of wxArray to
-            // insure the array has at least anArrayIndex + 1 elements, then assign
+            // ensure the array has at least anArrayIndex + 1 elements, then assign
             // locIndex to element anArrayIndex. We only call SetCount() if the array is
             // too small. The MFC docs for CAtlArray::SetAtGrow say SetAtGrow does the same
             // thing, "If iElement is larger than the current size of the array, the array
@@ -2228,7 +2228,7 @@ bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEd
                 // copies of the item into the array before the existing item n. This
                 // resulted in incorrect ordering of source phrases, so we use array[] =
                 // assignment notation instead. Bruce's note indicates that it is going to
-                // "insert at the array's end", so to be safe we insure that the array has
+                // "insert at the array's end", so to be safe we ensure that the array has
                 // at least nNumInUnsqueezedArray elements by calling SetCount()
 				if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
 					pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
@@ -2302,7 +2302,7 @@ bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEd
                 // copies of the item into the array before the existing item n. This
                 // resulted in incorrect ordering of source phrases, so we use array[] =
                 // assignment notation instead. Bruce's note indicates that it is going to
-                // "insert at the array's end", so to be safe we insure that the array has
+                // "insert at the array's end", so to be safe we ensure that the array has
                 // at least nNumInUnsqueezedArray elements by calling SetCount()
 				if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
 					pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
@@ -2498,7 +2498,7 @@ bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEd
                         // existing item n. This resulted in incorrect ordering of source
                         // phrases, so we use array[] = assignment notation instead.
                         // Bruce's note indicates that it is going to "insert at the
-                        // array's end", so to be safe we insure that the array has at
+                        // array's end", so to be safe we ensure that the array has at
                         // least nNumInUnsqueezedArray elements by calling SetCount()
 						if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
 							pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
