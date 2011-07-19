@@ -16600,13 +16600,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_BibleditInstallDirPath = GetBibleditInstallDirPath();
 	m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
 
-	if (this->m_bCollaboratingWithBibledit)
+#ifdef __WXGTK__
 		m_collaborationEditor = _T("Bibledit"); // don't localize
-	else if (this->m_bCollaboratingWithParatext)
-		m_collaborationEditor = _T("Paratext"); // don't localize
-	else
+#endif
+#ifdef __WXMAC__
+		m_collaborationEditor = _T("Bibledit"); // don't localize
+#endif
+#ifdef __WXMSW__
 		m_collaborationEditor = _T("Paratext"); // default editor
-
+#endif
 
 	// whm 28Mar11 TESTING BELOW !!!
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
