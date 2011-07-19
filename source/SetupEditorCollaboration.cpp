@@ -69,7 +69,7 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 END_EVENT_TABLE()
 
 CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog constructor
-: AIModalDialog(parent, -1, _("Set Up Paratext Collaboration"),
+: AIModalDialog(parent, -1, _("Set Up %s Collaboration"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -137,6 +137,9 @@ CSetupEditorCollaboration::~CSetupEditorCollaboration() // destructor
 void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	wxString curTitle = this->GetTitle();
+	curTitle = curTitle.Format(curTitle,m_pApp->m_collaborationEditor.c_str());
+	this->SetTitle(curTitle);
 	
 	// initialize our dialog temp variables from those held on the App
 	m_bTempCollaboratingWithParatext = m_pApp->m_bCollaboratingWithParatext;
