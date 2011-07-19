@@ -184,13 +184,13 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 	int nProjectCount = 0;
 	// get list of PT/BE projects
-	if (m_bTempCollaboratingWithParatext)
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
 		m_pApp->m_ListOfPTProjects.Clear();
 		m_pApp->m_ListOfPTProjects = m_pApp->GetListOfPTProjects();
 		nProjectCount = (int)m_pApp->m_ListOfPTProjects.GetCount();
 	}
-	else if (m_bTempCollaboratingWithBibledit)
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		m_pApp->m_ListOfBEProjects.Clear();
 		m_pApp->m_ListOfBEProjects = m_pApp->GetListOfBEProjects();
