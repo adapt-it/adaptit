@@ -188,7 +188,7 @@ void CAutoSavingPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 
 	// transfer initial values to controls
 	m_pCheckNoAutoSave->SetValue(tempNoAutoSave);
-    // whm 11Jun09 moved OnCheckNoAutoSave() from above to insure control has the updated
+    // whm 11Jun09 moved OnCheckNoAutoSave() from above to ensure control has the updated
     // value before OnCheckNoAutoSave() is called.
 	OnCheckNoAutoSave(dummyevent);
 	m_pRadioByMinutes->SetValue(tempIsDocTimeButton);

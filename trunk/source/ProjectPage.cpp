@@ -332,7 +332,7 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 		}
 		m_curLBSelection = selItem;
 	}
-	// insure the listbox is in focus
+	// ensure the listbox is in focus
 	m_pListBox->SetFocus();
 	// make the list boxes scrollable
 	// whm note: wxDesigner has the listbox style set for wxLB_HSCROLL which creates a horizontal scrollbar

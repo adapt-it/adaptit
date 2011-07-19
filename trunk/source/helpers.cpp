@@ -431,7 +431,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 		if (nLength >= BufferLength)
 			nLength = BufferLength-1;
 		wxUint32 numRead = file.Read(Buffer,nLength);
-		Buffer[numRead] = '\0'; // insure terminating null
+		Buffer[numRead] = '\0'; // ensure terminating null
 
 		// remaining code from original MFC function
 		// it was a good read, so make the data into a CBString
@@ -2393,11 +2393,11 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear().
 	// Also it is sometimes possible that a user could remove a selection from a list box on
-	// non-Windows platforms, so ListBoxPassesSanityCheck() does the following to insure that any
+	// non-Windows platforms, so ListBoxPassesSanityCheck() does the following to ensure that any
 	// wxListBox, wxCheckListBox, or wxComboBox is ready for action:
 	// 1. We check to see if pListBox is really there (not NULL).
 	// 2. We return FALSE if the control does not have any items in it.
-	// 3. We check to insure that at least one item is selected when the control has at least one item
+	// 3. We check to ensure that at least one item is selected when the control has at least one item
 	//    in it. Item 0 (first item) is selected if no items were selected on entry. In this case, if
 	//    item 0 cannot be selected we return FALSE.
 	// 4. We return TRUE if pListBox has passed the sanity checks (1, 2, 3 above).
@@ -8118,6 +8118,44 @@ wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxStri
 	}
 	return theText;
 }
+
+// Pass in a full path and file name (folderPathAndName) and it will look for a file of 
+// that name. The file (if using the Unicode app build) will expect the file's data to be
+// UTF8, and it will convert it to UTF16 - no check for UTF8 is done so don't use this on a
+// file which doesn't comply). It will return the UTF16 text if it finds such a file, or an
+// empty string if it cannot find the file or if it failed to open it's file -- in the
+// latter circumstance, since the file failing to be opened is extremely unlikely, we'll
+// not distinguish that error from the lack of a such a file being present.
+// Created by whm 18Jul11 so it can be used for text files other than those with .txt 
+// extension.
+wxString GetTextFromFileInFolder(wxString folderPathAndName) // an override of above function
+{
+	wxString theText; theText.Empty();
+	bool bFileExists = ::wxFileExists(folderPathAndName);
+	if (bFileExists)
+	{
+		wxFFile ff;
+		bool bOK;
+		if (ff.Open(folderPathAndName)) // default is read mode "r"
+		{
+			// no error when opening
+			bOK = ff.ReadAll(&theText, wxConvUTF8);
+			if (bOK)
+				ff.Close(); // ignore return value
+			else
+			{
+				theText.Empty();
+				return theText;
+			}
+		}
+		else
+		{
+			return theText;
+		}
+	}
+	return theText;
+}
+
 
 // Pass in the absolute path to the file, which should be UTF-8. The function opens and
 // reads the file into a temporary byte buffer internally which is destroyed when the

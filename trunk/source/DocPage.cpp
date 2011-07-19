@@ -351,7 +351,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 			// back to the projectPage
 			wxASSERT(this == pDocPage);
 		}
-		// insure the project page is up to date
+		// ensure the project page is up to date
 		wxInitDialogEvent idevent;
 		pProjectPage->InitDialog(idevent);
 
@@ -713,7 +713,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		// We've just defined a new project (via previous wizard pages), or we've loaded 
 		// an existing project config file (via projectPage). In either case, we may now 
 		// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to 
-		// insure that the Layout menu item's text is set correctly.
+		// ensure that the Layout menu item's text is set correctly.
 		if (pApp->m_bSrcRTL == TRUE && pApp->m_bTgtRTL == TRUE)
 		{
 			gbLTRLayout = FALSE; // use these to set layout direction on user's behalf, when possible

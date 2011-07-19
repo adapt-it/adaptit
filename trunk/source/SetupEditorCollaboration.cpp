@@ -228,7 +228,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: For source project, the project can be readable or writeable (all in list)
-	// The OnOK() handler will check to insure that the project selected for source
+	// The OnOK() handler will check to ensure that the project selected for source
 	// text inputs is different from the project selected for target text exports.
 	
 	// use a temporary array list
@@ -275,7 +275,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
 {
-	// Note: For target project, we must insure that the Paratext project is writeable
+	// Note: For target project, we must ensure that the Paratext project is writeable
 	// TODO: remove from list any that are not writeable
 	
 	// use a temporary array list
@@ -321,7 +321,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
 {
-	// Note: For free trans project, we must insure that the Paratext project is writeable
+	// Note: For free trans project, we must ensure that the Paratext project is writeable
 	// TODO: remove from list any that are not writeable
 	
 	// use a temporary array list
@@ -391,7 +391,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			return;
 		}
 	}
-	// Check to insure that the project selected for source text inputs is different 
+	// Check to ensure that the project selected for source text inputs is different 
 	// from the project selected for target text exports, unless both are [No Project 
 	// Selected].
 	// If the same project is selected, inform the administrator and abort the OK

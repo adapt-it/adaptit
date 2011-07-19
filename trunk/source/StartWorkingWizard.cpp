@@ -212,14 +212,14 @@ wxWizardPage* CStartWorkingWizard::GetFirstPage()
 	if (gpApp->m_bKBReady && gpApp->m_pKB != NULL)
 	{
 		// KBs are loaded, so start with the docPage
-		// insure docPage is initialized
+		// ensure docPage is initialized
 		pDocPage->InitDialog(ievent);
 		return pDocPage;
 	}
 	else
 	{
 		// KBs are not loaded so start with the projectPage
-		// insure the projectPage is initialized
+		// ensure the projectPage is initialized
 		pProjectPage->InitDialog(ievent);
 		return pProjectPage;
 	}

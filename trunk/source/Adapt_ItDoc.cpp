@@ -3216,7 +3216,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 	//    index will be the first two fields, followed by version 3 specific config values.
     // Note: The gCurrentSfmSet is always changed to be the same as was last saved in the
     // document. The gCurrentFilterMarkers is also always changed to be the same as way
-    // last saved in the document. To insure that the current settings in the active
+    // last saved in the document. To ensure that the current settings in the active
     // USFMAnalysis structs are in agreement with what was last saved in the document we
     // call ResetUSFMFilterStructs().
 	//
@@ -5574,7 +5574,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						int count = pView->TokenizeTextString(pSublist,extractedStr,pSrcPhrase->m_nSequNumber);
 						bool bIsContentlessMarker = FALSE;
 						
-						USFMAnalysis* pSfm = NULL;	// whm moved here from below to insure it is
+						USFMAnalysis* pSfm = NULL;	// whm moved here from below to ensure it is
 													// initialized before call to AnalyseMarker
 
 						// 20Sep10 -- this comment needs qualifying -- see below it...
@@ -6384,7 +6384,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                 // which just returns a const wxChar* to the data in the string.
 				const wxChar* ptr = contentlessMkr.GetData();
 				
-				// whm added two lines below because wxStringBuffer needs to insure buffer 
+				// whm added two lines below because wxStringBuffer needs to ensure buffer 
 				// ends with null char
 				wxChar* pEnd;
 				pEnd = (wxChar*)ptr + itsLen;
@@ -7346,7 +7346,7 @@ bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 /// Parses through to the end of a standard format marker.
 /// Caution: This function will fail unless the marker pChar points at is followed
 /// by whitespace of some sort - a potential crash problem if ParseMarker is used for parsing
-/// markers in local string buffers; insure the buffer ends with a space so that if an end
+/// markers in local string buffers; ensure the buffer ends with a space so that if an end
 /// marker is at the end of a string ParseMarker won't crash (TCHAR(0) won't help at the end
 /// of the buffer here because _istspace which is called from IsWhiteSpace() only recognizes
 /// 0x09 ?0x0D or 0x20 as whitespace for most locales.
@@ -7356,7 +7356,7 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 {
     // whm Note: Caution: This function will fail unless the marker pChar points at is
     // followed by whitespace of some sort - a potential crash problem if ParseMarker is
-    // used for parsing markers in local string buffers; insure the buffer ends with a
+    // used for parsing markers in local string buffers; ensure the buffer ends with a
     // space so that if an end marker is at the end of a string ParseMarker won't crash
     // (TCHAR(0) won't help at the end of the buffer here because _istspace which is called
     // from IsWhiteSpace() only recognizes 0x09 ?0x0D or 0x20 as whitespace for most
@@ -11998,12 +11998,12 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 	if (aPos != -1)
 		wholeMkr.Remove(aPos,1);
 	// whm revised 13Jul05. In order to get an accurate Find of wholeMkr below we
-	// need to insure that the wholeMkr is followed by a space, otherwise Find would
+	// need to ensure that the wholeMkr is followed by a space, otherwise Find would
 	// give a false positive when wholeMkr is "\b" and the searched string has \bd, \bk
 	// \bdit etc.
 	wholeMkr.Trim(TRUE); // trim right end
 	wholeMkr.Trim(FALSE); // trim left end
-	wholeMkr += _T(' '); // insure wholeMkr has a single final space
+	wholeMkr += _T(' '); // ensure wholeMkr has a single final space
 
 	switch(gpApp->gCurrentSfmSet)
 	{
@@ -12223,7 +12223,7 @@ wxString& CAdapt_ItDoc::AppendItem(wxString& dest,wxString& src, const wxChar* p
 wxString& CAdapt_ItDoc::AppendFilteredItem(wxString& dest,wxString& src)
 {
 	// whm added 11Feb05
-	// insure the filtered item is padded with space if it is not first 
+	// ensure the filtered item is padded with space if it is not first 
 	// in dest
     if (!dest.IsEmpty())
 	{
@@ -14192,7 +14192,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 						else if (mkrInitStatus == preserveUnkMkrFilterStatusInDoc)
 						{
                             // whm added 27Jun05. After any doc rebuild is finished, we
-                            // need to insure that the unknown marker arrays and
+                            // need to ensure that the unknown marker arrays and
                             // m_currentUnknownMarkerStr are up to date from what is now
                             // the situation in the Doc.
                             // Use preserveUnkMkrFilterStatusInDoc to cause
@@ -14277,7 +14277,7 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 		mkrStr.Trim(TRUE); // trim right end
 		mkrStr += _T("="); // add '='
 		mkrStr << pUnkMkrsFlags->Item(ct); // add a 1 or 0 flag formatted as string
-		mkrStr += _T(' '); // insure a single final space
+		mkrStr += _T(' '); // ensure a single final space
 		tempStr += mkrStr;
 	}
 	return tempStr;
@@ -14735,7 +14735,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
                                 // The legacy app never reached this else block, because,
                                 // if it had, it would enter an endless loop. The version 3
                                 // app can have filtered text and can potentially reach
-                                // this else block, so we must insure that we avoid an
+                                // this else block, so we must ensure that we avoid an
                                 // endless loop by incrementing ptr here.
 					}
 				}
@@ -16019,7 +16019,7 @@ bool CAdapt_ItDoc::IsEndMarkerForTextTypeNone(wxChar* pChar)
 /// ReconstituteAfterFilteringChange() to unfilter any previously filtered material, the
 /// second pass again calls SetupForSFMSetChange() with adjusted parameters and
 /// ReconstituteAfterFilteringChange() to filter any new filtering changes. The third pass
-/// calls DoMarkerHousekeeping() to insure that TextType, m_bSpecialText, and m_inform
+/// calls DoMarkerHousekeeping() to ensure that TextType, m_bSpecialText, and m_inform
 /// members of pSrcPhrase are set correctly at each location after the other major changes
 /// have been effected.
 ///////////////////////////////////////////////////////////////////////////////
@@ -17209,7 +17209,7 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 		str.Remove(mkrPos, wxStrlen_(filterMkr));
 		// after deleting the beginning marker, mkrPos should point to the space that
 		// followed the beginning filter bracket marker - at least for well formed 
-		// filtered material. Before deleting that space, however, we check to insure
+		// filtered material. Before deleting that space, however, we check to ensure
 		// it is indeed a space.
 		if (str.GetChar(mkrPos) == _T(' '))
 			str.Remove(mkrPos,1);

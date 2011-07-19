@@ -1899,7 +1899,7 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 	CLayout* pLayout = gpApp->m_pLayout;
 
 	// WX Docs show the following example for its OnMRUFile handler:
-	// TODO: need to tweak this to also to insure that things are set up properly to 
+	// TODO: need to tweak this to also to ensure that things are set up properly to 
 	// load a document from MRU when it is located in a different project; also it must 
 	// work when book folder mode was on in one project and off in the other, or vise versa;
 	// also that it toggles the required booleans and sets up the correct paths to the
@@ -1985,7 +1985,7 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	if (!bOK1)
 	{
 		wxString strMsg;
-		strMsg = strMsg.Format(_T("Adapt It could not add book contents to its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
+		strMsg = strMsg.Format(_T("Adapt It could not add book contents to its help file.\nThe name and location of the help file it looked for:\n %s\nTo ensure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
 		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
 	}
 	if (bOK1)
@@ -1995,7 +1995,7 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 		if (!bOK2)
 		{
 			wxString strMsg;
-			strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
+			strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo ensure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
 			wxMessageBox(strMsg, _T(""), wxICON_WARNING);
 		}
 	}

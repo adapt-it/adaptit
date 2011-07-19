@@ -435,7 +435,7 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
     // into the edit box. If the user deleted everything from the edit box,
 	if (m_bRadioButtonAction || m_pEditCtrlNew->GetValue().Length() > 0)
 	{
-		// The edit control has something in it so insure the "Type a new one:" radio button is
+		// The edit control has something in it so ensure the "Type a new one:" radio button is
 		// selected and other radio buttons are not selected.
 		wxASSERT(m_pRadioSelectFromList != NULL);
 		if (m_pRadioSelectFromList->GetValue() != FALSE)
@@ -468,7 +468,7 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 		}
 		else
 		{
-            // No list box content, so insure that the default button in this case is the second one -
+            // No list box content, so ensure that the default button in this case is the second one -
             // i.e., to accept the existing translation.
 			wxASSERT(m_pRadioSelectFromList != NULL);
 			if (m_pRadioSelectFromList->GetValue() != FALSE)
