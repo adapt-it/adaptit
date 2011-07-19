@@ -37130,7 +37130,6 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		
 		// get the user's desired path and file name
 		exportPath = fileDlg.GetPath(); 
-		filterIndex;
 		filterIndex = fileDlg.GetFilterIndex();
 		// NOTE: If you decide to change the default Export type you must make sure that 
 		// the KBExportSaveAsType enum ordering (in Adapt_It.h) has the same enum values 
