@@ -237,12 +237,24 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// use a temporary array list
 	wxArrayString tempListOfProjects;
 	tempListOfProjects.Add(_("[No Project Selected]"));
-	int ct;
-	int tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
-	for (ct = 0; ct < tot; ct++)
+	int ct,tot;
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		// load the rest of the projects into the temp array list
-		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			// load the rest of the projects into the temp array list
+			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+		}
+	}
+	else if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	{
+		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			// load the rest of the projects into the temp array list
+			tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+		}
 	}
 	wxString msg;
 	msg = _("Choose a default project the user will see initially for source text inputs");
@@ -284,12 +296,24 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// use a temporary array list
 	wxArrayString tempListOfProjects;
 	tempListOfProjects.Add(_("[No Project Selected]"));
-	int ct;
-	int tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
-	for (ct = 0; ct < tot; ct++)
+	int ct,tot;
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		// load the rest of the projects into the temp array list
-		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			// load the rest of the projects into the temp array list
+			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+		}
+	}
+	else if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	{
+		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			// load the rest of the projects into the temp array list
+			tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+		}
 	}
 	wxString msg;
 	msg = _("Choose a default project the user will see initially for translation text exports");
@@ -330,12 +354,24 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// use a temporary array list
 	wxArrayString tempListOfProjects;
 	tempListOfProjects.Add(_("[No Project Selected]"));
-	int ct;
-	int tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
-	for (ct = 0; ct < tot; ct++)
+	int ct,tot;
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		// load the rest of the projects into the temp array list
-		tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			// load the rest of the projects into the temp array list
+			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+		}
+	}
+	else if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	{
+		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			// load the rest of the projects into the temp array list
+			tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+		}
 	}
 	wxString msg;
 	msg = _("Choose a default project the user will see initially for free translation text exports");
