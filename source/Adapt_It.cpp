@@ -37628,309 +37628,307 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 	bool bWorking = finder.GetFirst(&str,_T(""),wxDIR_DIRS);
 	while (bWorking)
 	{
-	
-		bWorking = finder.GetNext(&str);
 		tempListOfBEProjects.Add(str);
+		bWorking = finder.GetNext(&str);
 	}
 		
-		
-		// Now get information from the configuration.1.xml file(s) in each project folder
-		// to use in filling out the Collab_Project_Info_Struct structs stored on the heap.
-		int nTotNumProjects = (int)tempListOfBEProjects.GetCount();
+	// Now get information from the configuration.1.xml file(s) in each project folder
+	// to use in filling out the Collab_Project_Info_Struct structs stored on the heap.
+	int nTotNumProjects = (int)tempListOfBEProjects.GetCount();
 
-		if (nTotNumProjects > 0)
+	if (nTotNumProjects > 0)
+	{
+		// Open the configuration.1.xml file in each project folder and glean the 
+		// necessary information populating the Collab_Project_Info_Struct fields
+		// for the given project.
+		int projCt;
+		for (projCt = 0; projCt < nTotNumProjects; projCt++)
 		{
-			// Open the configuration.1.xml file in each project folder and glean the 
-			// necessary information populating the Collab_Project_Info_Struct fields
-			// for the given project.
-			int projCt;
-			for (projCt = 0; projCt < nTotNumProjects; projCt++)
+			wxString projConfigFilePath;
+			wxString projName = tempListOfBEProjects.Item(projCt);
+			wxString projPath = BE_ProjectsDirPath + PathSeparator + projName;
+			projConfigFilePath = projPath + PathSeparator + _T("configuration.1.xml");
+			wxTextFile f;
+			bool bFileExists = wxFileExists(projConfigFilePath);
+			if (bFileExists)
 			{
-				wxString projConfigFilePath;
-				wxString projName = tempListOfBEProjects.Item(projCt);
-				wxString projPath = BE_ProjectsDirPath + PathSeparator + projName;
-				projConfigFilePath = projPath + PathSeparator + _T("configuration.1.xml");
-				wxTextFile f;
-				bool bFileExists = wxFileExists(projConfigFilePath);
-				if (bFileExists)
+				bool bOpenedOK;
+				bOpenedOK = f.Open(projConfigFilePath);
+				if (bOpenedOK)
 				{
-					bool bOpenedOK;
-					bOpenedOK = f.Open(projConfigFilePath);
-					if (bOpenedOK)
+					// The ssf file is now in memory and accessible line-by-line using wxTextFile
+					// methods.
+					
+					Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
+					pPTInfo->booksPresentFlags = _T(""); // computed for BE
+					pPTInfo->ethnologueCode = _T(""); // not used by BE
+					pPTInfo->fullName = _T(""); // same as project folder name in BE
+					pPTInfo->languageName = _T(""); // not well-defined in BE - we use project folder name
+					pPTInfo->projectDir = _T(""); // ~/.bibledit/projects/<projName>
+					pPTInfo->shortName = _T(""); // not used by BE
+					pPTInfo->versification = _T(""); // differs from PT classification but we don't really use it
+					pPTInfo->chapterMarker = _T("c"); // default is c; BE doesn't define it
+					pPTInfo->verseMarker = _T("v"); // default is v; BE doesn't define it
+					pPTInfo->defaultFont = _T("Sans"); // default is Sans; BE combines name and size together
+					pPTInfo->defaultFontSize = _T("10"); // default is 10
+					pPTInfo->leftToRight = _T("1"); // default is 1 (BE uses right-to-left logic)
+					pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
+					pPTInfo->bProjectIsNotResource = TRUE;
+					pPTInfo->bProjectIsEditable = TRUE;
+
+					// Initialize some variables for fields we are interested in.
+					wxString booksPresentFlags = _T(""); // computed for BE
+					wxString ethnologueCode = _T(""); // not used by BE
+					wxString fullName = _T(""); // same as project folder name in BE
+					wxString languageName = _T(""); // not well-defined in BE - we use project folder name
+					wxString projectDir = _T(""); // ~/.bibledit/projects/<projName>
+					wxString shortName = _T(""); // not used by BE
+					wxString versification = _T(""); // differs from PT classification but we don't really use it
+					wxString chapterMarker = _T("c"); // default is c; BE doesn't define it
+					wxString verseMarker = _T("v"); // default is v; BE doesn't define it
+					wxString defaultFont = _T("Sans"); // use Sans for Linux; BE combines name and size together
+					wxString defaultFontSize = _T("10"); // default is 10
+					wxString leftToRight = _T("1"); // Bibledit uses "0" or "1" rather than "F" or "T"
+					wxString encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
+					bool bProjectIsNotResource = TRUE;
+					bool bProjectIsEditable = TRUE;
+
+					wxString lineStr;
+					
+					// The Bibledit configuration files do not have an xml field that
+					// is parallel to the Paratext xml tag <BooksPresent>...</BooksPresent>.
+					// Instead, we must scan the BE project's "data" directory and collect
+					// the folder names within that directory. There will be a folder for
+					// each Bible book name the project has data for.
+					booksPresentFlags = GetBibleditBooksPresentFlagsStr(projPath);
+					// The full name in Paratext is equivalent of the projName in Bibledit
+					// i.e., the name of the folder we are currentlyscanning.
+					fullName = projName;
+					// whm Note: Bibledit's configuration1.1.xml file has a <language>...</language> tag
+					// but it doesn't currently represent the actual name of the language of a project,
+					// because Bibledit's drop down list for Language in its project dialog only allows
+					// for selecting a small number (about 16) languages. Hence, for Bibledit we
+					// have to assume that the languageName is the same as the projName
+					languageName = projName; 
+					// I don't thing the projectDir is used anywhere, but we will set it to point to
+					// the top-level folder of the Bibledit project (note project texts are located
+					// deeper down within subfolders of this path).
+					projectDir = projPath;
+
+					// scan through all lines of file setting field values as we go
+					for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
 					{
-						// The ssf file is now in memory and accessible line-by-line using wxTextFile
-						// methods.
-						
-						Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
-						pPTInfo->booksPresentFlags = _T(""); // computed for BE
-						pPTInfo->ethnologueCode = _T(""); // not used by BE
-						pPTInfo->fullName = _T(""); // same as project folder name in BE
-						pPTInfo->languageName = _T(""); // not well-defined in BE - we use project folder name
-						pPTInfo->projectDir = _T(""); // ~/.bibledit/projects/<projName>
-						pPTInfo->shortName = _T(""); // not used by BE
-						pPTInfo->versification = _T(""); // differs from PT classification but we don't really use it
-						pPTInfo->chapterMarker = _T("c"); // default is c; BE doesn't define it
-						pPTInfo->verseMarker = _T("v"); // default is v; BE doesn't define it
-						pPTInfo->defaultFont = _T("Sans"); // default is Sans; BE combines name and size together
-						pPTInfo->defaultFontSize = _T("10"); // default is 10
-						pPTInfo->leftToRight = _T("1"); // default is 1 (BE uses right-to-left logic)
-						pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
-						pPTInfo->bProjectIsNotResource = TRUE;
-						pPTInfo->bProjectIsEditable = TRUE;
+						//wxLogDebug(_T("%s"),lineStr.c_str());
+						// collect data fields for filling in PTProject structs.
+						lineStr.Trim(FALSE);
+						lineStr.Trim(TRUE);
+						wxString tagName;
+						wxString endTagName;
 
-						// Initialize some variables for fields we are interested in.
-						wxString booksPresentFlags = _T(""); // computed for BE
-						wxString ethnologueCode = _T(""); // not used by BE
-						wxString fullName = _T(""); // same as project folder name in BE
-						wxString languageName = _T(""); // not well-defined in BE - we use project folder name
-						wxString projectDir = _T(""); // ~/.bibledit/projects/<projName>
-						wxString shortName = _T(""); // not used by BE
-						wxString versification = _T(""); // differs from PT classification but we don't really use it
-						wxString chapterMarker = _T("c"); // default is c; BE doesn't define it
-						wxString verseMarker = _T("v"); // default is v; BE doesn't define it
-						wxString defaultFont = _T("Sans"); // use Sans for Linux; BE combines name and size together
-						wxString defaultFontSize = _T("10"); // default is 10
-						wxString leftToRight = _T("1"); // Bibledit uses "0" or "1" rather than "F" or "T"
-						wxString encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
-						bool bProjectIsNotResource = TRUE;
-						bool bProjectIsEditable = TRUE;
+						//tagName = _T("<BooksPresent>");
+						//endTagName = _T("</BooksPresent>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						//	pPTInfo->booksPresentFlags = booksPresentFlags;
+						//}
 
-						wxString lineStr;
-						
-						// The Bibledit configuration files do not have an xml field that
-						// is parallel to the Paratext xml tag <BooksPresent>...</BooksPresent>.
-						// Instead, we must scan the BE project's "data" directory and collect
-						// the folder names within that directory. There will be a folder for
-						// each Bible book name the project has data for.
-						booksPresentFlags = GetBibleditBooksPresentFlagsStr(projPath);
-						// The full name in Paratext is equivalent of the projName in Bibledit
-						// i.e., the name of the folder we are currentlyscanning.
-						fullName = projName;
-						// whm Note: Bibledit's configuration1.1.xml file has a <language>...</language> tag
-						// but it doesn't currently represent the actual name of the language of a project,
-						// because Bibledit's drop down list for Language in its project dialog only allows
-						// for selecting a small number (about 16) languages. Hence, for Bibledit we
-						// have to assume that the languageName is the same as the projName
-						languageName = projName; 
-						// I don't thing the projectDir is used anywhere, but we will set it to point to
-						// the top-level folder of the Bibledit project (note project texts are located
-						// deeper down within subfolders of this path).
-						projectDir = projPath;
+						//tagName = _T("<EthnologueCode>");
+						//endTagName = _T("</EthnologueCode>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	ethnologueCode = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						//	pPTInfo->ethnologueCode = ethnologueCode;
+						//}
 
-						// scan through all lines of file setting field values as we go
-						for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
+						//tagName = _T("<FullName>");
+						//endTagName = _T("</FullName>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						//	pPTInfo->fullName = fullName;
+						//}
+
+						//tagName = _T("<Language>");
+						//endTagName = _T("</Language>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						//	pPTInfo->languageName = languageName;
+						//}
+
+						//tagName = _T("<Directory>");
+						//endTagName = _T("</Directory>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						//	pPTInfo->projectDir = projectDir;
+						//}
+
+						//tagName = _T("<Name>");
+						//endTagName = _T("</Name>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
+						//	pPTInfo->shortName = shortName;
+						//}
+
+						// whm Note: PT used a <Versification> tag, Bibledit uses a <versification> tag
+						// [different capitalization in the tag], and nests the actual value within a 
+						// deeper <value>...</value> tag.
+						tagName = _T("<versification>");
+						endTagName = _T("</versification>");
+						if (lineStr.Find(tagName) != wxNOT_FOUND)
 						{
-							//wxLogDebug(_T("%s"),lineStr.c_str());
-							// collect data fields for filling in PTProject structs.
-							lineStr.Trim(FALSE);
-							lineStr.Trim(TRUE);
-							wxString tagName;
-							wxString endTagName;
-
-							//tagName = _T("<BooksPresent>");
-							//endTagName = _T("</BooksPresent>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-							//	pPTInfo->booksPresentFlags = booksPresentFlags;
-							//}
-
-							//tagName = _T("<EthnologueCode>");
-							//endTagName = _T("</EthnologueCode>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	ethnologueCode = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							//	pPTInfo->ethnologueCode = ethnologueCode;
-							//}
-
-							//tagName = _T("<FullName>");
-							//endTagName = _T("</FullName>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-							//	pPTInfo->fullName = fullName;
-							//}
-
-							//tagName = _T("<Language>");
-							//endTagName = _T("</Language>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-							//	pPTInfo->languageName = languageName;
-							//}
-
-							//tagName = _T("<Directory>");
-							//endTagName = _T("</Directory>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-							//	pPTInfo->projectDir = projectDir;
-							//}
-
-							//tagName = _T("<Name>");
-							//endTagName = _T("</Name>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-							//	pPTInfo->shortName = shortName;
-							//}
-
-							// whm Note: PT used a <Versification> tag, Bibledit uses a <versification> tag
-							// [different capitalization in the tag], and nests the actual value within a 
-							// deeper <value>...</value> tag.
-							tagName = _T("<versification>");
-							endTagName = _T("</versification>");
-							if (lineStr.Find(tagName) != wxNOT_FOUND)
-							{
-								versification = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-								pPTInfo->versification = versification;
-							}
-
-							//tagName = _T("<ChapterMarker>");
-							//endTagName = _T("</ChapterMarker>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	chapterMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							//	pPTInfo->chapterMarker = chapterMarker;
-							//}
-
-							//tagName = _T("<VerseMarker>");
-							//endTagName = _T("</VerseMarker>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	verseMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							//	pPTInfo->verseMarker = verseMarker;
-							//}
-
-							tagName = _T("<editor-font-name>");
-							endTagName = _T("</editor-font-name>");
-							if (lineStr.Find(tagName) != wxNOT_FOUND)
-							{
-								wxString tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-								// whm Note: Bibledit's font name and size are combined in the same text 
-								// string as for example "Sans 14", therefore we will get both defaultFont
-								// and defaultFontSize here.
-								wxString fontName;
-								wxString fontSize;
-								int posSp = tempStr.Find(_T(' '),TRUE); // TRUE - Find from right end
-								if (posSp != wxNOT_FOUND) 
-								{
-									fontSize = tempStr.Mid(posSp);
-									fontSize.Trim(TRUE);
-									fontSize.Trim(FALSE);
-									fontName = tempStr.Mid(0,posSp);
-									fontName.Trim(TRUE);
-									fontName.Trim(FALSE);
-								}
-								
-								defaultFont = fontName;
-								pPTInfo->defaultFont  = fontName;
-								defaultFontSize = fontSize;
-								pPTInfo->defaultFontSize = fontSize;
-							}
-
-							//tagName = _T("<DefaultFontSize>");
-							//endTagName = _T("</DefaultFontSize>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	defaultFontSize = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							//	pPTInfo->defaultFontSize = defaultFontSize;
-							//}
-
-							// PT uses <LeftToRight> with values of T or F, but BE uses <right-to-left> with
-							// values of 0 or 1
-							tagName = _T("<right-to-left>");
-							endTagName = _T("</right-to-left>");
-							if (lineStr.Find(tagName) != wxNOT_FOUND)
-							{
-								wxString tempStr;
-								tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName); // will be 0 or 1
-								// reverse the value for the structs' "leftToRight" value
-								if (tempStr == _T("0"))
-									leftToRight = _T("T");
-								else if (tempStr == _T("1"))
-									leftToRight = _T("F");
-								pPTInfo->leftToRight = leftToRight;
-							}
-
-							//tagName = _T("<Encoding>");
-							//endTagName = _T("</Encoding>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	encoding = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							//	pPTInfo->encoding = encoding;
-							//}
-
-							// whm Note: Bibledit'd resources are kept in a separate "resources" folder
-							// which is a sibling of "projects" within the .bibledit top level folder
-							//tagName = _T("<ResourceText>");
-							//endTagName = _T("</ResourceText>");
-							//if (lineStr.Find(tagName) != wxNOT_FOUND)
-							//{
-							//	wxString temp;
-							//	temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							//	// Note: non-Resource projects often don't have the "<ResourceText>"
-							//	// tag at all, therefore we set bProjectIsNotResource to TRUE as its
-							//	// default, unless <ResourceText>T</ResourceText> is present.
-							//	if (temp == _T("T"))
-							//	{
-							//		bProjectIsNotResource = FALSE;
-							//		pPTInfo->bProjectIsNotResource = FALSE;
-							//	}
-							//}
-
-							// whm Note: PT uses <Editable> and </Editable> tags with 'T' and 'F' values
-							// whereas BE uses <editable> and </editable> tags with a further nested
-							// <value> and </value> tags containing '0' and '1' values
-							tagName = _T("<editable>");
-							endTagName = _T("</editable>");
-							if (lineStr.Find(tagName) != wxNOT_FOUND)
-							{
-								wxString temp;
-								temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-								if (temp == _T("1"))
-								{
-									bProjectIsEditable = TRUE;
-								}
-								else if (temp == _T("0"))
-								{
-									bProjectIsEditable = FALSE;
-								}
-								pPTInfo->bProjectIsEditable = bProjectIsEditable;
-							}
-
+							versification = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							pPTInfo->versification = versification;
 						}
-						wxString storageStr;
-						// We do not allow collaboration with resource projects or
-						// projects that have no short name, since the short name is
-						// the basic PT name for the project (and the folder it is
-						// contained in).
-						if (bProjectIsNotResource && !shortName.IsEmpty())
+
+						//tagName = _T("<ChapterMarker>");
+						//endTagName = _T("</ChapterMarker>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	chapterMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						//	pPTInfo->chapterMarker = chapterMarker;
+						//}
+
+						//tagName = _T("<VerseMarker>");
+						//endTagName = _T("</VerseMarker>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	verseMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						//	pPTInfo->verseMarker = verseMarker;
+						//}
+
+						tagName = _T("<editor-font-name>");
+						endTagName = _T("</editor-font-name>");
+						if (lineStr.Find(tagName) != wxNOT_FOUND)
 						{
-							storageStr = shortName;
-							if (!fullName.IsEmpty())
+							wxString tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							// whm Note: Bibledit's font name and size are combined in the same text 
+							// string as for example "Sans 14", therefore we will get both defaultFont
+							// and defaultFontSize here.
+							wxString fontName;
+							wxString fontSize;
+							int posSp = tempStr.Find(_T(' '),TRUE); // TRUE - Find from right end
+							if (posSp != wxNOT_FOUND) 
 							{
-								storageStr += _T(" : ") + fullName;
+								fontSize = tempStr.Mid(posSp);
+								fontSize.Trim(TRUE);
+								fontSize.Trim(FALSE);
+								fontName = tempStr.Mid(0,posSp);
+								fontName.Trim(TRUE);
+								fontName.Trim(FALSE);
 							}
-							if (!languageName.IsEmpty())
-							{
-								storageStr += _T(" : ") + languageName;
-							}
-							if (!ethnologueCode.IsEmpty())
-							{
-								storageStr += _T(" : ") + ethnologueCode;
-							}
-							tempListOfBEProjects.Add(storageStr);
-							m_pArrayOfCollabProjects->Add(pPTInfo);
+							
+							defaultFont = fontName;
+							pPTInfo->defaultFont  = fontName;
+							defaultFontSize = fontSize;
+							pPTInfo->defaultFontSize = fontSize;
 						}
-						else
+
+						//tagName = _T("<DefaultFontSize>");
+						//endTagName = _T("</DefaultFontSize>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	defaultFontSize = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						//	pPTInfo->defaultFontSize = defaultFontSize;
+						//}
+
+						// PT uses <LeftToRight> with values of T or F, but BE uses <right-to-left> with
+						// values of 0 or 1
+						tagName = _T("<right-to-left>");
+						endTagName = _T("</right-to-left>");
+						if (lineStr.Find(tagName) != wxNOT_FOUND)
 						{
-							delete pPTInfo; // it's not a valid PT project we can use
+							wxString tempStr;
+							tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName); // will be 0 or 1
+							// reverse the value for the structs' "leftToRight" value
+							if (tempStr == _T("0"))
+								leftToRight = _T("T");
+							else if (tempStr == _T("1"))
+								leftToRight = _T("F");
+							pPTInfo->leftToRight = leftToRight;
 						}
-						f.Close();
+
+						//tagName = _T("<Encoding>");
+						//endTagName = _T("</Encoding>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	encoding = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						//	pPTInfo->encoding = encoding;
+						//}
+
+						// whm Note: Bibledit'd resources are kept in a separate "resources" folder
+						// which is a sibling of "projects" within the .bibledit top level folder
+						//tagName = _T("<ResourceText>");
+						//endTagName = _T("</ResourceText>");
+						//if (lineStr.Find(tagName) != wxNOT_FOUND)
+						//{
+						//	wxString temp;
+						//	temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+						//	// Note: non-Resource projects often don't have the "<ResourceText>"
+						//	// tag at all, therefore we set bProjectIsNotResource to TRUE as its
+						//	// default, unless <ResourceText>T</ResourceText> is present.
+						//	if (temp == _T("T"))
+						//	{
+						//		bProjectIsNotResource = FALSE;
+						//		pPTInfo->bProjectIsNotResource = FALSE;
+						//	}
+						//}
+
+						// whm Note: PT uses <Editable> and </Editable> tags with 'T' and 'F' values
+						// whereas BE uses <editable> and </editable> tags with a further nested
+						// <value> and </value> tags containing '0' and '1' values
+						tagName = _T("<editable>");
+						endTagName = _T("</editable>");
+						if (lineStr.Find(tagName) != wxNOT_FOUND)
+						{
+							wxString temp;
+							temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+							if (temp == _T("1"))
+							{
+								bProjectIsEditable = TRUE;
+							}
+							else if (temp == _T("0"))
+							{
+								bProjectIsEditable = FALSE;
+							}
+							pPTInfo->bProjectIsEditable = bProjectIsEditable;
+						}
+
 					}
+					wxString storageStr;
+					// We do not allow collaboration with resource projects or
+					// projects that have no short name, since the short name is
+					// the basic PT name for the project (and the folder it is
+					// contained in).
+					if (bProjectIsNotResource && !shortName.IsEmpty())
+					{
+						storageStr = shortName;
+						if (!fullName.IsEmpty())
+						{
+							storageStr += _T(" : ") + fullName;
+						}
+						if (!languageName.IsEmpty())
+						{
+							storageStr += _T(" : ") + languageName;
+						}
+						if (!ethnologueCode.IsEmpty())
+						{
+							storageStr += _T(" : ") + ethnologueCode;
+						}
+						tempListOfBEProjects.Add(storageStr);
+						m_pArrayOfCollabProjects->Add(pPTInfo);
+					}
+					else
+					{
+						delete pPTInfo; // it's not a valid PT project we can use
+					}
+					f.Close();
 				}
 			}
+		}
 	}
 
 	return tempListOfBEProjects;
