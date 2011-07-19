@@ -284,7 +284,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
 	}
-	pStaticTextCtrlSelectedSourceProj->SetLabel(userSelectionStr);
+	pStaticTextCtrlSelectedSourceProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForSourceInputs = userSelectionStr;
 }
 
@@ -342,7 +342,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		userSelectionInt = ChooseProjectForTargetTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
 	}
-	pStaticTextCtrlSelectedTargetProj->SetLabel(userSelectionStr);
+	pStaticTextCtrlSelectedTargetProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForTargetExports = userSelectionStr;
 }
 
@@ -400,7 +400,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		userSelectionInt = ChooseProjectForFreeTransTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
 	}
-	pStaticTextCtrlSelectedFreeTransProj->SetLabel(userSelectionStr);
+	pStaticTextCtrlSelectedFreeTransProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForFreeTransExports = userSelectionStr;
 	m_bTempCollaborationExpectsFreeTrans = TRUE;
 }
