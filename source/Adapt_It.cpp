@@ -37659,22 +37659,22 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 					// The ssf file is now in memory and accessible line-by-line using wxTextFile
 					// methods.
 					
-					Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
-					pPTInfo->booksPresentFlags = _T(""); // computed for BE
-					pPTInfo->ethnologueCode = _T(""); // not used by BE
-					pPTInfo->fullName = _T(""); // same as project folder name in BE
-					pPTInfo->languageName = _T(""); // not well-defined in BE - we use project folder name
-					pPTInfo->projectDir = _T(""); // ~/.bibledit/projects/<projName>
-					pPTInfo->shortName = _T(""); // not used by BE
-					pPTInfo->versification = _T(""); // differs from PT classification but we don't really use it
-					pPTInfo->chapterMarker = _T("c"); // default is c; BE doesn't define it
-					pPTInfo->verseMarker = _T("v"); // default is v; BE doesn't define it
-					pPTInfo->defaultFont = _T("Sans"); // default is Sans; BE combines name and size together
-					pPTInfo->defaultFontSize = _T("10"); // default is 10
-					pPTInfo->leftToRight = _T("1"); // default is 1 (BE uses right-to-left logic)
-					pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
-					pPTInfo->bProjectIsNotResource = TRUE;
-					pPTInfo->bProjectIsEditable = TRUE;
+					Collab_Project_Info_Struct* pBEInfo = new Collab_Project_Info_Struct;
+					pBEInfo->booksPresentFlags = _T(""); // computed for BE
+					pBEInfo->ethnologueCode = _T(""); // not used by BE
+					pBEInfo->fullName = _T(""); // same as project folder name in BE
+					pBEInfo->languageName = _T(""); // not well-defined in BE - we use project folder name
+					pBEInfo->projectDir = _T(""); // ~/.bibledit/projects/<projName>
+					pBEInfo->shortName = _T(""); // not used by BE
+					pBEInfo->versification = _T(""); // differs from PT classification but we don't really use it
+					pBEInfo->chapterMarker = _T("c"); // default is c; BE doesn't define it
+					pBEInfo->verseMarker = _T("v"); // default is v; BE doesn't define it
+					pBEInfo->defaultFont = _T("Sans"); // default is Sans; BE combines name and size together
+					pBEInfo->defaultFontSize = _T("10"); // default is 10
+					pBEInfo->leftToRight = _T("1"); // default is 1 (BE uses right-to-left logic)
+					pBEInfo->encoding = _T("65001"); // default is 65001 (UTF8); not used by BE
+					pBEInfo->bProjectIsNotResource = TRUE;
+					pBEInfo->bProjectIsEditable = TRUE;
 
 					// Initialize some variables for fields we are interested in.
 					wxString booksPresentFlags = _T(""); // computed for BE
@@ -37701,19 +37701,25 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 					// the folder names within that directory. There will be a folder for
 					// each Bible book name the project has data for.
 					booksPresentFlags = GetBibleditBooksPresentFlagsStr(projPath);
+					pBEInfo->booksPresentFlags = booksPresentFlags;
 					// The full name in Paratext is equivalent of the projName in Bibledit
 					// i.e., the name of the folder we are currentlyscanning.
 					fullName = projName;
+					pBEInfo->fullName = fullName;
+					shortName = fullName;
+					pBEInfo->shortName = shortName;
 					// whm Note: Bibledit's configuration1.1.xml file has a <language>...</language> tag
 					// but it doesn't currently represent the actual name of the language of a project,
 					// because Bibledit's drop down list for Language in its project dialog only allows
 					// for selecting a small number (about 16) languages. Hence, for Bibledit we
 					// have to assume that the languageName is the same as the projName
 					languageName = projName; 
+					pBEInfo->languageName = languageName;
 					// I don't thing the projectDir is used anywhere, but we will set it to point to
 					// the top-level folder of the Bibledit project (note project texts are located
 					// deeper down within subfolders of this path).
 					projectDir = projPath;
+					pBEInfo->projectDir = projectDir;
 
 					// scan through all lines of file setting field values as we go
 					for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
@@ -37730,7 +37736,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	booksPresentFlags = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						//	pPTInfo->booksPresentFlags = booksPresentFlags;
+						//	pBEInfo->booksPresentFlags = booksPresentFlags;
 						//}
 
 						//tagName = _T("<EthnologueCode>");
@@ -37738,7 +37744,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	ethnologueCode = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						//	pPTInfo->ethnologueCode = ethnologueCode;
+						//	pBEInfo->ethnologueCode = ethnologueCode;
 						//}
 
 						//tagName = _T("<FullName>");
@@ -37746,7 +37752,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	fullName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						//	pPTInfo->fullName = fullName;
+						//	pBEInfo->fullName = fullName;
 						//}
 
 						//tagName = _T("<Language>");
@@ -37754,7 +37760,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	languageName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						//	pPTInfo->languageName = languageName;
+						//	pBEInfo->languageName = languageName;
 						//}
 
 						//tagName = _T("<Directory>");
@@ -37762,7 +37768,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	projectDir = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						//	pPTInfo->projectDir = projectDir;
+						//	pBEInfo->projectDir = projectDir;
 						//}
 
 						//tagName = _T("<Name>");
@@ -37770,7 +37776,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	shortName = GetStringBetweenXMLTags(lineStr, tagName, endTagName);
-						//	pPTInfo->shortName = shortName;
+						//	pBEInfo->shortName = shortName;
 						//}
 
 						// whm Note: PT used a <Versification> tag, Bibledit uses a <versification> tag
@@ -37781,7 +37787,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						if (lineStr.Find(tagName) != wxNOT_FOUND)
 						{
 							versification = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							pPTInfo->versification = versification;
+							pBEInfo->versification = versification;
 						}
 
 						//tagName = _T("<ChapterMarker>");
@@ -37789,7 +37795,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	chapterMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						//	pPTInfo->chapterMarker = chapterMarker;
+						//	pBEInfo->chapterMarker = chapterMarker;
 						//}
 
 						//tagName = _T("<VerseMarker>");
@@ -37797,7 +37803,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	verseMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						//	pPTInfo->verseMarker = verseMarker;
+						//	pBEInfo->verseMarker = verseMarker;
 						//}
 
 						tagName = _T("<editor-font-name>");
@@ -37822,9 +37828,9 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 							}
 							
 							defaultFont = fontName;
-							pPTInfo->defaultFont  = fontName;
+							pBEInfo->defaultFont  = fontName;
 							defaultFontSize = fontSize;
-							pPTInfo->defaultFontSize = fontSize;
+							pBEInfo->defaultFontSize = fontSize;
 						}
 
 						//tagName = _T("<DefaultFontSize>");
@@ -37832,7 +37838,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	defaultFontSize = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						//	pPTInfo->defaultFontSize = defaultFontSize;
+						//	pBEInfo->defaultFontSize = defaultFontSize;
 						//}
 
 						// PT uses <LeftToRight> with values of T or F, but BE uses <right-to-left> with
@@ -37848,7 +37854,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 								leftToRight = _T("T");
 							else if (tempStr == _T("1"))
 								leftToRight = _T("F");
-							pPTInfo->leftToRight = leftToRight;
+							pBEInfo->leftToRight = leftToRight;
 						}
 
 						//tagName = _T("<Encoding>");
@@ -37856,7 +37862,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//if (lineStr.Find(tagName) != wxNOT_FOUND)
 						//{
 						//	encoding = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						//	pPTInfo->encoding = encoding;
+						//	pBEInfo->encoding = encoding;
 						//}
 
 						// whm Note: Bibledit'd resources are kept in a separate "resources" folder
@@ -37873,7 +37879,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//	if (temp == _T("T"))
 						//	{
 						//		bProjectIsNotResource = FALSE;
-						//		pPTInfo->bProjectIsNotResource = FALSE;
+						//		pBEInfo->bProjectIsNotResource = FALSE;
 						//	}
 						//}
 
@@ -37894,7 +37900,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 							{
 								bProjectIsEditable = FALSE;
 							}
-							pPTInfo->bProjectIsEditable = bProjectIsEditable;
+							pBEInfo->bProjectIsEditable = bProjectIsEditable;
 						}
 
 					}
@@ -37919,11 +37925,11 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 							storageStr += _T(" : ") + ethnologueCode;
 						}
 						tempListOfBEProjects.Add(storageStr);
-						m_pArrayOfCollabProjects->Add(pPTInfo);
+						m_pArrayOfCollabProjects->Add(pBEInfo);
 					}
 					else
 					{
-						delete pPTInfo; // it's not a valid PT project we can use
+						delete pBEInfo; // it's not a valid PT project we can use
 					}
 					f.Close();
 				}
@@ -38037,7 +38043,8 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 			valueLine.Trim(FALSE);
 			wxString valueBeginTag = _T("<value>");
 			wxString valueEndTag = _T("</value>");
-			int posValueBeginTag = valueLine.Find(valueBeginTag);
+			int posValueBeginTag;
+			posValueBeginTag = valueLine.Find(valueBeginTag);
 			int posValueEndTag = valueLine.Find(valueEndTag);
 			wxASSERT(posValueBeginTag != wxNOT_FOUND && posValueEndTag != wxNOT_FOUND && posValueEndTag > posValueBeginTag);
 			tempStr = valueLine.Mid(valueBeginTag.Length(), posValueEndTag - valueBeginTag.Length());
