@@ -208,11 +208,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 		for (i = 0; i < nProjectCount; i++)
 		{
 			wxString tempStr;
-			if (m_bTempCollaboratingWithParatext)
+			if (m_pApp->m_collaborationEditor == _T("Paratext"))
 			{
 				tempStr = m_pApp->m_ListOfPTProjects.Item(i);
 			}
-			else if (m_bTempCollaboratingWithBibledit)
+			else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 			{
 				tempStr = m_pApp->m_ListOfBEProjects.Item(i);
 			}
