@@ -23399,6 +23399,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szCollaboratingWithParatext << tab << number;
 	pf->AddLine(data);
 
+	// whm added 15Apr11 for Bibledit collaboration
+	if (m_bCollaboratingWithBibledit)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szCollaboratingWithBibledit << tab << number;
+	pf->AddLine(data);
+
 	data.Empty();
 	data << szCollabProjectForSourceInputs << tab << m_CollabProjectForSourceInputs;
 	pf->AddLine(data);
@@ -24809,6 +24818,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				m_bCollaboratingWithParatext = TRUE;
 			else
 				m_bCollaboratingWithParatext = FALSE;
+		}
+		else if (name == szCollaboratingWithBibledit) // whm added 15Apr11
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0;
+			if (num == 1)
+				m_bCollaboratingWithBibledit = TRUE;
+			else
+				m_bCollaboratingWithBibledit = FALSE;
 		}
 		else if (name == szCollabProjectForSourceInputs) // whm added 15Apr11
 		{
