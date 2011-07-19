@@ -247,7 +247,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
 		}
 	}
-	else if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
 		for (ct = 0; ct < tot; ct++)
@@ -306,7 +306,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
 		}
 	}
-	else if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
 		for (ct = 0; ct < tot; ct++)
@@ -364,7 +364,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
 		}
 	}
-	else if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
 		for (ct = 0; ct < tot; ct++)
