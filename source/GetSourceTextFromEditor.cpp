@@ -2237,6 +2237,10 @@ wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBP
 	collabProjShortName.Empty();
 	int posColon;
 	posColon = LBProjItem.Find(_T(':'));
+	// Under Bibledit, the LBProjItem may not have any ':' chars. In such cases
+	// just return the incoming LBProjItem unchanged
+	if (!LBProjItem.IsEmpty() && posColon == wxNOT_FOUND)
+		return LBProjItem;
 	collabProjShortName = LBProjItem.Mid(0,posColon);
 	collabProjShortName.Trim(FALSE);
 	collabProjShortName.Trim(TRUE);
