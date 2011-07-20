@@ -46,6 +46,7 @@
 #include <wx/colordlg.h>
 #include "ViewPage.h"
 #include "Adapt_It.h"
+#include "MainFrm.h"
 #include "Pile.h"
 #include "Layout.h"
 
@@ -198,6 +199,16 @@ void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 				m_pCheckShowAdminMenu->SetValue(FALSE);
 			}
 		}
+		// whm 20Jul11 added: Even though the "Show Administrator Menu... (Password 
+		// protected)" menu item is a toggle menu item, and would normally toggle its 
+		// own state each time it is invoked, we need to ensure its toggle state is in 
+		// sync with the internal toggling of the App's m_bShowAdministratorMenu flag 
+		// - which can be set either here or in the Edit | Preferences... | View tab. 
+		// Therefore we explicitly set the menu's toggle state both here and in the 
+		// other View tab location.
+		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+		pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,pApp->m_bShowAdministratorMenu);
+
 	}
 }
 

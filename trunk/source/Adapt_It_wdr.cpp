@@ -8442,6 +8442,8 @@ wxMenuBar *AIMenuBarFunc()
     item3->Append( ID_UNITS, _("&Units of Measurement..."), _("Units to be used when printing") );
     item3->AppendSeparator();
     item3->Append( ID_CHANGE_INTERFACE_LANGUAGE, _("Change Interface Language..."), _("Change the language of the program interface. You may need to restart Adapt It for the change to take effect") );
+    item3->AppendSeparator();
+    item3->Append( ID_VIEW_SHOW_ADMIN_MENU, _("Show Administrator Menu... (Password protected)"), _("Password protected. When ticked, Administrator menu shows"), wxITEM_CHECK );
     item0->Append( item3, _("&View") );
     
     wxMenu* item4 = new wxMenu;
