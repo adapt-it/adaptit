@@ -273,6 +273,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_VIEW_STATUS_BAR, CMainFrame::OnUpdateViewStatusBar)
 	EVT_MENU(ID_VIEW_COMPOSE_BAR, CMainFrame::OnViewComposeBar)
 	EVT_UPDATE_UI(ID_VIEW_COMPOSE_BAR, CMainFrame::OnUpdateViewComposeBar)
+	EVT_MENU(ID_VIEW_SHOW_ADMIN_MENU, CMainFrame::OnViewAdminMenu)
+	EVT_UPDATE_UI(ID_VIEW_SHOW_ADMIN_MENU, CMainFrame::OnUpdateViewAdminMenu)
 	EVT_UPDATE_UI(IDC_CHECK_KB_SAVE, CMainFrame::OnUpdateCheckKBSave)
 	EVT_UPDATE_UI(IDC_CHECK_FORCE_ASK, CMainFrame::OnUpdateCheckForceAsk)
 	EVT_UPDATE_UI(IDC_CHECK_SINGLE_STEP, CMainFrame::OnUpdateCheckSingleStep)
@@ -2474,6 +2476,97 @@ void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
 void CMainFrame::OnUpdateViewStatusBar(wxUpdateUIEvent& event)
 {
 	// View StarusBar menu toggle always available
+    event.Enable(TRUE);
+}
+
+// whm added 20Jul11 to provide easier access to the Administrator menu
+// by having a "Show Administrator Menu... (Password protected)" menu
+// item also located in the top level "View" menu (this is now in 
+// addition to a checkbox of the same label in the Edit | Preferences...
+// | View tab page.
+// Note: The Administrator menu is not subject to being made visible or
+// invisible within the user profiles mecahnism. It strictly is made 
+// visible or invisible according to the Administrator's password 
+// protected actions.
+void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	if (pApp->m_bShowAdministratorMenu)
+	{
+		// The menu is currently shown and administrator wants it hidden, no password required
+		// for hiding it.
+		pApp->m_bShowAdministratorMenu = FALSE;
+		
+
+		// is the Admin menu showing? If so, remove it
+		if (!pApp->m_bAdminMenuRemoved)
+		{
+			// it's showing, so get rid of it
+			int menuCount = pMenuBar->GetMenuCount();
+			// whm Note: Bruce designed the Administrator menu item to be
+			// deleted in the CMainFrame's destructor rather than when it
+			// is "Removed" here.
+			pApp->m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
+			pApp->m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
+			pApp->m_bAdminMenuRemoved = TRUE;
+		}
+		pMenuBar->Refresh();
+	}
+	else
+	{
+		// Someone wants to have the administrator menu made visible, this requires a
+		// password and we always accept the secret default "admin" password; note,
+		// although we won't document the fact, anyone can type an arbitrary password
+		// string in the relevant line of the basic configuration file, and the code below
+		// will accept it when next that config file is read in - ie. at next launch.
+		wxString message = _("Access to Administrator privileges requires that you type a password");
+		wxString caption = _("Type Administrator Password");
+		wxString default_value = _T("");
+		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this); 
+		if (password == _T("admin") || 
+			(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
+		{
+			// a valid password was typed
+			pApp->m_bShowAdministratorMenu = TRUE;
+			
+			// is the Admin menu hidden? If so, install it and show it, otherwise leave it
+			// showing 
+			if (pApp->m_bAdminMenuRemoved)
+			{
+				bool bAppendedOK = pMenuBar->Append(pApp->m_pRemovedAdminMenu,pApp->m_adminMenuTitle);
+				wxASSERT(bAppendedOK);
+				pApp->m_pRemovedAdminMenu = NULL;
+				pApp->m_bAdminMenuRemoved = FALSE;
+				bAppendedOK = bAppendedOK; // to remove compiler warning
+			}
+			pMenuBar->Refresh();
+		}
+		else
+		{
+			// invalid password - turn the checkbox back off, beep also
+			::wxBell();
+			// whm Note: The "Show Administrator Menu... (Password protected)" menu
+			// item is a toggle menu item. Its toggle state does not need to be 
+			// explicitly changed here.
+		}
+	}
+	// whm Note: Even though the "Show Administrator Menu... (Password protected)" 
+	// menu item is a toggle menu item, and would normally toggle its own state
+	// each time it is invoked, we need to ensure its toggle state is in sync with
+	// the internal toggling of the App's m_bShowAdministratorMenu flag - which can
+	// be set either here or in the Edit | Preferences... | View tab. Therefore we
+	// explicitly set the menu's toggle state both here and in the other View tab 
+	// location.
+	pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,pApp->m_bShowAdministratorMenu);
+}
+
+
+// whm added 20Jul11 to provide easier access to the Administrator menu
+void CMainFrame::OnUpdateViewAdminMenu(wxUpdateUIEvent& event)
+{
+	// View "Show Administrator Menu... (Password protected)" menu toggle always available
     event.Enable(TRUE);
 }
 

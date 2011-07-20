@@ -8764,7 +8764,9 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
 	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
 		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
-
+	// whm added 20Jul11 to initialize the View menu's "Show Administrator Menu... (Password protected)" item
+	if (pMenuBar->FindItem(ID_VIEW_SHOW_ADMIN_MENU) != NULL)
+		pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,m_bShowAdministratorMenu);
     // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
     // according to the current value of m_bUseToolTips
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
