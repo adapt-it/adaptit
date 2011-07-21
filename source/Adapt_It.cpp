@@ -11167,6 +11167,75 @@ wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxStri
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      combinedStr       -> a wxString containing a list of protected folder names
+///                                 delimited by ':' characters
+/// \remarks
+/// Called from GetBasicSettingsConfiguration(), GetProjectSettingsConfiguration(), and
+/// SetDefaults().
+/// Uses wxStringTokenizer to parse the incoming string which contains the folders that
+/// are to be protected from navigation, each folder name delimited by ':' characters.
+/// The App's m_bProtect...Folder flags are set to TRUE if their associated folder name
+/// is contained within combinedStr.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedStr)
+{
+	// tokenize the folder name elements in m_foldersProtectedFromNavigation
+	// that are delimited by ':' chars
+	wxString tokenStr;
+	wxStringTokenizer tkz(combinedStr,_T(":"));
+	while (tkz.HasMoreTokens())
+	{
+		// add the tokenStr to fitPartStr if it doesn't make fitPartStr get longer than extentRemaining
+		tokenStr = tkz.GetNextToken();
+		if (tokenStr == m_sourceInputsFolderName)
+			m_bProtectSourceInputsFolder = TRUE;
+		else if (tokenStr == m_freeTransOutputsFolderName)
+			m_bProtectFreeTransOutputsFolder = TRUE;
+		else if (tokenStr == m_freeTransRTFOutputsFolderName)
+			m_bProtectFreeTransRTFOutputsFolder = TRUE;
+		else if (tokenStr == m_glossOutputsFolderName)
+			m_bProtectGlossOutputsFolder = TRUE;
+		else if (tokenStr == m_glossRTFOutputsFolderName)
+			m_bProtectGlossRTFOutputsFolder = TRUE;
+		else if (tokenStr == m_interlinearRTFOutputsFolderName)
+			m_bProtectInterlinearRTFOutputsFolder = TRUE;
+		else if (tokenStr == m_sourceOutputsFolderName)
+			m_bProtectSourceOutputsFolder = TRUE;
+		else if (tokenStr == m_sourceRTFOutputsFolderName)
+			m_bProtectSourceRTFOutputsFolder = TRUE;
+		else if (tokenStr == m_targetOutputsFolderName)
+			m_bProtectTargetOutputsFolder = TRUE;
+		else if (tokenStr == m_targetRTFOutputsFolderName)
+			m_bProtectTargetRTFOutputsFolder = TRUE;
+		else if (tokenStr == m_kbInputsAndOutputsFolderName)
+			m_bProtectKbInputsAndOutputsFolder = TRUE;
+		else if (tokenStr == m_liftInputsAndOutputsFolderName)
+			m_bProtectLiftInputsAndOutputsFolder = TRUE;
+		else if (tokenStr == m_packedInputsAndOutputsFolderName)
+			m_bProtectPackedInputsAndOutputsFolder = TRUE;
+		else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
+			m_bProtectCCTableInputsAndOutputsFolder = TRUE;
+		else if (tokenStr == m_reportsOutputsFolderName)
+			m_bProtectReportsOutputsFolder = TRUE;
+		else
+		{
+			wxString msg;
+			wxString removeStr = tokenStr + _T(':');
+			msg = msg.Format(_T("Unrecognized value (%s) in FoldersProtectedFromNavigation setting in basic config file."),tokenStr.c_str());
+			wxLogDebug(msg);
+			// Remove the bad value from m_foldersProtectedFromNavigation. This should
+			// not normally happen for users, but might happen in development if folder
+			// names are changed.
+			wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) != wxNOT_FOUND);
+			m_foldersProtectedFromNavigation.Replace(removeStr,_T(""));
+			wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) == wxNOT_FOUND);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a boolean indicating whether the Paratext 7 process is running (TRUE) 
 ///                    or not running (FALSE)
 /// \remarks
@@ -12548,6 +12617,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_BibleditInstallDirPath.Empty();
 	bParatextSharedDLLLoaded = FALSE;
 
+	// whm Note: Make sure these folder names match those used in the wxDesigner's
+	// AssignLocationsForInputsOutputsFunc() resource function.
 	m_sourceInputsFolderName = _T("__SOURCE_INPUTS"); 
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	m_freeTransOutputsFolderName = _T("_FREETRANS_OUTPUTS");
@@ -12559,16 +12630,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_sourceRTFOutputsFolderName = _T("_SOURCE_RTF_OUTPUTS");
 	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
 	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
+	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_OUTPUTS");
-	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	
 	// whm added 12Jul11 The following special folder names. Their paths need to be defined after 
 	// EnsureWorkFolderIsPresent() and DealWithThePossibilityOfACustomWorkFolderLocation() calls 
 	// are made above.
 	m_logsEmailReportsFolderName = _T("_LOGS_EMAIL_REPORTS"); // located in m_workFolderPath or m_customWorkFolderPath
-	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_AND_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
-	m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_AND_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
+	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
+	m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
 
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	// folder navigation protection defaults to FALSE but project config file
@@ -16518,9 +16589,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start 
 		// Working Wizard after OnInit() finishes below.
 		// Note: The CGetSourceTextFromEditor class will check to see if there are 
-		// sufficient PT proj
-		// 
-		// ects for AI-PT work to be able to proceed.
+		// sufficient PT projects for AI-PT work to be able to proceed.
 	}
     // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
     // a PT or BE collaboration project is set up with a project nominated for receiving
@@ -16530,11 +16599,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bCollaborationDocHasFreeTrans = FALSE;
 	m_bSaveCopySourceFlag_For_Collaboration = FALSE;
 
-	// TODO: !!! Implement the following functions related to Bibledit:
-	//    BibleditIsInstalled() function. Currently it just returns FALSE
-	//    BibleditIsRunning() function. Currently it just returns FALSE
-	// on all platforms !!!
-	// 
 	// whm testing below !!!
 
 	//wxArrayString testBEProjects;
@@ -24368,59 +24432,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szFoldersProtectedFromNavigation)
 		{
 			m_foldersProtectedFromNavigation = strValue;
-			// tokenize the folder name elements in m_foldersProtectedFromNavigation
-			// that are delimited by ':' chars
-			wxString tokenStr;
-			wxStringTokenizer tkz(strValue,_T(":"));
-			while (tkz.HasMoreTokens())
-			{
-				// add the tokenStr to fitPartStr if it doesn't make fitPartStr get longer than extentRemaining
-				tokenStr = tkz.GetNextToken();
-				if (tokenStr == m_sourceInputsFolderName)
-					m_bProtectSourceInputsFolder = TRUE;
-				else if (tokenStr == m_freeTransOutputsFolderName)
-					m_bProtectFreeTransOutputsFolder = TRUE;
-				else if (tokenStr == m_freeTransRTFOutputsFolderName)
-					m_bProtectFreeTransRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_glossOutputsFolderName)
-					m_bProtectGlossOutputsFolder = TRUE;
-				else if (tokenStr == m_glossRTFOutputsFolderName)
-					m_bProtectGlossRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_interlinearRTFOutputsFolderName)
-					m_bProtectInterlinearRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_sourceOutputsFolderName)
-					m_bProtectSourceOutputsFolder = TRUE;
-				else if (tokenStr == m_sourceRTFOutputsFolderName)
-					m_bProtectSourceRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_targetOutputsFolderName)
-					m_bProtectTargetOutputsFolder = TRUE;
-				else if (tokenStr == m_targetRTFOutputsFolderName)
-					m_bProtectTargetRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_kbInputsAndOutputsFolderName)
-					m_bProtectKbInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_liftInputsAndOutputsFolderName)
-					m_bProtectLiftInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_packedInputsAndOutputsFolderName)
-					m_bProtectPackedInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
-					m_bProtectCCTableInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_reportsOutputsFolderName)
-					m_bProtectReportsOutputsFolder = TRUE;
-				else
-				{
-					wxString msg;
-					wxString removeStr = tokenStr + _T(':');
-					msg = msg.Format(_T("Unrecognized value (%s) in FoldersProtectedFromNavigation setting in basic config file."),tokenStr.c_str());
-					wxLogDebug(msg);
-					// Remove the bad value from m_foldersProtectedFromNavigation. This should
-					// not normally happen for users, but might happen in development if folder
-					// names are changed.
-					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) != wxNOT_FOUND);
-					m_foldersProtectedFromNavigation.Replace(removeStr,_T(""));
-					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) == wxNOT_FOUND);
-				}
-
-			}
+			// parse the m_foldersProtectedFromNavigation string and set the App's
+			// folder protection flags
+			SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
 		}
 		else if (name == szAdministratorPassword)
 		{
@@ -25470,11 +25484,14 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	wxString tempFoldersProtectedFromNavigation;
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
+	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("folders_protected_from_navigation"), &tempFoldersProtectedFromNavigation);
+	} // end wxLogNull block
 	if (bReadOK && tempFoldersProtectedFromNavigation != m_foldersProtectedFromNavigation)
 	{
 		m_foldersProtectedFromNavigation = tempFoldersProtectedFromNavigation;
+		SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
 	}
 
 	// whm added 7Jun11. If Paratext collaboration was ON at the time the user used the SHIFT
@@ -25498,12 +25515,15 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	wxString tempCollabProjForFreeTransExports = _T("");
 	wxString tempCollabBookSelected = _T("");
 	wxString tempCollabChapterSelected = _T("");
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
 	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
 	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
 	bReadOK4 = m_pConfig->Read(_T("pt_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
 	bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
 	bReadOK6 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
+	} // end wxLogNull block
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
 	{
 		m_bCollaboratingWithParatext = bTempCollabFlag;
@@ -25537,12 +25557,15 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	tempCollabProjForFreeTransExports = _T("");
 	tempCollabBookSelected = _T("");
 	tempCollabChapterSelected = _T("");
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
 	bReadOK2 = m_pConfig->Read(_T("be_collab_src_proj"), &tempCollabProjForSrcInputs);
 	bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
 	bReadOK4 = m_pConfig->Read(_T("be_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
 	bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
 	bReadOK6 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
+	} // end wxLogNull block
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
 	{
 		m_bCollaboratingWithBibledit = bTempCollabFlag;
@@ -25580,7 +25603,10 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// m_nWorkflowProfile value (due to SHIFT-down restart).
 	bReadOK = FALSE;
 	int nTempUserProfile = 0;
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("work_flow_profile"), &nTempUserProfile);
+	} // end wxLogNull block
 	if (bReadOK && nTempUserProfile != m_nWorkflowProfile)
 	{
 		m_nWorkflowProfile = nTempUserProfile;
@@ -26412,59 +26438,9 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szFoldersProtectedFromNavigation)
 		{
 			m_foldersProtectedFromNavigation = strValue;
-			// tokenize the folder name elements in m_foldersProtectedFromNavigation
-			// that are delimited by ':' chars
-			wxString tokenStr;
-			wxStringTokenizer tkz(strValue,_T(":"));
-			while (tkz.HasMoreTokens())
-			{
-				// add the tokenStr to fitPartStr if it doesn't make fitPartStr get longer than extentRemaining
-				tokenStr = tkz.GetNextToken();
-				if (tokenStr == m_sourceInputsFolderName)
-					m_bProtectSourceInputsFolder = TRUE;
-				else if (tokenStr == m_freeTransOutputsFolderName)
-					m_bProtectFreeTransOutputsFolder = TRUE;
-				else if (tokenStr == m_freeTransRTFOutputsFolderName)
-					m_bProtectFreeTransRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_glossOutputsFolderName)
-					m_bProtectGlossOutputsFolder = TRUE;
-				else if (tokenStr == m_glossRTFOutputsFolderName)
-					m_bProtectGlossRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_interlinearRTFOutputsFolderName)
-					m_bProtectInterlinearRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_sourceOutputsFolderName)
-					m_bProtectSourceOutputsFolder = TRUE;
-				else if (tokenStr == m_sourceRTFOutputsFolderName)
-					m_bProtectSourceRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_targetOutputsFolderName)
-					m_bProtectTargetOutputsFolder = TRUE;
-				else if (tokenStr == m_targetRTFOutputsFolderName)
-					m_bProtectTargetRTFOutputsFolder = TRUE;
-				else if (tokenStr == m_kbInputsAndOutputsFolderName)
-					m_bProtectKbInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_liftInputsAndOutputsFolderName)
-					m_bProtectLiftInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_packedInputsAndOutputsFolderName)
-					m_bProtectPackedInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_ccTableInputsAndOutputsFolderName)
-					m_bProtectCCTableInputsAndOutputsFolder = TRUE;
-				else if (tokenStr == m_reportsOutputsFolderName)
-					m_bProtectReportsOutputsFolder = TRUE;
-				else
-				{
-					wxString msg;
-					wxString removeStr = tokenStr + _T(':');
-					msg = msg.Format(_T("Unrecognized value (%s) in FoldersProtectedFromNavigation setting in project config file."),tokenStr.c_str());
-					wxLogDebug(msg);
-					// Remove the bad value from m_foldersProtectedFromNavigation. This should
-					// not normally happen for users, but might happen in development if folder
-					// names are changed.
-					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) != wxNOT_FOUND);
-					m_foldersProtectedFromNavigation.Replace(removeStr,_T(""));
-					wxASSERT(m_foldersProtectedFromNavigation.Find(removeStr) == wxNOT_FOUND);
-				}
-
-			}
+			// parse the m_foldersProtectedFromNavigation string and set the App's
+			// folder protection flags
+			SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
 		}
 
 		// the next four are redundant from 2.3.0 and onwards, but must be retained

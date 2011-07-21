@@ -2409,12 +2409,12 @@ public:
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
 	bool		m_bProtectPackedInputsAndOutputsFolder;
-	wxString	m_packedInputsAndOutputsFolderName; // in OnInit() we set to "_PACKED_INPUTS_AND_OUTPUTS"
+	wxString	m_packedInputsAndOutputsFolderName; // in OnInit() we set to "_PACKED_INPUTS_OUTPUTS"
 	wxString	m_packedInputsAndOutputsFolderPath; // always a child of folder that m_workFolderPath
 										// or m_customWorkFolderPath poins to; the path is defined in
 										// OnInit()
 	bool		m_bProtectCCTableInputsAndOutputsFolder;
-	wxString	m_ccTableInputsAndOutputsFolderName; // in OnInit() we set to "_CCTABLE_INPUTS_AND_OUTPUTS"
+	wxString	m_ccTableInputsAndOutputsFolderName; // in OnInit() we set to "_CCTABLE_INPUTS_OUTPUTS"
 	wxString	m_ccTableInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined 
@@ -3077,7 +3077,9 @@ public:
 	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
-    // BEW added next 6 lines 10July, also the accessors for same immediately below them,
+    void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
+	
+	// BEW added next 6 lines 10July, also the accessors for same immediately below them,
     // for storing the USFM text strings received from an external editor such as Paratext
     // or Bibledit, prior to their being edited by the user's adapting work -- they are
     // needed for comparison of the before versus after state of such strings, although the
