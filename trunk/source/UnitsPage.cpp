@@ -93,13 +93,13 @@ void CUnitsPage::CreateControls()
 void CUnitsPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	wxCommandEvent dummyevent;
-
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
 
 	// initialize our local temp variables from those on the App
 	tempUseInches = pApp->m_bIsInches;
 
+	wxCommandEvent dummyevent;
 	// initialize radio buttons
 	if (tempUseInches)
 	{
@@ -110,17 +110,24 @@ void CUnitsPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 		OnRadioUseCentimeters(dummyevent);
 	}
 
-	//m_pRadioUseInches->Enable(FALSE); // for now we disable the inches radio button - wx version only uses Metric
-
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.
 }
 
 void CUnitsPage::OnRadioUseInches(wxCommandEvent& WXUNUSED(event)) 
 {	
+#ifdef __WXMSW__
+	wxString msg;
+	msg = _("Sorry, only metric units (Centimeters) can be set on the Windows platform at this time.");
+	wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	m_pRadioUseInches->SetValue(FALSE);
+	m_pRadioUseCentimeters->SetValue(TRUE);
+	tempUseInches = FALSE;
+#else
 	m_pRadioUseInches->SetValue(TRUE);
 	m_pRadioUseCentimeters->SetValue(FALSE);
 	tempUseInches = TRUE;
+#endif
 }
 
 void CUnitsPage::OnRadioUseCentimeters(wxCommandEvent& WXUNUSED(event)) 

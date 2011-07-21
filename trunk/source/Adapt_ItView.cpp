@@ -4849,7 +4849,8 @@ void CAdapt_ItView::OnUnits(wxCommandEvent& WXUNUSED(event))
 	dlg.Centre();
 	if (dlg.ShowModal() == wxID_OK)
 	{
-		pApp->m_bIsInches = dlg.m_bIsInches;
+		// The App's m_bIsInches is set in the CUnitsDlg::OnOK() handler
+		;
 	}
 }
 

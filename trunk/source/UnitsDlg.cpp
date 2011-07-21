@@ -50,6 +50,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 BEGIN_EVENT_TABLE(CUnitsDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CUnitsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, CUnitsDlg::OnOK)
+	EVT_RADIOBUTTON(IDC_RADIO_INCHES, CUnitsDlg::OnRadioUseInches)
+	EVT_RADIOBUTTON(IDC_RADIO_CM, CUnitsDlg::OnRadioUseCentimeters)
 END_EVENT_TABLE()
 
 
@@ -67,9 +69,9 @@ CUnitsDlg::CUnitsDlg(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	
-	// use wxValidator for simple dialog data transfer
-	pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
-	pRadioB->SetValidator(wxGenericValidator(&m_bIsInches));
+	tempUseInches = FALSE; // in wx version page setup only has mm for margins, so we only use Metric for now
+	m_pRadioUseInches = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
+	m_pRadioUseCentimeters = (wxRadioButton*)FindWindowById(IDC_RADIO_CM);
 
 	// other attribute initializations
 }
@@ -84,25 +86,44 @@ void CUnitsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	//InitDialog() is not virtual, no call needed to a base class
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	wxRadioButton* pInchesBtn = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
-	wxASSERT(pInchesBtn);
-	wxRadioButton* pCmBtn = (wxRadioButton*)FindWindowById(IDC_RADIO_CM);
-	wxASSERT(pCmBtn);
 
-	m_bIsInches = pApp->m_bIsInches;
+	tempUseInches = pApp->m_bIsInches;
 
-	if (m_bIsInches)
+	wxCommandEvent dummyevent;
+	// initialize radio buttons
+	if (tempUseInches)
 	{
-		pInchesBtn->SetValue(TRUE);
-		pCmBtn->SetValue(FALSE);
+		OnRadioUseInches(dummyevent);
 	}
 	else
 	{
-		pInchesBtn->SetValue(FALSE);
-		pCmBtn->SetValue(TRUE);
+		OnRadioUseCentimeters(dummyevent);
 	}
-	//pInchesBtn->Enable(FALSE); // for now we disable the inches button (until we find a was to use inches in wx version)
 }
+
+void CUnitsDlg::OnRadioUseInches(wxCommandEvent& WXUNUSED(event)) 
+{	
+#ifdef __WXMSW__
+	wxString msg;
+	msg = _("Sorry, only metric units (Centimeters) can be set on the Windows platform at this time.");
+	wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	m_pRadioUseInches->SetValue(FALSE);
+	m_pRadioUseCentimeters->SetValue(TRUE);
+	tempUseInches = FALSE;
+#else
+	m_pRadioUseInches->SetValue(TRUE);
+	m_pRadioUseCentimeters->SetValue(FALSE);
+	tempUseInches = TRUE;
+#endif
+}
+
+void CUnitsDlg::OnRadioUseCentimeters(wxCommandEvent& WXUNUSED(event)) 
+{
+	m_pRadioUseInches->SetValue(FALSE);
+	m_pRadioUseCentimeters->SetValue(TRUE);
+	tempUseInches = FALSE;
+}
+
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
@@ -110,10 +131,11 @@ void CUnitsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 // if the dialog is modeless.
 void CUnitsDlg::OnOK(wxCommandEvent& event) 
 {
-	wxRadioButton* pInchesBtn = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
-	wxASSERT(pInchesBtn);
-
-	m_bIsInches = pInchesBtn->GetValue(); // pApp->m_bIsInches is set in the View's OnUnits()
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	
+	// Update values on the App
+	pApp->m_bIsInches = tempUseInches;
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }

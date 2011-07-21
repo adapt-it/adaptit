@@ -33,14 +33,18 @@ public:
 	CUnitsDlg(wxWindow* parent); // constructor
 	virtual ~CUnitsDlg(void); // destructor // whm make all destructors virtual
 
-	bool m_bIsInches;
 	CAdapt_ItView* pView;
 
-	wxRadioButton* pRadioB;
-
 protected:
+	bool tempUseInches;
+	wxRadioButton* m_pRadioUseInches;
+	wxRadioButton* m_pRadioUseCentimeters;
+
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnOK(wxCommandEvent& event);
+	void OnOK(wxCommandEvent& WXUNUSED(event)); 
+	
+	void OnRadioUseInches(wxCommandEvent& WXUNUSED(event));
+	void OnRadioUseCentimeters(wxCommandEvent& WXUNUSED(event));
 
 private:
 
