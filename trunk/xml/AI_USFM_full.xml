@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	28 April 2009, by Bill Martin
-USFM version:	2.208 as published in usfm.sty by UBS 21 April, 2009
+Last Updated:	22 July 2011, by Bill Martin
+USFM version:	2.301 as published in usfm.sty by UBS 30 August, 2010
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -22,7 +22,7 @@ Description:	This file contains the style definitions and
 ***********************************************************************
 Notes:
 		1. Many of the attributes below resemble those used in the
-			Paratext 6.0 usfm.sty style sheet, but some have different
+			Paratext 7.1 usfm.sty style sheet, but some have different
 			values and some may not act quite the same in Adapt It.
 		2. All attribute values must be enclosed within double
 			quote marks.
@@ -178,7 +178,7 @@ Adapt It documents which are exported as RTF:
 			associated with the marker in RTF output. Every SFM defined in
 			this file should have a styleName attribute. The text of the
 			styleName should exactly match the "Name" attribute used for
-			the same style defined in Paratext 6's usfm.sty file.
+			the same style defined in Paratext 7.1's usfm.sty file.
 	styleType:
 		Examples:
 		="character"
@@ -4765,7 +4765,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="back-trans"
 	textType="noType" wrap="0"
 	styleName="bt - Back-translation"
-	styleType="character" fontSize="12" color="16711680"
+	styleType="character" fontSize="11" color="16711680"
 	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
@@ -4787,7 +4787,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="free-trans"
 	textType="noType" wrap="0"
 	styleName="free - Free translation"
-	styleType="character" fontSize="12" color="4194500"
+	styleType="character" fontSize="11" color="4194500"
 	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
