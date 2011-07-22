@@ -452,6 +452,7 @@ marker attribute definitions below.  -->
 	textType="note"
 	styleName="rem - File - Remark"
 	fontSize="9" color="16711680"
+	justification="leading"
 	basedOn="_notes_base" nextStyle="rem"
 	>
 </SFM>
@@ -464,6 +465,7 @@ marker attribute definitions below.  -->
 	textType="note"
 	styleName="rem - File - Status"
 	fontSize="9" color="16711680"
+	justification="leading"
 	basedOn="_notes_base" nextStyle="sts"
 	>
 </SFM>
@@ -503,6 +505,7 @@ marker attribute definitions below.  -->
 	textType="note"
 	styleName="nt - Note"
 	fontSize="9" color="16711680"
+	justification="leading"
 	basedOn="_notes_base" nextStyle="nt"
 	>
 </SFM>
@@ -1201,6 +1204,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="crossReference"
 	styleName="x...x* - Cross Reference"
 	styleType="footnote_text" fontSize="10"
+	justification="leading"
 	basedOn="_notes_base" nextStyle="x"
 	>
 </SFM>
@@ -1959,6 +1963,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="footnote"
 	styleName="f...f* - Footnote"
 	styleType="footnote_text" fontSize="10"
+	justification="leading"
 	basedOn="_notes_base" nextStyle="f"
 	>
 </SFM>
@@ -1986,6 +1991,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="footnote"
 	styleName="fe...fe* - Endnote"
 	styleType="footnote_text" fontSize="10"
+	justification="leading"
 	basedOn="_notes_base" nextStyle="fe"
 	>
 </SFM>
@@ -3933,6 +3939,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="noType"
 	styleName="_Notes_Base"
 	fontSize="9"
+	justification="leading"
 	basedOn="_vernacular_base" nextStyle="_notes_base"
 	>
 </SFM>
@@ -3973,7 +3980,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="noType"
 	styleName="_annotation_reference"
 	styleType="character" fontSize="10" color="4210943"
-	superScript="1"
+	superScript="1" justification="leading"
 	>
 </SFM>
 	<!-- Note: The _annotation_ref character style is used to format
@@ -4071,6 +4078,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="noType"
 	styleName="footer"
 	styleType="footerSty" fontSize="10"
+	justification="leading"
 	basedOn="_body_text" nextStyle="_footer"
 	>
 </SFM>
@@ -4081,6 +4089,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="noType"
 	styleName="header"
 	styleType="headerSty" fontSize="10"
+	justification="leading"
 	basedOn="_body_text" nextStyle="_header"
 	>
 </SFM>
@@ -4130,6 +4139,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="noType"
 	styleName="Unknown Para Style Marker"
 	color="255"
+	justification="leading"
 	basedOn="_body_text" nextStyle="_unknown_para_style"
 	>
 </SFM>
@@ -4142,6 +4152,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	textType="noType"
 	styleName="Unknown Char Style Marker"
 	styleType="character" color="255"
+	justification="leading"
 	>
 </SFM>
 	<!-- The _unknown_char_style is applied to the text associated with
