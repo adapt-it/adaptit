@@ -2111,7 +2111,9 @@ void DoExportInterlinearRTF()
 #elif __WXGTK__
 	wxString FNameNrm = _T("Sans");// our default font name on Linux/Ubuntu
 #elif __WXMAC__
-	wxString FNameNrm = _T("Tahoma");// our default font name on Mac
+	// according to this site: http://www.ampsoft.net/webdesign-l/WindowsMacFonts.html
+	// the Verdana font is available on both Windows and the Mac
+	wxString FNameNrm = _T("Verdana");// our default font name on Mac
 #endif
 	// Get font face names stored on the App
 	wxString FNameSrc = pRtfSrcFnt->GetFaceName();
