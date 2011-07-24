@@ -2830,6 +2830,15 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
+	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
+	// and LibreOffice.
+	if (gpApp->m_bSrcRTL)
+		tempStr += _T("\\qr ");
+	else
+		tempStr += _T("\\ql ");
 	SintblSrc = tempStr;
 
 	// adjust Tgt Lang style number and font number, remove the "\\par \n\\pard\\plain " prefix,
@@ -2861,6 +2870,15 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
+	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
+	// and LibreOffice.
+	if (gpApp->m_bTgtRTL)
+		tempStr += _T("\\qr ");
+	else
+		tempStr += _T("\\ql ");
 	SintblTgt = tempStr;
 
 	// adjust Gls Lang style number and font number, remove the "\\par \n\\pard\\plain " prefix,
@@ -2892,6 +2910,26 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
+	
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
+	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
+	// and LibreOffice.
+	if (gbGlossingUsesNavFont)
+	{
+		if (gpApp->m_bNavTextRTL)
+			tempStr = _T("\\qr");
+		else
+			tempStr = _T("\\ql");
+	}
+	else
+	{
+		if (gpApp->m_bTgtRTL)
+			tempStr = _T("\\qr");
+		else
+			tempStr = _T("\\ql");
+	}
 	SintblGls = tempStr;
 
 	// adjust Nav Lang style number, remove the "\\par \n\\pard\\plain " prefix,
@@ -2919,6 +2957,17 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
+	
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
+	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
+	// and LibreOffice.
+	if (gpApp->m_bNavTextRTL)
+		tempStr += _T("\\qr ");
+	else
+		tempStr += _T("\\ql ");
+
 	SintblNav = tempStr;
 
 	// adjust Free Trans style number
@@ -3412,7 +3461,7 @@ void DoExportInterlinearRTF()
 	if (bReverseLayout)
 	{
 		TStartPos = _T("");						// There is no \trright0 tag in RTF specs
-		//Tjust = _T("\\trqr");					// Right justify the table row with respect to its 
+		Tjust = _T("\\trqr");					// Right justify the table row with respect to its 
 												// containing column (containing column is the page
 												// between the margins in our case)
 		TRowPrecedence = _T("\\rtlrow");		// Cells in the table row will have RTL precedence
@@ -3424,7 +3473,7 @@ void DoExportInterlinearRTF()
 	else
 	{
 		TStartPos = _T("\\trleft")+TindentNum;	// \trleft0
-		//Tjust = _T("\\trql");					// Left justify the table row with respect to its
+		Tjust = _T("\\trql");					// Left justify the table row with respect to its
 												// containing column
 		TRowPrecedence = _T("\\ltrrow");		// Cells in the table row will have LTR precedence
 												// With this tag, the row text order is interpreted as normal
@@ -4683,7 +4732,7 @@ void DoExportInterlinearRTF()
 		// require a greater factor.
 		int RTFCellGapFudgeFactor;
 #ifdef _UNICODE
-		RTFCellGapFudgeFactor = 240; //440;
+		RTFCellGapFudgeFactor = 280; //440;
 #else
 		RTFCellGapFudgeFactor = 140; // 220;
 #endif
@@ -4982,9 +5031,12 @@ void DoExportInterlinearRTF()
 		// too wide, Word will wrap it within the existing columns
 
 		// check if we have a full table
+		// whm added test for pSrcPhrase->m_nSequNumber != 0 since we may encounter a marker
+		// at the beginning of the file that would otherwise want to start a new line, but
+		// obviously wouldn't indicate we have already gotten a "full" table.
 		if (MaxColWidth >= MaxRowWidth
 			|| (MaxColWidth + AccumRowWidth) >= MaxRowWidth
-			|| (bNewTableForNewLineMarker && bMarkerStartsNewLine))
+			|| (bNewTableForNewLineMarker && bMarkerStartsNewLine && pSrcPhrase->m_nSequNumber != 0))
 		{
 a:
 			// we have a "full" table
@@ -5036,9 +5088,34 @@ a:
 				TLastRow = _T("");
 
 			if (bCenterTableForCenteredMarker && bTableIsCentered)
+			{
 				Tjust = _T("\\trqc"); // center table in margins
+			}
 			else
-				Tjust = _T("");
+			{
+				Tjust = _T(""); // allow the default to happen
+				if (bReverseLayout)
+				{
+					Tjust = _T("\\trqr");					// Right justify the table row with respect to its 
+															// containing column (containing column is the page
+															// between the margins in our case)
+					TRowPrecedence = _T("\\rtlrow");		// Cells in the table row will have RTL precedence
+															// With this tag, we don't have to reorder the row text
+															// in our RTF output to get RTL precedence
+					TDirection = _T("\\taprtl");			// \taprtl indicates that the table direction is right-to-left.
+				}
+
+				else
+				{
+					Tjust = _T("\\trql");					// Left justify the table row with respect to its
+															// containing column
+					TRowPrecedence = _T("\\ltrrow");		// Cells in the table row will have LTR precedence
+															// With this tag, the row text order is interpreted as normal
+															// LTR in the output and gets the default LTR precedence
+					TDirection = _T("");					// There is no \tapltr tag so assign null string to TDirection
+				}
+			}
+
 
 			if (nCurrentRow == 0)					// need Table defs prefixed only for row index zero
 			{										// of each table
