@@ -36,6 +36,12 @@ enum UseForLookup
      useTargetPhraseForLookup
 };
 
+enum KB_Entry {
+	absent,
+	present_but_deleted,
+	really_present
+};
+
 // BEW removed 29May10, as TUList is redundant * now removed
 // wxList declaration and partial implementation of the TUList class being
 // a list of pointers to CTargetUnit objects
@@ -117,8 +123,14 @@ public:
 	void			GetAndRemoveRefString(CSourcePhrase* pSrcPhrase,
 								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
 	void			GetForceAskList(KPlusCList* pKeys);
-	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);
-	CRefString*		GetRefString(CTargetUnit* pTU, wxString valueStr); // an overload useful for LIFT imports
+
+	//CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);
+	enum KB_Entry	GetRefString(int nSrcWords, wxString keyStr, wxString valueStr, CRefString*& pRefStr);
+
+	//CRefString*		GetRefString(CTargetUnit* pTU, wxString valueStr);
+					// an overload useful for LIFT imports
+	enum KB_Entry	GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr);
+
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
 	bool			IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
@@ -144,7 +156,8 @@ public:
 	bool			m_bGlossingKB; // TRUE for a glossing KB, FALSE for an adapting KB
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
-	CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
+	//CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
+	enum KB_Entry	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation, CRefString*& pRefStr);
 	//int			CountSourceWords(wxString& rStr); // use helpers.cpp TrimAndCountWordsInString() instead
 	bool			IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 

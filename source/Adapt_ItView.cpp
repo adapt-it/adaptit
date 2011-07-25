@@ -78,6 +78,8 @@
 #include "BString.h"
 #include "XML.h"
 #include "EditPreferencesDlg.h" 
+#include "RefString.h"
+#include "RefStringMetadata.h"
 #include "KB.h"
 #include "SourcePhrase.h"
 #include "Strip.h"
@@ -87,7 +89,6 @@
 #include "PhraseBox.h"
 #include "Adapt_ItView.h"
 #include "AdaptitConstants.h"
-#include "RefString.h"
 #include "TargetUnit.h"
 #include "RetranslationDlg.h"
 #include "ChooseTranslation.h"
@@ -8666,12 +8667,16 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
                 // the store will fail if the user edited the entry out of the KB, as the
                 // latter cannot know which srcPhrases will be affected, so these will
                 // still have their m_bHasKBEntry set true. We have to test for this, ie. a
-                // null pRefString but the above flag TRUE is a sufficient test, and if so,
-                // set the flag to FALSE
-				CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase);
-				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+				// null pRefString or rsEntry returning present_but_deleted. Test, and if
+				// the flag is TRUE, set it to FALSE 
+				CRefString* pRefStr = NULL;
+				KB_Entry rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+				if ((pRefStr == NULL || rsEntry == present_but_deleted) &&
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+				{
 								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+				}
 				gbInhibitMakeTargetStringCall = TRUE;
 				bool bOK;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
@@ -8962,9 +8967,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		{
             // append its m_translation in the CRefString to pApp->m_targetPhrase, then
             // remove the refString from the KB, etc.
-			CRefString* pRefString = pApp->m_pKB->GetRefString(pSrcPhrase->m_nSrcWords,
-											pSrcPhrase->m_key, pSrcPhrase->m_adaption);
-			if (pRefString != NULL)
+			CRefString* pRefString = NULL;
+			KB_Entry rsEntry = pApp->m_pKB->GetRefString(pSrcPhrase->m_nSrcWords,
+											pSrcPhrase->m_key, pSrcPhrase->m_adaption,
+											pRefString);
+			if (pRefString != NULL && rsEntry == really_present)
 			{
 				if (pRefString->m_translation != _T("<Not In KB>"))
 				{
@@ -8984,7 +8991,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 					pApp->m_pKB->RemoveRefString(pRefString, pSrcPhrase, pSrcPhrase->m_nSrcWords);
 				}
 			}
-			else // pRefString == NULL
+			else // pRefString == NULL or rsEntry == present_but_deleted
 			{
                 // if all else fails to find some text for this box (provided it is the
                 // active location), then pull out whatever is stored in the CEdit itself -
@@ -9379,6 +9386,8 @@ void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
 }
 
 // BEW 16Feb10, updated RestoreOriginalMinPhrases for doc version 5
+// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, (and use all 10 maps
+// for glossing KB - but that is irrelevant to this function)
 int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nStartingSequNum)
 {
 	// The following note is copied from Layout.cpp... it is very important
@@ -9617,12 +9626,14 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
     // decremented; append any refString's m_translation to the pApp->m_targetPhrase, so
     // user can edit or delete the resulting composite string when the phraseBox is
     // eventually put up (note, next call, pRefString may point to <Not In KB>)
-	CRefString* pRefString = pApp->m_pKB->GetRefString(pBigOne->m_nSrcWords,
-											pBigOne->m_key,pBigOne->m_adaption);
+    KB_Entry rsEntry;
+	CRefString* pRefString = NULL;
+	rsEntry = pApp->m_pKB->GetRefString(pBigOne->m_nSrcWords, pBigOne->m_key,
+										pBigOne->m_adaption, pRefString);
 	pList->DeleteNode(savePos);
-	if (pBigOne->m_bHasKBEntry)
+	if (pBigOne->m_bHasKBEntry && rsEntry == really_present)
 	{
-		pApp->m_pKB->RemoveRefString(pRefString,pBigOne,pBigOne->m_nSrcWords);
+		pApp->m_pKB->RemoveRefString(pRefString, pBigOne, pBigOne->m_nSrcWords);
 		pBigOne->m_bHasKBEntry = FALSE;
 
 		// set up pApp->m_targetPhrase using pBigOne's m_targetStr attribute
@@ -9631,15 +9642,17 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		else
 			pApp->m_targetPhrase = pApp->m_targetPhrase + _T(" ") + pBigOne->m_targetStr;
 	}
-	else
+	else // might be a deleted KB entry
 	{
         // might have had save to KB suppression turned on, so check this case out too - if
-        // the flag is set, we don't need to remove anything from the KB, but we do need to
-        // set pApp->m_targetPhrase using the m_targetStr string's value
+        // the m_bNotInKB flag is set, we don't need to remove anything from the KB, but we
+        // do need to set pApp->m_targetPhrase using the m_targetStr string's value
 		if (pBigOne->m_bNotInKB)
 		{
 			if (pApp->m_targetPhrase.IsEmpty())
+			{
 				pApp->m_targetPhrase = pBigOne->m_targetStr;
+			}
 			else
 			{
 				if (!pBigOne->m_targetStr.IsEmpty())
@@ -13449,6 +13462,8 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 }
 
 
+// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
+// for glossing KB
 void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 {
 	// refactored 17Apr09
@@ -13500,7 +13515,8 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
     // contents can be assumed to be unwanted and so not stored. (The step up/down buttons
     // make this kind of check already.)
 	bool bOK;
-	CRefString* pRefStr;
+	CRefString* pRefStr = NULL;
+	KB_Entry rsEntry;
 	if (pApp->m_nActiveSequNum != -1)
 	{
 		gnOldSequNum = pApp->m_nActiveSequNum; // preserve old location
@@ -13527,12 +13543,14 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                 // still have their m_bHasGlossingKBEntry set true. We have to test for
                 // this, ie. a null pRefString but the m_bHasGlossing KBEntry set TRUE is a
                 // sufficient test, and if so, set the flag to FALSE
-				pRefStr = pApp->m_pGlossingKB->GetRefString(1,
-						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
-				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+				rsEntry = pApp->m_pGlossingKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase, pRefStr);
+				if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+				{
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
-									pApp->m_targetPhrase);
+				}
+				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 			}
 			else if (!bSkipStorage && !gbIsGlossing)
 			{
@@ -13544,13 +13562,15 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                 // still have their m_bHasKBEntry set true. We have to test for this, ie. a
                 // null pRefString but the m_bHasKBEntry set TRUE is a sufficient test, and
                 // if so, set the flag to FALSE
-				pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-								pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
-				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+				rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase, pRefStr);
+				if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+				{
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+				}
 				gbInhibitMakeTargetStringCall = TRUE;
-				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
-									pApp->m_targetPhrase);
+				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 				gbInhibitMakeTargetStringCall = FALSE;
 			}
 		}
@@ -14629,26 +14649,32 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			// cannot know which srcPhrases will be affected, so these will still have their
 			// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
 			// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-			CRefString* pRefStr;
+			// BEW modified 17Jul11 to use KB_Entry enum as the return value...
+			CRefString* pRefStr = NULL;
+			KB_Entry rsEntry;
 			bool bOK;
 			if (gbIsGlossing)
 			{
-				pRefStr = pApp->m_pGlossingKB->GetRefString(1,
-							pApp->m_pActivePile->GetSrcPhrase()->m_key,
-							pApp->m_targetPhrase);
-				if (pRefStr == NULL || pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+				rsEntry = pApp->m_pGlossingKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+				if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+				{
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+				}
 				// now do the store
 				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
 			}
 			else
 			{
-				pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-									pApp->m_pActivePile->GetSrcPhrase()->m_key,
-									pApp->m_targetPhrase);
-				if (pRefStr == NULL || pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+				rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+				if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+				{
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+				}
 				// now do the store
 				gbInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
@@ -17059,38 +17085,57 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			!pSrcPhrase->m_bRetranslation)
 		{
 			wxString str = _T("<Not In KB>");
-			CRefString* pRefString = pApp->m_pKB->GetRefString(
-									pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-									pApp->m_pActivePile->GetSrcPhrase()->m_key,str);
-			if (pRefString != NULL)
+			CRefString* pRefString = NULL;
+			KB_Entry rsEntry;
+			rsEntry = pApp->m_pKB->GetRefString(
+							pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+							pApp->m_pActivePile->GetSrcPhrase()->m_key, str, pRefString);
+			if (pRefString != NULL && rsEntry == really_present)
 			{
-				// we must remove the KB entry
+                // BEW 17Jul11, we must remove the <Not In KB> entry, and undelete any
+                // other deleted entries present, as is done in the CKB::DoNotInKB()
+                // function
 				CTargetUnit* pTgtUnit = pRefString->m_pTgtUnit;
 				wxASSERT(pTgtUnit != NULL);
 				TranslationsList* pList = pTgtUnit->m_pTranslations;
-				wxASSERT(!pList->IsEmpty() && pList->GetCount() == 1);
+				wxASSERT(!pList->IsEmpty());
 				TranslationsList::Node* pos = pList->GetFirst();
-				delete pRefString; // deletes the CRefString having the text "<Not In KB>"
-				pList->DeleteNode(pos);
+				// BEW 17Jul11 this while loop is copied verbatim from CKB::DoNotInKB()
+				while (pos != NULL)
+				{
+					CRefString* pRefStr = (CRefString*)pos->GetData();
+					pos = pos->GetNext();
+					if (pRefStr == pRefString)
+					{
+						if (rsEntry == present_but_deleted)
+						{
+							// our work is done for this one, it's deleted already
+							;
+						}
+						else
+						{
+							wxASSERT(rsEntry == really_present);
 
-				// we must also delete the target unit, since we are setting up a situation
-				// where in effect the current matched item was never previously matched, ie.
-				// it's a big error to have a target unit with no reference string in it.
-				int index = pSrcPhrase->m_nSrcWords - 1;
-				MapKeyStringToTgtUnit* pMap = GetKB()->m_pMap[index];
-				pMap->erase(pSrcPhrase->m_key); // remove it from the map
-
-				// BEW removed 28May10, as TUList is redundant & now removed from the app...
-				// 
-				// now remove the CTargetUnit instance too
-				//TUList::Node* tpos;
-				//tpos = GetKB()->m_pTargetUnits->Find(pTgtUnit); // find position of
-														// pRefString's owning targetUnit
-				//pTgtUnit = (CTargetUnit*)tpos->GetData(); // get the
-														  // targetUnit in the list
-				//wxASSERT(pTgtUnit != NULL);
-				//GetKB()->m_pTargetUnits->DeleteNode(tpos); // remove it from the list
-				delete pTgtUnit; // delete it from the heap
+							// make the <Not In KB> entry become the deleted one
+							pRefString->SetDeletedFlag(TRUE);
+							pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+						}
+					}
+					else
+					{
+						// it's not the "<Not In KB>" one we matched above, but is currently
+						// deleted, so undelete it
+						if (pRefStr != NULL && pRefStr->GetDeletedFlag())
+						{
+							pRefStr->SetDeletedFlag(FALSE);
+							pRefStr->GetRefStringMetadata()->SetDeletedDateTime(_T(""));
+							// we could leave the old creation datetime intact, but since the
+							// entry was 'deleted' it is probably more appropriate to give it
+							// the current time as it's (re-)creation datetime
+							pRefString->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+						}
+					}
+				} // end of while loop
 			}
 
 			// fix the flags that will make a save to KB possible
@@ -19403,7 +19448,6 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		int pathLen = importPath.Length();
 		wxASSERT(nameLen > 0 && pathLen > 0);
 		pApp->m_lastKbOutputPath = importPath.Left(pathLen - nameLen - 1);
-		int filterIndex;
 		filterIndex = fileDlg.GetFilterIndex();
 		
 		// NOTE: If you decide to change the default Import type you must make sure that 
@@ -23066,6 +23110,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 				// it has to be saved to the relevant KB now
 				if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
 				{
+					KB_Entry rsEntry;
 					if (gbIsGlossing)
 					{
                         // the store attempt would fail if the user earlier edited the
@@ -23075,11 +23120,15 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
                         // true. We have to test for this, ie. a null pRefString, but that
                         // flag being TRUE is a sufficient test, and if so, set the flag to
                         // FALSE
-						CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
-												pApp->m_pActivePile->GetSrcPhrase()->m_key, 
-												pApp->m_targetPhrase);
-						if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+						CRefString* pRefStr = NULL;
+						rsEntry = pApp->m_pGlossingKB->GetRefString(
+							pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+						if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+							pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+						{
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+						}
 						bool bOK;
 						bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 															pApp->m_targetPhrase);
@@ -23097,11 +23146,15 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
                         // have to test for this, ie. a null pRefString, but that flag
                         // being TRUE is a sufficient test, and if so, set the flag to
                         // FALSE
-						CRefString* pRefStr = pApp->m_pKB->GetRefString(
+						CRefString* pRefStr = NULL;
+						rsEntry = pApp->m_pKB->GetRefString(
 							pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-							pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
-						if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+						if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+						{
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+						}
 						gbInhibitMakeTargetStringCall = TRUE;
 						bool bOK;
 						bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
@@ -23114,16 +23167,20 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 			{
 				// m_targetPhrase is empty, so let StoreText handle what needs to happen.
 				bool bOK = FALSE;
+				KB_Entry rsEntry;
 				if (gbIsGlossing)
 				{
-					//pApp->m_pActivePile->m_pSrcPhrase->m_gloss = pApp->m_targetPhrase;
-
 					// see above for why we do this
-					CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
-											pApp->m_pActivePile->GetSrcPhrase()->m_key,
-											pApp->m_targetPhrase);
-					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					CRefString* pRefStr = NULL;
+					rsEntry = pApp->m_pGlossingKB->GetRefString(
+									pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+									pApp->m_pActivePile->GetSrcPhrase()->m_key,
+									pApp->m_targetPhrase, pRefStr);
+					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+						pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					{
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+					}
 					bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 														pApp->m_targetPhrase);
 				}
@@ -23134,11 +23191,16 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
 					// see above for why we do this
-					CRefString* pRefStr = pApp->m_pKB->GetRefString(
-						pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
-					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+					CRefString* pRefStr = NULL;
+					rsEntry = pApp->m_pKB->GetRefString(
+									pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+									pApp->m_pActivePile->GetSrcPhrase()->m_key,
+									pApp->m_targetPhrase, pRefStr);
+					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+					{
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+					}
 					gbInhibitMakeTargetStringCall = TRUE;
 					bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 														pApp->m_targetPhrase);
