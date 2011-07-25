@@ -19882,8 +19882,8 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
 				}
 				else
 				{
-                    // BEW 7July10, in kbVersion 2 another way there entry could be
-                    // consistent is that it does contain "<Not In KB>" but somehow other
+                    // BEW 7July10, in kbVersion 2 another way where the entry could be
+                    // inconsistent is that it does contain "<Not In KB>" but somehow other
                     // CRefStrings on the pTU instance are not deleted - so we must fix
                     // that. Instead of checking for any non-deleted ones, just delete them
                     // all and re-store "<Not In KB>" -- this will be done then on entries
@@ -20596,8 +20596,8 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				}
 				else
 				{
-                    // BEW 7July10, in kbVersion 2 another way there entry could be
-                    // consistent is that it does contain "<Not In KB>" but somehow other
+                    // BEW 7July10, in kbVersion 2 another way where the entry could be
+                    // inconsistent is that it does contain "<Not In KB>" but somehow other
                     // CRefStrings on the pTU instance are not deleted - so we must fix
                     // that. Instead of checking for any non-deleted ones, just delete them
                     // all and re-store "<Not In KB>" -- this will be done then on entries

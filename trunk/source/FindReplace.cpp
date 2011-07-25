@@ -408,6 +408,8 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 // initdialog here above
 
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
+// for glossing KB
 void CFindDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -445,27 +447,32 @@ void CFindDlg::DoFindNext()
                 // the store will fail if the user edited the entry out of the KB, as the
                 // latter cannot know which srcPhrases will be affected, so these will
                 // still have their m_bHasKBEntry set true. We have to test for this, ie. a
-                // null pRefString but the above flag TRUE is a sufficient test, and if so,
-                // set the flag to FALSE
-				CRefString* pRefStr;
+                // null pRefString or rsEntry value of present_but_deleted, but the above
+                // flag TRUE, is a sufficient test, and if so, set the flag to FALSE
+				CRefString* pRefStr = NULL;
+				KB_Entry rsEntry;
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = gpApp->m_pGlossingKB->GetRefString(1,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
-					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					rsEntry = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
+					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
-															gpApp->m_targetPhrase);
+					}
+					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
 				}
 				else
 				{
-					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
-					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+					rsEntry = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
+					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
-															gpApp->m_targetPhrase);
+					}
+					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -1238,28 +1245,34 @@ void CReplaceDlg::DoFindNext()
 				}
                 // the store will fail if the user edited the entry out of the KB, as the
                 // latter cannot know which srcPhrases will be affected, so these will
-                // still have their m_bHasKBEntry set true. We have to test for this, ie. a
-                // null pRefString but the above flag TRUE is a sufficient test, and if so,
-                // set the flag to FALSE
-				CRefString* pRefStr;
+                // still have their m_bHasKBEntry set true, or in the case of glossing KB,
+                // their m_bHasGlossingKBEntry set true. We have to test for this, ie. a
+                // null pRefString or rsEntry returned as present_but_deleted, but the
+                // above flag TRUE is a sufficient test, and if so, set the flag to FALSE
+				CRefString* pRefStr = NULL;
+				KB_Entry rsEntry;
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = gpApp->m_pGlossingKB->GetRefString(1,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
-					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					rsEntry = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
+					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
-															gpApp->m_targetPhrase);
+					}
+					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
 				}
 				else
 				{
-					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
-					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+					rsEntry = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
+					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
-															gpApp->m_targetPhrase);
+					}
+					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
 				}
 			}
 		}

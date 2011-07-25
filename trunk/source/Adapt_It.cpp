@@ -37119,7 +37119,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		if (fileDlg.ShowModal() != wxID_OK)
 			return; // user cancelled
 
-		wxString exportPath = fileDlg.GetPath();
+		exportPath = fileDlg.GetPath();
 		wxString name = fileDlg.GetFilename();
 		int nameLen = name.Length();
 		int pathLen = exportPath.Length();
@@ -37133,6 +37133,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		// NOTE: If you decide to change the default Export type you must make sure that 
 		// the KBExportSaveAsType enum ordering (in Adapt_It.h) has the same enum values 
 		// as the filterIndex value returned here by GetFilterIndex() !!!
+		/*
 		if (filterIndex == KBExportSaveAsSFM_TXT)
 		{
 			// in SFM exports, add the " dictionary records" suffix to the base name of the
@@ -37145,6 +37146,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 							_("dictionary records") + _T(".") + ext;
 			}
 		}
+		*/
 	}
 	else
 	{
@@ -38889,7 +38891,36 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 /// wxString, for transferring back to the respective PT or BE projects - which would be
 /// done in the caller once the returned string is assigned there.
 /// Note: internally we do our processing using SPArray rather than SPList, as it is
-/// easier and we can use functions from MergeUpdatedSrc.h & .cpp unchanged
+/// easier and we can use functions from MergeUpdatedSrc.h & .cpp unchanged.
+///  
+/// BEW additional note, 16Jul11, from email to Bill:
+/// Two new bits of the puzzle were 
+/// (a) get the two or three text variants which need to be compared to USFM text format,
+/// then I can tokenize each with the tokenizing function that uses target text
+/// punctuation, to have the data from each text in just m_srcPhrase and m_key to work with
+/// - that way simplifies things a lot and ensures consistency in the parsing; and
+/// (b) on top of the existing versed based chunking, I need to do a higher level chunking
+/// based on the verse-based chunks, the higher level chunks are "equivalence chunks" -
+/// which boils down to verse based chunks if there are no part verses or bridged verses,
+/// but when there are the latter, the complexities of disparate chunking at the lower
+/// level for a certain point in the texts can be subsumed into a single equivalence chunk.
+/// Equivalence chunking needs to be done in 2-way associations, and also in 3-way
+/// associations -- the latter when there is a previously sent-to-PT variant of the text
+/// retained in AI from a previous File / Save, plus the edited document as current it is
+/// at the current File / Save, plus the (possibly independently edited beforehand in PT)
+/// just-grabbed from PT text. Once I have the equivalence associations set up, I can step
+/// through them, comparing MD5 checksums, and determining where the user made edits, and
+/// then getting the new AI edits into just the corresponding PT text's chunks (the third
+/// text mentioned above). The two-way equivalences are when there is no previous File /
+/// Save done, so all there is is the current doc in AI and the just-graabbed from PT
+/// (possibly edited) text. It's all a bit complex, but once the algorithm is clear in its
+/// parts, which it now is, it should just be a week or two's work to have it working. Of
+/// course, the simplest situation is when there has been no previous File / Save for the
+/// data, and PT doesn't have any corresponding data to grab yet -- that boils down to just
+/// a simple export of the adaptation or free translation, as the case may be, using the
+/// existing RebuildTargetText() or RebuildFreeTransText() functions, as the case may be,
+/// and then transferring the resulting USFM text to the relevant PT project using
+/// rdwrtp7.exe.
 ///////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText, SPList* pDocList, 
 					wxString* pLatestTextFromEditor, enum SendBackTextType makeTextType)

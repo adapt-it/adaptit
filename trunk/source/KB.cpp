@@ -39,6 +39,8 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 
+//#define _ENTRY_DUP_BUG
+
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -295,16 +297,19 @@ void CKB::Copy(const CKB& kb)
 }
 
 // the "adaptation" parameter will contain an adaptation if m_bGlossingKB is FALSE, or if
-// TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will have
-// come from either the adaptation KB or the glossing KB.
+// TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will
+// have come from either the adaptation KB or the glossing KB.
 // Returns NULL if no CRefString instance matching the criterion was found
-// BEW 11May10, moved from view class, and made private (it's only called once, in GetRefString())
+// BEW 11May10, moved from view class, and made private (it's only called once, 
+// in GetRefString())
 // BEW 18Jun10, changes needed for support of kbVersion 2, if an instance is found which
 // matches the adaptation parameter, but the m_bDeleted flag is TRUE, then that is
 // regarded as a failure to find an instance, and NULL is returned
-CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation)
+// BEW changed 17Jul11, pass the pRefStr value back via signature, and return one of
+// three enum values: absent, or present_but_deleted, or really_present
+//CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation)
+enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation, CRefString*& pRefStr)
 {
-	CRefString* pRefStr = (CRefString*)NULL;
 	TranslationsList* pList = pTgtUnit->m_pTranslations;
 	wxASSERT(pList);
 	bool bNoError;
@@ -329,7 +334,6 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
         // case be done
 		;
 	}
-
 	TranslationsList::Node *pos = pList->GetFirst();
 	while(pos != NULL)
 	{
@@ -340,12 +344,14 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 		{
 			if (pRefStr->m_bDeleted)
 			{
-				// regard this as unmatched
-				return (CRefString*)NULL;
+				// regard this as present but deleted, & pRefStr non-NULL
+				//return (CRefString*)NULL;
+				return present_but_deleted;
 			}
 			else
 			{
-				return pRefStr; // we found it
+				// tell caller it is really present, pRefStr non-NULL
+				return really_present; // we found it
 			}
 		}
 		else
@@ -355,13 +361,17 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptatio
 				// it might be a <Not In KB> CSourcePhrase, check it out
 				if (pRefStr->m_translation == _T("<Not In KB>") && !pRefStr->m_bDeleted)
 				{
-					return pRefStr; // we return the pointer to this too
+					// this is regarded as really present, pRefStr non_NULL
+					//return pRefStr; // we return the pointer to this too
+					return really_present;
 				}
 			}
 		}
 	}
-	// finding it failed so return NULL
-	return (CRefString*)NULL;
+	// finding it failed so return NULL for pRefStr, and absent for KB_ENTRY value
+	//return (CRefString*)NULL;
+	pRefStr = NULL;
+	return absent;
 }
 
 // in this function, the keyStr parameter will always be a source string; the caller must
@@ -480,7 +490,10 @@ a:		iter = pMap->find(keyStr);
 // the call of AutoCapsFindRefString() returns NULL if the only match was of a CRefString
 // instance with m_bDeleted set to TRUE
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
+// BEW changed 17Jul11, pass the pRefStr value back via signature, and return one of
+// three enum values: absent, or present_but_deleted, or really_present
+//CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
+enum KB_Entry CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr, CRefString*& pRefStr)
 {
 	// ensure nSrcWords is 1 if this is a GlossingKB access << BEW removed 13Nov10
 	//if (m_bGlossingKB)
@@ -489,35 +502,44 @@ CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 	wxASSERT(pMap != NULL);
 	CTargetUnit* pTgtUnit;	// wx version changed 2nd param of AutoCapsLookup() below to
 							// directly use CTargetUnit* pTgtUnit
-	CRefString* pRefStr;
+	//CRefString* pRefStr;
 	bool bOK = AutoCapsLookup(pMap,pTgtUnit,keyStr);
 	if (bOK)
 	{
-		return pRefStr = AutoCapsFindRefString(pTgtUnit,valueStr);
+		//return pRefStr = AutoCapsFindRefString(pTgtUnit,valueStr);
+		KB_Entry rsEntry = AutoCapsFindRefString(pTgtUnit, valueStr, pRefStr);
+		return rsEntry;
 	}
-	// lookup failed, so the KB state is different than data in the document suggests,
-	// a Consistency Check operation should be done on the file(s)
-	return (CRefString*)NULL;
+    // lookup failed, so the KB state is different than data in the document
+    // suggests, a Consistency Check operation should be done on the file(s)
+	//return (CRefString*)NULL;
+	pRefStr = NULL;
+	return absent;
 }
 
-// this overload of GetRefString() is useful for LIFT imports
-// BEW 21Jun10, no changes needed for support of kbVersion 2, because internally
-// the call of AutoCapsFindRefString() returns NULL if the only match was of a CRefString
+// this overload of GetRefString() is useful for LIFT imports BEW 21Jun10, no
+// changes needed for support of kbVersion 2, because internally the call of
+// AutoCapsFindRefString() returns NULL if the only match was of a CRefString
 // instance with m_bDeleted set to TRUE
-// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
-CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
+// BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to
+// use all maps
+// BEW changed 17Jul11, pass the pRefStr value back via signature, and return 
+// one of three enum values: absent, or present_but_deleted, or really_present
+//CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
+KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr)
 {
 	wxASSERT(pTU);
-	CRefString* pRefStr = AutoCapsFindRefString(pTU,valueStr);
-	if (pRefStr == NULL)
-	{
+	KB_Entry rsEntry = AutoCapsFindRefString(pTU, valueStr, pRefStr);
+	//if (pRefStr == NULL)
+	//{
 		// it's not in the m_translations list, so return NULL
-		return (CRefString*)NULL;
-	}
-	else
-	{
-		return pRefStr;
-	}
+	//	return (CRefString*)NULL;
+	//
+	//else
+	//{
+	//	return pRefStr;
+	//}
+	return rsEntry;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -580,8 +602,14 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
     // to remove, and no more to be done here, so test for this possibility and return
     // immediately if so.
 	if (pRefString == NULL)
+	{
 		return;
-
+	}
+	// also return if it is a deleted one...
+	if (pRefString->m_bDeleted)
+	{
+		return;
+	}
     // for autocapitalization support, we have to be careful that the translation (or
     // gloss) which we delete in the case when the ref count drops to zero is the actual
     // one in the KB - we can't always take it from pSrcPhrase->m_key because if auto caps
@@ -759,34 +787,42 @@ a:	return str;
 // enum values are a set of two: useGlossOrAdaptationForLookup and
 // useTargetPhraseForLookup. When the latter is passed in, the targetPhrase value which is
 // looked up is assumed to be the phrase box's contents (the caller is responsible to make
-// sure that is so). When the former is passed is, then the targetPhrase param is ignored,
+// sure that is so). When the former is passed in, then the targetPhrase param is ignored,
 // and the m_gloss or m_adaption member of the passed in pSrcPhrase is used for lookup -
 // depending on the value of the private member m_bGlossingKB, when TRUE, m_gloss is used,
 // when FALSE, m_adaption is used.
 // BEW 17Jun10, no changes needed for support of kbVersion 2
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW changed 17Jul11, comply with newer versions of GetRefString(), and
+// AutoCapsFindRefString() where one of three enum values are returned: absent, or
+// present_but_deleted, or really_present
 void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhrase, 
 								enum UseForLookup useThis)
 {
 	CRefString* pRefStr = NULL;
+	KB_Entry rsEntry;
 	if (m_bGlossingKB)
 	{
 		if (useThis == useTargetPhraseForLookup)
 		{
-			//pRefStr = GetRefString(1, pSrcPhrase->m_key, targetPhrase);
-			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
+			//pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
+			rsEntry = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase, pRefStr);
 		}
 		else // useThis has the value useGlossOrAdaptationForLookup
 		{
-			//pRefStr = GetRefString(1, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
-			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
+			//pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
+			rsEntry = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_gloss, pRefStr);
 		}
 		// ensure correct flag value
-		if (pRefStr == NULL && pSrcPhrase->m_bHasGlossingKBEntry)
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // must be FALSE for a successful lookup on return
-		if (pRefStr != NULL)
+		if ((pRefStr == NULL && pSrcPhrase->m_bHasGlossingKBEntry) ||
+			(rsEntry == present_but_deleted && pSrcPhrase->m_bHasGlossingKBEntry))
 		{
-			//RemoveRefString(pRefStr, pSrcPhrase, 1);
+			// must be FALSE for a successful lookup on return
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE; 
+		}
+		if (pRefStr != NULL && rsEntry == really_present)
+		{
+			// there's a non-deleted entry there which is to be removed now
 			RemoveRefString(pRefStr, pSrcPhrase, pSrcPhrase->m_nSrcWords);
 		}
 	}
@@ -794,16 +830,22 @@ void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhras
 	{
 		if (useThis == useTargetPhraseForLookup)
 		{
-			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
+			//pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
+			rsEntry = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase, pRefStr);
 		}
 		else // useThis has the value useGlossOrAdaptationForLookup
 		{
-			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+			//pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+			rsEntry = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_adaption, pRefStr);
 		}
 		// ensure correct flag value
-		if (pRefStr == NULL && pSrcPhrase->m_bHasKBEntry)
-			pSrcPhrase->m_bHasKBEntry = FALSE; // must be FALSE for a successful lookup on return
-		if (pRefStr != NULL)
+		if ((pRefStr == NULL && pSrcPhrase->m_bHasKBEntry) ||
+			(rsEntry == present_but_deleted && pSrcPhrase->m_bHasKBEntry))
+		{
+			// must be FALSE for a successful lookup on return
+			pSrcPhrase->m_bHasKBEntry = FALSE; 
+		}
+		if (pRefStr != NULL && rsEntry == really_present)
 		{
 			RemoveRefString(pRefStr, pSrcPhrase, pSrcPhrase->m_nSrcWords);
 		}
@@ -875,6 +917,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 // BEW 8Jun10, added markers and code for support of kbVersion 2 data additions, and for
 // support of both LIFT import and \lx &\ge -based SFM KB import
 // BEW 13Nov10 changes for supporting Bob Eaton's request for using all tabs in glossing kb
+// BEW 17Jul11, bug fix for duplicate entries when an entry has m_deleted flag TRUE
 void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
 	//CSourcePhrase* pSrcPhrase = new CSourcePhrase;
@@ -896,6 +939,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	bool bKeyDefined = FALSE;
 	int nOffset = -1;
 	//m_pApp->m_bSaveToKB = TRUE;
+	// BEW added 17Jul11
+	bool bUndeleting = FALSE;
 
 	// BEW 9Jun10 support for kbVersion 2, uses the custom markers:
 	// \del  for the m_bDeleted flag value "0" or "1" values (for FALSE or TRUE)
@@ -988,7 +1033,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		int nAdaptationsAdded = 0;
 		int nAdaptationsUnchanged = 0;
 		int nDelItems = 0;
-		
+		int nUndeletions = 0;
+
 		int ct;
 		int nWordCount;
 		MapKeyStringToTgtUnit* pMap; // pointer to the map to use for a given entry
@@ -998,11 +1044,24 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		for (ct = 0; ct < lineCount; ct++)
 		{
 			line = file.GetLine(ct);
+
+			// for debugging
+//#ifdef _ENTRY_DUP_BUG
+//#ifdef __WXDEBUG__
+//			int anOffset1 = line.Find(_T("the"));
+//			int anOffset2 = line.Find(_T("jHN"));
+//			if  (anOffset1 != wxNOT_FOUND || anOffset2 != wxNOT_FOUND)
+//			{
+//				int halt_here = 1;
+//			}
+//#endif
+//#endif
 			// the data for each line is now in lineStr
 			// is the line a m_key member?
 			if (IsMember(line,keyMarker,nOffset) || nOffset >= 0)
 			{
 				nLexItemsProcessed++;
+
 				// it is a valid key
 				// default the pMap pointer to the first map in this KB
 				pMap = m_pMap[0];
@@ -1063,7 +1122,10 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			{
 				if (IsMember(line,adaptionMarker,nOffset) || nOffset >= 0)
 				{
+					bUndeleting = FALSE; // after ending the parse of CRefString this flag
+										 // must be reinitialized to FALSE - so do it here
 					nAdaptationsProcessed++;
+
                     // an 'adaptation' member (for a glossingKB, this is actually a gloss,
                     // but we use this adaptation name for both here) exists for this key,
                     // so get the KB updated with this association provided a valid key was
@@ -1089,6 +1151,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
                             // set the pointer to the owning CTargetUnit, and add it to the
                             // m_translations member
                             nAdaptationsAdded++;
+
 							pTU = new CTargetUnit;
 							pRefStr = new CRefString; // default constructor doesn't set 
 										// CRefStringMetadata members, we will do them
@@ -1126,11 +1189,14 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
                             wxASSERT(pTU);
 							adaption.Trim();
 							adaption.Trim(FALSE);
-							CRefString* pRefStr = GetRefString(pTU,adaption); // returns
-									// NULL if there was no matching CRefString instance
-							if (pRefStr == NULL)
+							KB_Entry rsEntry = GetRefString(pTU, adaption, pRefStr); // returns
+									// pRefStr NULL if there was no CRefString instance with
+									// matching m_translation == adaption, and returns in rsEntry
+									// either absent, present_but_deleted, or really_present
+							if (pRefStr == NULL && rsEntry == absent)
 							{
 								nAdaptationsAdded++;
+
                                 // this particular adaptation or gloss is not yet in the
                                 // map's CTargetUnit instance, so put create a CRefString
                                 // (and CRefStringMetatdata), and add to the pTU's list
@@ -1154,14 +1220,37 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 								// manage it
 								pTU->m_pTranslations->Append(pRefStr);
 							}
+							else if (pRefStr != NULL && rsEntry == present_but_deleted)
+							{
+								// this one was deleted, so now we must undelete it --
+								// we'll handle all metadata fields here right now, since
+								// some may be lacking (such as \mdt and/or \ddt) in the
+								// imported file's sfm data and the metadata block blow
+								// won't make the required changes for those in that case,
+								// so we do it all here, and let the metadata block
+								// redundantly redo any of those that occur in the import
+								// record (the nUndeletions count, however, has to be done
+								// in the metadata block below, as nDelItems is done there
+								// too)
+								pRefStr->m_refCount = 1; // initialize to 1
+								bUndeleting = TRUE; // this entry is being undeleted
+								// additional changes are done redundantly in the metadata
+								// block below, using the bUndeletions == TRUE value
+								pRefStr->m_bDeleted = FALSE;
+								pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho(); // will be overrided below
+								pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+								pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty(); // initialize to empty
+								pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty(); // initialize to empty
+							}
 							else
 							{
-								nAdaptationsUnchanged++;
                                 // this particular adaptation or gloss is in the map's
                                 // CTargetUnit pointer already, so we should ignore it; to
                                 // do that we just need to set pRefStr to NULL, so that
 								// parsing of subsequent metadata lines in the code
 								// further down will ignore this CRefString and its metadata
+								wxASSERT(rsEntry == really_present);
+								nAdaptationsUnchanged++;
 								pRefStr = NULL;
 							}
 						}
@@ -1182,7 +1271,6 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 						// process any metadata lines
 						if (IsMember(line,delflag,nOffset) || nOffset >= 0)
 						{
-							nDelItems++;
 							// this marker, if present, will always have either "0" or "1"
 							// as its content
 							wxString delStr;
@@ -1200,13 +1288,27 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 							if (!delStr.IsEmpty())
 							{
 								wxASSERT(pRefStr);
-								if (delStr.GetChar(0) == _T('1'))
+								if (bUndeleting)
 								{
-									pRefStr->m_bDeleted = TRUE;
+									// mark it as not deleted
+									nUndeletions++; // count undeletions with a separate counter than nDelItems
+									pRefStr->m_bDeleted = FALSE;
 								}
 								else
 								{
-									pRefStr->m_bDeleted = FALSE;
+									// it remains a deleted entry, or undeleted, as the
+									// case may be
+									if (delStr.GetChar(0) == _T('1'))
+									{
+										nDelItems++; // count deletions that remain deletions
+										pRefStr->m_bDeleted = TRUE;
+									}
+									else
+									{
+										pRefStr->m_bDeleted = FALSE; // don't count undeleted items 
+												// which remain undeleted, as these are counted
+												// in the Number of Adaptations/Glosses count
+									}
 								}
 							}
 						} // end of TRUE block for test: the line has a \del marker in it
@@ -1250,14 +1352,22 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 								createDTStr.Empty(); // this member should not be empty
 							}
 							wxASSERT(pRefStr);
-							if (!createDTStr.IsEmpty())
+							if (bUndeleting)
 							{
-								pRefStr->m_pRefStringMetadata->m_creationDateTime = createDTStr;
+								// when undeleting, give it the current time
+								pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
 							}
 							else
 							{
-								// if no creation datetime was supplied, give it current datetime
-								pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+								if (!createDTStr.IsEmpty())
+								{
+									pRefStr->m_pRefStringMetadata->m_creationDateTime = createDTStr;
+								}
+								else
+								{
+									// if no creation datetime was supplied, give it current datetime
+									pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+								}
 							}
 						} // end of TRUE block for test: the line has a \cdt marker in it
 						else if (IsMember(line,modDT,nOffset) || nOffset >= 0)
@@ -1275,9 +1385,18 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 								modDTStr.Empty(); // this member can be empty, & usually is
 							}
 							wxASSERT(pRefStr);
-							if (!modDTStr.IsEmpty())
+							if (bUndeleting)
 							{
-								pRefStr->m_pRefStringMetadata->m_modifiedDateTime = modDTStr;
+								// if undeleting, any modification dateTime would be
+								// meaningless, so empty it
+								pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+							}
+							else
+							{
+								if (!modDTStr.IsEmpty())
+								{
+									pRefStr->m_pRefStringMetadata->m_modifiedDateTime = modDTStr;
+								}
 							}
 						} // end of TRUE block for test: the line has a \mdt marker in it
 						else if (IsMember(line,delDT,nOffset) || nOffset >= 0)
@@ -1295,9 +1414,18 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 								delDTStr.Empty(); // this member can be empty, & usually is
 							}
 							wxASSERT(pRefStr);
-							if (!delDTStr.IsEmpty())
+							if (bUndeleting)
 							{
-								pRefStr->m_pRefStringMetadata->m_deletedDateTime = delDTStr;
+								// remove the deletion dateTime now that we are making
+								// this a really_present entry
+								pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+							}
+							else
+							{
+								if (!delDTStr.IsEmpty())
+								{
+									pRefStr->m_pRefStringMetadata->m_deletedDateTime = delDTStr;
+								}
 							}
 						} // end of TRUE block for test: the line has a \ddt marker in it
 						else
@@ -1310,14 +1438,12 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			} // end of else block for test that line has a \lx marker
 		} // end of loop over all lines
 		file.Close();
-		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Processed %d");
-		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems);
+
+		// provide the user with a statistics summary
+		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
+		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
 		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
-
 	} // end importing from an SFM text file
-
-	// process the last line here ??? (FALSE is bool bDoPartnerPileDeletionAlso)
-	//m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 }
 
 // BEW 13Nov10 no changes for all tabs glossing kb
@@ -2043,6 +2169,8 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 // call of RedoStorage().
 // BEW 18Jun10, changes made for supporting kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW 17Jul11, changed to support the return of enum KB_Entry, with values absent,
+// present_but_deleted, or really_present, from GetRefString()
 void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 {
 	if (bChoice)
@@ -2081,42 +2209,72 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 		pSrcPhrase->m_bHasKBEntry = FALSE; // make sure
 
 		wxString str = _T("<Not In KB>");
-		CRefString* pRefString = GetRefString(pSrcPhrase->m_nSrcWords,
-												pSrcPhrase->m_key,str);
-		if (pRefString == NULL)
+		//CRefString* pRefString = GetRefString(pSrcPhrase->m_nSrcWords, 
+		//                                     pSrcPhrase->m_key, str);
+		CRefString* pRefString = NULL;
+		KB_Entry rsEntry = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, 
+										str, pRefString);
+		if (pRefString == NULL && rsEntry == absent)
 		{
-            // it's not present, so our work is done
+            // it's not present, so our work is done 
 			return;
 		}
 		wxASSERT(pRefString);
+		// the two possibilities are that rsEntry is present_but_deleted, or rsEntry is
+		// really_present. If the former is the case, it's already "deleted" so we need
+		// only undelete any other refstring instances, if the latter, we must make it be
+		// deleted and undelete the rest (if any)
 		if (pRefString != NULL)
 		{
 			// BEW 18Jun10, for kbVersion 2, we must undo any deletions we made earlier
 			// when we set up the <Not In KB> entry, and make the CRefString with
-			// translation test "<Not In KB>" become the deleted one
+			// translation text string "<Not In KB>" become the deleted one
+			
+			// get the parent CTargetUnit instance
 			CTargetUnit* pTgtUnit = pRefString->m_pTgtUnit;
 			wxASSERT(pTgtUnit);
 			TranslationsList* pList = pTgtUnit->m_pTranslations;
 			wxASSERT(!pList->IsEmpty());
 			TranslationsList::Node* pos = pList->GetFirst();
 			// BEW 18Jun10 the new code follows..., first, scan through all CRefString
-			// instances in the list and any with m_bDeleted set TRUE, undelete them
+			// instances in the list and any with m_bDeleted set TRUE, undelete them; and
+			// the one which matches pRefString above must be given special tests
 			while (pos != NULL)
 			{
 				CRefString* pRefStr = (CRefString*)pos->GetData();
 				pos = pos->GetNext();
-				if (pRefStr != NULL && pRefStr->m_bDeleted)
+				if (pRefStr == pRefString)
 				{
-					pRefStr->m_bDeleted = FALSE;
-					pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+					if (rsEntry == present_but_deleted)
+					{
+						// our work is done for this one, it's deleted already
+						;
+					}
+					else
+					{
+						wxASSERT(rsEntry == really_present);
+
+						// make the <Not In KB> entry become the deleted one
+						pRefString->m_bDeleted = TRUE;
+						pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+					}
 				}
-			}
-			
-			// finally make the <Not In KB> entry become the deleted one
-			pRefString->m_bDeleted = TRUE;
-			pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
-		}
-	}
+				else
+				{
+					// it's not the "<Not In KB>" one we matched above
+					if (pRefStr != NULL && pRefStr->m_bDeleted)
+					{
+						pRefStr->m_bDeleted = FALSE;
+						pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+						// we could leave the old creation datetime intact, but since the
+						// entry was 'deleted' it is probably more appropriate to give it
+						// the current time as it's (re-)creation datetime
+						pRefString->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+					}
+				}
+			} // end of while loop
+		} // end of TRUE block for test: if (pRefString != NULL)
+	} // end of else block for test: if (bChoice)
 }
 
 inline int CKB::GetCurrentKBVersion()
@@ -3894,6 +4052,8 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 // BEW 21Jun10, moved to CKB class and signature simplified
 // BEW 21Jun10, no changes needed for support of kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW 17Jul11, changed to support the return of enum KB_Entry, with values absent,
+// present_but_deleted, or really_present, from GetRefString()
 void CKB::Fix_NotInKB_WronglyEditedOut(CPile* pCurPile)
 {
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -3901,11 +4061,13 @@ void CKB::Fix_NotInKB_WronglyEditedOut(CPile* pCurPile)
 											  // as this call gets the interlinear strips view/pane
 	wxString str = _T("<Not In KB>");
 	CSourcePhrase* pSP = pCurPile->GetSrcPhrase();
-	CRefString* pRefStr = GetRefString(pSP->m_nSrcWords, pSP->m_key, str);
-	if (pRefStr == NULL)
+	CRefString* pRefStr = NULL;
+	KB_Entry rsEntry = GetRefString(pSP->m_nSrcWords, pSP->m_key, str, pRefStr);
+	// Note: pRefStr returned NULL only happens when the value absent is returned in rsEntry
+	if (pRefStr == NULL || rsEntry == present_but_deleted)
 	{
-		m_pApp->m_bSaveToKB = TRUE; // it will be off, so we must turn it back on to get 
-								   // the string restored
+		m_pApp->m_bSaveToKB = TRUE; // it will be off, so we must turn it 
+								    // back on to get the string restored
         // don't inhibit the call to MakeTargetStringIncludingPunctuation( ) here,
         // since the phrase passed in is the non-punctuated one
 		bool bOK;

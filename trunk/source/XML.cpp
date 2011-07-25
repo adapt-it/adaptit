@@ -190,6 +190,7 @@ static int nLexItemsProcessed = 0;
 static int nAdaptationsProcessed = 0;
 static int nAdaptationsAdded = 0;
 static int nAdaptationsUnchanged = 0;
+static int nUndeletions = 0;
 
 
 // this group of tags are for the AI_USFM.xml file
@@ -4993,20 +4994,20 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	return TRUE; // no error
 }
 
+// BEW 17Jul11, bug fix for duplicate entries when an entry has m_deleted flag TRUE
 bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 {
 	if (tag == xml_sense)
 	{
 		if (pStack->MyParentsAre(1,xml_entry,emptyStr,emptyStr))
 		{
-			int numWords = 1;
+			int numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
 			if (gpKB->IsThisAGlossingKB())
 			{
-				gpMap = gpApp->m_pGlossingKB->m_pMap[0];
+				gpMap = gpApp->m_pGlossingKB->m_pMap[numWords - 1];
 			}
 			else
 			{
-				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
 				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
 			}
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
@@ -5027,6 +5028,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				// other datetime, so leave it that way)
 				gpRefStr->m_translation = textStr;
 				gpRefStr->m_refCount = 1;
+				gpRefStr->SetDeletedFlag(FALSE);
 				gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
 				gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
 
@@ -5066,8 +5068,9 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				// there is a CRefString instance for the given textStr
 				textStr.Trim();
 				textStr.Trim(FALSE);
-				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
-				if (pRefStr_In_TU == NULL)
+				CRefString* pRefStr_In_TU = NULL;
+				KB_Entry rsEntry = gpKB->GetRefString(gpTU_From_Map, textStr, pRefStr_In_TU);
+				if (pRefStr_In_TU == NULL && rsEntry == absent)
 				{
 					nAdaptationsAdded++;
 					// this particular adaptation or gloss is not yet in the map's CTargetUnit
@@ -5079,6 +5082,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 					gpRefStr->m_refCount = 1;
 					gpRefStr->m_translation = textStr;
 					gpRefStr->m_pTgtUnit = gpTU_From_Map;
+					gpRefStr->SetDeletedFlag(FALSE);
 					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
 					gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
 					// the CRefStringMetadata has been initialized with this use:computer's
@@ -5110,9 +5114,26 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 #endif
 					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
 					// when the current <entry> contents have finished being processed
+				} // end of TRUE block for test: if (pRefStr_In_TU == NULL && rsEntry = absent)
+				else if (pRefStr_In_TU != NULL && rsEntry == present_but_deleted)
+				{
+					// this one is a "deleted" entry already in the map, so the import now 
+					// needs to undelete it; and gpTU and gpRefStr should be deleted (as
+					// is explained in next block's comments)
+					nUndeletions++;
+
+					pRefStr_In_TU->m_refCount = 1; // initialize to 1
+					pRefStr_In_TU->SetDeletedFlag(FALSE);
+					// reset its metadata
+					pRefStr_In_TU->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+					pRefStr_In_TU->GetRefStringMetadata()->SetWhoCreated(SetWho());
+					pRefStr_In_TU->GetRefStringMetadata()->SetModifiedDateTime(_T(""));
+					pRefStr_In_TU->GetRefStringMetadata()->SetDeletedDateTime(_T(""));
 				}
 				else
 				{
+					wxASSERT(rsEntry == really_present);
+
 					nAdaptationsUnchanged++;
 					// this particular adaptation or gloss is in the map's CTargetUnit pointer
 					// already, so we can ignore it. We must delete both the gpRefStr (and
@@ -5132,6 +5153,9 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 			// end-tag for this current empty string as gloss or adaptation
 			if (gpRefStr != NULL)
 			{
+				// this is done for both present_but_deleted, and really_present return
+				// values for the rsEntry enum; because in either case, the CTargetUnit
+				// contributed a non-NULL CRefString pointer, pRefStr_In_TU
 				gpRefStr->DeleteRefString(); // also deletes its CRefStringMetadata instance
 				gpRefStr = (CRefString*)NULL;
 			}
@@ -5218,16 +5242,16 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			gKeyStr = pcdata.GetBuffer();
 #endif
 			// set up the map pointer - this depends on how many words there are in the source
-			// text in gKeyStr if the KB is an adapting one, but for a glossingKB it is always
-			// the first map
-			int numWords = 1;
+			// text -- at Bob Eaton's request, both glossing and adapting KBs potentially utilize
+			// all ten maps
+			int numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
 			if (gpKB->IsThisAGlossingKB())
 			{
-				gpMap = gpApp->m_pGlossingKB->m_pMap[0];
+				gpMap = gpApp->m_pGlossingKB->m_pMap[numWords - 1];
 			}
 			else
 			{
-				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+				
 				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
 			}
 #ifdef _debugLIFT_
@@ -5257,11 +5281,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			// Find out if there is CTargetUnit in this map already, for this key; the
 			// following call returns NULL if there is no CTargetUnit for the key yet in the
 			// map, otherwise it returns the map's CTargetUnit instance
-			int numWords = 1; // always true for a glossingKB
-			if (!gpKB->IsThisAGlossingKB())
-			{
-				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
-			}
+			int numWords = TrimAndCountWordsInString(gKeyStr);
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
@@ -5346,8 +5366,9 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 				// there is a CRefString instance for the given textStr
 				textStr.Trim();
 				textStr.Trim(FALSE);
-				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
-				if (pRefStr_In_TU == NULL)
+				CRefString* pRefStr_In_TU = NULL;
+				KB_Entry rsEntry = gpKB->GetRefString(gpTU_From_Map, textStr, pRefStr_In_TU);
+				if (pRefStr_In_TU == NULL && rsEntry == absent)
 				{
 					nAdaptationsAdded++;
 					// this particular adaptation or gloss is not yet in the map's CTargetUnit
@@ -5392,6 +5413,21 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
 					// when the current <entry> contents have finished being processed
 				}
+				else if (pRefStr_In_TU != NULL && rsEntry == present_but_deleted)
+				{
+					// this one is a "deleted" entry already in the map, so the import now 
+					// needs to undelete it; and gpTU and gpRefStr should be deleted (as
+					// is explained in next block's comments)
+					nUndeletions++;
+
+					pRefStr_In_TU->m_refCount = 1; // initialize to 1
+					pRefStr_In_TU->SetDeletedFlag(FALSE);
+					// reset its metadata
+					pRefStr_In_TU->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
+					pRefStr_In_TU->GetRefStringMetadata()->SetWhoCreated(SetWho());
+					pRefStr_In_TU->GetRefStringMetadata()->SetModifiedDateTime(_T(""));
+					pRefStr_In_TU->GetRefStringMetadata()->SetDeletedDateTime(_T(""));
+				}
 				else
 				{
 					// this particular adaptation or gloss is in the map's CTargetUnit pointer
@@ -5399,7 +5435,8 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					// its owned CRefStringMetadata instance), and also delete the gpTU we
 					// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
 					// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
-					;
+					nAdaptationsUnchanged++;
+;
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
 					wxLogDebug(_T("Block 3"));
@@ -6509,8 +6546,8 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB)
 							AtLIFTEndTag,AtLIFTPCDATA);
 	if (bXMLok)
 	{
-		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d");
-		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged);
+		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Undeletions %d");
+		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nUndeletions);
 		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
 	}
 	return bXMLok;

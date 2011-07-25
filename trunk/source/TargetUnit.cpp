@@ -185,7 +185,7 @@ int CTargetUnit::FindRefString(wxString& translationStr)
 // undeleted instances stores "<Not In KB>" already, it too is made deleted, because this
 // function is called before a StoreText(), and if the store then stores <Not In KB>, the
 // deleted CRefString storing that is undeleted - so we don't have to take into account
-// whether or not a <Not In KB> CRefString is within the list or now, we just make all
+// whether or not a <Not In KB> CRefString is within the list or not, we just make all
 // instances be deleted.
 // This function is called in the KB.cpp's DoNotInKB() called from the view's
 // OnCheckKBSave() which handles the Save to knowledge base checkbox clicks, and in the

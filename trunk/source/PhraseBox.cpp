@@ -3218,6 +3218,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 // Ammended July 2003 for auto-capitalization support
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 21Jun10, no changes needed for support of kbVersion 2, & removed pView from signature
+// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
+// for glossing KB
 bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 {
     // store the current translation, if one exists, before retreating, since each retreat
@@ -3445,18 +3447,19 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		bool bNeedModify = FALSE; // reset to TRUE if we copy source 
 								  // because there was no adaptation
 		// be careful, the pointer might point to <Not In KB>, rather than a normal entry
-		CRefString* pRefString;
+		CRefString* pRefString = NULL;
+		KB_Entry rsEntry;
 		if (gbIsGlossing)
 		{
-			pRefString = pApp->m_pGlossingKB->GetRefString(1, 
-					pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_gloss);
+			rsEntry = pApp->m_pGlossingKB->GetRefString(pNewPile->GetSrcPhrase()->m_nSrcWords, 
+					pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_gloss, pRefString);
 		}
 		else
 		{
-			pRefString = pApp->m_pKB->GetRefString(pNewPile->GetSrcPhrase()->m_nSrcWords, 
-					pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_adaption);
+			rsEntry = pApp->m_pKB->GetRefString(pNewPile->GetSrcPhrase()->m_nSrcWords, 
+					pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_adaption, pRefString);
 		}
-		if (pRefString != NULL)
+		if (pRefString != NULL && rsEntry == really_present)
 		{
 			pView->RemoveSelection(); // we won't do merges in this situation
 			
@@ -3479,10 +3482,11 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 			
             // remove the translation from the KB, in case user wants to edit it before
             // it's stored again (RemoveRefString also clears the m_bHasKBEntry flag on the
-            // source phrase)
+            // source phrase, or m_bHasGlossingKBEntry if gbIsGlossing is TRUE)
 			if (gbIsGlossing)
 			{
-				pApp->m_pGlossingKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 1);
+				pApp->m_pGlossingKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 
+											pNewPile->GetSrcPhrase()->m_nSrcWords);
 				pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_gloss;
 			}
 			else
@@ -3494,7 +3498,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 				pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_targetStr;
 			}
 		}
-		else // the pointer to refString was null (ie. no KB entry)
+		else // the pointer to refString was null (ie. no KB entry) or rsEntry was present_but_deleted
 		{
 			if (gbIsGlossing)  // ensure the flag below is false when there is no KB entry
 				pNewPile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
@@ -3581,6 +3585,8 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 // Ammended, July 2003, for auto capitalization support
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 21Jun10, no changes needed for support of kbVersion 2, & removed pView from signature
+// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
+// for glossing KB
 bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 {
 	// store the current translation, if one exists, before moving to next pile, since each move
@@ -3755,14 +3761,15 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 
         // beware, next call the pRefString pointer may point to <Not In KB>, so take that
         // into account; GetRefString has been modified for auto-capitalization support
-		CRefString* pRefString;
+		CRefString* pRefString = NULL;
+		KB_Entry rsEntry;
 		if (gbIsGlossing)
-			pRefString = pApp->m_pGlossingKB->GetRefString(1,
-				pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_gloss);
+			rsEntry = pApp->m_pGlossingKB->GetRefString(pNewPile->GetSrcPhrase()->m_nSrcWords,
+				pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_gloss, pRefString);
 		else
-			pRefString = pApp->m_pKB->GetRefString(pNewPile->GetSrcPhrase()->m_nSrcWords,
-				pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_adaption);
-		if (pRefString != NULL)
+			rsEntry = pApp->m_pKB->GetRefString(pNewPile->GetSrcPhrase()->m_nSrcWords,
+				pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_adaption, pRefString);
+		if (pRefString != NULL && rsEntry == really_present)
 		{
 			pView->RemoveSelection(); // we won't do merges in this situation
 			
@@ -3790,7 +3797,8 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
             // source phrase)
 			if (gbIsGlossing)
 			{
-				pApp->m_pGlossingKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 1);
+				pApp->m_pGlossingKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(),
+											pNewPile->GetSrcPhrase()->m_nSrcWords);
 				pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_gloss;
 			}
 			else
@@ -3800,7 +3808,7 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 				pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_targetStr;
 			}
 		}
-		else // no kb entry
+		else // no kb entry or rsEntry == present_but_deleted
 		{
 			if (gbIsGlossing)
 			{
@@ -5443,10 +5451,14 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 // transparent and the function shorter
 // BEW 22Feb10, no changes needed for support of doc version 5
 // BEW 21Jun10, no changes needed for support of kbVersion 2
+// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
+// for glossing KB
 bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase)
 {
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK = TRUE;
+	CRefString* pRefStr = NULL;
+	KB_Entry rsEntry;
 	if (gbIsGlossing)
 	{
 		if (targetPhrase.IsEmpty())
@@ -5456,10 +5468,13 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 		// cannot know which srcPhrases will be affected, so these will still have their
 		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
 		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-		CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
-								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
-		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+		rsEntry = pApp->m_pGlossingKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase, pRefStr);
+		if ((pRefStr == NULL || rsEntry == present_but_deleted) &&
+			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+		{
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+		}
 		bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
 	}
 	else // is adapting
@@ -5474,10 +5489,13 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 		// cannot know which srcPhrases will be affected, so these will still have their
 		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
 		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-		CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
-		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+		rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase, pRefStr);
+		if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+		{
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+		}
 		gbInhibitMakeTargetStringCall = TRUE;
 		bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
 		gbInhibitMakeTargetStringCall = FALSE;
