@@ -100,8 +100,8 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pComboFreeTransProjectName = (wxComboBox*)FindWindowById(ID_COMBO_FREE_TRANS_PROJECT_NAME);
 	wxASSERT(pComboFreeTransProjectName != NULL);
 
-	pRadioBoxChapterOnly = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
-	wxASSERT(pRadioBoxChapterOnly != NULL);
+	pRadioBoxChapterOrBook = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
+	wxASSERT(pRadioBoxChapterOrBook != NULL);
 
 	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
 	wxASSERT(pListBoxBookNames != NULL);
@@ -156,12 +156,13 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
-		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7();
+		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
 	}
 	else
 	{
 		m_bibledit_gtkPathAndFileName = GetBibleditInstallPath(); // will return
-								// an emptpy string if BibleEdit is not installed
+								// an empty string if BibleEdit is not installed;
+								// see CollabUtilities.cpp
 	}
 
 	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
@@ -210,9 +211,9 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 	
-	// Current version 6.0 does not allow selecting texts by whole book,
-	// so the only possible selection is 0.
-	pRadioBoxChapterOnly->SetSelection(0);
+	// Allow selecting texts by whole book, or chapter, and make the latter the default
+	pRadioBoxChapterOrBook->SetSelection(0);
+	m_bChapterOnly = TRUE;
 
 	bool bSourceProjFound = FALSE;
 	int nIndex = -1;
@@ -2709,8 +2710,17 @@ wxString CGetSourceTextFromEditorDlg::AbbreviateColonSeparatedVerses(const wxStr
 
 void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event))
 {
-	// Keep the button selected - the only choice is "Get Chapter Only"
-	pRadioBoxChapterOnly->SetSelection(0);
+    // clicking "Get Chapter Only" button return nSel = 0; "Get Whole Book" button returns
+    // nSel = 1
+	unsigned int nSel = pRadioBoxChapterOrBook->GetSelection();
+	if (nSel == 0)
+	{
+		m_bChapterOnly = TRUE;
+	}
+	else
+	{
+		m_bChapterOnly = FALSE;
+	}
 }
 
 wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)

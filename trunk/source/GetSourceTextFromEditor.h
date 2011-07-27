@@ -29,7 +29,7 @@ public:
 	wxComboBox* pComboSourceProjectName;
 	wxComboBox* pComboDestinationProjectName;
 	wxComboBox* pComboFreeTransProjectName;
-	wxRadioBox* pRadioBoxChapterOnly;
+	wxRadioBox* pRadioBoxChapterOrBook;
 	wxListBox* pListBoxBookNames;
 	wxListView* pListCtrlChapterNumberAndStatus; // wxListBox* pListCtrlChapterNumberAndStatus;
 	wxListItem* pTheFirstColumn; // has to be on heap
@@ -71,6 +71,7 @@ public:
 	wxString m_collabEditorName;
 
 	wxArrayString m_staticBoxDescriptionArray;
+	bool m_bChapterOnly; // FALSE means the "whole book" option
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
