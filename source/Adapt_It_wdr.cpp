@@ -8059,9 +8059,10 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxString strs12[] = 
     {
-        _("Get Chapter &Only")
+        _("Get Chapter &Only"), 
+        _("Get &Whole Book")
     };
-    wxRadioBox *item12 = new wxRadioBox( parent, ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, wxT(""), wxDefaultPosition, wxDefaultSize, 1, strs12, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item12 = new wxRadioBox( parent, ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs12, 1, wxRA_SPECIFY_ROWS );
     item12->SetToolTip( _("Select amount of text to adapt") );
     item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
 
