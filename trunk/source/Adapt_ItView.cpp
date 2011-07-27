@@ -3151,8 +3151,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			stripIndex++;
 			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
 			int stripWidth = pStrip->Width();
-			int free = pStrip->GetFree();
-			if (free > stripWidth / 4)
+			int freeS = pStrip->GetFree();
+			if (freeS > stripWidth / 4)
 			{
 				// BEW changed 20Jan11, we want only unique indices in the array
 				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);

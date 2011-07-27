@@ -737,13 +737,21 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // toolbar and controlbar looks better while waiting for the file dialog to appear
 		pApp->GetMainFrame()->Update();
 
+		// whm modified 26Jul11 to use the pApp's m_sourceInputsFolderName if no previous
+		// m_lastSourceInputPath was stored. See similar code in the Doc's OnNewDocument().
 		// ensure that the current work folder is the project one for default
-		wxString dirPath = pApp->m_workFolderPath;
-
-		// if we have a value for the last doc folder's path, use that instead
-		if (!pApp->m_lastSourceInputPath.IsEmpty())
+		wxString dirPath;
+		if (pApp->m_lastSourceInputPath.IsEmpty())
 		{
-			dirPath = pApp->m_lastSourceInputPath;
+			if (!pApp->m_curProjectPath.IsEmpty())
+				dirPath = pApp->m_curProjectPath + pApp->PathSeparator + pApp->m_sourceInputsFolderName; // __SOURCE_INPUTS
+			else
+				dirPath = pApp->m_workFolderPath; // typically, C:\Users\<userName>\Documents\Adapt It <Unicode> Work
+
+		}
+		else
+		{
+			dirPath = pApp->m_lastSourceInputPath; // from the path that was last used
 		}
 
 		bool bOK = ::wxSetWorkingDirectory(dirPath);

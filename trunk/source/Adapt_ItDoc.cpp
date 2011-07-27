@@ -428,31 +428,41 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// Notes at OnInitialUpdate() for more info.
 	pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't 
 								// automatically call it
-	// ensure that the current work folder is the project one for default
-	wxString dirPath = pApp->m_workFolderPath;
-	bool bOK;
+	
+	// whm 26Jul11 revised. When m_lastSourceInputPath is empty, use the special folder
+	// __SOURCE_INPUTS. See similar code in DocPage.cpp::OnWizardFinish().
+	wxString dirPath;
 	if (pApp->m_lastSourceInputPath.IsEmpty())
-		bOK = ::wxSetWorkingDirectory(dirPath);
+	{
+		if (!pApp->m_curProjectPath.IsEmpty())
+			dirPath = pApp->m_curProjectPath + pApp->PathSeparator + pApp->m_sourceInputsFolderName; // __SOURCE_INPUTS
+		else
+			dirPath = pApp->m_workFolderPath; // typically, C:\Users\<userName>\Documents\Adapt It <Unicode> Work
+
+	}
 	else
-		bOK = ::wxSetWorkingDirectory(pApp->m_lastSourceInputPath);
+	{
+		dirPath = pApp->m_lastSourceInputPath; // from the path that was last used
+	}
+	bool bOK;
+	bOK = ::wxSetWorkingDirectory(dirPath);
 
 	// the above may have failed, so if so use m_workFolderPath as the folder, 
-	// or even the C: drive top level, so we can proceed to the file dialog safely
-	// whm Note: TODO: The following block needs to be made cross-platform friendly
+	// so we can proceed to the file dialog safely
 	if (!bOK)
 	{
+		dirPath = pApp->m_workFolderPath;
 		pApp->m_lastSourceInputPath = dirPath;
-		bOK = ::wxSetWorkingDirectory(dirPath); // this should work, since m_workFolderPath can hardly 
-												// be wrong!
+		bOK = ::wxSetWorkingDirectory(dirPath); // this should work, since m_workFolderPath can hardly be wrong!
 		if (!bOK)
 		{
-			bOK = ::wxSetWorkingDirectory(_T("C:"));
 			if (!bOK)
 			{
 				// we should never get a failure for the above, so just an English message will do
-				wxMessageBox(_T(
-				"OnNewDocument() failed, when setting current directory to C drive"),
-				_T(""), wxICON_ERROR);
+				wxString msg = _T("OnNewDocument() failed, when setting current directory to:\n%s");
+				msg = msg.Format(msg,dirPath.c_str());
+				wxMessageBox(msg,_T(""), wxICON_ERROR);
+				pApp->LogUserAction(msg);
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
 							 // you want the doc/view framework to keep working right
 			}
