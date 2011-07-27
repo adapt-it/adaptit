@@ -67,6 +67,7 @@
 #include "Adapt_It.h"
 #include "OutputFilenameDlg.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "MainFrm.h"
 #include "SourcePhrase.h"
 #include "KB.h"

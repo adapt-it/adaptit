@@ -48,6 +48,7 @@
 #include "Adapt_It.h"
 #include "KB.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "Adapt_ItView.h"
 #include "DocPage.h"
 #include "ProjectPage.h"

@@ -308,14 +308,14 @@ void byteReverse(unsigned char *buf, unsigned longs)
 
 wxString wxMD5::GetMD5(const wxString &string)
 {
-	int lenght = string.Len();
+	int length = string.Len();
 	//wxStringBuffer buf(string, lenght);
 
 	MD5_CTX ctx;
 	char tmp[40];		// MD5 are fixed sized to 32 chars
 	
 	MD5Init(&ctx);
-	MD5Update(&ctx, (const unsigned char*)string.GetData(), lenght*sizeof(wxChar));
+	MD5Update(&ctx, (const unsigned char*)string.GetData(), length*sizeof(wxChar));
 	MD5End(&ctx, tmp);
 
 	return wxString(tmp, wxConvUTF8);
