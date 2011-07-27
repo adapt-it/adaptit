@@ -130,6 +130,7 @@
 #include "AdaptitConstants.h"
 #include "KB.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "FontPage.h"
 #include "PhraseBox.h"
 #include "LanguagesPage.h"
@@ -38820,41 +38821,60 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 The updated target text, or free translation text, (depending)
 ///                         on the makeTextType value passed in, which is ready for
-///                         transferring back to the external editor using ::wxExecute()
-/// \param pPreEditText ->  the stored (in Adapt It) tgt text, or free trans text, as it
-///                         was when last sent back to the external editor (it will be an
-///                         empty string if the current session is the first adaptation,
-///                         or free translation, for the particular chapter or whole book)
+///                         transferring back to the external editor using ::wxExecute();
+///                         or an empty string if adaptation is wanted but the doc is
+///                         empty, or free translation is wanted but none are available
+///                         from the document.
 /// \param pDocList     ->  ptr to the list of CSourcePhrase ptrs which comprise the document,
 ///                         or some similar list (the function does not rely in any way on
 ///                         this list being the m_pSourcePhrases list from the app class, but
-///                         normally will be)
-/// \param pLastestTextFromEditor ->  The USFM text string, either target text, or free
-///                         translation (depending on makeTextTYpe value), obtained from
-///                         the external editor at the start of the current collaboration
-///                         document's initialization. (This text might have been edited
-///                         significantly in PT or BE beforehand, and so we cannot assume
-///                         it is not different than that in pPreEditText. 
+///                         normally it will be that list)
 /// \param              ->  Either makeTargetText (value is 1) or makeFreeTransText (value is
 ///                         2); our algorithms work almost the same for either kind of text.
+/// \param bWholeBook   ->  default is FALSE (i.e. working on a chapter only), pass TRUE when
+///                         the document being worked on is a whole book
 /// \remarks
-/// The idea is that the user will have done some editing of the document, and we want to
-/// find out by doing verse-based chunking and then various comparisons using MD5
-/// checksums, to work out which parts of the document have changed in either (1) wording,
-/// or (2) punctuation only. Testing for this means comparing the pre-edit state of the
-/// text (as from param 1) with the post-edit state of the text (as generated from param 2
-/// -- but actually, it's more likely to be "at this File / Save" operation, rather than
-/// post-edit, because the user may do several File / Save operations before he's finished
-/// editing the document to it's final state). Only the parts which have changed are then
-/// candidates for producing changes to the text in pLatestTextFromEditor - if the user
-/// didn't work on chapter 5 verse 4 when doing his changes, then pLatestTextFromEditor's
-/// version of chapter 5 verse 4 is returned to PT or BE unchanged, whether or not it
-/// differs from what the document's version of chapter 5 verse 4 happens to be. (In this
-/// way, we don't destroy any edits made in PT or BE prior to the document being edited
-/// a second or third etc time in Adapt It, with edits being done in the external editor
-/// between-times.) The enum parameter allows us to choose which kind of text to update
-/// from the user's editing in Adapt It.
-/// Note: If there are word-changes when the function checks the pre-edit and post-edit
+/// The document contains, of course, the adaptation and, if the user has done any free
+/// translation, also the latter. Sending either back to PT or BE after editing work in
+/// either or both is problematic, because the user may have done some work in PT or BE
+/// on either the adaptation or the free translation as stored in the external editor,
+/// and so we don't want changes made there wiped out unnecessarily. So we have to
+/// potentially do a lot of checks so as to send to the external editor only the minimum
+/// necessary. So we must store the adaptation and free translation in AI's native storage
+/// after each save, so we can compare subsequent work with that "preEdit" version of the
+/// adaptation and / or free translation; and each time we re-setup the same document in
+/// AI, and at the commencement of each File / Save, we must grab from PT or BE the
+/// adaptation and free translation (if the latter is expected) as they currently are, just
+/// in case the user did editing of both or either in the external editor before switching
+/// to AI to work on the same doc there. So we store the text as at last Save, this is the
+/// "preEdit" version we compare with on next Save, and we store the just-grabbed PT or BE
+/// version of the text (in case the user did edits in the external editor beforehand
+/// which AI would not otherwise know about) - and we do our insertions of the AI edits
+/// into this just-grabbed text, otherwise, the older text from PT or BE wouldn't have
+/// those edits done externally and what we send back would overwrite the user's edits
+/// done in PT or BE before switching back to AI for the editing work done for the
+/// currently-being-done Save. So there are potentially up to 3 versions of the same
+/// chapter or book that we have to juggle, and minimize unwanted changes within the final
+/// version being transferred back to the external editor on this current Save.
+/// 
+/// For comparisons, the idea is that the user will have done some editing of the document,
+/// and we want to find out by doing verse-based chunking and then various comparisons
+/// using MD5 checksums, to work out which parts of the document have changed in either (1)
+/// wording, or, (2) in punctuation only. Testing for this means comparing the pre-edit
+/// state of the text (as from param 1) with the post-edit state of the text (as generated
+/// from param 2 -- but actually, it's more likely to be "at this File / Save" operation,
+/// rather than post-edit, because the user may do several File / Save operations before
+/// he's finished editing the document to it's final state). Only the parts which have
+/// changed are then candidates for producing changes to the text in pLatestTextFromEditor
+/// - if the user didn't work on chapter 5 verse 4 when doing his changes, then
+/// pLatestTextFromEditor's version of chapter 5 verse 4 is returned to PT or BE unchanged,
+/// whether or not it differs from what the document's version of chapter 5 verse 4 happens
+/// to be. (In this way, we don't destroy any edits made in PT or BE prior to the document
+/// being edited a second or third etc time in Adapt It, with edits being done in the
+/// external editor between-times.) The enum parameter allows us to choose which kind of
+/// text to update from the user's editing in Adapt It.
+/// 
+/// Note 1: If there are word-changes when the function checks the pre-edit and post-edit
 /// state of the document's verse-based chunks, these chunks have their edited text
 /// inserted into the appropriate places in pLatestTextFromEditor, overwriting what was in
 /// the latter at the relevant places. But in the case of the user only making punctuation
@@ -38867,7 +38887,8 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 /// (that is, the relevant part of pLatestTextFromEditor is NOT updated in that case. The
 /// user can do the relevant punctuation changes in the external editor at a later time,
 /// such as when doing a pre-publication check of the text.)
-/// Note: in case you are wondering why we do things this way... the problem is we can't
+/// 
+/// Note 2: in case you are wondering why we do things this way... the problem is we can't
 /// merge the user's edits of target text and/or free translation text back into the Adapt
 /// It document which produced the earlier versions of such text. Such a merger would be
 /// complicated, and need to be interactive and require a smart GUI widget to make it
@@ -38877,9 +38898,10 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 /// attribute higher value to something which runs without needing the user to do anything
 /// with a GUI widget, than something smart but which requires tedious and repetitive
 /// decision-making in a GUI widget.
+/// 
 /// This function is complex. It uses (a) verse-based chunking code as used previously in
 /// the Import Edited Source Text feature, (b) various wxArrayPtrVoid and wxArrayString to
-/// store constructed space-delimited word strings, and coalesced punctutation strings,
+/// store constructed space-delimited word strings, and coalesced punctuation strings,
 /// (c) MD5 checksums of the last two kinds of things, stored in wxArrayString, tokenizing
 /// of the passed in strings - and in the case of the first and third, the target text
 /// punctuation must be used for the tokenizing, because m_srcPhrase and m_key members
@@ -38893,7 +38915,7 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 /// Note: internally we do our processing using SPArray rather than SPList, as it is
 /// easier and we can use functions from MergeUpdatedSrc.h & .cpp unchanged.
 ///  
-/// BEW additional note, 16Jul11, from email to Bill:
+/// Note 3, 16Jul11, culled from my from email to Bill:
 /// Two new bits of the puzzle were 
 /// (a) get the two or three text variants which need to be compared to USFM text format,
 /// then I can tokenize each with the tokenizing function that uses target text
@@ -38912,7 +38934,7 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 /// through them, comparing MD5 checksums, and determining where the user made edits, and
 /// then getting the new AI edits into just the corresponding PT text's chunks (the third
 /// text mentioned above). The two-way equivalences are when there is no previous File /
-/// Save done, so all there is is the current doc in AI and the just-graabbed from PT
+/// Save done, so all there is is the current doc in AI and the just-grabbed from PT
 /// (possibly edited) text. It's all a bit complex, but once the algorithm is clear in its
 /// parts, which it now is, it should just be a week or two's work to have it working. Of
 /// course, the simplest situation is when there has been no previous File / Save for the
@@ -38921,39 +38943,99 @@ wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
 /// existing RebuildTargetText() or RebuildFreeTransText() functions, as the case may be,
 /// and then transferring the resulting USFM text to the relevant PT project using
 /// rdwrtp7.exe.
+/// 
+/// Note 4: since the one document SPList contains both adaptation text and associated free
+/// translation text (if any), returning adaptation text to PT or BE, and returning free
+/// translation text to PT or BE, will require two calls to this function. Both, however,
+/// are done at the one File / Save -- first the adaptation is sent, and then if free
+/// translation is expected to be be sent, it is sent after the adaptation is sent,
+/// automatically.
 ///////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText, SPList* pDocList, 
-					wxString* pLatestTextFromEditor, enum SendBackTextType makeTextType)
+wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(SPList* pDocList, 
+							enum SendBackTextType makeTextType, bool bWholeBook)
 {
-	wxString text; text.Empty();
 	CAdapt_ItView* pView = GetView();
-	CAdapt_ItDoc* pDoc = GetDocument();
+	//CAdapt_ItDoc* pDoc = GetDocument();
+	
+	wxString text; text.Empty();
+	wxString preEditText; // the adaptation or free translation text prior to the editing session
+	wxString textFromEditor; // the adaptation or free translation text just grabbed from PT or BE
+	textFromEditor.Empty();
 
-	// if the document has no content, just return the text as received from the external editor
+	// get the pre-edit saved text, and the from-PT or from-BE version of the same text
+	switch (makeTextType)
+	{
+	case makeFreeTransText:
+		{
+			if (bWholeBook)
+			{
+				// working on a book
+				preEditText = GetStoredFreeTransWholeBook_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+			}
+			else
+			{
+				// working on a chapter
+				preEditText = GetStoredFreeTransChapter_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+
+			}
+		}
+		break;
+	default:
+	case makeTargetText:
+		{
+			if (bWholeBook)
+			{
+				// working on a book
+				preEditText = GetStoredTargetWholeBook_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+			}
+			else
+			{
+				// working on a chapter
+				preEditText = GetStoredTargetChapter_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+
+			}
+		}
+		break;
+	};
+
+	// if the document has no content, just return an empty wxString to the caller
 	if (pDocList->IsEmpty())
 	{
-		text = *pLatestTextFromEditor; // (RHS may point at an empty string of course)
 		return text;
 	}
 	bool bTextFromEditor = FALSE;
 	// pDocList is not an empty list of CSourcePhrase instances, so build as much of the
 	// wanted data type as is done so far in the document & return it to caller
-	if (pLatestTextFromEditor->IsEmpty())
+	if (textFromEditor.IsEmpty())
 	{
 		// if no text was received from the external editor, then the document is being,
 		// or has just been, adapted for the first time - this simplifies our task to
 		// become just a simple export of the appropriate type...
-		int textLen = 0;
+		int textLen = 0; // required for the calls below but we make no use of it
 		switch (makeTextType)
 		{
 		case makeFreeTransText:
 			// rebuild the free translation USFM marked-up text
 			textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
+			FormatMarkerBufferForOutput(text, freeTransTextExport);
 			break;
 		default:
 		case makeTargetText:
 			// rebuild the adaptation USFM marked-up text
 			textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
+			FormatMarkerBufferForOutput(text, targetTextExport);
 			break;
 		};
 		return text;
@@ -38961,8 +39043,8 @@ wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText,
 	else
 	{
 		// adaptation text, or free trans text, depending on makeTextType value, was
-		// received from the external editor -- so we've a more complicated task - we need
-		// to work out below which parts of pLatestTextFromEditor to update, and do so
+		// received from the external editor -- so we've a more complicated task - we
+		// need to work out below which parts of pTextFromEditor to update, and do so
 		bTextFromEditor = TRUE;
 	}
 	bool bFirstTimeForThisDoc = TRUE; // initialize to TRUE, that is, assume this doc has
@@ -38972,7 +39054,7 @@ wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText,
 				// relevant external editor's project for this chapter or whole book - and
 				// if that is the case, we must do the more complex processing much further 
 				// below
-	if (pPreEditText->IsEmpty())
+	if (preEditText.IsEmpty())
 	{
 		// the user has not yet worked on this chapter or whole book in Adapt It (but
 		// bTextFromEditor will have been set TRUE above, so everything the user has
@@ -38989,11 +39071,11 @@ wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText,
 	// The two flags, bFirstTimeForThisDoc and bTextFromEditor now have their appropriate
 	// values, and we will need these to distinguish processing paths below; when both are
 	// TRUE, the issue is semi-complex, any adapting or free translating for a chunk
-	// results in the text replacing the equivalent part of pLatestTextFromEditor; but
+	// results in the text replacing the equivalent part of textFromEditor; but
 	// when the first is FALSE and the second TRUE, we have the full-complexity - we have
 	// to compare the preEdit and current states of the doc to find where the user made
 	// changes, and then only for the places equivalent to those locations within
-	// pLatestTextFromEditor may replacements be made.
+	// textFromEditor may replacements be made.
 
 
 
@@ -39003,11 +39085,13 @@ wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText,
 
 	if (!bFirstTimeForThisDoc)
 	{
+		// This is the 3-way equivalence chunking situation - the most complex we need to
+		// deal with, so handle this after the 2-way equivalence situation is finished
+		 
         // first, deal with the pre-edit text - build the code here then pull it out into a
         // function
 		SPList preEditSrcPhraseList;
 		SPArray preEditSrcPhraseArray;
-		wxString preEditText = *pPreEditText; // make a local copy for processing
 		// if this document hasn't been worked on before, then pPreEditText will point at an
 		// empty string - in which case our task is simpler
 		bool bUseTargetTextPuncts = TRUE; // use target text punctuation for the parsing
@@ -39023,38 +39107,105 @@ wxString CAdapt_ItApp::MakePostEditTextForExternalEditor(wxString* pPreEditText,
 
 
 
-
+		// *** TODO ****
 
 
 
 
 
 		} // end of TRUE block for test: if (numPreEditSrcPhrases > 0)
+		else
+		{
+            // there isn't any preEditText to handle -- this should be impossible since
+            // we've dealt with this possibility above; so just return an empty string with
+            // a bell
+			wxBell();
+			wxString emptyStr = _T("");
+			return emptyStr;
+		}
+	}
+	else
+	{
+		// This is the 2-way equivalence chunking situation - the semi-complex one...
+		// we have a document from which we get either target text, or free translation
+		// text, and the comparison text is that which was grabbed from PT or BE - it may
+		// be contentless USFM verse and chapter markup, or the latter with some actual
+		// free translation in parts of it, or fully free translated USFM text
+
+		SPList fromEditorSrcPhraseList;
+		SPArray fromEditorSrcPhraseArray;
+		bool bUseTargetTextPuncts = TRUE; // use target text punctuation for the parsing
+		int nInitialSequNum = 0;
+		// in the following tokenization, the m_key and m_srcPhrase members of each
+		// CSourcePhrase instance contain target text, or free translation text, depending
+		// on the passed in makeTextType enum value (the caller is responsible for passing
+		// in the right kind of text for params 1 and 3, and we'll handle free trans USFM
+		// text in the same way as we do for adaptation text, as often as possible - it's
+		// only at certain points in the processing that we need to distinguish what type 
+		// of text it is)
+		int numFromEditorSrcPhrases = pView->TokenizeTargetTextString(&fromEditorSrcPhraseList, 
+									textFromEditor, nInitialSequNum, bUseTargetTextPuncts);
+		wxASSERT(numFromEditorSrcPhrases > 0);
+		if (numFromEditorSrcPhrases > 0)
+		{
+			// convert the SPList to the SPArray preferred storage
+			ConvertSPList2SPArray(&fromEditorSrcPhraseList, &fromEditorSrcPhraseArray);
+
+
+
+
+		// *** TODO ****
+
+
+
+
+
+		} // end of TRUE block for test: if (numPreEditSrcPhrases > 0)
+		else
+		{
+            // there isn't any preEditText to handle -- this should be impossible since
+            // we've dealt with this possibility above; so just return an empty string with
+            // a bell
+			wxBell();
+			wxString emptyStr = _T("");
+			return emptyStr;
+		}
+
+
+
+
+
+
+
+
+
+		// *** TODO ****
+
+
+
 	}
 
 
 
 
-
-	// when we deal with the pDocList param, we have to distinguish between whether we are
-	// processing for adaptation text, or free translation text
+	/* a template to copy as needed
 	switch (makeTextType)
 	{
 	case makeFreeTransText:
+		{
 
 
-
-
+		}
 		break;
 	default:
 	case makeTargetText:
+		{
 
 
-
-
+		}
 		break;
 	};
-
+	*/
 
 
 

@@ -2657,32 +2657,6 @@ public:
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)
 
-	// whm added 9Feb11 in support of Paratext collaboration
-	bool m_bParatextIsInstalled;
-	bool m_bBibleditIsInstalled;
-	bool m_bParatextIsRunning;
-	bool m_bCollaboratingWithParatext;
-	bool m_bCollaboratingWithBibledit;
-	// BEW 2Jul11, added next three booleans
-	bool m_bCollaborationExpectsFreeTrans;
-	bool m_bCollaborationDocHasFreeTrans;
-	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be 
-												  // later restored in File / Close
-	wxString m_collaborationEditor;
-	wxString m_CollabProjectForSourceInputs;
-	wxString m_CollabProjectForTargetExports;
-	wxString m_CollabProjectForFreeTransExports;
-	wxString m_CollabBookSelected;
-	wxString m_CollabChapterSelected;
-
-	wxString m_ParatextInstallDirPath;
-	wxString m_BibleditInstallDirPath;
-	wxString m_ParatextProjectsDirPath;
-	wxString m_BibleditProjectsDirPath;
-	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
-	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
-	wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
-
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down
 	// to the word or phrase in the phrase box
@@ -2893,13 +2867,6 @@ public:
 	void CheckLockFileOwnership();
 
 	void OnFileNew(wxCommandEvent& event);
-	
-	// whm added the following 10Apr11 for AI-PT collaboration
-	//void OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event));
-	//void OnUpdateGetSourceTextFromPT(wxUpdateUIEvent& event);
-	//void OnTransferTransToPT(wxCommandEvent& WXUNUSED(event));
-	//void OnUpdateTransferTransToPT(wxUpdateUIEvent& event);
-
 	void OnFileExportKb(wxCommandEvent& WXUNUSED(event)); // moved from view class 16Nov10
 	void OnUpdateFileExportKb(wxUpdateUIEvent& event); // moved from view class 16Nov10
 	void OnFileRestoreKb(wxCommandEvent& WXUNUSED(event));
@@ -3045,7 +3012,33 @@ public:
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label); // unused
 	
-	// whm added 15Apr11 for AI-PT Collaboration
+	// whm added 9Feb11 (first 21 declarations) and then on 15Apr11 the ones which follow
+	// those: for AI-Paratext or AI-Bibledit Collaboration (these are nearly all public)
+	bool m_bParatextIsInstalled;
+	bool m_bBibleditIsInstalled;
+	bool m_bParatextIsRunning;
+	bool m_bCollaboratingWithParatext;
+	bool m_bCollaboratingWithBibledit;
+	// BEW 2Jul11, added next three booleans
+	bool m_bCollaborationExpectsFreeTrans;
+	bool m_bCollaborationDocHasFreeTrans;
+	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be 
+												  // later restored in File / Close
+	wxString m_collaborationEditor;
+	wxString m_CollabProjectForSourceInputs;
+	wxString m_CollabProjectForTargetExports;
+	wxString m_CollabProjectForFreeTransExports;
+	wxString m_CollabBookSelected;
+	wxString m_CollabChapterSelected;
+
+	wxString m_ParatextInstallDirPath;
+	wxString m_BibleditInstallDirPath;
+	wxString m_ParatextProjectsDirPath;
+	wxString m_BibleditProjectsDirPath;
+	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
+	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
+	wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
+	
 	wxArrayString GetListOfPTProjects();
 	wxArrayString GetListOfBEProjects();
 	wxString GetBibleditBooksPresentFlagsStr(wxString projPath);
@@ -3056,13 +3049,14 @@ public:
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
-	bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+	bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
+					int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 	// BEW added 11July, to get changes to the adaptation and free translation back to the
 	// respective PT or BE projects
-	wxString MakePostEditTextForExternalEditor(wxString* pPreEditText, SPList* pDocList, 
-					wxString* pLatestTextFromEditor, enum SendBackTextType makeTextType);
+	wxString MakePostEditTextForExternalEditor(SPList* pDocList, 
+					enum SendBackTextType makeTextType, bool bWholeBook = FALSE);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
@@ -3078,7 +3072,12 @@ public:
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
-	
+
+	// members added by BEW 27July11, when moving collab code out of
+	// GetSourceTextFromEditor class into CollabUtilities.h & .cpp, since we need it at
+	// other times besides when the dialog is in existence
+
+
 	// BEW added next 6 lines 10July, also the accessors for same immediately below them,
     // for storing the USFM text strings received from an external editor such as Paratext
     // or Bibledit, prior to their being edited by the user's adapting work -- they are
@@ -3106,6 +3105,11 @@ public:
 	wxString GetStoredFreeTransWholeBook_PreEdit();
 
 
+	// end of collaboration declarations
+	
+
+
+	// for localization support
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist(); 
 	// Functions that let the user select/change Adapt It's interface language

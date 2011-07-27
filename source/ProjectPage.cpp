@@ -57,6 +57,7 @@
 #include "StartWorkingWizard.h"
 #include "Adapt_It.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "KB.h" 
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"

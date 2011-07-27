@@ -50,6 +50,7 @@
 #include "Pile.h"
 #include "Layout.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "GetSourceTextFromEditor.h"
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
@@ -155,114 +156,12 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
-		// determine the path and name to rdwrtp7.exe
-		// Note: Nathan M says that when we've tweaked rdwrtp7.exe to our satisfaction that he will
-		// ensure that it gets distributed with future versions of Paratext 7.x. Since AI version 6
-		// is likely to get released before that happens, and in case some Paratext users haven't
-		// upgraded their PT version 7.x to the distribution that has rdwrtp7.exe installed along-side
-		// Paratext.exe, we check for its existence here and use it if it is located in the PT
-		// installation folder. If not present, we use our own copy in AI's m_appInstallPathOnly 
-		// location (and copy the other dll files if necessary)
-
-		if (::wxFileExists(m_pApp->m_ParatextInstallDirPath + m_pApp->PathSeparator + _T("rdwrtp7.exe")))
-		{
-			// rdwrtp7.exe exists in the Paratext installation so use it
-			m_rdwrtp7PathAndFileName = m_pApp->m_ParatextInstallDirPath + m_pApp->PathSeparator + _T("rdwrtp7.exe");
-		}
-		else
-		{
-			// rdwrtp7.exe does not exist in the Paratext installation, so use our copy in AI's install folder
-			m_rdwrtp7PathAndFileName = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator + _T("rdwrtp7.exe");
-			wxASSERT(::wxFileExists(m_rdwrtp7PathAndFileName));
-			// Note: The rdwrtp7.exe console app has the following dependencies located in the Paratext install 
-			// folder (C:\Program Files\Paratext\):
-			//    a. ParatextShared.dll
-			//    b. ICSharpCode.SharpZipLib.dll
-			//    c. Interop.XceedZipLib.dll
-			//    d. NetLoc.dll
-			//    e. Utilities.dll
-			// I've not been able to get the build of rdwrtp7.exe to reference these by setting
-			// either using: References > Add References... in Solution Explorer or the rdwrtp7
-			// > Properties > Reference Paths to the "c:\Program Files\Paratext\" folder.
-			// Until Nathan can show me how (if possible to do it in the actual build), I will
-			// here check to see if these dependencies exist in the Adapt It install folder in
-			// Program Files, and if not copy them there from the Paratext install folder in
-			// Program Files (if the system will let me do it programmatically).
-			wxString AI_appPath = m_pApp->m_appInstallPathOnly;
-			wxString PT_appPath = m_pApp->m_ParatextInstallDirPath;
-			// Check for any newer versions of the dlls (comparing to previously copied ones) 
-			// and copy the newer ones if older ones were previously copied
-			wxString fileName = _T("ParatextShared.dll");
-			wxString ai_Path;
-			wxString pt_Path;
-			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-			if (!::wxFileExists(ai_Path))
-			{
-				::wxCopyFile(pt_Path,ai_Path);
-			}
-			else
-			{
-				if (FileHasNewerModTime(pt_Path,ai_Path))
-					::wxCopyFile(PT_appPath,ai_Path);
-			}
-			fileName = _T("ICSharpCode.SharpZipLib.dll");
-			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-			if (!::wxFileExists(ai_Path))
-			{
-				::wxCopyFile(pt_Path,ai_Path);
-			}
-			else
-			{
-				if (FileHasNewerModTime(pt_Path,ai_Path))
-					::wxCopyFile(pt_Path,ai_Path);
-			}
-			fileName = _T("Interop.XceedZipLib.dll");
-			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-			if (!::wxFileExists(ai_Path))
-			{
-				::wxCopyFile(pt_Path,ai_Path);
-			}
-			else
-			{
-				if (FileHasNewerModTime(pt_Path,ai_Path))
-					::wxCopyFile(pt_Path,ai_Path);
-			}
-			fileName = _T("NetLoc.dll");
-			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-			if (!::wxFileExists(ai_Path))
-			{
-				::wxCopyFile(pt_Path,ai_Path);
-			}
-			else
-			{
-				if (FileHasNewerModTime(pt_Path,ai_Path))
-					::wxCopyFile(pt_Path,ai_Path);
-			}
-			fileName = _T("Utilities.dll");
-			ai_Path = AI_appPath + m_pApp->PathSeparator + fileName;
-			pt_Path = PT_appPath + m_pApp->PathSeparator + fileName;
-			if (!::wxFileExists(ai_Path))
-			{
-				::wxCopyFile(pt_Path,ai_Path);
-			}
-			else
-			{
-				if (FileHasNewerModTime(pt_Path,ai_Path))
-					::wxCopyFile(pt_Path,ai_Path);
-			}
-		}
+		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7();
 	}
 	else
 	{
-		if (::wxFileExists(m_pApp->m_BibleditInstallDirPath + m_pApp->PathSeparator + _T("bibledit-gtk")))
-		{
-			// bibledit-gtk exists on the machine so use it
-			m_bibledit_gtkPathAndFileName = m_pApp->m_BibleditInstallDirPath + m_pApp->PathSeparator + _T("bibledit-gtk");
-		}
+		m_bibledit_gtkPathAndFileName = GetBibleditInstallPath(); // will return
+								// an emptpy string if BibleEdit is not installed
 	}
 
 	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
@@ -472,701 +371,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
  }
 
-// event handling functions
-
-void CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event))
-{
-	int nSel;
-	nSel = pComboSourceProjectName->GetSelection();
-	m_TempCollabProjectForSourceInputs = pComboSourceProjectName->GetString(nSel);
-	// when the selection changes for the Source project we need to reload the
-	// "Select a book" list.
-	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
-	// Any change in the selection with the source project combo box 
-	// requires that we compare the source and target project's books again, which we
-	// can do by calling the OnLBBookSelected() handler explicitly here.
-	// select LastPTBookSelected 
-	if (!m_TempCollabBookSelected.IsEmpty())
-	{
-		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
-		if (nSel != wxNOT_FOUND)
-		{
-			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
-			pListBoxBookNames->SetSelection(nSel);
-			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
-			pListBoxBookNames->SetFocus(); 
-			wxCommandEvent evt;
-			OnLBBookSelected(evt);
-		}
-	}
-}
-
-void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event))
-{
-	int nSel;
-	wxString selStr;
-	nSel = pComboDestinationProjectName->GetSelection();
-	m_TempCollabProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
-	// Any change in the selection with the destination/target project combo box 
-	// requires that we compare the source and target project's books again, which we
-	// can do by calling the OnLBBookSelected() handler explicitly here.
-	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
-	// Any change in the selection with the source project combo box 
-	// requires that we compare the source and target project's books again, which we
-	// can do by calling the OnLBBookSelected() handler explicitly here.
-	// select LastPTBookSelected 
-	if (!m_TempCollabBookSelected.IsEmpty())
-	{
-		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
-		if (nSel != wxNOT_FOUND)
-		{
-			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
-			pListBoxBookNames->SetSelection(nSel);
-			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
-			pListBoxBookNames->SetFocus(); 
-			wxCommandEvent evt;
-			OnLBBookSelected(evt);
-		}
-	}
-}
-
-void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event))
-{
-	int nSel;
-	wxString selStr;
-	nSel = pComboFreeTransProjectName->GetSelection();
-	m_TempCollabProjectForFreeTransExports = pComboFreeTransProjectName->GetString(nSel);
-	m_bTempCollaborationExpectsFreeTrans = TRUE;
-	pBtnNoFreeTrans->Enable(TRUE);
-
-	// For free trans selection we don't need to refresh book names
-	// nor call OnLBBookSelected() here as is needed when the combobox
-	// selections for source and/or target project changes.
-}
-
-void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
-{
-	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
-		return;
-	
-	// Check if the same PT project is selected in both combo boxes. If so, warn user
-	// and return until different projects are selected.
-	wxString srcProj,destProj;
-	srcProj = pComboSourceProjectName->GetStringSelection();
-	destProj = pComboDestinationProjectName->GetStringSelection();
-	if (srcProj == destProj)
-	{
-
-		wxString msg;
-		msg = _("The %s projects selected for obtaining source texts, and for transferring translation texts cannot be the same. Use the drop down list boxes to select different projects.");
-		msg = msg.Format(msg,m_collabEditorName.c_str());
-		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
-		// most likely the target drop down list would need to be changed so set focus to it before returning
-		pComboDestinationProjectName->SetFocus();
-		// clear lists and static text box at bottom of dialog
-		pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	}
-
-	// Since the wxExecute() and file read operations take a few seconds, change the "Select a chapter:"
-	// static text above the right list box to read: "Please wait while I query Paratext/Bibledit..."
-	wxString waitMsg = _("Please wait while I query %s...");
-	waitMsg = waitMsg.Format(waitMsg,m_collabEditorName.c_str());
-	pStaticSelectAChapter->SetLabel(waitMsg);
-	
-	int nSel;
-	wxString fullBookName;
-	nSel = pListBoxBookNames->GetSelection();
-	fullBookName = pListBoxBookNames->GetString(nSel);
-	// When the user selects a book, this handler does the following:
-	// 1. Call rdwrtp7 to get a copies of the book in a temporary file at a specified location.
-	//    One copy if made of the source PT project's book, and the other copy is made of the
-	//    destination PT project's book
-	// 2. Open each of the temporary book files and read them into wxString buffers.
-	// 3. Scan through the buffers, collecting their usfm markers - simultaneously counting
-	//    the number of characters associated with each marker (0 = empty).
-	// 4. Only the actual marker, plus a : delimiter, plus the character count associated with
-	//    the marker plus a : delimiter plus an MD5 checksum is collected and stored in two 
-	//    wxArrayStrings, one marker (and count and MD5 checksum) per array element.
-	// 5. This collection of the usfm structure (and extent) is done for both the source PT 
-	//    book's data and the destination PT book's data.
-	// 6. The two wxArrayString collections will make it an easy matter to compare the 
-	//    structure and extent of the two texts even though the actual textual content will,
-	//    of course, vary, because each text would normally be a different language.
-	// Using the two wxArrayStrings:
-	// a. We can easily find which verses of the destination text are empty and (if they are
-	// not also empty in the source text) conclude that those destination text verses have
-	// not yet been translated.
-	// b. We can easily compare the usfm structure has changed between the source and 
-	// destination texts to see if it has changed. 
-	// 
-	// Each string element of the wxArrayStrings is of the following form:
-	// \mkr:nnnn, where \mkr could be \s, \p, \c 2, \v 23, \v 42-44, etc., followed by
-	// a colon (:), followed by a character count nnnn, followed by either another :0 or
-	// an MD5 checksum.
-	// Here is an example of what a returned array might look like:
-	//	\id:49:2f17e081efa1f7789bac5d6e500fc3d5
-	//	\mt:6:010d9fd8a87bb248453b361e9d4b3f38
-	//	\c 1:0:0
-	//	\s:16:e9f7476ed5087739a673a236ee810b4c
-	//	\p:0:0
-	//	\v 1:138:ef64c033263f39fdf95b7fe307e2b776
-	//	\v 2:152:ec5330b7cb7df48628facff3e9ce2e25
-	//	\v 3:246:9ebe9d27b30764602c2030ba5d9f4c8a
-	//	\v 4:241:ecc7fb3dfb9b5ffeda9c440db0d856fb
-	//	\v 5:94:aea4ba44f438993ca3f44e2ccf5bdcaf
-	//	\p:0:0
-	//	\v 6:119:639858cb1fc6b009ee55e554cb575352
-	//	\f:322:a810d7d923fbedd4ef3a7120e6c4af93
-	//	\f*:0:0
-	//	\p:0:0
-	//	\v 7:121:e17f476eb16c0589fc3f9cc293f26531
-	//	\v 8:173:4e3a18eb839a4a57024dba5a40e72536
-	//	\p:0:0
-	//	\v 9:124:ad649962feeeb2715faad0cc78274227
-	//	\p:0:0
-	//	\v 10:133:3171aeb32d39e2da92f3d67da9038cf6
-	//	\v 11:262:fca59249fe26ee4881d7fe558b24ea49
-	//	\s:29:3f7fcd20336ae26083574803b7dddf7c
-	//	\p:0:0
-	//	\v 12:143:5f71299ac7c347b7db074e3c327cef7e
-	//	\v 13:211:6df92d40632c1de539fa3eeb7ba2bc0f
-	//	\v 14:157:5383e5a5dcd6976877b4bc82abaf4fee
-	//	\p:0:0
-	//	\v 15:97:47e16e4ae8bfd313deb6d9aef4e33ca7
-	//	\v 16:197:ce14cd0dd77155fa23ae0326bac17bdd
-	//	\v 17:51:b313ee0ee83a10c25309c7059f9f46b3
-	//	\v 18:143:85b88e5d3e841e1eb3b629adf1345e7b
-	//	\v 19:101:2f30dec5b8e3fa7f6a0d433d65a9aa1d
-	//	\p:0:0
-	//	\v 20:64:b0d7a2fc799e6dc9f35a44ce18755529
-	//	\p:0:0
-	//	\v 21:90:e96d4a1637d901d225438517975ad7c8
-	//	\v 22:165:36f37b24e0685939616a04ae7fc3b56d
-	//	\p:0:0
-	//	\v 23:96:53b6c4c5180c462c1c06b257cb7c33f8
-	//	\f:23:317f2a231b8f9bcfd13a66f45f0c8c72
-	//	\fk:19:db64e9160c4329440bed9161411f0354
-	//	\fk*:1:5d0b26628424c6194136ac39aec25e55
-	//	\f*:7:86221a2454f5a28121e44c26d3adf05c
-	//	\v 24-25:192:4fede1302a4a55a4f0973f5957dc4bdd
-	//	\v 26:97:664ca3f0e110efe790a5e6876ffea6fc
-	//	\c 2:0:0
-	//	\s:37:6843aea2433b54de3c2dad45e638aea0
-	//	\p:0:0
-	//	\v 1:19:47a1f2d8786060aece66eb8709f171dc
-	//	\v 2:137:78d2e04d80f7150d8c9a7c123c7bcb80
-	//	\v 3:68:8db3a04ff54277c792e21851d91d93e7
-	//	\v 4:100:9f3cff2884e88ceff63eb8507e3622d2
-	//	\p:0:0
-	//	\v 5:82:8d32aba9d78664e51cbbf8eab29fcdc7
-	// 	\v 6:151:4d6d314459a65318352266d9757567f1
-	//	\v 7:95:73a88b1d087bc4c5ad01dd423f3e45d0
-	//	\v 8:71:aaeb79b24bdd055275e94957c9fc13c2
-	// Note: The first number field after the usfm (delimited by ':') is a character count 
-	// for any text associated with that usfm. The last number field represents the MD5 checksum,
-	// except that only usfm markers that are associated with actual text have the 32 byte MD5
-	// checksums. Other markers, i.e., \c, \p, have 0 in the MD5 checksum field.
-	
-	// Bridged verses might look like the following:
-	// \v 23-25:nnnn:MD5
-	
-	// We also need to call rdwrtp7 to get a copy of the target text book (if it exists). We do the
-	// same scan on it collecting an wxArrayString of values that tell us what chapters exist and have
-	// been translated.
-	// 
-	// Usage: rdwrtp7 -r|-w project book chapter|0 fileName
-	wxString bookCode;
-	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
-	
-	// ensure that a .temp folder exists in the m_workFolderPath
-	wxString tempFolder;
-	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
-	if (!::wxDirExists(tempFolder))
-	{
-		::wxMkdir(tempFolder);
-	}
-
-	wxString sourceProjShortName;
-	wxString targetProjShortName;
-	wxASSERT(!m_TempCollabProjectForSourceInputs.IsEmpty());
-	wxASSERT(!m_TempCollabProjectForTargetExports.IsEmpty());
-	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
-	targetProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
-	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
-	// use our App's
-	
-	wxString sourceTempFileName;
-	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
-	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, sourceProjShortName, wxEmptyString, _T(".tmp"));
-	wxString targetTempFileName;
-	targetTempFileName = tempFolder + m_pApp->PathSeparator;
-	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
-	
-	
-	// Build the command lines for reading the PT projects using rdwrtp7.exe.
-	wxString commandLineSrc,commandLineTgt;
-	if (m_pApp->m_bCollaboratingWithParatext)
-	{
-		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-	}
-	else if (m_pApp->m_bCollaboratingWithBibledit)
-	{
-		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-	}
-	wxLogDebug(commandLineSrc);
-
-    // Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
-    // when the overloaded version of wxExecute() is used, it uses the redirection of the
-    // stdio to the arrays, and with that redirection, it doesn't show the console process
-    // window by default. It is distracting to have the DOS console window flashing even
-    // momentarily, so we will use that overloaded version of rdwrtp7.exe.
-
-	long resultSrc = -1;
-	long resultTgt = -1;
-    wxArrayString outputSrc, errorsSrc;
-	wxArrayString outputTgt, errorsTgt;
-	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
-	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
-	// from/to its project data files.
-	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
-	// files (not using command-line interface.
-	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
-	{
-		// Use the wxExecute() override that takes the two wxStringArray parameters. This
-		// also redirects the output and suppresses the dos console window during execution.
-		resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
-		if (resultSrc == 0)
-		{
-			resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
-
-		}
-	}
-	else if (m_pApp->m_bCollaboratingWithBibledit)
-	{
-		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
-		wxString beProjPathSrc, beProjPathTgt;
-		beProjPathSrc = beProjPath + m_pApp->PathSeparator + sourceProjShortName;
-		beProjPathTgt = beProjPath + m_pApp->PathSeparator + targetProjShortName;
-		int chNum = -1; // for Bibledit to get whole book
-		bool bWriteOK;
-		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNum, sourceTempFileName, errorsSrc);
-		if (bWriteOK)
-			resultSrc = 0; // 0 means same as wxExecute() success
-		else // bWriteOK was FALSE
-			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
-		if (resultSrc == 0)
-		{
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNum, targetTempFileName, errorsTgt);
-			if (bWriteOK)
-				resultTgt = 0; // 0 means same as wxExecute() success
-			else // bWriteOK was FALSE
-				resultTgt = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
-		}
-	}
-
-	if (resultSrc != 0 || resultTgt != 0)
-	{
-		// not likely to happen so an English warning will suffice
-		if (m_pApp->m_bCollaboratingWithParatext)
-			wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-			wxMessageBox(_T("Could not read data from the Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-
-		wxString temp;
-		if (m_pApp->m_bCollaboratingWithParatext)
-			temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-			temp = temp.Format(_T("BE Collaboration operation returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
-		m_pApp->LogUserAction(temp);
-		wxLogDebug(temp);
-		int ct;
-		if (resultSrc != 0)
-		{
-			temp.Empty();
-			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
-			{
-				temp += outputSrc.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
-			{
-				temp += errorsSrc.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-		}
-		if (resultTgt != 0)
-		{
-			temp.Empty();
-			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
-			{
-				temp += outputTgt.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
-			{
-				temp += errorsTgt.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-		}
-		pListBoxBookNames->SetSelection(-1); // remove any selection
-		// clear lists and static text box at bottom of dialog
-		pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	}
-
-	// now read the tmp files into buffers in preparation for analyzing their chapter and
-	// verse status info (1:1:nnnn).
-	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
-	// UNICODE BOM of ef bb bf
-	wxFile f_src(sourceTempFileName,wxFile::read);
-	wxFileOffset fileLenSrc;
-	fileLenSrc = f_src.Length();
-	// read the raw byte data into pByteBuf (char buffer on the heap)
-	char* pSourceByteBuf = (char*)malloc(fileLenSrc + 1);
-	memset(pSourceByteBuf,0,fileLenSrc + 1); // fill with nulls
-	f_src.Read(pSourceByteBuf,fileLenSrc);
-	wxASSERT(pSourceByteBuf[fileLenSrc] == '\0'); // should end in NULL
-	f_src.Close();
-	sourceWholeBookBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
-	free((void*)pSourceByteBuf);
-
-	wxFile f_tgt(targetTempFileName,wxFile::read);
-	wxFileOffset fileLenTgt;
-	fileLenTgt = f_tgt.Length();
-	// read the raw byte data into pByteBuf (char buffer on the heap)
-	char* pTargetByteBuf = (char*)malloc(fileLenTgt + 1);
-	memset(pTargetByteBuf,0,fileLenTgt + 1); // fill with nulls
-	f_tgt.Read(pTargetByteBuf,fileLenTgt);
-	wxASSERT(pTargetByteBuf[fileLenTgt] == '\0'); // should end in NULL
-	f_tgt.Close();
-	targetWholeBookBuffer = wxString(pTargetByteBuf,wxConvUTF8,fileLenTgt);
-	// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
-	// in ANSI builds so this should work for both ANSI and Unicode data.
-	free((void*)pTargetByteBuf);
-
-	SourceTextUsfmStructureAndExtentArray.Clear();
-	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
-	TargetTextUsfmStructureAndExtentArray.Clear();
-	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
-	
-	/* !!!! whm testing below !!!!
-	// =====================================================================================
-	int testNum;
-	int totTestNum = 4;
-	// get the constant baseline buffer from the test cases which are on my 
-	// local machine at: C:\Users\Bill Martin\Desktop\testing
-	//wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base1.SFM");
-	wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_shorter incl bridged.SFM");
-	wxASSERT(::wxFileExists(basePathAndName));
-	wxFile f_test_base(basePathAndName,wxFile::read);
-	wxFileOffset fileLenBase;
-	fileLenBase = f_test_base.Length();
-	// read the raw byte data into pByteBuf (char buffer on the heap)
-	char* pBaseLineByteBuf = (char*)malloc(fileLenBase + 1);
-	memset(pBaseLineByteBuf,0,fileLenBase + 1); // fill with nulls
-	f_test_base.Read(pBaseLineByteBuf,fileLenBase);
-	wxASSERT(pBaseLineByteBuf[fileLenBase] == '\0'); // should end in NULL
-	f_test_base.Close();
-	wxString baseWholeBookBuffer = wxString(pBaseLineByteBuf,wxConvUTF8,fileLenBase);
-	free((void*)pBaseLineByteBuf);
-
-	wxArrayString baseLineArray;
-	baseLineArray = GetUsfmStructureAndExtent(baseWholeBookBuffer);
-
-	wxString testPathAndName[7] = {
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_longer no bridged.SFM"),
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test5_change_usfm_text_and_length incl bridged.SFM"),
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test5_change_usfm_text_and_length.SFM"),
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test2_change_text_only.SFM"),
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test1_change_usfm_only.SFM"),
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test3_change_both_usfm_and_text.SFM"),
-					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test4_no_changes.SFM")
-					};
-	for (testNum = 0; testNum < totTestNum; testNum++)
-	{
-		wxASSERT(::wxFileExists(testPathAndName[testNum]));
-		wxFile f_test_tgt(testPathAndName[testNum],wxFile::read);
-		wxFileOffset fileLenTest;
-		fileLenTest = f_test_tgt.Length();
-		// read the raw byte data into pByteBuf (char buffer on the heap)
-		char* pTestByteBuf = (char*)malloc(fileLenTest + 1);
-		memset(pTestByteBuf,0,fileLenTest + 1); // fill with nulls
-		f_test_tgt.Read(pTestByteBuf,fileLenTest);
-		wxASSERT(pTestByteBuf[fileLenTest] == '\0'); // should end in NULL
-		f_test_tgt.Close();
-		wxString testWholeBookBuffer = wxString(pTestByteBuf,wxConvUTF8,fileLenTest);
-		// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
-		// in ANSI builds so this should work for both ANSI and Unicode data.
-		free((void*)pTestByteBuf);
-		
-		wxArrayString testLineArray;
-		testLineArray = GetUsfmStructureAndExtent(testWholeBookBuffer);
-		CompareUsfmTexts compUsfmTextType;
-		compUsfmTextType = CompareUsfmTextStructureAndExtent(baseLineArray, testLineArray);
-		switch (compUsfmTextType)
-		{
-			 
-		case noDifferences:
-			 {
-				wxLogDebug(_T("compUsfmTextType = noDifferences"));
-				break;
-			 }
-		case usfmOnlyDiffers:
-			{
-				wxLogDebug(_T("compUsfmTextType = usfmOnlyDiffers"));
-				break;
-			}
-		case textOnlyDiffers:
-			{
-				wxLogDebug(_T("compUsfmTextType = textOnlyDiffers"));
-				break;
-			}
-		case usfmAndTextDiffer:
-			{
-				wxLogDebug(_T("compUsfmTextType = usfmAndTextDiffer"));
-				break;
-			}
-		}
-	}
-	// =====================================================================================
-	// !!!! whm testing above !!!!
-	*/ 
-
-	// Note: The sourceWholeBookBuffer and targetWholeBookBuffer will not be completely empty even
-	// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
-	// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
-	// buffer. So, we can tell better whether the book hasn't been created within Paratext
-	// by checking to see if there are any elements in the appropriate 
-	// UsfmStructureAndExtentArrays.
-	if (SourceTextUsfmStructureAndExtentArray.GetCount() == 0)
-	{
-		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
-		{
-			msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
-			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			msg1 = msg1.Format(_("The book %s in the Bibledit project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
-			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),sourceProjShortName.c_str());
-		}
-		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
-		pListBoxBookNames->SetSelection(-1); // remove any selection
-		pBtnCancel->SetFocus();
-		// clear lists and static text box at bottom of dialog
-		pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	}
-	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
-	{
-		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
-		{
-			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
-		}
-		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
-		pListBoxBookNames->SetSelection(-1); // remove any selection
-		pBtnCancel->SetFocus();
-		// clear lists and static text box at bottom of dialog
-		//pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	}
-
-	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-	wxArrayString chapterListFromTargetBook;
-	wxArrayString chapterStatusFromTargetBook;
-	GetChapterListAndVerseStatusFromTargetBook(fullBookName,chapterListFromTargetBook,chapterStatusFromTargetBook);
-	if (chapterListFromTargetBook.GetCount() == 0)
-	{
-		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
-		{
-			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
-			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
-		}
-		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
-		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
-		pListCtrlChapterNumberAndStatus->Enable(FALSE);
-		pBtnCancel->SetFocus();
-		// clear lists and static text box at bottom of dialog
-		//pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	}
-	else
-	{
-		// get extent for the current book name for sizing first column
-		wxSize sizeOfBookNameAndCh,sizeOfFirstColHeader;
-		wxClientDC aDC(this);
-		wxFont tempFont = this->GetFont();
-		aDC.SetFont(tempFont);
-		wxString lastCh = chapterListFromTargetBook.Last();
-		aDC.GetTextExtent(lastCh,&sizeOfBookNameAndCh.x,&sizeOfBookNameAndCh.y);
-		aDC.GetTextExtent(pTheFirstColumn->GetText(),&sizeOfFirstColHeader.x,&sizeOfFirstColHeader.y);
-		if (sizeOfBookNameAndCh.GetX() > sizeOfFirstColHeader.GetX())
-			pTheFirstColumn->SetWidth(sizeOfBookNameAndCh.GetX() + 30); // 30 fudge factor
-		else
-			pTheFirstColumn->SetWidth(sizeOfFirstColHeader.GetX() + 30); // 30 fudge factor
-		
-		int height,widthListCtrl,widthCol1;
-		pListCtrlChapterNumberAndStatus->GetClientSize(&widthListCtrl,&height);
-		widthCol1 = pTheFirstColumn->GetWidth();
-		pTheSecondColumn->SetWidth(widthListCtrl - widthCol1);
-		
-		pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
-		pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
-		
-		int totItems = chapterListFromTargetBook.GetCount();
-		wxASSERT(totItems == (int)chapterStatusFromTargetBook.GetCount());
-		int ct;
-		for (ct = 0; ct < totItems; ct++)
-		{
-			long tmp = pListCtrlChapterNumberAndStatus->InsertItem(ct,chapterListFromTargetBook.Item(ct));
-			pListCtrlChapterNumberAndStatus->SetItemData(tmp,ct);
-			pListCtrlChapterNumberAndStatus->SetItem(tmp,1,chapterStatusFromTargetBook.Item(ct));
-		}
-		pListCtrlChapterNumberAndStatus->Enable(TRUE);
-		pListCtrlChapterNumberAndStatus->Show();
-	}
-	pStaticSelectAChapter->SetLabel(_("Select a &chapter:")); // put & char at same position as in the string in wxDesigner
-	pStaticSelectAChapter->Refresh();
-
-	if (!m_TempCollabChapterSelected.IsEmpty())
-	{
-		int nSel = pListCtrlChapterNumberAndStatus->FindItem(-1,m_TempCollabChapterSelected,TRUE); // TRUE - partial, look for items beginning with m_TempCollabChapterSelected
-		if (nSel != wxNOT_FOUND)
-		{
-			pListCtrlChapterNumberAndStatus->Select(nSel);
-			pListCtrlChapterNumberAndStatus->SetFocus();
-			// Update the wxTextCtrl at the bottom of the dialog with more detailed
-			// info about the book and/or chapter that is selected. 
-			pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
-		}
-		else
-		{
-			// Update the wxTextCtrl at the bottom of the dialog with more detailed
-			// info about the book and/or chapter that is selected. In this case we can
-			// just remind the user to select a chapter.
-			pStaticTextCtrlNote->ChangeValue(_T("Please select a chapter in the list at right."));
-		}
-	}
-	
-	wxASSERT(pListBoxBookNames->GetSelection() != wxNOT_FOUND);
-	m_TempCollabBookSelected = pListBoxBookNames->GetStringSelection();
-	
-	
-}
-
-void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(event))
-{
-	// This handler is called both for single click and double clicks on an
-	// item in the chapter list box, since a double click is sensed initially
-	// as a single click.
-
-	//int nSel = pListCtrlChapterNumberAndStatus->GetSelection();
-	int itemCt;
-	itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
-	wxASSERT(itemCt <= 1);
-	long nSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
-	if (nSel != wxNOT_FOUND)
-	{
-		m_TempCollabChapterSelected = pListCtrlChapterNumberAndStatus->GetItemText(nSel);
-		// Update the wxTextCtrl at the bottom of the dialog with more detailed
-		// info about the book and/or chapter that is selected.
-		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
-	}
-	else
-	{
-		// Update the wxTextCtrl at the bottom of the dialog with more detailed
-		// info about the book and/or chapter that is selected. In this case we can
-		// just remind the user to select a chapter.
-		pStaticTextCtrlNote->ChangeValue(_("Please select a chapter in the list at right."));
-	}
-
-    // Bruce felt that we should get a fresh copy of the PT target project's chapter file
-    // at this point (but no longer does, BEW 17Jun11). I think it would be better to do so
-    // in the OnOK() handler than here, since it is the OnOK() handler that will actually
-    // open the chapter text as an AI document (Bruce agrees!)
-}
-
-void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event))
-{
-	wxLogDebug(_T("Chapter list double-clicked"));
-	// This should do the same as clicking on OK button, then force the dialog to close
-	wxCommandEvent evt(wxID_OK);
-	this->OnOK(evt);
-	// force parent dialog to close
-	EndModal(wxID_OK);
-}
-
-void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
-{
-	pListBoxBookNames->SetSelection(-1); // remove any selection
-	// clear lists and static text box at bottom of dialog
-	pListBoxBookNames->Clear();
-	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-	pStaticTextCtrlNote->ChangeValue(_T(""));
-
-	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
-	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
-	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
-	{
-		wxString message;
-		message = message.Format(_("Collaborating with %s: getting source text was Cancelled"), 
-									m_pApp->m_collaborationEditor.c_str());
-		pStatusBar->SetStatusText(message,0); // use first field 0
-	}
-		
-	// whm 14Jul11 Note: When the user clicks Cancel at this dialog, no project has
-	// been designated as active, therefore we should do what the wizard does in 
-	// similar circumstances - empty the m_curProjectPath.
-	m_pApp->m_curProjectPath.Empty();
-	
-	event.Skip();
-}
-
-void CGetSourceTextFromEditorDlg::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
-{
-	// Clear the pComboFreeTransProjectName selection, empty the temp variable and
-	// disable the button
-	pComboFreeTransProjectName->SetSelection(-1); // -1 removes the selection entirely
-	pBtnNoFreeTrans->Disable();
-	m_TempCollabProjectForFreeTransExports.Empty();
-	m_bTempCollaborationExpectsFreeTrans = FALSE;
-}
-
-// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
+ // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
@@ -1240,7 +445,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	CAdapt_ItView* pView = m_pApp->GetView();
 
-	// check the KBa are clobbered, if not so, do so
+	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
 
 	// save new project selection to the App's variables for writing to config file
@@ -1969,6 +1174,701 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+}
+
+
+// event handling functions
+
+void CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event))
+{
+	int nSel;
+	nSel = pComboSourceProjectName->GetSelection();
+	m_TempCollabProjectForSourceInputs = pComboSourceProjectName->GetString(nSel);
+	// when the selection changes for the Source project we need to reload the
+	// "Select a book" list.
+	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
+	// Any change in the selection with the source project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	// select LastPTBookSelected 
+	if (!m_TempCollabBookSelected.IsEmpty())
+	{
+		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
+		if (nSel != wxNOT_FOUND)
+		{
+			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
+			pListBoxBookNames->SetSelection(nSel);
+			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
+			pListBoxBookNames->SetFocus(); 
+			wxCommandEvent evt;
+			OnLBBookSelected(evt);
+		}
+	}
+}
+
+void CGetSourceTextFromEditorDlg::OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event))
+{
+	int nSel;
+	wxString selStr;
+	nSel = pComboDestinationProjectName->GetSelection();
+	m_TempCollabProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
+	// Any change in the selection with the destination/target project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	LoadBookNamesIntoList(); // uses the m_TempCollabProjectForSourceInputs
+	// Any change in the selection with the source project combo box 
+	// requires that we compare the source and target project's books again, which we
+	// can do by calling the OnLBBookSelected() handler explicitly here.
+	// select LastPTBookSelected 
+	if (!m_TempCollabBookSelected.IsEmpty())
+	{
+		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
+		if (nSel != wxNOT_FOUND)
+		{
+			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
+			pListBoxBookNames->SetSelection(nSel);
+			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
+			pListBoxBookNames->SetFocus(); 
+			wxCommandEvent evt;
+			OnLBBookSelected(evt);
+		}
+	}
+}
+
+void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event))
+{
+	int nSel;
+	wxString selStr;
+	nSel = pComboFreeTransProjectName->GetSelection();
+	m_TempCollabProjectForFreeTransExports = pComboFreeTransProjectName->GetString(nSel);
+	m_bTempCollaborationExpectsFreeTrans = TRUE;
+	pBtnNoFreeTrans->Enable(TRUE);
+
+	// For free trans selection we don't need to refresh book names
+	// nor call OnLBBookSelected() here as is needed when the combobox
+	// selections for source and/or target project changes.
+}
+
+void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
+{
+	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
+		return;
+	
+	// Check if the same PT project is selected in both combo boxes. If so, warn user
+	// and return until different projects are selected.
+	wxString srcProj,destProj;
+	srcProj = pComboSourceProjectName->GetStringSelection();
+	destProj = pComboDestinationProjectName->GetStringSelection();
+	if (srcProj == destProj)
+	{
+
+		wxString msg;
+		msg = _("The %s projects selected for obtaining source texts, and for transferring translation texts cannot be the same. Use the drop down list boxes to select different projects.");
+		msg = msg.Format(msg,m_collabEditorName.c_str());
+		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
+		// most likely the target drop down list would need to be changed so set focus to it before returning
+		pComboDestinationProjectName->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+
+	// Since the wxExecute() and file read operations take a few seconds, change the "Select a chapter:"
+	// static text above the right list box to read: "Please wait while I query Paratext/Bibledit..."
+	wxString waitMsg = _("Please wait while I query %s...");
+	waitMsg = waitMsg.Format(waitMsg,m_collabEditorName.c_str());
+	pStaticSelectAChapter->SetLabel(waitMsg);
+	
+	int nSel;
+	wxString fullBookName;
+	nSel = pListBoxBookNames->GetSelection();
+	fullBookName = pListBoxBookNames->GetString(nSel);
+	// When the user selects a book, this handler does the following:
+	// 1. Call rdwrtp7 to get a copies of the book in a temporary file at a specified location.
+	//    One copy if made of the source PT project's book, and the other copy is made of the
+	//    destination PT project's book
+	// 2. Open each of the temporary book files and read them into wxString buffers.
+	// 3. Scan through the buffers, collecting their usfm markers - simultaneously counting
+	//    the number of characters associated with each marker (0 = empty).
+	// 4. Only the actual marker, plus a : delimiter, plus the character count associated with
+	//    the marker plus a : delimiter plus an MD5 checksum is collected and stored in two 
+	//    wxArrayStrings, one marker (and count and MD5 checksum) per array element.
+	// 5. This collection of the usfm structure (and extent) is done for both the source PT 
+	//    book's data and the destination PT book's data.
+	// 6. The two wxArrayString collections will make it an easy matter to compare the 
+	//    structure and extent of the two texts even though the actual textual content will,
+	//    of course, vary, because each text would normally be a different language.
+	// Using the two wxArrayStrings:
+	// a. We can easily find which verses of the destination text are empty and (if they are
+	// not also empty in the source text) conclude that those destination text verses have
+	// not yet been translated.
+	// b. We can easily compare the usfm structure has changed between the source and 
+	// destination texts to see if it has changed. 
+	// 
+	// Each string element of the wxArrayStrings is of the following form:
+	// \mkr:nnnn, where \mkr could be \s, \p, \c 2, \v 23, \v 42-44, etc., followed by
+	// a colon (:), followed by a character count nnnn, followed by either another :0 or
+	// an MD5 checksum.
+	// Here is an example of what a returned array might look like:
+	//	\id:49:2f17e081efa1f7789bac5d6e500fc3d5
+	//	\mt:6:010d9fd8a87bb248453b361e9d4b3f38
+	//	\c 1:0:0
+	//	\s:16:e9f7476ed5087739a673a236ee810b4c
+	//	\p:0:0
+	//	\v 1:138:ef64c033263f39fdf95b7fe307e2b776
+	//	\v 2:152:ec5330b7cb7df48628facff3e9ce2e25
+	//	\v 3:246:9ebe9d27b30764602c2030ba5d9f4c8a
+	//	\v 4:241:ecc7fb3dfb9b5ffeda9c440db0d856fb
+	//	\v 5:94:aea4ba44f438993ca3f44e2ccf5bdcaf
+	//	\p:0:0
+	//	\v 6:119:639858cb1fc6b009ee55e554cb575352
+	//	\f:322:a810d7d923fbedd4ef3a7120e6c4af93
+	//	\f*:0:0
+	//	\p:0:0
+	//	\v 7:121:e17f476eb16c0589fc3f9cc293f26531
+	//	\v 8:173:4e3a18eb839a4a57024dba5a40e72536
+	//	\p:0:0
+	//	\v 9:124:ad649962feeeb2715faad0cc78274227
+	//	\p:0:0
+	//	\v 10:133:3171aeb32d39e2da92f3d67da9038cf6
+	//	\v 11:262:fca59249fe26ee4881d7fe558b24ea49
+	//	\s:29:3f7fcd20336ae26083574803b7dddf7c
+	//	\p:0:0
+	//	\v 12:143:5f71299ac7c347b7db074e3c327cef7e
+	//	\v 13:211:6df92d40632c1de539fa3eeb7ba2bc0f
+	//	\v 14:157:5383e5a5dcd6976877b4bc82abaf4fee
+	//	\p:0:0
+	//	\v 15:97:47e16e4ae8bfd313deb6d9aef4e33ca7
+	//	\v 16:197:ce14cd0dd77155fa23ae0326bac17bdd
+	//	\v 17:51:b313ee0ee83a10c25309c7059f9f46b3
+	//	\v 18:143:85b88e5d3e841e1eb3b629adf1345e7b
+	//	\v 19:101:2f30dec5b8e3fa7f6a0d433d65a9aa1d
+	//	\p:0:0
+	//	\v 20:64:b0d7a2fc799e6dc9f35a44ce18755529
+	//	\p:0:0
+	//	\v 21:90:e96d4a1637d901d225438517975ad7c8
+	//	\v 22:165:36f37b24e0685939616a04ae7fc3b56d
+	//	\p:0:0
+	//	\v 23:96:53b6c4c5180c462c1c06b257cb7c33f8
+	//	\f:23:317f2a231b8f9bcfd13a66f45f0c8c72
+	//	\fk:19:db64e9160c4329440bed9161411f0354
+	//	\fk*:1:5d0b26628424c6194136ac39aec25e55
+	//	\f*:7:86221a2454f5a28121e44c26d3adf05c
+	//	\v 24-25:192:4fede1302a4a55a4f0973f5957dc4bdd
+	//	\v 26:97:664ca3f0e110efe790a5e6876ffea6fc
+	//	\c 2:0:0
+	//	\s:37:6843aea2433b54de3c2dad45e638aea0
+	//	\p:0:0
+	//	\v 1:19:47a1f2d8786060aece66eb8709f171dc
+	//	\v 2:137:78d2e04d80f7150d8c9a7c123c7bcb80
+	//	\v 3:68:8db3a04ff54277c792e21851d91d93e7
+	//	\v 4:100:9f3cff2884e88ceff63eb8507e3622d2
+	//	\p:0:0
+	//	\v 5:82:8d32aba9d78664e51cbbf8eab29fcdc7
+	// 	\v 6:151:4d6d314459a65318352266d9757567f1
+	//	\v 7:95:73a88b1d087bc4c5ad01dd423f3e45d0
+	//	\v 8:71:aaeb79b24bdd055275e94957c9fc13c2
+	// Note: The first number field after the usfm (delimited by ':') is a character count 
+	// for any text associated with that usfm. The last number field represents the MD5 checksum,
+	// except that only usfm markers that are associated with actual text have the 32 byte MD5
+	// checksums. Other markers, i.e., \c, \p, have 0 in the MD5 checksum field.
+	
+	// Bridged verses might look like the following:
+	// \v 23-25:nnnn:MD5
+	
+	// We also need to call rdwrtp7 to get a copy of the target text book (if it exists). We do the
+	// same scan on it collecting an wxArrayString of values that tell us what chapters exist and have
+	// been translated.
+	// 
+	// Usage: rdwrtp7 -r|-w project book chapter|0 fileName
+	wxString bookCode;
+	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
+	
+	// ensure that a .temp folder exists in the m_workFolderPath
+	wxString tempFolder;
+	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
+	if (!::wxDirExists(tempFolder))
+	{
+		::wxMkdir(tempFolder);
+	}
+
+	wxString sourceProjShortName;
+	wxString targetProjShortName;
+	wxASSERT(!m_TempCollabProjectForSourceInputs.IsEmpty());
+	wxASSERT(!m_TempCollabProjectForTargetExports.IsEmpty());
+	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
+	targetProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
+	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
+	// use our App's
+	
+	wxString sourceTempFileName;
+	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
+	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, sourceProjShortName, wxEmptyString, _T(".tmp"));
+	wxString targetTempFileName;
+	targetTempFileName = tempFolder + m_pApp->PathSeparator;
+	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
+	
+	
+	// Build the command lines for reading the PT projects using rdwrtp7.exe.
+	wxString commandLineSrc,commandLineTgt;
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
+	wxLogDebug(commandLineSrc);
+
+    // Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
+    // when the overloaded version of wxExecute() is used, it uses the redirection of the
+    // stdio to the arrays, and with that redirection, it doesn't show the console process
+    // window by default. It is distracting to have the DOS console window flashing even
+    // momentarily, so we will use that overloaded version of rdwrtp7.exe.
+
+	long resultSrc = -1;
+	long resultTgt = -1;
+    wxArrayString outputSrc, errorsSrc;
+	wxArrayString outputTgt, errorsTgt;
+	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
+	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+	// from/to its project data files.
+	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+	// files (not using command-line interface.
+	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
+	{
+		// Use the wxExecute() override that takes the two wxStringArray parameters. This
+		// also redirects the output and suppresses the dos console window during execution.
+		resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
+		if (resultSrc == 0)
+		{
+			resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
+
+		}
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
+		wxString beProjPathSrc, beProjPathTgt;
+		beProjPathSrc = beProjPath + m_pApp->PathSeparator + sourceProjShortName;
+		beProjPathTgt = beProjPath + m_pApp->PathSeparator + targetProjShortName;
+		int chNum = -1; // for Bibledit to get whole book
+		bool bWriteOK;
+		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNum, sourceTempFileName, errorsSrc);
+		if (bWriteOK)
+			resultSrc = 0; // 0 means same as wxExecute() success
+		else // bWriteOK was FALSE
+			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		if (resultSrc == 0)
+		{
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNum, targetTempFileName, errorsTgt);
+			if (bWriteOK)
+				resultTgt = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultTgt = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
+		}
+	}
+
+	if (resultSrc != 0 || resultTgt != 0)
+	{
+		// not likely to happen so an English warning will suffice
+		if (m_pApp->m_bCollaboratingWithParatext)
+			wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+			wxMessageBox(_T("Could not read data from the Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+
+		wxString temp;
+		if (m_pApp->m_bCollaboratingWithParatext)
+			temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+			temp = temp.Format(_T("BE Collaboration operation returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		m_pApp->LogUserAction(temp);
+		wxLogDebug(temp);
+		int ct;
+		if (resultSrc != 0)
+		{
+			temp.Empty();
+			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
+			{
+				temp += outputSrc.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
+			{
+				temp += errorsSrc.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+		}
+		if (resultTgt != 0)
+		{
+			temp.Empty();
+			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
+			{
+				temp += outputTgt.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
+			{
+				temp += errorsTgt.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+		}
+		pListBoxBookNames->SetSelection(-1); // remove any selection
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+
+	// now read the tmp files into buffers in preparation for analyzing their chapter and
+	// verse status info (1:1:nnnn).
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// UNICODE BOM of ef bb bf
+	wxFile f_src(sourceTempFileName,wxFile::read);
+	wxFileOffset fileLenSrc;
+	fileLenSrc = f_src.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pSourceByteBuf = (char*)malloc(fileLenSrc + 1);
+	memset(pSourceByteBuf,0,fileLenSrc + 1); // fill with nulls
+	f_src.Read(pSourceByteBuf,fileLenSrc);
+	wxASSERT(pSourceByteBuf[fileLenSrc] == '\0'); // should end in NULL
+	f_src.Close();
+	sourceWholeBookBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
+	free((void*)pSourceByteBuf);
+
+	wxFile f_tgt(targetTempFileName,wxFile::read);
+	wxFileOffset fileLenTgt;
+	fileLenTgt = f_tgt.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pTargetByteBuf = (char*)malloc(fileLenTgt + 1);
+	memset(pTargetByteBuf,0,fileLenTgt + 1); // fill with nulls
+	f_tgt.Read(pTargetByteBuf,fileLenTgt);
+	wxASSERT(pTargetByteBuf[fileLenTgt] == '\0'); // should end in NULL
+	f_tgt.Close();
+	targetWholeBookBuffer = wxString(pTargetByteBuf,wxConvUTF8,fileLenTgt);
+	// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
+	// in ANSI builds so this should work for both ANSI and Unicode data.
+	free((void*)pTargetByteBuf);
+
+	SourceTextUsfmStructureAndExtentArray.Clear();
+	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
+	TargetTextUsfmStructureAndExtentArray.Clear();
+	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
+	
+	/* !!!! whm testing below !!!!
+	// =====================================================================================
+	int testNum;
+	int totTestNum = 4;
+	// get the constant baseline buffer from the test cases which are on my 
+	// local machine at: C:\Users\Bill Martin\Desktop\testing
+	//wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base1.SFM");
+	wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_shorter incl bridged.SFM");
+	wxASSERT(::wxFileExists(basePathAndName));
+	wxFile f_test_base(basePathAndName,wxFile::read);
+	wxFileOffset fileLenBase;
+	fileLenBase = f_test_base.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pBaseLineByteBuf = (char*)malloc(fileLenBase + 1);
+	memset(pBaseLineByteBuf,0,fileLenBase + 1); // fill with nulls
+	f_test_base.Read(pBaseLineByteBuf,fileLenBase);
+	wxASSERT(pBaseLineByteBuf[fileLenBase] == '\0'); // should end in NULL
+	f_test_base.Close();
+	wxString baseWholeBookBuffer = wxString(pBaseLineByteBuf,wxConvUTF8,fileLenBase);
+	free((void*)pBaseLineByteBuf);
+
+	wxArrayString baseLineArray;
+	baseLineArray = GetUsfmStructureAndExtent(baseWholeBookBuffer);
+
+	wxString testPathAndName[7] = {
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_longer no bridged.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test5_change_usfm_text_and_length incl bridged.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test5_change_usfm_text_and_length.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test2_change_text_only.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test1_change_usfm_only.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test3_change_both_usfm_and_text.SFM"),
+					_T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_test4_no_changes.SFM")
+					};
+	for (testNum = 0; testNum < totTestNum; testNum++)
+	{
+		wxASSERT(::wxFileExists(testPathAndName[testNum]));
+		wxFile f_test_tgt(testPathAndName[testNum],wxFile::read);
+		wxFileOffset fileLenTest;
+		fileLenTest = f_test_tgt.Length();
+		// read the raw byte data into pByteBuf (char buffer on the heap)
+		char* pTestByteBuf = (char*)malloc(fileLenTest + 1);
+		memset(pTestByteBuf,0,fileLenTest + 1); // fill with nulls
+		f_test_tgt.Read(pTestByteBuf,fileLenTest);
+		wxASSERT(pTestByteBuf[fileLenTest] == '\0'); // should end in NULL
+		f_test_tgt.Close();
+		wxString testWholeBookBuffer = wxString(pTestByteBuf,wxConvUTF8,fileLenTest);
+		// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
+		// in ANSI builds so this should work for both ANSI and Unicode data.
+		free((void*)pTestByteBuf);
+		
+		wxArrayString testLineArray;
+		testLineArray = GetUsfmStructureAndExtent(testWholeBookBuffer);
+		CompareUsfmTexts compUsfmTextType;
+		compUsfmTextType = CompareUsfmTextStructureAndExtent(baseLineArray, testLineArray);
+		switch (compUsfmTextType)
+		{
+			 
+		case noDifferences:
+			 {
+				wxLogDebug(_T("compUsfmTextType = noDifferences"));
+				break;
+			 }
+		case usfmOnlyDiffers:
+			{
+				wxLogDebug(_T("compUsfmTextType = usfmOnlyDiffers"));
+				break;
+			}
+		case textOnlyDiffers:
+			{
+				wxLogDebug(_T("compUsfmTextType = textOnlyDiffers"));
+				break;
+			}
+		case usfmAndTextDiffer:
+			{
+				wxLogDebug(_T("compUsfmTextType = usfmAndTextDiffer"));
+				break;
+			}
+		}
+	}
+	// =====================================================================================
+	// !!!! whm testing above !!!!
+	*/ 
+
+	// Note: The sourceWholeBookBuffer and targetWholeBookBuffer will not be completely empty even
+	// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
+	// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
+	// buffer. So, we can tell better whether the book hasn't been created within Paratext
+	// by checking to see if there are any elements in the appropriate 
+	// UsfmStructureAndExtentArrays.
+	if (SourceTextUsfmStructureAndExtentArray.GetCount() == 0)
+	{
+		wxString msg1,msg2;
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),sourceProjShortName.c_str());
+		}
+		msg1 = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+		pListBoxBookNames->SetSelection(-1); // remove any selection
+		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
+	{
+		wxString msg1,msg2;
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
+		msg1 = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+		pListBoxBookNames->SetSelection(-1); // remove any selection
+		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		//pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+
+	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+	wxArrayString chapterListFromTargetBook;
+	wxArrayString chapterStatusFromTargetBook;
+	GetChapterListAndVerseStatusFromTargetBook(fullBookName,chapterListFromTargetBook,chapterStatusFromTargetBook);
+	if (chapterListFromTargetBook.GetCount() == 0)
+	{
+		wxString msg1,msg2;
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
+		}
+		msg1 = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
+		pListCtrlChapterNumberAndStatus->Enable(FALSE);
+		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		//pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+	else
+	{
+		// get extent for the current book name for sizing first column
+		wxSize sizeOfBookNameAndCh,sizeOfFirstColHeader;
+		wxClientDC aDC(this);
+		wxFont tempFont = this->GetFont();
+		aDC.SetFont(tempFont);
+		wxString lastCh = chapterListFromTargetBook.Last();
+		aDC.GetTextExtent(lastCh,&sizeOfBookNameAndCh.x,&sizeOfBookNameAndCh.y);
+		aDC.GetTextExtent(pTheFirstColumn->GetText(),&sizeOfFirstColHeader.x,&sizeOfFirstColHeader.y);
+		if (sizeOfBookNameAndCh.GetX() > sizeOfFirstColHeader.GetX())
+			pTheFirstColumn->SetWidth(sizeOfBookNameAndCh.GetX() + 30); // 30 fudge factor
+		else
+			pTheFirstColumn->SetWidth(sizeOfFirstColHeader.GetX() + 30); // 30 fudge factor
+		
+		int height,widthListCtrl,widthCol1;
+		pListCtrlChapterNumberAndStatus->GetClientSize(&widthListCtrl,&height);
+		widthCol1 = pTheFirstColumn->GetWidth();
+		pTheSecondColumn->SetWidth(widthListCtrl - widthCol1);
+		
+		pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
+		pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
+		
+		int totItems = chapterListFromTargetBook.GetCount();
+		wxASSERT(totItems == (int)chapterStatusFromTargetBook.GetCount());
+		int ct;
+		for (ct = 0; ct < totItems; ct++)
+		{
+			long tmp = pListCtrlChapterNumberAndStatus->InsertItem(ct,chapterListFromTargetBook.Item(ct));
+			pListCtrlChapterNumberAndStatus->SetItemData(tmp,ct);
+			pListCtrlChapterNumberAndStatus->SetItem(tmp,1,chapterStatusFromTargetBook.Item(ct));
+		}
+		pListCtrlChapterNumberAndStatus->Enable(TRUE);
+		pListCtrlChapterNumberAndStatus->Show();
+	}
+	pStaticSelectAChapter->SetLabel(_("Select a &chapter:")); // put & char at same position as in the string in wxDesigner
+	pStaticSelectAChapter->Refresh();
+
+	if (!m_TempCollabChapterSelected.IsEmpty())
+	{
+		int nSel = pListCtrlChapterNumberAndStatus->FindItem(-1,m_TempCollabChapterSelected,TRUE); // TRUE - partial, look for items beginning with m_TempCollabChapterSelected
+		if (nSel != wxNOT_FOUND)
+		{
+			pListCtrlChapterNumberAndStatus->Select(nSel);
+			pListCtrlChapterNumberAndStatus->SetFocus();
+			// Update the wxTextCtrl at the bottom of the dialog with more detailed
+			// info about the book and/or chapter that is selected. 
+			pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+		}
+		else
+		{
+			// Update the wxTextCtrl at the bottom of the dialog with more detailed
+			// info about the book and/or chapter that is selected. In this case we can
+			// just remind the user to select a chapter.
+			pStaticTextCtrlNote->ChangeValue(_T("Please select a chapter in the list at right."));
+		}
+	}
+	
+	wxASSERT(pListBoxBookNames->GetSelection() != wxNOT_FOUND);
+	m_TempCollabBookSelected = pListBoxBookNames->GetStringSelection();
+	
+	
+}
+
+void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(event))
+{
+	// This handler is called both for single click and double clicks on an
+	// item in the chapter list box, since a double click is sensed initially
+	// as a single click.
+
+	//int nSel = pListCtrlChapterNumberAndStatus->GetSelection();
+	int itemCt;
+	itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+	wxASSERT(itemCt <= 1);
+	long nSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
+	if (nSel != wxNOT_FOUND)
+	{
+		m_TempCollabChapterSelected = pListCtrlChapterNumberAndStatus->GetItemText(nSel);
+		// Update the wxTextCtrl at the bottom of the dialog with more detailed
+		// info about the book and/or chapter that is selected.
+		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+	}
+	else
+	{
+		// Update the wxTextCtrl at the bottom of the dialog with more detailed
+		// info about the book and/or chapter that is selected. In this case we can
+		// just remind the user to select a chapter.
+		pStaticTextCtrlNote->ChangeValue(_("Please select a chapter in the list at right."));
+	}
+
+    // Bruce felt that we should get a fresh copy of the PT target project's chapter file
+    // at this point (but no longer does, BEW 17Jun11). I think it would be better to do so
+    // in the OnOK() handler than here, since it is the OnOK() handler that will actually
+    // open the chapter text as an AI document (Bruce agrees!)
+}
+
+void CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event))
+{
+	wxLogDebug(_T("Chapter list double-clicked"));
+	// This should do the same as clicking on OK button, then force the dialog to close
+	wxCommandEvent evt(wxID_OK);
+	this->OnOK(evt);
+	// force parent dialog to close
+	EndModal(wxID_OK);
+}
+
+void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
+{
+	pListBoxBookNames->SetSelection(-1); // remove any selection
+	// clear lists and static text box at bottom of dialog
+	pListBoxBookNames->Clear();
+	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+	pStaticTextCtrlNote->ChangeValue(_T(""));
+
+	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
+	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
+	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
+	{
+		wxString message;
+		message = message.Format(_("Collaborating with %s: getting source text was Cancelled"), 
+									m_pApp->m_collaborationEditor.c_str());
+		pStatusBar->SetStatusText(message,0); // use first field 0
+	}
+		
+	// whm 14Jul11 Note: When the user clicks Cancel at this dialog, no project has
+	// been designated as active, therefore we should do what the wizard does in 
+	// similar circumstances - empty the m_curProjectPath.
+	m_pApp->m_curProjectPath.Empty();
+	
+	event.Skip();
+}
+
+void CGetSourceTextFromEditorDlg::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
+{
+	// Clear the pComboFreeTransProjectName selection, empty the temp variable and
+	// disable the button
+	pComboFreeTransProjectName->SetSelection(-1); // -1 removes the selection entirely
+	pBtnNoFreeTrans->Disable();
+	m_TempCollabProjectForFreeTransExports.Empty();
+	m_bTempCollaborationExpectsFreeTrans = FALSE;
 }
 
 bool CGetSourceTextFromEditorDlg::CollabProjectIsEditable(wxString projShortName)

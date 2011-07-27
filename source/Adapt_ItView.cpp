@@ -75,6 +75,7 @@
 #include "ReadOnlyProtection.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "BString.h"
 #include "XML.h"
 #include "EditPreferencesDlg.h" 

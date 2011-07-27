@@ -515,6 +515,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CollabUtilities.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\CollectBacktranslations.cpp"
 				>
 			</File>
@@ -941,6 +945,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ChooseTranslation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CollabUtilities.h"
 				>
 			</File>
 			<File

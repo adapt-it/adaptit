@@ -38,6 +38,7 @@
 #include "Adapt_ItView.h"
 #include "MainFrm.h"
 #include "helpers.h"
+#include "CollabUtilities.h"
 #include "Adapt_ItCanvas.h"
 #include "KB.h"
 #include "ExportInterlinearDlg.h"
