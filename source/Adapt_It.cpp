@@ -22880,10 +22880,10 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 		// selected by the administrator (or has been unilaterally checked because Paratext
 		// or Bibledit collaboration is ON). The flag for this test now resides in
 		// the the App's m_bProtectSourceInputsFolder variable which is controlled by the
-		// CAssignLocationsForInputsAndOutputs class. If this flag is FALSE at this point
-		// we need to return FALSE from this function.
-		if (!m_bProtectSourceInputsFolder)
-			return FALSE;
+		// CAssignLocationsForInputsAndOutputs class. If this flag is TRUE at this point
+		// we need to return TRUE from this function.
+		if (m_bProtectSourceInputsFolder)
+			return TRUE;
 
         // enumerate the files in the __SOURCE_INPUTS directory, don't do any filtering there,
         // as we want to do it further below since we've special messages below for the
