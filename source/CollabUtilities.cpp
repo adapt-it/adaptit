@@ -56,6 +56,7 @@
 #include "helpers.h"
 #include "tellenc.h"
 #include "md5.h"
+#include "CollabUtilities.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -568,45 +569,39 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
 	}
 	wxFileOffset fileLenTxt;
 	fileLenTxt= f_txt.Length();
-	// the file may exist, but be empty (as when using rdwrtp7.exe to get, say, a chapter
-	// of free translation from a PT project designated for such data, but which as yet
-	// has no books defined for that project -- the call gets a file with nothing in it,
-	// so we need to check for this and return the empty string
-	if (fileLenTxt == 0)
-	{
-		return emptyStr;
-	}
-	else
-	{
-		// read the raw byte data into pByteBuf (char buffer on the heap)
-		char* pTextByteBuf = (char*)malloc(fileLenTxt + 1);
-		memset(pTextByteBuf,0,fileLenTxt + 1); // fill with nulls
-		f_txt.Read(pTextByteBuf,fileLenTxt);
-		wxASSERT(pTextByteBuf[fileLenTxt] == '\0'); // should end in NULL
-		f_txt.Close();
-		wxString textBuffer = wxString(pTextByteBuf,wxConvUTF8,fileLenTxt);
-		free((void*)pTextByteBuf);
-		// Now we have to check for textBuffer having an initial UTF-16 BOM, and if so, remove
-		// it. No such test nor removal is needed for an ANSI/ASCII build.
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pTextByteBuf = (char*)malloc(fileLenTxt + 1);
+	memset(pTextByteBuf,0,fileLenTxt + 1); // fill with nulls
+	f_txt.Read(pTextByteBuf,fileLenTxt);
+	wxASSERT(pTextByteBuf[fileLenTxt] == '\0'); // should end in NULL
+	f_txt.Close();
+	wxString textBuffer = wxString(pTextByteBuf,wxConvUTF8,fileLenTxt);
+	free((void*)pTextByteBuf);
+	// Now we have to check for textBuffer having an initial UTF-16 BOM, and if so, remove
+	// it. No such test nor removal is needed for an ANSI/ASCII build.
 
-		// remove any initial UFT16 BOM (it's 0xFF 0xFE), but on a big-endian machine would be
-		// opposite order, so try both
+	// remove any initial UFT16 BOM (it's 0xFF 0xFE), but on a big-endian machine would be
+	// opposite order, so try both
 #ifdef _UNICODE
-		wxChar litEnd = (wxChar)0xFFFE; // even if I get the endian value reversed, since I try
-		wxChar bigEnd = (wxChar)0xFEFF; // both, it doesn't matter
-		int offset = textBuffer.Find(litEnd);
-		if (offset == 0)
-		{
-			textBuffer = textBuffer.Mid(1);
-		}
-		offset = textBuffer.Find(bigEnd);
-		if (offset == 0)
-		{
-			textBuffer = textBuffer.Mid(1);
-		}
-#endif
-		return textBuffer;
+	wxChar litEnd = (wxChar)0xFFFE; // even if I get the endian value reversed, since I try
+	wxChar bigEnd = (wxChar)0xFEFF; // both, it doesn't matter
+	int offset = textBuffer.Find(litEnd);
+	if (offset == 0)
+	{
+		textBuffer = textBuffer.Mid(1);
 	}
+	offset = textBuffer.Find(bigEnd);
+	if (offset == 0)
+	{
+		textBuffer = textBuffer.Mid(1);
+	}
+#endif
+    // the file may exist, but be empty except for the BOM - as when using rdwrtp7.exe to
+    // get, say, a chapter of free translation from a PT project designated for such data,
+    // but which as yet has no books defined for that project -- the call gets a file with
+    // nothing in it except the BOM, so having removed the BOM, textBuffer will either be
+    // empty or not - nothing else needs to be done except return it now
+	return textBuffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1221,7 +1216,1426 @@ wxString GetBibleditInstallPath()
 }
 
 
+wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
+{
+	// Parse the string which is of the form: \v n:nnnn:MD5 or \c n:nnnn:MD5 with
+	// an :MD5 suffix; or of the form: \v n:nnnn or \c n:nnnn without the :MD5 suffix.
+	// This function gets the chapter or verse number as a string and works for
+	// either the \c or \v marker.
+	// Since the string is of the form: \v n:nnnn:MD5, \c n:nnnn:MD5, (or without :MD5)
+	// we cannot use the Parse_Number() to get the number itself since, with the :nnnn... 
+	// suffixed to it, it does not end in whitespace or CR LF as would a normal verse 
+	// number, so we get the number differently using ordinary wxString methods.
+	wxString numStr = verseStr;
+	wxASSERT(numStr.Find(_T('\\')) == 0);
+	wxASSERT(numStr.Find(_T('c')) == 1 || numStr.Find(_T('v')) == 1); // it should be a chapter or verse marker
+	int posSpace = numStr.Find(_T(' '));
+	wxASSERT(posSpace != wxNOT_FOUND);
+	// get the number and any following part
+	numStr = numStr.Mid(posSpace);
+	int posColon = numStr.Find(_T(':'));
+	if (posColon != wxNOT_FOUND)
+	{
+		// remove ':' and following part(s)
+		numStr = numStr.Mid(0,posColon);
+	}
+	numStr.Trim(FALSE);
+	numStr.Trim(TRUE);
+	return numStr;
+}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return	a wxArrayString representing the usfm structure and extent (character count and MD5
+///                         checksum) of the input text buffer
+/// \param	fileBuffer -> a wxString buffer containing the usfm text to analyze
+/// \remarks
+/// Processes the fileBuffer text extracting an wxArrayString representing the 
+/// general usfm structure of the fileBuffer (usually the source or target file).
+/// whm Modified 5Jun11 to also include a unique MD5 checksum as an additional field so that
+/// the form of the representation would be \mkr:nnnn:MD5, where the \mkr field is a usfm
+/// marker (such as \p or \v 3); the second field nnnn is a character count of text 
+/// directly associated with the marker; and the third field MD5 is a 32 byte hex
+/// string, or 0 when no text is associated with the marker, i.e. the MD5 checksum is 
+/// used where there are text characters associated with a usfm marker; when the 
+/// character count is zero, the MD5 checksum is also 0 in such cases.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
+{
+	// process the buffer extracting an wxArrayString representing the general usfm structure
+	// from of the fileBuffer (i.e., the source and/or target file buffers)
+	// whm Modified 5Jun11 to also include a unique MD5 checksum as an additional field so that
+	// the form of the representation would be \mkr:1:nnnn:MD5, where the MD5 is a 32 byte hex
+	// string. The MD5 checksum is used where there are text characters associated with a usfm
+	// marker; when the character count is zero, the MD5 checksum is also 0 in such cases.
+	// Here is an example of what a returned array might look like:
+	//	\id:49:2f17e081efa1f7789bac5d6e500fc3d5
+	//	\mt:6:010d9fd8a87bb248453b361e9d4b3f38
+	//	\c 1:0:0
+	//	\s:16:e9f7476ed5087739a673a236ee810b4c
+	//	\p:0:0
+	//	\v 1:138:ef64c033263f39fdf95b7fe307e2b776
+	//	\v 2:152:ec5330b7cb7df48628facff3e9ce2e25
+	//	\v 3:246:9ebe9d27b30764602c2030ba5d9f4c8a
+	//	\v 4:241:ecc7fb3dfb9b5ffeda9c440db0d856fb
+	//	\v 5:94:aea4ba44f438993ca3f44e2ccf5bdcaf
+	//	\p:0:0
+	//	\v 6:119:639858cb1fc6b009ee55e554cb575352
+	//	\f:322:a810d7d923fbedd4ef3a7120e6c4af93
+	//	\f*:0:0
+	//	\p:0:0
+	//	\v 7:121:e17f476eb16c0589fc3f9cc293f26531
+	//	\v 8:173:4e3a18eb839a4a57024dba5a40e72536
+	//	\p:0:0
+	//	\v 9:124:ad649962feeeb2715faad0cc78274227
+	//	\p:0:0
+	//	\v 10:133:3171aeb32d39e2da92f3d67da9038cf6
+	//	\v 11:262:fca59249fe26ee4881d7fe558b24ea49
+	//	\s:29:3f7fcd20336ae26083574803b7dddf7c
+	//	\p:0:0
+	//	\v 12:143:5f71299ac7c347b7db074e3c327cef7e
+	//	\v 13:211:6df92d40632c1de539fa3eeb7ba2bc0f
+	//	\v 14:157:5383e5a5dcd6976877b4bc82abaf4fee
+	//	\p:0:0
+	//	\v 15:97:47e16e4ae8bfd313deb6d9aef4e33ca7
+	//	\v 16:197:ce14cd0dd77155fa23ae0326bac17bdd
+	//	\v 17:51:b313ee0ee83a10c25309c7059f9f46b3
+	//	\v 18:143:85b88e5d3e841e1eb3b629adf1345e7b
+	//	\v 19:101:2f30dec5b8e3fa7f6a0d433d65a9aa1d
+	//	\p:0:0
+	//	\v 20:64:b0d7a2fc799e6dc9f35a44ce18755529
+	//	\p:0:0
+	//	\v 21:90:e96d4a1637d901d225438517975ad7c8
+	//	\v 22:165:36f37b24e0685939616a04ae7fc3b56d
+	//	\p:0:0
+	//	\v 23:96:53b6c4c5180c462c1c06b257cb7c33f8
+	//	\f:23:317f2a231b8f9bcfd13a66f45f0c8c72
+	//	\fk:19:db64e9160c4329440bed9161411f0354
+	//	\fk*:1:5d0b26628424c6194136ac39aec25e55
+	//	\f*:7:86221a2454f5a28121e44c26d3adf05c
+	//	\v 24-25:192:4fede1302a4a55a4f0973f5957dc4bdd
+	//	\v 26:97:664ca3f0e110efe790a5e6876ffea6fc
+	//	\c 2:0:0
+	//	\s:37:6843aea2433b54de3c2dad45e638aea0
+	//	\p:0:0
+	//	\v 1:19:47a1f2d8786060aece66eb8709f171dc
+	//	\v 2:137:78d2e04d80f7150d8c9a7c123c7bcb80
+	//	\v 3:68:8db3a04ff54277c792e21851d91d93e7
+	//	\v 4:100:9f3cff2884e88ceff63eb8507e3622d2
+	//	\p:0:0
+	//	\v 5:82:8d32aba9d78664e51cbbf8eab29fcdc7
+	// 	\v 6:151:4d6d314459a65318352266d9757567f1
+	//	\v 7:95:73a88b1d087bc4c5ad01dd423f3e45d0
+	//	\v 8:71:aaeb79b24bdd055275e94957c9fc13c2
+	// Note: The first number field after the usfm (delimited by ':') is a character count 
+	// for any text associated with that usfm. The last number field represents the MD5 checksum,
+	// except that only usfm markers that are associated with actual text have the 32 byte MD5
+	// checksums. Other markers, i.e., \c, \p, have 0 in the MD5 checksum field.
+	
+	wxArrayString UsfmStructureAndExtentArray;
+	const wxChar* pBuffer = fileBuffer.GetData();
+	int nBufLen = fileBuffer.Length();
+	int itemLen = 0;
+	wxChar* ptrSrc = (wxChar*)pBuffer;	// point to the first char (start) of the buffer text
+	wxChar* pEnd = ptrSrc + nBufLen;	// point to one char past the end of the buffer text
+	wxASSERT(*pEnd == '\0');
+
+	// Note: the wxConvUTF8 parameter of the caller's fileBuffer constructor also
+	// removes the initial BOM from the string when converting to a wxString
+	// but we'll check here to make sure and skip it if present. Curiously, the string's
+	// buffer after conversion also contains the FEFF UTF-16 BOM as its first char in the
+	// buffer! The wxString's converted buffer is indeed UTF-16, but why add the BOM to a 
+	// memory buffer in converting from UTF8 to UTF16?!
+	const int bomLen = 3;
+	wxUint8 szBOM[bomLen] = {0xEF, 0xBB, 0xBF};
+	bool bufferHasUtf16BOM = FALSE;
+	if (!memcmp(pBuffer,szBOM,nBOMLen))
+	{
+		ptrSrc = ptrSrc + nBOMLen;
+	}
+	else if (*pBuffer == 0xFEFF)
+	{
+		bufferHasUtf16BOM = TRUE;
+		// skip over the UTF16 BOM in the buffer
+		ptrSrc = ptrSrc + 1;
+	}
+	
+	wxString temp;
+	temp.Empty();
+	int nMkrLen = 0;
+
+	// charCount includes all chars in file except for eol chars
+	int charCountSinceLastMarker = 0;
+	int eolCount = 0;
+	int charCount = 0;
+	int charCountMarkersOnly = 0; // includes any white space within and after markers, but not eol chars
+	wxString lastMarker;
+	wxString lastMarkerNumericAugment;
+	wxString stringForMD5Hash;
+	wxString md5Hash;
+	// Scan the buffer and extract the chapter:verse:count information
+	while (ptrSrc < pEnd)
+	{
+		while (ptrSrc < pEnd && !Is_Marker(ptrSrc,pEnd))
+		{
+			// This loop handles the parsing and counting of all characters not directly 
+			// associated with sfm markers, including eol characters.
+			if (*ptrSrc == _T('\n') || *ptrSrc == _T('\r'))
+			{
+				// its an eol char
+				ptrSrc++;
+				eolCount++;
+			}
+			else
+			{
+				// its a text char other than sfm marker chars and other than eol chars
+				stringForMD5Hash += *ptrSrc;
+				ptrSrc++;
+				charCount++;
+				charCountSinceLastMarker++;			
+			}
+		}
+		if (ptrSrc < pEnd)
+		{
+			// This loop handles the parsing and counting of all sfm markers themselves.
+			if (Is_Marker(ptrSrc,pEnd))
+			{
+				if (!lastMarker.IsEmpty())
+				{
+					// output the data for the last marker
+					wxString usfmDataStr;
+					// construct data string for the lastMarker
+					usfmDataStr = lastMarker;
+					usfmDataStr += lastMarkerNumericAugment;
+					usfmDataStr += _T(':');
+					usfmDataStr << charCountSinceLastMarker;
+					if (charCountSinceLastMarker == 0)
+					{
+						// no point in storing an 32 byte MD5 hash when the string is empty (i.e., 
+						// charCountSinceLastMarker is 0).
+						md5Hash = _T('0');
+					}
+					else
+					{
+						// Calc md5Hash here, and below
+						md5Hash = wxMD5::GetMD5(stringForMD5Hash);
+					}
+					usfmDataStr += _T(':');
+					usfmDataStr += md5Hash;
+					charCountSinceLastMarker = 0;
+					stringForMD5Hash.Empty();
+					lastMarker.Empty();
+					UsfmStructureAndExtentArray.Add(usfmDataStr);
+				
+					lastMarkerNumericAugment.Empty();
+				}
+			}
+			
+			if (Is_ChapterMarker(ptrSrc))
+			{
+				// its a chapter marker
+				// parse the chapter marker and following white space
+
+				itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the marker
+				lastMarker = temp;
+				
+				ptrSrc += itemLen; // point past the \c marker
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc);
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get non-eol whitespace
+				lastMarkerNumericAugment += temp;
+
+				ptrSrc += itemLen; // point at chapter number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_Number(ptrSrc); // ParseNumber doesn't parse over eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the number
+				lastMarkerNumericAugment += temp;
+				
+				ptrSrc += itemLen; // point past chapter number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc); // parse the non-eol white space following 
+													     // the number
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the non-eol white space
+				lastMarkerNumericAugment += temp;
+				ptrSrc += itemLen; // point past it
+				charCountMarkersOnly += itemLen;
+				// we've parsed the chapter marker and number and non-eol white space
+			}
+			else if (Is_VerseMarker(ptrSrc,nMkrLen))
+			{
+				// Its a verse marker
+
+				// Parse the verse number and following white space
+				itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the verse marker
+				lastMarker = temp;
+				
+				if (nMkrLen == 2)
+				{
+					// its a verse marker
+					ptrSrc += 2; // point past the \v marker
+					charCountMarkersOnly += itemLen;
+				}
+				else
+				{
+					// its an Indonesia branch verse marker \vn
+					ptrSrc += 3; // point past the \vn marker
+					charCountMarkersOnly += itemLen;
+				}
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc);
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the non-eol white space
+				lastMarkerNumericAugment += temp;
+				ptrSrc += itemLen; // point at verse number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_Number(ptrSrc); // ParseNumber doesn't parse over eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the verse number
+				lastMarkerNumericAugment += temp;
+				ptrSrc += itemLen; // point past verse number
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc); // parse white space which is 
+														 // after the marker
+				// we don't need the white space on the lastMarkerNumericAugment which we
+				// would have to remove during parsing of fields on the : delimiters
+				ptrSrc += itemLen; // point past the white space
+				charCountMarkersOnly += itemLen; // count following white space with markers
+			}
+			else if (Is_Marker(ptrSrc,pEnd))
+			{
+				// Its some other marker.
+
+				itemLen = Parse_Marker(ptrSrc, pEnd); // does not parse through eol chars
+				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the marker
+				lastMarker = temp;
+				ptrSrc += itemLen; // point past the marker
+				charCountMarkersOnly += itemLen;
+
+				itemLen = Parse_NonEol_WhiteSpace(ptrSrc);
+				// we don't need the white space but we count it
+				ptrSrc += itemLen; // point past the white space
+				charCountMarkersOnly += itemLen; // count following white space with markers
+			}
+		} // end of TRUE block for test: if (ptrSrc < pEnd)
+		else
+		{
+			// ptrSrc is pointing at or past the pEnd
+			break;
+		}
+	} // end of loop: while (ptrSrc < pEnd)
+	
+	// output data for any lastMarker that wasn't output in above main while 
+	// loop (at the end of the file)
+	if (!lastMarker.IsEmpty())
+	{
+		wxString usfmDataStr;
+		// construct data string for the lastMarker
+		usfmDataStr = lastMarker;
+		usfmDataStr += lastMarkerNumericAugment;
+		usfmDataStr += _T(':');
+		usfmDataStr << charCountSinceLastMarker;
+		if (charCountSinceLastMarker == 0)
+		{
+			// no point in storing an 32 byte MD5 hash when the string is empty (i.e., 
+			// charCountSinceLastMarker is 0).
+			md5Hash = _T('0');
+		}
+		else
+		{
+			// Calc md5Hash here, and below
+			md5Hash = wxMD5::GetMD5(stringForMD5Hash);
+		}
+		usfmDataStr += _T(':');
+		usfmDataStr += md5Hash;
+		charCountSinceLastMarker = 0;
+		stringForMD5Hash.Empty();
+		lastMarker.Empty();
+		UsfmStructureAndExtentArray.Add(usfmDataStr);
+	
+		lastMarkerNumericAugment.Empty();
+	}
+	//int ct;
+	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
+	//{
+	//	wxLogDebug(UsfmStructureAndExtentArray.Item(ct));
+	//}
+	
+	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
+	// the actual last character so it represents the total number of characters in the buffer. 
+	// Thus the Total Count below doesn't include the beginning UTF-16 BOM character, which is also the length
+	// of the wxString buffer as reported in nBufLen by the fileBuffer.Length() call.
+	// Actual size on disk will be 2 characters larger than charCount's final value here because
+	// the file on disk will have the 3-char UTF8 BOM, and the fileBuffer here has the 
+	// 1-char UTF-16 BOM.
+	int utf16BomLen;
+	if (bufferHasUtf16BOM)
+		utf16BomLen = 1;
+	else
+		utf16BomLen = 0;
+	wxLogDebug(_T("Total Count = %d [charCount (%d) + eolCount (%d) + charCountMarkersOnly (%d)] Compare to nBufLen = %d"),
+		charCount+eolCount+charCountMarkersOnly,charCount,eolCount,charCountMarkersOnly,nBufLen - utf16BomLen);
+	return UsfmStructureAndExtentArray;
+}
+
+// Gets the initial Usfm marker from a string element of an array produced by 
+// GetUsfmStructureAndExtent(). Assumes the incoming str begins with a back
+// slash char and that a ':' delimits the end of the marker field
+// 
+// Note: for a \c or \v line, it gets both the marker, the following space, and whatever
+// chapter or verse, or verse range, follows the space. If the strict marker and nothing
+// else is wanted, use GetStrictUsfmMarkerFromStructExtentString() instead.
+wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str)
+{
+	wxASSERT(str.GetChar(0) == gSFescapechar);
+	int posColon = str.Find(_T(':'),FALSE);
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString tempStr = str.Mid(0,posColon);
+	return tempStr;
+}
+
+wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str)
+{
+	wxASSERT(str.GetChar(0) == gSFescapechar);
+	int posColon = str.Find(_T(':'),FALSE);
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString tempStr = str.Mid(0,posColon);
+	wxString aSpace = _T(' ');
+	int offset = tempStr.Find(aSpace);
+	if (offset == wxNOT_FOUND)
+	{
+		return tempStr;
+	}
+	else
+	{
+		tempStr = tempStr.Left(offset);
+	}
+	return tempStr;
+}
+
+
+wxString GetFinalMD5FromStructExtentString(const wxString str)
+{
+	wxASSERT(str.GetChar(0) == gSFescapechar);
+	int posColon = str.Find(_T(':'),TRUE); // TRUE - find from right end
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString tempStr = str.Mid(posColon+1);
+	return tempStr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return	an enum value of one of the following: noDifferences, usfmOnlyDiffers, textOnlyDiffers,
+///     or usfmAndTextDiffer.
+/// \param	usfmText1	-> a structure and extent wxArrayString created by GetUsfmStructureAndExtent()
+/// \param	usfmText2	-> a second structure and extent wxArrayString created by GetUsfmStructureAndExtent()
+/// \remarks
+/// Compares the two incoming array strings and determines if they have no differences, or if only the 
+/// usfm structure differs (but text parts are the same), or if only the text parts differ (but the 
+/// usfm structure is the same), or if both the usfm structure and the text parts differ. The results of
+/// the comparison are returned to the caller via one of the CompareUsfmTexts enum values.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, const wxArrayString& usfmText2)
+{
+	int countText1 = (int)usfmText1.GetCount();
+	int countText2 = (int)usfmText2.GetCount();
+	bool bTextsHaveDifferentUSFMMarkers = FALSE;
+	bool bTextsHaveDifferentTextParts = FALSE;
+	if (countText2 == countText1)
+	{
+		// the two text arrays have the same number of lines, i.e. the same number of usfm markers
+		// so we can easily compare those markers in this case by scanning through each array
+		// line-by-line and compare their markers, and their MD5 checksums 
+		int ct;
+		for (ct = 0; ct < countText1; ct++)
+		{
+			wxString mkr1 = GetInitialUsfmMarkerFromStructExtentString(usfmText1.Item(ct));
+			wxString mkr2 = GetInitialUsfmMarkerFromStructExtentString(usfmText2.Item(ct));
+			if (mkr1 != mkr2)
+			{
+				bTextsHaveDifferentUSFMMarkers = TRUE;
+			}
+			wxString md5_1 = GetFinalMD5FromStructExtentString(usfmText1.Item(ct));
+			wxString md5_2 = GetFinalMD5FromStructExtentString(usfmText2.Item(ct));
+			if (md5_1 != md5_2)
+			{
+				bTextsHaveDifferentTextParts = TRUE;
+			}
+		}
+	}
+	else
+	{
+		// The array counts differ, which means that at least, the usfm structure 
+		// differs too since each line of the array is defined by the presence of a 
+		// usfm.
+		bTextsHaveDifferentUSFMMarkers = TRUE;
+		// But, what about the Scripture text itself? Although the usfm markers 
+		// differ at least in number, we need to see if the text itself differs 
+		// for those array lines which the two arrays share in common. For 
+		// Scripture texts the parts that are shared in common are represented 
+		// in the structure-and-extent arrays primarily as the lines with \v n 
+		// as their initial marker. We may want to also account for embedded verse
+		// markers such as \f footnotes, \fe endnotes, and other medial markers 
+		// that can occur within the sacred text. We'll focus first on the \v n
+		// lines, and posibly handle footnotes as they are encountered. The MD5
+		// checksum is the most important part to deal with, as comparing them
+		// across corresponding verses will tell us whether there has been a
+		// change in the text between the two versions.
+		
+		// Scan through the texts comparing the MD5 checksums of their \v n
+		// lines
+		int ct1 = 0;
+		int ct2 = 0;
+		// use a while loop here since we may be scanning and comparing different
+		// lines in the arrays - in this block the array counts differ.
+		wxString mkr1;
+		wxString mkr2;
+		while (ct1 < countText1 && ct2 < countText2)
+		{
+			mkr1 = _T("");
+			mkr2 = _T("");
+			if (GetNextVerseLine(usfmText1,ct1))
+			{
+				mkr1 = GetInitialUsfmMarkerFromStructExtentString(usfmText1.Item(ct1));
+				if (GetNextVerseLine(usfmText2,ct2))
+				{
+					mkr2 = GetInitialUsfmMarkerFromStructExtentString(usfmText2.Item(ct2));
+				}
+				if (!mkr2.IsEmpty())
+				{
+					// Check if we are looking at the same verse in both arrays
+					if (mkr1 == mkr2)
+					{
+						// The verse markers are the same - we are looking at the same verse
+						// in both arrays.
+						// Check the MD5 sums associated with the verses for any changes.
+						wxString md5_1 = GetFinalMD5FromStructExtentString(usfmText1.Item(ct1));
+						wxString md5_2 = GetFinalMD5FromStructExtentString(usfmText2.Item(ct2));
+						if (md5_1 == md5_2)
+						{
+							// the verses have not changed, leave the flag at its default of FALSE;
+							;
+						}
+						else
+						{
+							// there has been a change in the texts, so set the flag to TRUE
+							bTextsHaveDifferentTextParts = TRUE;
+						}
+					}
+					else
+					{
+						// the verse markers are different. Perhaps the user edited out a verse
+						// or combined the verses into a bridged verse.
+						// We have no way to deal with checking for text changes in making a 
+						// bridged verse so we will assume there were changes made in such cases.
+						bTextsHaveDifferentTextParts = TRUE;
+						break;
+						
+					}
+				}
+				else
+				{
+					// mkr2 is empty indicating we've prematurely reached the end of verses in
+					// usfmText2. This amounts to a change in both the text and usfm structure.
+					// We've set the flag for change in usfm structure above, so now we set the
+					// bTextsHaveDifferentTextParts flag and break out.
+					bTextsHaveDifferentTextParts = TRUE;
+					break;
+				}
+			}
+			if (mkr1.IsEmpty())
+			{
+				// We've reached the end of verses for usfmText1. It is possible that there 
+				// could be more lines with additional verse(s) in usfmText2 - as in the case 
+				// that a verse bridge was unbridged into individual verses. 
+				if (GetNextVerseLine(usfmText2,ct2))
+				{
+					mkr2 = GetInitialUsfmMarkerFromStructExtentString(usfmText2.Item(ct2));
+				}
+				if (!mkr2.IsEmpty())
+				{
+					// We have no way to deal with checking for text changes in un-making a 
+					// bridged verse so we will assume there were changes made in such cases.
+					bTextsHaveDifferentTextParts = TRUE;
+					break;
+				}
+			}
+			ct1++;
+			ct2++;
+		}
+	}
+
+	if (bTextsHaveDifferentUSFMMarkers && bTextsHaveDifferentTextParts)
+		return usfmAndTextDiffer;
+	if (bTextsHaveDifferentUSFMMarkers)
+		return usfmOnlyDiffers;
+	if (bTextsHaveDifferentTextParts)
+		return textOnlyDiffers;
+	// The only case left is that there are no differences
+	return noDifferences;
+}
+
+// Use the MD5 checksums approach to compare two text files for differences: the MD5
+// approach can detect differences in the usfm structure, or just in either punctuation or
+// words changes or both (it can't distinguish puncts changes from word changes). This
+// function checks for puncts and/or word changes only.
+// Return TRUE if there are such changes, FALSE if there are none of that kind
+bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText)
+{
+	wxArrayString oldArr;
+	wxArrayString newArr;
+	oldArr = GetUsfmStructureAndExtent(oldText);
+	newArr = GetUsfmStructureAndExtent(newText);
+	enum CompareUsfmTexts value = CompareUsfmTextStructureAndExtent(oldArr, newArr);
+	switch(value)
+	{
+	case noDifferences:
+		return FALSE;
+	case usfmOnlyDiffers:
+		return FALSE;
+	case textOnlyDiffers:
+		return TRUE;
+	case usfmAndTextDiffer:
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
+// Use the MD5 checksums approach to compare two text files for differences: the MD5
+// approach can detect differences in the usfm structure, or just in either punctuation or
+// words changes or both (it can't distinguish puncts changes from word changes). This
+// function checks for usfm changes only.
+// Return TRUE if there are such changes, FALSE if there are none of that kind
+bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
+{
+	wxArrayString oldArr;
+	wxArrayString newArr;
+	oldArr = GetUsfmStructureAndExtent(oldText);
+	newArr = GetUsfmStructureAndExtent(newText);
+	enum CompareUsfmTexts value = CompareUsfmTextStructureAndExtent(oldArr, newArr);
+	switch(value)
+	{
+	case noDifferences:
+		return FALSE;
+	case usfmOnlyDiffers:
+		return TRUE;
+	case textOnlyDiffers:
+		return FALSE;
+	case usfmAndTextDiffer:
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
+// Advances index until usfmText array at that index points to a \v n line.
+// If there are no more \v n lines, then the function returns FALSE. The
+// index is returned to the caller via the index reference parameter.
+bool GetNextVerseLine(const wxArrayString usfmText, int& index)
+{
+	int totLines = (int)usfmText.GetCount();
+	wxString line = usfmText.Item(index);
+	while (index < totLines)
+	{
+		wxString testingStr = usfmText.Item(index);
+		if (usfmText.Item(index).Find(_T("\\v")) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else
+		{
+			index++;
+		}
+	}
+	return FALSE;
+}
+
+/// returns                 TRUE for a successful analysis, FALSE if unsuccessful or an
+///                         empty string was passed in
+/// 
+/// \param  strChapVerse        ->  ref to a chapter:verse string, or chapter:verse_range string which
+///                                 is passed in to be analysed into its parts
+/// \param  strChapter          <-  ref to the chapter number as a string
+/// \param  strDelimiter        <-  if present, whatever separates the parts of a verse range
+/// \param  strStartingVerse    <-  the starting verse of a range, as a string
+/// \param  strStartingVerseSuffix <- usually a single lower case letter such as a or b
+///                                   after strStartingVerse
+/// \param  strEndingVerse      <-  the ending verse of a range, as a string
+/// \param  strEndingVerseSuffix <- usually a single lower case letter such as a or b,
+///                                 after strEndingVerse
+/// \remarks
+/// This is similar to the MergeUpdatedSrc.cpp file's  AnalyseChapterVerseRef() , but is
+/// simpler. It can handle Arabic digits - but as strings, since no attempt is made here to
+/// convert chapter or verse strings into their numeric values. This function is used for
+/// populating the relevant members of a VChunkAndMap struct, used in the chunking and
+/// comparisons and replacements of data into the final wxString text to be sent back to
+/// whichever external editor we are currently collaborating with.
+/// Note: input is a "chap:verse" string, where "verse" might be a verse range, or a part
+/// verse with a suffix such as a b or c. The StuctureAndExtents array which we obtain the
+/// verse information and chapter information lines from, will have those two bits of
+/// information on separate lines - and so the caller will form the "chap:verse" string
+/// from those lines before passing it in to AnalyseChapterVerseRef_For_Collab() for
+/// analysis.
+bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChapter, 
+		wxString& strDelimiter, wxString& strStartingVerse, wxChar& charStartingVerseSuffix, 
+		wxString& strEndingVerse, wxChar& charEndingVerseSuffix)
+{
+    // The Adapt It chapterVerse reference string is always of the form ch:vs or
+    // ch:vsrange, the colon is always there except for single chapter books. Single
+    // chapter books with no chapter marker will return 1 as the chapter number
+	strStartingVerse.Empty();
+	strEndingVerse.Empty();
+	charStartingVerseSuffix = _T('\0');
+	charEndingVerseSuffix = _T('\0');
+	strDelimiter.Empty();
+	if (strChapVerse.IsEmpty())
+		return FALSE; // reference passed in was empty
+	wxString range;
+	range.Empty();
+
+	// first determine if there is a chapter number present; handle Arabic digits if on a
+	// Mac machine and Arabic digits were input
+	int nFound = strChapVerse.Find(_T(':'));
+	if (nFound == wxNOT_FOUND)
+	{
+		// no chapter number, so set chapter to 1
+		range = strChapVerse;
+		strChapter = _T("1");
+	}
+	else
+	{
+		// chapter number exists, extract it and put the remainder after the colon into range
+		strChapter = SpanExcluding(strChapVerse,_T(":"));
+		nFound++; // index the first char after the colon
+		range = strChapVerse.Mid(nFound);
+	}
+
+	// now deal with the verse range, or single verse
+	int numChars = range.Len();
+	int index;
+	wxChar aChar = _T('\0');
+	// get the verse number, or the first verse number of the range
+	int count = 0;
+	for (index = 0; index < numChars; index++)
+	{
+		aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+		if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+		{
+			aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+		}
+#endif /* __WXMAC__ */
+		int isDigit = wxIsdigit(aChar);
+		if (isDigit != 0)
+		{
+			// it's a digit
+			strStartingVerse += aChar;
+			count++;
+		}
+		else
+		{
+			// it's not a digit, so exit with what we've collected so far
+			break;
+		}
+	}
+	if (count == numChars)
+	{
+		// all there was in the range variable was the digits of a verse number, so set
+		// the return parameter values and return TRUE
+		strEndingVerse = strStartingVerse;
+		return TRUE;
+	}
+	else
+	{
+		// there's more, but get what we've got so far and trim that stuff off of range
+		range = range.Mid(count);
+		numChars = range.Len();
+		// if a part-verse marker (assume one of a or b or c only), get it
+		aChar = range.GetChar(0);
+		if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
+		{
+			charStartingVerseSuffix = aChar;
+			range = range.Mid(1); // remove the suffix character
+			numChars = range.Len();
+		}
+		if (numChars == 0)
+		{
+			// we've exhausted the range string, fill params and return TRUE
+			strEndingVerse = strStartingVerse;
+			charEndingVerseSuffix = charStartingVerseSuffix;
+			return TRUE;
+		}
+		else 
+		{
+			// there is more still, what follows must be the delimiter, we'll assume it is
+			// possible to have more than a single character (exotic scripts might need
+			// more than one) so search for a following digit as the end point, or string
+			// end; and handle Arabic digits too (ie. convert them)
+			count = 0;
+			for (index = 0; index < numChars; index++)
+			{
+				aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+				if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+				{
+					aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+				}
+#endif /* __WXMAC__ */
+				int isDigit = wxIsdigit(aChar);
+				if (isDigit != 0)
+				{
+					// it's a digit, so we've reached the end of the delimiter
+					break;
+				}
+				else
+				{
+					// it's not a digit, so it's part of the delimiter string
+					strDelimiter += aChar;
+					count++;
+				}
+			}
+			if (count == numChars)
+			{
+				// it was "all delimiter" - a formatting error, as there is not verse
+				// number to indicate the end of the range - so just take the starting
+				// verse number (and any suffix) and return FALSE
+				strEndingVerse = strStartingVerse;
+				charEndingVerseSuffix = charStartingVerseSuffix;
+				return FALSE;
+			}
+			else
+			{
+                // we stopped earlier than the end of the range string, and so presumably
+                // we stopped at the first digit of the verse which ends the range
+				range = range.Mid(count); // now just the final verse and possibly an a, b or c suffix
+				numChars = range.Len();
+				// get the final verse...
+				count = 0;
+				for (index = 0; index < numChars; index++)
+				{
+					aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+					if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+					{
+						aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+					}
+#endif /* __WXMAC__ */
+					int isDigit = wxIsdigit(aChar);
+					if (isDigit != 0)
+					{
+						// it's a digit
+						strEndingVerse += aChar;
+						count++;
+					}
+					else
+					{
+						// it's not a digit, so exit with what we've collected so far
+						break;
+					}
+				}
+				if (count == numChars)
+				{
+                    // all there was in the range variable was the digits of the ending
+                    // verse number, so set the return parameter values and return TRUE
+					return TRUE;
+				}
+				else
+				{
+					// there's more, but get what we've got so far and trim that stuff 
+					// off of range
+					range = range.Mid(count);
+					numChars = range.Len();
+					// if a part-verse marker (assume one of a or b or c only), get it
+					if (numChars > 0)
+					{
+						// what remains should just be a final a or b or c
+						aChar = range.GetChar(0);
+						if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
+						{
+							charEndingVerseSuffix = aChar;
+							range = range.Mid(1); // remove the suffix character
+							numChars = range.Len(); // numChars should now be 0
+						}
+						if (numChars != 0)
+						{
+							// rhere's still something remaining, so just ignore it, but
+							// alert the developer, not with a localizable string
+							wxString suffix1;
+							wxString suffix2;
+							if (charStartingVerseSuffix != _T('\0'))
+							{
+								suffix1 = charStartingVerseSuffix;
+							}
+							if (charEndingVerseSuffix != _T('\0'))
+							{
+								suffix2 = charEndingVerseSuffix;
+							}
+							wxString msg;
+							msg = msg.Format(
+_T("The verse range was parsed, and the following remains unparsed: %s\nfrom the specification %s:%s%s%s%s%s%s"),
+							range.c_str(),strChapter.c_str(),strStartingVerse.c_str(),suffix1.c_str(),
+							strDelimiter.c_str(),strEndingVerse.c_str(),suffix2.c_str(),range.c_str());
+							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_WARNING);
+						}
+					} //end of TRUE block for test: if (numChars > 0)
+				} // end of else block for test: if (count == numChars)
+			} // end of else block for test: if (count == numChars)
+		} // end of else block for test: if (count == numChars)
+	} // end of else block for test: if (numChars == 0)
+	return TRUE;
+}
+
+// combine a chapter string with a verse string (or part, like 6b, or a range, like 23-25
+// etc) and delimit them with an intervening colon; then return the result
+wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrRange)
+{
+	wxString colon = _T(":");
+	wxString zero = _T("0");
+	wxString chVerse;
+	if (strChapter == zero)
+	{
+		chVerse = _T("1:");
+		chVerse += strVerseOrRange;
+	}
+	else
+	{
+		chVerse = strChapter;
+		chVerse += colon;
+		chVerse += strVerseOrRange;
+	}
+	return chVerse;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 TRUE if all went well, FALSE if there was a failure 
+/// \param md5Array     ->  StuctureAndExtents array we are analysing (and chunking),
+///                         params 2 and 3 index into this wxArrayString parameter
+/// \param chapterLine  ->  index of the last-encountered line which contains a \c marker
+///                         (-1 if there was no such previous line - as when the data is 
+///                         something like 3 John)
+/// \param verseLine    ->  index of the currently being defined chunk's \v line
+/// \param pVChMap      ->  reference to ptr to a VChunkAndMap struct instance on the heap
+///                         which is currently being populated so as to define the chunk 
+///                         - here we are setting just the chapter and verse information,
+///                         plus whether or not it is 'simple' or 'complex' - it is complex
+///                         if it's verse info is anything other than a simple verse
+///                         number, such as "27" or "1" and so forth.  E.g "12-14a" would
+///                         be regarded as 'complex'.
+////////////////////////////////////////////////////////////////////////////////////////// 
+bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, VChunkAndMap*& pVChMap)
+{
+	int nLastIndex = md5Array.GetCount() - 1;
+	if (chapterLine > nLastIndex || verseLine > nLastIndex || pVChMap == NULL)
+		return FALSE;
+	wxString strChapterLine;
+	wxString strChapter;
+	if (chapterLine == wxNOT_FOUND) // -1
+	{
+		strChapter = _T("1"); // if there is no \c, assume it's chapter 1
+	}
+	else
+	{
+		strChapterLine = md5Array.Item(chapterLine);
+		strChapter = GetStrictUsfmMarkerFromStructExtentString(strChapterLine);
+	}
+	wxASSERT(verseLine > 0);
+	wxString strVerseLine = md5Array.Item(verseLine);
+	// ensure it really is a \v line
+	wxASSERT(strVerseLine.Find(_T("\\v ")) == 0);
+	wxString strVsRange = GetNumberFromChapterOrVerseStr(strVerseLine);
+	// compose the chapter:verse or chapter:range string that our analysis function
+	// expects, then analyse what we have produced
+	wxString chapVerse = strChapter;
+	chapVerse += _T(":");
+	chapVerse += strVsRange;
+	// initialize the struct
+	InitializeVChunkAndMap_ChapterVerseInfoOnly(pVChMap);
+	// do the chapter/verse analysis
+	bool bAnalysisOK = AnalyseChapterVerseRef_For_Collab(chapVerse, pVChMap->strChapter, 
+		pVChMap->strDelimiter, pVChMap->strStartingVerse, pVChMap->charStartingVerseSuffix, 
+		pVChMap->strEndingVerse, pVChMap->charEndingVerseSuffix);
+	// set the bComplex boolean to TRUE if there is a bridge, or part verse initially or
+	// finally or non-bridged but a part verse
+	if (		pVChMap->charStartingVerseSuffix != _T('\0')	||
+				pVChMap->charEndingVerseSuffix != _T('\0')		||
+				pVChMap->strStartingVerse != pVChMap->strEndingVerse)
+	{
+		pVChMap->bIsComplex = TRUE;
+	}
+	// we don't expect failure of the analysis, so we'll just make a test for the
+	// developer, but also do a user log entry in case it happens in the release version
+	if (!bAnalysisOK)
+	{
+		wxString errorStr = _T(
+"AnalyseChVs_For_Collab() failed in the call of AnalyseChapterVerseRef_For_Collab(). Unspecified error.");
+		wxMessageBox(errorStr, _T(""), wxICON_ERROR);
+		gpApp->LogUserAction(errorStr);
+		wxASSERT(FALSE);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap)
+{
+	// we only initialize chapter and verse information, because the indices members will
+	// never be left unset and so we don't risk setting them here in case we call it after
+	// setting the indices and so clobber their values
+	pVChMap->bContainsText = TRUE; // assume there is at least a character of actual data in the verse
+	pVChMap->bIsComplex = FALSE; // assume it's a simple verse number (ie. no bridge, etc)
+	pVChMap->strChapter = _T("1"); // as good a default as anything else!
+	pVChMap->strDelimiter = _T("-"); // it's usually a hyphen, but it doesn't matter what we put here
+	pVChMap->strStartingVerse = _T("0"); // this is an invalid verse number, we can test
+										 // for this to determine if the actual starting
+										 // verse was not set
+	pVChMap->strEndingVerse = _T("0");   // ditto 
+	pVChMap->charStartingVerseSuffix = _T('\0'); // a null wxChar
+	pVChMap->charEndingVerseSuffix = _T('\0'); // a null wxChar
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 The updated target text, or free translation text, (depending)
+///                         on the makeTextType value passed in, which is ready for
+///                         transferring back to the external editor using ::wxExecute();
+///                         or an empty string if adaptation is wanted but the doc is
+///                         empty, or free translation is wanted but none are available
+///                         from the document.
+/// \param pDocList     ->  ptr to the list of CSourcePhrase ptrs which comprise the document,
+///                         or some similar list (the function does not rely in any way on
+///                         this list being the m_pSourcePhrases list from the app class, but
+///                         normally it will be that list)
+/// \param              ->  Either makeTargetText (value is 1) or makeFreeTransText (value is
+///                         2); our algorithms work almost the same for either kind of text.
+/// \param bWholeBook   ->  default is FALSE (i.e. working on a chapter only), pass TRUE when
+///                         the document being worked on is a whole book
+/// \remarks
+/// The document contains, of course, the adaptation and, if the user has done any free
+/// translation, also the latter. Sending either back to PT or BE after editing work in
+/// either or both is problematic, because the user may have done some work in PT or BE
+/// on either the adaptation or the free translation as stored in the external editor,
+/// and so we don't want changes made there wiped out unnecessarily. So we have to
+/// potentially do a lot of checks so as to send to the external editor only the minimum
+/// necessary. So we must store the adaptation and free translation in AI's native storage
+/// after each save, so we can compare subsequent work with that "preEdit" version of the
+/// adaptation and / or free translation; and each time we re-setup the same document in
+/// AI, and at the commencement of each File / Save, we must grab from PT or BE the
+/// adaptation and free translation (if the latter is expected) as they currently are, just
+/// in case the user did editing of both or either in the external editor before switching
+/// to AI to work on the same doc there. So we store the text as at last Save, this is the
+/// "preEdit" version we compare with on next Save, and we store the just-grabbed PT or BE
+/// version of the text (in case the user did edits in the external editor beforehand
+/// which AI would not otherwise know about) - and we do our insertions of the AI edits
+/// into this just-grabbed text, otherwise, the older text from PT or BE wouldn't have
+/// those edits done externally and what we send back would overwrite the user's edits
+/// done in PT or BE before switching back to AI for the editing work done for the
+/// currently-being-done Save. So there are potentially up to 3 versions of the same
+/// chapter or book that we have to juggle, and minimize unwanted changes within the final
+/// version being transferred back to the external editor on this current Save.
+/// 
+/// For comparisons, the idea is that the user will have done some editing of the document,
+/// and we want to find out by doing verse-based chunking and then various comparisons
+/// using MD5 checksums, to work out which parts of the document have changed in either (1)
+/// wording, or, (2) in punctuation only. Testing for this means comparing the pre-edit
+/// state of the text (as from param 1) with the post-edit state of the text (as generated
+/// from param 2 -- but actually, it's more likely to be "at this File / Save" operation,
+/// rather than post-edit, because the user may do several File / Save operations before
+/// he's finished editing the document to it's final state). Only the parts which have
+/// changed are then candidates for producing changes to the text in pLatestTextFromEditor
+/// - if the user didn't work on chapter 5 verse 4 when doing his changes, then
+/// pLatestTextFromEditor's version of chapter 5 verse 4 is returned to PT or BE unchanged,
+/// whether or not it differs from what the document's version of chapter 5 verse 4 happens
+/// to be. (In this way, we don't destroy any edits made in PT or BE prior to the document
+/// being edited a second or third etc time in Adapt It, with edits being done in the
+/// external editor between-times.) The enum parameter allows us to choose which kind of
+/// text to update from the user's editing in Adapt It.
+/// 
+/// Note 1: If there are word-changes when the function checks the pre-edit and post-edit
+/// state of the document's verse-based chunks, these chunks have their edited text
+/// inserted into the appropriate places in pLatestTextFromEditor, overwriting what was in
+/// the latter at the relevant places. But in the case of the user only making punctuation
+/// changes to one or more chunks, then the Adapt It version of the text for such a chunk
+/// only replaces what is in the relevant part of pLatestTextFromEditor provided that the
+/// latter's words in the chunk don't differ from the Adapt It document's words for the
+/// chunk. If the words do differ, then we don't risk replacing edits done externally with
+/// text from the AI document which may be inferior at the place where the punctuation was
+/// edited, and we just refrain from honouring such punctuation-only edits in that case
+/// (that is, the relevant part of pLatestTextFromEditor is NOT updated in that case. The
+/// user can do the relevant punctuation changes in the external editor at a later time,
+/// such as when doing a pre-publication check of the text.)
+/// 
+/// Note 2: in case you are wondering why we do things this way... the problem is we can't
+/// merge the user's edits of target text and/or free translation text back into the Adapt
+/// It document which produced the earlier versions of such text. Such a merger would be
+/// complicated, and need to be interactive and require a smart GUI widget to make it
+/// doable in an easy to manage way - and we are a long way from figuring that out and
+/// implementing it (though BEW does have ideas about how to go about it). Without being
+/// able to do such mergers, the best we can do is what this function currently does. We
+/// attribute higher value to something which runs without needing the user to do anything
+/// with a GUI widget, than something smart but which requires tedious and repetitive
+/// decision-making in a GUI widget.
+/// 
+/// This function is complex. It uses (a) verse-based chunking code as used previously in
+/// the Import Edited Source Text feature, (b) various wxArrayPtrVoid and wxArrayString to
+/// store constructed space-delimited word strings, and coalesced punctuation strings,
+/// (c) MD5 checksums of the last two kinds of things, stored in wxArrayString, tokenizing
+/// of the passed in strings - and in the case of the first and third, the target text
+/// punctuation must be used for the tokenizing, because m_srcPhrase and m_key members
+/// will be holding target text, not source text; and various structs, comparisons and
+/// mapping of chunks to starting and ending offsets into pLatestTextFromEditor, and code
+/// for doing such things... you get the picture. However, the solution is generic and
+/// self-contained, and so can potentially be used elsewhere.
+/// BEW added 11July, to get changes to the adaptation and free translation ready, as a
+/// wxString, for transferring back to the respective PT or BE projects - which would be
+/// done in the caller once the returned string is assigned there.
+/// Note: internally we do our processing using SPArray rather than SPList, as it is
+/// easier and we can use functions from MergeUpdatedSrc.h & .cpp unchanged.
+///  
+/// Note 3, 16Jul11, culled from my from email to Bill:
+/// Two new bits of the puzzle were 
+/// (a) get the two or three text variants which need to be compared to USFM text format,
+/// then I can tokenize each with the tokenizing function that uses target text
+/// punctuation, to have the data from each text in just m_srcPhrase and m_key to work with
+/// - that way simplifies things a lot and ensures consistency in the parsing; and
+/// (b) on top of the existing versed based chunking, I need to do a higher level chunking
+/// based on the verse-based chunks, the higher level chunks are "equivalence chunks" -
+/// which boils down to verse based chunks if there are no part verses or bridged verses,
+/// but when there are the latter, the complexities of disparate chunking at the lower
+/// level for a certain point in the texts can be subsumed into a single equivalence chunk.
+/// Equivalence chunking needs to be done in 2-way associations, and also in 3-way
+/// associations -- the latter when there is a previously sent-to-PT variant of the text
+/// retained in AI from a previous File / Save, plus the edited document as current it is
+/// at the current File / Save, plus the (possibly independently edited beforehand in PT)
+/// just-grabbed from PT text. Once I have the equivalence associations set up, I can step
+/// through them, comparing MD5 checksums, and determining where the user made edits, and
+/// then getting the new AI edits into just the corresponding PT text's chunks (the third
+/// text mentioned above). The two-way equivalences are when there is no previous File /
+/// Save done, so all there is is the current doc in AI and the just-grabbed from PT
+/// (possibly edited) text. It's all a bit complex, but once the algorithm is clear in its
+/// parts, which it now is, it should just be a week or two's work to have it working. Of
+/// course, the simplest situation is when there has been no previous File / Save for the
+/// data, and PT doesn't have any corresponding data to grab yet -- that boils down to just
+/// a simple export of the adaptation or free translation, as the case may be, using the
+/// existing RebuildTargetText() or RebuildFreeTransText() functions, as the case may be,
+/// and then transferring the resulting USFM text to the relevant PT project using
+/// rdwrtp7.exe.
+/// 
+/// Note 4: since the one document SPList contains both adaptation text and associated free
+/// translation text (if any), returning adaptation text to PT or BE, and returning free
+/// translation text to PT or BE, will require two calls to this function. Both, however,
+/// are done at the one File / Save -- first the adaptation is sent, and then if free
+/// translation is expected to be be sent, it is sent after the adaptation is sent,
+/// automatically.
+///////////////////////////////////////////////////////////////////////////////////////
+wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, bool bWholeBook)
+{
+	CAdapt_ItView* pView = gpApp->GetView();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	
+	wxString text; text.Empty();
+	wxString preEditText; // the adaptation or free translation text prior to the editing session
+	wxString textFromEditor; // the adaptation or free translation text just grabbed from PT or BE
+	textFromEditor.Empty();
+
+	/*
+	bool m_bCollaboratingWithParatext;
+	bool m_bCollaboratingWithBibledit;
+	bool m_bCollaborationExpectsFreeTrans;
+	bool m_bCollaborationDocHasFreeTrans;
+	wxString m_collaborationEditor;
+	*/
+    // If collaborating with Paratext, check if Paratext is running, if it is, warn user to
+    // close it now and then try again; it not running, the data transfer can take place
+    // safely (i.e. it won't cause VCS conflicts which otherwise would happen when the user
+    // in Paratext next did a Save there)
+	if (gpApp->m_bCollaboratingWithParatext)
+	{
+		if (gpApp->ParatextIsRunning())
+		{
+			// don't let the function proceed further, give message, and return empty string
+			wxString msg;
+			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and your next File / Save attempt will succeed."),
+				gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+			wxMessageBox(msg, _T(""), wxICON_WARNING);
+			return text; // text is currently an empty string
+		}
+	}
+    // If collaborating with Bibledit, check if Bibledit is running, if it is, warn user to
+    // close it now and then try again; it not running, the data transfer can take place
+    // safely (i.e. it won't cause VCS conflicts which otherwise would happen when the user
+    // in Bibledit next did a Save there)
+	if (gpApp->m_bCollaboratingWithBibledit)
+	{
+		if (gpApp->BibleditIsRunning())
+		{
+			// don't let the function proceed further, give message, and return empty string
+			wxString msg;
+			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and your next File / Save attempt will succeed."),
+				gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+			wxMessageBox(msg, _T(""), wxICON_WARNING);
+			return text; // text is currently an empty string
+		}
+	}
+
+	// get the pre-edit saved text, and the from-PT or from-BE version of the same text
+	switch (makeTextType)
+	{
+	case makeFreeTransText:
+		{
+			if (bWholeBook)
+			{
+				// working on a book
+				preEditText = gpApp->GetStoredFreeTransWholeBook_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+			}
+			else
+			{
+				// working on a chapter
+				preEditText = gpApp->GetStoredFreeTransChapter_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+
+			}
+		}
+		break;
+	default:
+	case makeTargetText:
+		{
+			if (bWholeBook)
+			{
+				// working on a book
+				preEditText = gpApp->GetStoredTargetWholeBook_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+			}
+			else
+			{
+				// working on a chapter
+				preEditText = gpApp->GetStoredTargetChapter_PreEdit();
+
+// *** TODO *** get the latest text from PT, for textFromEditor
+
+
+			}
+		}
+		break;
+	};
+
+	// if the document has no content, just return an empty wxString to the caller
+	if (pDocList->IsEmpty())
+	{
+		return text;
+	}
+	bool bTextFromEditor = FALSE;
+	// pDocList is not an empty list of CSourcePhrase instances, so build as much of the
+	// wanted data type as is done so far in the document & return it to caller
+	if (textFromEditor.IsEmpty())
+	{
+		// if no text was received from the external editor, then the document is being,
+		// or has just been, adapted for the first time - this simplifies our task to
+		// become just a simple export of the appropriate type...
+		int textLen = 0; // required for the calls below but we make no use of it
+		switch (makeTextType)
+		{
+		case makeFreeTransText:
+			// rebuild the free translation USFM marked-up text
+			textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
+			FormatMarkerBufferForOutput(text, freeTransTextExport);
+			break;
+		default:
+		case makeTargetText:
+			// rebuild the adaptation USFM marked-up text
+			textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
+			FormatMarkerBufferForOutput(text, targetTextExport);
+			break;
+		};
+		return text;
+	}
+	else
+	{
+		// adaptation text, or free trans text, depending on makeTextType value, was
+		// received from the external editor -- so we've a more complicated task - we
+		// need to work out below which parts of pTextFromEditor to update, and do so
+		bTextFromEditor = TRUE;
+	}
+	bool bFirstTimeForThisDoc = TRUE; // initialize to TRUE, that is, assume this doc has
+				// not been worked on yet. Normally there won't have been text received
+				// for the adaptation or free translation from Paratext or Bibledit either,
+				// but we can't be certain - there may have been work done already in the
+				// relevant external editor's project for this chapter or whole book - and
+				// if that is the case, we must do the more complex processing much further 
+				// below
+	if (preEditText.IsEmpty())
+	{
+		// the user has not yet worked on this chapter or whole book in Adapt It (but
+		// bTextFromEditor will have been set TRUE above, so everything the user has
+		// worked on in the document so far will replace the equivalent parts of the text
+		// received from the external editor -- the complex code below will handle this
+		;
+	}
+	else
+	{
+		// there's been at least one File / Save, or an earlier session of adapting or
+		// free translating for this document -- the complex code below deals with this
+		bFirstTimeForThisDoc = FALSE;
+	}
+	// The two flags, bFirstTimeForThisDoc and bTextFromEditor now have their appropriate
+	// values, and we will need these to distinguish processing paths below; when both are
+	// TRUE, the issue is semi-complex, any adapting or free translating for a chunk
+	// results in the text replacing the equivalent part of textFromEditor; but
+	// when the first is FALSE and the second TRUE, we have the full-complexity - we have
+	// to compare the preEdit and current states of the doc to find where the user made
+	// changes, and then only for the places equivalent to those locations within
+	// textFromEditor may replacements be made.
+
+
+
+
+
+
+
+	if (!bFirstTimeForThisDoc)
+	{
+		// This is the 3-way equivalence chunking situation - the most complex we need to
+		// deal with, so handle this after the 2-way equivalence situation is finished
+		 
+        // first, deal with the pre-edit text - build the code here then pull it out into a
+        // function
+		SPList preEditSrcPhraseList;
+		SPArray preEditSrcPhraseArray;
+		// if this document hasn't been worked on before, then pPreEditText will point at an
+		// empty string - in which case our task is simpler
+		bool bUseTargetTextPuncts = TRUE; // use target text punctuation for the parsing
+		int nInitialSequNum = 0; 
+		int numPreEditSrcPhrases = pView->TokenizeTargetTextString(&preEditSrcPhraseList, 
+									preEditText, nInitialSequNum, bUseTargetTextPuncts);
+		wxASSERT(numPreEditSrcPhrases > 0);
+		if (numPreEditSrcPhrases > 0)
+		{
+			// convert the SPList to the SPArray preferred storage
+			ConvertSPList2SPArray(&preEditSrcPhraseList, &preEditSrcPhraseArray);
+
+
+
+
+		// *** TODO ****
+
+
+
+
+
+		} // end of TRUE block for test: if (numPreEditSrcPhrases > 0)
+		else
+		{
+            // there isn't any preEditText to handle -- this should be impossible since
+            // we've dealt with this possibility above; so just return an empty string with
+            // a bell
+			wxBell();
+			wxString emptyStr = _T("");
+			return emptyStr;
+		}
+	}
+	else
+	{
+		// This is the 2-way equivalence chunking situation - the semi-complex one...
+		// we have a document from which we get either target text, or free translation
+		// text, and the comparison text is that which was grabbed from PT or BE - it may
+		// be contentless USFM verse and chapter markup, or the latter with some actual
+		// free translation in parts of it, or fully free translated USFM text
+
+		SPList fromEditorSrcPhraseList;
+		SPArray fromEditorSrcPhraseArray;
+		bool bUseTargetTextPuncts = TRUE; // use target text punctuation for the parsing
+		int nInitialSequNum = 0;
+		// in the following tokenization, the m_key and m_srcPhrase members of each
+		// CSourcePhrase instance contain target text, or free translation text, depending
+		// on the passed in makeTextType enum value (the caller is responsible for passing
+		// in the right kind of text for params 1 and 3, and we'll handle free trans USFM
+		// text in the same way as we do for adaptation text, as often as possible - it's
+		// only at certain points in the processing that we need to distinguish what type 
+		// of text it is)
+		int numFromEditorSrcPhrases = pView->TokenizeTargetTextString(&fromEditorSrcPhraseList, 
+									textFromEditor, nInitialSequNum, bUseTargetTextPuncts);
+		wxASSERT(numFromEditorSrcPhrases > 0);
+		if (numFromEditorSrcPhrases > 0)
+		{
+			// convert the SPList to the SPArray preferred storage
+			ConvertSPList2SPArray(&fromEditorSrcPhraseList, &fromEditorSrcPhraseArray);
+
+
+
+
+		// *** TODO ****
+
+
+
+
+
+		} // end of TRUE block for test: if (numPreEditSrcPhrases > 0)
+		else
+		{
+            // there isn't any preEditText to handle -- this should be impossible since
+            // we've dealt with this possibility above; so just return an empty string with
+            // a bell
+			wxBell();
+			wxString emptyStr = _T("");
+			return emptyStr;
+		}
+
+
+
+
+
+
+
+
+
+		// *** TODO ****
+
+
+
+	}
+
+
+
+
+	/* a template to copy as needed
+	switch (makeTextType)
+	{
+	case makeFreeTransText:
+		{
+
+
+		}
+		break;
+	default:
+	case makeTargetText:
+		{
+
+
+		}
+		break;
+	};
+	*/
+
+
+
+
+
+
+
+
+	return text;
+}
 
 
 

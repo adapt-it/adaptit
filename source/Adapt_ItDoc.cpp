@@ -1325,11 +1325,39 @@ bool CAdapt_ItDoc::OnNewDocument()
 /// new function DoFileSave_Protected(), and put that in place of the other throughout the
 /// app.
 /// BEW 16Apr10, added enum, for support of Save As... menu item as well as Save
+/// BEW 28Jul11, added some initial support for collaboration scenario's tranfer of data to
+/// external editor
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event)) 
 {
-	// not interested in the returned boolean from the following call, for OnFileSave() call
-	DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		// temporarily, for testing purposes, assume it's target text, and a
+		// single-chapter document...
+		wxString updatedText = MakePostEditTextForExternalEditor(gpApp->m_pSourcePhrases, makeTargetText, FALSE);
+		if (!updatedText.IsEmpty())
+		{
+			// use updatedText, to get it backc to PT or BE as the case may be
+			;
+// *** TODO ***
+
+			// and then also do a local normal protected save to AI's native storage
+			DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
+		}
+		else
+		{
+			// returned an empty string, this indicates some kind error or unsafe
+			// situation - which should have been seen already
+			return;
+		}
+	}
+	else
+	{
+		// no collaboration - do a normal protected save
+		
+		// we are not interested in the returned boolean from the following call
+		DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
+	}
 }
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
