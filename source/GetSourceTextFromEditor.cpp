@@ -151,6 +151,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
+	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
 
@@ -211,9 +212,12 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 	
-	// Allow selecting texts by whole book, or chapter, and make the latter the default
-	pRadioBoxChapterOrBook->SetSelection(0);
-	m_bChapterOnly = TRUE;
+	// Allow selecting texts by whole book, or chapter, depending on the
+	// value of m_bTempCollabByChapterOnly as set by the basic config file
+	if (m_bTempCollabByChapterOnly)
+		pRadioBoxChapterOrBook->SetSelection(0);
+	else
+		pRadioBoxChapterOrBook->SetSelection(1);
 
 	bool bSourceProjFound = FALSE;
 	int nIndex = -1;
@@ -437,7 +441,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes until a book is selected
 	}
 	
-	if (pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED) == wxNOT_FOUND)
+	// whm added 27Jul11 a test for whether we are working by chapter
+	if (m_bTempCollabByChapterOnly && pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED) == wxNOT_FOUND)
 	{
 		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION);
 		pListCtrlChapterNumberAndStatus->SetFocus();
@@ -455,12 +460,17 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
 	wxString bareChapterSelectedStr;
 	int chSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (chSel != wxNOT_FOUND)
 	{
 		chSel++; // the chapter number is one greater than the selected lb index
+	}
+	else // whm added 27Jul11
+	{
+		chSel = 0; // indicates we're dealing with Whole Book 
 	}
 	bareChapterSelectedStr.Empty();
 	bareChapterSelectedStr << chSel;
@@ -486,47 +496,60 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// Get the latest version of the source and target texts from the PT project. We retrieve
 	// only texts for the selected chapter. Also get free translation text, if it exists
 	// and user wants free translation supported in the transfers of data
+	// whm modified 27Jul11 to handle whole book filename creation (which does not
+	// have the _CHnn chapter part in it.
+	wxString chStrForFilename;
+	if (m_bTempCollabByChapterOnly)
+		chStrForFilename = bareChapterSelectedStr;
+	else
+		chStrForFilename = _T("");
 	wxString tempFolder;
 	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_TempCollabBookSelected);;
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
 	wxString sourceTempFileName;
 	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
 	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameSrc, bareChapterSelectedStr, _T(".tmp"));
+							shortProjNameSrc, chStrForFilename, _T(".tmp"));
 	wxString targetTempFileName;
 	targetTempFileName = tempFolder + m_pApp->PathSeparator;
 	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameTgt, bareChapterSelectedStr, _T(".tmp"));
+							shortProjNameTgt, chStrForFilename, _T(".tmp"));
 	wxString freeTransTempFileName; freeTransTempFileName.Empty();
 	if (m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
 		freeTransTempFileName = tempFolder + m_pApp->PathSeparator;
 		freeTransTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameFreeTrans, bareChapterSelectedStr, _T(".tmp"));
+							shortProjNameFreeTrans, chStrForFilename, _T(".tmp"));
 	}
 	
 	// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-gtk.
+	// whm modified 27Jul11 to pass _T("0") for whole book retrieval on the command-line
+	wxString chStrForCommandLine;
+	if (m_bTempCollabByChapterOnly)
+		chStrForCommandLine = bareChapterSelectedStr;
+	else
+		chStrForCommandLine = _T("0");
 	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
 	commandLineFreeTrans.Empty();
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
-		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
-		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
 	}
 	if (m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+			commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			commandLineFreeTrans = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + bareChapterSelectedStr + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+			commandLineFreeTrans = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
 		}
 	}
 	wxLogDebug(commandLineSrc);
@@ -555,6 +578,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
+		// whm 27Jul11 TODO: modify code below to retrieve whole chapter if m_bTempCollabByChapterOnly is FALSE
 		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
 		wxString beProjPathSrc, beProjPathTgt;
 		beProjPathSrc = beProjPath + m_pApp->PathSeparator + shortProjNameSrc;
@@ -585,6 +609,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
+			// whm 27Jul11 TODO: modify code below to retrieve whole chapter if m_bTempCollabByChapterOnly is FALSE
 			wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
 			wxString beProjPathFreeTrans;
 			beProjPathFreeTrans = beProjPath + m_pApp->PathSeparator + shortProjNameFreeTrans;
@@ -673,6 +698,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	} // end of TRUE block for test: if (m_pApp->m_bCollaborationExpectsFreeTrans && resultFreeTrans != 0)
+
+	// whm Note to Bruce 27Jul11:
+	// I've made the list boxes and other elements of the GUI adjust for the
+	// differences in working by chapter only or by whole book. I think it is
+	// all set up to this point in the OnOK() handler too (I've a little work
+	// to do re my TODO: notes above for direct collaboration with Bibledit).
 
 	// whm TODO: after grabbing the chapter source text from the PT project, and before copying it
 	// to the appropriate AI project's "__SOURCE_INPUTS" folder, we should check the contents of the
@@ -880,10 +911,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			wxString documentName;
 			// Note: we use a stardard Paratext naming for documents, but omit 
 			// project short name(s)
+		
+			// whm 27Jul11 modified below for whole book vs chapter operation
+			wxString chForDocName;
+			if (m_bTempCollabByChapterOnly)
+				chForDocName = bareChapterSelectedStr;
+			else
+				chForDocName = _T("");
+			
 			wxString docTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-							bookCode, _T(""), bareChapterSelectedStr, _T(""));
+							bookCode, _T(""), chForDocName, _T(""));
 			documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-							bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
+							bookCode, _T(""), chForDocName, _T(".xml"));
 			// create the absolute path to the document we are checking for
 			wxString docPath = aiMatchedProjectFolderPath + m_pApp->PathSeparator
 				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator
@@ -892,7 +931,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			m_pApp->m_curOutputFilename = documentName;
 			// make the backup filename too
 			m_pApp->m_curOutputBackupFilename = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-							bookCode, _T(""), bareChapterSelectedStr, _T(".BAK"));
+							bookCode, _T(""), chForDocName, _T(".BAK"));
 
 			// disallow Book mode, and prevent user from turning it on
 			m_pApp->m_bBookMode = FALSE;
@@ -952,7 +991,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// newly grabbed source text
 				wxString pathCreationErrors;
 				wxString sourceFileTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-									_T(""), bareChapterSelectedStr, _T(""));
+									_T(""), chForDocName, _T(""));
 				bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
 										pathCreationErrors, sourceChapterBuffer, sourceFileTitle);
 				// don't expect a failure in this, but if so, tell developer (English
@@ -1121,10 +1160,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		wxString documentName;
 		// Note: we use a stardard Paratext naming for documents, but omit 
 		// project short name(s)
+		
+		// whm 27Jul11 modified below for whole book vs chapter operation
+		wxString chForDocName;
+		if (m_bTempCollabByChapterOnly)
+			chForDocName = bareChapterSelectedStr;
+		else
+			chForDocName = _T("");
+		
 		wxString docTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-						bookCode, _T(""), bareChapterSelectedStr, _T(""));
+						bookCode, _T(""), chForDocName, _T(""));
 		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-						bookCode, _T(""), bareChapterSelectedStr, _T(".xml"));
+						bookCode, _T(""), chForDocName, _T(".xml"));
 		// create the absolute path to the document we are checking for
 		wxString docPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator
 			+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator + documentName;
@@ -1132,7 +1179,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		m_pApp->m_curOutputFilename = documentName;
 		// make the backup filename too
 		m_pApp->m_curOutputBackupFilename = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-						bookCode, _T(""), bareChapterSelectedStr, _T(".BAK"));
+						bookCode, _T(""), chForDocName, _T(".BAK"));
 		// Step 4. (code copied from above)
 		wxASSERT(m_pApp->m_pSourcePhrases->IsEmpty());
 		// parse the input file
@@ -1791,7 +1838,37 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxASSERT(pListBoxBookNames->GetSelection() != wxNOT_FOUND);
 	m_TempCollabBookSelected = pListBoxBookNames->GetStringSelection();
 	
-	
+	// whm added 27Jul11. Adjust the interface to Whole Book mode
+	if (!m_bTempCollabByChapterOnly)
+	{ 
+		// For Whole Book mode we need to:
+		// 1. Remove the chapter list's selection and disable it
+		// 2. Change its listbox static text heading from "Select a chapter:" 
+		//    to "Chapter status of selected book:"
+		// 3. Change the informational text in the bottom edit box to something
+		//    informative (see TODO: below)
+		// 4. Empty the m_TempCollabChapterSelected variable to signal to
+		//    other methods that no chapter is selected
+		int itemCt;
+		itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+		long nSelTemp = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
+		if (nSelTemp != wxNOT_FOUND)
+		{
+			pListCtrlChapterNumberAndStatus->Select(nSelTemp,FALSE); // FALSE - means unselect the item
+		}
+		pListCtrlChapterNumberAndStatus->Disable();
+		pStaticSelectAChapter->SetLabel(_("Chapter status of selected book:"));
+		pStaticSelectAChapter->Refresh();
+		wxString noteStr;
+		// whm TODO: For now I'm blanking out the text. Eventually we may want to compose 
+		// a noteStr that says something about the status of the whole book, i.e., 
+		// "All chapters have content", or "The following chapters have verses
+		// that do not yet have content: 1, 5, 12-29"
+		noteStr = _("");
+		pStaticTextCtrlNote->ChangeValue(noteStr);
+		// empty the temp variable that holds the chapter selected
+		m_TempCollabChapterSelected.Empty();
+	}
 }
 
 void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(event))
@@ -2715,18 +2792,61 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 	unsigned int nSel = pRadioBoxChapterOrBook->GetSelection();
 	if (nSel == 0)
 	{
-		m_bChapterOnly = TRUE;
+		m_bTempCollabByChapterOnly = TRUE;
+		// whm added 27Jul11. Changing to Whole Book mode we need to:
+		// 1. Change the listbox static text heading from "Chapter status of
+		//    selected book:" back to "Select a chapter:"
+		// 2. Change the informational text in the bottom edit box to remind
+		//    the user to select a chapter in the list at right.
+		pListCtrlChapterNumberAndStatus->Enable();
+		pStaticSelectAChapter->SetLabel(_("Select a chapter:"));
+		pStaticSelectAChapter->Refresh();
+		pStaticTextCtrlNote->ChangeValue(_T("Please select a chapter in the list at right."));
 	}
 	else
 	{
-		m_bChapterOnly = FALSE;
+		m_bTempCollabByChapterOnly = FALSE;
+		// whm added 27Jul11. Changing to Whole Book mode we need to:
+		// 1. Remove the chapter list's selection and disable it
+		// 2. Change its listbox static text heading from "Select a chapter:" 
+		//    to "Chapter status of selected book:"
+		// 3. Change the informational text in the bottom edit box to something
+		//    informative (see TODO: below)
+		// 4. Empty the m_TempCollabChapterSelected variable to signal to
+		//    other methods that no chapter is selected
+		int itemCt;
+		itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+		long nSelTemp = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
+		if (nSelTemp != wxNOT_FOUND)
+		{
+			pListCtrlChapterNumberAndStatus->Select(nSelTemp,FALSE); // FALSE - means unselect the item
+		}
+		pListCtrlChapterNumberAndStatus->Disable();
+		pStaticSelectAChapter->SetLabel(_("Chapter status of selected book:"));
+		pStaticSelectAChapter->Refresh();
+		wxString noteStr;
+		// whm TODO: For now I'm blanking out the text. Eventually we may want to compose 
+		// a noteStr that says something about the status of the whole book, i.e., 
+		// "All chapters have content", or "The following chapters have verses
+		// that do not yet have content: 1, 5, 12-29"
+		noteStr = _("");
+		pStaticTextCtrlNote->ChangeValue(noteStr);
+		// empty the temp variable that holds the chapter selected
+		m_TempCollabChapterSelected.Empty();
 	}
 }
 
 wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)
 {
-	// the incoming lbChapterSelected is from the "Select a chapter" list and is of the form:
+	// whm adjusted 27Jul11.
+	// if we are dealing with chapter only, the incoming lbChapterSelected is from the 
+	// "Select a chapter" list and is of the form:
 	// "Acts 2 - Empty(no verses of a total of n have content yet)"
+	// However, if we are dealing with chapter only, the incoming lbChapterSelected will
+	// be an empty string. In this case we return the string value _T("0")
+	if (lbChapterSelected.IsEmpty())
+		return _T("0");
+	// from this point on we are dealing with chapter only
 	wxString chStr;
 	int posHyphen = lbChapterSelected.Find(_T('-'));
 	if (posHyphen != wxNOT_FOUND)

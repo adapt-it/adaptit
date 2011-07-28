@@ -3028,6 +3028,7 @@ public:
 	wxString m_CollabProjectForTargetExports;
 	wxString m_CollabProjectForFreeTransExports;
 	wxString m_CollabBookSelected;
+	bool m_bCollabByChapterOnly;
 	wxString m_CollabChapterSelected;
 
 	wxString m_ParatextInstallDirPath;
