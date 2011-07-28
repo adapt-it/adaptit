@@ -47,6 +47,7 @@ public:
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
 	wxString m_TempCollabBookSelected;
+	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	wxString m_TempCollabChapterSelected;
 	wxString m_bareChapterSelected;
 	bool m_bTempCollaborationExpectsFreeTrans; // whm added 6Jul11
@@ -71,7 +72,6 @@ public:
 	wxString m_collabEditorName;
 
 	wxArrayString m_staticBoxDescriptionArray;
-	bool m_bChapterOnly; // FALSE means the "whole book" option
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

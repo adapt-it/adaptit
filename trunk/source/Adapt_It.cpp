@@ -5961,6 +5961,13 @@ wxString szCollabProjectForFreeTransExports = _T("CollabProjectForFreeTransExpor
 // m_CollabBookSelected member variable.
 wxString szCollabBookSelected = _T("CollabBookSelected");
 
+// whm added 27Jul11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
+// "CollabByChapterOnly". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a boolean in the App's
+// m_bCollabByChapterOnly member variable.
+wxString szCollabByChapterOnly = _T("CollabByChapterOnly");
+
 // whm added 27Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
 // "CollabChapterSelected". This value is written in the "Settings" part of the basic
@@ -12611,6 +12618,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_CollabProjectForTargetExports = _T("");
 	m_CollabProjectForFreeTransExports = _T("");
 	m_CollabBookSelected = _T("");
+	m_bCollabByChapterOnly = TRUE; // collaboration defaults to "Get Chapter Only" selected
 	m_CollabChapterSelected = _T("");
 	m_ParatextInstallDirPath.Empty();
 	m_ParatextProjectsDirPath.Empty();
@@ -16571,6 +16579,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_proj"), m_CollabProjectForTargetExports);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_free_trans_proj"), m_CollabProjectForFreeTransExports);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_book_selected"), m_CollabBookSelected);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_by_chapter_only"), m_bCollabByChapterOnly);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_CollabChapterSelected);
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
@@ -16640,6 +16649,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_proj"), m_CollabProjectForTargetExports);
 			bWriteOK = m_pConfig->Write(_T("be_collab_free_trans_proj"), m_CollabProjectForFreeTransExports);
 			bWriteOK = m_pConfig->Write(_T("be_collab_book_selected"), m_CollabBookSelected);
+			bWriteOK = m_pConfig->Write(_T("be_collab_by_chapter_only"), m_bCollabByChapterOnly);
 			bWriteOK = m_pConfig->Write(_T("be_collab_chapter_selected"), m_CollabChapterSelected);
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
@@ -23491,6 +23501,14 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szCollabBookSelected << tab << m_CollabBookSelected;
 	pf->AddLine(data);
 
+	if (m_bCollabByChapterOnly)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szCollabByChapterOnly << tab << number;
+	pf->AddLine(data);
+
 	data.Empty();
 	data << szCollabChapterSelected << tab << m_CollabChapterSelected;
 	pf->AddLine(data);
@@ -24862,6 +24880,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			m_CollabBookSelected = strValue;
 		}
+		else if (name == szCollabByChapterOnly)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0;
+			if (num == 1)
+				m_bCollabByChapterOnly = TRUE;
+			else
+				m_bCollabByChapterOnly = FALSE;
+		}
 		else if (name == szCollabChapterSelected)
 		{
 			m_CollabChapterSelected = strValue;
@@ -25510,11 +25538,13 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bool bReadOK4 = FALSE;
 	bool bReadOK5 = FALSE;
 	bool bReadOK6 = FALSE;
+	bool bReadOK7 = FALSE;
 	bool bTempCollabFlag = FALSE;
 	wxString tempCollabProjForSrcInputs = _T("");
 	wxString tempCollabProjForTgtExports = _T("");
 	wxString tempCollabProjForFreeTransExports = _T("");
 	wxString tempCollabBookSelected = _T("");
+	bool bTempCollabByChapterOnly = TRUE;
 	wxString tempCollabChapterSelected = _T("");
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
@@ -25523,7 +25553,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
 	bReadOK4 = m_pConfig->Read(_T("pt_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
 	bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
-	bReadOK6 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
+	bReadOK6 = m_pConfig->Read(_T("pt_collab_by_chapter_only"), &bTempCollabByChapterOnly);
+	bReadOK7 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
 	} // end wxLogNull block
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
 	{
@@ -25544,7 +25575,11 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		{
 			m_CollabBookSelected = tempCollabBookSelected;
 		}
-		if (bReadOK6 && tempCollabChapterSelected != m_CollabChapterSelected)
+		if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
+		{
+			m_bCollabByChapterOnly = bTempCollabByChapterOnly;
+		}
+		if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
 		{
 			m_CollabChapterSelected = tempCollabChapterSelected;
 		}
@@ -25557,6 +25592,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	tempCollabProjForTgtExports = _T("");
 	tempCollabProjForFreeTransExports = _T("");
 	tempCollabBookSelected = _T("");
+	bTempCollabByChapterOnly = TRUE;
 	tempCollabChapterSelected = _T("");
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
@@ -25565,7 +25601,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
 	bReadOK4 = m_pConfig->Read(_T("be_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
 	bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
-	bReadOK6 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
+	bReadOK6 = m_pConfig->Read(_T("be_collab_by_chapter_only"), &bTempCollabByChapterOnly);
+	bReadOK7 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
 	} // end wxLogNull block
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
 	{
@@ -25586,7 +25623,11 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		{
 			m_CollabBookSelected = tempCollabBookSelected;
 		}
-		if (bReadOK6 && tempCollabChapterSelected != m_CollabChapterSelected)
+		if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
+		{
+			m_bCollabByChapterOnly = bTempCollabByChapterOnly;
+		}
+		if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
 		{
 			m_CollabChapterSelected = tempCollabChapterSelected;
 		}
