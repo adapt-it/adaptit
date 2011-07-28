@@ -72,16 +72,17 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	CCTabbedDialog.$(OBJEXT) CCTableEditDlg.$(OBJEXT) \
 	CCTableNameDlg.$(OBJEXT) CaseEquivPage.$(OBJEXT) \
 	Cell.$(OBJEXT) ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
-	ChooseLanguageDlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
-	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
-	ConflictResolutionDlg.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
-	ConsistentChanger.$(OBJEXT) CorGuess.$(OBJEXT) \
-	DocPage.$(OBJEXT) EarlierTranslationDlg.$(OBJEXT) \
-	EditPreferencesDlg.$(OBJEXT) EditSourceTextDlg.$(OBJEXT) \
-	EmailReportDlg.$(OBJEXT) ExportFunctions.$(OBJEXT) \
-	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
-	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
-	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	ChooseLanguageDlg.$(OBJEXT) CollabUtilities.$(OBJEXT) \
+	ChooseTranslation.$(OBJEXT) CollectBacktranslations.$(OBJEXT) \
+	ComposeBarEditBox.$(OBJEXT) ConflictResolutionDlg.$(OBJEXT) \
+	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
+	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
+	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
+	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
+	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
+	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
+	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
+	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
@@ -353,7 +354,8 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
 	../../source/ChooseConsistencyCheckTypeDlg.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
-	../../source/ComposeBarEditBox.h ../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
+	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
+	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/CorGuess.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
@@ -411,7 +413,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/base64.cpp ../../source/BString.cpp ../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
-	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp \
+	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
@@ -560,6 +562,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseConsistencyCheckTypeDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseTranslation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComposeBarEditBox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConflictResolutionDlg.Po@am__quote@
@@ -945,6 +948,20 @@ ChooseLanguageDlg.obj: ../../source/ChooseLanguageDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ChooseLanguageDlg.cpp' object='ChooseLanguageDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseLanguageDlg.obj `if test -f '../../source/ChooseLanguageDlg.cpp'; then $(CYGPATH_W) '../../source/ChooseLanguageDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseLanguageDlg.cpp'; fi`
+
+CollabUtilities.o: ../../source/CollabUtilities.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CollabUtilities.o -MD -MP -MF $(DEPDIR)/CollabUtilities.Tpo -c -o CollabUtilities.o `test -f '../../source/CollabUtilities.cpp' || echo '$(srcdir)/'`../../source/CollabUtilities.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CollabUtilities.Tpo $(DEPDIR)/CollabUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/CollabUtilities.cpp' object='CollabUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CollabUtilities.o `test -f '../../source/CollabUtilities.cpp' || echo '$(srcdir)/'`../../source/CollabUtilities.cpp
+
+CollabUtilities.obj: ../../source/CollabUtilities.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CollabUtilities.obj -MD -MP -MF $(DEPDIR)/CollabUtilities.Tpo -c -o CollabUtilities.obj `if test -f '../../source/CollabUtilities.cpp'; then $(CYGPATH_W) '../../source/CollabUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CollabUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CollabUtilities.Tpo $(DEPDIR)/CollabUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/CollabUtilities.cpp' object='CollabUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CollabUtilities.obj `if test -f '../../source/CollabUtilities.cpp'; then $(CYGPATH_W) '../../source/CollabUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CollabUtilities.cpp'; fi`
 
 ChooseTranslation.o: ../../source/ChooseTranslation.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseTranslation.o -MD -MP -MF $(DEPDIR)/ChooseTranslation.Tpo -c -o ChooseTranslation.o `test -f '../../source/ChooseTranslation.cpp' || echo '$(srcdir)/'`../../source/ChooseTranslation.cpp
