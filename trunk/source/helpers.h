@@ -159,14 +159,6 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar);
 int Parse_NonEol_WhiteSpace(wxChar *pChar);
 int Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
-wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr);
-wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
-wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str);
-wxString GetFinalMD5FromStructExtentString(const wxString str);
-enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, const wxArrayString& usfmText2);
-bool GetNextVerseLine(const wxArrayString usfmText, int& index);
-bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText); // text is usually src
-bool IsUsfmStructureChanged(wxString& oldText, wxString& newText); // text is usually src
 
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
