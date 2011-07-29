@@ -181,7 +181,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = pRadioBoxCollabOnOrOff->GetString(1);
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pRadioBoxCollabOnOrOff->SetString(1,text);
-	pSetupEditorCollabSizer->Layout()
+	pSetupEditorCollabSizer->Layout();
 
 	int nProjectCount = 0;
 	// get list of PT/BE projects
