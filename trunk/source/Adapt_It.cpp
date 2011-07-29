@@ -15739,8 +15739,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 #endif
 
-	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
+	//wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
+	//wxASSERT(pMenuBar != NULL);
 
 	// ************************* TEMPORARY FOR 6.0.0 ONLY <<-- Maybe, BEW removed OXES
 	// support 15Jun15 until such time as LSDev clarify what the future of OXES is, and
@@ -16587,13 +16587,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
 #endif
 
-	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally 
-	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() 
-	// it makes better sense to do the menu modifications (mostly for the Mac) here at this 
-	// point in OnInit(). It also configures the initial state of the Administrator menu 
-	// according to the m_bShowAdministratorMenu flag set above.
- 	MakeMenuInitializationsAndPlatformAdjustments();
-
 	// whm Note: We should associate the file history with the File menu, and load 
 	// the File History AFTER calling ConfigureInterfaceForUserProfile() above.
 	// 
@@ -16768,6 +16761,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #ifdef __WXMSW__
 		m_collaborationEditor = _T("Paratext"); // default editor
 #endif
+
+	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally 
+	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() 
+	// it makes better sense to do the menu modifications (mostly for the Mac) here at this 
+	// point in OnInit(). It also configures the initial state of the Administrator menu 
+	// according to the m_bShowAdministratorMenu flag set above.
+	// whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
+	// within OnInit() after the above m_collaborationEditor string has been assigned.
+ 	MakeMenuInitializationsAndPlatformAdjustments();
 
 	// whm 28Mar11 TESTING BELOW !!!
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
