@@ -34475,20 +34475,14 @@ void CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED
 
 void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
 {
-//#ifndef __WXMSW__
-//	// Paratext is not available as a Linux application
-//	event.Enable(FALSE);
-//#endif
-// whm 10Jun11 note: m_bParatextIsInstalled is a sufficient test to disable the 
-// Setup Paratext Collaboration... menu item on platforms that don't yet
-// have Paratext
 	if (m_bParatextIsInstalled || m_bBibleditIsInstalled)
 	{
 		event.Enable(TRUE);
 	}
 	else
 	{
-		event.Enable(TRUE);
+		// Neither PT nor BE are installed so disable the menu
+		event.Enable(FALSE);
 	}
 }
 
