@@ -116,8 +116,15 @@ class CSourcePhrase;
 			wxString& strDelimiter, wxString& strStartingVerse, wxChar& charStartingVerseSuffix, 
 			wxString& strEndingVerse, wxChar& charEndingVerseSuffix);
 	wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrRange);
-	bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, VChunkAndMap*& pVChMap);
+	bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, 
+		VChunkAndMap*& pVChMap, bool bVerseMarkerSeenAlready);
 	void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap);
+
+	// the md5Array chunking and mapping by offsets into originalText string are done by
+	// the following chunking function
+	void GetNextVerse_ForChunk(const wxArrayString& md5Array, const wxString& originalText, 
+				const int& curLineVerseInArr, const int& curOffsetVerseInText, 
+				int& endLineVerseInArr, int& endOffsetVerseInText, int& chapterLineIndex);
 
 
 	// BEW added 11July, to get changes to the adaptation and free translation back to the

@@ -248,6 +248,12 @@ contemporary look on all platforms.
 ----------------------------------------------
 Bug fixes in 6.0.0
 ----------------------------------------------
+* Cancelling the Choose Translation dialog it would reopen and require
+a second press of the Cancel button to succeed in closing by cancelling.
+* In some circumstances a duplicate adaptation, or gloss, entry would be 
+added to the set of previously seen adaptations, or glosses, for a given
+source text word or phrase. As well as fixing this, some other less than
+optimal KB entry management behaviours were improved as well.
 * For several years, a user or two has reported an overlap problem of the 
 phrase box with the text either before it, or after it. Noone, including the 
 developers, could reproduce this error at will. We have put in some extra 

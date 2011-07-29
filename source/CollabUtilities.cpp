@@ -2127,47 +2127,80 @@ wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrR
 ///                         if it's verse info is anything other than a simple verse
 ///                         number, such as "27" or "1" and so forth.  E.g "12-14a" would
 ///                         be regarded as 'complex'.
+/// \param bVerseMarkerSeenAlready -> If TRUE, interpret chapterLine = wxNOT_FOUND as indicating
+///                         a chapterless book and change the chapter to be "1"; if FALSE, interpret
+///                         chapterLine = wxNOT_FOUND as indicating we are in the first chunk
+///                         and have not yet come to the first \v marker - in which case
+///                         the chapter number string, pVChMap->strChapter should be given
+///                         a -1 value and other chapter/verse members left with default values.
+///                         bVerseMarkerSeenAlready should be passed in as TRUE even when
+///                         the current line is the line for \v 1.
 ////////////////////////////////////////////////////////////////////////////////////////// 
-bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, VChunkAndMap*& pVChMap)
+bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, 
+							VChunkAndMap*& pVChMap, bool bVerseMarkerSeenAlready)
 {
+	bool bAnalysisOK = TRUE;
 	int nLastIndex = md5Array.GetCount() - 1;
 	if (chapterLine > nLastIndex || verseLine > nLastIndex || pVChMap == NULL)
 		return FALSE;
 	wxString strChapterLine;
 	wxString strChapter;
-	if (chapterLine == wxNOT_FOUND) // -1
+	// Note: pre-verse 1 material goes into an initial chunk with chapter number -1
+	if (!bVerseMarkerSeenAlready)
 	{
-		strChapter = _T("1"); // if there is no \c, assume it's chapter 1
+		// we've not come to the first \v line in the array, so we are processing the
+		// chunk which begins at the start of the array and ends at the line preceding the
+		// first \v line -- for this chunk, strChapter should be given the diagnostic
+		// value of -1. (Markers in this chunk would be ones like \id \mt1 \mt2 \s1 and so
+		// forth)
+		if (chapterLine == -1)
+		{
+			InitializeVChunkAndMap_ChapterVerseInfoOnly(pVChMap);
+			pVChMap->bIsComplex = TRUE; // could be lots of markers in this chunk, treat as complex
+			pVChMap->strChapter = _T("-1"); // diagnostic of the fact this is the pre-verse 1 chunk
+			pVChMap->strStartingVerse = _T("-1");
+			pVChMap->strEndingVerse = _T("-1");
+			// that's enough, no possibility of error, so can return TRUE
+			return TRUE;
+		}
 	}
 	else
 	{
-		strChapterLine = md5Array.Item(chapterLine);
-		strChapter = GetStrictUsfmMarkerFromStructExtentString(strChapterLine);
-	}
-	wxASSERT(verseLine > 0);
-	wxString strVerseLine = md5Array.Item(verseLine);
-	// ensure it really is a \v line
-	wxASSERT(strVerseLine.Find(_T("\\v ")) == 0);
-	wxString strVsRange = GetNumberFromChapterOrVerseStr(strVerseLine);
-	// compose the chapter:verse or chapter:range string that our analysis function
-	// expects, then analyse what we have produced
-	wxString chapVerse = strChapter;
-	chapVerse += _T(":");
-	chapVerse += strVsRange;
-	// initialize the struct
-	InitializeVChunkAndMap_ChapterVerseInfoOnly(pVChMap);
-	// do the chapter/verse analysis
-	bool bAnalysisOK = AnalyseChapterVerseRef_For_Collab(chapVerse, pVChMap->strChapter, 
-		pVChMap->strDelimiter, pVChMap->strStartingVerse, pVChMap->charStartingVerseSuffix, 
-		pVChMap->strEndingVerse, pVChMap->charEndingVerseSuffix);
-	// set the bComplex boolean to TRUE if there is a bridge, or part verse initially or
-	// finally or non-bridged but a part verse
-	if (		pVChMap->charStartingVerseSuffix != _T('\0')	||
-				pVChMap->charEndingVerseSuffix != _T('\0')		||
-				pVChMap->strStartingVerse != pVChMap->strEndingVerse)
-	{
-		pVChMap->bIsComplex = TRUE;
-	}
+		// we are populating a chunk associated with the verse-milestoned part of the data
+		if (chapterLine == wxNOT_FOUND) // -1
+		{
+			strChapter = _T("1"); // if there is no \c, assume it's chapter 1
+		}
+		else
+		{
+			strChapterLine = md5Array.Item(chapterLine);
+			strChapter = GetStrictUsfmMarkerFromStructExtentString(strChapterLine);
+		}
+		wxASSERT(verseLine > 0);
+		wxString strVerseLine = md5Array.Item(verseLine);
+		// ensure it really is a \v line
+		wxASSERT(strVerseLine.Find(_T("\\v ")) == 0);
+		wxString strVsRange = GetNumberFromChapterOrVerseStr(strVerseLine);
+		// compose the chapter:verse or chapter:range string that our analysis function
+		// expects, then analyse what we have produced
+		wxString chapVerse = strChapter;
+		chapVerse += _T(":");
+		chapVerse += strVsRange;
+		// initialize the struct
+		InitializeVChunkAndMap_ChapterVerseInfoOnly(pVChMap);
+		// do the chapter/verse analysis
+		bAnalysisOK = AnalyseChapterVerseRef_For_Collab(chapVerse, pVChMap->strChapter, 
+			pVChMap->strDelimiter, pVChMap->strStartingVerse, pVChMap->charStartingVerseSuffix, 
+			pVChMap->strEndingVerse, pVChMap->charEndingVerseSuffix);
+		// set the bComplex boolean to TRUE if there is a bridge, or part verse initially or
+		// finally or non-bridged but a part verse
+		if (		pVChMap->charStartingVerseSuffix != _T('\0')	||
+					pVChMap->charEndingVerseSuffix != _T('\0')		||
+					pVChMap->strStartingVerse != pVChMap->strEndingVerse)
+		{
+			pVChMap->bIsComplex = TRUE;
+		}
+	} // end of else block for test: if (!bVerseMarkerSeenAlready)
 	// we don't expect failure of the analysis, so we'll just make a test for the
 	// developer, but also do a user log entry in case it happens in the release version
 	if (!bAnalysisOK)
@@ -2198,6 +2231,64 @@ void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap)
 	pVChMap->charStartingVerseSuffix = _T('\0'); // a null wxChar
 	pVChMap->charEndingVerseSuffix = _T('\0'); // a null wxChar
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 nothing 
+/// \param md5Array             ->  StuctureAndExtents MD5 string array we are chunking
+/// \param originalText         ->  the text which was used to generate the md5Array's data                     
+/// \param curLineVerseInArr    ->  index of the current \v line (or 0th line if starting)
+///                                 in md5Array which is the kick-off location for the search for 
+///                                 next \v line in md5Array
+/// \param curOffsetVerseInText ->  offset to wxChar in originalText which is the \v marker
+///                                 corresponding to currLineVerseInArr's marker
+/// \param endLineVerseInArr    <-  the line immediately before the next \v line in md5Array
+///                                 which we found when searching for the next verse line, or
+///                                 the last line of the array if no next \v line exists
+/// \param endOffsetVerseInText <-  offset to wxChar in originalText which is the
+///                                 backslash of the next \v which corresponds to the one
+///                                 in the line following endLineVerseInArr of md5Array. This
+///                                 character offset therefore follows the last character
+///                                 in the delineated chunk within originalText. It is also
+///                                 the same offset as will be curOffsetVerseInText when
+///                                 searching for the next such \v marker. When searching from
+///                                 the last verse in originalText, endOffsetVerseInText
+///                                 will be the offset of the end of the text in
+///                                 originalText, that is, it will point at a null wxChar.
+/// \param chapterLineIndex     <-  we don't halt if a chapter line (one with \c at its start)
+///                                 is encountered, but we do return the index in md5Array
+///                                 for that line, so that the caller knows the chapter
+///                                 number string will change after this call returns, and
+///                                 so the caller can work out what the new chapter number
+///                                 will be for the chunk following this
+///                                 currently-being-delineated one.
+////////////////////////////////////////////////////////////////////////////////////////// 
+void GetNextVerse_ForChunk(const wxArrayString& md5Array, const wxString& originalText, 
+				const int& curLineVerseInArr, const int& curOffsetVerseInText, 
+				int& endLineVerseInArr, int& endOffsetVerseInText, int& chapterLineIndex)
+{
+	wxString mkr;
+	int dataCharCount;
+	wxString strVerse;
+	wxString strChapter;
+	wxString chksum;
+	int curLine = -1;
+	int curChapLine = -1;
+	int curVerseLine = -1;
+	int md5LineCount = md5Array.GetCount();
+	const wxChar* pBuffStart = originalText.GetData();
+	const int buffLen = originalText.Len();
+	const wxChar* pBuffEnd = pBuffStart + buffLen;
+	wxChar* ptr = (wxChar*)pBuffStart;
+	VChunkAndMap* pVChMap = NULL;
+
+
+
+
+
+
+
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 The updated target text, or free translation text, (depending)
