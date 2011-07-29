@@ -562,12 +562,27 @@ void ReplaceEntities(CBString& s)
 
 void SkipWhiteSpace(char*& pPos,char* pEnd)
 {
-a:	if (pPos == pEnd)
-	return;
-	if (IsWhiteSpace(pPos,pEnd))
+	int numBytes;
+	while (pPos < pEnd)
 	{
-		pPos++;
-		goto a;
+	
+		if (IsWhiteSpace(pPos, pEnd, numBytes))
+		{
+			// if it was a zero-width space in UTF-8, which is 0xE2 0x80 0x8B, then we have to
+			// skip 3 bytes - so test and skip accordingly
+			if (numBytes == 3)
+			{
+				pPos = pPos + 3; // skip the 3 bytes of ZWSP in UTF-8
+			}
+			else
+			{
+				pPos++;
+			}
+		}
+		else
+		{
+			return;
+		}
 	}
 }
 
@@ -673,8 +688,10 @@ bool ParseTag(char*& pPos,char* pEnd,bool& bHaltedAtSpace)
 	// tag is malformed
 	bHaltedAtSpace = FALSE;
 	//bool bValid = TRUE; // unused
+	int numBytes = 1;
 	do {
-		if ( (strncmp(pPos,"/>",2) == 0) || IsWhiteSpace(pPos,pEnd) 
+		numBytes = 1; // IsWhiteSpace() may set this to 3 for ZWSP, so exclude ZWSP below
+		if ( (strncmp(pPos,"/>",2) == 0) || (IsWhiteSpace(pPos,pEnd,numBytes) && numBytes != 3) 
 				|| (*pPos == '>') || (*pPos == '=') || (*pPos == '&')
 				|| (*pPos == ';') || (*pPos == '\"'))
 		{
@@ -683,7 +700,11 @@ bool ParseTag(char*& pPos,char* pEnd,bool& bHaltedAtSpace)
 		else
 		{
 			if (pPos < pEnd)
+			{
+				// if IsWhiteSpace() call above returns FALSE, it can't be ZWSP, so we
+				// don't have to advance by more than 1 here
 				pPos++;
+			}
 			else
 				break;
 		}
@@ -694,17 +715,21 @@ bool ParseTag(char*& pPos,char* pEnd,bool& bHaltedAtSpace)
 	}
 	else
 	{
-		if (IsWhiteSpace(pPos,pEnd))
+		numBytes = 1;
+		if (IsWhiteSpace(pPos,pEnd,numBytes) && numBytes != 3) // at ZWSP we aren't "halted at space"
+		{
 			bHaltedAtSpace = TRUE;
+		}
 	}
 	return TRUE;
 }
 
 bool ParseClosingTag(char*& pPos,char* pEnd)
 {
-	//bool bValid = TRUE; // unused
+	int numBytes;
 	do {
-		if ( (strncmp(pPos,"/>",2) == 0) || IsWhiteSpace(pPos,pEnd) 
+		numBytes = 1;
+		if ( (strncmp(pPos,"/>",2) == 0) || (IsWhiteSpace(pPos,pEnd,numBytes) && numBytes != 3) 
 				|| (*pPos == '>') || (*pPos == '=') || (*pPos == '&')
 				|| (*pPos == ';') || (*pPos == '\"'))
 		{
@@ -713,12 +738,17 @@ bool ParseClosingTag(char*& pPos,char* pEnd)
 		else
 		{
 			if (pPos < pEnd)
+			{
+				// if IsWhiteSpace() above isn't ZWSP, then we get here with numBytes == 1
+				// and so don't need to advance by 3
 				pPos++;
+			}
 			else
 				break;
 		}
 	} while (pPos < pEnd);
-	if (IsWhiteSpace(pPos,pEnd) || (*pPos == '=') || (*pPos == '&') 
+	numBytes = 1;
+	if ((IsWhiteSpace(pPos,pEnd,numBytes) && numBytes != 3) || (*pPos == '=') || (*pPos == '&') 
 					|| (*pPos == ';') || (*pPos == '\"'))
 	{
 		return FALSE;
@@ -727,8 +757,23 @@ bool ParseClosingTag(char*& pPos,char* pEnd)
 	return TRUE;
 }
 
-bool IsWhiteSpace(char* pPos,char* pEnd)
+bool IsWhiteSpace(char* pPos, char* pEnd, int& numBytes)
 {
+	// BEW 29Jul11, support ZWSP (zero-width space character, U+200B) as well, which in
+	// UTF-8 is 0xE2m 0x80m 0x8B )
+	//wxChar ZWSP = (wxChar)0x200B; in UTF-16
+	numBytes = 1; // default, except for ZWSP's three bytes
+	if (*pPos == (unsigned char)0xE2 && pPos + 2 <= pEnd)
+	{
+		// it might be a UTF-8 ZWSP character, so check for the next two bytes being 0x80
+		// and 0x8B
+		if (*(pPos + 1) == (unsigned char)0x80 && *(pPos + 2) == (unsigned char)0x8B)
+		{
+			// it's ZWSP, so return TRUE
+			numBytes = 3; // tell caller 3 bytes were matched, not one
+			return TRUE;
+		}
+	}
 	if (pPos == pEnd)
 		return FALSE;
 	if ((*pPos == ' ') || (*pPos == '\t') || (*pPos == '\n') || (*pPos == '\r'))
@@ -1356,7 +1401,9 @@ go:	pAux = pPos; // save start of tag location
 	// branch, depending on what the pPos is pointing at - either white space,
 	// or /> for an empty element, or > for a normal element (which could still
 	// be empty)
-	bIsWhite = IsWhiteSpace(pPos,pEnd);
+	int numBytes = 1;
+	// exclude ZWSP from the test, since we are testing xml's metalanguage, not data
+	bIsWhite = (IsWhiteSpace(pPos,pEnd,numBytes) && numBytes != 3); 
 	if (bIsWhite)
 	{
 		// we are at a space, tab or newline (& still within opening tag)
@@ -1725,7 +1772,8 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 {
 	char* pAux = pPos;
 	do {
-		// use for parsing PCDATA and attribute values
+		// use for parsing PCDATA and attribute values (this will parse
+		// successfully across the utf7 3-byte ZWSP character)
 		if ( (*pPos == '<') || (*pPos == '\"') || (pPos == pEnd)
 		|| (*pPos == '>') || (strncmp(pPos,"/>",2) == 0))
 		{
@@ -1753,21 +1801,18 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 	}
 	if ((*pPos == '>') || (strncmp(pPos,"/>",2) == 0))
 	{
-		// closing tag must have lacked opening <, so try
-		// get pPos back to the error location
-		while (!IsWhiteSpace(pPos,pEnd))
-		{
-			--pPos;
-		}
-		++pPos; // hopefully we are pointing at start of end tag
-				// which lacks its opening < wedge
+		// closing tag must have lacked opening <, so leave pPos at this location
+		// since it is the error location
 		return FALSE;
 	}
 
-	// scan back over any final white space at the end of the PCDATA
+	// scan back over any final white space at the end of the PCDATA, but a 3-byte UTF-8
+	// ZWSP (zero-width space) has to be regarded as part of the PCDATA
 	char* pSavePos = pPos;
 	char* pFinis = pPos;
+	int numBytes;
 	do {
+		numBytes = 1; // default
 		--pFinis;
 		if (pFinis < pAux)
 		{
@@ -1777,8 +1822,22 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 			pcdata.Empty();
 			return TRUE;
 		}
-		if (IsWhiteSpace(pFinis,pEnd))
-			continue;
+		if (IsWhiteSpace(pFinis,pEnd,numBytes)) // numBytes could return 3 (for UTF8 ZWSP)
+		{
+			if (numBytes == 3)
+			{
+				// we backed up over a ZWSP, so go forwards again -- but the utf8 2nd and
+				// 3rd characters will give a FALSE result before this, so this isn't
+				// really necessary -- the 0x8B at the end will cause the else block below
+				// to be entered and ++pFinis; will the go forwards over it, giving the
+				// correct final result -- but no harm in documenting here what is going on
+				pFinis = pFinis + 3;
+			}
+			else
+			{
+				continue;
+			}
+		}
 		else
 		{
 			++pFinis;
@@ -1786,8 +1845,6 @@ bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata)
 		}
 	} while (pFinis > pAux);
 	MakeStrFromPtrs(pAux,pFinis,pcdata);
-
-	//MakeStrFromPtrs(pAux,pPos,pcdata);
 	return TRUE;
 }
 
