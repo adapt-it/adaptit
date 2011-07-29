@@ -119,6 +119,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pBtnCancel = (wxButton*)FindWindowById(wxID_CANCEL);
 	wxASSERT(pBtnCancel != NULL);
 
+	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
+	wxASSERT(pBtnOK != NULL);
+
 	pBtnNoFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_NO_FREE_TRANS);
 	wxASSERT(pBtnNoFreeTrans != NULL);
 
@@ -358,6 +361,13 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 				pListBoxBookNames->SetFocus(); 
 				wxCommandEvent evt;
 				OnLBBookSelected(evt);
+				// whm added 29Jul11. If "Get Whole Book" is ON, we can set the focus
+				// on the OK button
+				if (pRadioBoxChapterOrBook->GetSelection() == 1)
+				{
+					// Get Whole Book is selected, so set focus on OK button
+					pBtnOK->SetFocus();
+				}
 			}
 		}
 		// Normally at this point the "Select a book" list will be populated and any previously
@@ -1827,10 +1837,15 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		if (nSel != wxNOT_FOUND)
 		{
 			pListCtrlChapterNumberAndStatus->Select(nSel);
-			pListCtrlChapterNumberAndStatus->SetFocus();
+			//pListCtrlChapterNumberAndStatus->SetFocus(); // better to set focus on OK button (see below)
 			// Update the wxTextCtrl at the bottom of the dialog with more detailed
 			// info about the book and/or chapter that is selected. 
 			pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+			// whm added 29Jul11.
+			// Set focus to the OK button since we have both a book and chapter selected
+			// so if the user wants to continue work in the same book and chapter s/he
+			// can simply press return.
+			pBtnOK->SetFocus();
 		}
 		else
 		{
@@ -1838,6 +1853,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			// info about the book and/or chapter that is selected. In this case we can
 			// just remind the user to select a chapter.
 			pStaticTextCtrlNote->ChangeValue(_T("Please select a chapter in the list at right."));
+			// whm added 29Jul11.
+			// Set focus to the chapter list
+			pListCtrlChapterNumberAndStatus->SetFocus();
 		}
 	}
 	
@@ -1861,6 +1879,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		if (nSelTemp != wxNOT_FOUND)
 		{
 			pListCtrlChapterNumberAndStatus->Select(nSelTemp,FALSE); // FALSE - means unselect the item
+			// whm added 29Jul11 Set focus on the OK button
+			pBtnOK->SetFocus();
 		}
 		pListCtrlChapterNumberAndStatus->Disable();
 		pStaticSelectAChapter->SetLabel(_("Chapter status of selected book:"));
@@ -1894,6 +1914,11 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 		// Update the wxTextCtrl at the bottom of the dialog with more detailed
 		// info about the book and/or chapter that is selected.
 		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+		// whm modified 29Jul11 We can't set focus on the OK button whenever the 
+		// chapter selection changes, because working via keyboard, the up and
+		// down button especially will them move the focus from OK to to one of
+		// the combo boxes resulting in changing a project!
+		//pBtnOK->SetFocus();
 	}
 	else
 	{
@@ -2799,13 +2824,15 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 	if (nSel == 0)
 	{
 		m_bTempCollabByChapterOnly = TRUE;
-		// whm added 27Jul11. Changing to Whole Book mode we need to:
+		// whm added 27Jul11. Changing to Chapter Only mode we need to:
 		// 1. Change the listbox static text heading from "Chapter status of
 		//    selected book:" back to "Select a chapter:"
 		// 2. Change the informational text in the bottom edit box to remind
 		//    the user to select a chapter in the list at right.
+		// 3. Set focus to the Select a chapter list
 		pListCtrlChapterNumberAndStatus->Enable();
-		pStaticSelectAChapter->SetLabel(_("Select a chapter:"));
+		pListCtrlChapterNumberAndStatus->SetFocus();
+		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
 		pStaticTextCtrlNote->ChangeValue(_T("Please select a chapter in the list at right."));
 	}
@@ -2813,12 +2840,13 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 	{
 		m_bTempCollabByChapterOnly = FALSE;
 		// whm added 27Jul11. Changing to Whole Book mode we need to:
-		// 1. Remove the chapter list's selection and disable it
-		// 2. Change its listbox static text heading from "Select a chapter:" 
+		// 1. Set focus initially on the "Select a book" list
+		// 2. Remove the chapter list's selection and disable it
+		// 3. Change its listbox static text heading from "Select a chapter:" 
 		//    to "Chapter status of selected book:"
-		// 3. Change the informational text in the bottom edit box to something
+		// 4. Change the informational text in the bottom edit box to something
 		//    informative (see TODO: below)
-		// 4. Empty the m_TempCollabChapterSelected variable to signal to
+		// 5. Empty the m_TempCollabChapterSelected variable to signal to
 		//    other methods that no chapter is selected
 		int itemCt;
 		itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
@@ -2828,6 +2856,13 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 			pListCtrlChapterNumberAndStatus->Select(nSelTemp,FALSE); // FALSE - means unselect the item
 		}
 		pListCtrlChapterNumberAndStatus->Disable();
+		if (pListBoxBookNames->GetSelection() != wxNOT_FOUND)
+		{
+			// whm added 29Jul11 Since user just selected "Get Whole Book" and a book is 
+			// selected, set focus on the OK button assuming that working on the book is 
+			// what s/he wants to do now.
+			pBtnOK->SetFocus();
+		}
 		pStaticSelectAChapter->SetLabel(_("Chapter status of selected book:"));
 		pStaticSelectAChapter->Refresh();
 		wxString noteStr;
