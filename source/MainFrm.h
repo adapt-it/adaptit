@@ -188,6 +188,7 @@ class CMainFrame : public wxDocParentFrame
 	void OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event));
 	void OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event));
 	void OnUseToolTips(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateUseToolTips(wxUpdateUIEvent& event);
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);

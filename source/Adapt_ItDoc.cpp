@@ -2598,7 +2598,7 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 		{
 			wxString s;
 			s = _(
-"There was an error parsing in the XML file. If you edited the XML file earlier, you may have introduced an error. Edit it in a word processor then try again.");
+"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
 			wxMessageBox(s, fullFileName, wxICON_INFORMATION);
 			return FALSE; // return FALSE to tell caller we failed
 		}

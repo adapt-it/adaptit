@@ -284,6 +284,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(ID_REPORT_A_PROBLEM, CMainFrame::OnHelpReportAProblem)
 	EVT_MENU(ID_GIVE_FEEDBACK, CMainFrame::OnHelpGiveFeedback)
 	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
+	EVT_UPDATE_UI(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUpdateUseToolTips)
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
 	// disables tooltips
@@ -2067,6 +2068,12 @@ void CMainFrame::OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+void CMainFrame::OnUpdateUseToolTips(wxUpdateUIEvent& event)
+{
+	// always available
+	event.Enable(TRUE);
+}
+
 void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 {
 	//wxMenuBar* pMenuBar = this->GetMenuBar();
@@ -2493,26 +2500,12 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
+	
 	if (pApp->m_bShowAdministratorMenu)
 	{
 		// The menu is currently shown and administrator wants it hidden, no password required
 		// for hiding it.
 		pApp->m_bShowAdministratorMenu = FALSE;
-		
-
-		// is the Admin menu showing? If so, remove it
-		if (!pApp->m_bAdminMenuRemoved)
-		{
-			// it's showing, so get rid of it
-			int menuCount = pMenuBar->GetMenuCount();
-			// whm Note: Bruce designed the Administrator menu item to be
-			// deleted in the CMainFrame's destructor rather than when it
-			// is "Removed" here.
-			pApp->m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
-			pApp->m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
-			pApp->m_bAdminMenuRemoved = TRUE;
-		}
-		pMenuBar->Refresh();
 	}
 	else
 	{
@@ -2530,18 +2523,6 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 		{
 			// a valid password was typed
 			pApp->m_bShowAdministratorMenu = TRUE;
-			
-			// is the Admin menu hidden? If so, install it and show it, otherwise leave it
-			// showing 
-			if (pApp->m_bAdminMenuRemoved)
-			{
-				bool bAppendedOK = pMenuBar->Append(pApp->m_pRemovedAdminMenu,pApp->m_adminMenuTitle);
-				wxASSERT(bAppendedOK);
-				pApp->m_pRemovedAdminMenu = NULL;
-				pApp->m_bAdminMenuRemoved = FALSE;
-				bAppendedOK = bAppendedOK; // to remove compiler warning
-			}
-			pMenuBar->Refresh();
 		}
 		else
 		{
@@ -2552,14 +2533,9 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			// explicitly changed here.
 		}
 	}
-	// whm Note: Even though the "Show Administrator Menu... (Password protected)" 
-	// menu item is a toggle menu item, and would normally toggle its own state
-	// each time it is invoked, we need to ensure its toggle state is in sync with
-	// the internal toggling of the App's m_bShowAdministratorMenu flag - which can
-	// be set either here or in the Edit | Preferences... | View tab. Therefore we
-	// explicitly set the menu's toggle state both here and in the other View tab 
-	// location.
-	pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,pApp->m_bShowAdministratorMenu);
+	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
+	// Administrator menu visible/hidden and verify its toggle state
+	pApp->MakeMenuInitializationsAndPlatformAdjustments();
 }
 
 
